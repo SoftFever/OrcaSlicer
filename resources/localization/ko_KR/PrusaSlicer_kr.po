@@ -3,14 +3,14 @@ msgstr ""
 "Project-Id-Version: slic3rkorean\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-09 14:34+0200\n"
-"PO-Revision-Date: 2019-04-09 16:37+0200\n"
-"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
+"PO-Revision-Date: 2019-05-16 10:02+0900\n"
+"Last-Translator: lee hak-min <hangmini12@naver.com>\n"
 "Language-Team: Korean\n"
 "Language: ko_KR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.8\n"
+"X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Crowdin-Project: slic3rkorean\n"
 "X-Crowdin-Language: ko\n"
@@ -101,7 +101,7 @@ msgstr "인쇄 침대의 직경. 원점 (0,0) 은 중심에 있다고 가정합�
 #: src/slic3r/GUI/BedShapeDialog.cpp:76 src/slic3r/GUI/GUI_Preview.cpp:239
 #: src/libslic3r/GCode/PreviewData.cpp:175
 msgid "Custom"
-msgstr "커스터"
+msgstr "사용자 정의"
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:80
 msgid "Load shape from STL..."
@@ -258,11 +258,11 @@ msgstr "노즐"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:115
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "대체 노즐:"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:181
 msgid "All standard"
-msgstr ""
+msgstr "모든 표준"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:182 src/slic3r/GUI/Tab.cpp:2909
 msgid "All"
@@ -305,23 +305,23 @@ msgstr "사용자 프로필 제거-처음부터 설치 (스냅숏은 사전에 �
 #: src/slic3r/GUI/ConfigWizard.cpp:325
 #, c-format
 msgid "%s Family"
-msgstr ""
+msgstr "%s 가족"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:362
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "사용자 지정 프린터 설정"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:362
 msgid "Custom Printer"
-msgstr ""
+msgstr "사용자 정의 프린터"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:364
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "사용자 정의 프린터 프로필 정의"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:366
 msgid "Custom profile name:"
-msgstr ""
+msgstr "사용자 지정 프로필 이름:"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:390
 msgid "Automatic updates"
@@ -480,7 +480,7 @@ msgstr "배드 온도 :"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1001
 msgid "Select all standard printers"
-msgstr ""
+msgstr "이 프로파일과 호환 가능한 프린터를 선택하세요"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1004
 msgid "< &Back"
@@ -502,11 +502,11 @@ msgstr "취소"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1021
 msgid "Prusa FFF Technology Printers"
-msgstr ""
+msgstr "Prusa FFF 방식 프린터"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1024
 msgid "Prusa MSLA Technology Printers"
-msgstr ""
+msgstr "Prusa MSLA 방식 프린터"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1111
 msgid "Configuration Wizard"
@@ -526,11 +526,11 @@ msgstr "구성 도우미"
 
 #: src/slic3r/GUI/Field.cpp:112
 msgid "default value"
-msgstr ""
+msgstr "기본값"
 
 #: src/slic3r/GUI/Field.cpp:115
 msgid "parameter name"
-msgstr ""
+msgstr "매개 변수 이름"
 
 #: src/slic3r/GUI/Field.cpp:143
 #, c-format
@@ -539,7 +539,7 @@ msgstr "%s 이(가) 백분율을 지원하지 않음"
 
 #: src/slic3r/GUI/Field.cpp:157 src/slic3r/GUI/Field.cpp:180
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "숫자 입력이 잘못 되었습니다."
 
 #: src/slic3r/GUI/Field.cpp:162
 msgid "Input value is out of range"
@@ -552,10 +552,13 @@ msgid ""
 "Select YES if you want to change this value to %d%%, \n"
 "or NO if you are sure that %d %s is a correct value."
 msgstr ""
+"%d%% 대신 %d %s 를 의미 합니까?\n"
+"이 값을 %d%%,로 변경 하려면 예를 선택 하십시오. \n"
+"또는 %d %s가 올바른 값 인지 확인 하십시오."
 
 #: src/slic3r/GUI/Field.cpp:191
 msgid "Parameter validation"
-msgstr ""
+msgstr "매개 변수 이름"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:141
 msgid "Flash!"
@@ -567,7 +570,7 @@ msgstr "아직 플래싱 중입니다. 커넥트를 분리하지 마십시오!"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:187
 msgid "Flashing failed: "
-msgstr ""
+msgstr "펌웨어 플래싱 실패: "
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:268
 msgid "Flashing succeeded!"
@@ -591,12 +594,19 @@ msgid ""
 "Do you want to continue and flash this hex file anyway?\n"
 "Please only continue if you are sure this is the right thing to do."
 msgstr ""
+"이 펌웨어 hex 파일이 프린터 모델과 일치 하지 않습니다.\n"
+"Hex 파일은 다음을 위한 것입니다: %s\n"
+"보고 된 프린터: %s\n"
+"\n"
+"그래도이 hex 파일을 계속 플래싱 하시겠습니까?\n"
+"이것이 옳은 일 이라고 확신 하는 경우에만 계속 하십시오."
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:395 src/slic3r/GUI/FirmwareDialog.cpp:431
 #, c-format
 msgid ""
 "Multiple %s devices found. Please only connect one at a time for flashing."
 msgstr ""
+"여러 %s 장치를 찾았습니다. 깜박이는 경우에는 한 번에 하나씩만 연결 하십시오."
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:412
 #, c-format
@@ -605,21 +615,23 @@ msgid ""
 "If the device is connected, please press the Reset button next to the USB "
 "connector ..."
 msgstr ""
+"%s 장치를 찾을 하지 않았습니다.\n"
+"장치가 연결 된 경우 USB 커넥터 옆에 있는 리셋 단추를 누르십시오."
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:525
 #, c-format
 msgid "The %s device could not have been found"
-msgstr ""
+msgstr "%s 장치를 찾을 수 없습니다"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:603
 #, c-format
 msgid "Error accessing port at %s: %s"
-msgstr ""
+msgstr "%s 포트에 액세스 하는 중 오류가 발생 했습니다 :%s"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:605
 #, c-format
 msgid "Error: %s"
-msgstr ""
+msgstr "에러: %s"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:735
 msgid "Firmware flasher"
@@ -635,7 +647,7 @@ msgstr "시리얼 포트:"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:768
 msgid "Autodetected"
-msgstr ""
+msgstr "자동 감지"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:769
 msgid "Rescan"
@@ -655,12 +667,12 @@ msgstr "준비"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:800
 msgid "Advanced: Output log"
-msgstr ""
+msgstr "고급: 출력 로그"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:811
 #: src/slic3r/GUI/PrintHostDialogs.cpp:161
 msgid "Close"
-msgstr ""
+msgstr "닫기"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:859
 msgid ""
@@ -676,7 +688,7 @@ msgstr "확인"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:863
 msgid "Cancelling..."
-msgstr ""
+msgstr "취소 중...."
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:709
 msgid "Detected object outside print volume"
@@ -684,17 +696,19 @@ msgstr "출력물이 프린터 출력 사이즈를 넘었습니다"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:710
 msgid "Detected toolpath outside print volume"
-msgstr ""
+msgstr "인쇄 영역 밖에 있는 공구 경로가 감지 되었습니다"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:711
 msgid "Some objects are not visible when editing supports"
-msgstr ""
+msgstr "편집 지원 시 일부 객체가 표시 되지 않음"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:713
 msgid ""
 "Detected object outside print volume\n"
 "Resolve a clash to continue slicing/export process correctly"
 msgstr ""
+"인쇄 볼륨 외부에서 감지 된 오브젝트\n"
+"조각화/내보내기 프로세스를 올바르게 계속 하려면 충돌 해결"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:35
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:195
@@ -708,7 +722,7 @@ msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:43
 msgid "Cut object:"
-msgstr ""
+msgstr "객체 잘라내기:"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:88
 msgid "Cut [C]"
@@ -716,7 +730,7 @@ msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:188 src/libslic3r/PrintConfig.cpp:3006
 msgid "Cut"
-msgstr "자르기"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:193
 msgid "Keep upper part"
@@ -728,59 +742,59 @@ msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp:32
 msgid "Place on face [F]"
-msgstr ""
+msgstr "면 배치 [F]"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoMove.cpp:51
 msgid "Move [M]"
-msgstr ""
+msgstr "이동 [M]"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoMove.cpp:176
 msgid "Position (mm)"
-msgstr ""
+msgstr "위치 (mm)"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoMove.cpp:176
 msgid "Displacement (mm)"
-msgstr ""
+msgstr "변위 (mm)"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp:458
 msgid "Rotate [R]"
-msgstr ""
+msgstr "회전 [R]"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp:491
 msgid "Rotation (deg)"
-msgstr ""
+msgstr "회전 (°)"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoScale.cpp:51
 msgid "Scale [S]"
-msgstr ""
+msgstr "스케일 [S]"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoScale.cpp:276
 msgid "Scale (%)"
-msgstr ""
+msgstr "스케일 (%)"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:597
 msgid "Left mouse click - add point"
-msgstr ""
+msgstr "마우스 왼쪽 클릭-점 추가"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:598
 msgid "Right mouse click - remove point"
-msgstr ""
+msgstr "마우스 오른쪽 버튼 클릭-점 제거"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:599
 msgid "Shift + Left (+ drag) - select point(s)"
-msgstr ""
+msgstr "Shift + 왼쪽 (+ 끌기)-점 선택"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:606
 msgid "Head diameter: "
-msgstr ""
+msgstr "헤드 지름: "
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:618
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "새 고립 영역에서 잠금 지원"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:622
 msgid "Remove selected points"
-msgstr ""
+msgstr "선택한 점 제거"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:626
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:679
@@ -817,11 +831,11 @@ msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:767
 msgid "Do you want to save your manually edited support points ?\n"
-msgstr ""
+msgstr "수동으로 편집한 지원 지점을 저장 하시겠습니까?\n"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:768
 msgid "Save changes?"
-msgstr ""
+msgstr "변경 사항을 저장 하 시겠습니까?"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:897
 msgid ""
@@ -829,6 +843,9 @@ msgid ""
 "\n"
 "Are you sure you want to do it?\n"
 msgstr ""
+"자동 생성은 수동으로 편집한 모든 점을 지웁니다.\n"
+"\n"
+"당신은 당신은 그렇게 하시겠습니까?\n"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:899 src/slic3r/GUI/GUI.cpp:288
 #: src/slic3r/GUI/WipeTowerDialog.cpp:44 src/slic3r/GUI/WipeTowerDialog.cpp:328
@@ -837,11 +854,11 @@ msgstr "위험"
 
 #: src/slic3r/GUI/GUI.cpp:147 src/slic3r/GUI/Tab.cpp:2720
 msgid "It's impossible to print multi-part object(s) with SLA technology."
-msgstr ""
+msgstr "SLA 방식을 사용 하여 멀티파트를 인쇄할 수는 없습니다."
 
 #: src/slic3r/GUI/GUI.cpp:148
 msgid "Please check and fix your object list."
-msgstr ""
+msgstr "개체 목록을 확인 하고 수정 하십시오."
 
 #: src/slic3r/GUI/GUI.cpp:149 src/slic3r/GUI/GUI_App.cpp:679
 #: src/slic3r/GUI/Tab.cpp:2722
@@ -854,23 +871,23 @@ msgstr "공지"
 
 #: src/slic3r/GUI/GUI_App.cpp:318
 msgid "Changing of an application language"
-msgstr ""
+msgstr "응용 프로그램 언어 변경"
 
 #: src/slic3r/GUI/GUI_App.cpp:326 src/slic3r/GUI/GUI_App.cpp:335
 msgid "Recreating"
-msgstr ""
+msgstr "재현"
 
 #: src/slic3r/GUI/GUI_App.cpp:339
 msgid "Loading of a current presets"
-msgstr ""
+msgstr "현재 프리셋 불러오기"
 
 #: src/slic3r/GUI/GUI_App.cpp:347
 msgid "Loading of a mode view"
-msgstr ""
+msgstr "모드 보기 로드"
 
 #: src/slic3r/GUI/GUI_App.cpp:429
 msgid "Choose one file (3MF):"
-msgstr ""
+msgstr "파일 (3MF)를 선택:"
 
 #: src/slic3r/GUI/GUI_App.cpp:441
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
@@ -920,11 +937,11 @@ msgstr "응용 프로그램 환경 설정"
 
 #: src/slic3r/GUI/GUI_App.cpp:616 src/slic3r/GUI/wxExtensions.cpp:2446
 msgid "Simple"
-msgstr ""
+msgstr "단순"
 
 #: src/slic3r/GUI/GUI_App.cpp:616
 msgid "Simple View Mode"
-msgstr ""
+msgstr "단순 보기 모드"
 
 #: src/slic3r/GUI/GUI_App.cpp:617 src/slic3r/GUI/GUI_ObjectList.cpp:73
 #: src/slic3r/GUI/Tab.cpp:977 src/slic3r/GUI/Tab.cpp:992
@@ -939,23 +956,23 @@ msgstr "고급"
 
 #: src/slic3r/GUI/GUI_App.cpp:617
 msgid "Advanced View Mode"
-msgstr ""
+msgstr "고급 보기 모드"
 
 #: src/slic3r/GUI/GUI_App.cpp:618 src/slic3r/GUI/wxExtensions.cpp:2448
 msgid "Expert"
-msgstr ""
+msgstr "전문가"
 
 #: src/slic3r/GUI/GUI_App.cpp:618
 msgid "Expert View Mode"
-msgstr ""
+msgstr "전문가 보기 모드"
 
 #: src/slic3r/GUI/GUI_App.cpp:623
 msgid "Mode"
-msgstr ""
+msgstr "모드"
 
 #: src/slic3r/GUI/GUI_App.cpp:623
 msgid "Slic3r View Mode"
-msgstr ""
+msgstr "Slic3r 보기 모드"
 
 #: src/slic3r/GUI/GUI_App.cpp:625
 msgid "Change Application &Language"
@@ -979,15 +996,15 @@ msgstr "스냅 샷 이름"
 
 #: src/slic3r/GUI/GUI_App.cpp:676
 msgid "Application will be restarted after language change."
-msgstr ""
+msgstr "언어 변경 후 응용 프로그램이 다시 시작 됩니다."
 
 #: src/slic3r/GUI/GUI_App.cpp:677
 msgid "3D-Scene will be cleaned."
-msgstr ""
+msgstr "3D-장면이 청소 됩니다."
 
 #: src/slic3r/GUI/GUI_App.cpp:678
 msgid "Please, check your changes before."
-msgstr ""
+msgstr "이전에 변경 사항을 확인 하십시오."
 
 #: src/slic3r/GUI/GUI_App.cpp:706
 msgid "&Configuration"
@@ -1055,7 +1072,7 @@ msgstr "익스트루더"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:39
 msgid "Pad and Support"
-msgstr ""
+msgstr "패드 및 서포트"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:68 src/slic3r/GUI/GUI_Preview.cpp:215
 #: src/slic3r/GUI/Tab.cpp:1035 src/libslic3r/PrintConfig.cpp:198
@@ -1085,7 +1102,7 @@ msgstr "압출 폭"
 #: src/libslic3r/PrintConfig.cpp:2486 src/libslic3r/PrintConfig.cpp:2496
 #: src/libslic3r/PrintConfig.cpp:2504
 msgid "Supports"
-msgstr ""
+msgstr "서포트"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:76 src/slic3r/GUI/Tab.cpp:3337
 #: src/slic3r/GUI/Tab.cpp:3338 src/libslic3r/PrintConfig.cpp:2512
@@ -1093,7 +1110,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:2540 src/libslic3r/PrintConfig.cpp:2553
 #: src/libslic3r/PrintConfig.cpp:2562
 msgid "Pad"
-msgstr ""
+msgstr "패드"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:173
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:45
@@ -1102,40 +1119,40 @@ msgstr "이름"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:201
 msgid "Right button click the icon to change the object settings"
-msgstr ""
+msgstr "아이콘을 클릭 하여 개체 설정을 변경 합니다"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:209
 #, c-format
 msgid "Auto-repaired (%d errors):\n"
-msgstr ""
+msgstr "오류자동수정 (%d errors)\n"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:212
 msgid "degenerate facets"
-msgstr ""
+msgstr "더러운 면"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:213
 msgid "edges fixed"
-msgstr ""
+msgstr "모서리 고정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:214
 msgid "facets removed"
-msgstr ""
+msgstr "면 제거"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:215
 msgid "facets added"
-msgstr ""
+msgstr "면 추가됨"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:216
 msgid "facets reversed"
-msgstr ""
+msgstr "면 반전"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:217
 msgid "backwards edges"
-msgstr ""
+msgstr "뒤쪽 가장자리"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:231
 msgid "Right button click the icon to fix STL through Netfabb"
-msgstr ""
+msgstr "아이콘을 클릭 하여 Netfabb에서 STL을 수정 합니다"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:278 src/slic3r/GUI/Tab.cpp:1430
 #: src/libslic3r/PrintConfig.cpp:454
@@ -1146,85 +1163,85 @@ msgstr "익스트루더(Extruder)"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:969 src/slic3r/GUI/GUI_ObjectList.cpp:1199
 #, c-format
 msgid "Quick Add Settings (%s)"
-msgstr ""
+msgstr "빠른 추가 설정 (%s)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:746
 msgid "Select showing settings"
-msgstr ""
+msgstr "설정 표시를 선택 합니다"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:874
 msgid "Load"
-msgstr ""
+msgstr "불러오기"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:879 src/slic3r/GUI/GUI_ObjectList.cpp:911
 #: src/slic3r/GUI/GUI_ObjectList.cpp:914
 msgid "Box"
-msgstr ""
+msgstr "박스"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:879
 msgid "Cylinder"
-msgstr ""
+msgstr "원통"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:879
 msgid "Sphere"
-msgstr ""
+msgstr "영역"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:879
 msgid "Slab"
-msgstr ""
+msgstr "슬랩"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:890 src/slic3r/GUI/GUI_ObjectList.cpp:906
 msgid "Add part"
-msgstr ""
+msgstr "파트 추가"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:891
 msgid "Add modifier"
-msgstr ""
+msgstr "편집영역(modifier) 추가"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:892 src/slic3r/GUI/GUI_ObjectList.cpp:910
 msgid "Add support enforcer"
-msgstr ""
+msgstr "서포트 지원(enforcer)영역 추가"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:893 src/slic3r/GUI/GUI_ObjectList.cpp:913
 msgid "Add support blocker"
-msgstr ""
+msgstr "서포트 금지영역(blocker) 추가"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:934
 msgid "Split to parts"
-msgstr ""
+msgstr "파트로 분할"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:942
 msgid "Add settings"
-msgstr ""
+msgstr "다음 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1009
 msgid "Change type"
-msgstr ""
+msgstr "타입 변경"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1016
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1153
 msgid "Set as a Separated Object"
-msgstr ""
+msgstr "분리 된 객체로 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1024
 msgid "Rename"
-msgstr ""
+msgstr "이름 변경"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1034
 msgid "Fix through the Netfabb"
-msgstr ""
+msgstr "네트워크를 통해 수정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1041 src/slic3r/GUI/Plater.cpp:2861
 msgid "Export as STL"
-msgstr ""
+msgstr "STL로 내보내기"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1048
 msgid "Change extruder"
-msgstr ""
+msgstr "압출기(익스트루더) 변경"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1073
 msgid "Select new extruder for the object/part"
-msgstr ""
+msgstr "객체/부품에 대한 새 압출(익스트루더) 기 선택"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1079 src/slic3r/GUI/Plater.cpp:2825
 #: src/slic3r/GUI/Plater.cpp:2843 src/slic3r/GUI/Tab.cpp:2860
@@ -1233,19 +1250,19 @@ msgstr "지우기(delete)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1153
 msgid "Set as a Separated Objects"
-msgstr ""
+msgstr "분리 된 객체로 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1374
 msgid "Generic"
-msgstr ""
+msgstr "일반"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1516
 msgid "You can't delete the last solid part from object."
-msgstr ""
+msgstr "마지막 솔리드 파트는 객체에서 삭제할 수 없습니다."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1533
 msgid "You can't delete the last intance from object."
-msgstr ""
+msgstr "개체에서 마지막 인텐스(intance)를 삭제할 수 없습니다."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1560 src/slic3r/GUI/Plater.cpp:2219
 msgid ""
@@ -1255,53 +1272,53 @@ msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1676
 msgid "Group manipulation"
-msgstr ""
+msgstr "그룹 조작"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1688
 msgid "Object manipulation"
-msgstr ""
+msgstr "개체 조작"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1698
 msgid "Object Settings to modify"
-msgstr ""
+msgstr "수정할 개체 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1702
 msgid "Part Settings to modify"
-msgstr ""
+msgstr "수정할 부품 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1711
 msgid "Part manipulation"
-msgstr ""
+msgstr "파트 조작"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1717
 msgid "Instance manipulation"
-msgstr ""
+msgstr "인스턴스 제거"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2240
 msgid "Object or Instance"
-msgstr ""
+msgstr "개체 또는 인스턴스"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2240
 msgid "Part"
-msgstr ""
+msgstr "부품"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2242
 msgid "Unsupported selection"
-msgstr ""
+msgstr "지원 되지 않는 선택"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2243
 #, c-format
 msgid "You started your selection with %s Item."
-msgstr ""
+msgstr "%s 항목으로 선택을 시작 했습니다."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2244
 #, c-format
 msgid "In this mode you can select only other %s Items%s"
-msgstr ""
+msgstr "이 모드에서는 %s의 다른 %s 항목만 선택할 수 있습니다"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2247
 msgid "of a current Object"
-msgstr ""
+msgstr "현재 개체의"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2252
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2325 src/slic3r/GUI/Plater.cpp:117
@@ -1310,19 +1327,19 @@ msgstr "정보"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2366
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "객체의 마지막 솔리드 부품 유형은 변경할 수 없습니다."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2373
 msgid "Select type of part"
-msgstr ""
+msgstr "부품 유형 선택"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2538
 msgid "Enter new name"
-msgstr ""
+msgstr "새 이름 입력"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2538
 msgid "Renaming"
-msgstr ""
+msgstr "이름 바꾸기"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2554
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2632 src/slic3r/GUI/Tab.cpp:3191
@@ -1337,37 +1354,37 @@ msgstr "다음 문자는 허용되지 않습니다:"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2653
 msgid "Set extruder for selected items"
-msgstr ""
+msgstr "선택한 항목에 대한 압출기(익스트루더) 설정"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2654
 msgid "Select extruder number for selected objects and/or parts"
-msgstr ""
+msgstr "선택한 객체 및 부품에 대한 압출기(익스트루더) 번호 선택"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2667
 msgid "Select extruder number:"
-msgstr ""
+msgstr "압출기(익스트루더) 번호 선택:"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:2668
 msgid "This extruder will be set for selected items"
-msgstr ""
+msgstr "선택한 항목에 대한 압출기(익스트루더) 설정"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:25
 msgid "Object Manipulation"
-msgstr ""
+msgstr "개체 조작"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:47
 msgid "Object name"
-msgstr ""
+msgstr "개체 이름"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:115
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:160
 msgid "Position"
-msgstr ""
+msgstr "위치"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:116
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:161
 msgid "Rotation"
-msgstr ""
+msgstr "회전"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:117
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:201
@@ -1378,7 +1395,7 @@ msgstr "크기"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:162
 msgid "Scale factors"
-msgstr ""
+msgstr "축척 계수"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:200
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:220
@@ -1388,11 +1405,11 @@ msgstr "회전"
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:219
 msgid "Translate"
-msgstr ""
+msgstr "번역"
 
 #: src/slic3r/GUI/GUI_ObjectSettings.cpp:58
 msgid "Additional Settings"
-msgstr ""
+msgstr "추가적인 세팅"
 
 #: src/slic3r/GUI/GUI_Preview.cpp:209
 msgid "View"
@@ -1424,7 +1441,7 @@ msgstr "도구"
 #: src/slic3r/GUI/GUI_Preview.cpp:218 src/slic3r/GUI/GUI_Preview.cpp:523
 #: src/libslic3r/GCode/PreviewData.cpp:406
 msgid "Color Print"
-msgstr ""
+msgstr "컬러 프린트"
 
 #: src/slic3r/GUI/GUI_Preview.cpp:221
 msgid "Show"
@@ -1502,19 +1519,19 @@ msgstr "쉘"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:13
 msgid "Slic3r Prusa Edition - Keyboard Shortcuts"
-msgstr ""
+msgstr "Slic3r Prusa 에디션-키보드 단축키"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:100
 msgid "Open project STL/OBJ/AMF/3MF with config, delete bed"
-msgstr ""
+msgstr "구성으로 프로젝트 STL/OBJ/AMF/3MF 열기, 배드 삭제"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:101
 msgid "Import STL/OBJ/AMF/3MF without config, keep bed"
-msgstr ""
+msgstr "구성 없이 STL/OBJ/AMF/3MF 가져오기, 배드 유지"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:102
 msgid "Load Config from .ini/amf/3mf/gcode"
-msgstr ""
+msgstr ".Ini/amf/3mf/gcode에서 구성 로드"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:103 src/slic3r/GUI/Plater.cpp:725
 #: src/slic3r/GUI/Plater.cpp:3673 src/libslic3r/PrintConfig.cpp:2957
@@ -1523,19 +1540,19 @@ msgstr "G-코드 내보내기"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:104
 msgid "Save project (3MF)"
-msgstr ""
+msgstr "프로젝트 저장 (3MF)"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:105
 msgid "Load Config from .ini/amf/3mf/gcode and merge"
-msgstr ""
+msgstr ".Ini/amf/3mf/gcode 및 병합에서 구성 로드"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:106
 msgid "(Re)slice"
-msgstr ""
+msgstr "(Re) 슬라이스"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:107
 msgid "Quick slice"
-msgstr ""
+msgstr "빠른 슬라이스"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:108 src/slic3r/GUI/MainFrame.cpp:326
 msgid "Repeat last quick slice"
@@ -1547,27 +1564,27 @@ msgstr "선택 및 플래이트 탭"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:110
 msgid "Quick slice and Save as"
-msgstr ""
+msgstr "빠른 슬라이스 및 다른 이름으로 저장"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:111
 msgid "Select Print Settings Tab"
-msgstr ""
+msgstr "인쇄 설정 탭을 선택 합니다"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:112
 msgid "Select Filament Settings Tab"
-msgstr ""
+msgstr "필라멘트 설정 탭 선택"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:113
 msgid "Select Printer Settings Tab"
-msgstr ""
+msgstr "프린터 설정 탭을 선택 합니다"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:114
 msgid "Switch to 3D"
-msgstr ""
+msgstr "3D로 전환"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:115
 msgid "Switch to Preview"
-msgstr ""
+msgstr "미리 보기로 전환"
 
 # xs/src/slic3r/GUI/Preferences.cpp:9
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:116 src/slic3r/GUI/Preferences.cpp:10
@@ -1577,31 +1594,31 @@ msgstr "환경 설정"
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:117
 #: src/slic3r/GUI/PrintHostDialogs.cpp:134
 msgid "Print host upload queue"
-msgstr ""
+msgstr "호스트 업로드 대기열 인쇄"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:118
 msgid "Camera view "
-msgstr ""
+msgstr "카메라 뷰 "
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:119
 msgid "Add Instance to selected object "
-msgstr ""
+msgstr "선택한 개체에 인스턴스 추가 "
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:120
 msgid "Remove Instance from selected object"
-msgstr ""
+msgstr "선택한 개체의 인스턴스 제거"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:121
 msgid "Show keyboard shortcuts list"
-msgstr ""
+msgstr "바로 가기 키 목록 표시"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:122
 msgid "Select multiple object/Move multiple object"
-msgstr ""
+msgstr "여러 개체 선택/여러 개체 이동"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:124
 msgid "Main Shortcuts"
-msgstr ""
+msgstr "주요 단축키"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:130
 msgid "Arrange"
@@ -1609,11 +1626,11 @@ msgstr "정렬"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:131
 msgid "Select All objects"
-msgstr ""
+msgstr "모든 객체 선택"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:132
 msgid "Delete selected"
-msgstr ""
+msgstr "선택 삭제"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:133
 msgid "Delete All"
@@ -1621,27 +1638,27 @@ msgstr "전부 지움"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:134
 msgid "Gizmo move"
-msgstr ""
+msgstr "기즈모 이동"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:135
 msgid "Gizmo scale"
-msgstr ""
+msgstr "기즈모 배율"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:136
 msgid "Gizmo rotate"
-msgstr ""
+msgstr "기즈모 회전"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:137
 msgid "Gizmo cut"
-msgstr ""
+msgstr "기즈모 컷"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:138
 msgid "Gizmo Place face on bed"
-msgstr ""
+msgstr "Gizmo Place face on bed"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:139
 msgid "Gizmo SLA support points"
-msgstr ""
+msgstr "기즈모 SLA 지원 포인트"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:140
 #, no-c-format
@@ -1649,100 +1666,104 @@ msgid ""
 "Press to snap by 5% in Gizmo scale\n"
 "or by 1mm in Gizmo move"
 msgstr ""
+"기즈모 배율에서 5% in로 스냅 하려면 누릅니다.\n"
+"또는 기 즈 모에서 1mm로 이동"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:141
 msgid ""
 "Press to scale or rotate selected objects\n"
 "around their own center"
 msgstr ""
+"자신의 중심 주변\n"
+"선택한 개체의 크기를 조정 하거나 회전 하려면 누릅니다"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:142
 msgid "Zoom to Bed"
-msgstr ""
+msgstr "배드 확대"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:143
 msgid "Zoom to all objects in scene, if none selected"
-msgstr ""
+msgstr "장면의 모든 오브젝트로 확대/축소 (선택 하지 않은 경우)"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:144
 msgid "Zoom to selected object"
-msgstr ""
+msgstr "선택한 개체로 확대/축소"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:145
 msgid "Zoom in"
-msgstr ""
+msgstr "확대"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:146
 msgid "Zoom out"
-msgstr ""
+msgstr "줌 아웃"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:147
 msgid "Unselect gizmo, keep object selection"
-msgstr ""
+msgstr "기즈모 선택을 취소 하고 객체 선택 유지"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:149
 msgid "Plater Shortcuts"
-msgstr ""
+msgstr "Plater 바로 가기"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:164
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:175
 msgid "Arrow Up"
-msgstr ""
+msgstr "위쪽 화살표"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:164
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:166
 msgid "Upper Layer"
-msgstr ""
+msgstr "상위 레이어"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:165
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:176
 msgid "Arrow Down"
-msgstr ""
+msgstr "아래쪽 화살표"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:165
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:167
 msgid "Lower Layer"
-msgstr ""
+msgstr "하위 레이어"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:169
 msgid "Preview Shortcuts"
-msgstr ""
+msgstr "미리 보기 바로 가기"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:175
 msgid "Move current slider thump Up"
-msgstr ""
+msgstr "현재 슬라이더를 쿵 위로 이동"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:176
 msgid "Move current slider thump Down"
-msgstr ""
+msgstr "현재 슬라이더를 아래로 쿵 이동"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:177
 msgid "Arrow Left"
-msgstr ""
+msgstr "왼쪽 화살표"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:177
 msgid "Set upper thumb to current slider thumb"
-msgstr ""
+msgstr "위쪽 엄지를 현재 슬라이더 엄지 손가락으로 설정"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:178
 msgid "Arrow Right"
-msgstr ""
+msgstr "오른쪽 화살표"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:178
 msgid "Set lower thumb to current slider thumb"
-msgstr ""
+msgstr "낮은 엄지를 현재 슬라이더 엄지 손가락으로 설정"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:179
 msgid "Add color change marker for current layer"
-msgstr ""
+msgstr "현재 레이어의 색상 변경 마커 추가"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:180
 msgid "Delete color change marker for current layer"
-msgstr ""
+msgstr "현재 레이어의 색상 변경 마커 삭제"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:182
 msgid "Layers Slider Shortcuts"
-msgstr ""
+msgstr "레이어 슬라이더 단축키"
 
 #: src/slic3r/GUI/MainFrame.cpp:54
 msgid ""
@@ -1757,39 +1778,39 @@ msgstr "플레이트"
 
 #: src/slic3r/GUI/MainFrame.cpp:273
 msgid "&Open Project"
-msgstr ""
+msgstr "&프로젝트 열기"
 
 #: src/slic3r/GUI/MainFrame.cpp:273
 msgid "Open a project file"
-msgstr ""
+msgstr "프로젝트 파일 열기"
 
 #: src/slic3r/GUI/MainFrame.cpp:275
 msgid "&Save Project"
-msgstr ""
+msgstr "프로젝트 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:275
 msgid "Save current project file"
-msgstr ""
+msgstr "현재 프로젝트 파일 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:277
 msgid "Save Project &as"
-msgstr ""
+msgstr "프로젝트 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:277
 msgid "Save current project file as"
-msgstr ""
+msgstr "현재 프로젝트 파일을 다른 이름으로 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:283
 msgid "Import STL/OBJ/AM&F/3MF"
-msgstr ""
+msgstr "가져오기 STL/OBJ/AM&F/3MF"
 
 #: src/slic3r/GUI/MainFrame.cpp:283
 msgid "Load a model"
-msgstr ""
+msgstr "모델 로드"
 
 #: src/slic3r/GUI/MainFrame.cpp:286
 msgid "Import &Config"
-msgstr ""
+msgstr "& 구성 가져오기"
 
 #: src/slic3r/GUI/MainFrame.cpp:286
 msgid "Load exported configuration file"
@@ -1797,15 +1818,15 @@ msgstr "내 보낸 구성 파일로드"
 
 #: src/slic3r/GUI/MainFrame.cpp:288
 msgid "Import Config from &project"
-msgstr ""
+msgstr "프로젝트에서 설정 가져오기"
 
 #: src/slic3r/GUI/MainFrame.cpp:288
 msgid "Load configuration from project file"
-msgstr ""
+msgstr "프로젝트 파일에서 구성 로드"
 
 #: src/slic3r/GUI/MainFrame.cpp:291
 msgid "Import Config &Bundle"
-msgstr ""
+msgstr "가져오기 설정 &gt; 번들"
 
 #: src/slic3r/GUI/MainFrame.cpp:291
 msgid "Load presets from a bundle"
@@ -1813,7 +1834,7 @@ msgstr "번들에서 미리 설정로드"
 
 #: src/slic3r/GUI/MainFrame.cpp:293
 msgid "&Import"
-msgstr ""
+msgstr "가져오기"
 
 #: src/slic3r/GUI/MainFrame.cpp:296
 msgid "Export &G-code"
@@ -1841,7 +1862,7 @@ msgstr "현재 플레이트를AMF로 내보내기"
 
 #: src/slic3r/GUI/MainFrame.cpp:304
 msgid "Export &Config"
-msgstr ""
+msgstr "& 구성 내보내기"
 
 #: src/slic3r/GUI/MainFrame.cpp:304
 msgid "Export current configuration to file"
@@ -1849,7 +1870,7 @@ msgstr "현재 구성을 파일로 내보내기"
 
 #: src/slic3r/GUI/MainFrame.cpp:306
 msgid "Export Config &Bundle"
-msgstr ""
+msgstr "내보내기 설정 &gt; 번들"
 
 #: src/slic3r/GUI/MainFrame.cpp:306
 msgid "Export all presets to file"
@@ -1857,11 +1878,11 @@ msgstr "모든 이전 설정을 파일로 내보내기"
 
 #: src/slic3r/GUI/MainFrame.cpp:308
 msgid "&Export"
-msgstr ""
+msgstr "& 내보내기"
 
 #: src/slic3r/GUI/MainFrame.cpp:314
 msgid "Quick Slice"
-msgstr ""
+msgstr "빠른 슬라이스"
 
 #: src/slic3r/GUI/MainFrame.cpp:314
 msgid "Slice a file into a G-code"
@@ -1869,7 +1890,7 @@ msgstr "파일을 G 코드로 분할"
 
 #: src/slic3r/GUI/MainFrame.cpp:320
 msgid "Quick Slice and Save As"
-msgstr ""
+msgstr "빠른 슬라이스 및 다른 이름으로 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:320
 msgid "Slice a file into a G-code, save as"
@@ -1877,11 +1898,11 @@ msgstr "파일을 G 코드로 분할하고 다음으로 저장"
 
 #: src/slic3r/GUI/MainFrame.cpp:326
 msgid "Repeat Last Quick Slice"
-msgstr ""
+msgstr "마지막으로 빠른 슬라이스 반복"
 
 #: src/slic3r/GUI/MainFrame.cpp:334
 msgid "(Re)Slice &Now"
-msgstr ""
+msgstr "지금(다시)자르기"
 
 #: src/slic3r/GUI/MainFrame.cpp:334
 msgid "Start new slicing process"
@@ -1897,7 +1918,7 @@ msgstr "STL 파일을 자동으로 복구합니다"
 
 #: src/slic3r/GUI/MainFrame.cpp:340
 msgid "&Quit"
-msgstr ""
+msgstr "종료(&Q)"
 
 #: src/slic3r/GUI/MainFrame.cpp:340
 msgid "Quit Slic3r"
@@ -1909,23 +1930,23 @@ msgstr "모두 선택"
 
 #: src/slic3r/GUI/MainFrame.cpp:374
 msgid "Selects all objects"
-msgstr ""
+msgstr "모든 개체를 선택 합니다"
 
 #: src/slic3r/GUI/MainFrame.cpp:377
 msgid "&Delete selected"
-msgstr ""
+msgstr "선택 삭제"
 
 #: src/slic3r/GUI/MainFrame.cpp:377
 msgid "Deletes the current selection"
-msgstr ""
+msgstr "현재 선택 영역을 삭제 합니다"
 
 #: src/slic3r/GUI/MainFrame.cpp:379
 msgid "Delete &all"
-msgstr ""
+msgstr "전부 지움"
 
 #: src/slic3r/GUI/MainFrame.cpp:379
 msgid "Deletes all objects"
-msgstr ""
+msgstr "모든 객체를 삭제 합니다"
 
 #: src/slic3r/GUI/MainFrame.cpp:392
 msgid "&Plater Tab"
@@ -1937,7 +1958,7 @@ msgstr "플레이트를 보기"
 
 #: src/slic3r/GUI/MainFrame.cpp:399
 msgid "P&rint Settings Tab"
-msgstr ""
+msgstr "P&rint 설정 탭"
 
 #: src/slic3r/GUI/MainFrame.cpp:399
 msgid "Show the print settings"
@@ -1945,7 +1966,7 @@ msgstr "인쇄 설정 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:401
 msgid "&Filament Settings Tab"
-msgstr ""
+msgstr "& 필라멘트 설정 탭"
 
 #: src/slic3r/GUI/MainFrame.cpp:401
 msgid "Show the filament settings"
@@ -1953,7 +1974,7 @@ msgstr "필라멘트 설정보기"
 
 #: src/slic3r/GUI/MainFrame.cpp:403
 msgid "Print&er Settings Tab"
-msgstr ""
+msgstr "설정 인쇄 탭"
 
 #: src/slic3r/GUI/MainFrame.cpp:403
 msgid "Show the printer settings"
@@ -1961,31 +1982,31 @@ msgstr "간단한 설정보기"
 
 #: src/slic3r/GUI/MainFrame.cpp:407
 msgid "3&D"
-msgstr ""
+msgstr "3&D"
 
 #: src/slic3r/GUI/MainFrame.cpp:407
 msgid "Show the 3D editing view"
-msgstr ""
+msgstr "3D 편집용 보기 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:409
 msgid "Pre&view"
-msgstr ""
+msgstr "미리 보기"
 
 #: src/slic3r/GUI/MainFrame.cpp:409
 msgid "Show the 3D slices preview"
-msgstr ""
+msgstr "3D 슬라이스 미리 보기 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:430
 msgid "Print &Host Upload Queue"
-msgstr ""
+msgstr "호스트 업로드 대기열 인쇄"
 
 #: src/slic3r/GUI/MainFrame.cpp:430
 msgid "Display the Print Host Upload Queue window"
-msgstr ""
+msgstr "호스트 업로드 대기열 인쇄 창 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:439
 msgid "Iso"
-msgstr ""
+msgstr "Iso"
 
 #: src/slic3r/GUI/MainFrame.cpp:439
 msgid "Iso View"
@@ -2117,11 +2138,11 @@ msgstr "대화상자 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:482
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "키보드 바로 가기"
 
 #: src/slic3r/GUI/MainFrame.cpp:482
 msgid "Show the list of the keyboard shortcuts"
-msgstr ""
+msgstr "키보드 단축키 목록 표시"
 
 #: src/slic3r/GUI/MainFrame.cpp:490
 msgid "&File"
@@ -2129,7 +2150,7 @@ msgstr "&파일"
 
 #: src/slic3r/GUI/MainFrame.cpp:491
 msgid "&Edit"
-msgstr ""
+msgstr "수정(&Edit)"
 
 #: src/slic3r/GUI/MainFrame.cpp:492
 msgid "&Window"
@@ -2173,11 +2194,11 @@ msgstr "저장 "
 
 #: src/slic3r/GUI/MainFrame.cpp:580
 msgid "SVG"
-msgstr ""
+msgstr "Svg"
 
 #: src/slic3r/GUI/MainFrame.cpp:580
 msgid "G-code"
-msgstr ""
+msgstr "G 코드"
 
 #: src/slic3r/GUI/MainFrame.cpp:580
 msgid " file as:"
@@ -2185,7 +2206,7 @@ msgstr " 다음 파일 :"
 
 #: src/slic3r/GUI/MainFrame.cpp:595
 msgid "Save zip file as:"
-msgstr ""
+msgstr "압축(zip)파일 다른이름 저장:"
 
 #: src/slic3r/GUI/MainFrame.cpp:607 src/slic3r/GUI/Plater.cpp:2352
 #: src/slic3r/GUI/Plater.cpp:3467 src/slic3r/GUI/Tab.cpp:1110
@@ -2280,7 +2301,7 @@ msgstr "사용자 필라멘트 (g)"
 
 #: src/slic3r/GUI/Plater.cpp:210
 msgid "Used Material (unit)"
-msgstr ""
+msgstr "사용 재료 (단위)"
 
 #: src/slic3r/GUI/Plater.cpp:211 src/slic3r/GUI/Plater.cpp:1013
 #: src/libslic3r/PrintConfig.cpp:716
@@ -2290,15 +2311,15 @@ msgstr "비용"
 #: src/slic3r/GUI/Plater.cpp:212 src/slic3r/GUI/Plater.cpp:985
 #: src/slic3r/GUI/Plater.cpp:1027
 msgid "Estimated printing time"
-msgstr ""
+msgstr "예상 인쇄 시간"
 
 #: src/slic3r/GUI/Plater.cpp:213
 msgid "Number of tool changes"
-msgstr ""
+msgstr "공구(tool) 변경 수"
 
 #: src/slic3r/GUI/Plater.cpp:290
 msgid "Click to edit preset"
-msgstr ""
+msgstr "사전 설정을 편집 하려면 클릭 하십시오"
 
 #: src/slic3r/GUI/Plater.cpp:413
 msgid "Select what kind of support do you need"
@@ -2339,11 +2360,11 @@ msgstr "필라멘트"
 
 #: src/slic3r/GUI/Plater.cpp:675 src/slic3r/GUI/Preset.cpp:1252
 msgid "SLA print"
-msgstr ""
+msgstr "SLA 인쇄"
 
 #: src/slic3r/GUI/Plater.cpp:676 src/slic3r/GUI/Preset.cpp:1253
 msgid "SLA material"
-msgstr ""
+msgstr "SLA 재료"
 
 #: src/slic3r/GUI/Plater.cpp:677
 msgid "Printer"
@@ -2360,12 +2381,12 @@ msgstr "지금 자르기"
 
 #: src/slic3r/GUI/Plater.cpp:860
 msgid "Hold Shift to Slice & Export G-code"
-msgstr ""
+msgstr "Shift 키를 누른 채 G 코드 내보내기"
 
 #: src/slic3r/GUI/Plater.cpp:931
 #, c-format
 msgid "%d (%d shells)"
-msgstr ""
+msgstr "% d (% d 쉘)"
 
 #: src/slic3r/GUI/Plater.cpp:936
 #, c-format
@@ -2383,35 +2404,37 @@ msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:949
 msgid "Yes"
-msgstr ""
+msgstr "예"
 
 #: src/slic3r/GUI/Plater.cpp:972
 msgid "Used Material (ml)"
-msgstr ""
+msgstr "사용 재료 (ml)"
 
 #: src/slic3r/GUI/Plater.cpp:975
 msgid "object(s)"
 msgstr ""
+"스커트와 객체 사이의 거리. 스커트를 객체에 부착하고 접착력을 높이기 위해 이"
+"를 0으로 설정한다."
 
 #: src/slic3r/GUI/Plater.cpp:975
 msgid "supports and pad"
-msgstr ""
+msgstr "지지대 및 패드"
 
 #: src/slic3r/GUI/Plater.cpp:1000 src/slic3r/GUI/Plater.cpp:1015
 msgid "objects"
-msgstr ""
+msgstr "개체"
 
 #: src/slic3r/GUI/Plater.cpp:1000 src/slic3r/GUI/Plater.cpp:1015
 msgid "wipe tower"
-msgstr ""
+msgstr "와이프 타워(Wipe tower)"
 
 #: src/slic3r/GUI/Plater.cpp:1030
 msgid "normal mode"
-msgstr ""
+msgstr "일반 모드"
 
 #: src/slic3r/GUI/Plater.cpp:1034
 msgid "silent mode"
-msgstr ""
+msgstr "무음 모드"
 
 #: src/slic3r/GUI/Plater.cpp:1544
 msgid "Loading"
@@ -2441,17 +2464,19 @@ msgid ""
 "This file cannot be loaded in simple mode. Do you want to switch to expert "
 "mode?\n"
 msgstr ""
+"이 파일은 단순 모드에서 로드할 수 없습니다. 전문가 모드로 전환 하시겠습니"
+"까?\n"
 
 #: src/slic3r/GUI/Plater.cpp:1651
 msgid "Detected advanced data"
-msgstr ""
+msgstr "감지된 고급 데이터"
 
 #: src/slic3r/GUI/Plater.cpp:1684
 #, c-format
 msgid ""
 "You can't to add the object(s) from %s because of one or some of them "
 "is(are) multi-part"
-msgstr ""
+msgstr "멀티파트 하나 또는 그 중 일부 때문에 %s에서 개체를 추가 할 수 없습니다"
 
 #: src/slic3r/GUI/Plater.cpp:1704
 msgid ""
@@ -2479,43 +2504,44 @@ msgstr "개체가 너무 큽니까?"
 
 #: src/slic3r/GUI/Plater.cpp:1863
 msgid "Export STL file:"
-msgstr ""
+msgstr "STL 파일 내보내기:"
 
 #: src/slic3r/GUI/Plater.cpp:1870
 msgid "Export AMF file:"
-msgstr ""
+msgstr "AMF 파일 내보내기:"
 
 #: src/slic3r/GUI/Plater.cpp:1876
 msgid "Save file as:"
-msgstr ""
+msgstr "다른 이름으로 파일 저장:"
 
 #: src/slic3r/GUI/Plater.cpp:2042
 msgid "Arranging canceled"
-msgstr ""
+msgstr "취소 된 정렬"
 
 #: src/slic3r/GUI/Plater.cpp:2045
 msgid "Arranging"
-msgstr ""
+msgstr "정렬"
 
 #: src/slic3r/GUI/Plater.cpp:2079
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr ""
+"모델 개체를 정렬할 수 없습니다. 일부 형상은 유효 하지 않을 수 있습니다."
 
 #: src/slic3r/GUI/Plater.cpp:2083
 msgid "Arranging done."
-msgstr ""
+msgstr "정렬 완료."
 
 #: src/slic3r/GUI/Plater.cpp:2124
 msgid "Orientation search canceled"
-msgstr ""
+msgstr "오리엔테이션 검색이 취소 됨"
 
 #: src/slic3r/GUI/Plater.cpp:2129
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "최적의 방향 검색"
 
 #: src/slic3r/GUI/Plater.cpp:2190
 msgid "Orientation found."
-msgstr ""
+msgstr "방향을 찾았습니다."
 
 #: src/slic3r/GUI/Plater.cpp:2211
 msgid ""
@@ -2527,11 +2553,11 @@ msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:2337
 msgid "Invalid data"
-msgstr ""
+msgstr "잘못 된 데이터"
 
 #: src/slic3r/GUI/Plater.cpp:2346
 msgid "Ready to slice"
-msgstr ""
+msgstr "슬라이스 준비"
 
 #: src/slic3r/GUI/Plater.cpp:2379 src/slic3r/GUI/PrintHostDialogs.cpp:220
 msgid "Cancelling"
@@ -2547,7 +2573,7 @@ msgstr "내보내기 실패"
 
 #: src/slic3r/GUI/Plater.cpp:2661 src/slic3r/GUI/PrintHostDialogs.cpp:221
 msgid "Cancelled"
-msgstr ""
+msgstr "취소됨"
 
 #: src/slic3r/GUI/Plater.cpp:2747 src/slic3r/GUI/Plater.cpp:2759
 #: src/slic3r/GUI/Plater.cpp:2831
@@ -2588,11 +2614,11 @@ msgstr "디스크에서 다시 불러오기"
 
 #: src/slic3r/GUI/Plater.cpp:2861
 msgid "Export the selected object as STL file"
-msgstr ""
+msgstr "선택한 객체를 STL 파일로 내보내기"
 
 #: src/slic3r/GUI/Plater.cpp:2873
 msgid "Along X axis"
-msgstr ""
+msgstr "X 축을 따라"
 
 #: src/slic3r/GUI/Plater.cpp:2873
 msgid "Mirror the selected object along the X axis"
@@ -2600,7 +2626,7 @@ msgstr "선택한 객체를 X 축을 따라 반전합니다"
 
 #: src/slic3r/GUI/Plater.cpp:2875
 msgid "Along Y axis"
-msgstr ""
+msgstr "Y 축을 따라"
 
 #: src/slic3r/GUI/Plater.cpp:2875
 msgid "Mirror the selected object along the Y axis"
@@ -2608,7 +2634,7 @@ msgstr "선택한 객체를 Y 축을 따라 반전합니다"
 
 #: src/slic3r/GUI/Plater.cpp:2877
 msgid "Along Z axis"
-msgstr ""
+msgstr "Z 축 따라"
 
 #: src/slic3r/GUI/Plater.cpp:2877
 msgid "Mirror the selected object along the Z axis"
@@ -2624,19 +2650,19 @@ msgstr "반전할 객제를 선택"
 
 #: src/slic3r/GUI/Plater.cpp:2898
 msgid "To objects"
-msgstr ""
+msgstr "개체에"
 
 #: src/slic3r/GUI/Plater.cpp:2898 src/slic3r/GUI/Plater.cpp:2920
 msgid "Split the selected object into individual objects"
-msgstr ""
+msgstr "선택한 개체를 개별 개체로 분할 합니다."
 
 #: src/slic3r/GUI/Plater.cpp:2900
 msgid "To parts"
-msgstr ""
+msgstr "부품에"
 
 #: src/slic3r/GUI/Plater.cpp:2900 src/slic3r/GUI/Plater.cpp:2940
 msgid "Split the selected object into individual sub-parts"
-msgstr ""
+msgstr "선택한 오브젝트를 개별 하위 파트로 분할"
 
 #: src/slic3r/GUI/Plater.cpp:2903 src/slic3r/GUI/Plater.cpp:2920
 #: src/slic3r/GUI/Plater.cpp:2940 src/libslic3r/PrintConfig.cpp:3075
@@ -2645,23 +2671,23 @@ msgstr "쪼개기"
 
 #: src/slic3r/GUI/Plater.cpp:2903
 msgid "Split the selected object"
-msgstr ""
+msgstr "선택한 개체 분할"
 
 #: src/slic3r/GUI/Plater.cpp:2926
 msgid "Optimize orientation"
-msgstr ""
+msgstr "방향 최적화"
 
 #: src/slic3r/GUI/Plater.cpp:2926
 msgid "Optimize the rotation of the object for better print results."
-msgstr ""
+msgstr "더 나은 인쇄 결과를 위해 개체의 회전을 최적화합니다."
 
 #: src/slic3r/GUI/Plater.cpp:3342
 msgid "Save G-code file as:"
-msgstr ""
+msgstr "G-code 파일 다른 이름 저장:"
 
 #: src/slic3r/GUI/Plater.cpp:3342
 msgid "Save SL1 file as:"
-msgstr ""
+msgstr "SL1 파일 다른이름 저장:"
 
 #: src/slic3r/GUI/Plater.cpp:3397
 #, c-format
@@ -2690,11 +2716,11 @@ msgstr "3MF 파일 내보내기 오류 %s"
 
 #: src/slic3r/GUI/Plater.cpp:3673
 msgid "Export"
-msgstr ""
+msgstr "내보내기"
 
 #: src/slic3r/GUI/Plater.cpp:3674
 msgid "Send G-code"
-msgstr ""
+msgstr "G 코드 보내기"
 
 #: src/slic3r/GUI/Preferences.cpp:17 src/slic3r/GUI/Tab.cpp:1762
 #: src/slic3r/GUI/Tab.cpp:1963
@@ -2775,13 +2801,15 @@ msgstr ""
 
 #: src/slic3r/GUI/Preferences.cpp:101
 msgid "Use Retina resolution for the 3D scene"
-msgstr ""
+msgstr "3D 장면에 레티나 해상도 사용"
 
 #: src/slic3r/GUI/Preferences.cpp:103
 msgid ""
 "If enabled, the 3D scene will be rendered in Retina resolution. If you are "
 "experiencing 3D performance problems, disabling this option may help."
 msgstr ""
+"활성화 된 경우 3D 장면은 레티나 해상도로 렌더링 됩니다. 3D 성능 문제가 발생하"
+"는 경우, 옵션을 사용하지 않도록 설정 하면 도움이 될 수 있습니다."
 
 #: src/slic3r/GUI/Preferences.cpp:126
 msgid "You need to restart Slic3r to make the changes effective."
@@ -2804,11 +2832,11 @@ msgstr "사용자 사전설정"
 
 #: src/slic3r/GUI/Preset.cpp:991 src/slic3r/GUI/Tab.cpp:247
 msgid "Add a new printer"
-msgstr ""
+msgstr "새 프린터 추가"
 
 #: src/slic3r/GUI/Preset.cpp:1251
 msgid "filament"
-msgstr ""
+msgstr "필라멘트"
 
 #: src/slic3r/GUI/PresetHints.cpp:28
 #, c-format
@@ -2947,11 +2975,11 @@ msgstr "%d 라인(lines): %.2lf mm"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:32
 msgid "Send G-Code to printer host"
-msgstr ""
+msgstr "프린터 호스트로 G 코드 보내기"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:32
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "다음 파일 이름으로 프린터 호스트에 업로드:"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:34
 msgid "Start printing after upload"
@@ -2963,28 +2991,28 @@ msgstr "필요한 경우 디렉토리 분리 기호로 슬래시 (/)를 사용�
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:157
 msgid "Cancel selected"
-msgstr ""
+msgstr "선택 취소"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:159
 msgid "Show error message"
-msgstr ""
+msgstr "오류 메시지 표시"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:198
 #: src/slic3r/GUI/PrintHostDialogs.cpp:217
 msgid "Enqueued"
-msgstr ""
+msgstr "입력됨"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:218
 msgid "Uploading"
-msgstr ""
+msgstr "업로드"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:222
 msgid "Completed"
-msgstr ""
+msgstr "완료됨"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:260
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "인쇄 호스트에 업로드 하는 중 오류 발생:"
 
 #: src/slic3r/GUI/RammingChart.cpp:23
 msgid "NO RAMMING AT ALL"
@@ -3008,7 +3036,7 @@ msgstr "용적(Volumetric) 스피트"
 
 #: src/slic3r/GUI/SysInfoDialog.cpp:44
 msgid "Slic3r Prusa Edition - System Information"
-msgstr ""
+msgstr "Slic3r Prusa 에디션-시스템 정보"
 
 #: src/slic3r/GUI/Tab.cpp:50 src/libslic3r/PrintConfig.cpp:228
 msgid "Compatible printers"
@@ -3020,11 +3048,11 @@ msgstr "이 프로파일과 호환 가능한 프린터를 선택하세요."
 
 #: src/slic3r/GUI/Tab.cpp:56 src/libslic3r/PrintConfig.cpp:243
 msgid "Compatible print profiles"
-msgstr ""
+msgstr "호환되는 인쇄 프로 파일"
 
 #: src/slic3r/GUI/Tab.cpp:57
 msgid "Select the print profiles this profile is compatible with."
-msgstr ""
+msgstr "이 프로필이 호환되는 인쇄 프로필을 선택 합니다."
 
 #: src/slic3r/GUI/Tab.cpp:132
 msgid "Save current "
@@ -3085,11 +3113,11 @@ msgstr "기본 필라멘트 프로파일"
 
 #: src/slic3r/GUI/Tab.cpp:902
 msgid "default SLA material profile"
-msgstr ""
+msgstr "기본 SLA 재질 프로 파일"
 
 #: src/slic3r/GUI/Tab.cpp:906
 msgid "default SLA print profile"
-msgstr ""
+msgstr "기본 SLA 인쇄 프로필"
 
 #: src/slic3r/GUI/Tab.cpp:948 src/slic3r/GUI/Tab.cpp:3303
 msgid "Layers and perimeters"
@@ -3373,7 +3401,7 @@ msgstr "시험(test)"
 
 #: src/slic3r/GUI/Tab.cpp:1662
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "유효한 프린터 호스트 참조를 가져올 수 없습니다"
 
 #: src/slic3r/GUI/Tab.cpp:1668 src/slic3r/GUI/Tab.cpp:1851
 msgid "Success!"
@@ -3403,6 +3431,11 @@ msgid ""
 "\tTo use a custom CA file, please import your CA file into Certificate "
 "Store / Keychain."
 msgstr ""
+"HTTPS CA 파일:\n"
+"\t이 시스템에서 Slic3r는 시스템 인증서 저장소나 키체인의 HTTPS 인증서를 사용 "
+"합니다.\n"
+"\t사용자 지정 CA 파일을 사용 하려면 CA 파일을 인증서 저장소/키체인에 가져오십"
+"시오."
 
 #: src/slic3r/GUI/Tab.cpp:1763 src/slic3r/GUI/Tab.cpp:1964
 msgid "Size and coordinates"
@@ -3443,7 +3476,7 @@ msgstr "연결 실패."
 
 #: src/slic3r/GUI/Tab.cpp:1867 src/slic3r/GUI/Tab.cpp:2022
 msgid "Print Host upload"
-msgstr ""
+msgstr "호스트 업로드 인쇄"
 
 #: src/slic3r/GUI/Tab.cpp:1911 src/libslic3r/PrintConfig.cpp:128
 msgid "Before layer change G-code"
@@ -3463,19 +3496,19 @@ msgstr "객체 간 G 코드 (순차 인쇄용)"
 
 #: src/slic3r/GUI/Tab.cpp:1990
 msgid "Display"
-msgstr ""
+msgstr "표시"
 
 #: src/slic3r/GUI/Tab.cpp:2001
 msgid "Tilt"
-msgstr ""
+msgstr "기울이기"
 
 #: src/slic3r/GUI/Tab.cpp:2002
 msgid "Tilt time"
-msgstr ""
+msgstr "기울이기 시간"
 
 #: src/slic3r/GUI/Tab.cpp:2008 src/slic3r/GUI/Tab.cpp:3223
 msgid "Corrections"
-msgstr ""
+msgstr "수정"
 
 #: src/slic3r/GUI/Tab.cpp:2074 src/slic3r/GUI/Tab.cpp:2136
 #: src/libslic3r/PrintConfig.cpp:1076 src/libslic3r/PrintConfig.cpp:1086
@@ -3578,7 +3611,7 @@ msgstr "시스템 기본값 (%s)"
 #: src/slic3r/GUI/Tab.cpp:2682
 #, c-format
 msgid "Preset (%s)"
-msgstr ""
+msgstr "프리셋 ( %s)"
 
 #: src/slic3r/GUI/Tab.cpp:2699
 msgid "has the following unsaved changes:"
@@ -3590,7 +3623,7 @@ msgstr "프린터와 호완 되지 않습니다"
 
 #: src/slic3r/GUI/Tab.cpp:2703
 msgid "is not compatible with print profile"
-msgstr ""
+msgstr "인쇄 프로필과 호환 되지 않음"
 
 #: src/slic3r/GUI/Tab.cpp:2705
 msgid "and it has the following unsaved changes:"
@@ -3606,11 +3639,11 @@ msgstr "미 저장된 변경점"
 
 #: src/slic3r/GUI/Tab.cpp:2721
 msgid "Please check your object list before preset changing."
-msgstr ""
+msgstr "사전 설정을 변경 하기 전에 개체 목록을 확인 하십시오."
 
 #: src/slic3r/GUI/Tab.cpp:2801
 msgid "Copy"
-msgstr ""
+msgstr "복사"
 
 #: src/slic3r/GUI/Tab.cpp:2823
 msgid "The supplied name is empty. It can't be saved."
@@ -3773,7 +3806,7 @@ msgstr "The supplied name is not available."
 
 #: src/slic3r/GUI/Tab.cpp:3213
 msgid "Material"
-msgstr ""
+msgstr "재료"
 
 #: src/slic3r/GUI/Tab.cpp:3215 src/slic3r/GUI/Tab.cpp:3305
 msgid "Layers"
@@ -3781,39 +3814,39 @@ msgstr "레이어"
 
 #: src/slic3r/GUI/Tab.cpp:3219
 msgid "Exposure"
-msgstr ""
+msgstr "노출"
 
 #: src/slic3r/GUI/Tab.cpp:3313
 msgid "Support head"
-msgstr ""
+msgstr "서포트 헤드"
 
 #: src/slic3r/GUI/Tab.cpp:3318
 msgid "Support pillar"
-msgstr ""
+msgstr "서포트 기둥"
 
 #: src/slic3r/GUI/Tab.cpp:3328
 msgid "Connection of the support sticks and junctions"
-msgstr ""
+msgstr "서포트 기둥 및 접합부 연결"
 
 #: src/slic3r/GUI/Tab.cpp:3333
 msgid "Automatic generation"
-msgstr ""
+msgstr "자동 생성"
 
 #: src/slic3r/GUI/Tab.cpp:3395
 msgid "Head penetration should not be greater than the head width."
-msgstr ""
+msgstr "헤드 관통은 헤드 폭 보다 크지 않아야 합니다."
 
 #: src/slic3r/GUI/Tab.cpp:3396
 msgid "Invalid Head penetration"
-msgstr ""
+msgstr "잘못된 헤드 관통"
 
 #: src/slic3r/GUI/Tab.cpp:3408
 msgid "Pinhead diameter should be smaller than the pillar diameter."
-msgstr ""
+msgstr "핀헤드 지름은 기둥 지름 보다 작아야 합니다."
 
 #: src/slic3r/GUI/Tab.cpp:3409
 msgid "Invalid pinhead diameter"
-msgstr ""
+msgstr "잘못된 핀 헤드 지름"
 
 #: src/slic3r/GUI/Tab.hpp:307 src/slic3r/GUI/Tab.hpp:395
 msgid "Print Settings"
@@ -3829,7 +3862,7 @@ msgstr "프린터 설정"
 
 #: src/slic3r/GUI/Tab.hpp:381
 msgid "Material Settings"
-msgstr ""
+msgstr "재질 설정"
 
 #: src/slic3r/GUI/Tab.hpp:407
 msgid "Save preset"
@@ -4061,37 +4094,37 @@ msgstr "고급 설정보기"
 #: src/slic3r/GUI/wxExtensions.cpp:2398
 #, c-format
 msgid "Switch to the %s mode"
-msgstr ""
+msgstr "%s 모드로 전환"
 
 #: src/slic3r/GUI/wxExtensions.cpp:2399
 #, c-format
 msgid "Current mode is %s"
-msgstr ""
+msgstr "현재 모드는 %s입니다"
 
 #: src/slic3r/Utils/Duet.cpp:51
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "듀엣보드에 대한 연결이 올바르게 작동 합니다."
 
 #: src/slic3r/Utils/Duet.cpp:56
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "듀엣보드에 연결할 수 없습니다"
 
 #: src/slic3r/Utils/Duet.cpp:84 src/slic3r/Utils/Duet.cpp:154
 msgid "Unknown error occured"
-msgstr ""
+msgstr "알 수 없는 오류가 발생 했습니다"
 
 #: src/slic3r/Utils/Duet.cpp:148
 msgid "Wrong password"
-msgstr ""
+msgstr "잘못된 암호"
 
 #: src/slic3r/Utils/Duet.cpp:151
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "새 연결을 만들 리소스를 가져올수 없습니다"
 
 #: src/slic3r/Utils/OctoPrint.cpp:69
 #, c-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "일치 하지않는 인쇄 호스트 유형: %s"
 
 #: src/slic3r/Utils/OctoPrint.cpp:84
 msgid "Connection to OctoPrint works correctly."
@@ -4107,11 +4140,11 @@ msgstr "참고 : OctoPrint 버전 1.1.0 이상이 필요합니다."
 
 #: src/slic3r/Utils/OctoPrint.cpp:195
 msgid "Connection to Prusa SLA works correctly."
-msgstr ""
+msgstr "Prusa SLA에 대한 연결이 올바르게 작동 합니다."
 
 #: src/slic3r/Utils/OctoPrint.cpp:200
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Prusa SLA에 연결할 수 없습니다"
 
 #: src/slic3r/Utils/PresetUpdater.cpp:583
 #, c-format
@@ -4121,261 +4154,261 @@ msgstr "최소. %s 와 최대. %s"
 #: src/slic3r/Utils/PresetUpdater.cpp:588
 #, c-format
 msgid "requires min. %s"
-msgstr ""
+msgstr "최소 %s가 필요 합니다"
 
 #: src/slic3r/Utils/PresetUpdater.cpp:590
 #, c-format
 msgid "requires max. %s"
-msgstr ""
+msgstr "최대 필요 합니다. %s"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:219
 #: src/slic3r/Utils/FixModelByWin10.cpp:359
 msgid "Exporting source model"
-msgstr ""
+msgstr "소스 모델 내보내기"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:235
 msgid "Failed loading the input model."
-msgstr ""
+msgstr "입력 모델을 로드하지 못했습니다."
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:242
 msgid "Repairing model by the Netfabb service"
-msgstr ""
+msgstr "Netfabb 서비스에의 한 모델 복구"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:248
 msgid "Mesh repair failed."
-msgstr ""
+msgstr "메ㅅ 복구에 실패 했습니다."
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:251
 #: src/slic3r/Utils/FixModelByWin10.cpp:378
 msgid "Loading repaired model"
-msgstr ""
+msgstr "복구 된 모델 로드"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:263
 #: src/slic3r/Utils/FixModelByWin10.cpp:270
 #: src/slic3r/Utils/FixModelByWin10.cpp:302
 msgid "Saving mesh into the 3MF container failed."
-msgstr ""
+msgstr "3MF 컨테이너에 메쉬를 저장하지 못했습니다."
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:340
 msgid "Model fixing"
-msgstr ""
+msgstr "모델 고정"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:341
 msgid "Exporting model..."
-msgstr ""
+msgstr "소스 모델 내보내기..."
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:368
 msgid "Export of a temporary 3mf file failed"
-msgstr ""
+msgstr "임시 3mf 파일을 내보내지 못했습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:383
 msgid "Import of the repaired 3mf file failed"
-msgstr ""
+msgstr "복구된 3mf 파일을 가져오지 못했습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:385
 msgid "Repaired 3MF file does not contain any object"
-msgstr ""
+msgstr "복구된 3MF 파일에 개체가 포함 되어있지 않습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:387
 msgid "Repaired 3MF file contains more than one object"
-msgstr ""
+msgstr "복구된 3MF 파일에 둘 이상의 개체가 포함되어 있습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:389
 msgid "Repaired 3MF file does not contain any volume"
-msgstr ""
+msgstr "복구 된 3MF 파일에 개체가 포함 되어있지 않습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:391
 msgid "Repaired 3MF file contains more than one volume"
-msgstr ""
+msgstr "복구된 3MF 파일에 둘 이상의 개체가 포함되어 있습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:400
 msgid "Model repair finished"
-msgstr ""
+msgstr "모델 수리 완료"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:406
 msgid "Model repair canceled"
-msgstr ""
+msgstr "모델 복구가 취소 되었습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:423
 msgid "Model repaired successfully"
-msgstr ""
+msgstr "모델이 성공적으로 복구 되었습니다"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:423
 #: src/slic3r/Utils/FixModelByWin10.cpp:426
 msgid "Model Repair by the Netfabb service"
-msgstr ""
+msgstr "Netfabb 서비스에의 한 모델 복구"
 
 #: src/slic3r/Utils/FixModelByWin10.cpp:426
 msgid "Model repair failed: \n"
-msgstr ""
+msgstr "모델 복구 실패:\n"
 
 #: src/libslic3r/Zipper.cpp:35
 msgid "undefined error"
-msgstr ""
+msgstr "정의 되지 않은 오류"
 
 #: src/libslic3r/Zipper.cpp:37
 msgid "too many files"
-msgstr ""
+msgstr "파일이 너무 많음"
 
 #: src/libslic3r/Zipper.cpp:39
 msgid "file too large"
-msgstr ""
+msgstr "파일이 너무 큼"
 
 #: src/libslic3r/Zipper.cpp:41
 msgid "unsupported method"
-msgstr ""
+msgstr "지원 되지 않는 방법"
 
 #: src/libslic3r/Zipper.cpp:43
 msgid "unsupported encryption"
-msgstr ""
+msgstr "지원 되지 않는 암호화"
 
 #: src/libslic3r/Zipper.cpp:45
 msgid "unsupported feature"
-msgstr ""
+msgstr "지원 되지 않는 기능"
 
 #: src/libslic3r/Zipper.cpp:47
 msgid "failed finding central directory"
-msgstr ""
+msgstr "중앙 디렉터리를 찾지 못했습니다."
 
 #: src/libslic3r/Zipper.cpp:49
 msgid "not a ZIP archive"
-msgstr ""
+msgstr "zIP 아카이브 아님"
 
 #: src/libslic3r/Zipper.cpp:51
 msgid "invalid header or archive is corrupted"
-msgstr ""
+msgstr "잘못 된 헤더 또는 아카이브가 손상 되었습니다"
 
 #: src/libslic3r/Zipper.cpp:53
 msgid "unsupported multidisk archive"
-msgstr ""
+msgstr "지원 되지 않는 멀티 디스크 아카이브"
 
 #: src/libslic3r/Zipper.cpp:55
 msgid "decompression failed or archive is corrupted"
-msgstr ""
+msgstr "압축 풀기 실패 또는 아카이브가 손상 되었습니다"
 
 #: src/libslic3r/Zipper.cpp:57
 msgid "compression failed"
-msgstr ""
+msgstr "압축 실패"
 
 #: src/libslic3r/Zipper.cpp:59
 msgid "unexpected decompressed size"
-msgstr ""
+msgstr "예기치 않은 압축 해제 크기"
 
 #: src/libslic3r/Zipper.cpp:61
 msgid "CRC-32 check failed"
-msgstr ""
+msgstr "CRC-32 확인 실패"
 
 #: src/libslic3r/Zipper.cpp:63
 msgid "unsupported central directory size"
-msgstr ""
+msgstr "지원 되지 않는 중앙 디렉터리 크기"
 
 #: src/libslic3r/Zipper.cpp:65
 msgid "allocation failed"
-msgstr ""
+msgstr "할당 실패"
 
 #: src/libslic3r/Zipper.cpp:67
 msgid "file open failed"
-msgstr ""
+msgstr "파일 열기 실패"
 
 #: src/libslic3r/Zipper.cpp:69
 msgid "file create failed"
-msgstr ""
+msgstr "파일 만들기 실패"
 
 #: src/libslic3r/Zipper.cpp:71
 msgid "file write failed"
-msgstr ""
+msgstr "파일 쓰기 실패"
 
 #: src/libslic3r/Zipper.cpp:73
 msgid "file read failed"
-msgstr ""
+msgstr "파일 읽기 실패"
 
 #: src/libslic3r/Zipper.cpp:75
 msgid "file close failed"
-msgstr ""
+msgstr "파일 닫기 실패"
 
 #: src/libslic3r/Zipper.cpp:77
 msgid "file seek failed"
-msgstr ""
+msgstr "파일 검색 실패"
 
 #: src/libslic3r/Zipper.cpp:79
 msgid "file stat failed"
-msgstr ""
+msgstr "파일 통계 실패"
 
 #: src/libslic3r/Zipper.cpp:81
 msgid "invalid parameter"
-msgstr ""
+msgstr "잘못 된 매개 변수"
 
 #: src/libslic3r/Zipper.cpp:83
 msgid "invalid filename"
-msgstr ""
+msgstr "잘못 된 파일 이름"
 
 #: src/libslic3r/Zipper.cpp:85
 msgid "buffer too small"
-msgstr ""
+msgstr "버퍼가 너무 작음"
 
 #: src/libslic3r/Zipper.cpp:87
 msgid "internal error"
-msgstr ""
+msgstr "내부 오류"
 
 #: src/libslic3r/Zipper.cpp:89
 msgid "file not found"
-msgstr ""
+msgstr "파일을 찾을수 없다"
 
 #: src/libslic3r/Zipper.cpp:91
 msgid "archive is too large"
-msgstr ""
+msgstr "아카이브가 너무 큼"
 
 #: src/libslic3r/Zipper.cpp:93
 msgid "validation failed"
-msgstr ""
+msgstr "유효성 검사 실패"
 
 #: src/libslic3r/Zipper.cpp:95
 msgid "write calledback failed"
-msgstr ""
+msgstr "쓰기 다시 실패"
 
 #: src/libslic3r/Zipper.cpp:105
 msgid "Error with zip archive"
-msgstr ""
+msgstr "zip 아카이브와 오류가 발생 했습니다"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2153
 msgid "Starting"
-msgstr ""
+msgstr "부터"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2154
 msgid "Filtering"
-msgstr ""
+msgstr "필터링"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2155
 msgid "Generate pinheads"
-msgstr ""
+msgstr "핀 헤드 생성"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2156
 msgid "Classification"
-msgstr ""
+msgstr "주소"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2157
 msgid "Routing to ground"
-msgstr ""
+msgstr "면으로의 라우팅"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2158
 msgid "Routing supports to model surface"
-msgstr ""
+msgstr "모델 표면에 대한 라우팅 지원"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2159
 msgid "Cascading pillars"
-msgstr ""
+msgstr "계단식 기둥"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2160
 msgid "Processing small holes"
-msgstr ""
+msgstr "작은 구멍 가공"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2161
 msgid "Done"
-msgstr ""
+msgstr "완료"
 
 #: src/libslic3r/SLA/SLASupportTree.cpp:2162
 msgid "Abort"
-msgstr ""
+msgstr "중단"
 
 #: src/libslic3r/Print.cpp:1136
 msgid "All objects are outside of the print volume."
@@ -4416,6 +4449,8 @@ msgid ""
 "The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter "
 "and Repetier G-code flavors."
 msgstr ""
+"와이프 타워는 현재 말린, RepRap/Sprinter 및 리피티어에 대해서만 G-코드지원 됩"
+"니다."
 
 #: src/libslic3r/Print.cpp:1205
 msgid ""
@@ -4488,6 +4523,8 @@ msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers "
 "need to be synchronized with the object layers."
 msgstr ""
+"와이프 타워가 가용성 지지체와 함께 작동 하려면 서포트 레이어를 오브젝트 레이"
+"어와 동기화 해야 합니다."
 
 #: src/libslic3r/Print.cpp:1309
 msgid ""
@@ -4496,6 +4533,9 @@ msgid ""
 "support_material_extruder and support_material_interface_extruder need to be "
 "set to 0)."
 msgstr ""
+"와이프 타워는 현재 공구 교체를 트리거하지 않고 현재의 압출기로 인쇄 하는 경우"
+"에만 비가용성 서포트를 지원 합니다. (support_material_extruder과 "
+"support_material_interface_extruder 모두 0으로 설정 해야 합니다.)"
 
 #: src/libslic3r/Print.cpp:1316
 msgid "first_layer_height"
@@ -4511,62 +4551,64 @@ msgstr "레이어 높이는 노즐 직경보다 클 수 없습니다"
 
 #: src/libslic3r/SLAPrint.cpp:55
 msgid "Slicing model"
-msgstr ""
+msgstr "슬라이싱 모델"
 
 #: src/libslic3r/SLAPrint.cpp:56 src/libslic3r/SLAPrint.cpp:801
 msgid "Generating support points"
-msgstr ""
+msgstr "서포트 지점 생성"
 
 #: src/libslic3r/SLAPrint.cpp:57
 msgid "Generating support tree"
-msgstr ""
+msgstr "서포트 트리 생성"
 
 #: src/libslic3r/SLAPrint.cpp:58
 msgid "Generating pad"
-msgstr ""
+msgstr "패드 생성"
 
 #: src/libslic3r/SLAPrint.cpp:59
 msgid "Slicing supports"
-msgstr ""
+msgstr "슬라이싱 서포트즈"
 
 #: src/libslic3r/SLAPrint.cpp:71
 msgid "Merging slices and calculating statistics"
-msgstr ""
+msgstr "분할 영역 병합 및 통계 계산"
 
 #: src/libslic3r/SLAPrint.cpp:72
 msgid "Rasterizing layers"
-msgstr ""
+msgstr "레이어 래스터화"
 
 #: src/libslic3r/SLAPrint.cpp:605
 msgid ""
 "Cannot proceed without support points! Add support points or disable support "
 "generation."
 msgstr ""
+"서포트 포인트 없이 진행할 수 없습니다! 서포트 지점을 추가 하거나 서포트 생성"
+"을 사용 하지 않도록 설정 합니다."
 
 #: src/libslic3r/SLAPrint.cpp:617
 msgid "Elevation is too low for object."
-msgstr ""
+msgstr "객체 고도가 너무 낮습니다."
 
 #: src/libslic3r/SLAPrint.cpp:699
 msgid "Slicing had to be stopped due to an internal error."
-msgstr ""
+msgstr "내부 오류로 인해 슬라이스를 중지 해야 했습니다."
 
 #: src/libslic3r/SLAPrint.cpp:849 src/libslic3r/SLAPrint.cpp:859
 #: src/libslic3r/SLAPrint.cpp:907
 msgid "Visualizing supports"
-msgstr ""
+msgstr "시각화 지원"
 
 #: src/libslic3r/SLAPrint.cpp:1449
 msgid "Slicing done"
-msgstr ""
+msgstr "슬라이싱 완료"
 
 #: src/libslic3r/PrintBase.cpp:65
 msgid "Failed processing of the output_filename_format template."
-msgstr ""
+msgstr "아래 output_filename_format 템플리트의 처리에 실패했습니다."
 
 #: src/libslic3r/PrintConfig.cpp:42 src/libslic3r/PrintConfig.cpp:43
 msgid "Printer technology"
-msgstr ""
+msgstr "프린터 기술"
 
 #: src/libslic3r/PrintConfig.cpp:50
 msgid "Bed shape"
@@ -4592,7 +4634,7 @@ msgstr "인쇄 중에 익스트루더가 도달 할 수있는 최대 높이로 �
 
 #: src/libslic3r/PrintConfig.cpp:71
 msgid "Slice gap closing radius"
-msgstr ""
+msgstr "슬라이스 간격 닫힘 반경"
 
 #: src/libslic3r/PrintConfig.cpp:73
 msgid ""
@@ -4600,6 +4642,9 @@ msgid ""
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
+"삼각형 메쉬 슬라이싱 중에, 2배 간격 폐쇄 반경 보다 작은 균열이 채워집니다. "
+"틈 닫기 작업은 최종 인쇄 해상도를 줄일 수 있으므로 값을 합리적으로 낮게 유지 "
+"하는 것이 좋습니다."
 
 #: src/libslic3r/PrintConfig.cpp:81
 msgid "Hostname, IP or URL"
@@ -4610,16 +4655,20 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance."
 msgstr ""
+"Slic3r는 프린터 호스트에 G 코드 파일을 업로드할 수 있습니다. 이 필드는 호스"
+"트 이름, IP 주소 또는 프린터 호스트 인스턴스의 URL을 포함 해야 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:88
 msgid "API Key / Password"
-msgstr ""
+msgstr "API 키/암호"
 
 #: src/libslic3r/PrintConfig.cpp:89
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the API Key or the password required for authentication."
 msgstr ""
+"Slic3r는 프린터 호스트에 G 코드 파일을 업로드할 수 있습니다. 이 필드는 API "
+"키 또는 인증에 필요한 암호를 포함 해야 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:111
 msgid "Avoid crossing perimeters"
@@ -4705,7 +4754,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:1088 src/libslic3r/PrintConfig.cpp:1133
 #: src/libslic3r/PrintConfig.cpp:1144 src/libslic3r/PrintConfig.cpp:1333
 msgid "mm/s²"
-msgstr ""
+msgstr "mm/s ²"
 
 #: src/libslic3r/PrintConfig.cpp:165
 msgid "Bridging angle"
@@ -4726,7 +4775,7 @@ msgstr ""
 #: src/libslic3r/PrintConfig.cpp:1807 src/libslic3r/PrintConfig.cpp:1961
 #: src/libslic3r/PrintConfig.cpp:2459
 msgid "°"
-msgstr ""
+msgstr "°"
 
 #: src/libslic3r/PrintConfig.cpp:176
 msgid "Bridges fan speed"
@@ -4741,7 +4790,7 @@ msgstr "이 팬 속도는 모든 브릿지 및 오버행 중에 적용됩니다.
 #: src/libslic3r/PrintConfig.cpp:1461 src/libslic3r/PrintConfig.cpp:2258
 #: src/libslic3r/PrintConfig.cpp:2498
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #: src/libslic3r/PrintConfig.cpp:185
 msgid "Bridge flow ratio"
@@ -4805,11 +4854,11 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:223
 msgid "Colorprint height"
-msgstr ""
+msgstr "컬러 인쇄 높이"
 
 #: src/libslic3r/PrintConfig.cpp:224
 msgid "Heights at which a filament change is to occur. "
-msgstr ""
+msgstr "필라멘트 체인지가 발생 하는 높이. "
 
 #: src/libslic3r/PrintConfig.cpp:234
 msgid "Compatible printers condition"
@@ -4826,7 +4875,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:249
 msgid "Compatible print profiles condition"
-msgstr ""
+msgstr "호환 되는 인쇄 프로 파일 조건"
 
 #: src/libslic3r/PrintConfig.cpp:250
 msgid ""
@@ -4834,6 +4883,8 @@ msgid ""
 "profile. If this expression evaluates to true, this profile is considered "
 "compatible with the active print profile."
 msgstr ""
+"활성 인쇄 프로 파일의 구성 값을 사용하는 부울식입니다. 이 식이 true로 평가 되"
+"면, 이 프로필이 활성 인쇄 프로필과 호환 되는 것으로 간주 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:267
 msgid "Complete individual objects"
@@ -4998,13 +5049,15 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:387
 msgid "Top fill pattern"
-msgstr ""
+msgstr "상단 채우기 패턴"
 
 #: src/libslic3r/PrintConfig.cpp:389
 msgid ""
 "Fill pattern for top infill. This only affects the top visible layer, and "
 "not its adjacent solid shells."
 msgstr ""
+"상단 채우기의 채우기 패턴. 이는 인접 한 솔리드 쉘이 아니라 보이는 상위 레이어"
+"에만 영향을 줍니다."
 
 #: src/libslic3r/PrintConfig.cpp:397 src/libslic3r/PrintConfig.cpp:795
 #: src/libslic3r/PrintConfig.cpp:1921
@@ -5029,13 +5082,15 @@ msgstr "옥타그램 나선(Octagram Spiral)"
 
 #: src/libslic3r/PrintConfig.cpp:408
 msgid "Bottom fill pattern"
-msgstr ""
+msgstr "아래쪽 채우기 패턴"
 
 #: src/libslic3r/PrintConfig.cpp:409
 msgid ""
 "Fill pattern for bottom infill. This only affects the bottom external "
 "visible layer, and not its adjacent solid shells."
 msgstr ""
+"하단 채우기의 채우기 패턴. 이는 인접 한 솔리드 쉘이 아니라 아래쪽에 보이는 외"
+"부 레이어에만 영향을 줍니다."
 
 #: src/libslic3r/PrintConfig.cpp:414 src/libslic3r/PrintConfig.cpp:424
 msgid "External perimeters"
@@ -5263,7 +5318,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:568 src/libslic3r/PrintConfig.cpp:1184
 msgid "mm³/s"
-msgstr ""
+msgstr "밀리미터 ³/s"
 
 #: src/libslic3r/PrintConfig.cpp:574
 msgid "Loading speed"
@@ -5275,11 +5330,11 @@ msgstr "와이퍼 탑(wipe)에 필라멘트를 장착하는 데 사용되는 속
 
 #: src/libslic3r/PrintConfig.cpp:582
 msgid "Loading speed at the start"
-msgstr ""
+msgstr "시작시 로딩 속도"
 
 #: src/libslic3r/PrintConfig.cpp:583
 msgid "Speed used at the very beginning of loading phase. "
-msgstr ""
+msgstr "로딩 단계의 시작에 사용 되는 속도. "
 
 #: src/libslic3r/PrintConfig.cpp:590
 msgid "Unloading speed"
@@ -5295,12 +5350,12 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:599
 msgid "Unloading speed at the start"
-msgstr ""
+msgstr "시작 시 언로드 속도"
 
 #: src/libslic3r/PrintConfig.cpp:600
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming. "
-msgstr ""
+msgstr "속도는 레밍 직후 필라멘트의 팁을 언로딩 하는 데 사용 됩니다. "
 
 #: src/libslic3r/PrintConfig.cpp:607
 msgid "Delay after unloading"
@@ -5336,7 +5391,7 @@ msgstr "냉각 속도가 서서히 빨라지고 있습니다. "
 
 #: src/libslic3r/PrintConfig.cpp:634
 msgid "Minimal purge on wipe tower"
-msgstr ""
+msgstr "와이프(wipe) 탑의 최소 퍼지"
 
 #: src/libslic3r/PrintConfig.cpp:635
 msgid ""
@@ -5346,10 +5401,15 @@ msgid ""
 "object, Slic3r will always prime this amount of material into the wipe tower "
 "to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
+"공구가 변경 된 후 노즐 내부에 새로 로드 된 필라멘트의 정확한 위치를 알 수 없"
+"으며, 필라멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 인필 또"
+"는 희생(sacrificial) 객체로 소거 하기 전에 Slic3r는 항상이 양의 재료를 와이"
+"프 탑에 넣어 연속적인 채우기 또는 희생(sacrificial) 객체 돌출을 안정적으로 생"
+"성 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:639
 msgid "mm³"
-msgstr ""
+msgstr "mm ³"
 
 #: src/libslic3r/PrintConfig.cpp:645
 msgid "Speed of the last cooling move"
@@ -5361,7 +5421,7 @@ msgstr "냉각은 이 속도쪽으로 점차 가속화되고 있습니다. "
 
 #: src/libslic3r/PrintConfig.cpp:653
 msgid "Filament load time"
-msgstr ""
+msgstr "필라멘트 로드 시간"
 
 #: src/libslic3r/PrintConfig.cpp:654
 msgid ""
@@ -5369,6 +5429,9 @@ msgid ""
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"프린터 펌웨어 (또는 MMU 2.0)가 공구를 변경하는 동안(T 코드를 실행할 때) 새필"
+"라멘트를 로드하는 시간입니다. 이 시간은 G 코드 시간 추정기에 의해 총 인쇄 시"
+"간에 추가 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:661
 msgid "Ramming parameters"
@@ -5383,7 +5446,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:668
 msgid "Filament unload time"
-msgstr ""
+msgstr "필라멘트 언로드 시간"
 
 #: src/libslic3r/PrintConfig.cpp:669
 msgid ""
@@ -5391,6 +5454,9 @@ msgid ""
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"프린터 펌웨어 (또는 MMU2.0)가 공구 교환 중에 필라멘트를 언로드하기 위한 시간"
+"입니다 (T 코드를 실행할 때). 이 시간은 G 코드 시간추정기에 의해 총 인쇄 시간"
+"에 추가 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:677
 msgid ""
@@ -5418,7 +5484,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:688
 msgid "g/cm³"
-msgstr ""
+msgstr "g/cm³"
 
 #: src/libslic3r/PrintConfig.cpp:693
 msgid "Filament type"
@@ -5426,7 +5492,7 @@ msgstr "필라멘트 타입"
 
 #: src/libslic3r/PrintConfig.cpp:694
 msgid "The filament material type for use in custom G-codes."
-msgstr ""
+msgstr "사용자 지정 G 코드에 사용할 필라멘트재료 유형입니다."
 
 #: src/libslic3r/PrintConfig.cpp:710
 msgid "Soluble material"
@@ -5440,7 +5506,7 @@ msgstr "수용성 재료눈 물에 녹는 서포트에 가장 많이 사용된�
 msgid ""
 "Enter your filament cost per kg here. This is only for statistical "
 "information."
-msgstr "kg 당 필라멘트 비용을 여기에 입력하십시오. 통계를 내기 위해서 입니다."
+msgstr "필라멘트(kg당) 비용을 여기에 입력하십시오. 통계를 내기 위해서 입니다."
 
 #: src/libslic3r/PrintConfig.cpp:718
 msgid "money/kg"
@@ -5630,7 +5696,7 @@ msgstr "압출 없음"
 
 #: src/libslic3r/PrintConfig.cpp:924
 msgid "High extruder current on filament swap"
-msgstr ""
+msgstr "필라멘트스왑에 높은 압출 기 전류"
 
 #: src/libslic3r/PrintConfig.cpp:925
 msgid ""
@@ -5638,6 +5704,9 @@ msgid ""
 "filament exchange sequence to allow for rapid ramming feed rates and to "
 "overcome resistance when loading a filament with an ugly shaped tip."
 msgstr ""
+"필라멘트 교환 동안 압출기 모터 전류를 증가 시키는 것이 유리할 수 있으며, 이"
+"는 빠른 래밍 공급 속도를 가능 하게하고, 불규칙한 모양의 필라멘트를 로딩할때 "
+"저항을 극복하기 위한것이다."
 
 #: src/libslic3r/PrintConfig.cpp:933
 msgid ""
@@ -5763,7 +5832,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1042
 msgid "Supports remaining times"
-msgstr ""
+msgstr "남은 시간 지원"
 
 #: src/libslic3r/PrintConfig.cpp:1043
 msgid ""
@@ -5772,10 +5841,13 @@ msgid ""
 "As of now only the Prusa i3 MK3 firmware recognizes M73. Also the i3 MK3 "
 "firmware supports M73 Qxx Sxx for the silent mode."
 msgstr ""
+"G 코드에 1 분 간격으로 M73 P [퍼센트 인쇄] R을 방출하여 펌웨어가 정확한 잔여 "
+"시간을 표시 하도록 합니다. 현재만 Prusa i3 MK3 펌웨어는 M73를 인식 하 고 있습"
+"니다. 또한 i3 MK3 펌웨어는 자동 모드에서 M73 Qxx Sxx를 지원 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:1051
 msgid "Supports silent mode"
-msgstr ""
+msgstr "자동 모드 지원"
 
 #: src/libslic3r/PrintConfig.cpp:1052
 msgid "Set silent mode for the G-code flavor"
@@ -5783,15 +5855,15 @@ msgstr "G-코드 특징에 대한 무음 모드 설정"
 
 #: src/libslic3r/PrintConfig.cpp:1075
 msgid "Maximum feedrate %1%"
-msgstr "최 대 공 급 속 도 %1%"
+msgstr "최대 공급 속도 %1%"
 
 #: src/libslic3r/PrintConfig.cpp:1077
 msgid "Maximum feedrate of the %1% axis"
-msgstr "최대 공급 속도 of the %1% axis"
+msgstr "최대 공급 속도 of the %1% axis "
 
 #: src/libslic3r/PrintConfig.cpp:1085
 msgid "Maximum acceleration %1%"
-msgstr "최대가속 %1%"
+msgstr "최 대 가 속 %1%"
 
 #: src/libslic3r/PrintConfig.cpp:1087
 msgid "Maximum acceleration of the %1% axis"
@@ -5880,7 +5952,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1196 src/libslic3r/PrintConfig.cpp:1207
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 #: src/libslic3r/PrintConfig.cpp:1202
 msgid "Max volumetric slope negative"
@@ -5947,13 +6019,15 @@ msgstr "이 지름은 엑스트루더 노즐의 직경이다(예: 0.5, 0.35 등)
 
 #: src/libslic3r/PrintConfig.cpp:1266
 msgid "Host Type"
-msgstr ""
+msgstr "호스트 유형"
 
 #: src/libslic3r/PrintConfig.cpp:1267
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field must contain "
 "the kind of the host."
 msgstr ""
+"Slic3r는 프린터 호스트에 G 코드 파일을 업로드할 수 있습니다. 이 필드에는 호스"
+"트의 종류가 포함 되어야 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:1278
 msgid "Only retract when crossing perimeters"
@@ -5988,6 +6062,9 @@ msgid ""
 "[year], [month], [day], [hour], [minute], [second], [version], "
 "[input_filename], [input_filename_base]."
 msgstr ""
+"모든 구성 옵션을이 템플릿 내의 변수로 사용할 수 있습니다. 예: "
+"[layer_height], [fill_density] 등 또한 [타임 스탬프], [연도], [월], [일], [시"
+"간], [input_filename], [input_filename_base]을 사용할 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:1303
 msgid "Detect bridging perimeters"
@@ -6450,7 +6527,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1660
 msgid "mm²"
-msgstr ""
+msgstr "mm²"
 
 #: src/libslic3r/PrintConfig.cpp:1666
 msgid "Solid infill extruder"
@@ -6576,13 +6653,15 @@ msgstr "프린터는 필라멘트를 하나의 핫 엔드에 멀티플렉싱합�
 
 #: src/libslic3r/PrintConfig.cpp:1772
 msgid "Prime all printing extruders"
-msgstr ""
+msgstr "모든 인쇄 압출기 프라임"
 
 #: src/libslic3r/PrintConfig.cpp:1773
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
 msgstr ""
+"활성화 된 경우, 모든 인쇄 압출기는 인쇄 시작시 프린트 베드의 전면 가장자리에 "
+"프라이밍 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:1778
 msgid "Generate support material"
@@ -6594,7 +6673,7 @@ msgstr "서포트 재료를 사용합니다."
 
 #: src/libslic3r/PrintConfig.cpp:1784
 msgid "Auto generated supports"
-msgstr ""
+msgstr "자동 생성 지원"
 
 #: src/libslic3r/PrintConfig.cpp:1786
 msgid ""
@@ -6602,6 +6681,9 @@ msgid ""
 "threshold value. If unchecked, supports will be generated inside the "
 "\"Support Enforcer\" volumes only."
 msgstr ""
+"이 옵션을 선택 하면 오버행 임계값에 따라 서포트가 자동으로 생성 됩니다. 이 확"
+"인란을 선택 하지 않으면 \"서포트 지원 영역\" 볼륨 내 에서만 지원이 생성 됩니"
+"다."
 
 #: src/libslic3r/PrintConfig.cpp:1792
 msgid "XY separation between an object and its support"
@@ -7027,7 +7109,7 @@ msgstr "각도"
 
 #: src/libslic3r/PrintConfig.cpp:2150
 msgid "Wipe into this object's infill"
-msgstr ""
+msgstr "이 오브젝트의 채우기로 지우기"
 
 #: src/libslic3r/PrintConfig.cpp:2151
 msgid ""
@@ -7035,10 +7117,12 @@ msgid ""
 "the amount of waste but may result in longer print time  due to additional "
 "travel moves."
 msgstr ""
+"도구 변경 후 제거는 이 개체의 채우기 내부에서 수행 됩니다. 이렇게 하면 낭비 "
+"되는 양이 줄어들지만 추가적인 이동으로 인해 인쇄 시간이 길어질 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:2158
 msgid "Wipe into this object"
-msgstr ""
+msgstr "이 개체로 지우기"
 
 #: src/libslic3r/PrintConfig.cpp:2159
 msgid ""
@@ -7046,6 +7130,9 @@ msgid ""
 "that would otherwise end up in the wipe tower and decrease print time. "
 "Colours of the objects will be mixed as a result."
 msgstr ""
+"객체는 도구 변경 후 노즐을 소거 하는 데 사용 되며, 그렇지 않으면 와이프 타워"
+"에서 종료 되는 재료를 저장 하고 인쇄 시간을 줄입니다. 그 결과 개체의 색상이 "
+"혼합 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:2165
 msgid "Maximal bridging distance"
@@ -7085,35 +7172,35 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:2200
 msgid "Display width"
-msgstr ""
+msgstr "디스플레이 너비"
 
 #: src/libslic3r/PrintConfig.cpp:2201
 msgid "Width of the display"
-msgstr ""
+msgstr "디스플레이의 폭입니다"
 
 #: src/libslic3r/PrintConfig.cpp:2206
 msgid "Display height"
-msgstr ""
+msgstr "표시 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2207
 msgid "Height of the display"
-msgstr ""
+msgstr "디스플레이의 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2212
 msgid "Number of pixels in"
-msgstr ""
+msgstr "의 픽셀 수"
 
 #: src/libslic3r/PrintConfig.cpp:2214
 msgid "Number of pixels in X"
-msgstr ""
+msgstr "X의 픽셀 수"
 
 #: src/libslic3r/PrintConfig.cpp:2220
 msgid "Number of pixels in Y"
-msgstr ""
+msgstr "Y의 픽셀 수"
 
 #: src/libslic3r/PrintConfig.cpp:2225
 msgid "Display orientation"
-msgstr ""
+msgstr "디스플레이 방향"
 
 #: src/libslic3r/PrintConfig.cpp:2226
 msgid ""
@@ -7121,42 +7208,45 @@ msgid ""
 "will flip the meaning of display width and height parameters and the output "
 "images will be rotated by 90 degrees."
 msgstr ""
+"SLA 프린터 내에서 실제 LCD 디스플레이 방향을 설정 합니다. 세로 모드는 디스플"
+"레이 너비 및 높이 매개 변수의 의미를 반전 하 고 출력 이미지는 90도 회전 합니"
+"다."
 
 #: src/libslic3r/PrintConfig.cpp:2232
 msgid "Landscape"
-msgstr ""
+msgstr "가로"
 
 #: src/libslic3r/PrintConfig.cpp:2233
 msgid "Portrait"
-msgstr ""
+msgstr "세로모드"
 
 #: src/libslic3r/PrintConfig.cpp:2238
 msgid "Fast"
-msgstr ""
+msgstr "빠른"
 
 #: src/libslic3r/PrintConfig.cpp:2239
 msgid "Fast tilt"
-msgstr ""
+msgstr "빠른 기울기"
 
 #: src/libslic3r/PrintConfig.cpp:2240
 msgid "Time of the fast tilt"
-msgstr ""
+msgstr "기울이기 시간"
 
 #: src/libslic3r/PrintConfig.cpp:2247
 msgid "Slow"
-msgstr ""
+msgstr "느리게"
 
 #: src/libslic3r/PrintConfig.cpp:2248
 msgid "Slow tilt"
-msgstr ""
+msgstr "슬로우 틸트"
 
 #: src/libslic3r/PrintConfig.cpp:2249
 msgid "Time of the slow tilt"
-msgstr ""
+msgstr "느린 기울기의 시간"
 
 #: src/libslic3r/PrintConfig.cpp:2256
 msgid "Area fill"
-msgstr ""
+msgstr "영역 채우기"
 
 #: src/libslic3r/PrintConfig.cpp:2257
 msgid ""
@@ -7164,111 +7254,114 @@ msgid ""
 "If the print area exceeds the specified value, \n"
 "then a slow tilt will be used, otherwise - a fast tilt"
 msgstr ""
+"침대 영역의 비율입니다. \n"
+"인쇄 영역이 지정 된 값을 초과 하면 \n"
+"그런 다음 느린 기울기가 사용 됩니다, 그렇지 않으면-빠른 기울기가 됩니다"
 
 #: src/libslic3r/PrintConfig.cpp:2264 src/libslic3r/PrintConfig.cpp:2265
 #: src/libslic3r/PrintConfig.cpp:2266
 msgid "Printer scaling correction"
-msgstr ""
+msgstr "프린터 스케일링 보정"
 
 #: src/libslic3r/PrintConfig.cpp:2272 src/libslic3r/PrintConfig.cpp:2273
 msgid "Printer absolute correction"
-msgstr ""
+msgstr "프린터 절대 보정"
 
 #: src/libslic3r/PrintConfig.cpp:2274
 msgid ""
 "Will inflate or deflate the sliced 2D polygons according to the sign of the "
 "correction."
-msgstr ""
+msgstr "교정 기호에 따라 슬라이스된 2D 폴리곤을 팽창 하거나 수축 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2280 src/libslic3r/PrintConfig.cpp:2281
 msgid "Printer gamma correction"
-msgstr ""
+msgstr "프린터 감마 보정"
 
 #: src/libslic3r/PrintConfig.cpp:2282
 msgid "This will apply a gamm correction to the rasterized 2D polygons."
-msgstr ""
+msgstr "그러면 래스터화된 2d 다각형 폴리고 보정이 적용 됩니다."
 
 #: src/libslic3r/PrintConfig.cpp:2291 src/libslic3r/PrintConfig.cpp:2292
 msgid "Initial layer height"
-msgstr ""
+msgstr "초기 레이어 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2298
 msgid "Faded layers"
-msgstr ""
+msgstr "페이드 레이어"
 
 #: src/libslic3r/PrintConfig.cpp:2299
 msgid ""
 "Number of the layers needed for the exposure time fade from initial exposure "
 "time to the exposure time"
-msgstr ""
+msgstr "노출 시간에 필요한 레이어 수는 초기 노출 시간에서 노출 시간으로 페이드"
 
 #: src/libslic3r/PrintConfig.cpp:2306 src/libslic3r/PrintConfig.cpp:2307
 msgid "Exposure time"
-msgstr ""
+msgstr "노출 시간"
 
 #: src/libslic3r/PrintConfig.cpp:2313 src/libslic3r/PrintConfig.cpp:2314
 msgid "Initial exposure time"
-msgstr ""
+msgstr "초기 노출 시간"
 
 #: src/libslic3r/PrintConfig.cpp:2320 src/libslic3r/PrintConfig.cpp:2321
 msgid "Correction for expansion"
-msgstr ""
+msgstr "확장 보정"
 
 #: src/libslic3r/PrintConfig.cpp:2327
 msgid "SLA print material notes"
-msgstr ""
+msgstr "SLA 인쇄 재료 참고 사항"
 
 #: src/libslic3r/PrintConfig.cpp:2328
 msgid "You can put your notes regarding the SLA print material here."
-msgstr ""
+msgstr "여기에서 SLA 인쇄 자료에 대한 메모를 넣을 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:2336 src/libslic3r/PrintConfig.cpp:2347
 msgid "Default SLA material profile"
-msgstr ""
+msgstr "기본 SLA 재질 프로 파일"
 
 #: src/libslic3r/PrintConfig.cpp:2358
 msgid "Generate supports"
-msgstr ""
+msgstr "지원 생성"
 
 #: src/libslic3r/PrintConfig.cpp:2360
 msgid "Generate supports for the models"
-msgstr ""
+msgstr "모델에 대한 지원 생성"
 
 #: src/libslic3r/PrintConfig.cpp:2365
 msgid "Support head front diameter"
-msgstr ""
+msgstr "서포트 헤드 전면 지름"
 
 #: src/libslic3r/PrintConfig.cpp:2367
 msgid "Diameter of the pointing side of the head"
-msgstr ""
+msgstr "헤드 포인팅 측면 지름"
 
 #: src/libslic3r/PrintConfig.cpp:2374
 msgid "Support head penetration"
-msgstr ""
+msgstr "서포트 헤드 관통"
 
 #: src/libslic3r/PrintConfig.cpp:2376
 msgid "How much the pinhead has to penetrate the model surface"
-msgstr ""
+msgstr "핀 헤드가 모델 표면에 침투 하는 정도"
 
 #: src/libslic3r/PrintConfig.cpp:2383
 msgid "Support head width"
-msgstr ""
+msgstr "서포트 헤드 폭"
 
 #: src/libslic3r/PrintConfig.cpp:2385
 msgid "Width from the back sphere center to the front sphere center"
-msgstr ""
+msgstr "뒤쪽 구 중심에서 앞쪽 구 중심 까지의 폭입니다"
 
 #: src/libslic3r/PrintConfig.cpp:2393
 msgid "Support pillar diameter"
-msgstr ""
+msgstr "서포트 기둥 지름"
 
 #: src/libslic3r/PrintConfig.cpp:2395
 msgid "Diameter in mm of the support pillars"
-msgstr ""
+msgstr "서포트 기둥의 지름 (mm)"
 
 #: src/libslic3r/PrintConfig.cpp:2403
 msgid "Support pillar connection mode"
-msgstr ""
+msgstr "기둥 연결 모드 지원"
 
 #: src/libslic3r/PrintConfig.cpp:2404
 msgid ""
@@ -7276,122 +7369,128 @@ msgid ""
 "cross (double zig-zag) or dynamic which will automatically switch between "
 "the first two depending on the distance of the two pillars."
 msgstr ""
+"두 개의 neigboring 기둥 사이의 브릿지 유형을 제어 합니다. 두 기둥의 거리에 따"
+"라 자동으로 처음 두 사이를 전환 하는 지그재그, 크로스 (지그재그 더블 지그재"
+"그) 또는 동적 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:2412
 msgid "Zig-Zag"
-msgstr ""
+msgstr "지그재그"
 
 #: src/libslic3r/PrintConfig.cpp:2413
 msgid "Cross"
-msgstr ""
+msgstr "크로스"
 
 #: src/libslic3r/PrintConfig.cpp:2414
 msgid "Dynamic"
-msgstr ""
+msgstr "동적"
 
 #: src/libslic3r/PrintConfig.cpp:2426
 msgid "Pillar widening factor"
-msgstr ""
+msgstr "기둥 확장 계수"
 
 #: src/libslic3r/PrintConfig.cpp:2428
 msgid ""
 "Merging bridges or pillars into another pillars can increase the radius. "
 "Zero means no increase, one means full increase."
 msgstr ""
+"브릿지 또는 기둥을 다른 기둥에 병합 하면 반지름을 늘릴 수 있습니다. 0은 증가 "
+"없음을 의미 하나는 전체 증가를 의미 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2437
 msgid "Support base diameter"
-msgstr ""
+msgstr "서포트 베이스 지름"
 
 #: src/libslic3r/PrintConfig.cpp:2439
 msgid "Diameter in mm of the pillar base"
-msgstr ""
+msgstr "기둥 베이스의 mm 직경"
 
 #: src/libslic3r/PrintConfig.cpp:2447
 msgid "Support base height"
-msgstr ""
+msgstr "서포트 기준 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2449
 msgid "The height of the pillar base cone"
-msgstr ""
+msgstr "서포트 베이스 원추의 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2456
 msgid "Critical angle"
-msgstr ""
+msgstr "임계 각도"
 
 #: src/libslic3r/PrintConfig.cpp:2458
 msgid "The default angle for connecting support sticks and junctions."
-msgstr ""
+msgstr "서포트 스틱과 접합부를 연결 하는 기본 각도입니다."
 
 #: src/libslic3r/PrintConfig.cpp:2466
 msgid "Max bridge length"
-msgstr ""
+msgstr "최대 브리지 길이"
 
 #: src/libslic3r/PrintConfig.cpp:2468
 msgid "The max length of a bridge"
-msgstr ""
+msgstr "브릿지의 최대 길이"
 
 #: src/libslic3r/PrintConfig.cpp:2475
 msgid "Max pillar linking distance"
-msgstr ""
+msgstr "최대 기둥 연결 거리"
 
 #: src/libslic3r/PrintConfig.cpp:2477
 msgid ""
 "The max distance of two pillars to get linked with each other. A zero value "
 "will prohibit pillar cascading."
 msgstr ""
+"서로 연결 되는 두기둥의 최대 거리. 0 값은 기둥을 계단식으로 금지 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2485
 msgid "Object elevation"
-msgstr ""
+msgstr "객체 고도"
 
 #: src/libslic3r/PrintConfig.cpp:2487
 msgid "How much the supports should lift up the supported object."
-msgstr ""
+msgstr "서포트 되는 개체를 서포트 해야 하는 정도입니다."
 
 #: src/libslic3r/PrintConfig.cpp:2495
 msgid "Support points density"
-msgstr ""
+msgstr "지원 포인트 밀도"
 
 #: src/libslic3r/PrintConfig.cpp:2497
 msgid "This is a relative measure of support points density."
-msgstr ""
+msgstr "이는 서포트 점 밀도의 상대적인 척도입니다."
 
 #: src/libslic3r/PrintConfig.cpp:2503
 msgid "Minimal distance of the support points"
-msgstr ""
+msgstr "서포트 지점의 최소 거리"
 
 #: src/libslic3r/PrintConfig.cpp:2505
 msgid "No support points will be placed closer than this threshold."
-msgstr ""
+msgstr "서포트 지점은 이 임계값 보다 더 가깝게 배치 되지 않습니다."
 
 #: src/libslic3r/PrintConfig.cpp:2511
 msgid "Use pad"
-msgstr ""
+msgstr "패드 사용"
 
 #: src/libslic3r/PrintConfig.cpp:2513
 msgid "Add a pad underneath the supported model"
-msgstr ""
+msgstr "서포트 되는 모델 아래에 패드 추가"
 
 #: src/libslic3r/PrintConfig.cpp:2518
 msgid "Pad wall thickness"
-msgstr ""
+msgstr "패드 벽 두께"
 
 #: src/libslic3r/PrintConfig.cpp:2520
 msgid "The thickness of the pad and its optional cavity walls."
-msgstr ""
+msgstr "패드의 두께와 옵션 캐비티 벽."
 
 #: src/libslic3r/PrintConfig.cpp:2528
 msgid "Pad wall height"
-msgstr ""
+msgstr "패드 벽 높이"
 
 #: src/libslic3r/PrintConfig.cpp:2529
 msgid "Defines the cavity depth. Set to zero to disable the cavity."
-msgstr ""
+msgstr "캐비티 깊이를 정의 합니다. 캐비티를 비활성화 하려면 0으로 설정 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2539
 msgid "Max merge distance"
-msgstr ""
+msgstr "최대 병합 거리"
 
 #: src/libslic3r/PrintConfig.cpp:2541
 msgid ""
@@ -7399,246 +7498,260 @@ msgid ""
 "one. This parameter defines how far the center of two smaller pads should "
 "be. If theyare closer, they will get merged into one pad."
 msgstr ""
+"일부 개체는 큰 하나 대신 몇 가지 작은 패드와 함께 얻을 수 있습니다. 이 매개 "
+"변수는 두 개의 작은 패드의 중심이 얼마나 되어야 하는지 정의 합니다. 그들은 하"
+"나의 패드에 병합을 얻을 것이다."
 
 #: src/libslic3r/PrintConfig.cpp:2552
 msgid "Pad edge radius"
-msgstr ""
+msgstr "패드 가장자리 반경"
 
 #: src/libslic3r/PrintConfig.cpp:2561
 msgid "Pad wall slope"
-msgstr ""
+msgstr "패드 벽 경사"
 
 #: src/libslic3r/PrintConfig.cpp:2563
 msgid ""
 "The slope of the pad wall relative to the bed plane. 90 degrees means "
 "straight walls."
 msgstr ""
+"침대 평면을 기준으로 하는 패드 벽의 기울기입니다. 90도는 직선 벽을 의미 합니"
+"다."
 
 #: src/libslic3r/PrintConfig.cpp:2924
 msgid "Export SVG"
-msgstr ""
+msgstr "내보내기 SVG"
 
 #: src/libslic3r/PrintConfig.cpp:2925
 msgid "Export the model(s) as OBJ."
-msgstr ""
+msgstr "모델을 OBJ로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2936
 msgid "Export SLA"
-msgstr ""
+msgstr "STL로 내보내기"
 
 #: src/libslic3r/PrintConfig.cpp:2937
 msgid "Slice the model and export SLA printing layers as PNG."
-msgstr ""
+msgstr "모델을 분할하고 SLA 인쇄 레이어를 PNG로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2942
 msgid "Export 3MF"
-msgstr ""
+msgstr "3MF 내보내기"
 
 #: src/libslic3r/PrintConfig.cpp:2943
 msgid "Export the model(s) as 3MF."
-msgstr ""
+msgstr "모델을 3MF로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2947
 msgid "Export AMF"
-msgstr ""
+msgstr "AMF 내보내기"
 
 #: src/libslic3r/PrintConfig.cpp:2948
 msgid "Export the model(s) as AMF."
-msgstr ""
+msgstr "모델을 AMF로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2952
 msgid "Export STL"
-msgstr ""
+msgstr "STL 내보내기"
 
 #: src/libslic3r/PrintConfig.cpp:2953
 msgid "Export the model(s) as STL."
-msgstr ""
+msgstr "모델을 STL로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2958
 msgid "Slice the model and export toolpaths as G-code."
-msgstr ""
+msgstr "모델을 슬라이스하고 공구 경로를 G 코드로 내보냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:2963
 msgid "Slice"
-msgstr ""
+msgstr "슬라이스"
 
 #: src/libslic3r/PrintConfig.cpp:2964
 msgid ""
 "Slice the model as FFF or SLA based on the printer_technology configuration "
 "value."
 msgstr ""
+"Printer_technology 구성 값을 기반으로 모델을 FFF 또는 SLA로 조각화 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2969
 msgid "Help"
-msgstr ""
+msgstr "도움말"
 
 #: src/libslic3r/PrintConfig.cpp:2970
 msgid "Show this help."
-msgstr ""
+msgstr "이 도움말을 표시 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2975
 msgid "Help (FFF options)"
-msgstr ""
+msgstr "도움말 (FFF 옵션)"
 
 #: src/libslic3r/PrintConfig.cpp:2976
 msgid "Show the full list of print/G-code configuration options."
-msgstr ""
+msgstr "인쇄/G 코드 구성 옵션의 전체 목록을 표시 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2980
 msgid "Help (SLA options)"
-msgstr ""
+msgstr "도움말 (SLA 옵션)"
 
 #: src/libslic3r/PrintConfig.cpp:2981
 msgid "Show the full list of SLA print configuration options."
-msgstr ""
+msgstr "SLA 인쇄 구성 옵션의 전체 목록을 표시 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:2985
 msgid "Output Model Info"
-msgstr ""
+msgstr "출력 모델 정보"
 
 #: src/libslic3r/PrintConfig.cpp:2986
 msgid "Write information about the model to the console."
-msgstr ""
+msgstr "모델에 대한 정보를 콘솔에 씁니다."
 
 #: src/libslic3r/PrintConfig.cpp:2990
 msgid "Save config file"
-msgstr ""
+msgstr "구성 파일 저장"
 
 #: src/libslic3r/PrintConfig.cpp:2991
 msgid "Save configuration to the specified file."
-msgstr ""
+msgstr "지정 된 파일에 구성을 저장 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3001
 msgid "Align XY"
-msgstr ""
+msgstr "XY 정렬"
 
 #: src/libslic3r/PrintConfig.cpp:3002
 msgid "Align the model to the given point."
-msgstr ""
+msgstr "모델을 지정된 점에 맞춥니다."
 
 #: src/libslic3r/PrintConfig.cpp:3007
 msgid "Cut model at the given Z."
-msgstr ""
+msgstr "지정된 Z에서 모델을 잘라냅니다."
 
 #: src/libslic3r/PrintConfig.cpp:3028
 msgid "Center"
-msgstr ""
+msgstr "중앙"
 
 #: src/libslic3r/PrintConfig.cpp:3029
 msgid "Center the print around the given center."
-msgstr ""
+msgstr "지정된 중심을 중심으로 인쇄 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3033
 msgid "Don't arrange"
-msgstr ""
+msgstr "준비하지 마십시오"
 
 #: src/libslic3r/PrintConfig.cpp:3034
 msgid ""
 "Do not rearrange the given models before merging and keep their original XY "
 "coordinates."
 msgstr ""
+"병합하기 전에 지정된 모델을 재정렬하고 원래 XY 좌표를 유지하지 마십시오."
 
 #: src/libslic3r/PrintConfig.cpp:3037
 msgid "Duplicate"
-msgstr ""
+msgstr "복사"
 
 #: src/libslic3r/PrintConfig.cpp:3038
 msgid "Multiply copies by this factor."
-msgstr ""
+msgstr "이 계수로 복사본을 곱합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3042
 msgid "Duplicate by grid"
-msgstr ""
+msgstr "모눈에 따라 복제"
 
 #: src/libslic3r/PrintConfig.cpp:3043
 msgid "Multiply copies by creating a grid."
-msgstr ""
+msgstr "격자를 만들어 복사본을 곱합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3046
 msgid "Merge"
-msgstr ""
+msgstr "병합"
 
 #: src/libslic3r/PrintConfig.cpp:3047
 msgid ""
 "Arrange the supplied models in a plate and merge them in a single model in "
 "order to perform actions once."
 msgstr ""
+"한 번 작업을 수행하기 위해 제공 된 모델을 정렬하고 단일 모델로 병합 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3052
 msgid ""
 "Try to repair any non-manifold meshes (this option is implicitly added "
 "whenever we need to slice the model to perform the requested action)."
 msgstr ""
+"비 다양체 메쉬를 복구 하십시오 (요청 된 작업을 수행 하기 위해 모델을 슬라이"
+"스 해야 할때마다 이 옵션이 암시적으로 추가 됨)."
 
 #: src/libslic3r/PrintConfig.cpp:3056
 msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
+msgstr "Z 축 주위의 회전 각도입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3060
 msgid "Rotate around X"
-msgstr ""
+msgstr "X 주위 회전"
 
 #: src/libslic3r/PrintConfig.cpp:3061
 msgid "Rotation angle around the X axis in degrees."
-msgstr ""
+msgstr "X 축을 중심으로 회전 각도 (도)입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3065
 msgid "Rotate around Y"
-msgstr ""
+msgstr "Y 주위로 회전"
 
 #: src/libslic3r/PrintConfig.cpp:3066
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
+msgstr "Y 축을 중심으로 회전 각도 (도)입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3071
 msgid "Scaling factor or percentage."
-msgstr ""
+msgstr "배율 인수 또는 백분율입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3076
 msgid ""
 "Detect unconnected parts in the given model(s) and split them into separate "
 "objects."
 msgstr ""
+"지정 된 모델에서 연결 되지 않은 부품을 감지 하 여 별도의 객체로 분할 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3079
 msgid "Scale to Fit"
-msgstr ""
+msgstr "크기에 맞게 조정"
 
 #: src/libslic3r/PrintConfig.cpp:3080
 msgid "Scale to fit the given volume."
-msgstr ""
+msgstr "지정 된 볼륨에 맞게 크기를 조정 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3089
 msgid "Ignore non-existent config files"
-msgstr ""
+msgstr "존재 하지 않는 구성 파일 무시"
 
 #: src/libslic3r/PrintConfig.cpp:3090
 msgid "Do not fail if a file supplied to --load does not exist."
-msgstr ""
+msgstr "로드에 제공 된 파일이 없는 경우 실패 하지 않습니다."
 
 #: src/libslic3r/PrintConfig.cpp:3093
 msgid "Load config file"
-msgstr ""
+msgstr "구성 파일 로드"
 
 #: src/libslic3r/PrintConfig.cpp:3094
 msgid ""
 "Load configuration from the specified file. It can be used more than once to "
 "load options from multiple files."
 msgstr ""
+"지정 된 파일에서 구성을 로드 합니다. 여러 파일에서 옵션을 로드 하는 데 두 번 "
+"이상 사용할 수 있습니다."
 
 #: src/libslic3r/PrintConfig.cpp:3097
 msgid "Output File"
-msgstr ""
+msgstr "출력파일"
 
 #: src/libslic3r/PrintConfig.cpp:3098
 msgid ""
 "The file where the output will be written (if not specified, it will be "
 "based on the input file)."
 msgstr ""
+"출력이 기록 되는 파일 (지정 하지 않은 경우 입력 파일을 기반으로 합니다)."
 
 #: src/libslic3r/PrintConfig.cpp:3108
 msgid "Data directory"
-msgstr ""
+msgstr "데이터 디렉터리"
 
 #: src/libslic3r/PrintConfig.cpp:3109
 msgid ""
@@ -7646,16 +7759,20 @@ msgid ""
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
+"지정 된 디렉터리에 설정을 로드 하 고 저장 합니다. 이 기능은 다른 프로 파일을 "
+"유지 관리 하거나 네트워크 스토리지의 구성을 포함 하는 데 유용 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3112
 msgid "Logging level"
-msgstr ""
+msgstr "로깅 수준"
 
 #: src/libslic3r/PrintConfig.cpp:3113
 msgid ""
 "Messages with severity lower or eqal to the loglevel will be printed out. 0:"
 "trace, 1:debug, 2:info, 3:warning, 4:error, 5:fatal"
 msgstr ""
+"심각도가 낮은 또는 eqal로 loglevel으로 메시지가 인쇄 됩니다. 추적, 1: 디버"
+"그, 2: 경고, 오류 5: 치명적"
 
 #: src/libslic3r/GCode/PreviewData.cpp:176
 msgid "Mixed"
@@ -7679,19 +7796,19 @@ msgstr "용적 유량값 (mm3/s)"
 
 #: src/libslic3r/GCode/PreviewData.cpp:491
 msgid "Default print color"
-msgstr ""
+msgstr "기본 인쇄 색상"
 
 #: src/libslic3r/GCode/PreviewData.cpp:495
 #, c-format
 msgid "up to %.2f mm"
-msgstr ""
+msgstr "최대%.2f mm"
 
 #: src/libslic3r/GCode/PreviewData.cpp:499
 #, c-format
 msgid "above %.2f mm"
-msgstr ""
+msgstr "above %.2f mm"
 
 #: src/libslic3r/GCode/PreviewData.cpp:504
 #, c-format
 msgid "%.2f - %.2f mm"
-msgstr ""
+msgstr "%.2f - %.2f mm"
