@@ -31,6 +31,165 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
     event.Skip();
 }
 
+
+// -----------------------------------------
+// CopyrightsDialog
+// -----------------------------------------
+CopyrightsDialog::CopyrightsDialog()
+    : DPIDialog(NULL, wxID_ANY, wxString::Format("%s - %s", SLIC3R_APP_NAME, _(L("Portions copyright"))), 
+                wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+    this->SetFont(wxGetApp().normal_font());
+	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+    
+    fill_entries();
+
+    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, 
+                              wxSize(40 * em_unit(), 20 * em_unit()), wxHW_SCROLLBAR_AUTO);
+
+    wxFont font = GetFont();
+    const int fs = font.GetPointSize();
+    const int fs2 = static_cast<int>(1.2f*fs);
+    int size[] = { fs, fs, fs, fs, fs2, fs2, fs2 };
+
+    m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+    m_html->SetBorders(2);        
+    m_html->SetPage(get_html_text());
+
+    sizer->Add(m_html, 1, wxEXPAND | wxALL, 15);
+    m_html->Bind(wxEVT_HTML_LINK_CLICKED, &CopyrightsDialog::onLinkClicked, this);
+
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCLOSE);
+
+    this->SetEscapeId(wxID_CLOSE);
+    this->Bind(wxEVT_BUTTON, &CopyrightsDialog::onCloseDialog, this, wxID_CLOSE);
+    sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
+
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
+    
+}
+
+void CopyrightsDialog::fill_entries()
+{
+    m_entries = {
+        { "wxWidgets"       , "2019 wxWidgets"                              , "https://www.wxwidgets.org/" },
+        { "OpenGL"          , "1997-2019 The Khronos™ Group Inc"            , "https://www.opengl.org/" },
+        { "GNU gettext"     , "1998, 2019 Free Software Foundation, Inc."   , "https://www.gnu.org/software/gettext/" },
+        { "PoEdit"          , "2019 Václav Slavík"                          , "https://poedit.net/" },
+        { "ImGUI"           , "2014-2019 Omar Cornut"                       , "https://github.com/ocornut/imgui" },
+        { "Eigen"           , ""                                            , "http://eigen.tuxfamily.org" },
+        { "ADMesh"          , "1995, 1996  Anthony D. Martin; "
+                              "2015, ADMesh contributors"                   , "https://admesh.readthedocs.io/en/latest/" },
+        { "Anti-Grain Geometry"
+                            , "2002-2005 Maxim Shemanarev (McSeem)"         , "http://antigrain.com" },
+        { "Boost"           , "1998-2005 Beman Dawes, David Abrahams; "
+                              "2004 - 2007 Rene Rivera"                     , "https://www.boost.org/" },
+        { "Clipper"         , "2010-2015 Angus Johnson "                    , "http://www.angusj.com " },
+        { "GLEW (The OpenGL Extension Wrangler Library)", 
+                              "2002 - 2007, Milan Ikits; "
+                              "2002 - 2007, Marcelo E.Magallon; "
+                              "2002, Lev Povalahev"                         , "http://glew.sourceforge.net/" },
+        { "Libigl"          , "2013 Alec Jacobson and others"               , "https://libigl.github.io/" },
+        { "Poly2Tri"        , "2009-2018, Poly2Tri Contributors"            , "https://github.com/jhasse/poly2tri" },
+        { "PolyPartition"   , "2011 Ivan Fratric"                           , "https://github.com/ivanfratric/polypartition" },
+        { "Qhull"           , "1993-2015 C.B.Barber Arlington and "
+                              "University of Minnesota"                     , "http://qhull.org/" },
+        { "SemVer"          , "2015-2017 Tomas Aparicio"                    , "https://semver.org/" },
+        { "Nanosvg"         , "2013-14 Mikko Mononen"                       , "https://github.com/memononen/nanosvg" },
+        { "Miniz"           , "2013-2014 RAD Game Tools and Valve Software; "
+                              "2010-2014 Rich Geldreich and Tenacious Software LLC"
+                                                                            , "https://github.com/richgel999/miniz" },
+        { "Expat"           , "1998-2000 Thai Open Source Software Center Ltd and Clark Cooper"
+                              "2001-2016 Expat maintainers"                 , "http://www.libexpat.org/" },
+        { "AVRDUDE"         , "2018  Free Software Foundation, Inc."        , "http://savannah.nongnu.org/projects/avrdude" },
+        { "Shinyprofiler"   , "2007-2010 Aidin Abedi"                       , "http://code.google.com/p/shinyprofiler/" },
+        { "Icons for STL and GCODE files."
+                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" }
+    };
+}
+
+wxString CopyrightsDialog::get_html_text()
+{
+    wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+
+    const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+
+    const wxString copyright_str = _(L("Copyright")) + "&copy; ";
+    // TRN "Slic3r _is licensed under the_ License"
+    const wxString header_str = _(L("License agreements of all following programs (libraries) are part of application license agreement"));
+
+    wxString text = wxString::Format(
+        "<html>"
+            "<body bgcolor= %s link= %s>"
+            "<font color=%s>"
+                "<font size=\"5\">%s.</font>"
+                "<br /><br />"
+                "<font size=\"3\">"
+        , bgr_clr_str, text_clr_str
+        , text_clr_str
+        , header_str);
+
+    for (auto& entry : m_entries) {
+        text += wxString::Format(
+                    "<a href=\"%s\">%s</a><br/>"
+                    , entry.link, entry.lib_name);
+
+        if (!entry.copyright.empty())
+            text += wxString::Format(
+                    "%s %s"
+                    "<br/><br/>"
+                    , copyright_str, entry.copyright);
+    }
+
+    text += wxString(
+                "</font>"
+            "</font>"
+            "</body>"
+        "</html>");
+
+    return text;
+}
+
+void CopyrightsDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    const wxFont& font = GetFont();
+    const int fs = font.GetPointSize();
+    const int fs2 = static_cast<int>(1.2f*fs);
+    int font_size[] = { fs, fs, fs, fs, fs2, fs2, fs2 };
+
+    m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
+
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_CLOSE });
+
+    const wxSize& size = wxSize(40 * em, 20 * em);
+
+    m_html->SetMinSize(size);
+    m_html->Refresh();
+
+    SetMinSize(size);
+    Fit();
+
+    Refresh();
+}
+
+void CopyrightsDialog::onLinkClicked(wxHtmlLinkEvent &event)
+{
+    wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
+    event.Skip(false);
+}
+
+void CopyrightsDialog::onCloseDialog(wxEvent &)
+{
+     this->EndModal(wxID_CLOSE);
+}
+
 AboutDialog::AboutDialog()
     : DPIDialog(NULL, wxID_ANY, wxString::Format(_(L("About %s")), SLIC3R_APP_NAME), wxDefaultPosition, 
                 wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -119,8 +278,15 @@ AboutDialog::AboutDialog()
         vsizer->Add(m_html, 1, wxEXPAND | wxBOTTOM, 10);
         m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
     }
-    
+
+
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxCLOSE);
+
+    m_copy_rights_btn_id = NewControlId();
+    auto copy_rights_btn = new wxButton(this, m_copy_rights_btn_id, _(L("Portions copyright"))+dots);
+    buttons->Insert(0, copy_rights_btn, 0, wxLEFT, 5);
+    copy_rights_btn->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
+    
     this->SetEscapeId(wxID_CLOSE);
     this->Bind(wxEVT_BUTTON, &AboutDialog::onCloseDialog, this, wxID_CLOSE);
     vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
@@ -141,7 +307,7 @@ void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     const int& em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CLOSE });
+    msw_buttons_rescale(this, em, { wxID_CLOSE, m_copy_rights_btn_id });
 
     m_html->SetMinSize(wxSize(-1, 16 * em));
     m_html->Refresh();
@@ -163,6 +329,12 @@ void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)
 void AboutDialog::onCloseDialog(wxEvent &)
 {
     this->EndModal(wxID_CLOSE);
+}
+
+void AboutDialog::onCopyrightBtn(wxEvent &)
+{
+    CopyrightsDialog dlg;
+    dlg.ShowModal();
 }
 
 } // namespace GUI
