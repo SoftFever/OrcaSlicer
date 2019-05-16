@@ -188,7 +188,9 @@ public:
 
     void                selection_changed();
     void                show_context_menu();
+#ifndef __WXOSX__
     void                key_event(wxKeyEvent& event);
+#endif /* __WXOSX__ */
 
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
@@ -298,7 +300,9 @@ public:
     void msw_rescale();
 
 private:
-    void OnChar(wxKeyEvent& event);
+#ifdef __WXOSX__
+//    void OnChar(wxKeyEvent& event);
+#endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
 
     void OnBeginDrag(wxDataViewEvent &event);

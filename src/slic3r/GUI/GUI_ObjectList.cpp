@@ -129,7 +129,31 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-//    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+#ifdef __WXOSX__
+    // Key events are not correctly processed by the wxDataViewCtrl on OSX.
+    // Our patched wxWidgets process the keyboard accelerators.
+    // On the other hand, using accelerators will break in-place editing on Windows & Linux/GTK (there is no in-place editing working on OSX for wxDataViewCtrl for now).
+//    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
+    {
+        // Accelerators
+        wxAcceleratorEntry entries[6];
+        entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
+        entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
+        entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
+        entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
+        entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
+        entries[5].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
+        wxAcceleratorTable accel(6, entries);
+        SetAcceleratorTable(accel);
+
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY)); }, wxID_COPY);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE)); }, wxID_PASTE);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->select_item_all_children(); }, wxID_SELECTALL);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove(); }, wxID_DELETE);
+    }
+#else __WXOSX__
+    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+#endif
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
@@ -149,28 +173,6 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
-
-#ifdef __WXOSX__
-//    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
-#endif //__WXOSX__
-
-    {
-        // Accelerators
-        wxAcceleratorEntry entries[6];
-        entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
-        entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
-        entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
-        entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
-        entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
-        entries[5].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
-        wxAcceleratorTable accel(6, entries);
-        SetAcceleratorTable(accel);
-
-        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY)); }, wxID_COPY);
-        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE)); }, wxID_PASTE);
-        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->select_item_all_children(); }, wxID_SELECTALL);
-        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove(); }, wxID_DELETE);
-    }
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
 }
@@ -623,6 +625,8 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
 #endif //no __WXOSX__ //__WXMSW__
 }
 
+#ifdef __WXOSX__
+/*
 void ObjectList::OnChar(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_BACK){
@@ -633,6 +637,8 @@ void ObjectList::OnChar(wxKeyEvent& event)
 
     event.Skip();
 }
+*/
+#endif /* __WXOSX__ */
 
 void ObjectList::OnContextMenu(wxDataViewEvent&)
 {
@@ -701,7 +707,7 @@ void ObjectList::show_context_menu()
     }
 }
 
-
+#ifndef __WXOSX__
 void ObjectList::key_event(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_TAB)
@@ -722,6 +728,7 @@ void ObjectList::key_event(wxKeyEvent& event)
     else
         event.Skip();
 }
+#endif /* __WXOSX__ */
 
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
