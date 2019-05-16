@@ -1472,6 +1472,7 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
         bb.min(2) = std::min(bb.min(2), -h);
         bb.max(2) = std::max(bb.max(2), h);
     }
+
     return bb;
 }
 
@@ -3593,59 +3594,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
+
+    // updates camera
     m_camera.apply_viewport(0, 0, w, h);
-
-    const BoundingBoxf3& bbox = _max_bounding_box();
-
-    switch (m_camera.type)
-    {
-    case Camera::Ortho:
-    {
-        float w2 = w;
-        float h2 = h;
-        float two_zoom = 2.0f * m_camera.zoom;
-        if (two_zoom != 0.0f)
-        {
-            float inv_two_zoom = 1.0f / two_zoom;
-            w2 *= inv_two_zoom;
-            h2 *= inv_two_zoom;
-        }
-
-        // FIXME: calculate a tighter value for depth will improve z-fighting
-        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
-        float depth = std::max(1.f, 5.0f * (float)bbox.max_size());
-        m_camera.apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
-
-        break;
-    }
-//    case Camera::Perspective:
-//    {
-//        float bbox_r = (float)bbox.radius();
-//        float fov = PI * 45.0f / 180.0f;
-//        float fov_tan = tan(0.5f * fov);
-//        float cam_distance = 0.5f * bbox_r / fov_tan;
-//        m_camera.distance = cam_distance;
-//
-//        float nr = cam_distance - bbox_r * 1.1f;
-//        float fr = cam_distance + bbox_r * 1.1f;
-//        if (nr < 1.0f)
-//            nr = 1.0f;
-//
-//        if (fr < nr + 1.0f)
-//            fr = nr + 1.0f;
-//
-//        float h2 = fov_tan * nr;
-//        float w2 = h2 * w / h;
-//        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
-//
-//        break;
-//    }
-    default:
-    {
-        throw std::runtime_error("Invalid camera type.");
-        break;
-    }
-    }
+    m_camera.apply_projection(_max_bounding_box());
 
     m_dirty = false;
 }

@@ -28,6 +28,8 @@ Camera::Camera()
     , inverted_phi(false)
     , m_theta(45.0f)
     , m_target(Vec3d::Zero())
+    , m_view_matrix(Transform3d::Identity())
+    , m_projection_matrix(Transform3d::Identity())
 {
 }
 
@@ -63,11 +65,6 @@ void Camera::set_theta(float theta, bool apply_limit)
         if (m_theta < 0.0f)
             m_theta += 360.0f;
     }
-}
-
-void Camera::set_scene_box(const BoundingBoxf3& box)
-{
-    m_scene_box = box;
 }
 
 bool Camera::select_view(const std::string& direction)
@@ -111,13 +108,43 @@ void Camera::apply_view_matrix() const
     glsafe(::glLoadIdentity());
 
     glsafe(::glRotatef(-m_theta, 1.0f, 0.0f, 0.0f)); // pitch
-    glsafe(::glRotatef(phi, 0.0f, 0.0f, 1.0f));          // yaw
-    glsafe(::glTranslated(-m_target(0), -m_target(1), -m_target(2)));
+    glsafe(::glRotatef(phi, 0.0f, 0.0f, 1.0f));      // yaw
+
+    glsafe(::glTranslated(-m_target(0), -m_target(1), -m_target(2))); // target to origin
 
     glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, m_view_matrix.data()));
 }
 
-void Camera::apply_ortho_projection(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max) const
+void Camera::apply_projection(const BoundingBoxf3& box) const
+{
+    switch (type)
+    {
+    case Ortho:
+    {
+        double w2 = (double)m_viewport[2];
+        double h2 = (double)m_viewport[3];
+        double two_zoom = 2.0 * zoom;
+        if (two_zoom != 0.0)
+        {
+            double inv_two_zoom = 1.0 / two_zoom;
+            w2 *= inv_two_zoom;
+            h2 *= inv_two_zoom;
+        }
+
+        // FIXME: calculate a tighter value for depth will improve z-fighting
+        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
+        double depth = std::max(1.0, 5.0 * box.max_size());
+        apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
+
+        break;
+    }
+//    case Perspective:
+//    {
+//    }
+    }
+}
+
+void Camera::apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const
 {
     glsafe(::glMatrixMode(GL_PROJECTION));
     glsafe(::glLoadIdentity());

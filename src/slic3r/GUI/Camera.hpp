@@ -46,7 +46,7 @@ public:
     void set_theta(float theta, bool apply_limit);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
-    void set_scene_box(const BoundingBoxf3& box);
+    void set_scene_box(const BoundingBoxf3& box){ m_scene_box = box; }
 
     bool select_view(const std::string& direction);
 
@@ -62,7 +62,10 @@ public:
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h) const;
     void apply_view_matrix() const;
-    void apply_ortho_projection(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max) const;
+    void apply_projection(const BoundingBoxf3& box) const;
+
+private:
+    void apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const;
 };
 
 } // GUI
