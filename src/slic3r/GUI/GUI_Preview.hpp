@@ -154,7 +154,7 @@ private:
     void load_print_as_fff(bool keep_z_range = false);
     void load_print_as_sla();
 
-    void on_sliders_scroll_changed(wxEvent& event);
+    void on_sliders_scroll_changed(wxCommandEvent& event);
 
 };
 

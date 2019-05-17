@@ -533,6 +533,7 @@ void Preview::create_double_slider()
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
 
+
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
             auto& config = wxGetApp().preset_bundle->project_config;
             ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
@@ -823,7 +824,7 @@ void Preview::load_print_as_sla()
     }
 }
 
-void Preview::on_sliders_scroll_changed(wxEvent& event)
+void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
 {
     if (IsShown())
     {
@@ -831,7 +832,7 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
         if (tech == ptFFF)
         {
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
-            m_canvas_widget->Refresh();
+            m_canvas->render();
             m_canvas->set_use_clipping_planes(false);
         }
         else if (tech == ptSLA)
@@ -839,10 +840,11 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
             m_canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -m_slider->GetLowerValueD()));
             m_canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), m_slider->GetHigherValueD()));
             m_canvas->set_use_clipping_planes(m_slider->GetHigherValue() != 0);
-            m_canvas_widget->Refresh();
+            m_canvas->render();
         }
     }
 }
+
 
 } // namespace GUI
 } // namespace Slic3r
