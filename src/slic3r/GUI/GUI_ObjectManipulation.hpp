@@ -53,6 +53,10 @@ class ObjectManipulation : public OG_Settings
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
+    // Non-owning pointers to the reset buttons, so we can hide and show them.
+    ScalableButton* m_reset_scale_button = nullptr;
+    ScalableButton* m_reset_rotation_button = nullptr;
+
     // Needs to be updated from OnIdle?
     bool            m_dirty = false;
     // Cached labels for the delayed update, not localized!
@@ -111,10 +115,8 @@ private:
     void reset_settings_value();
     void update_settings_value(const Selection& selection);
 
-    // update size values after scale unit changing or "gizmos"
-    void update_size_value(const Vec3d& size);
-    // update rotation value after "gizmos"
-    void update_rotation_value(const Vec3d& rotation);
+    // Show or hide scale/rotation reset buttons if needed
+    void update_reset_buttons_visibility();
 
     // change values 
     void change_position_value(int axis, double value);

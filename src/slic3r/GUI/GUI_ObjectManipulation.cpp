@@ -190,8 +190,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         def.set_default_value(new ConfigOptionFloat(0.0));
         def.width = field_width/*50*/;
 
-        // Add "uniform scaling" button in front of "Scale" option 
         if (option_name == "Scale") {
+            // Add "uniform scaling" button in front of "Scale" option
             line.near_label_widget = [this](wxWindow* parent) {
                 auto btn = new LockButton(parent, wxID_ANY);
                 btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event){
@@ -201,8 +201,52 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 m_lock_bnt = btn;
                 return btn;
             };
+            // Add reset scale button
+            auto reset_scale_button = [=](wxWindow* parent) {
+                auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png");
+                btn->SetToolTip(_(L("Reset scale")));
+                m_reset_scale_button = btn;
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(btn, wxBU_EXACTFIT);
+                btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                    change_scale_value(0, 100.);
+                    change_scale_value(1, 100.);
+                    change_scale_value(2, 100.);
+                });
+            return sizer;
+            };
+            line.append_widget(reset_scale_button);
         }
+        else if (option_name == "Rotation") {
+            // Add reset rotation button
+            auto reset_rotation_button = [=](wxWindow* parent) {
+                auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png");
+                btn->SetToolTip(_(L("Reset rotation")));
+                m_reset_rotation_button = btn;
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(btn, wxBU_EXACTFIT);
+                btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                    // The following makes sure that the LOCAL coordinate system rotation is reset by calling
+                    // methods that are readily available here - it is not nice but gets the work done.
+                    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+                    Selection& selection = canvas->get_selection();
+                    GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
 
+                    if (selection.is_single_volume() || selection.is_single_modifier())
+                        volume->set_volume_rotation(Vec3d::Zero());
+                    else if (selection.is_single_full_instance())
+                        volume->set_instance_rotation(Vec3d::Zero());
+                    else
+                        return;
+
+                    canvas->do_rotate();
+
+                    UpdateAndShow(true);
+                });
+                return sizer;
+            };
+            line.append_widget(reset_rotation_button);
+        }
         // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
@@ -224,8 +268,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         return line;
     };
 
-
     // Settings table
+    m_og->sidetext_width = 3;
     m_og->append_line(add_og_to_object_settings(L("Position"), L("mm")), &m_move_Label);
     m_og->append_line(add_og_to_object_settings(L("Rotation"), "°"), &m_rotate_Label);
     m_og->append_line(add_og_to_object_settings(L("Scale"), "%"), &m_scale_Label);
@@ -408,8 +452,48 @@ void ObjectManipulation::update_if_dirty()
     else
         m_og->disable();
 
+    update_reset_buttons_visibility();
+
     m_dirty = false;
 }
+
+
+
+void ObjectManipulation::update_reset_buttons_visibility()
+{
+    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+    if (!canvas)
+        return;
+    const Selection& selection = canvas->get_selection();
+
+    bool show_rotation = false;
+    bool show_scale = false;
+
+    if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        Vec3d rotation;
+        Vec3d scale;
+
+        if (selection.is_single_full_instance()) {
+            rotation = volume->get_instance_rotation();
+            scale = volume->get_instance_scaling_factor();
+        }
+        else {
+            rotation = volume->get_volume_rotation();
+            scale = volume->get_volume_scaling_factor();
+        }
+        show_rotation = !rotation.isApprox(Vec3d::Zero());
+        show_scale = !scale.isApprox(Vec3d::Ones());
+    }
+
+    wxGetApp().CallAfter([this, show_rotation, show_scale]{
+        m_reset_rotation_button->Show(show_rotation);
+        m_reset_scale_button->Show(show_scale);
+    });
+}
+
+
+
 
 #ifndef __APPLE__
 void ObjectManipulation::emulate_kill_focus()
@@ -493,7 +577,7 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
-	this->UpdateAndShow(true);
+    this->UpdateAndShow(true);
 }
 
 void ObjectManipulation::change_scale_value(int axis, double value)
@@ -510,6 +594,7 @@ void ObjectManipulation::change_scale_value(int axis, double value)
 	m_cache.scale_rounded(axis) = DBL_MAX;
 	this->UpdateAndShow(true);
 }
+
 
 void ObjectManipulation::change_size_value(int axis, double value)
 {
