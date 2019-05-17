@@ -125,7 +125,7 @@ wxFont get_default_font_for_dpi(int dpi)
         NONCLIENTMETRICS nm;
         memset(&nm, 0, sizeof(NONCLIENTMETRICS));
         nm.cbSize = sizeof(NONCLIENTMETRICS);
-        if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, 0, &nm, 0, dpi)) {
+		if (SystemParametersInfoForDpi_fn(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &nm, 0, dpi)) {
             wxNativeFontInfo info;
             info.lf = nm.lfMessageFont;
             return wxFont(info);
