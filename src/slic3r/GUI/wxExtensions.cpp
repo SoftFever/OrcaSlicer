@@ -2235,14 +2235,16 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
+            int current_value = m_lower_value;
             m_lower_value = get_value_from_position(pos.x, pos.y);
             correct_lower_value();
-            action = true;
+            action = (current_value != m_lower_value);
         }
         else if (m_selection == ssHigher) {
+            int current_value = m_higher_value;
             m_higher_value = get_value_from_position(pos.x, pos.y);
             correct_higher_value();
-            action = true;
+            action = (current_value != m_higher_value);
         }
     }
     Refresh();
@@ -2253,6 +2255,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     {
         wxCommandEvent e(wxEVT_SCROLL_CHANGED);
         e.SetEventObject(this);
+        e.SetString("moving");
         ProcessWindowEvent(e);
     }
 }
@@ -2654,7 +2657,14 @@ ScalableButton::ScalableButton( wxWindow *          parent,
         SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
  
-    SetBitmap(create_scaled_bitmap(parent, icon_name));
+    /* #FIXME Edit preset Buttons under OSX.
+     * Because of _strange_ layout of a Button with a scaled Bitmap on nonactive wxWindow,
+     * there is just temporary workaround.
+     * Send to create_scaled_bitmap(nullptr,...) for buttons without text => 
+     * Bitmaps for this Buttons wouldn't be scaled and would be some blurred now, but 
+     * they would be correctly updated on Plater
+     */
+    SetBitmap(create_scaled_bitmap(label.IsEmpty() ? nullptr : parent, icon_name));
 }
 
 
