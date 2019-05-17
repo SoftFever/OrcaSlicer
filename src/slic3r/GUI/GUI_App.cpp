@@ -998,7 +998,7 @@ void GUI_App::associate_3mf_files()
 {
     // see as reference: https://stackoverflow.com/questions/20245262/c-program-needs-an-file-association
 
-    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)
+    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)->bool
     {
         wchar_t szValueCurrent[1000];
         DWORD dwType;
@@ -1010,26 +1010,32 @@ void GUI_App::associate_3mf_files()
 
         if ((iRC != ERROR_SUCCESS) && !bDidntExist)
             // an error occurred
-            return;
+            return false;
 
         if (!bDidntExist)
         {
             if (dwType != REG_SZ)
                 // invalid type
-                return;
+                return false;
 
             if (::wcscmp(szValueCurrent, pszValue) == 0)
                 // value already set
-                return;
+                return false;
         }
 
         DWORD dwDisposition;
         HKEY hkey;
         iRC = ::RegCreateKeyExW(hkeyHive, pszVar, 0, 0, 0, KEY_ALL_ACCESS, nullptr, &hkey, &dwDisposition);
+        bool ret = false;
         if (iRC == ERROR_SUCCESS)
+        {
             iRC = ::RegSetValueExW(hkey, L"", 0, REG_SZ, (BYTE*)pszValue, (::wcslen(pszValue) + 1) * sizeof(wchar_t));
+            if (iRC == ERROR_SUCCESS)
+                ret = true;
+        }
 
         RegCloseKey(hkey);
+        return ret;
     };
 
     wchar_t app_path[MAX_PATH];
@@ -1044,11 +1050,14 @@ void GUI_App::associate_3mf_files()
     std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
     std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
 
-    reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+    bool is_new = false;
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
 
-    ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    if (is_new)
+        // notify Windows only when any of the values gets changed
+        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 #endif // __WXMSW__
 
