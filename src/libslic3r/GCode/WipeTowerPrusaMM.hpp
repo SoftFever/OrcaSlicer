@@ -34,7 +34,8 @@ public:
 		SCAFF = 5,		// E:215C	B:55C
 		EDGE  = 6,		// E:240C	B:80C
 		NGEN  = 7,		// E:230C	B:80C
-		PVA   = 8	    // E:210C	B:80C
+		PVA   = 8,	    // E:210C	B:80C
+		PC    = 9
 	};
 
 	// Parse material name into material_type.

@@ -2235,14 +2235,16 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
+            int current_value = m_lower_value;
             m_lower_value = get_value_from_position(pos.x, pos.y);
             correct_lower_value();
-            action = true;
+            action = (current_value != m_lower_value);
         }
         else if (m_selection == ssHigher) {
+            int current_value = m_higher_value;
             m_higher_value = get_value_from_position(pos.x, pos.y);
             correct_higher_value();
-            action = true;
+            action = (current_value != m_higher_value);
         }
     }
     Refresh();
@@ -2253,6 +2255,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     {
         wxCommandEvent e(wxEVT_SCROLL_CHANGED);
         e.SetEventObject(this);
+        e.SetString("moving");
         ProcessWindowEvent(e);
     }
 }

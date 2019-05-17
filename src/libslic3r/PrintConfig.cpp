@@ -699,12 +699,22 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("PET");
-    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("FLEX");
-    def->enum_values.push_back("SCAFF");
+    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("EDGE");
     def->enum_values.push_back("NGEN");
+    def->enum_values.push_back("NYLON");
     def->enum_values.push_back("PVA");
+    def->enum_values.push_back("PC");
+    def->enum_values.push_back("PP");
+    def->enum_values.push_back("PEI");
+    def->enum_values.push_back("PEEK");
+    def->enum_values.push_back("PEKK");
+    def->enum_values.push_back("POM");
+    def->enum_values.push_back("PSU");
+    def->enum_values.push_back("PVDF");
+    def->enum_values.push_back("SCAFF");
+
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -1323,7 +1333,7 @@ void PrintConfigDef::init_fff_params()
                    "[input_filename_base].");
     def->full_width = true;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionString("[input_filename_base]"));
+    def->set_default_value(new ConfigOptionString("[input_filename_base].gcode"));
 
     def = this->add("overhangs", coBool);
     def->label = L("Detect bridging perimeters");

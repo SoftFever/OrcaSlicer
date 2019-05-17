@@ -117,7 +117,7 @@ SysInfoDialog::SysInfoDialog()
     }
     
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
-    m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, "Copy to Clipboard", wxDefaultPosition, wxDefaultSize);
+    m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, _(L("Copy to Clipboard")), wxDefaultPosition, wxDefaultSize);
 
     buttons->Insert(0, m_btn_copy_to_clipboard, 0, wxLEFT, 5);
     m_btn_copy_to_clipboard->Bind(wxEVT_BUTTON, &SysInfoDialog::onCopyToClipboard, this);
@@ -172,7 +172,6 @@ void SysInfoDialog::onCopyToClipboard(wxEvent &)
 void SysInfoDialog::onCloseDialog(wxEvent &)
 {
     this->EndModal(wxID_CLOSE);
-    this->Close();
 }
 
 } // namespace GUI

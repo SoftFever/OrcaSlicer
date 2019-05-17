@@ -72,7 +72,6 @@ static wxString dots("…", wxConvUTF8);
 class GUI_App : public wxApp
 {
     bool            m_initialized { false };
-    bool            app_conf_exists{ false };
 
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;

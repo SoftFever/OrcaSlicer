@@ -183,9 +183,8 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-    app_conf_exists = app_config->exists();
     // load settings
-    if (app_conf_exists)
+    if (app_config->exists())
         app_config->load();
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
@@ -258,7 +257,7 @@ bool GUI_App::on_init_inner()
             }
 
             CallAfter([this] {
-                if (!config_wizard_startup(app_conf_exists)) {
+                if (!config_wizard_startup(app_config->exists())) {
                     // Only notify if there was no wizard so as not to bother too much ...
                     preset_updater->slic3r_update_notify();
                 }
@@ -442,14 +441,12 @@ void GUI_App::system_info()
 {
     SysInfoDialog dlg;
     dlg.ShowModal();
-    dlg.Destroy();
 }
 
 void GUI_App::keyboard_shortcuts()
 {
     KBShortcutsDialog dlg;
     dlg.ShowModal();
-    dlg.Destroy();
 }
 
 // static method accepting a wxWindow object as first parameter
@@ -1000,7 +997,7 @@ void GUI_App::associate_3mf_files()
 {
     // see as reference: https://stackoverflow.com/questions/20245262/c-program-needs-an-file-association
 
-    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)
+    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)->bool
     {
         wchar_t szValueCurrent[1000];
         DWORD dwType;
@@ -1012,26 +1009,32 @@ void GUI_App::associate_3mf_files()
 
         if ((iRC != ERROR_SUCCESS) && !bDidntExist)
             // an error occurred
-            return;
+            return false;
 
         if (!bDidntExist)
         {
             if (dwType != REG_SZ)
                 // invalid type
-                return;
+                return false;
 
             if (::wcscmp(szValueCurrent, pszValue) == 0)
                 // value already set
-                return;
+                return false;
         }
 
         DWORD dwDisposition;
         HKEY hkey;
         iRC = ::RegCreateKeyExW(hkeyHive, pszVar, 0, 0, 0, KEY_ALL_ACCESS, nullptr, &hkey, &dwDisposition);
+        bool ret = false;
         if (iRC == ERROR_SUCCESS)
+        {
             iRC = ::RegSetValueExW(hkey, L"", 0, REG_SZ, (BYTE*)pszValue, (::wcslen(pszValue) + 1) * sizeof(wchar_t));
+            if (iRC == ERROR_SUCCESS)
+                ret = true;
+        }
 
         RegCloseKey(hkey);
+        return ret;
     };
 
     wchar_t app_path[MAX_PATH];
@@ -1046,11 +1049,14 @@ void GUI_App::associate_3mf_files()
     std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
     std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
 
-    reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+    bool is_new = false;
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    is_new |= reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
 
-    ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    if (is_new)
+        // notify Windows only when any of the values gets changed
+        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 #endif // __WXMSW__
 
