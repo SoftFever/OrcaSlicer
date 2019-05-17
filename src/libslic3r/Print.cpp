@@ -1875,12 +1875,12 @@ int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters
 // (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
 // Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before G-code is finalized).
-std::string Print::output_filename() const 
+std::string Print::output_filename(const std::string &filename_base) const 
 { 
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
+    return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
 /*
 // Shorten the dhms time by removing the seconds, rounding the dhm to full minutes

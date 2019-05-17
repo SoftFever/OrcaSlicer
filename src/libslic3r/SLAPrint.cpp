@@ -561,10 +561,10 @@ void SLAPrint::finalize()
 // Generate a recommended output file name based on the format template, default extension, and template parameters
 // (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
 // Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before the output is finalized).
-std::string SLAPrint::output_filename() const
+std::string SLAPrint::output_filename(const std::string &filename_base) const
 {
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "sl1", &config);
+    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, ".sl1", filename_base, &config);
 }
 
 namespace {

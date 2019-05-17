@@ -351,7 +351,7 @@ public:
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data() const { return m_wipe_tower_data; }
 
-	std::string                 output_filename() const override;
+	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }

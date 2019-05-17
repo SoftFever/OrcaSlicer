@@ -5,9 +5,7 @@
 #include <vector>
 #include <string>
 #include <regex>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -2971,9 +2969,16 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 void Plater::priv::set_project_filename(const wxString& filename)
 {
     boost::filesystem::path full_path = into_path(filename);
-    // remove extension
-    while (full_path.has_extension())
-    {
+    boost::filesystem::path ext = full_path.extension();
+    if (boost::iequals(ext.string(), ".amf")) {
+        // Remove the first extension.
+        full_path.replace_extension("");
+        // It may be ".zip.amf".
+        if (boost::iequals(full_path.extension().string(), ".zip"))
+            // Remove the 2nd extension.
+            full_path.replace_extension("");
+    } else {
+        // Remove just one extension.
         full_path.replace_extension("");
     }
 
@@ -3492,7 +3497,7 @@ void Plater::export_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-        default_output_file = this->p->background_process.current_print()->output_filepath(into_path(get_project_filename()).string());
+        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
     }
     catch (const std::exception &ex) {
         show_error(this, ex.what());
@@ -3737,7 +3742,7 @@ void Plater::send_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-        default_output_file = this->p->background_process.current_print()->output_filepath(into_path(get_project_filename(".3mf")).string());
+        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
     }
     catch (const std::exception &ex) {
         show_error(this, ex.what());
