@@ -726,7 +726,7 @@ const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
 			return "Prusa MMU 2.0 Control";
 		break;
 		case USB_PID_CW1_BOOT:
-			return "Prusa CurWa";
+			return "Original Prusa CW1";
 		break;
 
 		default: throw std::runtime_error((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
