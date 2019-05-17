@@ -22,7 +22,7 @@ namespace Slic3r {
 
 static const std::string VENDOR_PREFIX = "vendor:";
 static const std::string MODEL_PREFIX = "model:";
-static const std::string VERSION_CHECK_URL = "https://raw.githubusercontent.com/prusa3d/PrusaSlicer-settings/master/live/PrusaSlicer.version";
+static const std::string VERSION_CHECK_URL = "http://files.prusa3d.com/wp-content/uploads/repository/PrusaSlicer-settings-master/live/PrusaSlicer.version";
 
 void AppConfig::reset()
 {
