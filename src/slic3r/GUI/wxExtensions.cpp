@@ -2656,15 +2656,8 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     if (style & wxNO_BORDER)
         SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
- 
-    /* #FIXME Edit preset Buttons under OSX.
-     * Because of _strange_ layout of a Button with a scaled Bitmap on nonactive wxWindow,
-     * there is just temporary workaround.
-     * Send to create_scaled_bitmap(nullptr,...) for buttons without text => 
-     * Bitmaps for this Buttons wouldn't be scaled and would be some blurred now, but 
-     * they would be correctly updated on Plater
-     */
-    SetBitmap(create_scaled_bitmap(label.IsEmpty() ? nullptr : parent, icon_name));
+
+    SetBitmap(create_scaled_bitmap(parent, icon_name));
 }
 
 
