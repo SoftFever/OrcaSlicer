@@ -1461,6 +1461,8 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "display_height",
         "display_pixels_x",
         "display_pixels_y",
+        "display_mirror_x",
+        "display_mirror_y",
         "display_orientation"
     };
 

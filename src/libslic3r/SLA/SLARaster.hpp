@@ -100,8 +100,17 @@ public:
     ~Raster();
 
     /// Reallocated everything for the given resolution and pixel dimension.
-    void reset(const Resolution&, const PixelDim&, const std::array<bool, 2>& mirror, double gamma = 1.0);
-    void reset(const Resolution& r, const PixelDim& pd, Format o, double gamma = 1.0);
+    /// The third parameter is either the X, Y mirroring or a supported format 
+    /// for which the correct mirroring will be configured.
+    void reset(const Resolution&, 
+               const PixelDim&, 
+               const std::array<bool, 2>& mirror, 
+               double gamma = 1.0);
+    
+    void reset(const Resolution& r, 
+               const PixelDim& pd, 
+               Format o, 
+               double gamma = 1.0);
     
     /**
      * Release the allocated resources. Drawing in this state ends in
@@ -119,11 +128,17 @@ public:
     void draw(const ExPolygon& poly);
     void draw(const ClipperLib::Polygon& poly);
 
+    // Saving the raster: 
+    // It is possible to override the format given in the constructor but
+    // be aware that the mirroring will not be modified.
+    
     /// Save the raster on the specified stream.
-    void save(std::ostream& stream, Format = Format::PNG);
+    void save(std::ostream& stream, Format);
+    void save(std::ostream& stream);
 
     /// Save into a continuous byte stream which is returned.
-    RawBytes save(Format fmt = Format::PNG);
+    RawBytes save(Format fmt);
+    RawBytes save();
 };
 
 } // sla

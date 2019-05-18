@@ -58,6 +58,7 @@ private:
     
     std::function<double(double)> m_gammafn;
     std::array<bool, 2> m_mirror;
+    Format m_fmt = Format::PNG;
     
     inline void flipy(agg::path_storage& path) const {
         path.flip_y(0, m_resolution.height_px);
@@ -101,6 +102,7 @@ public:
         case Format::PNG: m_mirror = {false, true}; break;
         case Format::RAW: m_mirror = {false, false}; break;
         }
+        m_fmt = fmt;
     }
 
     template<class P> void draw(const P &poly) {
@@ -131,6 +133,8 @@ public:
     }
 
     inline TBuffer& buffer()  { return m_buf; }
+    
+    inline Format format() const { return m_fmt; }
 
     inline const Raster::Resolution resolution() { return m_resolution; }
    
@@ -258,6 +262,11 @@ void Raster::save(std::ostream& stream, Format fmt)
     }
 }
 
+void Raster::save(std::ostream &stream)
+{
+    save(stream, m_impl->format());
+}
+
 RawBytes Raster::save(Format fmt)
 {
     assert(m_impl);
@@ -298,6 +307,11 @@ RawBytes Raster::save(Format fmt)
     }
 
     return {std::move(data)};
+}
+
+RawBytes Raster::save()
+{
+    return save(m_impl->format());
 }
 
 }

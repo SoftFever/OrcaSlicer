@@ -2259,15 +2259,17 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionInt(1440));
 
     def = this->add("display_mirror_x", coBool);
-    def->full_label = L("Display mirroring in X axis");
-    def->label = L("Mirror X");
-    def->tooltip = L("Enable mirroring of output images in the X axis");
+    def->full_label = L("Display horizontal mirroring");
+    def->label = L("Mirror horizontally");
+    def->tooltip = L("Enable horizontal mirroring of output images");
+    def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("display_mirror_y", coBool);
-    def->full_label = L("Display mirroring in Y axis");
-    def->label = L("Mirror Y");
-    def->tooltip = L("Enable mirroring of output images in the Y axis");
+    def->full_label = L("Display vertical mirroring");
+    def->label = L("Mirror vertically");
+    def->tooltip = L("Enable vertical mirroring of output images");
+    def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("display_orientation", coEnum);
