@@ -1008,7 +1008,7 @@ void SLAPrint::process()
         namespace sl = libnest2d::shapelike;    // For algorithms
 
         // If the raster has vertical orientation, we will flip the coordinates
-        bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
+//        bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
 
         // Set up custom union and diff functions for clipper polygons
         auto polyunion = [] (const ClipperPolygons& subjects)
@@ -1066,9 +1066,9 @@ void SLAPrint::process()
 
         // get polygons for all instances in the object
         auto get_all_polygons =
-                [flpXY](const ExPolygons& input_polygons,
-                        const std::vector<SLAPrintObject::Instance>& instances,
-                        bool is_lefthanded)
+                [](const ExPolygons& input_polygons,
+                   const std::vector<SLAPrintObject::Instance>& instances,
+                   bool is_lefthanded)
         {
             ClipperPolygons polygons;
             polygons.reserve(input_polygons.size() * instances.size());
@@ -1082,7 +1082,7 @@ void SLAPrint::process()
 
                     // We need to reverse if flpXY OR is_lefthanded is true but
                     // not if both are true which is a logical inequality (XOR)
-                    bool needreverse = flpXY != is_lefthanded;
+                    bool needreverse = /*flpXY !=*/ is_lefthanded;
 
                     // should be a move
                     poly.Contour.reserve(polygon.contour.size() + 1);
@@ -1117,10 +1117,10 @@ void SLAPrint::process()
                     sl::translate(poly, ClipperPoint{instances[i].shift(X),
                                                      instances[i].shift(Y)});
 
-                    if (flpXY) {
-                        for(auto& p : poly.Contour) std::swap(p.X, p.Y);
-                        for(auto& h : poly.Holes) for(auto& p : h) std::swap(p.X, p.Y);
-                    }
+//                    if (flpXY) {
+//                        for(auto& p : poly.Contour) std::swap(p.X, p.Y);
+//                        for(auto& h : poly.Holes) for(auto& p : h) std::swap(p.X, p.Y);
+//                    }
 
                     polygons.emplace_back(std::move(poly));
                 }
@@ -1289,27 +1289,29 @@ void SLAPrint::process()
 
         { // create a raster printer for the current print parameters
             // I don't know any better
-            auto& ocfg = m_objects.front()->m_config;
-            auto& matcfg = m_material_config;
-            auto& printcfg = m_printer_config;
+//            auto& ocfg = m_objects.front()->m_config;
+//            auto& matcfg = m_material_config;
+//            auto& printcfg = m_printer_config;
 
-            double w = printcfg.display_width.getFloat();
-            double h = printcfg.display_height.getFloat();
-            auto pw = unsigned(printcfg.display_pixels_x.getInt());
-            auto ph = unsigned(printcfg.display_pixels_y.getInt());
-            double lh = ocfg.layer_height.getFloat();
-            double exp_t = matcfg.exposure_time.getFloat();
-            double iexp_t = matcfg.initial_exposure_time.getFloat();
+//            double w = printcfg.display_width.getFloat();
+//            double h = printcfg.display_height.getFloat();
+//            auto pw = unsigned(printcfg.display_pixels_x.getInt());
+//            auto ph = unsigned(printcfg.display_pixels_y.getInt());
+//            double lh = ocfg.layer_height.getFloat();
+//            double exp_t = matcfg.exposure_time.getFloat();
+//            double iexp_t = matcfg.initial_exposure_time.getFloat();
             
-            double gamma = m_printer_config.gamma_correction.getFloat();
+//            double gamma = m_printer_config.gamma_correction.getFloat();
 
-            if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
+//            if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
 
-            m_printer.reset(
-                new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
-                               flpXY? SLAPrinter::RO_PORTRAIT : 
-                                      SLAPrinter::RO_LANDSCAPE, 
-                               gamma));
+//            m_printer.reset(
+//                new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
+//                               flpXY? SLAPrinter::RO_PORTRAIT :
+//                                      SLAPrinter::RO_LANDSCAPE,
+//                               gamma));
+
+            m_printer.reset(new SLAPrinter(m_printer_config, m_material_config, m_default_object_config.layer_height.getFloat()));
         }
 
         // Allocate space for all the layers

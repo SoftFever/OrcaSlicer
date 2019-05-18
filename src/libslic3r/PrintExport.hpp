@@ -210,6 +210,28 @@ public:
     {
     }
 
+    inline FilePrinter(const SLAPrinterConfig& cfg, const SLAMaterialConfig& mcfg, double layer_height)
+    {
+        double w = cfg.display_width.getFloat();
+        double h = cfg.display_height.getFloat();
+        auto pw = unsigned(cfg.display_pixels_x.getInt());
+        auto ph = unsigned(cfg.display_pixels_y.getInt());
+
+        m_res = Raster::Resolution(pw, ph);
+        m_pxdim = Raster::PixelDim(w/pw, h/ph);
+        m_exp_time_s = mcfg.exposure_time.getFloat();
+        m_exp_time_first_s = mcfg.initial_exposure_time.getFloat();
+        m_layer_height = layer_height;
+
+        auto ro = cfg.display_orientation.getInt();
+
+        // Here is the trick with the orientation.
+        m_o = ro == RO_LANDSCAPE? Raster::Origin::BOTTOM_LEFT :
+                                  Raster::Origin::TOP_LEFT;
+
+        m_gamma = cfg.gamma_correction.getFloat();
+    }
+
     FilePrinter(const FilePrinter& ) = delete;
     FilePrinter(FilePrinter&& m):
         m_layers_rst(std::move(m.m_layers_rst)),

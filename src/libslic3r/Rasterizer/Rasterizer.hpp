@@ -75,7 +75,10 @@ public:
     struct Resolution {
         unsigned width_px;
         unsigned height_px;
-        inline Resolution(unsigned w, unsigned h): width_px(w), height_px(h) {}
+
+        inline Resolution(unsigned w = 0, unsigned h = 0):
+            width_px(w), height_px(h) {}
+
         inline unsigned pixels() const /*noexcept*/ {
             return width_px * height_px;
         }
@@ -85,7 +88,7 @@ public:
     struct PixelDim {
         double w_mm;
         double h_mm;
-        inline PixelDim(double px_width_mm, double px_height_mm ):
+        inline PixelDim(double px_width_mm = 0.0, double px_height_mm = 0.0):
             w_mm(px_width_mm), h_mm(px_height_mm) {}
     };
 
