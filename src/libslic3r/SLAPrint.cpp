@@ -1281,37 +1281,11 @@ void SLAPrint::process()
     auto rasterize = [this, max_objstatus]() {
         if(canceled()) return;
 
-        // collect all the keys
-
-        // If the raster has vertical orientation, we will flip the coordinates
-        bool flpXY = m_printer_config.display_orientation.getInt() ==
-                SLADisplayOrientation::sladoPortrait;
-
         { // create a raster printer for the current print parameters
-            // I don't know any better
-//            auto& ocfg = m_objects.front()->m_config;
-//            auto& matcfg = m_material_config;
-//            auto& printcfg = m_printer_config;
-
-//            double w = printcfg.display_width.getFloat();
-//            double h = printcfg.display_height.getFloat();
-//            auto pw = unsigned(printcfg.display_pixels_x.getInt());
-//            auto ph = unsigned(printcfg.display_pixels_y.getInt());
-//            double lh = ocfg.layer_height.getFloat();
-//            double exp_t = matcfg.exposure_time.getFloat();
-//            double iexp_t = matcfg.initial_exposure_time.getFloat();
-            
-//            double gamma = m_printer_config.gamma_correction.getFloat();
-
-//            if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
-
-//            m_printer.reset(
-//                new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
-//                               flpXY? SLAPrinter::RO_PORTRAIT :
-//                                      SLAPrinter::RO_LANDSCAPE,
-//                               gamma));
-
-            m_printer.reset(new SLAPrinter(m_printer_config, m_material_config, m_default_object_config.layer_height.getFloat()));
+            double layerh = m_default_object_config.layer_height.getFloat();
+            m_printer.reset(new SLAPrinter(m_printer_config, 
+                                           m_material_config, 
+                                           layerh));
         }
 
         // Allocate space for all the layers

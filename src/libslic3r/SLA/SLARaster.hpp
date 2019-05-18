@@ -1,5 +1,5 @@
-#ifndef RASTERIZER_HPP
-#define RASTERIZER_HPP
+#ifndef SLARASTER_HPP
+#define SLARASTER_HPP
 
 #include <ostream>
 #include <memory>
@@ -8,9 +8,11 @@
 
 namespace ClipperLib { struct Polygon; }
 
-namespace Slic3r {
+namespace Slic3r { 
 
 class ExPolygon;
+
+namespace sla {
 
 // Raw byte buffer paired with its size. Suitable for compressed PNG data.
 class RawBytes {
@@ -23,19 +25,24 @@ public:
     
     size_t size() const { return m_buffer.size(); }
     const uint8_t * data() { return m_buffer.data(); }
+    
+    RawBytes(const RawBytes&) = delete;
+    RawBytes(RawBytes&&) = default;
+    RawBytes& operator=(const RawBytes&) = delete;
+    RawBytes& operator=(RawBytes&&) = default;
 
     // /////////////////////////////////////////////////////////////////////////
     // FIXME: the following is needed for MSVC2013 compatibility
     // /////////////////////////////////////////////////////////////////////////
 
-    RawBytes(const RawBytes&) = delete;
-    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
+//    RawBytes(const RawBytes&) = delete;
+//    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
 
-    RawBytes& operator=(const RawBytes&) = delete;
-    RawBytes& operator=(RawBytes&& mv) {
-        m_buffer = std::move(mv.m_buffer);
-        return *this;
-    }
+//    RawBytes& operator=(const RawBytes&) = delete;
+//    RawBytes& operator=(RawBytes&& mv) {
+//        m_buffer = std::move(mv.m_buffer);
+//        return *this;
+//    }
 
     // /////////////////////////////////////////////////////////////////////////
 };
@@ -54,21 +61,9 @@ class Raster {
 public:
 
     /// Supported compression types
-    enum class Compression {
+    enum class Format {
         RAW,    //!> Uncompressed pixel data
         PNG     //!> PNG compression
-    };
-
-    /// The Rasterizer expects the input polygons to have their coordinate
-    /// system origin in the bottom left corner. If the raster is then
-    /// configured with the TOP_LEFT origin parameter (in the constructor) than
-    /// it will flip the Y axis in output to maintain the correct orientation.
-    /// This is the default case with PNG images. They have the origin in the
-    /// top left corner. Without the flipping, the image would be upside down
-    /// with the scaled (clipper) coordinate system of the input polygons.
-    enum class Origin {
-        TOP_LEFT,
-        BOTTOM_LEFT
     };
 
     /// Type that represents a resolution in pixels.
@@ -93,19 +88,21 @@ public:
     };
 
     /// Constructor taking the resolution and the pixel dimension.
-    Raster(const Resolution& r,  const PixelDim& pd, 
-           Origin o = Origin::BOTTOM_LEFT, double gamma = 1.0);
+    template <class...Args> Raster(Args...args) { 
+        reset(std::forward<Args>(args)...); 
+    }
     
     Raster();
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;
     Raster(Raster&& m);
+    Raster& operator=(Raster&&);
     ~Raster();
 
     /// Reallocated everything for the given resolution and pixel dimension.
-    void reset(const Resolution& r, const PixelDim& pd, double gamma = 1.0);
-    void reset(const Resolution& r, const PixelDim& pd, Origin o, double gamma);
-
+    void reset(const Resolution&, const PixelDim&, const std::array<bool, 2>& mirror, double gamma = 1.0);
+    void reset(const Resolution& r, const PixelDim& pd, Format o, double gamma = 1.0);
+    
     /**
      * Release the allocated resources. Drawing in this state ends in
      * unspecified behavior.
@@ -123,10 +120,13 @@ public:
     void draw(const ClipperLib::Polygon& poly);
 
     /// Save the raster on the specified stream.
-    void save(std::ostream& stream, Compression comp = Compression::RAW);
+    void save(std::ostream& stream, Format = Format::PNG);
 
-    RawBytes save(Compression comp = Compression::RAW);
+    /// Save into a continuous byte stream which is returned.
+    RawBytes save(Format fmt = Format::PNG);
 };
 
-}
-#endif // RASTERIZER_HPP
+} // sla
+} // Slic3r
+
+#endif // SLARASTER_HPP

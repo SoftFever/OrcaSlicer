@@ -1,5 +1,8 @@
-#include "Rasterizer.hpp"
-#include <ExPolygon.hpp>
+#ifndef SLARASTER_CPP
+#define SLARASTER_CPP
+
+#include "SLARaster.hpp"
+#include "libslic3r/ExPolygon.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 // For rasterizing
@@ -19,11 +22,13 @@
 
 namespace Slic3r {
 
-const Polygon& contour(const ExPolygon& p) { return p.contour; }
-const ClipperLib::Path& contour(const ClipperLib::Polygon& p) { return p.Contour; }
+inline const Polygon& contour(const ExPolygon& p) { return p.contour; }
+inline const ClipperLib::Path& contour(const ClipperLib::Polygon& p) { return p.Contour; }
 
-const Polygons& holes(const ExPolygon& p) { return p.holes; }
-const ClipperLib::Paths& holes(const ClipperLib::Polygon& p) { return p.Holes; }
+inline const Polygons& holes(const ExPolygon& p) { return p.holes; }
+inline const ClipperLib::Paths& holes(const ClipperLib::Polygon& p) { return p.Holes; }
+
+namespace sla {
 
 class Raster::Impl {
 public:
@@ -39,7 +44,7 @@ public:
     static const TPixel ColorWhite;
     static const TPixel ColorBlack;
 
-    using Origin = Raster::Origin;
+    using Format = Raster::Format;
 
 private:
     Raster::Resolution m_resolution;
@@ -52,16 +57,20 @@ private:
     TRendererAA m_renderer;
     
     std::function<double(double)> m_gammafn;
-    Origin m_o;
+    std::array<bool, 2> m_mirror;
     
     inline void flipy(agg::path_storage& path) const {
         path.flip_y(0, m_resolution.height_px);
+    }
+    
+    inline void flipx(agg::path_storage& path) const {
+        path.flip_x(0, m_resolution.width_px);
     }
 
 public:
 
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
-                Origin o, double gamma = 1.0):
+                const std::array<bool, 2>& mirror, double gamma = 1.0):
         m_resolution(res), 
 //        m_pxdim(pd), 
         m_pxdim_scaled(SCALING_FACTOR / pd.w_mm, SCALING_FACTOR / pd.h_mm),
@@ -72,7 +81,7 @@ public:
         m_pixfmt(m_rbuf),
         m_raw_renderer(m_pixfmt),
         m_renderer(m_raw_renderer),
-        m_o(o)
+        m_mirror(mirror)
     {
         m_renderer.color(ColorWhite);
         
@@ -80,6 +89,18 @@ public:
         else m_gammafn = agg::gamma_threshold(0.5);
         
         clear();
+    }
+    
+    inline Impl(const Raster::Resolution& res, 
+                const Raster::PixelDim &pd,
+                Format fmt, 
+                double gamma = 1.0): 
+        Impl(res, pd, {false, false}, gamma) 
+    {
+        switch (fmt) {
+        case Format::PNG: m_mirror = {false, true}; break;
+        case Format::RAW: m_mirror = {false, false}; break;
+        }
     }
 
     template<class P> void draw(const P &poly) {
@@ -89,14 +110,16 @@ public:
         ras.gamma(m_gammafn);
 
         auto&& path = to_path(contour(poly));
-
-        if(m_o == Origin::TOP_LEFT) flipy(path);
+        
+        if(m_mirror[X]) flipx(path);
+        if(m_mirror[Y]) flipy(path);
 
         ras.add_path(path);
 
         for(auto& h : holes(poly)) {
             auto&& holepath = to_path(h);
-            if(m_o == Origin::TOP_LEFT) flipy(holepath);
+            if(m_mirror[X]) flipx(holepath);
+            if(m_mirror[Y]) flipy(holepath);
             ras.add_path(holepath);
         }
 
@@ -110,9 +133,7 @@ public:
     inline TBuffer& buffer()  { return m_buf; }
 
     inline const Raster::Resolution resolution() { return m_resolution; }
-
-    inline Origin origin() const /*noexcept*/ { return m_o; }
-
+   
 private:
     inline double getPx(const Point& p) {
         return p(0) * m_pxdim_scaled.w_mm;
@@ -154,30 +175,23 @@ private:
 const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255);
 const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0);
 
-Raster::Raster(const Resolution &r, const PixelDim &pd, Origin o, double g):
-    m_impl(new Impl(r, pd, o, g)) {}
+Raster::Raster() = default;
+Raster::~Raster() = default;
+Raster::Raster(Raster &&m) = default;
+Raster& Raster::operator=(Raster&&) = default;
 
-Raster::Raster() {}
-
-Raster::~Raster() {}
-
-Raster::Raster(Raster &&m):
-    m_impl(std::move(m.m_impl)) {}
-
-void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd, 
-                   double g)
+void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd,
+                   Format fmt, double gamma)
 {
-    // Free up the unnecessary memory and make sure it stays clear after
-    // an exception
-    auto o = m_impl? m_impl->origin() : Origin::TOP_LEFT;
-    reset(r, pd, o, g);
+    m_impl.reset();
+    m_impl.reset(new Impl(r, pd, fmt, gamma));
 }
 
 void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd,
-                   Raster::Origin o, double gamma)
+                   const std::array<bool, 2>& mirror, double gamma)
 {
     m_impl.reset();
-    m_impl.reset(new Impl(r, pd, o, gamma));
+    m_impl.reset(new Impl(r, pd, mirror, gamma));
 }
 
 void Raster::reset()
@@ -208,13 +222,13 @@ void Raster::draw(const ClipperLib::Polygon &poly)
     m_impl->draw(poly);
 }
 
-void Raster::save(std::ostream& stream, Compression comp)
+void Raster::save(std::ostream& stream, Format fmt)
 {
     assert(m_impl);
     if(!stream.good()) return;
 
-    switch(comp) {
-    case Compression::PNG: {
+    switch(fmt) {
+    case Format::PNG: {
         auto& b = m_impl->buffer();
         size_t out_len = 0;
         void * rawdata = tdefl_write_image_to_png_file_in_memory(
@@ -231,7 +245,7 @@ void Raster::save(std::ostream& stream, Compression comp)
 
         break;
     }
-    case Compression::RAW: {
+    case Format::RAW: {
         stream << "P5 "
                << m_impl->resolution().width_px << " "
                << m_impl->resolution().height_px << " "
@@ -244,14 +258,14 @@ void Raster::save(std::ostream& stream, Compression comp)
     }
 }
 
-RawBytes Raster::save(Raster::Compression comp)
+RawBytes Raster::save(Format fmt)
 {
     assert(m_impl);
 
     std::vector<std::uint8_t> data; size_t s = 0;
 
-    switch(comp) {
-    case Compression::PNG: {
+    switch(fmt) {
+    case Format::PNG: {
         void *rawdata = tdefl_write_image_to_png_file_in_memory(
                     m_impl->buffer().data(),
                     int(resolution().width_px),
@@ -265,7 +279,7 @@ RawBytes Raster::save(Raster::Compression comp)
         MZ_FREE(rawdata);
         break;
     }
-    case Compression::RAW: {
+    case Format::RAW: {
         auto header = std::string("P5 ") +
                 std::to_string(m_impl->resolution().width_px) + " " +
                 std::to_string(m_impl->resolution().height_px) + " " + "255 ";
@@ -287,3 +301,6 @@ RawBytes Raster::save(Raster::Compression comp)
 }
 
 }
+}
+
+#endif // SLARASTER_CPP

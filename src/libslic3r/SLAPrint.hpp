@@ -3,11 +3,11 @@
 
 #include <mutex>
 #include "PrintBase.hpp"
-#include "PrintExport.hpp"
+//#include "PrintExport.hpp"
+#include "SLA/SLARasterWriter.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
-#include "Zipper.hpp"
 
 namespace Slic3r {
 
@@ -322,37 +322,6 @@ struct SLAPrintStatistics
     }
 };
 
-// The implementation of creating zipped archives with wxWidgets
-template<> class LayerWriter<Zipper> {
-    Zipper m_zip;
-public:
-
-    LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
-
-    void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
-
-    void binary_entry(const std::string& fname,
-                      const std::uint8_t* buf,
-                      size_t l)
-    {
-        m_zip.add_entry(fname, buf, l);
-    }
-
-    template<class T> inline LayerWriter& operator<<(T&& arg) {
-        m_zip << std::forward<T>(arg); return *this;
-    }
-
-    bool is_ok() const {
-        return true; // m_zip blows up if something goes wrong...
-    }
-
-    // After finalize, no writing to the archive will have an effect. The only
-    // valid operation is to dispose the object calling the destructor which
-    // should close the file. This method can throw and signal potential errors
-    // when flushing the archive. This is why its present.
-    void finalize() { m_zip.finalize(); }
-};
-
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -385,11 +354,10 @@ public:
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
-    template<class Fmt = Zipper>
     inline void export_raster(const std::string& fpath,
-                       const std::string& projectname = "")
+                              const std::string& projectname = "")
     {
-        if(m_printer) m_printer->save<Fmt>(fpath, projectname);
+        if(m_printer) m_printer->save(fpath, projectname);
     }
 
     const PrintObjects& objects() const { return m_objects; }
@@ -450,7 +418,7 @@ public:
     const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
 
 private:
-    using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
+    using SLAPrinter = sla::SLARasterWriter;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
     // Implement same logic as in SLAPrintObject

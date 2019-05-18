@@ -2262,13 +2262,13 @@ void PrintConfigDef::init_sla_params()
     def->full_label = L("Display mirroring in X axis");
     def->label = L("Mirror X");
     def->tooltip = L("Enable mirroring of output images in the X axis");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("display_mirror_y", coBool);
     def->full_label = L("Display mirroring in Y axis");
     def->label = L("Mirror Y");
     def->tooltip = L("Enable mirroring of output images in the Y axis");
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("display_orientation", coEnum);
     def->label = L("Display orientation");
