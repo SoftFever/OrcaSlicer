@@ -74,7 +74,7 @@ void ImGuiWrapper::set_language(const std::string &language)
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesCyrillic();
     } else if (lang == "jp") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese();
-    } else if (lang == "kr") {
+    } else if (lang == "ko") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesKorean();
     } else if (lang == "zh") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
