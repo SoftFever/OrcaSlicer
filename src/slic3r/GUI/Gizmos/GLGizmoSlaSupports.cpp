@@ -303,6 +303,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         glsafe(::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2)));
         glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
+        if (vol->is_left_handed())
+            glFrontFace(GL_CW);
+
         // Matrices set, we can render the point mark now.
         // If in editing mode, we'll also render a cone pointing to the sphere.
         if (m_editing_mode) {
@@ -324,6 +327,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glPopMatrix());
         }
         ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 24, 12);
+        if (vol->is_left_handed())
+            glFrontFace(GL_CCW);
+
         glsafe(::glPopMatrix());
     }
 
