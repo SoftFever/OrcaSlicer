@@ -757,8 +757,8 @@ public:
 
     template<class T> inline const Pillar& pillar(T id) const {
         static_assert(std::is_integral<T>::value, "Invalid index type");
-        assert(id >= 0 && id < m_pillars.size() &&
-               id < std::numeric_limits<size_t>::max());
+        assert(id >= 0 && size_t(id) < m_pillars.size() &&
+               size_t(id) < std::numeric_limits<size_t>::max());
         return m_pillars[size_t(id)];
     }
 
