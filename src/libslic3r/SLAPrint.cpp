@@ -742,7 +742,7 @@ void SLAPrint::process()
             // We apply the printer correction offset here.
             if(clpr_offs != 0)
                 po.m_model_slices[id] = 
-                        offset_ex(po.m_model_slices[id], clpr_offs);
+                        offset_ex(po.m_model_slices[id], float(clpr_offs));
             
             mit->set_model_slice_idx(po, id); ++mit;
         }

@@ -4,6 +4,8 @@
 #include <ostream>
 #include <memory>
 #include <vector>
+#include <array>
+#include <utility>
 #include <cstdint>
 
 namespace ClipperLib { struct Polygon; }
@@ -27,22 +29,20 @@ public:
     const uint8_t * data() { return m_buffer.data(); }
     
     RawBytes(const RawBytes&) = delete;
-    RawBytes(RawBytes&&) = default;
     RawBytes& operator=(const RawBytes&) = delete;
-    RawBytes& operator=(RawBytes&&) = default;
 
     // /////////////////////////////////////////////////////////////////////////
     // FIXME: the following is needed for MSVC2013 compatibility
     // /////////////////////////////////////////////////////////////////////////
 
-//    RawBytes(const RawBytes&) = delete;
-//    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
+    // RawBytes(RawBytes&&) = default;
+    // RawBytes& operator=(RawBytes&&) = default;
 
-//    RawBytes& operator=(const RawBytes&) = delete;
-//    RawBytes& operator=(RawBytes&& mv) {
-//        m_buffer = std::move(mv.m_buffer);
-//        return *this;
-//    }
+    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
+    RawBytes& operator=(RawBytes&& mv) {
+        m_buffer = std::move(mv.m_buffer);
+        return *this;
+    }
 
     // /////////////////////////////////////////////////////////////////////////
 };
@@ -92,7 +92,6 @@ public:
         reset(std::forward<Args>(args)...); 
     }
     
-    Raster();
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;
     Raster(Raster&& m);
@@ -140,6 +139,10 @@ public:
     RawBytes save(Format fmt);
     RawBytes save();
 };
+
+// This prevents the duplicate default constructor warning on MSVC2013
+template<> Raster::Raster();
+
 
 } // sla
 } // Slic3r

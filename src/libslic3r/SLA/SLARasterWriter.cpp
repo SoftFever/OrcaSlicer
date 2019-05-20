@@ -44,11 +44,11 @@ void SLARasterWriter::flpXY(ClipperLib::Polygon &poly)
 
 void SLARasterWriter::flpXY(ExPolygon &poly)
 {
-    for(auto& p : poly.contour.points) p = {p.y(), p.x()};
+    for(auto& p : poly.contour.points) p = Point(p.y(), p.x());
     std::reverse(poly.contour.points.begin(), poly.contour.points.end());
     
     for(auto& h : poly.holes) {
-        for(auto& p : h.points) p = {p.y(), p.x()};
+        for(auto& p : h.points) p = Point(p.y(), p.x());
         std::reverse(h.points.begin(), h.points.end());
     }
 }

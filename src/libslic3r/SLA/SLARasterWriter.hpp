@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <array>
 
 #include "libslic3r/PrintConfig.hpp"
 
@@ -49,8 +50,18 @@ private:
         Layer(const Layer&) = delete; // The image is big, do not copy by accident
         Layer& operator=(const Layer&) = delete;
         
-        Layer(Layer&& m) = default;
-        Layer& operator=(Layer&&) = default;
+        // /////////////////////////////////////////////////////////////////////
+        // FIXME: the following is needed for MSVC2013 compatibility
+        // /////////////////////////////////////////////////////////////////////
+
+        // Layer(Layer&& m) = default;
+        // Layer& operator=(Layer&&) = default;
+        Layer(Layer &&m):
+            raster(std::move(m.raster)), rawbytes(std::move(m.rawbytes)) {}
+        Layer& operator=(Layer &&m) {
+            raster = std::move(m.raster); rawbytes = std::move(m.rawbytes);
+            return *this;
+        }
     };
 
     // We will save the compressed PNG data into RawBytes type buffers in 
@@ -83,13 +94,30 @@ public:
 
     SLARasterWriter(const SLARasterWriter& ) = delete;
     SLARasterWriter& operator=(const SLARasterWriter&) = delete;
-    SLARasterWriter(SLARasterWriter&& m) = default;
-    SLARasterWriter& operator=(SLARasterWriter&&) = default;
-//    SLARasterWriter(SLARasterWriter&& m) = default;
-//    SLARasterWriter(SLARasterWriter&& m):
-//        m_layers_rst(std::move(m.m_layers_rst)),
-//        m_res(m.m_res),
-//        m_pxdim(m.m_pxdim) {}
+
+    // /////////////////////////////////////////////////////////////////////////
+    // FIXME: the following is needed for MSVC2013 compatibility
+    // /////////////////////////////////////////////////////////////////////////
+
+    // SLARasterWriter(SLARasterWriter&& m) = default;
+    // SLARasterWriter& operator=(SLARasterWriter&&) = default;
+    SLARasterWriter(SLARasterWriter&& m):
+        m_layers_rst(std::move(m.m_layers_rst)),
+        m_res(m.m_res),
+        m_pxdim(m.m_pxdim),
+        m_exp_time_s(m.m_exp_time_s),
+        m_exp_time_first_s(m.m_exp_time_first_s),
+        m_layer_height(m.m_layer_height),
+        m_o(m.m_o),
+        m_mirror(std::move(m.m_mirror)),
+        m_gamma(m.m_gamma),
+        m_used_material(m.m_used_material),
+        m_cnt_fade_layers(m.m_cnt_fade_layers),
+        m_cnt_slow_layers(m.m_cnt_slow_layers),
+        m_cnt_fast_layers(m.m_cnt_fast_layers)
+    {}
+
+    // /////////////////////////////////////////////////////////////////////////
 
     inline void layers(unsigned cnt) { if(cnt > 0) m_layers_rst.resize(cnt); }
     inline unsigned layers() const { return unsigned(m_layers_rst.size()); }

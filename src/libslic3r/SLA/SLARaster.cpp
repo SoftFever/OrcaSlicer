@@ -1,6 +1,8 @@
 #ifndef SLARASTER_CPP
 #define SLARASTER_CPP
 
+#include <functional>
+
 #include "SLARaster.hpp"
 #include "libslic3r/ExPolygon.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
@@ -179,10 +181,17 @@ private:
 const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255);
 const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0);
 
-Raster::Raster() = default;
+template<> Raster::Raster() { reset(); };
 Raster::~Raster() = default;
-Raster::Raster(Raster &&m) = default;
-Raster& Raster::operator=(Raster&&) = default;
+
+// Raster::Raster(Raster &&m) = default;
+// Raster& Raster::operator=(Raster&&) = default;
+
+// FIXME: remove after migrating to higher version of windows compiler
+Raster::Raster(Raster &&m): m_impl(std::move(m.m_impl)) {}
+Raster& Raster::operator=(Raster &&m) {
+    m_impl = std::move(m.m_impl); return *this;
+}
 
 void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd,
                    Format fmt, double gamma)
