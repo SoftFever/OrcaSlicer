@@ -1248,30 +1248,24 @@ void TabPrint::update()
     // layer_height shouldn't be equal to zero
     if (m_config->opt_float("layer_height") < EPSILON)
     {
-        const wxString msg_text = _(L("Layer height can't be equal to zero.\n"
-            "\nShall I set its value to minimum (0.01)?"));
-        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Layer height")), wxICON_WARNING | wxYES | wxNO);
+        const wxString msg_text = _(L("Zero layer height is not valid.\n\nThe layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *m_config;
         is_msg_dlg_already_exist = true;
-        if (dialog->ShowModal() == wxID_YES)
-            new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.01));
-        else {}
-
+        dialog->ShowModal();
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.01));
         load_config(new_conf);
         is_msg_dlg_already_exist = false;
     }
 
     if (fabs(m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value - 0) < EPSILON)
     {
-        const wxString msg_text = _(L("First layer height can't be equal to zero.\n"
-            "\nShall I set its value to minimum (0.01)?"));
-        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("First layer height")), wxICON_WARNING | wxYES | wxNO);
+        const wxString msg_text = _(L("Zero first layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *m_config;
         is_msg_dlg_already_exist = true;
-        if (dialog->ShowModal() == wxID_YES)
-            new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.01, false));
-        else {}
-
+        dialog->ShowModal();
+        new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.01, false));
         load_config(new_conf);
         is_msg_dlg_already_exist = false;
     }
