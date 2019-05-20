@@ -900,7 +900,7 @@ void Choice::msw_rescale()
     	size_t counter = 0;
     	bool   labels = ! m_opt.enum_labels.empty();
         for (const std::string &el : labels ? m_opt.enum_labels : m_opt.enum_values) {
-        	wxString text = labels ? _(el) : wxString::ToUTF8(el.c_str());
+        	wxString text = labels ? _(el) : wxString::FromUTF8(el.c_str());
             field->Append(text);
             if (text == selection)
                 idx = counter;
