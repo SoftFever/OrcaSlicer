@@ -618,7 +618,7 @@ msgstr "Ajouter un bloqueur de support"
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1068
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1086
 msgid "Add support enforcer"
-msgstr "Ajouter un renfort de support"
+msgstr "Ajouter un générateur de supports"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:3392
 msgid "Add..."
@@ -1230,6 +1230,10 @@ msgstr "Choisir un fichier à découper (STL/OBJ/AMF/3MF/PRUSA) :"
 msgid "Choose one file (3MF):"
 msgstr "Choisir un fichier (3MF) :"
 
+#: src/slic3r/GUI/GUI_App.cpp:510
+msgid "Choose one file (3MF/AMF):"
+msgstr "Choisir un fichier (3MF/AMF) :"
+
 #: src/slic3r/GUI/GUI_App.cpp:501
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr "Choisir un ou plusieurs fichiers (STL/OBJ/AMF/3MF/PRUSA) :"
@@ -1338,7 +1342,7 @@ msgstr "Notes de configuration"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:99
 msgid "Configuration Snapshots"
-msgstr "Instantanés de Configuration"
+msgstr "Instantanés de Configuration capturés"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:73 src/slic3r/GUI/UpdateDialogs.cpp:168
 msgid "Configuration update"
@@ -1940,8 +1944,8 @@ msgid ""
 "Select YES if you want to change this value to %d%%, \n"
 "or NO if you are sure that %d %s is a correct value."
 msgstr ""
-"Voulez vous dire %d %% au lieu de %d %s ?\n"
-"Sélectionnez OUI si vous voulez changer cette valeur pour %d %%,\n"
+"Voulez vous dire %d%% au lieu de %d %s ?\n"
+"Sélectionnez OUI si vous voulez changer cette valeur pour %d%%,\n"
 "ou NON si vous êtes certain que %d %s est une valeur correcte."
 
 #: src/slic3r/GUI/GUI_App.cpp:754
@@ -2050,11 +2054,11 @@ msgstr "G-code de fin"
 
 #: src/libslic3r/PrintConfig.cpp:1838
 msgid "Enforce support for the first"
-msgstr "Renforcer le support sur le(s) première(s)"
+msgstr "Forcer les supports sur le(s) première(s)"
 
 #: src/libslic3r/PrintConfig.cpp:1845
 msgid "Enforce support for the first n layers"
-msgstr "Renforcer le support pour les n premières couches"
+msgstr "Forcer le support pour les n premières couches"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:197
 #: src/slic3r/GUI/PrintHostDialogs.cpp:228
@@ -2700,7 +2704,7 @@ msgstr "Angle du remplissage"
 
 #: src/libslic3r/PrintConfig.cpp:742
 msgid "Fill density"
-msgstr "Densité du remplissage"
+msgstr "Densité de remplissage"
 
 #: src/libslic3r/PrintConfig.cpp:779
 msgid "Fill pattern"
@@ -2837,7 +2841,7 @@ msgstr "Pour plus d'informations, merci de visiter notre page wiki :"
 
 #: src/slic3r/GUI/Plater.cpp:435 src/slic3r/GUI/Plater.cpp:528
 msgid "For support enforcers only"
-msgstr "Seulement pour les applicateurs de support"
+msgstr "Seulement pour les générateur de supports"
 
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3078
@@ -3185,7 +3189,7 @@ msgstr "ID"
 
 #: src/libslic3r/PrintConfig.cpp:1787
 msgid "If checked, supports will be generated automatically based on the overhang threshold value. If unchecked, supports will be generated inside the \"Support Enforcer\" volumes only."
-msgstr "Si cette case est cochée, les supports seront générés automatiquement en fonction de la valeur seuil de surplomb. Si cette case n'est pas cochée, les supports seront générés uniquement dans les volumes \"Renforceur de Support\"."
+msgstr "Si cette case est cochée, les supports seront générés automatiquement en fonction de la valeur seuil de surplomb. Si cette case n'est pas cochée, les supports seront générés uniquement dans les volumes \"Générateur de supports\"."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:413
 #, c-format
@@ -3219,12 +3223,12 @@ msgstr "Si ceci est activé, la scène 3D sera affichée avec la résolution Ret
 
 #: src/slic3r/GUI/PresetHints.cpp:28
 msgid "If estimated layer time is below ~%1%s, fan will run at %2%%% and print speed will be reduced so that no less than %3%s are spent on that layer (however, speed will never be reduced below %4%mm/s)."
-msgstr "Si le temps de couche estimé est inférieur à ~%1%s%2%%%, le ventilateur tournera à %2%%% et la vitesse d'impression sera réduite pour qu'au moins %3%s soient passées sur cette couche (cependant, la vitesse ne sera jamais réduite en-dessous de %4%mm/s)."
+msgstr "Si le temps de couche estimé est inférieur à ~%1%s, le ventilateur tournera à %2%%% et la vitesse d'impression sera réduite pour qu'au moins %3%s soient passées sur cette couche (cependant, la vitesse ne sera jamais réduite en-dessous de %4%mm/s)."
 
 #: src/slic3r/GUI/PresetHints.cpp:28
 #, c-format
 msgid "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s)."
-msgstr "Si le temps de couche estimé est inférieur à ~%d s, le ventilateur tournera à %d%% et la vitesse d'impression sera réduite pour qu'au moins %d s soient passées sur cette couche (cependant, la vitesse ne sera jamais réduite en-dessous de %d mm/s)."
+msgstr "Si le temps de couche estimé est inférieur à ~%ds, le ventilateur tournera à %d%% et la vitesse d'impression sera réduite pour qu'au moins %d s soient passées sur cette couche (cependant, la vitesse ne sera jamais réduite en-dessous de %dmm/s)."
 
 #: src/libslic3r/PrintConfig.cpp:853
 msgid "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds."
@@ -3582,7 +3586,7 @@ msgstr "Sélection de la langue"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:1694
 msgid "Last frame"
-msgstr "Dernier image"
+msgstr "Dernière image"
 
 #: lib/Slic3r/GUI/Plater.pm:265
 msgid "Layer Editing"
@@ -5420,7 +5424,7 @@ msgstr "Retirer l'objet sélectionné"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:305
 msgid "Remove user profiles - install from scratch (a snapshot will be taken beforehand)"
-msgstr "Supprimer les profils d'utilisateur - installation à partir de zéro (un snapshot sera fait avant)"
+msgstr "Supprimer les profils d'utilisateur - installation à partir de zéro (un instantané des réglages sera pris)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1200
 msgid "Rename"
@@ -6512,7 +6516,7 @@ msgstr "Périmètres courts"
 
 #: src/slic3r/GUI/GUI_App.cpp:697
 msgid "Snapshot name"
-msgstr "Nom du snapshot"
+msgstr "Nom de l'instantané"
 
 #: src/slic3r/GUI/MainFrame.cpp:549
 msgid "Software &Releases"
@@ -6997,15 +7001,15 @@ msgstr "Préréglages système"
 
 #: src/slic3r/GUI/GUI_App.cpp:662
 msgid "Take Configuration &Snapshot"
-msgstr "Prendre un &Snapshot de la Configuration"
+msgstr "Capturer un in&stantané de la configuration"
 
 #: xs/src/slic3r/GUI/GUI.cpp:350
 msgid "Take Configuration Snapshot"
-msgstr "Prendre un snapshot de la configuration"
+msgstr "Capturer un instantané de la configuration"
 
 #: src/slic3r/GUI/GUI_App.cpp:697
 msgid "Taking configuration snapshot"
-msgstr "Snapshot de la configuration  en cours"
+msgstr "Instantané de la configuration en cours"
 
 #: src/slic3r/GUI/Tab.cpp:1478
 msgid "Temperature "
@@ -7037,7 +7041,7 @@ msgid ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
-"Le motif de remplissage %1% n'est pas censé fonctionner à une densité de 100 %%.\n"
+"Le motif de remplissage %1% n'est pas censé fonctionner à une densité de 100%%.\n"
 "\n"
 "Puis-je passer au motif de remplissage rectiligne?"
 
@@ -8269,7 +8273,7 @@ msgid ""
 msgstr ""
 "Voulez-vous l'installer ?\n"
 "\n"
-"Notez qu'un snapshot complet de la configuration sera sauvegardé d'abord. Elle peut être restaurée à tout moment si vous rencontrez un problème avec la nouvelle version.\n"
+"Notez qu'un instantané complet de la configuration sera sauvegardé d'abord. Elle peut être restaurée à tout moment si vous rencontrez un problème avec la nouvelle version.\n"
 "\n"
 "Ensembles de configuration mis à jour :"
 

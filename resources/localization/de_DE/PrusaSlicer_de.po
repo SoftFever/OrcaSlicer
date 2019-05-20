@@ -1226,6 +1226,10 @@ msgstr "Wählen Sie eine Datei zum Slicen (STL/OBJ/AMF/3MF/PRUSA):"
 msgid "Choose one file (3MF):"
 msgstr "Wählen Sie eine Datei (3MF):"
 
+#: src/slic3r/GUI/GUI_App.cpp:510
+msgid "Choose one file (3MF/AMF):"
+msgstr "Wählen Sie eine Datei (3MF/AMF):"
+
 #: src/slic3r/GUI/GUI_App.cpp:501
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr "Wählen Sie eine oder mehrere Dateien (STL/OBJ/AMF/3MF/PRUSA):"
@@ -7031,7 +7035,7 @@ msgid ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
-"Das %1% Infillmuster ist nicht empfohlen für 100% Füllvolumen.\n"
+"Das %1% Infillmuster ist nicht empfohlen für 100%% Füllvolumen.\n"
 "\n"
 "Soll auf das rechtlineare Füllmuster umgestellt werden?"
 

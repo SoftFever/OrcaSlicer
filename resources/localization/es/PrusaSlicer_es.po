@@ -1230,6 +1230,10 @@ msgstr "Elija un archivo para laminar (STL / OBJ / AMF / 3MF / PRUSA):"
 msgid "Choose one file (3MF):"
 msgstr "Selecciona un archivo (3MF):"
 
+#: src/slic3r/GUI/GUI_App.cpp:510
+msgid "Choose one file (3MF/AMF):"
+msgstr "Selecciona un archivo (3MF/AMF):"
+
 #: src/slic3r/GUI/GUI_App.cpp:501
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr "Escoja uno o mas archivos (STL/OBJ/AMF/3MF/PRUSA):"
@@ -1941,7 +1945,7 @@ msgid ""
 "or NO if you are sure that %d %s is a correct value."
 msgstr ""
 "¿Quieres decir %d %% en lugar de %d %s?\n"
-"Selecciona SÍ si deseas cambiar este valor a %d %%,\n"
+"Selecciona SÍ si deseas cambiar este valor a %d%%,\n"
 "o NO si estás seguro de que %d %s es el valor correcto."
 
 #: src/slic3r/GUI/GUI_App.cpp:754
@@ -3219,7 +3223,7 @@ msgstr "Si el tiempo de capa estimado está por debajo de ~%1%s, el ventilador f
 #: src/slic3r/GUI/PresetHints.cpp:28
 #, c-format
 msgid "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s)."
-msgstr "Si el tiempo de capa estimado está por debajo de ~ %ds, el ventilador funcionará en %d %% y la velocidad de impresión se reducirá de modo que no se gaste menos de %d s en esa capa (sin embargo, la velocidad nunca se reducirá por debajo de %d mm/s) ."
+msgstr "Si el tiempo de capa estimado está por debajo de ~ %ds, el ventilador funcionará en %d%% y la velocidad de impresión se reducirá de modo que no se gaste menos de %d s en esa capa (sin embargo, la velocidad nunca se reducirá por debajo de %d mm/s) ."
 
 #: src/libslic3r/PrintConfig.cpp:853
 msgid "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds."
