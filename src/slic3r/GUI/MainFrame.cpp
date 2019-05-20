@@ -143,7 +143,9 @@ void MainFrame::update_title()
     wxString title = wxEmptyString;
     if (m_plater != nullptr)
     {
-        wxString project = from_path(into_path(m_plater->get_project_filename()).stem());
+        // m_plater->get_project_filename() produces file name including path, but excluding extension.
+        // Don't try to remove the extension, it would remove part of the file name after the last dot!
+        wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
         if (!project.empty())
             title += (project + " - ");
     }

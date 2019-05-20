@@ -5,6 +5,11 @@
 #include "libslic3r/Geometry.hpp"
 #include "3DScene.hpp"
 
+#if ENABLE_RENDER_SELECTION_CENTER
+class GLUquadric;
+typedef class GLUquadric GLUquadricObj;
+#endif // ENABLE_RENDER_SELECTION_CENTER
+
 namespace Slic3r {
 namespace GUI {
 
@@ -291,7 +296,7 @@ public:
 
     void render(float scale_factor = 1.0) const;
 #if ENABLE_RENDER_SELECTION_CENTER
-    void render_center() const;
+    void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void render_sidebar_hints(const std::string& sidebar_field) const;
 

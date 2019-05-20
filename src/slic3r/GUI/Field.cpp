@@ -434,7 +434,6 @@ void CheckBox::msw_rescale()
     field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
 }
 
-int undef_spin_val = -9999;		//! Probably, It's not necessary
 
 void SpinCtrl::BUILD() {
 	auto size = wxSize(wxDefaultSize);
@@ -472,12 +471,14 @@ void SpinCtrl::BUILD() {
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-#ifndef __WXOSX__
-    // #ys_FIXME_KILL_FOCUS 
-    // wxEVT_KILL_FOCUS doesn't handled on OSX now (wxWidgets 3.1.1)
-    // So, we will update values on KILL_FOCUS & SPINCTRL events under MSW and GTK
-    // and on TEXT event under OSX
+// XXX: On OS X the wxSpinCtrl widget is made up of two subwidgets, unfortunatelly
+// the kill focus event is not propagated to the encompassing widget,
+// so we need to bind it on the inner text widget instead. (Ugh.)
+#ifdef __WXOSX__
+	temp->GetText()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
+#else
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
+#endif
 	{
         e.Skip();
         if (bEnterPressed) {
@@ -486,7 +487,7 @@ void SpinCtrl::BUILD() {
         }
 
         propagate_value();
-	}), temp->GetId());
+	}));
 
     temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
     
@@ -496,7 +497,6 @@ void SpinCtrl::BUILD() {
         propagate_value();
         bEnterPressed = true;
     }), temp->GetId());
-#endif
 
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
@@ -504,24 +504,17 @@ void SpinCtrl::BUILD() {
 // 		# when it was changed from the text control, so the on_change callback
 // 		# gets the old one, and on_kill_focus resets the control to the old value.
 // 		# As a workaround, we get the new value from $event->GetString and store
-// 		# here temporarily so that we can return it from $self->get_value
-		std::string value = e.GetString().utf8_str().data();
-        if (is_matched(value, "^\\-?\\d+$")) {
-            try {
-                tmp_value = std::stoi(value);
-            }
-            catch (const std::exception & /* e */) {
-                tmp_value = -9999;
-            }
-        }
-        else tmp_value = -9999;
-#ifdef __WXOSX__
-        propagate_value();
+// 		# here temporarily so that we can return it from get_value()
 
+		long value;
+		const bool parsed = e.GetString().ToLong(&value);
+		tmp_value = parsed && value >= INT_MIN && value <= INT_MAX ? (int)value : UNDEF_VALUE;
+
+#ifdef __WXOSX__
         // Forcibly set the input value for SpinControl, since the value 
-	    // inserted from the clipboard is not updated under OSX
-        if (tmp_value > -9999) {
-            wxSpinCtrl* spin = dynamic_cast<wxSpinCtrl*>(window);
+	    // inserted from the keyboard or clipboard is not updated under OSX
+        if (tmp_value != UNDEF_VALUE) {
+            wxSpinCtrl* spin = static_cast<wxSpinCtrl*>(window);
             spin->SetValue(tmp_value);
 
             // But in SetValue() is executed m_text_ctrl->SelectAll(), so
@@ -539,10 +532,11 @@ void SpinCtrl::BUILD() {
 
 void SpinCtrl::propagate_value()
 {
-    if (tmp_value == -9999)
+    if (tmp_value == UNDEF_VALUE) {
         on_kill_focus();
-    else if (boost::any_cast<int>(m_value) != tmp_value)
+	} else {
         on_change_field();
+    }
 }
 
 void SpinCtrl::msw_rescale()

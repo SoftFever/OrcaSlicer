@@ -955,14 +955,14 @@ void Selection::render(float scale_factor) const
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
-void Selection::render_center() const
+void Selection::render_center(bool gizmo_is_dragging) const
 {
     if (!m_valid || is_empty() || (m_quadric == nullptr))
         return;
 
-    const Vec3d& center = get_bounding_box().center();
+    Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
-    glsafe(::glDisable(GL_DEPTH_TEST)));
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glEnable(GL_LIGHTING));
 

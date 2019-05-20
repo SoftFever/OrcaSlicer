@@ -2292,6 +2292,9 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
+    if (!m_initialized)
+        return;
+
     m_dirty |= m_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 
@@ -4022,8 +4025,7 @@ void GLCanvas3D::_render_selection() const
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const
 {
-    if (!m_gizmos.is_running())
-        m_selection.render_center();
+    m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
