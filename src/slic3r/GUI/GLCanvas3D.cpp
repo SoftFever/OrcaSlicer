@@ -1700,6 +1700,10 @@ void GLCanvas3D::render()
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
 
+#if ENABLE_CAMERA_STATISTICS
+    m_camera.debug_render();
+#endif // ENABLE_CAMERA_STATISTICS
+
     wxGetApp().imgui()->render();
 
     m_canvas->SwapBuffers();

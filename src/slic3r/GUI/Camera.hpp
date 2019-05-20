@@ -64,6 +64,10 @@ public:
     void apply_view_matrix() const;
     void apply_projection(const BoundingBoxf3& box) const;
 
+#if ENABLE_CAMERA_STATISTICS
+    void debug_render() const;
+#endif // ENABLE_CAMERA_STATISTICS
+
 private:
     void apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const;
 };

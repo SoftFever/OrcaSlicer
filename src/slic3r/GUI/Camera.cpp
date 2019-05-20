@@ -2,6 +2,9 @@
 
 #include "Camera.hpp"
 #include "3DScene.hpp"
+#if ENABLE_CAMERA_STATISTICS
+#include "GUI_App.hpp"
+#endif // ENABLE_CAMERA_STATISTICS
 
 #include <GL/glew.h>
 
@@ -109,7 +112,6 @@ void Camera::apply_view_matrix() const
 
     glsafe(::glRotatef(-m_theta, 1.0f, 0.0f, 0.0f)); // pitch
     glsafe(::glRotatef(phi, 0.0f, 0.0f, 1.0f));      // yaw
-
     glsafe(::glTranslated(-m_target(0), -m_target(1), -m_target(2))); // target to origin
 
     glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, m_view_matrix.data()));
@@ -143,6 +145,29 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
 //    }
     }
 }
+
+#if ENABLE_CAMERA_STATISTICS
+void Camera::debug_render() const
+{
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.set_next_window_bg_alpha(0.5f);
+    imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    Vec3f position = get_position().cast<float>();
+    Vec3f target = m_target.cast<float>();
+    Vec3f forward = get_dir_forward().cast<float>();
+    Vec3f right = get_dir_right().cast<float>();
+    Vec3f up = get_dir_up().cast<float>();
+
+    ImGui::InputFloat3("Position", position.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("Target", target.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
+    ImGui::InputFloat3("Forward", forward.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("Right", right.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("Up", up.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    imgui.end();
+}
+#endif // ENABLE_CAMERA_STATISTICS
 
 void Camera::apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const
 {
