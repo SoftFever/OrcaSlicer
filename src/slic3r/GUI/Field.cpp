@@ -583,12 +583,15 @@ void Choice::BUILD() {
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
-	if (m_opt.enum_labels.empty() && m_opt.enum_values.empty()) {
-	}
-	else{
-		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
-			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-			temp->Append(str);
+	if (! m_opt.enum_labels.empty() || ! m_opt.enum_values.empty()) {
+		if (m_opt.enum_labels.empty()) {
+			// Append non-localized enum_values
+			for (auto el : m_opt.enum_values)
+				temp->Append(el);
+		} else {
+			// Append localized enum_labels
+			for (auto el : m_opt.enum_labels)
+				temp->Append(_(el));
 		}
 		set_selection();
 	}
@@ -856,7 +859,7 @@ boost::any& Choice::get_value()
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = field->GetSelection();
         if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings ||
-            ret_str != m_opt.enum_values[ret_enum] && ret_str != m_opt.enum_labels[ret_enum] )
+            (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
         else 
@@ -892,15 +895,16 @@ void Choice::msw_rescale()
     // Set rescaled size
     field->SetSize(size);
 
-    size_t idx, counter = idx = 0;
-    if (m_opt.enum_labels.empty() && m_opt.enum_values.empty()) {}
-    else{
-        for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
-            const wxString& str = _(el);
-            field->Append(str);
-            if (el.compare(selection) == 0)
+    size_t idx = 0;
+    if (! m_opt.enum_labels.empty() || ! m_opt.enum_values.empty()) {
+    	size_t counter = 0;
+    	bool   labels = ! m_opt.enum_labels.empty();
+        for (const std::string &el : labels ? m_opt.enum_labels : m_opt.enum_values) {
+        	wxString text = labels ? _(el) : wxString::ToUTF8(el.c_str());
+            field->Append(text);
+            if (text == selection)
                 idx = counter;
-            ++counter;
+            ++ counter;
         }
     }
 
