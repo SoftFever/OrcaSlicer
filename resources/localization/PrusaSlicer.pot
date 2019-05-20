@@ -2161,116 +2161,116 @@ msgstr ""
 msgid "&Select all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:486
+#: src/slic3r/GUI/MainFrame.cpp:488
 msgid "Selects all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:489
+#: src/slic3r/GUI/MainFrame.cpp:491
 msgid "D&eselect all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:490
+#: src/slic3r/GUI/MainFrame.cpp:492
 msgid "Deselects all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:494
+#: src/slic3r/GUI/MainFrame.cpp:496
 msgid "&Delete selected"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:495
+#: src/slic3r/GUI/MainFrame.cpp:497
 msgid "Deletes the current selection"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:497
+#: src/slic3r/GUI/MainFrame.cpp:499
 msgid "Delete &all"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:498
+#: src/slic3r/GUI/MainFrame.cpp:500
 msgid "Deletes all objects"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:502
+#: src/slic3r/GUI/MainFrame.cpp:504
 msgid "&Copy"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:503
+#: src/slic3r/GUI/MainFrame.cpp:505
 msgid "Copy selection to clipboard"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:505
+#: src/slic3r/GUI/MainFrame.cpp:507
 msgid "&Paste"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:506
+#: src/slic3r/GUI/MainFrame.cpp:508
 msgid "Paste clipboard"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:515
+#: src/slic3r/GUI/MainFrame.cpp:517
 msgid "&Plater Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:515
+#: src/slic3r/GUI/MainFrame.cpp:517
 msgid "Show the plater"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:522
+#: src/slic3r/GUI/MainFrame.cpp:524
 msgid "P&rint Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:522
+#: src/slic3r/GUI/MainFrame.cpp:524
 msgid "Show the print settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:524 src/slic3r/GUI/MainFrame.cpp:646
+#: src/slic3r/GUI/MainFrame.cpp:526 src/slic3r/GUI/MainFrame.cpp:648
 msgid "&Filament Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:524
+#: src/slic3r/GUI/MainFrame.cpp:526
 msgid "Show the filament settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:527
+#: src/slic3r/GUI/MainFrame.cpp:529
 msgid "Print&er Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:527
+#: src/slic3r/GUI/MainFrame.cpp:529
 msgid "Show the printer settings"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:531
+#: src/slic3r/GUI/MainFrame.cpp:533
 msgid "3&D"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:531
+#: src/slic3r/GUI/MainFrame.cpp:533
 msgid "Show the 3D editing view"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:534
+#: src/slic3r/GUI/MainFrame.cpp:536
 msgid "Pre&view"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:534
+#: src/slic3r/GUI/MainFrame.cpp:536
 msgid "Show the 3D slices preview"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:553
+#: src/slic3r/GUI/MainFrame.cpp:555
 msgid "Print &Host Upload Queue"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:553
+#: src/slic3r/GUI/MainFrame.cpp:555
 msgid "Display the Print Host Upload Queue window"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:562
+#: src/slic3r/GUI/MainFrame.cpp:564
 msgid "Iso"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:562
+#: src/slic3r/GUI/MainFrame.cpp:564
 msgid "Iso View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Top
-#: src/slic3r/GUI/MainFrame.cpp:566
+#: src/slic3r/GUI/MainFrame.cpp:568 
 msgid "Top"
 msgstr ""
 
@@ -2280,12 +2280,12 @@ msgctxt "Layers"
 msgid "Top"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:566
+#: src/slic3r/GUI/MainFrame.cpp:568
 msgid "Top View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Bottom
-#: src/slic3r/GUI/MainFrame.cpp:569
+#: src/slic3r/GUI/MainFrame.cpp:571
 msgid "Bottom"
 msgstr ""
 
@@ -2295,172 +2295,172 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:569
+#: src/slic3r/GUI/MainFrame.cpp:571
 msgid "Bottom View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:571
+#: src/slic3r/GUI/MainFrame.cpp:573
 msgid "Front"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:571
+#: src/slic3r/GUI/MainFrame.cpp:573
 msgid "Front View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:573 src/libslic3r/PrintConfig.cpp:1597
+#: src/slic3r/GUI/MainFrame.cpp:575 src/libslic3r/PrintConfig.cpp:1597
 msgid "Rear"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:573
+#: src/slic3r/GUI/MainFrame.cpp:575
 msgid "Rear View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:575
+#: src/slic3r/GUI/MainFrame.cpp:577
 msgid "Left"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:575
+#: src/slic3r/GUI/MainFrame.cpp:577
 msgid "Left View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:577
+#: src/slic3r/GUI/MainFrame.cpp:579
 msgid "Right"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:577
+#: src/slic3r/GUI/MainFrame.cpp:579
 msgid "Right View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:584
+#: src/slic3r/GUI/MainFrame.cpp:586
 msgid "Prusa 3D &Drivers"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:584
+#: src/slic3r/GUI/MainFrame.cpp:586
 msgid "Open the Prusa3D drivers download page in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:586
+#: src/slic3r/GUI/MainFrame.cpp:588
 msgid "Software &Releases"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:586
+#: src/slic3r/GUI/MainFrame.cpp:588
 msgid "Open the software releases page in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:592
+#: src/slic3r/GUI/MainFrame.cpp:594
 #, possible-c-format
 msgid "%s &Website"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:593
+#: src/slic3r/GUI/MainFrame.cpp:595
 #, possible-c-format
 msgid "Open the %s website in your browser"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:599
+#: src/slic3r/GUI/MainFrame.cpp:601
 msgid "System &Info"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:599
+#: src/slic3r/GUI/MainFrame.cpp:601
 msgid "Show system information"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:601
+#: src/slic3r/GUI/MainFrame.cpp:603
 msgid "Show &Configuration Folder"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:601
+#: src/slic3r/GUI/MainFrame.cpp:603
 msgid "Show user configuration folder (datadir)"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:603
+#: src/slic3r/GUI/MainFrame.cpp:605
 msgid "Report an I&ssue"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:603
+#: src/slic3r/GUI/MainFrame.cpp:605
 #, possible-c-format
 msgid "Report an issue on %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:605
+#: src/slic3r/GUI/MainFrame.cpp:607
 #, possible-c-format
 msgid "&About %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:605
+#: src/slic3r/GUI/MainFrame.cpp:607
 msgid "Show about dialog"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:608
+#: src/slic3r/GUI/MainFrame.cpp:610
 msgid "Show the list of the keyboard shortcuts"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:616
+#: src/slic3r/GUI/MainFrame.cpp:618
 msgid "&File"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:617
+#: src/slic3r/GUI/MainFrame.cpp:619
 msgid "&Edit"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:618
+#: src/slic3r/GUI/MainFrame.cpp:620
 msgid "&Window"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:619
+#: src/slic3r/GUI/MainFrame.cpp:621
 msgid "&View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:622
+#: src/slic3r/GUI/MainFrame.cpp:624
 msgid "&Help"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:644 src/slic3r/GUI/Plater.cpp:3907
+#: src/slic3r/GUI/MainFrame.cpp:646 src/slic3r/GUI/Plater.cpp:3907
 msgid "Export"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:646
+#: src/slic3r/GUI/MainFrame.cpp:648
 msgid "Mate&rial Settings Tab"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:667
+#: src/slic3r/GUI/MainFrame.cpp:669
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:681
+#: src/slic3r/GUI/MainFrame.cpp:683
 msgid "No previously sliced file."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:682 src/slic3r/GUI/PrintHostDialogs.cpp:231
+#: src/slic3r/GUI/MainFrame.cpp:684 src/slic3r/GUI/PrintHostDialogs.cpp:231
 msgid "Error"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:687
+#: src/slic3r/GUI/MainFrame.cpp:689
 msgid "Previously sliced file ("
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:687
+#: src/slic3r/GUI/MainFrame.cpp:689
 msgid ") not found."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:688
+#: src/slic3r/GUI/MainFrame.cpp:690
 msgid "File Not Found"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723
+#: src/slic3r/GUI/MainFrame.cpp:725
 #, possible-c-format
 msgid "Save %s file as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723
+#: src/slic3r/GUI/MainFrame.cpp:725
 msgid "SVG"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:723
+#: src/slic3r/GUI/MainFrame.cpp:725
 msgid "G-code"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:738
+#: src/slic3r/GUI/MainFrame.cpp:740
 msgid "Save zip file as:"
 msgstr ""
 
@@ -2471,48 +2471,48 @@ msgid "Slicing"
 msgstr ""
 
 #. TRN "Processing input_file_basename"
-#: src/slic3r/GUI/MainFrame.cpp:752
+#: src/slic3r/GUI/MainFrame.cpp:754
 #, possible-c-format
 msgid "Processing %s"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:775
+#: src/slic3r/GUI/MainFrame.cpp:777
 msgid " was successfully sliced."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:777
+#: src/slic3r/GUI/MainFrame.cpp:779
 msgid "Slicing Done!"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:792
+#: src/slic3r/GUI/MainFrame.cpp:794
 msgid "Select the STL file to repair:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:805
+#: src/slic3r/GUI/MainFrame.cpp:807
 msgid "Save OBJ file (less prone to coordinate errors than STL) as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:820
+#: src/slic3r/GUI/MainFrame.cpp:822
 msgid "Your file was repaired."
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:820 src/libslic3r/PrintConfig.cpp:3094
+#: src/slic3r/GUI/MainFrame.cpp:822 src/libslic3r/PrintConfig.cpp:3094
 msgid "Repair"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:834
+#: src/slic3r/GUI/MainFrame.cpp:836
 msgid "Save configuration as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:854 src/slic3r/GUI/MainFrame.cpp:918
+#: src/slic3r/GUI/MainFrame.cpp:856 src/slic3r/GUI/MainFrame.cpp:920
 msgid "Select configuration to load:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:891
+#: src/slic3r/GUI/MainFrame.cpp:893
 msgid "Save presets bundle as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:942
+#: src/slic3r/GUI/MainFrame.cpp:944
 #, possible-c-format
 msgid "%d presets successfully imported."
 msgstr ""
@@ -3403,7 +3403,7 @@ msgstr ""
 msgid "default SLA print profile"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1003 src/slic3r/GUI/Tab.cpp:3448
+#: src/slic3r/GUI/Tab.cpp:1003 src/slic3r/GUI/Tab.cpp:3419
 msgid "Layers and perimeters"
 msgstr ""
 
@@ -3528,7 +3528,7 @@ msgstr ""
 msgid "Profile dependencies"
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:1251
+#: src/slic3r/GUI/Tab.cpp:1253
 msgid ""
 "Layer height can't be equal to zero.\n"
 "\n"
@@ -3966,7 +3966,7 @@ msgid ""
 "for the right button: \tindicates that the settings hasn't been modified."
 msgstr ""
 
-#: src/slic3r/GUI/Tab.cpp:3132
+#: src/slic3r/GUI/Tab.cpp:3103
 msgid "BACK ARROW"
 msgstr ""
 
