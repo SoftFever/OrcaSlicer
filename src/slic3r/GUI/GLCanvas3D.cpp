@@ -4025,8 +4025,7 @@ void GLCanvas3D::_render_selection() const
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const
 {
-    if (!m_gizmos.is_running())
-        m_selection.render_center();
+    m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
