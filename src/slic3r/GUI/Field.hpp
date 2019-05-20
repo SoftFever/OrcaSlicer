@@ -7,6 +7,7 @@
 #endif
 
 #include <memory>
+#include <cstdint>
 #include <functional>
 #include <boost/any.hpp>
 
@@ -331,9 +332,11 @@ public:
 
 class SpinCtrl : public Field {
 	using Field::Field;
+private:
+	static const int UNDEF_VALUE = INT_MIN;
 public:
-	SpinCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id), tmp_value(-9999) {}
-	SpinCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id), tmp_value(-9999) {}
+	SpinCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id), tmp_value(UNDEF_VALUE) {}
+	SpinCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id), tmp_value(UNDEF_VALUE) {}
 	~SpinCtrl() {}
 
 	int				tmp_value;
@@ -355,9 +358,10 @@ public:
 		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
 		m_disable_change_event = false;
 	}
+
 	boost::any&		get_value() override {
-// 		return boost::any(tmp_value);
-		return m_value = tmp_value;
+		int value = static_cast<wxSpinCtrl*>(window)->GetValue();
+		return m_value = value;
 	}
 
     void            msw_rescale() override;
