@@ -508,7 +508,7 @@ void SpinCtrl::BUILD() {
 
 		long value;
 		const bool parsed = e.GetString().ToLong(&value);
-		tmp_value = parsed && value <= INT_MAX ? (int)value : UNDEF_VALUE;
+		tmp_value = parsed && value >= INT_MIN && <= INT_MAX ? (int)value : UNDEF_VALUE;
 
 #ifdef __WXOSX__
         // Forcibly set the input value for SpinControl, since the value 
