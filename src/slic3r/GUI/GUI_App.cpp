@@ -183,9 +183,13 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
+    app_conf_exists = app_config->exists();
     // load settings
-    if (app_config->exists())
+    app_conf_exists = app_config->exists();
+    if (app_conf_exists) {
         app_config->load();
+    }
+
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
@@ -248,16 +252,20 @@ bool GUI_App::on_init_inner()
         if (once) {
             once = false;
 
+            PresetUpdater::UpdateResult updater_result;
             try {
-                if (!preset_updater->config_update()) {
+                updater_result = preset_updater->config_update();
+                if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
                     mainframe->Close();
+                } else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
+                    app_conf_exists = true;
                 }
             } catch (const std::exception &ex) {
                 show_error(nullptr, from_u8(ex.what()));
             }
 
             CallAfter([this] {
-                if (!config_wizard_startup(app_config->exists())) {
+                if (!config_wizard_startup(app_conf_exists)) {
                     // Only notify if there was no wizard so as not to bother too much ...
                     preset_updater->slic3r_update_notify();
                 }

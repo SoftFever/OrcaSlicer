@@ -402,9 +402,9 @@ public:
     // Extracted value from the configuration objects
     Vec3d                       relative_correction() const;
 
-	std::string                 output_filename() const override;
+	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
-    const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
+    const SLAPrintStatistics&   print_statistics() const { return m_print_statistics; }
 
     std::string validate() const override;
 

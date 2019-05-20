@@ -1,6 +1,7 @@
 #include "wxExtensions.hpp"
 
 #include <stdexcept>
+#include <cmath>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -19,6 +20,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
+#include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
 
@@ -389,7 +391,15 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
     static Slic3r::GUI::BitmapCache cache;
 
 #ifdef __APPLE__
-    const float scale_factor = win != nullptr ? win->GetContentScaleFactor() : 1.0f;
+    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
+    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
+    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+
+    static float max_scaling_factor = NAN;
+    if (std::isnan(max_scaling_factor)) {
+        max_scaling_factor = Slic3r::GUI::mac_max_scaling_factor();
+    }
+    const float scale_factor = win != nullptr ? max_scaling_factor : 1.0f;
 #else
     (void)(win);
     const float scale_factor = 1.0f;
@@ -2656,7 +2666,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     if (style & wxNO_BORDER)
         SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
- 
+
     SetBitmap(create_scaled_bitmap(parent, icon_name));
 }
 

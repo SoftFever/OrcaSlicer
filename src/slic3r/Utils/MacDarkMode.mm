@@ -1,6 +1,9 @@
 #import "MacDarkMode.hpp"
 
+#import <algorithm>
+
 #import <Foundation/Foundation.h>
+#import <AppKit/NSScreen.h>
 
 
 @implementation MacDarkMode
@@ -15,6 +18,17 @@ bool mac_dark_mode()
 
 }
 
+double mac_max_scaling_factor()
+{
+    double scaling = 1.;
+    if ([NSScreen screens] == nil) {
+        scaling = [[NSScreen mainScreen] backingScaleFactor];
+    } else {
+	    for (int i = 0; i < [[NSScreen screens] count]; ++ i)
+	    	scaling = std::max<double>(scaling, [[[NSScreen screens] objectAtIndex:0] backingScaleFactor]);
+	}
+    return scaling;
+}
 
 }
 }

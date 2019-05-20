@@ -729,7 +729,7 @@ void GCode::_do_export(Print &print, FILE *file)
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
     m_placeholder_parser.update_timestamp();
-    print.update_object_placeholders(m_placeholder_parser.config_writable());
+    print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.

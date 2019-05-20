@@ -67,6 +67,14 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 	return m_print->technology();
 }
 
+std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::filesystem::path &project_path)
+{
+	assert(m_print != nullptr);
+    if (project_path.empty())
+        return m_print->output_filepath("");
+    return m_print->output_filepath(project_path.parent_path().string(), project_path.stem().string());
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()

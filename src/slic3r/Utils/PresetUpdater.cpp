@@ -567,9 +567,9 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
-bool PresetUpdater::config_update() const
+PresetUpdater::UpdateResult PresetUpdater::config_update() const
 {
-	if (! p->enabled_config_update) { return true; }
+	if (! p->enabled_config_update) { return R_NOOP; }
 
 	auto updates = p->get_config_updates();
 	if (updates.incompats.size() > 0) {
@@ -603,15 +603,15 @@ bool PresetUpdater::config_update() const
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
 			if (! wizard.run(GUI::wxGetApp().preset_bundle, this)) {
-				return false;
+				return R_INCOMPAT_EXIT;
 			}
 			GUI::wxGetApp().load_current_presets();
+			return R_INCOMPAT_CONFIGURED;
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
-			return false;
+			return R_INCOMPAT_EXIT;
 		}
-	}
-	else if (updates.updates.size() > 0) {
+	} else if (updates.updates.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << boost::format("Update of %1% bundles available. Asking for confirmation ...") % updates.updates.size();
 
 		std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
@@ -633,14 +633,16 @@ bool PresetUpdater::config_update() const
 			auto *app_config = GUI::wxGetApp().app_config;
             GUI::wxGetApp().preset_bundle->load_presets(*app_config);
 			GUI::wxGetApp().load_current_presets();
+			return R_UPDATE_INSTALLED;
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User refused the update";
+			return R_UPDATE_REJECT;
 		}
 	} else {
 		BOOST_LOG_TRIVIAL(info) << "No configuration updates available.";
 	}
 
-	return true;
+	return R_NOOP;
 }
 
 void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
