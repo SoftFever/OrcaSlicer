@@ -29,15 +29,6 @@
 
 
 //====================
-// 1.42.0.alpha4 techs
-//====================
-#define ENABLE_1_42_0_ALPHA4 1
-
-// Changed algorithm to extract euler angles from rotation matrix
-#define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA4)
-
-
-//====================
 // 1.42.0.alpha7 techs
 //====================
 #define ENABLE_1_42_0_ALPHA7 1
