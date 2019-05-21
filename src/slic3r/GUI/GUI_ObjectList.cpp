@@ -1457,9 +1457,6 @@ void ObjectList::load_part( ModelObject* model_object,
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-                volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 volume->translate(delta);
                 auto new_volume = model_object->add_volume(*volume);
                 new_volume->set_type(type);
@@ -1585,9 +1582,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 #if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
     new_volume->set_offset(Vec3d(0.0, 0.0, model_object.origin_translation(2) - mesh.stl.stats.min(2)));
 #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-    new_volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
     if (instance_idx != -1)
