@@ -35,8 +35,6 @@
 
 // Changed algorithm to extract euler angles from rotation matrix
 #define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA4)
-// Modified initial default placement of generic subparts
-#define ENABLE_GENERIC_SUBPARTS_PLACEMENT (1 && ENABLE_1_42_0_ALPHA4)
 
 
 //====================

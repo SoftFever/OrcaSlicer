@@ -874,28 +874,15 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
     if (! m_raw_bounding_box_valid) {
         m_raw_bounding_box_valid = true;
         m_raw_bounding_box.reset();
-    #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
         if (this->instances.empty())
             throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
 
         const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
-    #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         for (const ModelVolume *v : this->volumes)
-            if (v->is_model_part()) {
-    #if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-                if (this->instances.empty())
-                    throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
-    #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-
-    #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-				m_raw_bounding_box.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
-    #else
-                // unmaintaned
-                assert(false);
-                // vol_mesh.transform(v->get_matrix());
-                // m_raw_bounding_box_valid.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
-    #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            }
+        {
+            if (v->is_model_part())
+                m_raw_bounding_box.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
+        }
     }
 	return m_raw_bounding_box;
 }
@@ -904,22 +891,11 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
 BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_translate) const
 {
     BoundingBoxf3 bb;
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
     const Transform3d& inst_matrix = this->instances[instance_idx]->get_transformation().get_matrix(dont_translate);
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
     for (ModelVolume *v : this->volumes)
     {
         if (v->is_model_part())
-        {
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
             bb.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
-#else
-            // not maintained
-            assert(false);
-            //mesh.transform(v->get_matrix());
-            //bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
-        }
     }
     return bb;
 }
