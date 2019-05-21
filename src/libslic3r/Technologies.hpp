@@ -59,12 +59,4 @@
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
 
 
-//====================
-// 1.42.0.rc techs
-//====================
-#define ENABLE_1_42_0_RC 1
-
-// Disables Edit->Deselect all item menu item
-#define DISABLE_DESELECT_ALL_MENU_ITEM (1 && ENABLE_1_42_0_RC)
-
 #endif // _technologies_h_
