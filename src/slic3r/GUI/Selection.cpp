@@ -955,14 +955,14 @@ void Selection::render(float scale_factor) const
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
-void Selection::render_center() const
+void Selection::render_center(bool gizmo_is_dragging) const
 {
     if (!m_valid || is_empty() || (m_quadric == nullptr))
         return;
 
-    const Vec3d& center = get_bounding_box().center();
+    Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
-    glsafe(::glDisable(GL_DEPTH_TEST)));
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glEnable(GL_LIGHTING));
 
@@ -1863,7 +1863,12 @@ void Selection::paste_objects_from_clipboard()
     {
         ModelObject* dst_object = m_model->add_object(*src_object);
         double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-        dst_object->translate(offset, offset, 0.0);
+        Vec3d displacement(offset, offset, 0.0);
+        for (ModelInstance* inst : dst_object->instances)
+        {
+            inst->set_offset(inst->get_offset() + displacement);
+        }
+
         object_idxs.push_back(m_model->objects.size() - 1);
     }
 

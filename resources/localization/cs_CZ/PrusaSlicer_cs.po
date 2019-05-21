@@ -101,6 +101,10 @@ msgstr ""
 "\n"
 "Nečíselná hodnota."
 
+#: src/slic3r/GUI/MainFrame.cpp:61
+msgid " - Remember to check for updates at http://github.com/prusa3d/PrusaSlicer/releases"
+msgstr " - Nezapomeňte zkontrolovat aktualizace na http://github.com/prusa3d/PrusaSlicer/releases"
+
 #: src/slic3r/GUI/MainFrame.cpp:55
 msgid " - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"
 msgstr " - Nezapomeňte zkontrolovat aktualizace na http://github.com/prusa3d/slic3r/releases"
@@ -353,6 +357,10 @@ msgstr "&Načíst Konfigurační Balík…"
 msgid "&Load Config…\tCtrl+L"
 msgstr "&Načíst Konfiguraci…\tCtrl+L"
 
+#: src/slic3r/GUI/MainFrame.cpp:376
+msgid "&New Project"
+msgstr "&Nový projekt"
+
 #: src/slic3r/GUI/ConfigWizard.cpp:1093
 msgid "&Next >"
 msgstr "&Další>"
@@ -429,6 +437,10 @@ msgstr "(Znovu)Slicovat"
 msgid "(Re)Slice &Now"
 msgstr "(Z&novu)Slicovat"
 
+#: src/slic3r/GUI/MainFrame.cpp:455
+msgid "(Re)Slice No&w"
+msgstr "(Znovu) S&licovat"
+
 #: src/slic3r/GUI/MainFrame.cpp:641
 msgid ") not found."
 msgstr ") nebyl nalezen."
@@ -439,7 +451,7 @@ msgstr ". Pokračovat i přes zahození změn?"
 
 #: src/libslic3r/PrintConfig.cpp:1857
 msgid "0 (soluble)"
-msgstr "0 (rozpusné)"
+msgstr "0 (rozpustné)"
 
 #: src/libslic3r/PrintConfig.cpp:1858
 msgid "0.2 (detachable)"
@@ -995,6 +1007,10 @@ msgstr "Zpracování na pozadí"
 msgid "backwards edges"
 msgstr "zadní okraje"
 
+#: src/slic3r/GUI/MainFrame.cpp:152
+msgid "based on Slic3r"
+msgstr "založený na Slic3r"
+
 #: src/slic3r/GUI/Tab.cpp:1484
 msgid "Bed"
 msgstr "Tisková podložka"
@@ -1208,6 +1224,10 @@ msgstr "Změňte počet kopií vybraného objektu"
 msgid "Change type"
 msgstr "Změnit typ"
 
+#: src/slic3r/GUI/UpdateDialogs.cpp:56
+msgid "Changelog && Download"
+msgstr "Changelog && Stažení"
+
 #: src/slic3r/GUI/GUI_App.cpp:378
 msgid "Changing of an application language"
 msgstr "Změnit jazyk aplikace"
@@ -1227,6 +1247,10 @@ msgstr "Zvolit soubor ke slicování (STL/OBJ/AMF/3MF/PRUSA):"
 #: src/slic3r/GUI/GUI_App.cpp:489
 msgid "Choose one file (3MF):"
 msgstr "Vyberte jeden soubor (3MF):"
+
+#: src/slic3r/GUI/GUI_App.cpp:510
+msgid "Choose one file (3MF/AMF):"
+msgstr "Vyberte jeden soubor (3MF/AMF):"
 
 #: src/slic3r/GUI/GUI_App.cpp:501
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
@@ -1272,7 +1296,7 @@ msgstr "Barva"
 #: src/slic3r/GUI/GUI_Preview.cpp:218 src/slic3r/GUI/GUI_Preview.cpp:535
 #: src/libslic3r/GCode/PreviewData.cpp:406
 msgid "Color Print"
-msgstr "Color Print"
+msgstr "Barevný tisk"
 
 #: src/libslic3r/PrintConfig.cpp:224
 msgid "Colorprint height"
@@ -1285,6 +1309,10 @@ msgstr "Kombinovat výplň každou"
 #: src/libslic3r/PrintConfig.cpp:947
 msgid "Combine infill every n layers"
 msgstr "Kombinovat výplň každou n vrstvu"
+
+#: src/slic3r/GUI/UpdateDialogs.cpp:116
+msgid "Comment:"
+msgstr "Komentář:"
 
 #: src/slic3r/GUI/Tab.cpp:56 src/libslic3r/PrintConfig.cpp:244
 msgid "Compatible print profiles"
@@ -1450,6 +1478,10 @@ msgstr "Kopírovat výběr do schránky"
 msgid "Copy to clipboard"
 msgstr "Kopírovat do schránky"
 
+#: src/slic3r/GUI/SysInfoDialog.cpp:120
+msgid "Copy to Clipboard"
+msgstr "Kopírovat do Schránky"
+
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:84
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:400
 msgid "Copying of the temporary G-code to the output G-code failed"
@@ -1592,6 +1624,10 @@ msgstr "Řezat…"
 msgid "Cylinder"
 msgstr "Válec"
 
+#: src/slic3r/GUI/MainFrame.cpp:491
+msgid "D&eselect all"
+msgstr "Odznačit vš&e"
+
 #: src/libslic3r/PrintConfig.cpp:3115
 msgid "Data directory"
 msgstr "Složka Data"
@@ -1726,7 +1762,7 @@ msgstr "Sm&azat vše"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:138
 msgid "Delete All"
-msgstr "Smazat Vše"
+msgstr "Smazat vše"
 
 #: src/slic3r/GUI/Plater.cpp:3298
 msgid "Delete all"
@@ -1773,6 +1809,10 @@ msgstr "Rychlost deretrakce"
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:1235
 msgid "Deselect by rectangle"
 msgstr "Odznačit obdélníkovým výběrem myši"
+
+#: src/slic3r/GUI/MainFrame.cpp:492
+msgid "Deselects all objects"
+msgstr "Odznačit všechny objekty"
 
 #: src/libslic3r/PrintConfig.cpp:1833
 msgid "detachable"
@@ -2756,6 +2796,16 @@ msgstr "První vrstva"
 msgid "First layer height"
 msgstr "Výška první vrstvy"
 
+#: src/slic3r/GUI/Tab.cpp:1266
+msgid ""
+"First layer height can't be equal to zero.\n"
+"\n"
+"Shall I set its value to minimum (0.01)?"
+msgstr ""
+"Výška první vrstvy nemůže být rovna nule.\n"
+"\n"
+"Mám nastavit její hodnotu na minimum (0.01)?"
+
 #: src/libslic3r/Print.cpp:1328
 msgid "First layer height can't be greater than nozzle diameter"
 msgstr "Výška první vrstvy nesmí být větší než průměr trysky"
@@ -3197,6 +3247,10 @@ msgid "If enabled, all printing extruders will be primed at the front edge of th
 msgstr "Pokud je tato možnost povolena, všechny tiskové extrudery na začátku tisku vytlačí na předním okraji podložky malé množství materiálu."
 
 #: src/slic3r/GUI/Preferences.cpp:63
+msgid "If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done."
+msgstr "Pokud je povoleno, PrusaSlicer kontroluje nově dostupné verze programu. V případě, že je nová verze k dispozici, zobrazí se notifikace při dalším startu programu (nikdy během užívání aplikace). Tento systém slouží pouze pro upozornění uživatele, nedochází k automatické instalaci."
+
+#: src/slic3r/GUI/Preferences.cpp:63
 msgid "If enabled, Slic3r checks for new versions of "
 msgstr "Pokud je povoleno, Slic3r kontroluje dostupnost nové verze"
 
@@ -3591,6 +3645,16 @@ msgstr "Vyhlazení vrstev"
 msgid "Layer height"
 msgstr "Výška vrstvy"
 
+#: src/slic3r/GUI/Tab.cpp:1253
+msgid ""
+"Layer height can't be equal to zero.\n"
+"\n"
+"Shall I set its value to minimum (0.01)?"
+msgstr ""
+"Výška vrstvy nemůže být rovna nule.\n"
+"\n"
+"Mám nastavit její hodnotu na minimum (0.01)?"
+
 #: src/libslic3r/Print.cpp:1332
 msgid "Layer height can't be greater than nozzle diameter"
 msgstr "Výška vrstvy nemůže být větší než je průměr trysky"
@@ -3674,6 +3738,11 @@ msgstr "Délka kovové trubičky určené pro ochlazení a zformování filament
 #: src/libslic3r/PrintConfig.cpp:293
 msgid "Length of the cooling tube to limit space for cooling moves inside it."
 msgstr "Délka kovové trubičky určené pro ochlazení a zformování filamentu po vytažení z extruderu."
+
+#. TRN "Slic3r _is licensed under the_ License"
+#: src/slic3r/GUI/AboutDialog.cpp:124
+msgid "License agreements of all following programs (libraries) are part of application license agreement"
+msgstr "Licenční ujednání všech následujících programů (knihoven) je součástí licenční smlouvy"
 
 #: src/libslic3r/PrintConfig.cpp:1491
 msgid "Lift Z"
@@ -4294,6 +4363,10 @@ msgstr "Model byl úspěšně opraven"
 msgid "modified"
 msgstr "upraveno"
 
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2547
+msgid "Modifier"
+msgstr "Modifikátor"
+
 #: src/slic3r/GUI/Tab.cpp:1100
 msgid "Modifiers"
 msgstr "Modifikátory"
@@ -4639,6 +4712,14 @@ msgstr "Otevřít soubor s projektem"
 msgid "Open CA certificate file"
 msgstr "Otevřít soubor s certifikátem CA"
 
+#: src/slic3r/GUI/UpdateDialogs.cpp:63 src/slic3r/GUI/UpdateDialogs.cpp:126
+msgid "Open changelog page"
+msgstr "Otevře stránku s changelogem"
+
+#: src/slic3r/GUI/UpdateDialogs.cpp:68
+msgid "Open download page"
+msgstr "Otevře stránku pro stažení programu"
+
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:105
 msgid "Open project STL/OBJ/AMF/3MF with config, delete bed"
 msgstr "Otevřít soubor STL/OBJ/AMF/3MF s konfigurací (smaže tiskovou plochu)"
@@ -4916,6 +4997,10 @@ msgstr "Pro použití této funkce prosím nainstalujte OpenGL moduly (viz instr
 msgid "Please, check your changes before."
 msgstr "Prosím, nejdříve zkontrolujte provedené změny."
 
+#: src/slic3r/GUI/AboutDialog.cpp:39 src/slic3r/GUI/AboutDialog.cpp:286
+msgid "Portions copyright"
+msgstr "Autorská práva"
+
 #: src/libslic3r/PrintConfig.cpp:2235
 msgid "Portrait"
 msgstr "Orientace na výšku"
@@ -4973,6 +5058,31 @@ msgstr "Příprava výplně"
 #, c-format
 msgid "Preset (%s)"
 msgstr "Přednastavení (%s)"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:147
+msgid ""
+"Press to activate deselection rectangle\n"
+"or to scale or rotate selected objects\n"
+"around their own center"
+msgstr ""
+"Stiskem aktivujete obdélníkové odstranění \n"
+"výběru nebo změnu velikosti nebo otočení \n"
+"vybraných objektů kolem vlastních středů"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:148
+msgid "Press to activate one direction scaling in Gizmo scale"
+msgstr "Stiskem aktivujete změnu velikosti pouze v jednom směru"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:146
+#, no-c-format
+msgid ""
+"Press to activate selection rectangle\n"
+"or to snap by 5% in Gizmo scale\n"
+"or to snap by 1mm in Gizmo move"
+msgstr ""
+"Stiskem aktivujete obdélníkvý výběr\n"
+"nebo 5% krok při změně velikosti\n"
+"nebo 1 mm krok při posunu"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:148
 msgid ""
@@ -5171,6 +5281,10 @@ msgstr "Prusa tiskárny technologie FFF"
 #: src/slic3r/GUI/ConfigWizard.cpp:1112
 msgid "Prusa MSLA Technology Printers"
 msgstr "Prusa tiskárny technologie MSLA"
+
+#: src/slic3r/GUI/AboutDialog.cpp:255
+msgid "PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."
+msgstr "PrusaSlicer je založen na Slic3r od Alessandra Ranellucciho a RepRap komunity."
 
 #: src/libslic3r/PrintConfig.cpp:2153
 msgid "Purging after toolchange will done inside this object's infills. This lowers the amount of waste but may result in longer print time  due to additional travel moves."
@@ -6477,7 +6591,7 @@ msgstr "Slicování muselo být zastaveno kvůli vnitřní chybě."
 
 #: src/libslic3r/SLAPrint.cpp:55
 msgid "Slicing model"
-msgstr "Slicovaný model"
+msgstr "Slicuji model"
 
 #: src/libslic3r/SLAPrint.cpp:59
 msgid "Slicing supports"
@@ -6509,7 +6623,7 @@ msgstr "Název zálohy"
 
 #: src/slic3r/GUI/MainFrame.cpp:549
 msgid "Software &Releases"
-msgstr "Ve&rze softwaru"
+msgstr "Vydané ve&rze"
 
 #: src/slic3r/GUI/PresetHints.cpp:181
 msgid "solid infill"
@@ -6727,6 +6841,10 @@ msgstr "Rozdělit na části"
 msgid "Stars"
 msgstr "Hvězdy"
 
+#: src/slic3r/GUI/MainFrame.cpp:376
+msgid "Start a new project"
+msgstr "Vytvořit nový projekt"
+
 #: src/slic3r/GUI/Tab.cpp:1564 src/slic3r/GUI/Tab.cpp:1949
 #: src/libslic3r/PrintConfig.cpp:1736 src/libslic3r/PrintConfig.cpp:1751
 msgid "Start G-code"
@@ -6788,6 +6906,14 @@ msgstr "Průměr podpěrné základny"
 #: src/libslic3r/PrintConfig.cpp:2451
 msgid "Support base height"
 msgstr "Výška podpěrné základny"
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2547
+msgid "Support Blocker"
+msgstr "Blokátor podpěr"
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2547
+msgid "Support Enforcer"
+msgstr "Vynucení podpěr"
 
 #: src/slic3r/GUI/Tab.cpp:1316
 msgid "Support Generator"
@@ -7032,7 +7158,7 @@ msgid ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
-"Vzor výplně %1% není určen pro práci se 100% hustotou.\n"
+"Vzor výplně %1% není určen pro práci se 100%% hustotou.\n"
 "\n"
 "Mám přejít na vzor výplně rectilinear?"
 
@@ -7115,6 +7241,10 @@ msgstr "Byly upraveny následující přednastavení"
 #: src/slic3r/GUI/GUI_App.cpp:801
 msgid "The following presets were modified: "
 msgstr "Byly upraveny následující přednastavení:"
+
+#: src/slic3r/GUI/Tab.cpp:3311
+msgid "the following suffix is not allowed:"
+msgstr "následující přípona není povolená:"
 
 #: src/libslic3r/PrintConfig.cpp:2453
 msgid "The height of the pillar base cone"
@@ -7737,6 +7867,10 @@ msgstr "Pokuste se opravit nemanifoldní meshe (tato možnost je implicitně př
 msgid "Type of the printer."
 msgstr "Typ tiskárny."
 
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2549
+msgid "Type:"
+msgstr "Typ:"
+
 #: src/libslic3r/Zipper.cpp:35
 msgid "undefined error"
 msgstr "nedefinovaná chyba"
@@ -7806,6 +7940,10 @@ msgstr "Neuložené Změny"
 #: src/slic3r/GUI/GUI_App.cpp:790
 msgid "Unsaved Presets"
 msgstr "Neuložená přednastavení"
+
+#: src/slic3r/GUI/KBShortcutsDialog.cpp:154
+msgid "Unselect gizmo / Clear selection"
+msgstr "Zrušit gizmo / Zrušit výběr"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:154
 msgid "Unselect gizmo, keep object selection"

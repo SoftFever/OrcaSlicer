@@ -165,7 +165,7 @@ _constant()
             try {
                 THIS->process();
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 
@@ -173,7 +173,7 @@ _constant()
             try {
                 THIS->export_gcode(path_template, nullptr);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 

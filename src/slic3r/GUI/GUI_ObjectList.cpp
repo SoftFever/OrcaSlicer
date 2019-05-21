@@ -297,12 +297,17 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     wxDataViewItem item;
     wxDataViewColumn* col;
     HitTest(pt, item, col);
-    if (!item) return;
 
     /* GetMainWindow() return window, associated with wxDataViewCtrl.
      * And for this window we should to set tooltips.
      * Just this->SetToolTip(tooltip) => has no effect.
      */
+
+    if (!item)
+    {
+        GetMainWindow()->SetToolTip(""); // hide tooltip
+        return;
+    }
 
     if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
@@ -2047,7 +2052,10 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 
 void ObjectList::delete_all_objects_from_list()
 {
+    m_prevent_list_events = true;
+    this->UnselectAll();
     m_objects_model->DeleteAll();
+    m_prevent_list_events = false;
     part_selection_changed();
 }
 

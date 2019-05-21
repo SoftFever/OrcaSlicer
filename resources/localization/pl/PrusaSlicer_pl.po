@@ -685,7 +685,7 @@ msgstr "Wyrównaj XY"
 
 #: src/libslic3r/PrintConfig.cpp:1561
 msgid "Aligned"
-msgstr "Wyrównano"
+msgstr "Wyrównany"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:189 src/slic3r/GUI/Tab.cpp:2986
 msgid "All"
@@ -823,7 +823,7 @@ msgstr "Czy na pewno chcesz "
 #. TRN  remove/delete
 #: src/slic3r/GUI/Tab.cpp:2955
 msgid "Are you sure you want to %1% the selected preset?"
-msgstr "Czy na pewno chcesz %1% ten komentarz?"
+msgstr "Czy na pewno chcesz %1% ten zestaw ustawień?"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:862
 msgid ""
@@ -3219,7 +3219,7 @@ msgstr "Jeśli szacowany czas druku warstwy jest niższy niż ~%1%s, wentylator 
 #: src/slic3r/GUI/PresetHints.cpp:28
 #, c-format
 msgid "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s)."
-msgstr "Jeśli szacowany czas druku warstwy jest niższy niż ~%d s, wentylator będzie pracował na %d %% a prędkość druku zostanie obniżona tak, aby warstwa była drukowana przez nie mniej niż %d s  (jednakże prędkość nie zejdzie poniżej %d mm/s)."
+msgstr "Jeśli szacowany czas druku warstwy jest niższy niż ~%d s, wentylator będzie pracował na %d %% a prędkość druku zostanie obniżona tak, aby warstwa była drukowana przez nie mniej niż %ds  (jednakże prędkość nie zejdzie poniżej %dmm/s)."
 
 #: src/libslic3r/PrintConfig.cpp:853
 msgid "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds."
@@ -6667,7 +6667,7 @@ msgstr "Prędkość ładowania filamentu przy druku wieży czyszczącej. "
 
 #: src/libslic3r/PrintConfig.cpp:577
 msgid "Speed used for loading the filament on the wipe tower."
-msgstr "Prędkość ładowania filamentu przy druku wieży czyszczącej."
+msgstr "Prędkość ładowania filamentu podczas drukowania wieży czyszczącej."
 
 #: src/libslic3r/PrintConfig.cpp:592
 msgid "Speed used for unloading the filament on the wipe tower (does not affect  initial part of unloading just after ramming). "
@@ -7036,7 +7036,7 @@ msgid ""
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
-"%1% wzór wypełnienia nie działa z gęstością 100%.\n"
+"%1% wzór wypełnienia nie działa z gęstością 100%%.\n"
 "\n"
 "Zmienić wzór wypełnienia na linie równoległe?"
 
@@ -8190,7 +8190,7 @@ msgstr "będzie zawsze pracować w %1%%%"
 #: src/slic3r/GUI/PresetHints.cpp:43
 #, c-format
 msgid "will always run at %d%% "
-msgstr "będzie zawsze pracować w %d %% "
+msgstr "będzie zawsze pracować w %d%% "
 
 #: src/slic3r/GUI/PresetHints.cpp:52
 msgid "will be turned off."
