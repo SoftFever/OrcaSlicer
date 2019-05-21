@@ -864,7 +864,14 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
+#if ENABLE_COMPRESSED_TEXTURES
+    if (GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+#else
     glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+#endif // ENABLE_COMPRESSED_TEXTURES
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -1147,7 +1154,14 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
+#if ENABLE_COMPRESSED_TEXTURES
+    if (GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+#else
     glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+#endif // ENABLE_COMPRESSED_TEXTURES
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -1691,11 +1705,17 @@ void GLCanvas3D::render()
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    imgui.text(_(L("Last frame")) +": ");
+    imgui.text("Last frame: ");
     ImGui::SameLine();
     imgui.text(std::to_string(m_render_stats.last_frame));
     ImGui::SameLine();
-    imgui.text(" "+_(L("ms")));
+    imgui.text("  ms");
+#if ENABLE_COMPRESSED_TEXTURES
+    ImGui::Separator();
+    imgui.text("Textures: ");
+    ImGui::SameLine();
+    imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "Compressed" : "Uncompressed");
+#endif // ENABLE_COMPRESSED_TEXTURES
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
 

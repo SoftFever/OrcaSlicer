@@ -111,6 +111,9 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 }
 
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLCanvas3DManager::s_compressed_textures_supported = false;
+#endif // ENABLE_COMPRESSED_TEXTURES
 
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
@@ -134,7 +137,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLTo
     if (canvas == nullptr)
         return false;
 
-    if (_get_canvas(canvas) != m_canvases.end())
+    if (do_get_canvas(canvas) != m_canvases.end())
         return false;
 
     GLCanvas3D* canvas3D = new GLCanvas3D(canvas, bed, camera, view_toolbar);
@@ -159,7 +162,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLTo
 
 bool GLCanvas3DManager::remove(wxGLCanvas* canvas)
 {
-    CanvasesMap::iterator it = _get_canvas(canvas);
+    CanvasesMap::iterator it = do_get_canvas(canvas);
     if (it == m_canvases.end())
         return false;
 
@@ -195,6 +198,12 @@ void GLCanvas3DManager::init_gl()
         m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
         m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
         m_gl_initialized = true;
+#if ENABLE_COMPRESSED_TEXTURES
+        if (GLEW_EXT_texture_compression_s3tc)
+            s_compressed_textures_supported = true;
+        else
+            s_compressed_textures_supported = false;
+#endif // ENABLE_COMPRESSED_TEXTURES
     }
 }
 
@@ -205,16 +214,16 @@ std::string GLCanvas3DManager::get_gl_info(bool format_as_html, bool extensions)
 
 bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 {
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    CanvasesMap::const_iterator it = do_get_canvas(canvas);
     if (it != m_canvases.end())
-        return (it->second != nullptr) ? _init(*it->second) : false;
+        return (it->second != nullptr) ? init(*it->second) : false;
     else
         return false;
 }
 
 GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
 {
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    CanvasesMap::const_iterator it = do_get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second : nullptr;
 }
 
@@ -224,29 +233,28 @@ wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
 
     if (s_multisample == MS_Unknown)
     {
-        _detect_multisample(attribList);
-        // debug output
-        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
+        detect_multisample(attribList);
+//        // debug output
+//        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
     }
 
-    if (! can_multisample()) {
+    if (! can_multisample())
         attribList[4] = 0;
-    }
 
     return new wxGLCanvas(parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 }
 
-GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
+GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
 }
 
-GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas) const
+GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas) const
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
 }
 
-bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
+bool GLCanvas3DManager::init(GLCanvas3D& canvas)
 {
     if (!m_gl_initialized)
         init_gl();
@@ -254,7 +262,7 @@ bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
     return canvas.init(m_use_VBOs, m_use_legacy_opengl);
 }
 
-void GLCanvas3DManager::_detect_multisample(int* attribList)
+void GLCanvas3DManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     const AppConfig* app_config = GUI::get_app_config();

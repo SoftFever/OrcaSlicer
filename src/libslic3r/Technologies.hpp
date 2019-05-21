@@ -12,7 +12,7 @@
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER 0
 // Shows an imgui dialog with render related data
-#define ENABLE_RENDER_STATISTICS 0
+#define ENABLE_RENDER_STATISTICS 1
 
 
 //====================
@@ -44,6 +44,10 @@
 
 // Toolbars and Gizmos use icons imported from svg files
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
+
+
+// Enable saving textures on GPU in compressed format 
+#define ENABLE_COMPRESSED_TEXTURES 1
 
 
 #endif // _technologies_h_
