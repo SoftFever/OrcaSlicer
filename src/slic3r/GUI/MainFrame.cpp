@@ -487,11 +487,9 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
             _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
-#if !DISABLE_DESELECT_ALL_MENU_ITEM
-        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + GUI::shortkey_ctrl_prefix() + sep + "Esc",
+        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + "Esc",
             _(L("Deselects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
-#endif // !DISABLE_DESELECT_ALL_MENU_ITEM
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
             _(L("Deletes the current selection")),[this](wxCommandEvent&) { m_plater->remove_selected(); },
