@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: slic3rkorean\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-09 14:34+0200\n"
-"PO-Revision-Date: 2019-05-21 03:42+0900\n"
+"PO-Revision-Date: 2019-05-18 13:25+0900\n"
 "Last-Translator: lee hak-min <hangmini12@naver.com>\n"
 "Language-Team: ulsanether\n"
 "Language: ko_KR\n"
@@ -671,7 +671,7 @@ msgstr "아래쪽 부분을 위쪽으로 회전"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:36 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:198
 msgid "Perform cut"
-msgstr "절단 실행"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:43
 msgid "Cut object:"
@@ -679,19 +679,19 @@ msgstr "객체 잘라내기:"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:88
 msgid "Cut [C]"
-msgstr "자르기 [C]"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:188 src/libslic3r/PrintConfig.cpp:3006
 msgid "Cut"
-msgstr "컷"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:193
 msgid "Keep upper part"
-msgstr "상위 부분 유지"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:194
 msgid "Keep lower part"
-msgstr "낮은 부분 유지"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp:32
 msgid "Place on face [F]"
@@ -751,31 +751,31 @@ msgstr "선택한 점 제거"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:626 src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:679
 msgid "Remove all points"
-msgstr "모든 점 제거"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:631
 msgid "Apply changes"
-msgstr "변경 내용을 적용"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:636
 msgid "Discard changes"
-msgstr "변경사항을 취소"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:644
 msgid "Minimal points distance: "
-msgstr "최소 포인트 거리: "
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:655
 msgid "Support points density: "
-msgstr "지원 포인트 밀도: "
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:669
 msgid "Auto-generate points [A]"
-msgstr "점 자동 생성 [A]"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:675
 msgid "Manual editing [M]"
-msgstr "수동 편집 [M]"
+msgstr ""
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:738
 msgid "SLA Support Points [L]"
