@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <exception>
 
 #include "Zipper.hpp"
