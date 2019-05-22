@@ -435,7 +435,7 @@ SupportLayerPtrs::const_iterator PrintObject::insert_support_layer(SupportLayerP
     return m_support_layers.insert(pos, new SupportLayer(id, this, height, print_z, slice_z));
 }
 
-// Called by Print::apply_config().
+// Called by Print::apply().
 // This method only accepts PrintObjectConfig and PrintRegionConfig option keys.
 bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
