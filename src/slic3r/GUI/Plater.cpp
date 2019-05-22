@@ -832,7 +832,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            const std::string &name = preset_bundle.filaments.get_selected_preset().name;
+            const std::string &name = preset_bundle.filaments.get_selected_preset_name();
             preset_bundle.set_filament_preset(0, name);
         }
 
