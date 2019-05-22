@@ -654,7 +654,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 				if (evt.AltDown())
 					transformation_type.set_independent();
 				selection.scale(get_scale(), transformation_type);
-                selection.translate(get_scale_offset(), true);
+                if (evt.ControlDown())
+                    selection.translate(get_scale_offset(), true);
                 wxGetApp().obj_manipul()->set_dirty();
                 break;
             }
