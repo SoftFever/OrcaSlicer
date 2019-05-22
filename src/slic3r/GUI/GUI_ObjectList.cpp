@@ -1457,9 +1457,6 @@ void ObjectList::load_part( ModelObject* model_object,
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-                volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 volume->translate(delta);
                 auto new_volume = model_object->add_volume(*volume);
                 new_volume->set_type(type);
@@ -1582,14 +1579,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
     new_volume->set_type(type);
 
-#if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    new_volume->set_offset(Vec3d(0.0, 0.0, model_object.origin_translation(2) - mesh.stl.stats.min(2)));
-#endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-    new_volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
-
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
     if (instance_idx != -1)
     {
         // First (any) GLVolume of the selected instance. They all share the same instance matrix.
@@ -1605,7 +1594,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
             Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
         new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
     }
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually

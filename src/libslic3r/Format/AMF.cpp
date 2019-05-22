@@ -2,7 +2,7 @@
 #include <string.h>
 #include <map>
 #include <string>
-#include <expat/expat.h>
+#include <expat.h>
 
 #include <boost/nowide/cstdio.hpp>
 
