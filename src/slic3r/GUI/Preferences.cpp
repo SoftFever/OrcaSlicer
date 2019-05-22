@@ -10,6 +10,9 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent) :
     DPIDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, 
               wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
+#ifdef __WXOSX__
+    isOSX = true;
+#endif
 	build();
 }
 
@@ -183,32 +186,51 @@ void PreferencesDialog::create_icon_size_slider()
 
     m_icon_size_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    auto label = new wxStaticText(this, wxID_ANY, _(L("Icon size in a respect to the default size")) + " (%) :");
-    label->SetFont(wxGetApp().normal_font());
-    label->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    wxWindow* parent = m_optgroup->ctrl_parent();
 
-    m_icon_size_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL| wxRIGHT | wxLEFT, em);
+    if (isOSX)
+        parent->SetBackgroundStyle(wxBG_STYLE_ERASE);
+
+    auto label = new wxStaticText(parent, wxID_ANY, _(L("Icon size in a respect to the default size")) + " (%) :");
+
+    m_icon_size_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL| wxRIGHT | (isOSX ? 0 : wxLEFT), em);
 
     const int def_val = atoi(app_config->get("custom_toolbar_size").c_str());
 
-    auto slider = new wxSlider(this, wxID_ANY, def_val, 25, 100, wxDefaultPosition, wxDefaultSize, 
-                               wxSL_LABELS | wxSL_AUTOTICKS);
+    long style = wxSL_HORIZONTAL;
+    if (!isOSX)
+        style |= wxSL_LABELS | wxSL_AUTOTICKS;
 
-    slider->SetFont(wxGetApp().normal_font());
-    slider->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    auto slider = new wxSlider(parent, wxID_ANY, def_val, 25, 100, 
+                               wxDefaultPosition, wxDefaultSize, style);
 
     slider->SetTickFreq(25);
     slider->SetPageSize(25);
-
     slider->SetToolTip(_(L("Select toolbar icon size in respect to the default one.")));
 
-    slider->Bind(wxEVT_SLIDER, ([this, slider](wxCommandEvent e) {
+    m_icon_size_sizer->Add(slider, 1, wxEXPAND);
+
+    wxStaticText* val_label{ nullptr };
+    if (isOSX) {
+        val_label = new wxStaticText(parent, wxID_ANY, wxString::Format("%d", def_val));
+        m_icon_size_sizer->Add(val_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    }
+
+    slider->Bind(wxEVT_SLIDER, ([this, slider, val_label](wxCommandEvent e) {
         auto val = slider->GetValue();
         m_values["custom_toolbar_size"] = (boost::format("%d") % val).str();
-            return;
+
+        if (val_label)
+            val_label->SetLabelText(wxString::Format("%d", val));
     }), slider->GetId());
 
-    m_icon_size_sizer->Add(slider, 1, wxEXPAND);
+    for (wxWindow* win : std::vector<wxWindow*>{ slider, label, val_label }) {
+        if (!win) continue;         
+        win->SetFont(wxGetApp().normal_font());
+
+        if (isOSX) continue;
+        win->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    }
 
     m_optgroup->sizer->Add(m_icon_size_sizer, 0, wxEXPAND | wxALL, em);
 }

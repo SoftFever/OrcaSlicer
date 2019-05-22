@@ -1252,6 +1252,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
         m_timer.SetOwner(m_canvas);
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
+        // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
+        m_view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif
     }
 

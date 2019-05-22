@@ -17,6 +17,7 @@ class PreferencesDialog : public DPIDialog
 	std::map<std::string, std::string>	m_values;
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
     wxSizer*                            m_icon_size_sizer;
+    bool                                isOSX {false};
 public:
 	PreferencesDialog(wxWindow* parent);
 	~PreferencesDialog() {}
