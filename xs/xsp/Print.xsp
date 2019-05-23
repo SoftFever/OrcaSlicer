@@ -142,8 +142,8 @@ _constant()
         %};
         
     void add_model_object(ModelObject* model_object, int idx = -1);
-    bool apply_config(DynamicPrintConfig* config)
-        %code%{ RETVAL = THIS->apply_config(*config); %};
+    bool apply_config_perl_tests_only(DynamicPrintConfig* config)
+        %code%{ RETVAL = THIS->apply_config_perl_tests_only(*config); %};
     bool has_infinite_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 
