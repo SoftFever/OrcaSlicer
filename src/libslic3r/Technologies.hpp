@@ -12,7 +12,7 @@
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER 0
 // Shows an imgui dialog with render related data
-#define ENABLE_RENDER_STATISTICS 0
+#define ENABLE_RENDER_STATISTICS 1
 
 
 //====================
@@ -47,7 +47,10 @@
 
 
 // Enable saving textures on GPU in compressed format 
-#define ENABLE_COMPRESSED_TEXTURES 0
+#define ENABLE_COMPRESSED_TEXTURES 1
+
+// Enable texture max size to be dependent on detected OpenGL version
+#define ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION 1
 
 // Enable scale object to fit print volume
 #define ENABLE_SCALE_TO_FIT_PRINT_VOLUME 1

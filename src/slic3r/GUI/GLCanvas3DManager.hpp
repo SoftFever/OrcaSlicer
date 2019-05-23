@@ -29,6 +29,39 @@ struct Camera;
 
 class GLCanvas3DManager
 {
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+public:
+    class GLInfo
+    {
+        mutable bool m_detected;
+
+        mutable std::string m_version;
+        mutable std::string m_glsl_version;
+        mutable std::string m_vendor;
+        mutable std::string m_renderer;
+
+        mutable int m_max_tex_size;
+        mutable float m_max_anisotropy;
+
+    public:
+        GLInfo();
+
+        const std::string& get_version() const;
+        const std::string& get_glsl_version() const;
+        const std::string& get_vendor() const;
+        const std::string& get_renderer() const;
+
+        int get_max_tex_size() const;
+        float get_max_anisotropy() const;
+
+        bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+
+        std::string to_string(bool format_as_html, bool extensions) const;
+
+    private:
+        void detect() const;
+    };
+#else
     struct GLInfo
     {
         std::string version;
@@ -43,7 +76,11 @@ class GLCanvas3DManager
 
         std::string to_string(bool format_as_html, bool extensions) const;
     };
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+private:
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     enum EMultisampleState : unsigned char
     {
         MS_Unknown,
@@ -55,7 +92,11 @@ class GLCanvas3DManager
 
     CanvasesMap m_canvases;
     wxGLContext* m_context;
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+    static GLInfo s_gl_info;
+#else
     GLInfo m_gl_info;
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
     bool m_use_VBOs;
@@ -75,7 +116,9 @@ public:
     unsigned int count() const;
 
     void init_gl();
+#if !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     std::string get_gl_info(bool format_as_html, bool extensions) const;
+#endif // !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
     bool init(wxGLCanvas* canvas);
 
@@ -87,6 +130,10 @@ public:
 #endif // ENABLE_COMPRESSED_TEXTURES
 
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
+
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+    static const GLInfo& get_gl_info() { return s_gl_info; }
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
 private:
     CanvasesMap::iterator do_get_canvas(wxGLCanvas* canvas);

@@ -15,17 +15,115 @@
 #include <string>
 #include <iostream>
 
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+#ifdef __APPLE__
+#include "../Utils/MacDarkMode.hpp"
+#endif // __APPLE__
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+
 namespace Slic3r {
 namespace GUI {
 
 GLCanvas3DManager::GLInfo::GLInfo()
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+    : m_detected(false)
+    , m_version("")
+    , m_glsl_version("")
+    , m_vendor("")
+    , m_renderer("")
+    , m_max_tex_size(0)
+    , m_max_anisotropy(0.0f)
+#else
     : version("")
     , glsl_version("")
     , vendor("")
     , renderer("")
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 {
 }
 
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+const std::string& GLCanvas3DManager::GLInfo::get_version() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_version;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_glsl_version() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_glsl_version;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_vendor() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_vendor;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_renderer() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_renderer;
+}
+
+int GLCanvas3DManager::GLInfo::get_max_tex_size() const
+{
+    if (!m_detected)
+        detect();
+
+    // clamp to avoid the texture generation become too slow and use too much GPU memory
+#ifdef __APPLE__
+    // and use smaller texture for non retina systems
+    return (Slic3r::GUI::mac_max_scaling_factor() > 1.0) ? std::min(m_max_tex_size, 8192) : std::min(m_max_tex_size / 2, 4096);
+#else
+    // and use smaller texture for older OpenGL versions
+    return is_version_greater_or_equal_to(3, 0) ? std::min(m_max_tex_size, 8192) : std::min(m_max_tex_size / 2, 4096);
+#endif // __APPLE__
+}
+
+float GLCanvas3DManager::GLInfo::get_max_anisotropy() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_max_anisotropy;
+}
+
+void GLCanvas3DManager::GLInfo::detect() const
+{
+    const char* data = (const char*)::glGetString(GL_VERSION);
+    if (data != nullptr)
+        m_version = data;
+
+    data = (const char*)::glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if (data != nullptr)
+        m_glsl_version = data;
+
+    data = (const char*)::glGetString(GL_VENDOR);
+    if (data != nullptr)
+        m_vendor = data;
+
+    data = (const char*)::glGetString(GL_RENDERER);
+    if (data != nullptr)
+        m_renderer = data;
+
+    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
+    
+    if (GLEW_EXT_texture_filter_anisotropic)
+        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
+
+    m_detected = true;
+}
+#else
 void GLCanvas3DManager::GLInfo::detect()
 {
     const char* data = (const char*)::glGetString(GL_VERSION);
@@ -44,7 +142,40 @@ void GLCanvas3DManager::GLInfo::detect()
     if (data != nullptr)
         renderer = data;
 }
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
+    if (!m_detected)
+        detect();
+
+    std::vector<std::string> tokens;
+    boost::split(tokens, m_version, boost::is_any_of(" "), boost::token_compress_on);
+
+    if (tokens.empty())
+        return false;
+
+    std::vector<std::string> numbers;
+    boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
+
+    unsigned int gl_major = 0;
+    unsigned int gl_minor = 0;
+
+    if (numbers.size() > 0)
+        gl_major = ::atoi(numbers[0].c_str());
+
+    if (numbers.size() > 1)
+        gl_minor = ::atoi(numbers[1].c_str());
+
+    if (gl_major < major)
+        return false;
+    else if (gl_major > major)
+        return true;
+    else
+        return gl_minor >= minor;
+}
+#else
 bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
 {
     std::vector<std::string> tokens;
@@ -72,9 +203,15 @@ bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int majo
     else
         return gl_minor >= minor;
 }
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
 std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool extensions) const
 {
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+    if (!m_detected)
+        detect();
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+
     std::stringstream out;
 
     std::string h2_start = format_as_html ? "<b>" : "";
@@ -84,10 +221,17 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+    out << b_start << "GL version:   " << b_end << (m_version.empty() ? "N/A" : m_version) << line_end;
+    out << b_start << "Vendor:       " << b_end << (m_vendor.empty() ? "N/A" : m_vendor) << line_end;
+    out << b_start << "Renderer:     " << b_end << (m_renderer.empty() ? "N/A" : m_renderer) << line_end;
+    out << b_start << "GLSL version: " << b_end << (m_glsl_version.empty() ? "N/A" : m_glsl_version) << line_end;
+#else
     out << b_start << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
     out << b_start << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
     out << b_start << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
     out << b_start << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
     if (extensions)
     {
@@ -114,6 +258,9 @@ GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas
 #if ENABLE_COMPRESSED_TEXTURES
 bool GLCanvas3DManager::s_compressed_textures_supported = false;
 #endif // ENABLE_COMPRESSED_TEXTURES
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
@@ -193,10 +340,16 @@ void GLCanvas3DManager::init_gl()
     if (!m_gl_initialized)
     {
         glewInit();
+#if !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
         m_gl_info.detect();
+#endif // !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
         const AppConfig* config = GUI::get_app_config();
         m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
+#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+        m_use_VBOs = !m_use_legacy_opengl && s_gl_info.is_version_greater_or_equal_to(2, 0);
+#else
         m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
+#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
         m_gl_initialized = true;
 #if ENABLE_COMPRESSED_TEXTURES
         if (GLEW_EXT_texture_compression_s3tc)
@@ -207,10 +360,12 @@ void GLCanvas3DManager::init_gl()
     }
 }
 
+#if !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 std::string GLCanvas3DManager::get_gl_info(bool format_as_html, bool extensions) const
 {
     return m_gl_info.to_string(format_as_html, extensions);
 }
+#endif // !ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
 bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 {
