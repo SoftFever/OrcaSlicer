@@ -189,6 +189,8 @@ void PreferencesDialog::create_icon_size_slider()
     wxWindow* parent = m_optgroup->ctrl_parent();
 
     if (isOSX)
+        // For correct rendering of the slider and value label under OSX
+        // we should use system default background
         parent->SetBackgroundStyle(wxBG_STYLE_ERASE);
 
     auto label = new wxStaticText(parent, wxID_ANY, _(L("Icon size in a respect to the default size")) + " (%) :");
@@ -201,11 +203,11 @@ void PreferencesDialog::create_icon_size_slider()
     if (!isOSX)
         style |= wxSL_LABELS | wxSL_AUTOTICKS;
 
-    auto slider = new wxSlider(parent, wxID_ANY, def_val, 25, 100, 
+    auto slider = new wxSlider(parent, wxID_ANY, def_val, 30, 100, 
                                wxDefaultPosition, wxDefaultSize, style);
 
-    slider->SetTickFreq(25);
-    slider->SetPageSize(25);
+    slider->SetTickFreq(10);
+    slider->SetPageSize(10);
     slider->SetToolTip(_(L("Select toolbar icon size in respect to the default one.")));
 
     m_icon_size_sizer->Add(slider, 1, wxEXPAND);
@@ -228,7 +230,7 @@ void PreferencesDialog::create_icon_size_slider()
         if (!win) continue;         
         win->SetFont(wxGetApp().normal_font());
 
-        if (isOSX) continue;
+        if (isOSX) continue; // under OSX we use wxBG_STYLE_ERASE
         win->SetBackgroundStyle(wxBG_STYLE_PAINT);
     }
 
