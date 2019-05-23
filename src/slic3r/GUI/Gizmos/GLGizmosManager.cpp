@@ -853,7 +853,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
         {
             if (m_current == Scale)
             {
-                wxGetApp().plater()->scale_selection_to_fit_print_volume();
+                if (!is_dragging())
+                    wxGetApp().plater()->scale_selection_to_fit_print_volume();
+
                 processed = true;
             }
 
