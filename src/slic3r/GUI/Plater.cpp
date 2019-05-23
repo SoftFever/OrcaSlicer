@@ -3021,8 +3021,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
 #if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
-    append_menu_item(menu, wxID_ANY, _(L("Scale to print volume")), _(L("Scale the selected object to fit the print volume")),
-        [this](wxCommandEvent&) { scale_selection_to_fit_print_volume(); }, "", menu);
+    sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
 #endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
     wxMenu* mirror_menu = new wxMenu();
