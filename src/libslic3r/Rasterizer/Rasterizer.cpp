@@ -15,7 +15,7 @@
 #include <agg/agg_path_storage.h>
 
 // Experimental minz image write:
-#include <miniz/miniz_tdef.h>
+#include <miniz.h>
 
 namespace Slic3r {
 

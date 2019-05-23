@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "Zipper.hpp"
-#include "miniz/miniz_zip.h"
+#include <miniz.h>
 #include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"

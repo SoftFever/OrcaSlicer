@@ -16,7 +16,7 @@
 
 #include <expat.h>
 #include <Eigen/Dense>
-#include <miniz/miniz_zip.h>
+#include <miniz.h>
 
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
