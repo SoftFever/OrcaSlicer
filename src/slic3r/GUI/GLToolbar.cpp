@@ -123,7 +123,7 @@ BackgroundTexture::Metadata::Metadata()
 }
 
 #if ENABLE_SVG_ICONS
-const float GLToolbar::Default_Icons_Size = 64.0f;
+const float GLToolbar::Default_Icons_Size = 40.0f;
 #endif // ENABLE_SVG_ICONS
 
 GLToolbar::Layout::Layout()
