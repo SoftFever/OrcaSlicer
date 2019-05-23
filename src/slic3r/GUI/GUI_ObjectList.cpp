@@ -2816,8 +2816,10 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(0)->GetRenderer());
 
     if (renderer->WasCanceled())
-        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
-                         _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+		wxTheApp->CallAfter([this]{
+			show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+				             _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+		});
 }
 
 void ObjectList::show_multi_selection_menu()
