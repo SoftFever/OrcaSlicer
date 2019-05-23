@@ -1646,6 +1646,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
 
         Slic3r::Model model;
+        bool is_project_file = type_prusa;
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
@@ -1669,6 +1670,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         wxGetApp().load_current_presets();
+                        is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
                 }
@@ -1688,7 +1690,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             // The model should now be initialized
 
-            if (!type_3mf && !type_any_amf && !type_prusa) {
+            if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
                     wxMessageDialog dlg(q, _(L(
                         "This file contains several objects positioned at multiple heights. "

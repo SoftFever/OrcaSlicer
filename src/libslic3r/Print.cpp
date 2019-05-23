@@ -51,7 +51,7 @@ void Print::reload_object(size_t /* idx */)
         this->invalidate_all_steps();
 		/* TODO: this method should check whether the per-object config and per-material configs
 			have changed in such a way that regions need to be rearranged or we can just apply
-			the diff and invalidate something.  Same logic as apply_config()
+			the diff and invalidate something.  Same logic as apply()
 			For now we just re-add all objects since we haven't implemented this incremental logic yet.
 			This should also check whether object volumes (parts) have changed. */
 		// collect all current model objects
@@ -83,7 +83,7 @@ PrintRegion* Print::add_region(const PrintRegionConfig &config)
     return m_regions.back();
 }
 
-// Called by Print::apply_config().
+// Called by Print::apply().
 // This method only accepts PrintConfig option keys.
 bool Print::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
@@ -422,9 +422,31 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     }
 }
 
-bool Print::apply_config(DynamicPrintConfig config)
+// This function is only called through the Perl-C++ binding from the unit tests, should be
+// removed when unit tests are rewritten to C++.
+bool Print::apply_config_perl_tests_only(DynamicPrintConfig config)
 {
 	tbb::mutex::scoped_lock lock(this->state_mutex());
+
+
+    // Perl unit tests were failing in case the preset was not normalized (e.g. https://github.com/prusa3d/PrusaSlicer/issues/2288 was caused
+    // by too short max_layer_height vector. Calling the necessary function Preset::normalize(...) is not currently possible because there is no
+    // access to preset. This should be solved when the unit tests are rewritten to C++. For now we just copy-pasted code from Preset.cpp
+    // to make sure the unit tests pass (functions set_num_extruders and nozzle_options()).
+    auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter", true));
+    assert(nozzle_diameter != nullptr);
+    const auto &defaults = FullPrintConfig::defaults();
+    for (const std::string &key : { "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
+                                    "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
+                                    "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
+                                    "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour" })
+    {
+        auto *opt = config.option(key, true);
+        assert(opt != nullptr);
+        assert(opt->is_vector());
+        unsigned int num_extruders = (unsigned int)nozzle_diameter->values.size();
+        static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
+    }
 
     // we get a copy of the config object so we can modify it safely
     config.normalize();
