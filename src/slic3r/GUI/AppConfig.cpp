@@ -67,6 +67,12 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
+    if (get("use_custom_toolbar_size").empty())
+        set("use_custom_toolbar_size", "0");
+
+    if (get("custom_toolbar_size").empty())
+        set("custom_toolbar_size", "100");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

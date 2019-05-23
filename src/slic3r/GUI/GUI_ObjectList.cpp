@@ -354,8 +354,8 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
     const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
-    return type & itObject|itInstance ? (*m_objects)[obj_idx]->config :
-        (*m_objects)[obj_idx]->volumes[vol_idx]->config;
+    return type & itVolume ?(*m_objects)[obj_idx]->volumes[vol_idx]->config :
+                            (*m_objects)[obj_idx]->config;
 }
 
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)

@@ -10,6 +10,9 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent) :
     DPIDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, 
               wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
+#ifdef __WXOSX__
+    isOSX = true;
+#endif
 	build();
 }
 
@@ -18,8 +21,13 @@ void PreferencesDialog::build()
 	auto app_config = get_app_config();
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(this, _(L("General")));
     m_optgroup->label_width = 40;
-	m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+	m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+
+        if (opt_key == "use_custom_toolbar_size") {
+            m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
+            this->layout();
+        }
 	};
 
 	// TODO
@@ -109,6 +117,16 @@ void PreferencesDialog::build()
 	m_optgroup->append_single_option_line(option);
 #endif
 
+	def.label = L("Use custom size for toolbar icons");
+	def.type = coBool;
+	def.tooltip = L("If enabled, you can change size of toolbar icons manually.");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_custom_toolbar_size") == "1" });
+	option = Option (def,"use_custom_toolbar_size");
+    m_optgroup->append_single_option_line(option);
+
+    create_icon_size_slider();
+    m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 
@@ -145,16 +163,78 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_optgroup->msw_rescale();
 
+    msw_buttons_rescale(this, em_unit(), { wxID_OK, wxID_CANCEL });
+
+    layout();
+}
+
+void PreferencesDialog::layout()
+{
     const int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
-
-    const wxSize& size = wxSize(47 * em, 28 * em);
-
-    SetMinSize(size);
+    SetMinSize(wxSize(47 * em, 28 * em));
     Fit();
 
     Refresh();
+}
+
+void PreferencesDialog::create_icon_size_slider()
+{
+    const auto app_config = get_app_config();
+
+    const int em = em_unit();
+
+    m_icon_size_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxWindow* parent = m_optgroup->ctrl_parent();
+
+    if (isOSX)
+        // For correct rendering of the slider and value label under OSX
+        // we should use system default background
+        parent->SetBackgroundStyle(wxBG_STYLE_ERASE);
+
+    auto label = new wxStaticText(parent, wxID_ANY, _(L("Icon size in a respect to the default size")) + " (%) :");
+
+    m_icon_size_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL| wxRIGHT | (isOSX ? 0 : wxLEFT), em);
+
+    const int def_val = atoi(app_config->get("custom_toolbar_size").c_str());
+
+    long style = wxSL_HORIZONTAL;
+    if (!isOSX)
+        style |= wxSL_LABELS | wxSL_AUTOTICKS;
+
+    auto slider = new wxSlider(parent, wxID_ANY, def_val, 30, 100, 
+                               wxDefaultPosition, wxDefaultSize, style);
+
+    slider->SetTickFreq(10);
+    slider->SetPageSize(10);
+    slider->SetToolTip(_(L("Select toolbar icon size in respect to the default one.")));
+
+    m_icon_size_sizer->Add(slider, 1, wxEXPAND);
+
+    wxStaticText* val_label{ nullptr };
+    if (isOSX) {
+        val_label = new wxStaticText(parent, wxID_ANY, wxString::Format("%d", def_val));
+        m_icon_size_sizer->Add(val_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    }
+
+    slider->Bind(wxEVT_SLIDER, ([this, slider, val_label](wxCommandEvent e) {
+        auto val = slider->GetValue();
+        m_values["custom_toolbar_size"] = (boost::format("%d") % val).str();
+
+        if (val_label)
+            val_label->SetLabelText(wxString::Format("%d", val));
+    }), slider->GetId());
+
+    for (wxWindow* win : std::vector<wxWindow*>{ slider, label, val_label }) {
+        if (!win) continue;         
+        win->SetFont(wxGetApp().normal_font());
+
+        if (isOSX) continue; // under OSX we use wxBG_STYLE_ERASE
+        win->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    }
+
+    m_optgroup->sizer->Add(m_icon_size_sizer, 0, wxEXPAND | wxALL, em);
 }
 
 } // GUI
