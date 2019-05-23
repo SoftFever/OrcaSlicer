@@ -1552,7 +1552,7 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 
 SLAPrintObject::~SLAPrintObject() {}
 
-// Called by SLAPrint::apply_config().
+// Called by SLAPrint::apply().
 // This method only accepts SLAPrintObjectConfig option keys.
 bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {

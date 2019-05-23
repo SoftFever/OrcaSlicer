@@ -176,7 +176,7 @@ sub init_print {
     $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new;
-    $print->apply_config($config);
+    $print->apply_config_perl_tests_only($config);
     
     $models = [$models] if ref($models) ne 'ARRAY';
     $models = [ map { ref($_) ? $_ : model($_, %params) } @$models ];
@@ -192,8 +192,8 @@ sub init_print {
             $print->add_model_object($model_object);
         }
     }
-    # Call apply_config one more time, so that the layer height profiles are updated over all PrintObjects.
-    $print->apply_config($config);
+    # Call apply_config_perl_tests_only one more time, so that the layer height profiles are updated over all PrintObjects.
+    $print->apply_config_perl_tests_only($config);
     $print->validate;
     
     # We return a proxy object in order to keep $models alive as required by the Print API.
@@ -250,7 +250,7 @@ sub add_facet {
 package Slic3r::Test::Print;
 use Moo;
 
-has 'print'     => (is => 'ro', required => 1, handles => [qw(process apply_config)]);
+has 'print'     => (is => 'ro', required => 1, handles => [qw(process apply_config_perl_tests_only)]);
 has 'models'    => (is => 'ro', required => 1);
 
 1;
