@@ -259,7 +259,15 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            int shifl_Left = 0;
+            float scale = m_em_unit*0.1f;
+#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
+            shifl_Left  = int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
+#endif
+            int icon_right_pos = int(scale * (24+4) + 0.5);
+            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
+//             if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            if ( extruder_idx < 0 || mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
                 // Let the combo box process the mouse click.
                 event.Skip();
                 return;
