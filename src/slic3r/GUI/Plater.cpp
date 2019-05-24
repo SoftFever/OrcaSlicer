@@ -259,29 +259,45 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            int shifl_Left = 0;
+            float scale = m_em_unit*0.1f;
+#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
+            shifl_Left  = int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
+#endif
+            int icon_right_pos = int(scale * (24+4) + 0.5);
+            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
+//             if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            if ( extruder_idx < 0 || mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
                 // Let the combo box process the mouse click.
                 event.Skip();
                 return;
             }
             
             // Swallow the mouse click and open the color picker.
+
+            // get current color
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
+            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+            wxColour clr(colors->values[extruder_idx]);
+            if (!clr.IsOk())
+                clr = wxTransparentColour;
+
             auto data = new wxColourData();
             data->SetChooseFull(1);
-            auto dialog = new wxColourDialog(/* wxGetApp().mainframe */this, data);
-            dialog->CenterOnParent();
-            if (dialog->ShowModal() == wxID_OK) {
-                DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
+            data->SetColour(clr);
 
-                //FIXME this is too expensive to call full_config to get just the extruder color!
-                auto colors = static_cast<ConfigOptionStrings*>(wxGetApp().preset_bundle->full_config().option("extruder_colour")->clone());
+            auto dialog = new wxColourDialog(this, data);
+            dialog->CenterOnParent();
+            if (dialog->ShowModal() == wxID_OK)
+            {
                 colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
-                cfg.set_key_value("extruder_colour", colors);
+                DynamicPrintConfig cfg_new = *cfg; 
+                cfg_new.set_key_value("extruder_colour", colors);
 
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
+                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(cfg);
+                wxGetApp().plater()->on_config_change(cfg_new);
             }
             dialog->Destroy();
         });

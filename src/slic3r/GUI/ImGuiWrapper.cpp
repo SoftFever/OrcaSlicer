@@ -28,6 +28,7 @@ namespace GUI {
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
+    , m_font_cjk(false)
     , m_font_size(18.0)
     , m_font_texture(0)
     , m_style_scaling(1.0)
@@ -68,16 +69,52 @@ void ImGuiWrapper::set_language(const std::string &language)
         0x0100, 0x017F, // Latin Extended-A
         0,
     };
+	static const ImWchar ranges_turkish[] = {
+		0x0020, 0x01FF, // Basic Latin + Latin Supplement
+		0x0100, 0x017F, // Latin Extended-A
+		0x0180, 0x01FF, // Turkish
+		0,
+	};
+    static const ImWchar ranges_vietnamese[] =
+    {
+        0x0020, 0x00FF, // Basic Latin
+        0x0102, 0x0103,
+        0x0110, 0x0111,
+        0x0128, 0x0129,
+        0x0168, 0x0169,
+        0x01A0, 0x01A1,
+        0x01AF, 0x01B0,
+        0x1EA0, 0x1EF9,
+        0,
+    };
+    m_font_cjk = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesCyrillic();
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesCyrillic(); // Default + about 400 Cyrillic characters
+    } else if (lang == "tr") {
+        ranges = ranges_turkish;
+    } else if (lang == "vi") {
+        ranges = ranges_vietnamese;
     } else if (lang == "jp") {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese();
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese(); // Default + Hiragana, Katakana, Half-Width, Selection of 1946 Ideographs
+        m_font_cjk = true;
     } else if (lang == "ko") {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesKorean();
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesKorean(); // Default + Korean characters
+        m_font_cjk = true;
     } else if (lang == "zh") {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+        ranges = (language == "zh_TW") ?
+            // Traditional Chinese
+            // Default + Half-Width + Japanese Hiragana/Katakana + full set of about 21000 CJK Unified Ideographs
+            ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() :
+            // Simplified Chinese
+            // Default + Half-Width + Japanese Hiragana/Katakana + set of 2500 CJK Unified Ideographs for common simplified Chinese
+            ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+        m_font_cjk = true;
+    } else if (lang == "th") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
+    } else {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesDefault(); // Basic Latin, Extended Latin
     }
 
     if (ranges != m_glyph_ranges) {
@@ -352,7 +389,9 @@ void ImGuiWrapper::init_font()
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), m_font_size, nullptr, m_glyph_ranges);
+    //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, m_glyph_ranges);
+    //https://github.com/ocornut/imgui/issues/220
+	ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + (m_font_cjk ? "NotoSansCJK-Regular.ttc" : "NotoSans-Regular.ttf")).c_str(), m_font_size, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {

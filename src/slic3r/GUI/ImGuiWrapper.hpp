@@ -19,6 +19,8 @@ namespace GUI {
 class ImGuiWrapper
 {
     const ImWchar *m_glyph_ranges;
+    // Chinese, Japanese, Korean
+    bool m_font_cjk;
     float m_font_size;
     unsigned m_font_texture;
     float m_style_scaling;
