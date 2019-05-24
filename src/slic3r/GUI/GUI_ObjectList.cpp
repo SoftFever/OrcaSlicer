@@ -1284,13 +1284,11 @@ void ObjectList::append_menu_item_delete(wxMenu* menu)
         [this](wxCommandEvent&) { remove(); }, "", menu);
 }
 
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _(L("Scale to print volume")), _(L("Scale the selected object to fit the print volume")),
         [this](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
@@ -1300,9 +1298,7 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
     append_menu_item_scale_selection_to_fit_print_volume(menu);
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
     // Split object to parts
     m_menu_item_split = append_menu_item_split(menu);

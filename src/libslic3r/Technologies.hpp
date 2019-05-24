@@ -46,7 +46,4 @@
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
 
 
-// Enable scale object to fit print volume
-#define ENABLE_SCALE_TO_FIT_PRINT_VOLUME 1
-
 #endif // _technologies_h_

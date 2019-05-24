@@ -1302,9 +1302,7 @@ struct Plater::priv
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
     void scale_selection_to_fit_print_volume();
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
     void schedule_background_process();
@@ -2367,12 +2365,10 @@ void Plater::priv::split_volume()
     wxGetApp().obj_list()->split();
 }
 
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 void Plater::priv::scale_selection_to_fit_print_volume()
 {
     this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
 void Plater::priv::schedule_background_process()
 {
@@ -3036,9 +3032,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
     sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -3479,12 +3473,10 @@ bool Plater::is_selection_empty() const
     return p->get_selection().is_empty() || p->get_selection().is_wipe_tower();
 }
 
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 void Plater::scale_selection_to_fit_print_volume()
 {
     p->scale_selection_to_fit_print_volume();
 }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {

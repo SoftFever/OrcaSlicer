@@ -847,7 +847,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
                 
             break;
         }
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
         case 'F':
         case 'f':
         {
@@ -861,7 +860,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
 
             break;
         }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
         }
     }
 
