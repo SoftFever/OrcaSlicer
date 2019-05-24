@@ -144,6 +144,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("F",        L("Gizmo Place face on bed")));
     plater_shortcuts.push_back(Shortcut("L",        L("Gizmo SLA support points")));
     plater_shortcuts.push_back(Shortcut("Shift+",   L("Press to activate selection rectangle\nor to snap by 5% in Gizmo scale\nor to snap by 1mm in Gizmo move")));
+    plater_shortcuts.push_back(Shortcut("F",        L("Press to scale selection to fit print volume\nin Gizmo scale")));
     plater_shortcuts.push_back(Shortcut(alt,        L("Press to activate deselection rectangle\nor to scale or rotate selected objects\naround their own center")));
     plater_shortcuts.push_back(Shortcut(ctrl,       L("Press to activate one direction scaling in Gizmo scale")));
     plater_shortcuts.push_back(Shortcut("B",        L("Zoom to Bed")));
