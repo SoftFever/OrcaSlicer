@@ -225,10 +225,10 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
     auto text_utf8 = into_u8(text);
     ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str());
 
-#ifndef __APPLE__
+/*#ifdef __linux__
     size.x *= m_style_scaling;
     size.y *= m_style_scaling;
-#endif
+#endif*/
 
     return size;
 }
