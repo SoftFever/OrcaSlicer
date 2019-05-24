@@ -662,7 +662,6 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     {
         GLVolume &volume = *(*m_volumes)[i];
         if (is_single_full_instance()) {
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
             if (transformation_type.relative())
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -676,9 +675,6 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
             }
             else
             {
-#else
-                assert(transformation_type.absolute());
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
                 if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
                     // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
                     // This is only possible, if the instance rotation is mulitples of ninety degrees.
@@ -687,9 +683,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 }
                 else
                     volume.set_instance_scaling_factor(scale);
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
             }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
         }
         else if (is_single_volume() || is_single_modifier())
             volume.set_volume_scaling_factor(scale);
@@ -733,7 +727,6 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     this->set_bounding_boxes_dirty();
 }
 
-#if ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
 {
     if (is_empty() || (m_mode == Volume))
@@ -776,7 +769,6 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
         }
     }
 }
-#endif // ENABLE_SCALE_TO_FIT_PRINT_VOLUME
 
 void Selection::mirror(Axis axis)
 {

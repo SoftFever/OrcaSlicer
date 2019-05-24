@@ -52,7 +52,4 @@
 // Enable texture max size to be dependent on detected OpenGL version
 #define ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION 1
 
-// Enable scale object to fit print volume
-#define ENABLE_SCALE_TO_FIT_PRINT_VOLUME 1
-
 #endif // _technologies_h_

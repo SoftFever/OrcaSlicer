@@ -2047,7 +2047,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (it->new_geometry())
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
-								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
+                                // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
                                 m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                         }
                 }
@@ -5523,6 +5523,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
+        v.set_convex_hull(new TriangleMesh(std::move(mesh.convex_hull_3d())), true);
     };
 
     // adds objects' volumes 
@@ -5537,7 +5538,7 @@ void GLCanvas3D::_load_sla_shells()
                 if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
                     add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
                 if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
+                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
             }
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
@@ -5660,7 +5661,7 @@ void GLCanvas3D::_update_sla_shells_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->shader_outside_printer_detection_enabled) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
 }
 
