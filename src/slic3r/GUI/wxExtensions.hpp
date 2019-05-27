@@ -159,12 +159,14 @@ DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 // ----------------------------------------------------------------------------
 
 enum ItemType {
-    itUndef = 0,
-    itObject = 1,
-    itVolume = 2,
-    itInstanceRoot = 4,
-    itInstance = 8,
-    itSettings = 16
+    itUndef         = 0,
+    itObject        = 1,
+    itVolume        = 2,
+    itInstanceRoot  = 4,
+    itInstance      = 8,
+    itSettings      = 16,
+    itLayerRoot     = 32,
+    itLayer         = 64,
 };
 
 class ObjectDataViewModelNode;
@@ -348,7 +350,7 @@ public:
 	}
 
 	// Set action icons for node
-    void set_action_icon();
+    void        set_action_icon();
 
     void        update_settings_digest_bitmaps();
 	bool        update_settings_digest(const std::vector<std::string>& categories);
@@ -388,6 +390,8 @@ public:
                                     const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
+    wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
+    wxDataViewItem AddLayersChild(const wxDataViewItem &parent_item);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();

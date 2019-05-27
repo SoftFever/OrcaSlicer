@@ -119,8 +119,6 @@ class ObjectList : public wxDataViewCtrl
     MenuWithSeparators  m_menu_part;
     MenuWithSeparators  m_menu_sla_object;
     MenuWithSeparators  m_menu_instance;
-    wxMenuItem* m_menu_item_split { nullptr };
-    wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
@@ -199,6 +197,7 @@ public:
     wxMenu*             append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
+    wxMenuItem*         append_menu_item_layers_editing(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent);
@@ -226,6 +225,7 @@ public:
     void                del_instances_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
+    void                layers_editing();
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable();
     bool                selected_instances_of_same_object();

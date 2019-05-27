@@ -3066,6 +3066,10 @@ bool Plater::priv::complit_init_object_menu()
         [this]() { return can_split() && wxGetApp().get_mode() > comSimple; }, q);
     object_menu.AppendSeparator();
 
+    // Layers Editing for object
+    sidebar->obj_list()->append_menu_item_layers_editing(&object_menu);
+    object_menu.AppendSeparator();
+
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 
     return true;

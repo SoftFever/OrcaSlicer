@@ -1137,6 +1137,12 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
         [this]() { return is_splittable(); }, wxGetApp().plater());
 }
 
+wxMenuItem* ObjectList::append_menu_item_layers_editing(wxMenu* menu) 
+{
+    return append_menu_item(menu, wxID_ANY, _(L("Edit Layers")), "",
+        [this](wxCommandEvent&) { layers_editing(); }, "table.png", menu);
+}
+
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
 {
     MenuWithSeparators* menu = dynamic_cast<MenuWithSeparators*>(menu_);
@@ -1301,7 +1307,11 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
     append_menu_item_scale_selection_to_fit_print_volume(menu);
 
     // Split object to parts
-    m_menu_item_split = append_menu_item_split(menu);
+    append_menu_item_split(menu);
+    menu->AppendSeparator();
+
+    // Layers Editing for object
+    append_menu_item_layers_editing(menu);
     menu->AppendSeparator();
 
     // rest of a object_menu will be added later in:
@@ -1330,7 +1340,7 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_export_stl(menu);
 
-    m_menu_item_split_part = append_menu_item_split(menu);
+    append_menu_item_split(menu);
 
     // Append change part type
     menu->AppendSeparator();
@@ -1772,6 +1782,20 @@ void ObjectList::split()
         Expand(parent);
 
     changed_object(obj_idx);
+}
+
+void ObjectList::layers_editing()
+{
+    const auto item = GetSelection();
+    const int obj_idx = get_selected_obj_idx();
+    if (!item || obj_idx < 0)
+        return;
+
+    wxDataViewItem layers_item = m_objects_model->GetItemByType(item, itLayerRoot);
+    if (!layers_item.IsOk())
+        layers_item = m_objects_model->AddLayersRoot(item);
+
+    select_item(layers_item);
 }
 
 bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume)
