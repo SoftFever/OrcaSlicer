@@ -1648,6 +1648,8 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
         del_settings_from_config();
     else if (type == itInstanceRoot && obj_idx != -1)
         del_instances_from_object(obj_idx);
+    else if ((type & itLayerRoot) && obj_idx != -1)
+        /*del_layers_from_object(obj_idx)*/;
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
@@ -1728,6 +1730,8 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
         }
         object->delete_instance(idx);
     }
+    else if (type == itLayer) {
+    }
     else
         return false;
 
@@ -1791,9 +1795,11 @@ void ObjectList::layers_editing()
     if (!item || obj_idx < 0)
         return;
 
-    wxDataViewItem layers_item = m_objects_model->GetItemByType(item, itLayerRoot);
+    wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
+
+    wxDataViewItem layers_item = m_objects_model->GetItemByType(obj_item, itLayerRoot);
     if (!layers_item.IsOk())
-        layers_item = m_objects_model->AddLayersRoot(item);
+        layers_item = m_objects_model->AddLayersRoot(obj_item);
 
     select_item(layers_item);
 }
@@ -2171,7 +2177,8 @@ void ObjectList::update_selections()
     m_selection_mode = smInstance;
 
     // We doesn't update selection if SettingsItem for the current object/part is selected
-    if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
+//     if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
+    if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) & (itSettings | itLayerRoot | itLayer))
     {
         const auto item = GetSelection();
         if (selection.is_single_full_object() && 
@@ -2294,8 +2301,8 @@ void ObjectList::update_selections_on_canvas()
     auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, int instance_idx, bool as_single_selection)
     {
         const ItemType& type = m_objects_model->GetItemType(item);
-        if ( type == itInstanceRoot || m_objects_model->GetParent(item) == wxDataViewItem(0) ) {
-            wxDataViewItem obj_item = type == itInstanceRoot ? m_objects_model->GetParent(item) : item;
+        if ( type == itLayerRoot || m_objects_model->GetParent(item) == wxDataViewItem(0) ) {
+            wxDataViewItem obj_item = type == itLayerRoot ? m_objects_model->GetParent(item) : item;
             selection.add_object(m_objects_model->GetIdByItem(obj_item), as_single_selection);
             return;
         }
@@ -2317,7 +2324,7 @@ void ObjectList::update_selections_on_canvas()
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
-        if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
+        if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
             add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, true);
         else
             add_to_selection(item, selection, instance_idx, true);

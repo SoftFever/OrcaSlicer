@@ -540,6 +540,22 @@ void ObjectDataViewModelNode::SetIdx(const int& idx)
 // ObjectDataViewModel
 // ----------------------------------------------------------------------------
 
+static int get_root_idx(ObjectDataViewModelNode *parent_node, const ItemType root_type)
+{
+    // because of istance_root and layers_root are at the end of the list, so
+    // start locking from the end
+    for (int root_idx = parent_node->GetChildCount() - 1; root_idx >= 0; root_idx--)
+    {
+        // if there is SettingsItem or VolumeItem, then RootItems don't exist in current ObjectItem 
+        if (parent_node->GetNthChild(root_idx)->GetType() & (itSettings | itVolume))
+            break;
+        if (parent_node->GetNthChild(root_idx)->GetType() & root_type)
+            return root_idx;
+    }
+
+    return -1;
+}
+
 ObjectDataViewModel::ObjectDataViewModel()
 {
     m_bitmap_cache = new Slic3r::GUI::BitmapCache;
@@ -584,10 +600,10 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 
     wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
-    // because of istance_root is a last item of the object
-    int insert_position = root->GetChildCount() - 1;
-    if (insert_position < 0 || root->GetNthChild(insert_position)->m_type != itInstanceRoot)
-        insert_position = -1;
+    // get insertion position according to the existed Layers and/or Instances Items
+    int insert_position = get_root_idx(root, itLayerRoot);
+    if (insert_position < 0)
+        insert_position = get_root_idx(root, itInstanceRoot);
 
     const bool obj_errors = root->m_bmp.IsOk();
 
@@ -603,7 +619,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
-        if (insert_position > 0) insert_position++;
+        if (insert_position >= 0) insert_position++;
 	}
 
     const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
@@ -634,22 +650,6 @@ wxDataViewItem ObjectDataViewModel::AddSettingsChild(const wxDataViewItem &paren
     const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
     return child;
-}
-
-static int get_root_idx(ObjectDataViewModelNode *parent_node, const ItemType root_type)
-{
-    // because of istance_root and layers_root are at the end of the list, so
-    // start locking from the end
-    for (int root_idx = parent_node->GetChildCount() - 1; root_idx >= 0; root_idx--)
-    {
-        // if there is SettingsItem or VolumeItem, then RootItems don't exist in current ObjectItem 
-        if (parent_node->GetNthChild(root_idx)->GetType() & (itSettings | itVolume))
-            break;
-        if (parent_node->GetNthChild(root_idx)->GetType() & root_type)
-            return root_idx;
-    }
-
-    return -1;
 }
 
 /* return values:
@@ -723,6 +723,8 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
     if (appended)
         ItemAdded(parent_item, layer_root_item);// notify control
 
+    AddLayersChild(layer_root_item);
+
     return wxDataViewItem((void*)layer_root_item);
 }
 
@@ -732,9 +734,15 @@ wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_
     if (!parent_node) return wxDataViewItem(0);
 
     // get LayerRoot node
-    const int root_idx = get_root_idx(parent_node, itLayerRoot);
-    if (root_idx < 0) return wxDataViewItem(0);
-    ObjectDataViewModelNode *layer_root_node = parent_node->GetNthChild(root_idx);
+    ObjectDataViewModelNode *layer_root_node;
+
+    if (parent_node->GetType() & itLayerRoot)
+        layer_root_node = parent_node;
+    else {
+        const int root_idx = get_root_idx(parent_node, itLayerRoot);
+        if (root_idx < 0) return wxDataViewItem(0);
+        layer_root_node = parent_node->GetNthChild(root_idx);
+    }
 
     const wxDataViewItem layer_root_item((void*)layer_root_node);
 
@@ -763,9 +771,9 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
 	if (node_parent) {
-        if (node->m_type == itInstanceRoot)
+        if (node->m_type & (itInstanceRoot|itLayerRoot))
         {
-            for (int i = node->GetChildCount() - 1; i > 0; i--)
+            for (int i = node->GetChildCount() - 1; i >= (node->m_type & itInstanceRoot ? 1 : 0); i--)
                 Delete(wxDataViewItem(node->GetNthChild(i)));
             return parent;
         }
@@ -774,7 +782,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
         auto idx = node->GetIdx();
 
 
-        if (node->m_type == itVolume) {
+        if (node->m_type & (itVolume|itLayer)) {
             node_parent->m_volumes_cnt--;
             DeleteSettings(item);
         }
@@ -818,8 +826,24 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             return ret_item;
         }
 
+        // if there was last layer item, delete this one and layers root item
+        if (node_parent->GetChildCount() == 0 && node_parent->m_type == itLayerRoot)
+        {
+            ObjectDataViewModelNode *obj_node = node_parent->GetParent();
+            obj_node->GetChildren().Remove(node_parent);
+            delete node_parent;
+            ret_item = wxDataViewItem(obj_node);
+
+#ifndef __WXGTK__
+            if (obj_node->GetChildCount() == 0)
+                obj_node->m_container = false;
+#endif //__WXGTK__
+            ItemDeleted(ret_item, wxDataViewItem(node_parent));
+            return ret_item;
+        }
+
         // if there is last volume item after deleting, delete this last volume too
-        if (node_parent->GetChildCount() <= 3)
+        if (node_parent->GetChildCount() <= 3) // 3??? #ys_FIXME
         {
             int vol_cnt = 0;
             int vol_idx = 0;
@@ -1120,7 +1144,7 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
     type = itUndef;
 
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() <-1 || node->GetIdx() ==-1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot)))
+    if (!node || node->GetIdx() <-1 || node->GetIdx() == -1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/)))
         return;
 
     idx = node->GetIdx();
@@ -1128,7 +1152,7 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
 
     ObjectDataViewModelNode *parent_node = node->GetParent();
     if (!parent_node) return;
-    if (type == itInstance)
+    if (type & (itInstance | itLayer))
         parent_node = node->GetParent()->GetParent();
     if (!parent_node || parent_node->m_type != itObject) { type = itUndef; return; }
 
