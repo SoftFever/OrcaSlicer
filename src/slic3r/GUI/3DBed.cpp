@@ -494,16 +494,20 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     std::string model_path = resources_dir() + "/models/" + key;
 
 #if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
+#if !ENABLE_COMPRESSED_TEXTURES
     // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+#endif // !ENABLE_COMPRESSED_TEXTURES
 
     // use higher resolution images if graphic card and opengl version allow
     GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
 #else
+#if !ENABLE_COMPRESSED_TEXTURES
     // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = 0.0f;
     if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy));
+#endif // !ENABLE_COMPRESSED_TEXTURES
 
     // use higher resolution images if graphic card allows
     GLint max_tex_size;
@@ -518,7 +522,7 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
 #if ENABLE_COMPRESSED_TEXTURES
-        if (!m_texture.load_from_svg_file(filename, true, true, max_tex_size))
+        if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
 #else
         if (!m_texture.load_from_svg_file(filename, true, max_tex_size))
 #endif // ENABLE_COMPRESSED_TEXTURES
@@ -527,12 +531,14 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
             return;
         }
 
+#if !ENABLE_COMPRESSED_TEXTURES
         if (max_anisotropy > 0.0f)
         {
             glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.get_id()));
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
             glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
         }
+#endif // !ENABLE_COMPRESSED_TEXTURES
     }
 
     if (!bottom)

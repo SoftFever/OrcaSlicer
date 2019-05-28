@@ -58,7 +58,7 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
 }
 
 #if ENABLE_COMPRESSED_TEXTURES
-bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px)
+bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px)
 #else
 bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px)
 #endif // ENABLE_COMPRESSED_TEXTURES
@@ -70,7 +70,7 @@ bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps
 
     if (boost::algorithm::iends_with(filename, ".svg"))
 #if ENABLE_COMPRESSED_TEXTURES
-    return load_from_svg(filename, use_mipmaps, compress, max_size_px);
+        return load_from_svg(filename, use_mipmaps, compress, apply_anisotropy, max_size_px);
 #else
         return load_from_svg(filename, use_mipmaps, max_size_px);
 #endif // ENABLE_COMPRESSED_TEXTURES
@@ -411,7 +411,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
 }
 
 #if ENABLE_COMPRESSED_TEXTURES
-bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px)
+bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px)
 #else
 bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px)
 #endif // ENABLE_COMPRESSED_TEXTURES
@@ -455,6 +455,13 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 #if ENABLE_COMPRESSED_TEXTURES
+    if (apply_anisotropy)
+    {
+        GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
+        if (max_anisotropy > 1.0f)
+            glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
+    }
+
     if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else

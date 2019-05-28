@@ -40,7 +40,7 @@ namespace GUI {
 
 #if ENABLE_COMPRESSED_TEXTURES
         bool load_from_file(const std::string& filename, bool use_mipmaps, bool compress);
-        bool load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px);
+        bool load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
 #else
         bool load_from_file(const std::string& filename, bool use_mipmaps);
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
@@ -79,7 +79,7 @@ namespace GUI {
     private:
 #if ENABLE_COMPRESSED_TEXTURES
         bool load_from_png(const std::string& filename, bool use_mipmaps, bool compress);
-        bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px);
+        bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
 #else
         bool load_from_png(const std::string& filename, bool use_mipmaps);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
