@@ -122,6 +122,10 @@ class ObjectList : public wxDataViewCtrl
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
+    ObjectDataViewModel         *m_objects_model{ nullptr };
+    DynamicPrintConfig          *m_config {nullptr};
+    std::vector<ModelObject*>   *m_objects{ nullptr };
+
     std::vector<wxBitmap*> m_bmp_vector;
 
     int			m_selected_object_id = -1;
@@ -151,11 +155,11 @@ public:
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 
-    ObjectDataViewModel	*m_objects_model{ nullptr };
-    DynamicPrintConfig          *m_config {nullptr};
+    ObjectDataViewModel*        GetModel() const    { return m_objects_model; }
+    DynamicPrintConfig*         config() const      { return m_config; }
+    std::vector<ModelObject*>*  objects() const     { return m_objects; }
 
-    std::vector<ModelObject*>   *m_objects{ nullptr };
-
+    ModelObject*                object(const int obj_idx) const ;
 
     void                create_objects_ctrl();
     void                create_popup_menus();

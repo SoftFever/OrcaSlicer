@@ -68,8 +68,8 @@ void ObjectSettings::update_settings_list()
     m_settings_list_sizer->Clear(true);
 
     auto objects_ctrl   = wxGetApp().obj_list();
-    auto objects_model  = wxGetApp().obj_list()->m_objects_model;
-    auto config         = wxGetApp().obj_list()->m_config;
+    auto objects_model  = wxGetApp().obj_list()->GetModel();
+    auto config         = wxGetApp().obj_list()->config();
 
     const auto item = objects_ctrl->GetSelection();
     if (item && !objects_ctrl->multiple_selection() && 

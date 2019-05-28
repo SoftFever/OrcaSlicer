@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_ObjectLayers.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 
@@ -1799,7 +1800,11 @@ void ObjectList::layers_editing()
 
     wxDataViewItem layers_item = m_objects_model->GetItemByType(obj_item, itLayerRoot);
     if (!layers_item.IsOk())
+    {
+        const t_layer_height_range first_range = { 0.0f, 0.2f };
+        object(obj_idx)->layer_height_ranges[first_range] = 0.1f;
         layers_item = m_objects_model->AddLayersRoot(obj_item);
+    }
 
     select_item(layers_item);
 }
@@ -1873,6 +1878,7 @@ void ObjectList::part_selection_changed()
 
     bool update_and_show_manipulations = false;
     bool update_and_show_settings = false;
+    bool update_and_show_layers = false;
 
     const auto item = GetSelection();
 
@@ -1898,7 +1904,8 @@ void ObjectList::part_selection_changed()
                 auto parent = m_objects_model->GetParent(item);
                 // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
                 obj_idx = m_objects_model->GetIdByItem(parent);
-                if (m_objects_model->GetItemType(item) == itSettings) {
+                const ItemType type = m_objects_model->GetItemType(item);
+                if (type & itSettings) {
                     if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
                         og_name = _(L("Object Settings to modify"));
                         m_config = &(*m_objects)[obj_idx]->config;
@@ -1912,19 +1919,23 @@ void ObjectList::part_selection_changed()
                     }
                     update_and_show_settings = true;
                 }
-                else if (m_objects_model->GetItemType(item) == itVolume) {
+                else if (type & itVolume) {
                     og_name = _(L("Part manipulation"));
                     volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                 }
-                else if (m_objects_model->GetItemType(item) == itInstance) {
+                else if (type & itInstance) {
                     og_name = _(L("Instance manipulation"));
                     update_and_show_manipulations = true;
 
                     // fill m_config by object's values
                     const int obj_idx_ = m_objects_model->GetObjectIdByItem(item);
                     m_config = &(*m_objects)[obj_idx_]->config;
+                }
+                else if (type & (itLayerRoot|itLayer)) {
+                    og_name = type & itLayerRoot ? _(L("Layers Editing")) : _(L("Layer Editing"));
+                    update_and_show_layers = true;
                 }
             }
         }
@@ -1944,11 +1955,15 @@ void ObjectList::part_selection_changed()
     if (update_and_show_settings)
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 
+    if (update_and_show_layers)
+        wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
+
     Sidebar& panel = wxGetApp().sidebar();
     panel.Freeze();
 
     wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
+    wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().sidebar().show_info_sizer();
 
     panel.Layout();
@@ -2944,6 +2959,14 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     // update scene
     wxGetApp().plater()->update();
+}
+
+ModelObject* ObjectList::object(const int obj_idx) const
+{
+    if (obj_idx < 0)
+        return nullptr;
+
+    return (*m_objects)[obj_idx];
 }
 
 } //namespace GUI

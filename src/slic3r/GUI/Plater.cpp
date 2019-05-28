@@ -43,6 +43,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_ObjectLayers.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
@@ -611,6 +612,7 @@ struct Sidebar::priv
     ObjectList          *object_list;
     ObjectManipulation  *object_manipulation;
     ObjectSettings      *object_settings;
+    ObjectLayers        *object_layers;
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -729,6 +731,11 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings = new ObjectSettings(p->scrolled);
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
+ 
+    // Object Layers
+    p->object_layers = new ObjectLayers(p->scrolled);
+    p->object_layers->Hide();
+    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
@@ -922,6 +929,7 @@ void Sidebar::msw_rescale()
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
+    p->object_layers->msw_rescale();
 
     p->object_info->msw_rescale();
 
@@ -941,6 +949,11 @@ ObjectList* Sidebar::obj_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
+}
+
+ObjectLayers* Sidebar::obj_layers()
+{
+    return p->object_layers;
 }
 
 wxScrolledWindow* Sidebar::scrolled_panel()
