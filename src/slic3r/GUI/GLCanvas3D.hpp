@@ -374,7 +374,11 @@ class GLCanvas3D
         std::vector<Warning> m_warnings;
 
         // Generates the texture with given text.
+#if ENABLE_COMPRESSED_TEXTURES
+        bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
+#else
         bool _generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored = false);
+#endif // ENABLE_COMPRESSED_TEXTURES
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -397,7 +401,11 @@ class GLCanvas3D
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
+#if ENABLE_COMPRESSED_TEXTURES
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress);
+#else
         bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
+#endif // ENABLE_COMPRESSED_TEXTURES
 
         void render(const GLCanvas3D& canvas) const;
     };

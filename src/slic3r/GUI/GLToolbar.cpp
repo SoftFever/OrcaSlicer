@@ -194,7 +194,11 @@ bool GLToolbar::init(const ItemsIconsTexture::Metadata& icons_texture, const Bac
 #endif // ENABLE_SVG_ICONS
 
     if (!background_texture.filename.empty())
+#if ENABLE_COMPRESSED_TEXTURES
+        res = m_background_texture.texture.load_from_file(path + background_texture.filename, false, true);
+#else
         res = m_background_texture.texture.load_from_file(path + background_texture.filename, false);
+#endif // ENABLE_COMPRESSED_TEXTURES
 
     if (res)
         m_background_texture.metadata = background_texture;
@@ -1338,7 +1342,11 @@ bool GLToolbar::generate_icons_texture() const
         states.push_back(std::make_pair(1, true));
     }
 
+#if ENABLE_COMPRESSED_TEXTURES
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_layout.icons_size * m_layout.scale), true);
+#else
     bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_layout.icons_size * m_layout.scale));
+#endif // ENABLE_COMPRESSED_TEXTURES
     if (res)
         m_icons_texture_dirty = false;
 

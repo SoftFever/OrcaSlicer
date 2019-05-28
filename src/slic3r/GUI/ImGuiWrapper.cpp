@@ -206,7 +206,11 @@ void ImGuiWrapper::new_frame()
     }
 
     if (m_font_texture == 0) {
+#if ENABLE_COMPRESSED_TEXTURES
+        init_font(true);
+#else
         init_font();
+#endif // ENABLE_COMPRESSED_TEXTURES
     }
 
     ImGui::NewFrame();
@@ -383,7 +387,11 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+void ImGuiWrapper::init_font(bool compress)
+#else
 void ImGuiWrapper::init_font()
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     destroy_font();
 
@@ -413,7 +421,7 @@ void ImGuiWrapper::init_font()
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));

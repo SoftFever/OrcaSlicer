@@ -517,7 +517,11 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
+#if ENABLE_COMPRESSED_TEXTURES
+        if (!m_texture.load_from_svg_file(filename, true, true, max_tex_size))
+#else
         if (!m_texture.load_from_svg_file(filename, true, max_tex_size))
+#endif // ENABLE_COMPRESSED_TEXTURES
         {
             render_custom();
             return;

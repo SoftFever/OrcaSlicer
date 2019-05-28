@@ -18,10 +18,6 @@
 
 #include "libslic3r/Utils.hpp"
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#include <chrono>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 namespace Slic3r {
 namespace GUI {
 
@@ -40,7 +36,11 @@ GLTexture::~GLTexture()
     reset();
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps, bool compress)
+#else
 bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -48,12 +48,20 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
         return false;
 
     if (boost::algorithm::iends_with(filename, ".png"))
+#if ENABLE_COMPRESSED_TEXTURES
+        return load_from_png(filename, use_mipmaps, compress);
+#else
         return load_from_png(filename, use_mipmaps);
+#endif // ENABLE_COMPRESSED_TEXTURES
     else
         return false;
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px)
+#else
 bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -61,12 +69,20 @@ bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps
         return false;
 
     if (boost::algorithm::iends_with(filename, ".svg"))
+#if ENABLE_COMPRESSED_TEXTURES
+    return load_from_svg(filename, use_mipmaps, compress, max_size_px);
+#else
         return load_from_svg(filename, use_mipmaps, max_size_px);
+#endif // ENABLE_COMPRESSED_TEXTURES
     else
         return false;
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px, bool compress)
+#else
 bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -183,7 +199,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -263,7 +279,11 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
     glsafe(::glDisable(GL_BLEND));
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+unsigned int GLTexture::generate_mipmaps(wxImage& image, bool compress)
+#else
 unsigned int GLTexture::generate_mipmaps(wxImage& image)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     int w = image.GetWidth();
     int h = image.GetHeight();
@@ -296,7 +316,7 @@ unsigned int GLTexture::generate_mipmaps(wxImage& image)
         }
 
 #if ENABLE_COMPRESSED_TEXTURES
-        if (GLEW_EXT_texture_compression_s3tc)
+        if (compress && GLEW_EXT_texture_compression_s3tc)
             glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
         else
             glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -308,7 +328,11 @@ unsigned int GLTexture::generate_mipmaps(wxImage& image)
     return (unsigned int)level;
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, bool compress)
+#else
 bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     // Load a PNG with an alpha channel.
     wxImage image;
@@ -354,7 +378,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -364,7 +388,11 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     if (use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
+#if ENABLE_COMPRESSED_TEXTURES
+        unsigned int levels_count = generate_mipmaps(image, compress);
+#else
         unsigned int levels_count = generate_mipmaps(image);
+#endif // ENABLE_COMPRESSED_TEXTURES
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count));
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
     }
@@ -382,12 +410,12 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     return true;
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, unsigned int max_size_px)
+#else
 bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    auto start_time = std::chrono::high_resolution_clock::now();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
     if (image == nullptr)
     {
@@ -427,18 +455,13 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
 #else
     glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
 #endif // ENABLE_COMPRESSED_TEXTURES
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "texture level 0 to GPU in: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
-    start_time = end_time;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
@@ -455,7 +478,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
 
             nsvgRasterize(rast, image, 0, 0, scale, data.data(), lod_w, lod_h, lod_w * 4);
 #if ENABLE_COMPRESSED_TEXTURES
-            if (GLEW_EXT_texture_compression_s3tc)
+            if (compress && GLEW_EXT_texture_compression_s3tc)
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
             else
                 glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -480,11 +503,6 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
 
     nsvgDeleteRasterizer(rast);
     nsvgDelete(image);
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    end_time = std::chrono::high_resolution_clock::now();
-    std::cout << "mipmaps to GPU in: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     return true;
 }

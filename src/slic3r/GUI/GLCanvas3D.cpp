@@ -405,7 +405,11 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
+#if ENABLE_COMPRESSED_TEXTURES
+        if (!m_tooltip_texture.load_from_file(filename, false, true))
+#else
         if (!m_tooltip_texture.load_from_file(filename, false))
+#endif // ENABLE_COMPRESSED_TEXTURES
             return;
     }
 
@@ -437,7 +441,11 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
+#if ENABLE_COMPRESSED_TEXTURES
+        if (!m_reset_texture.load_from_file(filename, false, true))
+#else
         if (!m_reset_texture.load_from_file(filename, false))
+#endif // ENABLE_COMPRESSED_TEXTURES
             return;
     }
 
@@ -729,7 +737,11 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         }
     }
 
+#if ENABLE_COMPRESSED_TEXTURES
+    generate(text, canvas, true, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+#else
     _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+#endif // ENABLE_COMPRESSED_TEXTURES
 
     // save information for rescaling
     m_msg_text = text;
@@ -790,7 +802,11 @@ static void msw_disable_cleartype(wxFont &font)
 }
 #endif /* __WXMSW__ */
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLCanvas3D::WarningTexture::generate(const std::string& msg_utf8, const GLCanvas3D& canvas, bool compress, bool red_colored/* = false*/)
+#else
 bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -865,7 +881,7 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -922,7 +938,11 @@ void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
     if (m_msg_text.empty())
         return;
 
+#if ENABLE_COMPRESSED_TEXTURES
+    generate(m_msg_text, canvas, true, m_is_colored_red);
+#else
     _generate(m_msg_text, canvas, m_is_colored_red);
+#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
@@ -965,7 +985,11 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
+#if ENABLE_COMPRESSED_TEXTURES
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress)
+#else
 bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -1155,7 +1179,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
 #if ENABLE_COMPRESSED_TEXTURES
-    if (GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
@@ -1714,9 +1738,9 @@ void GLCanvas3D::render()
     imgui.text("  ms");
 #if ENABLE_COMPRESSED_TEXTURES
     ImGui::Separator();
-    imgui.text("Textures: ");
+    imgui.text("Compressed textures: ");
     ImGui::SameLine();
-    imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "compressed" : "uncompressed");
+    imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "supported" : "not supported");
 #endif // ENABLE_COMPRESSED_TEXTURES
 #if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     imgui.text("Max texture size: ");
@@ -5698,7 +5722,11 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
+#if ENABLE_COMPRESSED_TEXTURES
+    m_legend_texture.generate(preview_data, tool_colors, *this, true);
+#else
     m_legend_texture.generate(preview_data, tool_colors, *this);
+#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
