@@ -46,7 +46,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 
     m_og->append_line(line);
 
-    m_bmp_delete    = ScalableBitmap(parent, "cross");
+    m_bmp_delete    = ScalableBitmap(parent, "remove_copies"/*"cross"*/);
     m_bmp_add       = ScalableBitmap(parent, "add_copies");
 }
 

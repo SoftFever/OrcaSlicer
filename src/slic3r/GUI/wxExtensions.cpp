@@ -450,7 +450,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
-        m_bmp = create_scaled_bitmap(nullptr, "table.png");    // FIXME: pass window ptr
+        m_bmp = create_scaled_bitmap(nullptr, "layers");    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
 
@@ -473,8 +473,9 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_extruder(extruder)
 {
     m_idx = parent->GetChildCount();
-    m_name = wxString::Format(_(L("Layer %s")), label_range);
-    m_bmp = create_scaled_bitmap(nullptr, "row.png");    // FIXME: pass window ptr
+//     m_name = wxString::Format(_(L("Layer %s (mm)")), label_range);
+    m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
+    m_bmp = create_scaled_bitmap(nullptr, "layers_white");    // FIXME: pass window ptr
 
 #ifdef __WXGTK__
     // it's necessary on GTK because of control have to know if this item will be container

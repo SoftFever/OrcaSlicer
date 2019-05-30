@@ -1141,7 +1141,7 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_layers_editing(wxMenu* menu) 
 {
     return append_menu_item(menu, wxID_ANY, _(L("Edit Layers")), "",
-        [this](wxCommandEvent&) { layers_editing(); }, "table.png", menu);
+        [this](wxCommandEvent&) { layers_editing(); }, "layers", menu);
 }
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
@@ -1650,7 +1650,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     else if (type == itInstanceRoot && obj_idx != -1)
         del_instances_from_object(obj_idx);
     else if ((type & itLayerRoot) && obj_idx != -1)
-        /*del_layers_from_object(obj_idx)*/;
+        del_layers_from_object(obj_idx);
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
@@ -1688,6 +1688,13 @@ void ObjectList::del_instances_from_object(const int obj_idx)
         instances.pop_back();
 
     (*m_objects)[obj_idx]->invalidate_bounding_box(); // ? #ys_FIXME
+
+    changed_object(obj_idx);
+}
+
+void ObjectList::del_layers_from_object(const int obj_idx)
+{
+    object(obj_idx)->layer_height_ranges.clear(); // ? #ys_FIXME
 
     changed_object(obj_idx);
 }
@@ -1732,6 +1739,13 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
         object->delete_instance(idx);
     }
     else if (type == itLayer) {
+        t_layer_height_ranges::iterator layer_range = object->layer_height_ranges.begin();
+        int id = idx;
+        while (id > 0 && layer_range != object->layer_height_ranges.end()) {
+            layer_range++;
+            id--;
+        }
+        object->layer_height_ranges.erase(layer_range);
     }
     else
         return false;
@@ -1808,12 +1822,12 @@ void ObjectList::layers_editing()
         // ---<<<--- Just for testing
 
         layers_item = m_objects_model->AddLayersRoot(obj_item);
-    }
 
-    for (const auto range : object(obj_idx)->layer_height_ranges) 
-    {
-        const std::string label = (boost::format("(%.2f-%.2f)") % range.first.first % range.first.second).str();
-        m_objects_model->AddLayersChild(layers_item, label);
+        for (const auto range : object(obj_idx)->layer_height_ranges)
+        {
+            const std::string label = (boost::format(" %.2f-%.2f ") % range.first.first % range.first.second).str();
+            m_objects_model->AddLayersChild(layers_item, label);
+        }
     }
 
     select_item(layers_item);
@@ -2168,9 +2182,22 @@ void ObjectList::remove()
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
-            if (sels.size() == 1)
-                select_item(m_objects_model->GetParent(item));
+//             if (sels.size() == 1)
+//                 select_item(m_objects_model->GetParent(item));
+            wxDataViewItem  parent = m_objects_model->GetParent(item);
+            if (sels.size() == 1) {
+                if (!(m_objects_model->GetItemType(item) & itLayer)) {
+                    select_item(parent);
+                    parent = wxDataViewItem(0);
+                }
+                else if (m_objects_model->GetChildren(parent, wxDataViewItemArray()) == 1)
+                    parent = m_objects_model->GetTopParent(item);
+            }
+            
             del_subobject_item(item);
+
+            if (sels.size() == 1 && parent)
+                select_item(parent);
         }
     }
 }

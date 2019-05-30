@@ -227,6 +227,7 @@ public:
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
     void                del_instances_from_object(const int obj_idx);
+    void                del_layers_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
     void                layers_editing();
