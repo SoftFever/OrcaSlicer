@@ -24,7 +24,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_og->label_width = 1;
-//     m_og->set_grid_vgap(5);
+    m_og->set_grid_vgap(5);
     
     // Legend for object layers
     Line line = Line{ "", "" };
@@ -118,13 +118,16 @@ void ObjectLayers::create_layers_list()
     }
 }
 
-void ObjectLayers::create_layer()
+void ObjectLayers::create_layer(int id)
 {
-    for (const auto layer : m_object->layer_height_ranges)
-    {
-        m_og->append_line(create_new_layer(layer));
-        break;
+    t_layer_height_ranges::iterator layer_range = m_object->layer_height_ranges.begin();
+
+    while (id > 0 && layer_range != m_object->layer_height_ranges.end()) {
+        layer_range++;
+        id--;
     }
+        
+    m_og->append_line(create_new_layer(*layer_range));
 }
 
 void ObjectLayers::update_layers_list()
@@ -164,7 +167,7 @@ void ObjectLayers::update_layers_list()
     if (type & itLayerRoot)
         create_layers_list();
     else
-        create_layer();
+        create_layer(objects_ctrl->GetModel()->GetLayerIdByItem(item));
     
     m_parent->Layout();
 }

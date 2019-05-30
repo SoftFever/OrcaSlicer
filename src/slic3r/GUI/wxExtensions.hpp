@@ -231,6 +231,11 @@ public:
         set_action_icon();
     }
 
+	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
+							const wxString& label_range,
+                            const wxString& extruder = wxEmptyString,
+                            const int idx = -1 );
+
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
 
 	~ObjectDataViewModelNode()
@@ -391,7 +396,7 @@ public:
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
-    wxDataViewItem AddLayersChild(const wxDataViewItem &parent_item);
+    wxDataViewItem AddLayersChild(const wxDataViewItem &parent_item, const std::string& label_range);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();
@@ -406,6 +411,7 @@ public:
     int  GetObjectIdByItem(const wxDataViewItem& item) const;
     int  GetVolumeIdByItem(const wxDataViewItem& item) const;
     int  GetInstanceIdByItem(const wxDataViewItem& item) const;
+    int  GetLayerIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }

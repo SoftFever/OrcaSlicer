@@ -453,22 +453,37 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_bmp = create_scaled_bitmap(nullptr, "table.png");    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
-    else if (type == itLayer)
-    {
-        m_idx = parent->GetChildCount();
-        m_name = wxString::Format(_(L("Layer %d")), m_idx + 1);
-        m_bmp = create_scaled_bitmap(nullptr, "row.png");    // FIXME: pass window ptr
-
-        set_action_icon();
-    }
 
 #ifdef __WXGTK__
     // it's necessary on GTK because of control have to know if this item will be container
     // in another case you couldn't to add subitem for this item
     // it will be produce "segmentation fault"
-    if (type & (itInstanceRoot | itLayerRoot | itLayer))
+    if (type & (itInstanceRoot | itLayerRoot))
         m_container = true;
 #endif  //__WXGTK__
+}
+
+ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
+                                                 const wxString& label_range, 
+                                                 const wxString& extruder, 
+                                                 const int idx /*= -1 */) :
+    m_parent(parent),
+    m_type(itLayer),
+    m_idx(idx),
+    m_extruder(extruder)
+{
+    m_idx = parent->GetChildCount();
+    m_name = wxString::Format(_(L("Layer %s")), label_range);
+    m_bmp = create_scaled_bitmap(nullptr, "row.png");    // FIXME: pass window ptr
+
+#ifdef __WXGTK__
+    // it's necessary on GTK because of control have to know if this item will be container
+    // in another case you couldn't to add subitem for this item
+    // it will be produce "segmentation fault"
+    m_container = true;
+#endif  //__WXGTK__
+
+    set_action_icon();
 }
 
 void ObjectDataViewModelNode::set_action_icon()
@@ -671,7 +686,7 @@ static bool append_root_node(ObjectDataViewModelNode *parent_node,
             (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0)
             parent_node->Append(*root_node);
         else if (root_type&itLayerRoot)
-            parent_node->Insert(*root_node, unsigned int(get_root_idx(parent_node, itInstanceRoot)));
+            parent_node->Insert(*root_node, static_cast<unsigned int>(get_root_idx(parent_node, itInstanceRoot)));
         return true;
     }
 
@@ -723,38 +738,38 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
     if (appended)
         ItemAdded(parent_item, layer_root_item);// notify control
 
-    AddLayersChild(layer_root_item);
-
-    return wxDataViewItem((void*)layer_root_item);
+    return layer_root_item;
 }
 
-wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item)
+wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, const std::string& label_range)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return wxDataViewItem(0);
 
     // get LayerRoot node
     ObjectDataViewModelNode *layer_root_node;
+    wxDataViewItem layer_root_item;
 
-    if (parent_node->GetType() & itLayerRoot)
+    if (parent_node->GetType() & itLayerRoot) {
         layer_root_node = parent_node;
+        layer_root_item = parent_item;
+    }
     else {
         const int root_idx = get_root_idx(parent_node, itLayerRoot);
         if (root_idx < 0) return wxDataViewItem(0);
         layer_root_node = parent_node->GetNthChild(root_idx);
+        layer_root_item = wxDataViewItem((void*)layer_root_node);
     }
 
-    const wxDataViewItem layer_root_item((void*)layer_root_node);
-
     // Add layer node
-    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, itLayer);
+    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, label_range);
     layer_root_node->Append(layer_node);
 
     // notify control
-    const wxDataViewItem instance_item((void*)layer_node);
-    ItemAdded(layer_root_item, instance_item);
+    const wxDataViewItem layer_item((void*)layer_node);
+    ItemAdded(layer_root_item, layer_item);
 
-    return wxDataViewItem((void*)layer_node);
+    return layer_item;
 }
 
 wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
@@ -1136,6 +1151,11 @@ int ObjectDataViewModel::GetVolumeIdByItem(const wxDataViewItem& item) const
 int ObjectDataViewModel::GetInstanceIdByItem(const wxDataViewItem& item) const 
 {
     return GetIdByItemAndType(item, itInstance);
+}
+
+int ObjectDataViewModel::GetLayerIdByItem(const wxDataViewItem& item) const 
+{
+    return GetIdByItemAndType(item, itLayer);
 }
 
 void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx)

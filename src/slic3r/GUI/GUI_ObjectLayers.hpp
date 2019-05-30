@@ -25,7 +25,7 @@ public:
     ~ObjectLayers() {}
 
     void        create_layers_list();
-    void        create_layer();
+    void        create_layer(int id);
     void        update_layers_list();
     void        add_layer() {};
     void        del_layer() {};

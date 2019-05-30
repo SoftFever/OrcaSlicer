@@ -1801,13 +1801,19 @@ void ObjectList::layers_editing()
     wxDataViewItem layers_item = m_objects_model->GetItemByType(obj_item, itLayerRoot);
     if (!layers_item.IsOk())
     {
-        const t_layer_height_range first_range = { 0.0f, 0.2f };
-        object(obj_idx)->layer_height_ranges[first_range] = 0.1f;
-
-        const t_layer_height_range second_range = { 0.2f, 0.4f };
-        object(obj_idx)->layer_height_ranges[second_range] = 0.05f;
+        // --->>>--- Just for testing
+        object(obj_idx)->layer_height_ranges[{ 0.0f, 0.2f }] = 0.1f;
+        object(obj_idx)->layer_height_ranges[{ 0.2f, 0.4f }] = 0.05f;
+        object(obj_idx)->layer_height_ranges[{ 0.4f, 0.6f }] = 0.2f;
+        // ---<<<--- Just for testing
 
         layers_item = m_objects_model->AddLayersRoot(obj_item);
+    }
+
+    for (const auto range : object(obj_idx)->layer_height_ranges) 
+    {
+        const std::string label = (boost::format("(%.2f-%.2f)") % range.first.first % range.first.second).str();
+        m_objects_model->AddLayersChild(layers_item, label);
     }
 
     select_item(layers_item);
