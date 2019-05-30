@@ -160,6 +160,8 @@ public:
 		                m_show_modified_btns = show;
     }
 
+    void            clear_fields_except_of(const std::vector<std::string> left_fields);
+
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
 					column_t extra_clmn = nullptr) :
 					m_parent(_parent), title(title), 

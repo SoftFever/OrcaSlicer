@@ -14,15 +14,18 @@ class ConfigOptionsGroup;
 
 class ObjectLayers : public OG_Settings
 {
-    ScalableBitmap m_bmp_delete;
-    ScalableBitmap m_bmp_add;
+    ScalableBitmap  m_bmp_delete;
+    ScalableBitmap  m_bmp_add;
+    ModelObject*    m_object {nullptr};
 
-    int             field_width {8};
+    std::vector<std::string> m_legends;
 
 public:
     ObjectLayers(wxWindow* parent);
     ~ObjectLayers() {}
 
+    void        create_layers_list();
+    void        create_layer();
     void        update_layers_list();
     void        add_layer() {};
     void        del_layer() {};

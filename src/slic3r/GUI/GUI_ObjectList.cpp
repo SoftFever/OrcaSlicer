@@ -1803,6 +1803,10 @@ void ObjectList::layers_editing()
     {
         const t_layer_height_range first_range = { 0.0f, 0.2f };
         object(obj_idx)->layer_height_ranges[first_range] = 0.1f;
+
+        const t_layer_height_range second_range = { 0.2f, 0.4f };
+        object(obj_idx)->layer_height_ranges[second_range] = 0.05f;
+
         layers_item = m_objects_model->AddLayersRoot(obj_item);
     }
 
