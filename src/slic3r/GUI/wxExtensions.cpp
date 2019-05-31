@@ -1098,23 +1098,33 @@ wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_id
     return wxDataViewItem(0);
 }
 
-wxDataViewItem ObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_idx)
+wxDataViewItem ObjectDataViewModel::GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type)
 {
     if (obj_idx >= m_objects.size() || obj_idx < 0) {
         printf("Error! Out of objects range.\n");
         return wxDataViewItem(0);
     }
 
-    auto instances_item = GetInstanceRootItem(wxDataViewItem(m_objects[obj_idx]));
-    if (!instances_item)
+    auto item = GetItemByType(wxDataViewItem(m_objects[obj_idx]), parent_type);
+    if (!item)
         return wxDataViewItem(0);
 
-    auto parent = (ObjectDataViewModelNode*)instances_item.GetID();;
+    auto parent = (ObjectDataViewModelNode*)item.GetID();;
     for (size_t i = 0; i < parent->GetChildCount(); i++)
-        if (parent->GetNthChild(i)->m_idx == inst_idx)
+        if (parent->GetNthChild(i)->m_idx == sub_obj_idx)
             return wxDataViewItem(parent->GetNthChild(i));
 
     return wxDataViewItem(0);
+}
+
+wxDataViewItem ObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_idx)
+{
+    return GetItemById(obj_idx, inst_idx, itInstanceRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetItemByLayerId(int obj_idx, int layer_idx)
+{
+    return GetItemById(obj_idx, layer_idx, itLayerRoot);
 }
 
 int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
@@ -1445,6 +1455,11 @@ wxDataViewItem ObjectDataViewModel::GetSettingsItem(const wxDataViewItem &item) 
 wxDataViewItem ObjectDataViewModel::GetInstanceRootItem(const wxDataViewItem &item) const
 {
     return GetItemByType(item, itInstanceRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetLayerRootItem(const wxDataViewItem &item) const
+{
+    return GetItemByType(item, itLayerRoot);
 }
 
 bool ObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const

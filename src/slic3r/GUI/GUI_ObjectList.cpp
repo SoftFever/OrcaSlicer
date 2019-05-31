@@ -1812,7 +1812,7 @@ void ObjectList::layers_editing()
 
     wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
 
-    wxDataViewItem layers_item = m_objects_model->GetItemByType(obj_item, itLayerRoot);
+    wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(obj_item);
     if (!layers_item.IsOk())
     {
         // --->>>--- Just for testing
@@ -2200,6 +2200,39 @@ void ObjectList::remove()
                 select_item(parent);
         }
     }
+}
+
+void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
+{
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
+
+    t_layer_height_ranges& ranges = object(obj_idx)->layer_height_ranges;
+
+    wxDataViewItem selectable_item = GetSelection();
+    int layer_idx = 0;
+
+    if (ranges.size() == 1)
+        selectable_item = m_objects_model->GetParent(selectable_item);
+    else {
+        // May be not a best solution #ys_FIXME
+        t_layer_height_ranges::iterator layer_selected = ranges.find(range);
+        t_layer_height_ranges::iterator it = ranges.begin();
+        while (it != layer_selected) {
+            it++;
+            layer_idx++;
+        }
+    }
+
+    wxDataViewItem layer_item = m_objects_model->GetItemByLayerId(obj_idx, layer_idx);
+    del_subobject_item(layer_item);
+
+    select_item(selectable_item);
+}
+
+void ObjectList::add_layer_range(const std::pair<coordf_t, coordf_t>& range)
+{
+
 }
 
 void ObjectList::init_objects()

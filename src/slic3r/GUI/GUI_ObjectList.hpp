@@ -270,6 +270,8 @@ public:
 
     // Remove objects/sub-object from the list
     void remove();
+    void del_layer_range(const std::pair<coordf_t, coordf_t>& range);
+    void add_layer_range(const std::pair<coordf_t, coordf_t>& range);
 
     void init_objects();
     bool multiple_selection() const ;

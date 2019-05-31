@@ -27,8 +27,6 @@ public:
     void        create_layers_list();
     void        create_layer(int id);
     void        update_layers_list();
-    void        add_layer() {};
-    void        del_layer() {};
 
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();

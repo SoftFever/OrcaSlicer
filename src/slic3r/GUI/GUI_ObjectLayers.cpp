@@ -16,8 +16,6 @@ namespace Slic3r
 namespace GUI
 {
 
-typedef std::map<t_layer_height_range, coordf_t> t_layer_height_ranges;
-
 #define field_width 8
 
 ObjectLayers::ObjectLayers(wxWindow* parent) :
@@ -76,42 +74,32 @@ static Line create_new_layer(const t_layer_height_ranges::value_type& layer)
 
 void ObjectLayers::create_layers_list()
 {
-    auto create_btns = [this](wxWindow* parent) {
-        auto sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        auto del_btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
-        del_btn->SetToolTip(_(L("Remove layer")));
-
-        sizer->Add(del_btn, 0, wxRIGHT, em_unit(parent));
-
-        del_btn->Bind(wxEVT_BUTTON, [this](wxEvent &event) {
-            del_layer();
-//             wxTheApp->CallAfter([this]() {
-//                 wxWindowUpdateLocker noUpdates(m_parent);
-//                 update_layers_list(); 
-//                 m_parent->Layout();
-//             });
-        });
-
-        auto add_btn = new ScalableButton(parent, wxID_ANY, m_bmp_add);
-        add_btn->SetToolTip(_(L("Add layer")));
-
-        sizer->Add(add_btn, 0, wxRIGHT, em_unit(parent));
-
-        add_btn->Bind(wxEVT_BUTTON, [this](wxEvent &event) {
-            add_layer();
-//         wxTheApp->CallAfter([this]() {
-//             wxWindowUpdateLocker noUpdates(m_parent);
-//             update_layers_list(); 
-//             m_parent->Layout();
-//         });
-        });
-
-        return sizer;
-    };
-
     for (const auto layer : m_object->layer_height_ranges)
     {
+        auto create_btns = [this, layer](wxWindow* parent) {
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+            auto del_btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
+            del_btn->SetToolTip(_(L("Remove layer")));
+
+            sizer->Add(del_btn, 0, wxRIGHT, em_unit(parent));
+
+            del_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
+                wxGetApp().obj_list()->del_layer_range(layer.first);
+            });
+
+            auto add_btn = new ScalableButton(parent, wxID_ANY, m_bmp_add);
+            add_btn->SetToolTip(_(L("Add layer")));
+
+            sizer->Add(add_btn, 0, wxRIGHT, em_unit(parent));
+
+            add_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
+                wxGetApp().obj_list()->add_layer_range(layer.first);
+            });
+
+            return sizer;
+        };
+
         Line line = create_new_layer(layer);
         line.append_widget(create_btns);
         m_og->append_line(line);
@@ -122,6 +110,7 @@ void ObjectLayers::create_layer(int id)
 {
     t_layer_height_ranges::iterator layer_range = m_object->layer_height_ranges.begin();
 
+    // May be not a best solution #ys_FIXME
     while (id > 0 && layer_range != m_object->layer_height_ranges.end()) {
         layer_range++;
         id--;
