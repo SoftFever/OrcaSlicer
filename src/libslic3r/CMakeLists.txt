@@ -180,6 +180,7 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB)
+target_include_directories(libslic3r SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(libslic3r
     libnest2d

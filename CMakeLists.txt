@@ -241,7 +241,7 @@ if(NOT WIN32)
 endif()
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
 if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
+#    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     if (APPLE)
         # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
         add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)

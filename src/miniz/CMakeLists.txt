@@ -12,3 +12,5 @@ add_library(miniz STATIC
     miniz_tinfl.cpp
     miniz_zip.cpp
 )
+
+target_link_libraries(miniz nowide)
