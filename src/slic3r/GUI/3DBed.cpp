@@ -540,6 +540,10 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
         }
 #endif // !ENABLE_COMPRESSED_TEXTURES
     }
+#if ENABLE_COMPRESSED_TEXTURES
+    else if (m_texture.unsent_compressed_data_available())
+        m_texture.send_compressed_data_to_gpu();
+#endif // ENABLE_COMPRESSED_TEXTURES
 
     if (!bottom)
     {
