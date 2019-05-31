@@ -2987,43 +2987,17 @@ extern "C" {
 #include <sys/stat.h>
 
 #if defined(_MSC_VER) || defined(__MINGW64__)
-
-#include <windows.h>
-
-struct WArgs { const wchar_t *fname, *mode; };
-static struct WArgs utf8towide(const char* fname_utf8, const char * modestr)
-{
-    static wchar_t buff[4096];
-    static wchar_t mode[50];
-    struct WArgs ret = { .fname = NULL, .mode = NULL };
-
-    if(MultiByteToWideChar(CP_UTF8, 0, fname_utf8, -1, buff, 4096) == 0)
-        return ret;
-
-    if(MultiByteToWideChar(CP_UTF8, 0, modestr, -1, mode, 50) == 0)
-        return ret;
-
-    ret.fname = buff, ret.mode = mode;
-    return ret;
-}
 static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
     FILE *pFile = NULL;
-
-    struct WArgs args = utf8towide(pFilename, pMode);
-    if(args.fname != NULL && args.mode != NULL)
-        if(_wfopen_s(&pFile, args.fname, args.mode)) return NULL;
-
+    fopen_s(&pFile, pFilename, pMode);
     return pFile;
 }
 static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 {
     FILE *pFile = NULL;
-
-    struct WArgs args = utf8towide(pPath, pMode);
-    if(args.fname != NULL && args.mode != NULL)
-        if(_wfreopen_s(&pFile, args.fname, args.mode, pStream)) return NULL;
-
+    if (freopen_s(&pFile, pPath, pMode, pStream))
+        return NULL;
     return pFile;
 }
 #ifndef MINIZ_NO_TIME
