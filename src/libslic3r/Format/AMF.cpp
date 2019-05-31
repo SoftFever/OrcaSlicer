@@ -16,7 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <miniz/miniz_zip.h>
+#include <miniz.h>
 
 #if 0
 // Enable debugging and assert in this file.

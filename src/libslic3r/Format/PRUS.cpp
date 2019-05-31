@@ -4,7 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/convert.hpp>
 
-#include <miniz/miniz_zip.h>
+#include <miniz.h>
 
 #include <Eigen/Geometry>
 
