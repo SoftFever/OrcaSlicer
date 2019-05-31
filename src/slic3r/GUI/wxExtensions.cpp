@@ -465,14 +465,22 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
                                                  const wxString& label_range, 
-                                                 const wxString& extruder, 
-                                                 const int idx /*= -1 */) :
+                                                 const int idx /*= -1 */, 
+                                                 const wxString& extruder) :
     m_parent(parent),
     m_type(itLayer),
     m_idx(idx),
     m_extruder(extruder)
 {
-    m_idx = parent->GetChildCount();
+    const int children_cnt = parent->GetChildCount();
+    if (idx < 0)
+        m_idx = children_cnt;
+    else
+    {
+        // update indexes for another Laeyr Nodes
+        for (int i = m_idx; i < children_cnt; i++)
+            parent->GetNthChild(i)->SetIdx(i + 1);
+    }
 //     m_name = wxString::Format(_(L("Layer %s (mm)")), label_range);
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
     m_bmp = create_scaled_bitmap(nullptr, "layers_white");    // FIXME: pass window ptr
@@ -742,7 +750,9 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
     return layer_root_item;
 }
 
-wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, const std::string& label_range)
+wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
+                                                   const std::string& label_range, 
+                                                   const int index /* = -1*/)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return wxDataViewItem(0);
@@ -763,8 +773,11 @@ wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_
     }
 
     // Add layer node
-    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, label_range);
-    layer_root_node->Append(layer_node);
+    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, label_range, index);
+    if (index < 0)
+        layer_root_node->Append(layer_node);
+    else
+        layer_root_node->Insert(layer_node, index);
 
     // notify control
     const wxDataViewItem layer_item((void*)layer_node);

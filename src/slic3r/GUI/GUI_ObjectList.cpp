@@ -1810,27 +1810,26 @@ void ObjectList::layers_editing()
     if (!item || obj_idx < 0)
         return;
 
-    wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
-
+    const wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
     wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(obj_item);
+
+    // if it doesn't exist now
     if (!layers_item.IsOk())
     {
-        // --->>>--- Just for testing
-        object(obj_idx)->layer_height_ranges[{ 0.0f, 0.2f }] = 0.1f;
-        object(obj_idx)->layer_height_ranges[{ 0.2f, 0.4f }] = 0.05f;
-        object(obj_idx)->layer_height_ranges[{ 0.4f, 0.6f }] = 0.2f;
-        // ---<<<--- Just for testing
-
+        // create LayerRoor item
         layers_item = m_objects_model->AddLayersRoot(obj_item);
+        
+        if (object(obj_idx)->layer_height_ranges.empty())
+            object(obj_idx)->layer_height_ranges[{ 0.0f, 0.2f }] = 0.1f;// some default value
 
+        // and create Layer item(s) according to the layer_height_ranges
         for (const auto range : object(obj_idx)->layer_height_ranges)
-        {
-            const std::string label = (boost::format(" %.2f-%.2f ") % range.first.first % range.first.second).str();
-            m_objects_model->AddLayersChild(layers_item, label);
-        }
+            add_layer_item(range.first, layers_item);
     }
 
+    // select LayerRoor item and expand
     select_item(layers_item);
+    Expand(layers_item);
 }
 
 bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume)
@@ -2230,7 +2229,83 @@ void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
     select_item(selectable_item);
 }
 
-void ObjectList::add_layer_range(const std::pair<coordf_t, coordf_t>& range)
+void ObjectList::add_layer_range(const t_layer_height_range& range)
+{
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
+
+    wxDataViewItem layers_item = GetSelection();
+
+    t_layer_height_ranges& ranges = object(obj_idx)->layer_height_ranges;
+
+    const t_layer_height_ranges::iterator selected_range = ranges.find(range);
+    const t_layer_height_ranges::iterator last_range = --ranges.end();   
+    
+    if (selected_range->first == last_range->first)
+    {
+        const t_layer_height_range new_range = { last_range->first.second, last_range->first.second + 0.2f };
+        ranges[new_range] = last_range->second;
+        add_layer_item(new_range, layers_item);
+    }
+    else
+    {
+        int layer_idx = 0;
+        t_layer_height_ranges::iterator next_range = ++ranges.find(range);
+
+        // May be not a best solution #ys_FIXME
+        t_layer_height_ranges::iterator it = ranges.begin();
+        while (it != next_range && it != ranges.end()) {
+            layer_idx++;
+            it++;
+        }
+
+        if (selected_range->first.second == next_range->first.first)
+        {
+            const coordf_t delta = (next_range->first.second - next_range->first.first);
+            if (delta < 0.05f) // next range devision has no mean 
+                return; 
+
+            const coordf_t midl_layer = next_range->first.first + 0.5f * delta;
+            const coordf_t old_height = next_range->second;
+            t_layer_height_range new_range = { midl_layer, next_range->first.second };
+
+            // delete old layer
+
+            wxDataViewItem layer_item = m_objects_model->GetItemByLayerId(obj_idx, layer_idx);
+            del_subobject_item(layer_item);
+
+            // create new 2 layers instead of deleted one
+
+            ranges[new_range] = old_height;
+            add_layer_item(new_range, layers_item, layer_idx);
+
+            new_range = { selected_range->first.second, midl_layer };
+            ranges[new_range] = selected_range->second;            
+            add_layer_item(new_range, layers_item, layer_idx);
+        }
+        else
+        {
+            const t_layer_height_range new_range = { selected_range->first.second, next_range->first.first };
+            ranges[new_range] = selected_range->second;
+            add_layer_item(new_range, layers_item, layer_idx);
+        }        
+    }
+
+    changed_object(obj_idx);
+
+    // select item to update layers sizer
+    select_item(layers_item);
+}
+
+void ObjectList::add_layer_item(const t_layer_height_range& range, 
+                                const wxDataViewItem layers_item, 
+                                const int layer_idx /* = -1*/)
+{
+    const std::string label = (boost::format(" %.2f-%.2f ") % range.first % range.second).str();
+    m_objects_model->AddLayersChild(layers_item, label, layer_idx);
+}
+
+void ObjectList::edit_layer_range(const std::pair<coordf_t, coordf_t>& range)
 {
 
 }

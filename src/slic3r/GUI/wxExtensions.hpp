@@ -233,8 +233,8 @@ public:
 
 	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
 							const wxString& label_range,
-                            const wxString& extruder = wxEmptyString,
-                            const int idx = -1 );
+                            const int idx = -1,
+                            const wxString& extruder = wxEmptyString );
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
 
@@ -396,7 +396,9 @@ public:
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
-    wxDataViewItem AddLayersChild(const wxDataViewItem &parent_item, const std::string& label_range);
+    wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item, 
+                                    const std::string& label_range, 
+                                    const int index = -1);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();
