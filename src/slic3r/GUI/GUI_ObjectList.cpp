@@ -2189,8 +2189,11 @@ void ObjectList::remove()
                     select_item(parent);
                     parent = wxDataViewItem(0);
                 }
-                else if (m_objects_model->GetChildren(parent, wxDataViewItemArray()) == 1)
-                    parent = m_objects_model->GetTopParent(item);
+                else {
+                    wxDataViewItemArray children;
+                    if (m_objects_model->GetChildren(parent, children) == 1)
+                        parent = m_objects_model->GetTopParent(item);
+                }
             }
             
             del_subobject_item(item);
