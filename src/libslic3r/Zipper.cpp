@@ -22,7 +22,6 @@ class Zipper::Impl {
 public:
     mz_zip_archive arch;
     std::string m_zipname;
-    FILE *cfile = nullptr;
 
     static std::string get_errorstr(mz_zip_error mz_err)
     {
@@ -125,15 +124,15 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 
     memset(&m_impl->arch, 0, sizeof(m_impl->arch));
 
-    m_impl->cfile = boost::nowide::fopen(zipfname.c_str(), "wb");
+    FILE *f = boost::nowide::fopen(zipfname.c_str(), "wb");
 
-    if (m_impl->cfile == nullptr) {
+    if (f == nullptr) {
         m_impl->arch.m_last_error = MZ_ZIP_FILE_OPEN_FAILED;
         m_impl->blow_up();
     }
 
     // Initialize the archive data
-    if(!mz_zip_writer_init_cfile(&m_impl->arch, m_impl->cfile, 0))
+    if(!mz_zip_writer_init_cfile(&m_impl->arch, f, 0))
         m_impl->blow_up();
 }
 
@@ -149,11 +148,13 @@ Zipper::~Zipper()
             BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
     }
 
+    FILE *f = mz_zip_get_cfile(&m_impl->arch);
+
     // The file should be closed no matter what...
     if(!mz_zip_writer_end(&m_impl->arch))
         BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
 
-    if(m_impl->cfile) fclose(m_impl->cfile);
+    if(f != nullptr) fclose(f);
 }
 
 Zipper::Zipper(Zipper &&m):

@@ -3,6 +3,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include <miniz.h>
 
@@ -298,7 +299,9 @@ bool load_prus(const char *path, Model *model)
 {
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
-    mz_bool res = mz_zip_reader_init_file(&archive, path, 0);
+
+    FILE *f = boost::nowide::fopen(path, "rb");
+    auto res = mz_bool(f != nullptr && mz_zip_reader_init_cfile(&archive, f, -1, 0));
     size_t  n_models_initial = model->objects.size();
     try {
         if (res == MZ_FALSE)
@@ -327,10 +330,12 @@ bool load_prus(const char *path, Model *model)
         }
     } catch (std::exception &ex) {
         mz_zip_reader_end(&archive);
+        if(f) fclose(f);
         throw ex;
     }
 
     mz_zip_reader_end(&archive);
+    if(f) fclose(f);
     return model->objects.size() > n_models_initial;
 }
 
