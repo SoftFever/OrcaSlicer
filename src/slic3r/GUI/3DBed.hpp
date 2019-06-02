@@ -91,6 +91,10 @@ private:
     GeometryBuffer m_gridlines;
 #if ENABLE_TEXTURES_FROM_SVG
     mutable GLTexture m_texture;
+#if ENABLE_COMPRESSED_TEXTURES
+    // temporary texture shown until the main texture has still no levels compressed
+    mutable GLTexture m_temp_texture;
+#endif // ENABLE_COMPRESSED_TEXTURES
     mutable Shader m_shader;
     mutable unsigned int m_vbo_id;
 #else

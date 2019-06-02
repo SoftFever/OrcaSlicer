@@ -343,18 +343,6 @@ void GLTexture::reset()
 #endif // ENABLE_COMPRESSED_TEXTURES
 }
 
-#if ENABLE_COMPRESSED_TEXTURES
-bool GLTexture::unsent_compressed_data_available() const
-{
-    return m_compressor.unsent_compressed_data_available();
-}
-
-void GLTexture::send_compressed_data_to_gpu()
-{
-    m_compressor.send_compressed_data_to_gpu();
-}
-#endif // ENABLE_COMPRESSED_TEXTURES
-
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
 {
     render_sub_texture(tex_id, left, right, bottom, top, FullTextureUVs);
@@ -603,7 +591,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
         int lod_h = m_height;
         GLint level = 0;
         // we do not need to generate all levels down to 1x1
-        while ((lod_w > 64) || (lod_h > 64))
+        while ((lod_w > 16) || (lod_h > 16))
         {
             ++level;
 

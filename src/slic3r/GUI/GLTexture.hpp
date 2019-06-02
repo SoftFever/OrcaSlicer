@@ -106,8 +106,8 @@ namespace GUI {
         const std::string& get_source() const { return m_source; }
 
 #if ENABLE_COMPRESSED_TEXTURES
-        bool unsent_compressed_data_available() const;
-        void send_compressed_data_to_gpu();
+        bool unsent_compressed_data_available() const { return m_compressor.unsent_compressed_data_available(); }
+        void send_compressed_data_to_gpu() { m_compressor.send_compressed_data_to_gpu(); }
 #endif // ENABLE_COMPRESSED_TEXTURES
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);

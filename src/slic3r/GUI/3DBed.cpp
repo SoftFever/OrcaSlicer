@@ -522,6 +522,14 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
 #if ENABLE_COMPRESSED_TEXTURES
+        // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+        if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+        {
+            render_custom();
+            return;
+        }
+
+        // starts generating the main texture, compression will run asynchronously
         if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
 #else
         if (!m_texture.load_from_svg_file(filename, true, max_tex_size))
@@ -542,7 +550,14 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     }
 #if ENABLE_COMPRESSED_TEXTURES
     else if (m_texture.unsent_compressed_data_available())
+    {
+        // sends to gpu the already available compressed levels of the main texture
         m_texture.send_compressed_data_to_gpu();
+
+        // the temporary texture is not needed anymore, reset it
+        if (m_temp_texture.get_id() != 0)
+            m_temp_texture.reset();
+    }
 #endif // ENABLE_COMPRESSED_TEXTURES
 
     if (!bottom)
@@ -616,7 +631,16 @@ void Bed3D::render_prusa_shader(bool transparent) const
         GLint position_id = m_shader.get_attrib_location("v_position");
         GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
 
+#if ENABLE_COMPRESSED_TEXTURES
+        // show the temporary texture while no compressed data is available
+        GLuint tex_id = (GLuint)m_temp_texture.get_id();
+        if (tex_id == 0)
+            tex_id = (GLuint)m_texture.get_id();
+
+        glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
+#else
         glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id()));
+#endif // ENABLE_COMPRESSED_TEXTURES
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
 
         if (position_id != -1)
