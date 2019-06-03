@@ -163,6 +163,8 @@ add_library(libslic3r STATIC
     MTUtils.hpp
     Zipper.hpp
     Zipper.cpp
+    miniz_extension.hpp
+    miniz_extension.cpp
     SLA/SLABoilerPlate.hpp
     SLA/SLABasePool.hpp
     SLA/SLABasePool.cpp

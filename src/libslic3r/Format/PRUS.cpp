@@ -5,7 +5,7 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 
-#include <miniz.h>
+#include "miniz_extension.hpp"
 
 #include <Eigen/Geometry>
 
@@ -300,11 +300,10 @@ bool load_prus(const char *path, Model *model)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    FILE *f = boost::nowide::fopen(path, "rb");
-    auto res = mz_bool(f != nullptr && mz_zip_reader_init_cfile(&archive, f, -1, 0));
     size_t  n_models_initial = model->objects.size();
+    mz_bool res              = MZ_FALSE;
     try {
-        if (res == MZ_FALSE)
+        if (!open_zip_reader(&archive, path))
             throw std::runtime_error(std::string("Unable to init zip reader for ") + path);
         std::vector<char>           scene_xml_data;
         // For grouping multiple STLs into a single ModelObject for multi-material prints.
@@ -329,13 +328,11 @@ bool load_prus(const char *path, Model *model)
             }
         }
     } catch (std::exception &ex) {
-        mz_zip_reader_end(&archive);
-        if(f) fclose(f);
+        close_zip_reader(&archive);
         throw ex;
     }
 
-    mz_zip_reader_end(&archive);
-    if(f) fclose(f);
+    close_zip_reader(&archive);
     return model->objects.size() > n_models_initial;
 }
 

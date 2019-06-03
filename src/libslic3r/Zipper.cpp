@@ -1,9 +1,8 @@
 #include <exception>
 
 #include "Zipper.hpp"
-#include <miniz.h>
+#include "miniz_extension.hpp"
 #include <boost/log/trivial.hpp>
-#include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 
 //! macro used to mark string used at localization,
@@ -124,16 +123,9 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 
     memset(&m_impl->arch, 0, sizeof(m_impl->arch));
 
-    FILE *f = boost::nowide::fopen(zipfname.c_str(), "wb");
-
-    if (f == nullptr) {
-        m_impl->arch.m_last_error = MZ_ZIP_FILE_OPEN_FAILED;
+    if (!open_zip_writer(&m_impl->arch, zipfname)) {
         m_impl->blow_up();
     }
-
-    // Initialize the archive data
-    if(!mz_zip_writer_init_cfile(&m_impl->arch, f, 0))
-        m_impl->blow_up();
 }
 
 Zipper::~Zipper()
@@ -148,13 +140,9 @@ Zipper::~Zipper()
             BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
     }
 
-    FILE *f = mz_zip_get_cfile(&m_impl->arch);
-
     // The file should be closed no matter what...
-    if(!mz_zip_writer_end(&m_impl->arch))
+    if(!close_zip_writer(&m_impl->arch))
         BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
-
-    if(f != nullptr) fclose(f);
 }
 
 Zipper::Zipper(Zipper &&m):
