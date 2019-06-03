@@ -131,6 +131,8 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
+	static const std::string SECTION_FILAMENTS;
+    static const std::string SECTION_MATERIALS;
 private:
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;

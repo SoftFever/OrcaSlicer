@@ -152,8 +152,6 @@ struct Materials
     }
 
     static const std::string UNKNOWN;
-    static const std::string SECTION_FILAMENTS;
-    static const std::string SECTION_MATERIALS;
     static const std::string& get_filament_type(const Preset &preset);
     static const std::string& get_filament_vendor(const Preset &preset);
     static const std::string& get_material_type(Preset &preset);

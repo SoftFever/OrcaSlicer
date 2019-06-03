@@ -194,7 +194,7 @@ void PresetBundle::setup_directories()
     }
 }
 
-void PresetBundle::load_presets(const AppConfig &config, const std::string &preferred_model_id)
+void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_model_id)
 {
     // First load the vendor specific system presets.
     std::string errors_cummulative = this->load_system_presets();
@@ -236,6 +236,10 @@ void PresetBundle::load_presets(const AppConfig &config, const std::string &pref
     this->update_compatible(false);
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
+
+    // Make sure there are filament / material selections in the AppConfig,
+    // if there are none, load up defaults from vendor profiles.
+    this->init_materials_selection(config);
 
     this->load_selections(config, preferred_model_id);
 }
@@ -405,6 +409,23 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
+}
+
+void PresetBundle::init_materials_selection(AppConfig &config) const {
+    if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
+        for (const auto &vendor : this->vendors) {
+            for (const auto &profile : vendor.default_filaments) {
+                config.set(AppConfig::SECTION_FILAMENTS, profile, "1");
+            }
+        }
+    }
+    if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
+        for (const auto &vendor : this->vendors) {
+            for (const auto &profile : vendor.default_sla_materials) {
+                config.set(AppConfig::SECTION_MATERIALS, profile, "1");
+            }
+        }
+    }
 }
 
 void PresetBundle::load_compatible_bitmaps(wxWindow *window)

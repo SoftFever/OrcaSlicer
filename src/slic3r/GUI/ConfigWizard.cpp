@@ -1049,12 +1049,10 @@ void ConfigWizardIndex::msw_rescale()
 // Materials
 
 const std::string Materials::UNKNOWN = "(Unknown)";
-const std::string Materials::SECTION_FILAMENTS = "filaments";
-const std::string Materials::SECTION_MATERIALS = "sla_materials";
 
 const std::string& Materials::appconfig_section() const
 {
-    return (technology & T_FFF) ? SECTION_FILAMENTS : SECTION_MATERIALS;
+    return (technology & T_FFF) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
 }
 
 const std::string& Materials::get_type(Preset &preset) const
@@ -1236,7 +1234,7 @@ void ConfigWizard::priv::load_vendors()
     }
 
     // Load up the set of vendors / models / variants the user has had enabled up till now
-    const AppConfig *app_config = GUI::get_app_config();
+    AppConfig *app_config = GUI::get_app_config();
     if (! app_config->legacy_datadir()) {
         appconfig_new.set_vendors(*app_config);
     } else {
@@ -1253,27 +1251,13 @@ void ConfigWizard::priv::load_vendors()
             }
     }
 
-    // Load up the materials enabled till now
-    if (app_config->has_section(Materials::SECTION_FILAMENTS)) {
-        appconfig_new.set_section(Materials::SECTION_FILAMENTS, app_config->get_section(Materials::SECTION_FILAMENTS));
-    } else {
-        // No AppConfig settings, load up defaults from vendor section(s)
-        for (const auto &vendor : bundle.vendors) {
-            for (const auto &profile : vendor.default_filaments) {
-                appconfig_new.set(Materials::SECTION_FILAMENTS, profile, "1");
-            }
-        }
-    }
-    if (app_config->has_section(Materials::SECTION_MATERIALS)) {
-        appconfig_new.set_section(Materials::SECTION_MATERIALS, app_config->get_section(Materials::SECTION_MATERIALS));
-    } else {
-        // No AppConfig settings, load up defaults from vendor section(s)
-        for (const auto &vendor : bundle.vendors) {
-            for (const auto &profile : vendor.default_sla_materials) {
-                appconfig_new.set(Materials::SECTION_MATERIALS, profile, "1");
-            }
-        }
-    }
+    // Load up the materials enabled till now,
+    // apply defaults from vendor profiles if there are no selections yet.
+    bundle.init_materials_selection(*app_config);
+    wxCHECK_RET(app_config->has_section(AppConfig::SECTION_FILAMENTS) && app_config->has_section(AppConfig::SECTION_MATERIALS),
+        "Failed to initialize default material selections");
+    appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
+    appconfig_new.set_section(AppConfig::SECTION_MATERIALS, app_config->get_section(AppConfig::SECTION_MATERIALS));
 }
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
@@ -1361,11 +1345,11 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     }
 
     app_config->set_vendors(appconfig_new);
-    if (appconfig_new.has_section(Materials::SECTION_FILAMENTS)) {
-        app_config->set_section(Materials::SECTION_FILAMENTS, appconfig_new.get_section(Materials::SECTION_FILAMENTS));
+    if (appconfig_new.has_section(AppConfig::SECTION_FILAMENTS)) {
+        app_config->set_section(AppConfig::SECTION_FILAMENTS, appconfig_new.get_section(AppConfig::SECTION_FILAMENTS));
     }
-    if (appconfig_new.has_section(Materials::SECTION_MATERIALS)) {
-        app_config->set_section(Materials::SECTION_MATERIALS, appconfig_new.get_section(Materials::SECTION_MATERIALS));
+    if (appconfig_new.has_section(AppConfig::SECTION_MATERIALS)) {
+        app_config->set_section(AppConfig::SECTION_MATERIALS, appconfig_new.get_section(AppConfig::SECTION_MATERIALS));
     }
     app_config->set("version_check", page_update->version_check ? "1" : "0");
     app_config->set("preset_update", page_update->preset_update ? "1" : "0");
