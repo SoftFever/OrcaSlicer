@@ -55,7 +55,7 @@ bool GLTexture::Compressor::unsent_compressed_data_available() const
 {
     for (const Level& level : m_levels)
     {
-        if (!level.sent_to_gpu && (level.compressed_data.size() > 0))
+        if (!level.sent_to_gpu && level.compressed)
             return true;
     }
 
@@ -64,12 +64,14 @@ bool GLTexture::Compressor::unsent_compressed_data_available() const
 
 void GLTexture::Compressor::send_compressed_data_to_gpu()
 {
+    // this method should be called inside the main thread of Slicer or a new OpenGL context (sharing resources) would be needed
+
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.m_id));
     for (int i = 0; i < (int)m_levels.size(); ++i)
     {
         Level& level = m_levels[i];
-        if (!level.sent_to_gpu && (level.compressed_data.size() > 0))
+        if (!level.sent_to_gpu && level.compressed)
         {
             glsafe(::glCompressedTexSubImage2D(GL_TEXTURE_2D, (GLint)i, 0, 0, (GLsizei)level.w, (GLsizei)level.h, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)level.compressed_data.size(), (const GLvoid*)level.compressed_data.data()));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i));
@@ -77,6 +79,7 @@ void GLTexture::Compressor::send_compressed_data_to_gpu()
             level.sent_to_gpu = true;
             // we are done with the compressed data, we can discard it
             level.compressed_data.clear();
+            level.compressed = false;
         }
     }
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
@@ -100,6 +103,7 @@ void GLTexture::Compressor::compress()
 
         // we are done with the source data, we can discard it
         level.src_data.clear();
+        level.compressed = true;
     }
 
     m_is_compressing = false;

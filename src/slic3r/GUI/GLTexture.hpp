@@ -20,9 +20,10 @@ namespace GUI {
                 unsigned int h;
                 std::vector<unsigned char> src_data;
                 std::vector<unsigned char> compressed_data;
+                bool compressed;
                 bool sent_to_gpu;
 
-                Level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data) : w(w), h(h), src_data(data), sent_to_gpu(false) {}
+                Level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data) : w(w), h(h), src_data(data), compressed(false), sent_to_gpu(false) {}
             };
 
             GLTexture& m_texture;
