@@ -321,7 +321,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         /* In a case of a multi-material printing, for editing another Filament Preset 
          * it's needed to select this preset for the "Filament settings" Tab 
          */
-        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_cnt() > 1) 
+        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1) 
         {
             const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
 
