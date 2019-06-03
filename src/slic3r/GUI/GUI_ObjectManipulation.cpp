@@ -92,6 +92,7 @@ void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
     combo->SetValue(selection);
 }
 
+
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
@@ -162,16 +163,50 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     const int field_width = 5;
 
+    // Mirror button size:
+    const int mirror_btn_width = 3;
+
     // Legend for object modification
     line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = field_width/*50*/;
+    def.width = field_width - mirror_btn_width;//field_width/*50*/;
 
 	for (const std::string axis : { "x", "y", "z" }) {
         const std::string label = boost::algorithm::to_upper_copy(axis);
         def.set_default_value(new ConfigOptionString{ "   " + label });
         Option option = Option(def, axis + "_axis_legend");
+
+        // We will add a button to toggle mirroring to each axis:
+        auto mirror_button = [=](wxWindow* parent) {
+            m_mirror_bitmap_on  = ScalableBitmap(parent, "colorchange_add_on.png");
+            m_mirror_bitmap_off = ScalableBitmap(parent, "colorchange_delete_off.png");
+            auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png", wxEmptyString, wxSize(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width));
+            btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), boost::algorithm::to_upper_copy(axis)));
+            m_mirror_buttons[axis] = btn;
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(btn, wxBU_EXACTFIT/* | wxRESERVE_SPACE_EVEN_IF_HIDDEN*/);
+            btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                wxWindow* btn = dynamic_cast<wxWindow*>(e.GetEventObject());
+                Axis axis = (btn == m_mirror_buttons["x"] ? X : ( btn == m_mirror_buttons["y"] ? Y : Z));
+                GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+                Selection& selection = canvas->get_selection();
+                GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
+
+                if (selection.is_single_volume() || selection.is_single_modifier())
+                    volume->set_volume_mirror(axis, -volume->get_volume_mirror(axis));
+                else if (selection.is_single_full_instance())
+                    volume->set_instance_mirror(axis, -volume->get_instance_mirror(axis));
+                else
+                    return;
+                canvas->do_mirror();
+                canvas->set_as_dirty();
+                UpdateAndShow(true);
+            });
+        return sizer;
+        };
+
+        option.side_widget = mirror_button;
         line.append_option(option);
     }
     line.near_label_widget = [this](wxWindow* parent) {
@@ -226,8 +261,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
                 btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
-                    // The following makes sure that the LOCAL coordinate system rotation is reset by calling
-                    // methods that are readily available here - it is not nice but gets the work done.
                     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
                     Selection& selection = canvas->get_selection();
                     GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
@@ -283,6 +316,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         ctrl->msw_rescale();
     };
 }
+ 
+ 
 
 void ObjectManipulation::Show(const bool show)
 {
@@ -453,6 +488,7 @@ void ObjectManipulation::update_if_dirty()
         m_og->disable();
 
     update_reset_buttons_visibility();
+    update_mirror_buttons_visibility();
 
     m_dirty = false;
 }
@@ -489,6 +525,34 @@ void ObjectManipulation::update_reset_buttons_visibility()
     wxGetApp().CallAfter([this, show_rotation, show_scale]{
         m_reset_rotation_button->Show(show_rotation);
         m_reset_scale_button->Show(show_scale);
+    });
+}
+
+
+
+void ObjectManipulation::update_mirror_buttons_visibility()
+{
+    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+    Selection& selection = canvas->get_selection();
+    std::array<bool, 3> show = {false, false, false};
+
+    if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        Vec3d mirror;
+
+        if (selection.is_single_full_instance())
+            mirror = volume->get_instance_mirror();
+        else
+            mirror = volume->get_volume_mirror();
+
+        for (unsigned char i=0; i<3; ++i)
+            show[i] = mirror[i] < 0.;
+    }
+
+    wxGetApp().CallAfter([this, show]{
+        m_mirror_buttons["x"]->SetBitmap(show[0] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
+        m_mirror_buttons["y"]->SetBitmap(show[1] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
+        m_mirror_buttons["z"]->SetBitmap(show[2] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
     });
 }
 
@@ -750,6 +814,11 @@ void ObjectManipulation::msw_rescale()
     msw_rescale_word_local_combo(m_word_local_combo);
     m_manifold_warning_bmp.msw_rescale();
     m_fix_throught_netfab_bitmap->SetBitmap(m_manifold_warning_bmp.bmp());
+
+    m_mirror_bitmap_on.msw_rescale();
+    m_mirror_bitmap_off.msw_rescale();
+    m_reset_scale_button->msw_rescale();
+    m_reset_rotation_button->msw_rescale();
 
     get_og()->msw_rescale();
 }

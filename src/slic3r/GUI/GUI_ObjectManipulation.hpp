@@ -56,6 +56,9 @@ class ObjectManipulation : public OG_Settings
     // Non-owning pointers to the reset buttons, so we can hide and show them.
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
+    std::map<std::string, ScalableButton*> m_mirror_buttons;
+    ScalableBitmap m_mirror_bitmap_on;
+    ScalableBitmap m_mirror_bitmap_off;
 
     // Needs to be updated from OnIdle?
     bool            m_dirty = false;
@@ -117,6 +120,8 @@ private:
 
     // Show or hide scale/rotation reset buttons if needed
     void update_reset_buttons_visibility();
+    //Show or hide mirror buttons
+    void update_mirror_buttons_visibility();
 
     // change values 
     void change_position_value(int axis, double value);
