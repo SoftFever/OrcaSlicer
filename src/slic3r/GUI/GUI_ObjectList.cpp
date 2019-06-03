@@ -700,10 +700,11 @@ void ObjectList::show_context_menu()
     if (item)
     {
         const ItemType type = m_objects_model->GetItemType(item);
-        if (!(type & (itObject | itVolume | itInstance)))
+        if (!(type & (itObject | itVolume | itLayer | itInstance)))
             return;
 
         wxMenu* menu = type & itInstance ? &m_menu_instance :
+                       type & itLayer ? &m_menu_layer :
                        m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
@@ -1694,7 +1695,7 @@ void ObjectList::del_instances_from_object(const int obj_idx)
 
 void ObjectList::del_layers_from_object(const int obj_idx)
 {
-    object(obj_idx)->layer_height_ranges.clear(); // ? #ys_FIXME
+    object(obj_idx)->layer_config_ranges.clear();
 
     changed_object(obj_idx);
 }
@@ -1739,13 +1740,13 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
         object->delete_instance(idx);
     }
     else if (type == itLayer) {
-        t_layer_height_ranges::iterator layer_range = object->layer_height_ranges.begin();
+        t_layer_config_ranges::iterator layer_range = object->layer_config_ranges.begin();
         int id = idx;
-        while (id > 0 && layer_range != object->layer_height_ranges.end()) {
+        while (id > 0 && layer_range != object->layer_config_ranges.end()) {
             layer_range++;
             id--;
         }
-        object->layer_height_ranges.erase(layer_range);
+        object->layer_config_ranges.erase(layer_range);
     }
     else
         return false;
@@ -1816,14 +1817,16 @@ void ObjectList::layers_editing()
     // if it doesn't exist now
     if (!layers_item.IsOk())
     {
-        // create LayerRoor item
+        // create LayerRoot item
         layers_item = m_objects_model->AddLayersRoot(obj_item);
-        
-        if (object(obj_idx)->layer_height_ranges.empty())
-            object(obj_idx)->layer_height_ranges[{ 0.0f, 0.2f }] = 0.1f;// some default value
 
-        // and create Layer item(s) according to the layer_height_ranges
-        for (const auto range : object(obj_idx)->layer_height_ranges)
+        t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+        
+        if (ranges.empty())
+            ranges[{ 0.0f, 0.2f }] = *DynamicPrintConfig::new_from_defaults_keys({"layer_height"});// some default value
+
+        // and create Layer item(s) according to the layer_config_ranges
+        for (const auto range : ranges)
             add_layer_item(range.first, layers_item);
     }
 
@@ -2239,10 +2242,10 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
 
     wxDataViewItem layers_item = GetSelection();
 
-    t_layer_height_ranges& ranges = object(obj_idx)->layer_height_ranges;
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
-    const t_layer_height_ranges::iterator selected_range = ranges.find(range);
-    const t_layer_height_ranges::iterator last_range = --ranges.end();   
+    const t_layer_config_ranges::iterator selected_range = ranges.find(range);
+    const t_layer_config_ranges::iterator last_range = --ranges.end();   
     
     if (selected_range->first == last_range->first)
     {
@@ -2253,13 +2256,13 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
     else
     {
         int layer_idx = 0;
-        t_layer_height_ranges::iterator next_range = ++ranges.find(range);
+        t_layer_config_ranges::iterator next_range = ++ranges.find(range);
 
         // May be not a best solution #ys_FIXME
-        t_layer_height_ranges::iterator it = ranges.begin();
+        t_layer_config_ranges::iterator it = ranges.begin();
         while (it != next_range && it != ranges.end()) {
             layer_idx++;
-            it++;
+            ++it;
         }
 
         if (selected_range->first.second == next_range->first.first)
@@ -2269,7 +2272,8 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
                 return; 
 
             const coordf_t midl_layer = next_range->first.first + 0.5f * delta;
-            const coordf_t old_height = next_range->second;
+            // #ys_FIXME  May be it should be copied just a "layer_height" option
+            const /*coordf_t*/auto old_config = next_range->second;
             t_layer_height_range new_range = { midl_layer, next_range->first.second };
 
             // delete old layer
@@ -2279,7 +2283,7 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
 
             // create new 2 layers instead of deleted one
 
-            ranges[new_range] = old_height;
+            ranges[new_range] = old_config;
             add_layer_item(new_range, layers_item, layer_idx);
 
             new_range = { selected_range->first.second, midl_layer };
@@ -2996,7 +3000,8 @@ void ObjectList::msw_rescale()
     for (MenuWithSeparators* menu : { &m_menu_object, 
                                       &m_menu_part, 
                                       &m_menu_sla_object, 
-                                      &m_menu_instance })
+                                      &m_menu_instance, 
+                                      &m_menu_layer })
         msw_rescale_menu(menu);
 
     Layout();

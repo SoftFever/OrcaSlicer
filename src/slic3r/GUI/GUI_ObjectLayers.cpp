@@ -23,6 +23,8 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 {
     m_og->label_width = 1;
     m_og->set_grid_vgap(5);
+
+    m_og->m_on_change = std::bind(&ObjectLayers::on_change, this, std::placeholders::_1, std::placeholders::_2);
     
     // Legend for object layers
     Line line = Line{ "", "" };
@@ -33,9 +35,9 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     def.type = coString;
     def.width = field_width;
 
-    for (const std::string axis : { "Min Z", "Max Z", "Layer height" }) {
-        def.set_default_value(new ConfigOptionString{ axis });
-        std::string label = boost::algorithm::replace_all_copy(axis, " ", "_");
+    for (const std::string col : { "Min Z", "Max Z", "Layer height" }) {
+        def.set_default_value(new ConfigOptionString{ col });
+        std::string label = boost::algorithm::replace_all_copy(col, " ", "_");
         boost::algorithm::to_lower(label);
         line.append_option(Option(def, label + "_legend"));
 
@@ -48,7 +50,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_bmp_add       = ScalableBitmap(parent, "add_copies");
 }
 
-static Line create_new_layer(const t_layer_height_ranges::value_type& layer)
+static Line create_new_layer(const t_layer_config_ranges::value_type& layer, const int idx)
 {
     Line line = Line{ "", "" };
     ConfigOptionDef def;
@@ -57,16 +59,16 @@ static Line create_new_layer(const t_layer_height_ranges::value_type& layer)
     def.type = coFloat;
     def.width = field_width;
 
-    std::string label = (boost::format("min_z_%.2f") % layer.first.first).str();
+    std::string label = (boost::format("min_z_%d") % idx).str();
     def.set_default_value(new ConfigOptionFloat(layer.first.first));
     line.append_option(Option(def, label));
 
-    label = (boost::format("max_z_%.2f") % layer.first.second).str();
+    label = (boost::format("max_z_%d") % idx).str();
     def.set_default_value(new ConfigOptionFloat(layer.first.second));
     line.append_option(Option(def, label));
 
-    label = (boost::format("layer_height_%.2f_%.2f") % layer.first.first % layer.first.second).str();
-    def.set_default_value(new ConfigOptionFloat(layer.second));
+    label = (boost::format("layer_height_%d") % idx).str();
+    def.set_default_value(new ConfigOptionFloat(layer.second.option("layer_height")->getFloat()));
     line.append_option(Option(def, label));
 
     return line;
@@ -74,7 +76,7 @@ static Line create_new_layer(const t_layer_height_ranges::value_type& layer)
 
 void ObjectLayers::create_layers_list()
 {
-    for (const auto layer : m_object->layer_height_ranges)
+    for (const auto layer : m_object->layer_config_ranges)
     {
         auto create_btns = [this, layer](wxWindow* parent) {
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -100,7 +102,7 @@ void ObjectLayers::create_layers_list()
             return sizer;
         };
 
-        Line line = create_new_layer(layer);
+        Line line = create_new_layer(layer, m_og->get_grid_sizer()->GetEffectiveRowsCount()-1);
         line.append_widget(create_btns);
         m_og->append_line(line);
     }
@@ -108,15 +110,15 @@ void ObjectLayers::create_layers_list()
 
 void ObjectLayers::create_layer(int id)
 {
-    t_layer_height_ranges::iterator layer_range = m_object->layer_height_ranges.begin();
+    t_layer_config_ranges::iterator layer_range = m_object->layer_config_ranges.begin();
 
     // May be not a best solution #ys_FIXME
-    while (id > 0 && layer_range != m_object->layer_height_ranges.end()) {
-        layer_range++;
+    while (id > 0 && layer_range != m_object->layer_config_ranges.end()) {
+        ++layer_range;
         id--;
     }
         
-    m_og->append_line(create_new_layer(*layer_range));
+    m_og->append_line(create_new_layer(*layer_range, m_og->get_grid_sizer()->GetEffectiveRowsCount()-1));
 }
 
 void ObjectLayers::update_layers_list()
@@ -134,7 +136,7 @@ void ObjectLayers::update_layers_list()
     if (!(type & (itLayerRoot | itLayer))) return;
 
     m_object = objects_ctrl->object(obj_idx);
-    if (!m_object || m_object->layer_height_ranges.empty()) return;
+    if (!m_object || m_object->layer_config_ranges.empty()) return;
 
     // Delete all controls from options group except of the legends
 
@@ -173,6 +175,11 @@ void ObjectLayers::msw_rescale()
 {
     m_bmp_delete.msw_rescale();
     m_bmp_add.msw_rescale();
+}
+
+void ObjectLayers::on_change(t_config_option_key opt_key, const boost::any& value)
+{
+
 }
 
 } //namespace GUI

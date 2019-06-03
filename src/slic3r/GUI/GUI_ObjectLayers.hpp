@@ -30,6 +30,7 @@ public:
 
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
+    void        on_change(t_config_option_key opt_key, const boost::any& value);
 };
 
 }}

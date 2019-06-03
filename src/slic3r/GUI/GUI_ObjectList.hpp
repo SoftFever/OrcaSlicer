@@ -119,6 +119,7 @@ class ObjectList : public wxDataViewCtrl
     MenuWithSeparators  m_menu_part;
     MenuWithSeparators  m_menu_sla_object;
     MenuWithSeparators  m_menu_instance;
+    MenuWithSeparators  m_menu_layer;
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
