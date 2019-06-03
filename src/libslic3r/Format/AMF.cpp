@@ -16,7 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <miniz.h>
+#include "miniz_extension.hpp"
 
 #if 0
 // Enable debugging and assert in this file.
@@ -712,37 +712,19 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
     return result;
 }
 
-namespace {
-void close_archive_reader(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_reader_end(arch);
-        if (f) fclose(f);
-    }
-}
-
-void close_archive_writer(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_writer_end(arch);
-        if (f) fclose(f);
-    }
-}
-}
-
 bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig* config, Model* model, unsigned int& version)
 {
     if (stat.m_uncomp_size == 0)
     {
         printf("Found invalid size\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
     if (!parser) {
         printf("Couldn't allocate memory for parser\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -755,7 +737,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (parser_buffer == nullptr)
     {
         printf("Unable to create buffer\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -763,14 +745,14 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (res == 0)
     {
         printf("Error while reading model data to buffer\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
     {
         printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -792,10 +774,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    FILE * f = boost::nowide::fopen(path, "rb");
-    auto res = mz_bool(f == nullptr ? MZ_FALSE : MZ_TRUE);
-    res = res && mz_zip_reader_init_cfile(&archive, f, -1, 0);
-    if (res == MZ_FALSE)
+    if (!open_zip_reader(&archive, path))
     {
         printf("Unable to init zip reader\n");
         return false;
@@ -813,7 +792,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
             {
                 if (!extract_model_from_archive(archive, stat, config, model, version))
                 {
-                    close_archive_reader(&archive);
+                    close_zip_reader(&archive);
                     printf("Archive does not contain a valid model");
                     return false;
                 }
@@ -834,7 +813,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
     }
 #endif // forward compatibility
 
-    close_archive_reader(&archive);
+    close_zip_reader(&archive);
     return true;
 }
 
@@ -874,10 +853,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    FILE *f = boost::nowide::fopen(export_path.c_str(), "wb");
-    auto res = mz_bool(f != nullptr && mz_zip_writer_init_cfile(&archive, f, 0));
-    if (res == 0)
-        return false;
+    if (!open_zip_writer(&archive, export_path)) return false;
 
     std::stringstream stream;
     // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -1039,20 +1015,19 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 
     if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
     {
-        close_archive_writer(&archive);
-        if (f) fclose(f);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
     if (!mz_zip_writer_finalize_archive(&archive))
     {
-        close_archive_writer(&archive);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
-    close_archive_writer(&archive);
+    close_zip_writer(&archive);
 
     return true;
 }

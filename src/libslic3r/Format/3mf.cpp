@@ -17,7 +17,7 @@
 
 #include <expat.h>
 #include <Eigen/Dense>
-#include <miniz.h>
+#include "miniz_extension.hpp"
 
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
@@ -187,24 +187,6 @@ bool is_valid_object_type(const std::string& type)
 }
 
 namespace Slic3r {
-
-namespace {
-void close_archive_reader(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_reader_end(arch);
-        if (f) fclose(f);
-    }
-}
-
-void close_archive_writer(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_writer_end(arch);
-        if (f) fclose(f);
-    }
-}
-}
 
     // Base class with error messages management
     class _3MF_Base
@@ -522,10 +504,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        FILE *f = boost::nowide::fopen(filename.c_str(), "rb");
-        auto res = mz_bool(f != nullptr && mz_zip_reader_init_cfile(&archive, f, -1, 0));
-        if (res == 0)
-        {
+        if (!open_zip_reader(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -549,7 +528,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                     // valid model name -> extract model
                     if (!_extract_model_from_archive(archive, stat))
                     {
-                        close_archive_reader(&archive);
+                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model");
                         return false;
                     }
@@ -585,7 +564,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                     // extract slic3r model config file
                     if (!_extract_model_config_from_archive(archive, stat, model))
                     {
-                        close_archive_reader(&archive);
+                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
@@ -593,7 +572,7 @@ void close_archive_writer(mz_zip_archive *arch) {
             }
         }
 
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
 
         for (const IdToModelObjectMap::value_type& object : m_objects)
         {
@@ -1659,10 +1638,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        FILE *f = boost::nowide::fopen(filename.c_str(), "wb");
-        auto res = mz_bool(f != nullptr && mz_zip_writer_init_cfile(&archive, f, 0));
-        if (res == 0)
-        {
+        if (!open_zip_writer(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -1671,7 +1647,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The content of this file is the same for each PrusaSlicer 3mf.
         if (!_add_content_types_file_to_archive(archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1681,7 +1657,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1691,7 +1667,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         IdToObjectDataMap objects_data;
         if (!_add_model_file_to_archive(archive, model, objects_data))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1701,7 +1677,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_height_profile_file_to_archive(archive, model))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1711,7 +1687,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1722,7 +1698,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         {
             if (!_add_print_config_file_to_archive(archive, *config))
             {
-                close_archive_writer(&archive);
+                close_zip_writer(&archive);
                 boost::filesystem::remove(filename);
                 return false;
             }
@@ -1734,20 +1710,20 @@ void close_archive_writer(mz_zip_archive *arch) {
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, objects_data))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
 
         if (!mz_zip_writer_finalize_archive(&archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             add_error("Unable to finalize the archive");
             return false;
         }
 
-        close_archive_writer(&archive);
+        close_zip_writer(&archive);
 
         return true;
     }
