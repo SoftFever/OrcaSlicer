@@ -51,7 +51,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl.stats.type = inmemory;
 
     // count facets and allocate memory
-    stl.stats.number_of_facets = facets.size();
+    stl.stats.number_of_facets = (uint32_t)facets.size();
     stl.stats.original_num_facets = stl.stats.number_of_facets;
     stl_allocate(&stl);
 
@@ -78,25 +78,14 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
     stl_close(&this->stl);
     this->stl       = other.stl;
     this->repaired  = other.repaired;
-    this->stl.heads = nullptr;
+	this->stl.heads.clear();
     this->stl.tail  = nullptr;
     this->stl.error = other.stl.error;
-    if (other.stl.facet_start != nullptr) {
-        this->stl.facet_start = (stl_facet*)calloc(other.stl.stats.number_of_facets, sizeof(stl_facet));
-        std::copy(other.stl.facet_start, other.stl.facet_start + other.stl.stats.number_of_facets, this->stl.facet_start);
-    }
-    if (other.stl.neighbors_start != nullptr) {
-        this->stl.neighbors_start = (stl_neighbors*)calloc(other.stl.stats.number_of_facets, sizeof(stl_neighbors));
-        std::copy(other.stl.neighbors_start, other.stl.neighbors_start + other.stl.stats.number_of_facets, this->stl.neighbors_start);
-    }
-    if (other.stl.v_indices != nullptr) {
-        this->stl.v_indices = (v_indices_struct*)calloc(other.stl.stats.number_of_facets, sizeof(v_indices_struct));
-        std::copy(other.stl.v_indices, other.stl.v_indices + other.stl.stats.number_of_facets, this->stl.v_indices);
-    }
-    if (other.stl.v_shared != nullptr) {
-        this->stl.v_shared = (stl_vertex*)calloc(other.stl.stats.shared_vertices, sizeof(stl_vertex));
-        std::copy(other.stl.v_shared, other.stl.v_shared + other.stl.stats.shared_vertices, this->stl.v_shared);
-    }
+    this->stl.facet_start = other.stl.facet_start;
+    this->stl.neighbors_start = other.stl.neighbors_start;
+    this->stl.v_indices = other.stl.v_indices;
+	this->stl.v_shared = other.stl.v_shared;
+	this->stl.stats = other.stl.stats;
     return *this;
 }
 
@@ -125,8 +114,8 @@ void TriangleMesh::repair()
     
     // checking nearby
     //int last_edges_fixed = 0;
-	float tolerance = stl.stats.shortest_edge;
-    float increment = stl.stats.bounding_diameter / 10000.0;
+	float tolerance = (float)stl.stats.shortest_edge;
+	float increment = (float)stl.stats.bounding_diameter / 10000.0f;
     int iterations = 2;
     if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
         for (int i = 0; i < iterations; i++) {
@@ -444,7 +433,7 @@ TriangleMeshPtrs TriangleMesh::split() const
         TriangleMesh* mesh = new TriangleMesh;
         meshes.emplace_back(mesh);
         mesh->stl.stats.type = inmemory;
-        mesh->stl.stats.number_of_facets = facets.size();
+        mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
         stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
@@ -486,13 +475,12 @@ ExPolygons TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
-    for (uint32_t i = 0; i < this->stl.stats.number_of_facets; ++ i) {
-        stl_facet* facet = &this->stl.facet_start[i];
+	for (const stl_facet &facet : this->stl.facet_start) {
         Polygon p;
         p.points.resize(3);
-        p.points[0] = Point::new_scale(facet->vertex[0](0), facet->vertex[0](1));
-        p.points[1] = Point::new_scale(facet->vertex[1](0), facet->vertex[1](1));
-        p.points[2] = Point::new_scale(facet->vertex[2](0), facet->vertex[2](1));
+        p.points[0] = Point::new_scale(facet.vertex[0](0), facet.vertex[0](1));
+        p.points[1] = Point::new_scale(facet.vertex[1](0), facet.vertex[1](1));
+        p.points[2] = Point::new_scale(facet.vertex[2](0), facet.vertex[2](1));
         p.make_counter_clockwise();  // do this after scaling, as winding order might change while doing that
         pp.emplace_back(p);
     }
@@ -526,17 +514,15 @@ BoundingBoxf3 TriangleMesh::bounding_box() const
 BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) const
 {
     BoundingBoxf3 bbox;
-    if (stl.v_shared == nullptr) {
+    if (stl.v_shared.empty()) {
         // Using the STL faces.
-        for (size_t i = 0; i < this->facets_count(); ++ i) {
-            const stl_facet &facet = this->stl.facet_start[i];
+		for (const stl_facet &facet : this->stl.facet_start)
             for (size_t j = 0; j < 3; ++ j)
                 bbox.merge(trafo * facet.vertex[j].cast<double>());
-        }
     } else {
         // Using the shared vertices should be a bit quicker than using the STL faces.
-        for (int i = 0; i < stl.stats.shared_vertices; ++ i)            
-            bbox.merge(trafo * this->stl.v_shared[i].cast<double>());
+		for (const stl_vertex &v : this->stl.v_shared)
+            bbox.merge(trafo * v.cast<double>());
     }
     return bbox;
 }
@@ -551,17 +537,11 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     std::vector<PointForQHull> src_vertices;
 
     // We will now fill the vector with input points for computation:
-    stl_facet* facet_ptr = stl.facet_start;
-    while (facet_ptr < stl.facet_start + stl.stats.number_of_facets)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            const stl_vertex& v = facet_ptr->vertex[i];
+	for (const stl_facet &facet : stl.facet_start)
+        for (int i = 0; i < 3; ++ i) {
+            const stl_vertex& v = facet.vertex[i];
             src_vertices.emplace_back(v(0), v(1), v(2));
         }
-
-        facet_ptr += 1;
-    }
 
     // The qhull call:
     orgQhull::Qhull qhull;
@@ -606,7 +586,7 @@ void TriangleMesh::require_shared_vertices()
     assert(stl_validate(&this->stl));
     if (! this->repaired) 
         this->repair();
-    if (this->stl.v_shared == nullptr) {
+    if (this->stl.v_shared.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
         stl_generate_shared_vertices(&(this->stl));
     }
@@ -622,10 +602,9 @@ void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callbac
 
     throw_on_cancel();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
-    v_scaled_shared.assign(_mesh->stl.v_shared, _mesh->stl.v_shared + _mesh->stl.stats.shared_vertices);
-    // Scale the copied vertices.
-    for (int i = 0; i < this->mesh->stl.stats.shared_vertices; ++ i)
-        this->v_scaled_shared[i] *= float(1. / SCALING_FACTOR);
+	v_scaled_shared.assign(_mesh->stl.v_shared.size(), stl_vertex());
+	for (size_t i = 0; i < v_scaled_shared.size(); ++ i)
+        this->v_scaled_shared[i] = _mesh->stl.v_shared[i] / float(SCALING_FACTOR);
 
     // Create a mapping from triangle edge into face.
     struct EdgeToFace {
@@ -814,7 +793,7 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
     const std::vector<float> &z) const
 {
-    const stl_facet &facet = m_use_quaternion ? this->mesh->stl.facet_start[facet_idx].rotated(m_quaternion) : this->mesh->stl.facet_start[facet_idx];
+    const stl_facet &facet = m_use_quaternion ? (this->mesh->stl.facet_start.data() + facet_idx)->rotated(m_quaternion) : *(this->mesh->stl.facet_start.data() + facet_idx);
     
     // find facet extents
     const float min_z = fminf(facet.vertex[0](2), fminf(facet.vertex[1](2), facet.vertex[2](2)));
@@ -1710,7 +1689,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - slicing object";
     float scaled_z = scale_(z);
     for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
-        stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
+        const stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
         
         // find facet extents
         float min_z = std::min(facet->vertex[0](2), std::min(facet->vertex[1](2), facet->vertex[2](2)));
@@ -1901,10 +1880,10 @@ TriangleMesh make_cylinder(double r, double h, double fa)
 //FIXME better to discretize an Icosahedron recursively http://www.songho.ca/opengl/gl_sphere.html
 TriangleMesh make_sphere(double radius, double fa)
 {
-	int   sectorCount = ceil(2. * M_PI / fa);
-	int   stackCount  = ceil(M_PI / fa);
-	float sectorStep  = 2. * M_PI / sectorCount;
-	float stackStep   = M_PI / stackCount;
+	int   sectorCount = int(ceil(2. * M_PI / fa));
+	int   stackCount  = int(ceil(M_PI / fa));
+	float sectorStep  = float(2. * M_PI / sectorCount);
+	float stackStep   = float(M_PI / stackCount);
 
 	Pointf3s vertices;
 	vertices.reserve((stackCount - 1) * sectorCount + 2);

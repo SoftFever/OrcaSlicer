@@ -109,7 +109,6 @@ Normals fixed         : %5d\n", stl->stats.normals_fixed);
 
 void
 stl_write_ascii(stl_file *stl, const char *file, const char *label) {
-  int       i;
   char      *error_msg;
 
   if (stl->error) return;
@@ -129,7 +128,7 @@ stl_write_ascii(stl_file *stl, const char *file, const char *label) {
 
   fprintf(fp, "solid  %s\n", label);
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
     fprintf(fp, "  facet normal % .8E % .8E % .8E\n",
             stl->facet_start[i].normal(0), stl->facet_start[i].normal(1),
             stl->facet_start[i].normal(2));
@@ -154,7 +153,6 @@ stl_write_ascii(stl_file *stl, const char *file, const char *label) {
 
 void
 stl_print_neighbors(stl_file *stl, char *file) {
-  int i;
   FILE *fp;
   char *error_msg;
 
@@ -173,7 +171,7 @@ stl_print_neighbors(stl_file *stl, char *file) {
     return;
   }
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     fprintf(fp, "%d, %d,%d, %d,%d, %d,%d\n",
             i,
             stl->neighbors_start[i].neighbor[0],
@@ -200,7 +198,6 @@ void stl_internal_reverse_quads(char *buf, size_t cnt)
 void
 stl_write_binary(stl_file *stl, const char *file, const char *label) {
   FILE      *fp;
-  int       i;
   char      *error_msg;
 
   if (stl->error) return;
@@ -219,13 +216,13 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
   }
 
   fprintf(fp, "%s", label);
-  for(i = strlen(label); i < LABEL_SIZE; i++) putc(0, fp);
+  for(size_t i = strlen(label); i < LABEL_SIZE; i++) putc(0, fp);
 
   fseek(fp, LABEL_SIZE, SEEK_SET);
 #ifdef BOOST_LITTLE_ENDIAN
   fwrite(&stl->stats.number_of_facets, 4, 1, fp);
-  for (i = 0; i < stl->stats.number_of_facets; ++ i)
-    fwrite(stl->facet_start + i, SIZEOF_STL_FACET, 1, fp);
+  for (const stl_facet &facet : stl->facet_start)
+	  fwrite(&facet, SIZEOF_STL_FACET, 1, fp);
 #else /* BOOST_LITTLE_ENDIAN */
   char buffer[50];
   // Convert the number of facets to little endian.
@@ -288,8 +285,6 @@ stl_write_neighbor(stl_file *stl, int facet) {
 void
 stl_write_quad_object(stl_file *stl, char *file) {
   FILE      *fp;
-  int       i;
-  int       j;
   char      *error_msg;
   stl_vertex connect_color = stl_vertex::Zero();
   stl_vertex uncon_1_color = stl_vertex::Zero();
@@ -313,10 +308,10 @@ stl_write_quad_object(stl_file *stl, char *file) {
   }
 
   fprintf(fp, "CQUAD\n");
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    j = ((stl->neighbors_start[i].neighbor[0] == -1) +
-         (stl->neighbors_start[i].neighbor[1] == -1) +
-         (stl->neighbors_start[i].neighbor[2] == -1));
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
+    int j = ((stl->neighbors_start[i].neighbor[0] == -1) +
+             (stl->neighbors_start[i].neighbor[1] == -1) +
+             (stl->neighbors_start[i].neighbor[2] == -1));
     if(j == 0) {
       color = connect_color;
     } else if(j == 1) {
@@ -346,9 +341,8 @@ stl_write_quad_object(stl_file *stl, char *file) {
   fclose(fp);
 }
 
-void
-stl_write_dxf(stl_file *stl, const char *file, char *label) {
-  int       i;
+void stl_write_dxf(stl_file *stl, const char *file, char *label) 
+{
   FILE      *fp;
   char      *error_msg;
 
@@ -375,7 +369,7 @@ stl_write_dxf(stl_file *stl, const char *file, char *label) {
 
   fprintf(fp, "0\nSECTION\n2\nENTITIES\n");
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     fprintf(fp, "0\n3DFACE\n8\n0\n");
     fprintf(fp, "10\n%f\n20\n%f\n30\n%f\n",
             stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1),

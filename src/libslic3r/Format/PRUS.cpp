@@ -167,10 +167,10 @@ static void extract_model_from_archive(
             stl.stats.original_num_facets = header.nTriangles;
             stl_allocate(&stl);
             if (header.nTriangles > 0 && data.size() == 50 * header.nTriangles + sizeof(StlHeader)) {
-                memcpy((char*)stl.facet_start, data.data() + sizeof(StlHeader), 50 * header.nTriangles);
+                memcpy((char*)stl.facet_start.data(), data.data() + sizeof(StlHeader), 50 * header.nTriangles);
                 if (sizeof(stl_facet) > SIZEOF_STL_FACET) {
                     // The stl.facet_start is not packed tightly. Unpack the array of stl_facets.
-                    unsigned char *data = (unsigned char*)stl.facet_start;
+                    unsigned char *data = (unsigned char*)stl.facet_start.data();
                     for (size_t i = header.nTriangles - 1; i > 0; -- i)
                         memmove(data + i * sizeof(stl_facet), data + i * SIZEOF_STL_FACET, SIZEOF_STL_FACET);
                 }
@@ -257,7 +257,7 @@ static void extract_model_from_archive(
             stl.stats.number_of_facets = (uint32_t)facets.size();
             stl.stats.original_num_facets = (int)facets.size();
             stl_allocate(&stl);
-            memcpy((void*)stl.facet_start, facets.data(), facets.size() * 50);
+            memcpy((void*)stl.facet_start.data(), facets.data(), facets.size() * 50);
             stl_get_size(&stl);
             mesh.repair();
             // Add a mesh to a model.

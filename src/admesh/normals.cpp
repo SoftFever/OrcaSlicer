@@ -84,7 +84,6 @@ stl_reverse_facet(stl_file *stl, int facet_num) {
 
 void
 stl_fix_normal_directions(stl_file *stl) {
-  char *norm_sw;
   /*  int edge_num;*/
   /*  int vnot;*/
   int checked = 0;
@@ -101,7 +100,6 @@ stl_fix_normal_directions(stl_file *stl) {
   struct stl_normal *newn;
   struct stl_normal *temp;
 
-  int* reversed_ids;
   int reversed_count = 0;
   int id;
   int force_exit = 0;
@@ -112,20 +110,15 @@ stl_fix_normal_directions(stl_file *stl) {
   if (stl->stats.number_of_facets == 0) return;
 
   /* Initialize linked list. */
-  head = (struct stl_normal*)malloc(sizeof(struct stl_normal));
-  if(head == NULL) perror("stl_fix_normal_directions");
-  tail = (struct stl_normal*)malloc(sizeof(struct stl_normal));
-  if(tail == NULL) perror("stl_fix_normal_directions");
+  head = new stl_normal;
+  tail = new stl_normal;
   head->next = tail;
   tail->next = tail;
 
   /* Initialize list that keeps track of already fixed facets. */
-  norm_sw = (char*)calloc(stl->stats.number_of_facets, sizeof(char));
-  if(norm_sw == NULL) perror("stl_fix_normal_directions");
-
+  std::vector<char> norm_sw(stl->stats.number_of_facets, 0);
   /* Initialize list that keeps track of reversed facets. */
-  reversed_ids = (int*)calloc(stl->stats.number_of_facets, sizeof(int));
-  if (reversed_ids == NULL) perror("stl_fix_normal_directions reversed_ids");
+  std::vector<int> reversed_ids(stl->stats.number_of_facets, 0);
 
   facet_num = 0;
   /* If normal vector is not within tolerance and backwards:
@@ -166,8 +159,7 @@ stl_fix_normal_directions(stl_file *stl) {
         /* If we haven't fixed this facet yet, add it to the list: */
         if(norm_sw[stl->neighbors_start[facet_num].neighbor[j]] != 1) {
           /* Add node to beginning of list. */
-          newn = (struct stl_normal*)malloc(sizeof(struct stl_normal));
-          if(newn == NULL) perror("stl_fix_normal_directions");
+          newn = new stl_normal;
           newn->facet_num = stl->neighbors_start[facet_num].neighbor[j];
           newn->next = head->next;
           head->next = newn;
@@ -187,7 +179,7 @@ stl_fix_normal_directions(stl_file *stl) {
       }
       temp = head->next;	/* Delete this facet from the list. */
       head->next = head->next->next;
-      free(temp);
+      delete temp;
     } else { /* if we ran out of facets to fix: */
       /* All of the facets in this part have been fixed. */
       stl->stats.number_of_parts += 1;
@@ -213,10 +205,8 @@ stl_fix_normal_directions(stl_file *stl) {
       }
     }
   }
-  free(head);
-  free(tail);
-  free(reversed_ids);
-  free(norm_sw);
+  delete head;
+  delete tail;
 }
 
 static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag) {

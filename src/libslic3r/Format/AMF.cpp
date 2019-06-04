@@ -926,7 +926,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (! volume->mesh.repaired) 
                 throw std::runtime_error("store_amf() requires repair()");
             auto &stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
+            if (stl.v_shared.empty())
                 stl_generate_shared_vertices(&stl);
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {

@@ -1885,7 +1885,7 @@ namespace Slic3r {
                 volume->mesh.repair();
 
             stl_file& stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
+            if (stl.v_shared.empty())
                 stl_generate_shared_vertices(&stl);
 
             if (stl.stats.shared_vertices == 0)

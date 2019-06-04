@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <vector>
 #include <Eigen/Geometry> 
 
 // Size of the binary STL header, free form.
@@ -44,18 +45,18 @@ static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
 struct stl_facet {
-  stl_normal normal;
-  stl_vertex vertex[3];
-  char       extra[2];
+	stl_normal normal;
+	stl_vertex vertex[3];
+	char       extra[2];
 
-  stl_facet  rotated(const Eigen::Quaternion<float, Eigen::DontAlign> &rot) {
-    stl_facet out;
-    out.normal    = rot * this->normal;
-    out.vertex[0] = rot * this->vertex[0];
-    out.vertex[1] = rot * this->vertex[1];
-    out.vertex[2] = rot * this->vertex[2];
-    return out;
-  }
+	stl_facet  rotated(const Eigen::Quaternion<float, Eigen::DontAlign> &rot) const {
+		stl_facet out;
+		out.normal    = rot * this->normal;
+		out.vertex[0] = rot * this->vertex[0];
+		out.vertex[1] = rot * this->vertex[1];
+		out.vertex[2] = rot * this->vertex[2];
+		return out;
+	}
 };
 
 #define SIZEOF_STL_FACET       50
@@ -67,86 +68,100 @@ static_assert(sizeof(stl_facet) >= SIZEOF_STL_FACET, "size of stl_facet incorrec
 
 typedef enum {binary, ascii, inmemory} stl_type;
 
-typedef struct {
-  stl_vertex p1;
-  stl_vertex p2;
-  int        facet_number;
-} stl_edge;
+struct stl_edge {
+	stl_vertex p1;
+	stl_vertex p2;
+	int        facet_number;
+};
 
-typedef struct stl_hash_edge {
-  // Key of a hash edge: sorted vertices of the edge.
-  uint32_t       key[6];
-  // Compare two keys.
-  bool operator==(const stl_hash_edge &rhs) { return memcmp(key, rhs.key, sizeof(key)) == 0; }
-  bool operator!=(const stl_hash_edge &rhs) { return ! (*this == rhs); }
-  int  hash(int M) const { return ((key[0] / 11 + key[1] / 7 + key[2] / 3) ^ (key[3] / 11  + key[4] / 7 + key[5] / 3)) % M; }
-  // Index of a facet owning this edge.
-  int            facet_number;
-  // Index of this edge inside the facet with an index of facet_number.
-  // If this edge is stored backwards, which_edge is increased by 3.
-  int            which_edge;
-  struct stl_hash_edge  *next;
-} stl_hash_edge;
+struct stl_hash_edge {
+	// Key of a hash edge: sorted vertices of the edge.
+	uint32_t       key[6];
+	// Compare two keys.
+	bool operator==(const stl_hash_edge &rhs) { return memcmp(key, rhs.key, sizeof(key)) == 0; }
+	bool operator!=(const stl_hash_edge &rhs) { return ! (*this == rhs); }
+	int  hash(int M) const { return ((key[0] / 11 + key[1] / 7 + key[2] / 3) ^ (key[3] / 11  + key[4] / 7 + key[5] / 3)) % M; }
+	// Index of a facet owning this edge.
+	int            facet_number;
+	// Index of this edge inside the facet with an index of facet_number.
+	// If this edge is stored backwards, which_edge is increased by 3.
+	int            which_edge;
+	struct stl_hash_edge  *next;
+};
 
-typedef struct {
-  // Index of a neighbor facet.
-  int   neighbor[3];
-  // Index of an opposite vertex at the neighbor face.
-  char  which_vertex_not[3];
-} stl_neighbors;
+struct stl_neighbors {
+  	stl_neighbors() { reset(); }
+  	void reset() {
+  		neighbor[0] = -1;
+  		neighbor[1] = -1;
+  		neighbor[2] = -1;
+  		which_vertex_not[0] = -1;
+  		which_vertex_not[1] = -1;
+  		which_vertex_not[2] = -1;
+  	}
 
-typedef struct {
-  int   vertex[3];
-} v_indices_struct;
+	// Index of a neighbor facet.
+  	int   neighbor[3];
+  	// Index of an opposite vertex at the neighbor face.
+  	char  which_vertex_not[3];
+};
 
-typedef struct {
-  char          header[81];
-  stl_type      type;
-  uint32_t      number_of_facets;
-  stl_vertex    max;
-  stl_vertex    min;
-  stl_vertex    size;
-  float         bounding_diameter;
-  float         shortest_edge;
-  float         volume;
-  unsigned      number_of_blocks;
-  int           connected_edges;
-  int           connected_facets_1_edge;
-  int           connected_facets_2_edge;
-  int           connected_facets_3_edge;
-  int           facets_w_1_bad_edge;
-  int           facets_w_2_bad_edge;
-  int           facets_w_3_bad_edge;
-  int           original_num_facets;
-  int           edges_fixed;
-  int           degenerate_facets;
-  int           facets_removed;
-  int           facets_added;
-  int           facets_reversed;
-  int           backwards_edges;
-  int           normals_fixed;
-  int           number_of_parts;
-  int           malloced;
-  int           freed;
-  int           facets_malloced;
-  int           collisions;
-  int           shared_vertices;
-  int           shared_malloced;
-} stl_stats;
+struct v_indices_struct {
+	// -1 means no vertex index has been assigned yet
+	v_indices_struct() { vertex[0] = -1; vertex[1] = -1; vertex[2] = -1; }
+  	int   vertex[3];
+};
 
-typedef struct {
-  FILE          *fp;
-  stl_facet     *facet_start;
-  stl_hash_edge **heads;
-  stl_hash_edge *tail;
-  int           M;
-  stl_neighbors *neighbors_start;
-  v_indices_struct *v_indices;
-  stl_vertex    *v_shared;
-  stl_stats     stats;
-  char          error;
-} stl_file;
+struct stl_stats {
+	char          header[81];
+	stl_type      type;
+	uint32_t      number_of_facets;
+	stl_vertex    max;
+	stl_vertex    min;
+	stl_vertex    size;
+	float         bounding_diameter;
+	float         shortest_edge;
+	float         volume;
+	unsigned      number_of_blocks;
+	int           connected_edges;
+	int           connected_facets_1_edge;
+	int           connected_facets_2_edge;
+	int           connected_facets_3_edge;
+	int           facets_w_1_bad_edge;
+	int           facets_w_2_bad_edge;
+	int           facets_w_3_bad_edge;
+	int           original_num_facets;
+	int           edges_fixed;
+	int           degenerate_facets;
+	int           facets_removed;
+	int           facets_added;
+	int           facets_reversed;
+	int           backwards_edges;
+	int           normals_fixed;
+	int           number_of_parts;
+	int           shared_vertices;
 
+	// hash table statistics
+	int           malloced;
+	int           freed;
+	int           collisions;
+};
+
+struct stl_file {
+	FILE          			   	   *fp;
+	std::vector<stl_facet>     		facet_start;
+	std::vector<stl_neighbors> 		neighbors_start;
+	// Hash table on edges
+	std::vector<stl_hash_edge*> 	heads;
+	stl_hash_edge* 					tail;
+	int           					M;
+	// Indexed face set
+	std::vector<v_indices_struct> 	v_indices;
+	std::vector<stl_vertex>       	v_shared;
+	// Statistics
+	stl_stats     					stats;
+	char          					error;
+};
 
 extern void stl_open(stl_file *stl, const char *file);
 extern void stl_close(stl_file *stl);
@@ -272,7 +287,7 @@ extern void stl_allocate(stl_file *stl);
 extern void stl_read(stl_file *stl, int first_facet, bool first);
 extern void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first);
 extern void stl_reallocate(stl_file *stl);
-extern void stl_add_facet(stl_file *stl, stl_facet *new_facet);
+extern void stl_add_facet(stl_file *stl, const stl_facet *new_facet);
 
 extern void stl_clear_error(stl_file *stl);
 extern int stl_get_error(stl_file *stl);

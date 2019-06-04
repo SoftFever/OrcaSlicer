@@ -910,18 +910,16 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
         if (v->is_model_part()) {
             const stl_file &stl = v->mesh.stl;
             Transform3d trafo = trafo_instance * v->get_matrix();
-            if (stl.v_shared == nullptr) {
+            if (stl.v_shared.empty()) {
                 // Using the STL faces.
-                for (unsigned int i = 0; i < stl.stats.number_of_facets; ++ i) {
-                    const stl_facet &facet = stl.facet_start[i];
+				for (const stl_facet &facet : stl.facet_start)
                     for (size_t j = 0; j < 3; ++ j) {
                         Vec3d p = trafo * facet.vertex[j].cast<double>();
                         pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                     }
-                }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
-                for (int i = 0; i < stl.stats.shared_vertices; ++ i) {           
+                for (int i = 0; i < stl.stats.shared_vertices; ++ i) {
                     Vec3d p = trafo * stl.v_shared[i].cast<double>();
                     pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }
@@ -1347,13 +1345,9 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 
         Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-        for (uint32_t f = 0; f < hull.stl.stats.number_of_facets; ++f)
-        {
-            const stl_facet* facet = hull.stl.facet_start + f;
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[0].cast<double>()));
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[1].cast<double>()));
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[2].cast<double>()));
-        }
+		for (const stl_facet &facet : hull.stl.facet_start)
+			for (int i = 0; i < 3; ++ i)
+				min_z = std::min(min_z, (mv * facet.vertex[i].cast<double>()).z());
     }
 
     return min_z + inst->get_offset(Z);

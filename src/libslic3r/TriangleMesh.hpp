@@ -58,7 +58,7 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
-    const float* first_vertex() const { return this->stl.facet_start ? &this->stl.facet_start->vertex[0](0) : nullptr; }
+    const float* first_vertex() const { return this->stl.facet_start.empty() ? nullptr : &this->stl.facet_start.front().vertex[0](0); }
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
@@ -69,7 +69,7 @@ public:
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();
-    bool   has_shared_vertices() const { return stl.v_shared != NULL; }
+    bool   has_shared_vertices() const { return ! stl.v_shared.empty(); }
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;

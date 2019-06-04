@@ -396,10 +396,10 @@ void GLGizmoSlaSupports::update_mesh()
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+        const stl_facet &facet = stl.facet_start[i];
+		V.block<1, 3>(3 * i + 0, 0) = facet.vertex[0];
+		V.block<1, 3>(3 * i + 1, 0) = facet.vertex[1];
+		V.block<1, 3>(3 * i + 2, 0) = facet.vertex[2];
         F(i, 0) = 3*i+0;
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;

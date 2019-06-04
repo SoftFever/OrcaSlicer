@@ -32,45 +32,39 @@ static float get_area(stl_facet *facet);
 static float get_volume(stl_file *stl);
 
 
-void
-stl_verify_neighbors(stl_file *stl) {
-  int i;
-  int j;
-  stl_edge edge_a;
-  stl_edge edge_b;
-  int neighbor;
-  int vnot;
+void stl_verify_neighbors(stl_file *stl)
+{
+	if (stl->error)
+		return;
 
-  if (stl->error) return;
+	stl->stats.backwards_edges = 0;
 
-  stl->stats.backwards_edges = 0;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      edge_a.p1 = stl->facet_start[i].vertex[j];
-      edge_a.p2 = stl->facet_start[i].vertex[(j + 1) % 3];
-      neighbor = stl->neighbors_start[i].neighbor[j];
-      vnot = stl->neighbors_start[i].which_vertex_not[j];
-
-      if(neighbor == -1)
-        continue;		/* this edge has no neighbor... Continue. */
-      if(vnot < 3) {
-        edge_b.p1 = stl->facet_start[neighbor].vertex[(vnot + 2) % 3];
-        edge_b.p2 = stl->facet_start[neighbor].vertex[(vnot + 1) % 3];
-      } else {
-        stl->stats.backwards_edges += 1;
-        edge_b.p1 = stl->facet_start[neighbor].vertex[(vnot + 1) % 3];
-        edge_b.p2 = stl->facet_start[neighbor].vertex[(vnot + 2) % 3];
-      }
-      if (edge_a.p1 != edge_b.p1 || edge_a.p2 != edge_b.p2) {
-        /* These edges should match but they don't.  Print results. */
-        printf("edge %d of facet %d doesn't match edge %d of facet %d\n",
-               j, i, vnot + 1, neighbor);
-        stl_write_facet(stl, (char*)"first facet", i);
-        stl_write_facet(stl, (char*)"second facet", neighbor);
-      }
-    }
-  }
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+		for (int j = 0; j < 3; ++ j) {
+			stl_edge edge_a;
+			edge_a.p1 = stl->facet_start[i].vertex[j];
+			edge_a.p2 = stl->facet_start[i].vertex[(j + 1) % 3];
+			int neighbor = stl->neighbors_start[i].neighbor[j];
+			if (neighbor == -1)
+				continue; // this edge has no neighbor... Continue.
+			int vnot = stl->neighbors_start[i].which_vertex_not[j];
+			stl_edge edge_b;
+			if (vnot < 3) {
+				edge_b.p1 = stl->facet_start[neighbor].vertex[(vnot + 2) % 3];
+				edge_b.p2 = stl->facet_start[neighbor].vertex[(vnot + 1) % 3];
+			} else {
+				stl->stats.backwards_edges += 1;
+				edge_b.p1 = stl->facet_start[neighbor].vertex[(vnot + 1) % 3];
+				edge_b.p2 = stl->facet_start[neighbor].vertex[(vnot + 2) % 3];
+			}
+			if (edge_a.p1 != edge_b.p1 || edge_a.p2 != edge_b.p2) {
+				// These edges should match but they don't.  Print results.
+				printf("edge %d of facet %d doesn't match edge %d of facet %d\n", j, i, vnot + 1, neighbor);
+				stl_write_facet(stl, (char*)"first facet", i);
+				stl_write_facet(stl, (char*)"second facet", neighbor);
+			}
+		}
+	}
 }
 
 void stl_translate(stl_file *stl, float x, float y, float z)
@@ -263,21 +257,19 @@ void stl_mirror_yz(stl_file *stl)
 
 void stl_mirror_xz(stl_file *stl)
 {
-  if (stl->error)
-  	return;
+	if (stl->error)
+		return;
 
-  for (int i = 0; i < stl->stats.number_of_facets; i++) {
-    for (int j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j](1) *= -1.0;
-    }
-  }
-  float temp_size = stl->stats.min(1);
-  stl->stats.min(1) = stl->stats.max(1);
-  stl->stats.max(1) = temp_size;
-  stl->stats.min(1) *= -1.0;
-  stl->stats.max(1) *= -1.0;
-  stl_reverse_all_facets(stl);
-  stl->stats.facets_reversed -= stl->stats.number_of_facets;  /* for not altering stats */
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
+		for (int j = 0; j < 3; ++ j)
+			stl->facet_start[i].vertex[j](1) *= -1.0;
+	float temp_size = stl->stats.min(1);
+	stl->stats.min(1) = stl->stats.max(1);
+	stl->stats.max(1) = temp_size;
+	stl->stats.min(1) *= -1.0;
+	stl->stats.max(1) *= -1.0;
+	stl_reverse_all_facets(stl);
+	stl->stats.facets_reversed -= stl->stats.number_of_facets;  // for not altering stats
 }
 
 static float get_volume(stl_file *stl)
@@ -463,18 +455,18 @@ bool stl_validate(stl_file *stl)
 {
 	assert(! stl->error);
 	assert(stl->fp == nullptr);
-	assert(stl->facet_start != nullptr);
-	assert(stl->heads == nullptr);
+	assert(! stl->facet_start.empty());
+	assert(stl->heads.empty());
 	assert(stl->tail  == nullptr);
-	assert(stl->neighbors_start != nullptr);
-	assert((stl->v_indices == nullptr) == (stl->v_shared == nullptr));
+	assert(! stl->neighbors_start.empty());
+	assert((stl->v_indices.empty()) == (stl->v_shared.empty()));
 	assert(stl->stats.number_of_facets > 0);
 
 #ifdef _DEBUG
     // Verify validity of neighborship data.
     for (int facet_idx = 0; facet_idx < (int)stl->stats.number_of_facets; ++ facet_idx) {
         const stl_neighbors &nbr 		= stl->neighbors_start[facet_idx];
-        const int 			*vertices 	= (stl->v_indices == nullptr) ? nullptr : stl->v_indices[facet_idx].vertex;
+        const int 			*vertices 	= (stl->v_indices.empty()) ? nullptr : stl->v_indices[facet_idx].vertex;
         for (int nbr_idx = 0; nbr_idx < 3; ++ nbr_idx) {
             int nbr_face = stl->neighbors_start[facet_idx].neighbor[nbr_idx];
             assert(nbr_face < (int)stl->stats.number_of_facets);

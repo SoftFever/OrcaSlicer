@@ -31,17 +31,8 @@
 
 void stl_invalidate_shared_vertices(stl_file *stl)
 {
- 	if (stl->error) 
-    	return;
-
-  	if (stl->v_indices != nullptr) {
-    	free(stl->v_indices);
-    	stl->v_indices = nullptr;
-  	}
-  	if (stl->v_shared != nullptr) {
-    	free(stl->v_shared);
-    	stl->v_shared = nullptr;
-	}
+  	stl->v_indices.clear();
+  	stl->v_shared.clear();
 }
 
 void stl_generate_shared_vertices(stl_file *stl)
@@ -53,22 +44,10 @@ void stl_generate_shared_vertices(stl_file *stl)
 	stl_invalidate_shared_vertices(stl);
 
 	// 3 indices to vertex per face
-	stl->v_indices = (v_indices_struct*)calloc(stl->stats.number_of_facets, sizeof(v_indices_struct));
-	if (stl->v_indices == nullptr) 
-		perror("stl_generate_shared_vertices");
+	stl->v_indices.assign(stl->stats.number_of_facets, v_indices_struct());
 	// Shared vertices (3D coordinates)
-	stl->v_shared = (stl_vertex*)calloc((stl->stats.number_of_facets / 2), sizeof(stl_vertex));
-	if (stl->v_shared == nullptr) 
-		perror("stl_generate_shared_vertices");
-	stl->stats.shared_malloced = stl->stats.number_of_facets / 2;
+	stl->v_shared.assign(stl->stats.number_of_facets / 2, stl_vertex());
 	stl->stats.shared_vertices = 0;
-
-	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
-		// vertex index -1 means no shared vertex was assigned yet.
-		stl->v_indices[i].vertex[0] = -1;
-		stl->v_indices[i].vertex[1] = -1;
-		stl->v_indices[i].vertex[2] = -1;
-	}
 
 	// A degenerate mesh may contain loops: Traversing a fan will end up in an endless loop
 	// while never reaching the starting face. To avoid these endless loops, traversed faces at each fan traversal
@@ -82,13 +61,7 @@ void stl_generate_shared_vertices(stl_file *stl)
 				// Shared vertex was already assigned.
 				continue;
 			// Create a new shared vertex.
-			if (stl->stats.shared_vertices == stl->stats.shared_malloced) {
-				stl->stats.shared_malloced += 1024;
-				stl->v_shared = (stl_vertex*)realloc(stl->v_shared, stl->stats.shared_malloced * sizeof(stl_vertex));
-				if(stl->v_shared == nullptr) 
-					perror("stl_generate_shared_vertices");
-			}
-			stl->v_shared[stl->stats.shared_vertices] = stl->facet_start[facet_idx].vertex[j];
+			stl->v_shared.emplace_back(stl->facet_start[facet_idx].vertex[j]);
 			// Traverse the fan around the j-th vertex of the i-th face, assign the newly created shared vertex index to all the neighboring triangles in the triangle fan.
 			int  facet_in_fan_idx 	= facet_idx;
 			bool edge_direction 	= false;

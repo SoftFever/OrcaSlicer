@@ -35,22 +35,38 @@
 #error "SEEK_SET not defined"
 #endif
 
-void
-stl_open(stl_file *stl, const char *file) {
-  stl_initialize(stl);
-  stl_count_facets(stl, file);
-  stl_allocate(stl);
-  stl_read(stl, 0, true);
-  if (stl->fp != nullptr) {
-	  fclose(stl->fp);
-	  stl->fp = nullptr;
-  }
+void stl_open(stl_file *stl, const char *file)
+{
+	stl_initialize(stl);
+	stl_count_facets(stl, file);
+	stl_allocate(stl);
+	stl_read(stl, 0, true);
+	if (stl->fp != nullptr) {
+	  	fclose(stl->fp);
+	  	stl->fp = nullptr;
+	}
 }
 
-void
-stl_initialize(stl_file *stl) {
-  memset(stl, 0, sizeof(stl_file));
-  stl->stats.volume = -1.0;
+void stl_initialize(stl_file *stl)
+{
+	stl->fp = nullptr;
+	stl->tail = nullptr;
+	stl->M = 0;
+	stl->error = 0;
+	stl->facet_start.clear();
+	stl->neighbors_start.clear();
+	stl->v_indices.clear();
+	stl->v_shared.clear();
+  	memset(&stl->stats, 0, sizeof(stl_stats));
+  	stl->stats.volume = -1.0;
+}
+
+void stl_close(stl_file *stl)
+{
+	assert(stl->fp == nullptr);
+	assert(stl->heads.empty());
+	assert(stl->tail == nullptr);
+	stl_initialize(stl);
 }
 
 #ifndef BOOST_LITTLE_ENDIAN
@@ -175,20 +191,14 @@ stl_count_facets(stl_file *stl, const char *file) {
   stl->stats.original_num_facets = stl->stats.number_of_facets;
 }
 
-void
-stl_allocate(stl_file *stl) {
-  if (stl->error) return;
-
-  /*  Allocate memory for the entire .STL file */
-  stl->facet_start = (stl_facet*)calloc(stl->stats.number_of_facets,
-                                        sizeof(stl_facet));
-  if(stl->facet_start == NULL) perror("stl_initialize");
-  stl->stats.facets_malloced = stl->stats.number_of_facets;
-
-  /* Allocate memory for the neighbors list */
-  stl->neighbors_start = (stl_neighbors*)
-                         calloc(stl->stats.number_of_facets, sizeof(stl_neighbors));
-  if(stl->facet_start == NULL) perror("stl_initialize");
+void stl_allocate(stl_file *stl) 
+{
+	if (stl->error) 
+		return;
+  	//  Allocate memory for the entire .STL file.
+  	stl->facet_start.assign(stl->stats.number_of_facets, stl_facet());
+  	// Allocate memory for the neighbors list.
+  	stl->neighbors_start.assign(stl->stats.number_of_facets, stl_neighbors());
 }
 
 void
@@ -237,22 +247,13 @@ stl_open_merge(stl_file *stl, char *file_to_merge) {
   stl->fp=origFp;
 }
 
-extern void
-stl_reallocate(stl_file *stl) {
-  if (stl->error) return;
-  /*  Reallocate more memory for the .STL file(s) */
-  stl->facet_start = (stl_facet*)realloc(stl->facet_start, stl->stats.number_of_facets *
-                                         sizeof(stl_facet));
-  if(stl->facet_start == NULL) perror("stl_initialize");
-  stl->stats.facets_malloced = stl->stats.number_of_facets;
-
-  /* Reallocate more memory for the neighbors list */
-  stl->neighbors_start = (stl_neighbors*)
-                         realloc(stl->neighbors_start, stl->stats.number_of_facets *
-                                 sizeof(stl_neighbors));
-  if(stl->facet_start == NULL) perror("stl_initialize");
+void stl_reallocate(stl_file *stl) 
+{
+  	if (stl->error) 
+  		return;
+	stl->facet_start.resize(stl->stats.number_of_facets);
+	stl->neighbors_start.resize(stl->stats.number_of_facets);
 }
-
 
 /* Reads the contents of the file pointed to by stl->fp into the stl structure,
    starting at facet first_facet.  The second argument says if it's our first
@@ -365,21 +366,4 @@ void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first)
   	stl->stats.min = stl->stats.min.cwiseMin(facet.vertex[i]);
   	stl->stats.max = stl->stats.max.cwiseMax(facet.vertex[i]);
   }
-}
-
-void stl_close(stl_file *stl)
-{
-	assert(stl->fp == nullptr);
-	assert(stl->heads == nullptr);
-	assert(stl->tail == nullptr);
-
-	if (stl->facet_start != NULL)
-		free(stl->facet_start);
-	if (stl->neighbors_start != NULL)
-		free(stl->neighbors_start);
-	if (stl->v_indices != NULL)
-		free(stl->v_indices);
-	if (stl->v_shared != NULL)
-		free(stl->v_shared);
-	memset(stl, 0, sizeof(stl_file));
 }
