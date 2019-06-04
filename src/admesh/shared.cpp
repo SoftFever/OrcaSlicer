@@ -23,242 +23,239 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <vector>
+
 #include <boost/nowide/cstdio.hpp>
 
 #include "stl.h"
 
-void
-stl_invalidate_shared_vertices(stl_file *stl) {
-  if (stl->error) return;
+void stl_invalidate_shared_vertices(stl_file *stl)
+{
+ 	if (stl->error) 
+    	return;
 
-  if (stl->v_indices != NULL) {
-    free(stl->v_indices);
-    stl->v_indices = NULL;
-  }
-  if (stl->v_shared != NULL) {
-    free(stl->v_shared);
-    stl->v_shared = NULL;
-  }
+  	if (stl->v_indices != nullptr) {
+    	free(stl->v_indices);
+    	stl->v_indices = nullptr;
+  	}
+  	if (stl->v_shared != nullptr) {
+    	free(stl->v_shared);
+    	stl->v_shared = nullptr;
+	}
 }
 
-void
-stl_generate_shared_vertices(stl_file *stl) {
-  int i;
-  int j;
-  int first_facet;
-  int direction;
-  int facet_num;
-  int vnot;
-  int next_edge;
-  int pivot_vertex;
-  int next_facet;
-  int reversed;
+void stl_generate_shared_vertices(stl_file *stl)
+{
+	if (stl->error)
+		return;
 
-  if (stl->error) return;
+	/* make sure this function is idempotent and does not leak memory */
+	stl_invalidate_shared_vertices(stl);
 
-  /* make sure this function is idempotent and does not leak memory */
-  stl_invalidate_shared_vertices(stl);
+	// 3 indices to vertex per face
+	stl->v_indices = (v_indices_struct*)calloc(stl->stats.number_of_facets, sizeof(v_indices_struct));
+	if (stl->v_indices == nullptr) 
+		perror("stl_generate_shared_vertices");
+	// Shared vertices (3D coordinates)
+	stl->v_shared = (stl_vertex*)calloc((stl->stats.number_of_facets / 2), sizeof(stl_vertex));
+	if (stl->v_shared == nullptr) 
+		perror("stl_generate_shared_vertices");
+	stl->stats.shared_malloced = stl->stats.number_of_facets / 2;
+	stl->stats.shared_vertices = 0;
 
-  stl->v_indices = (v_indices_struct*)
-                   calloc(stl->stats.number_of_facets, sizeof(v_indices_struct));
-  if(stl->v_indices == NULL) perror("stl_generate_shared_vertices");
-  stl->v_shared = (stl_vertex*)
-                  calloc((stl->stats.number_of_facets / 2), sizeof(stl_vertex));
-  if(stl->v_shared == NULL) perror("stl_generate_shared_vertices");
-  stl->stats.shared_malloced = stl->stats.number_of_facets / 2;
-  stl->stats.shared_vertices = 0;
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+		// vertex index -1 means no shared vertex was assigned yet.
+		stl->v_indices[i].vertex[0] = -1;
+		stl->v_indices[i].vertex[1] = -1;
+		stl->v_indices[i].vertex[2] = -1;
+	}
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    stl->v_indices[i].vertex[0] = -1;
-    stl->v_indices[i].vertex[1] = -1;
-    stl->v_indices[i].vertex[2] = -1;
-  }
+	// A degenerate mesh may contain loops: Traversing a fan will end up in an endless loop
+	// while never reaching the starting face. To avoid these endless loops, traversed faces at each fan traversal
+	// are marked with a unique fan_traversal_stamp.
+	unsigned int			  fan_traversal_stamp = 0;
+	std::vector<unsigned int> fan_traversal_facet_visited(stl->stats.number_of_facets, 0);
 
+	for (uint32_t facet_idx = 0; facet_idx < stl->stats.number_of_facets; ++ facet_idx) {
+		for (int j = 0; j < 3; ++ j) {
+			if (stl->v_indices[facet_idx].vertex[j] != -1)
+				// Shared vertex was already assigned.
+				continue;
+			// Create a new shared vertex.
+			if (stl->stats.shared_vertices == stl->stats.shared_malloced) {
+				stl->stats.shared_malloced += 1024;
+				stl->v_shared = (stl_vertex*)realloc(stl->v_shared, stl->stats.shared_malloced * sizeof(stl_vertex));
+				if(stl->v_shared == nullptr) 
+					perror("stl_generate_shared_vertices");
+			}
+			stl->v_shared[stl->stats.shared_vertices] = stl->facet_start[facet_idx].vertex[j];
+			// Traverse the fan around the j-th vertex of the i-th face, assign the newly created shared vertex index to all the neighboring triangles in the triangle fan.
+			int  facet_in_fan_idx 	= facet_idx;
+			bool edge_direction 	= false;
+			bool traversal_reversed = false;
+			int  vnot      			= (j + 2) % 3;
+			// Increase the 
+			++ fan_traversal_stamp;
+			for (;;) {
+				// Next edge on facet_in_fan_idx to be traversed. The edge is indexed by its starting vertex index.
+				int next_edge    = 0;
+				// Vertex index in facet_in_fan_idx, which is being pivoted around, and which is being assigned a new shared vertex.
+				int pivot_vertex = 0;
+				if (vnot > 2) {
+					// The edge of facet_in_fan_idx opposite to vnot is equally oriented, therefore
+					// the neighboring facet is flipped.
+			  		if (! edge_direction) {
+			    		pivot_vertex = (vnot + 2) % 3;
+			    		next_edge    = pivot_vertex;			    		
+			  		} else {
+			    		pivot_vertex = (vnot + 1) % 3;
+			    		next_edge    = vnot % 3;
+			  		}
+			  		edge_direction = ! edge_direction;
+				} else {
+					// The neighboring facet is correctly oriented.
+			  		if (! edge_direction) {
+			    		pivot_vertex = (vnot + 1) % 3;
+			    		next_edge    = vnot;
+			  		} else {
+			    		pivot_vertex = (vnot + 2) % 3;
+			    		next_edge    = pivot_vertex;
+			  		}
+				}
+				stl->v_indices[facet_in_fan_idx].vertex[pivot_vertex] = stl->stats.shared_vertices;
+				fan_traversal_facet_visited[facet_in_fan_idx] = fan_traversal_stamp;
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    first_facet = i;
-    for(j = 0; j < 3; j++) {
-      if(stl->v_indices[i].vertex[j] != -1) {
-        continue;
-      }
-      if(stl->stats.shared_vertices == stl->stats.shared_malloced) {
-        stl->stats.shared_malloced += 1024;
-        stl->v_shared = (stl_vertex*)realloc(stl->v_shared,
-                                             stl->stats.shared_malloced * sizeof(stl_vertex));
-        if(stl->v_shared == NULL) perror("stl_generate_shared_vertices");
-      }
+				// next_edge is an index of the starting vertex of the edge, not an index of the opposite vertex to the edge!
+				int next_facet = stl->neighbors_start[facet_in_fan_idx].neighbor[next_edge];
+				if (next_facet == -1) {
+					// No neighbor going in the current direction.
+					if (traversal_reversed) {
+						// Went to one limit, then turned back and reached the other limit. Quit the fan traversal.
+					    break;
+					} else {
+						// Reached the first limit. Now try to reverse and traverse up to the other limit.
+					    edge_direction        = true;
+					    vnot 	         	  = (j + 1) % 3;
+					    traversal_reversed    = true;
+				    	facet_in_fan_idx      = facet_idx;
+					}
+				} else if (next_facet == facet_idx) {
+					// Traversed a closed fan all around.
+//					assert(! traversal_reversed);
+					break;
+				} else if (next_facet >= (int)stl->stats.number_of_facets) {
+					// The mesh is not valid!
+					// assert(false);
+					break;
+				} else if (fan_traversal_facet_visited[next_facet] == fan_traversal_stamp) {
+					// Traversed a closed fan all around, but did not reach the starting face.
+					// This indicates an invalid geometry (non-manifold).
+					//assert(false);
+					break;
+				} else {
+					// Continue traversal.
+					// next_edge is an index of the starting vertex of the edge, not an index of the opposite vertex to the edge!
+					vnot = stl->neighbors_start[facet_in_fan_idx].which_vertex_not[next_edge];
+					facet_in_fan_idx = next_facet;
+				}
+			}
 
-      stl->v_shared[stl->stats.shared_vertices] =
-        stl->facet_start[i].vertex[j];
-
-      direction = 0;
-      reversed = 0;
-      facet_num = i;
-      vnot = (j + 2) % 3;
-
-      for(;;) {
-        if(vnot > 2) {
-          if(direction == 0) {
-            pivot_vertex = (vnot + 2) % 3;
-            next_edge = pivot_vertex;
-            direction = 1;
-          } else {
-            pivot_vertex = (vnot + 1) % 3;
-            next_edge = vnot % 3;
-            direction = 0;
-          }
-        } else {
-          if(direction == 0) {
-            pivot_vertex = (vnot + 1) % 3;
-            next_edge = vnot;
-          } else {
-            pivot_vertex = (vnot + 2) % 3;
-            next_edge = pivot_vertex;
-          }
-        }
-        stl->v_indices[facet_num].vertex[pivot_vertex] =
-          stl->stats.shared_vertices;
-
-        next_facet = stl->neighbors_start[facet_num].neighbor[next_edge];
-        if(next_facet == -1) {
-          if(reversed) {
-            break;
-          } else {
-            direction = 1;
-            vnot = (j + 1) % 3;
-            reversed = 1;
-            facet_num = first_facet;
-          }
-        } else if(next_facet != first_facet) {
-          vnot = stl->neighbors_start[facet_num].
-                 which_vertex_not[next_edge];
-          facet_num = next_facet;
-        } else {
-          break;
-        }
-      }
-      stl->stats.shared_vertices += 1;
-    }
-  }
+			++ stl->stats.shared_vertices;
+		}
+	}
 }
 
-void
-stl_write_off(stl_file *stl, const char *file) {
-  int i;
-  FILE      *fp;
-  char      *error_msg;
+void stl_write_off(stl_file *stl, const char *file)
+{
+	if (stl->error)
+		return;
 
-  if (stl->error) return;
+	/* Open the file */
+	FILE *fp = boost::nowide::fopen(file, "w");
+	if (fp == nullptr) {
+		char *error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
+		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
+		perror(error_msg);
+		free(error_msg);
+		stl->error = 1;
+		return;
+	}
 
-  /* Open the file */
-  fp = boost::nowide::fopen(file, "w");
-  if(fp == NULL) {
-    error_msg = (char*)
-                malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-    sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing",
-            file);
-    perror(error_msg);
-    free(error_msg);
-    stl->error = 1;
-    return;
-  }
-
-  fprintf(fp, "OFF\n");
-  fprintf(fp, "%d %d 0\n",
-          stl->stats.shared_vertices, stl->stats.number_of_facets);
-
-  for(i = 0; i < stl->stats.shared_vertices; i++) {
-    fprintf(fp, "\t%f %f %f\n",
-            stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
-  }
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    fprintf(fp, "\t3 %d %d %d\n", stl->v_indices[i].vertex[0],
-            stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
-  }
-  fclose(fp);
+	fprintf(fp, "OFF\n");
+	fprintf(fp, "%d %d 0\n", stl->stats.shared_vertices, stl->stats.number_of_facets);
+	for (int i = 0; i < stl->stats.shared_vertices; ++ i)
+		fprintf(fp, "\t%f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
+		fprintf(fp, "\t3 %d %d %d\n", stl->v_indices[i].vertex[0], stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
+	fclose(fp);
 }
 
-void
-stl_write_vrml(stl_file *stl, const char *file) {
-  int i;
-  FILE      *fp;
-  char      *error_msg;
+void stl_write_vrml(stl_file *stl, const char *file)
+{
+  	if (stl->error) 
+  		return;
 
-  if (stl->error) return;
+	/* Open the file */
+  	FILE *fp = boost::nowide::fopen(file, "w");
+	if (fp == nullptr) {
+  		char *error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
+		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
+		perror(error_msg);
+		free(error_msg);
+		stl->error = 1;
+		return;
+	}
 
-  /* Open the file */
-  fp = boost::nowide::fopen(file, "w");
-  if(fp == NULL) {
-    error_msg = (char*)
-                malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-    sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing",
-            file);
-    perror(error_msg);
-    free(error_msg);
-    stl->error = 1;
-    return;
-  }
+	fprintf(fp, "#VRML V1.0 ascii\n\n");
+	fprintf(fp, "Separator {\n");
+	fprintf(fp, "\tDEF STLShape ShapeHints {\n");
+	fprintf(fp, "\t\tvertexOrdering COUNTERCLOCKWISE\n");
+	fprintf(fp, "\t\tfaceType CONVEX\n");
+	fprintf(fp, "\t\tshapeType SOLID\n");
+	fprintf(fp, "\t\tcreaseAngle 0.0\n");
+	fprintf(fp, "\t}\n");
+	fprintf(fp, "\tDEF STLModel Separator {\n");
+	fprintf(fp, "\t\tDEF STLColor Material {\n");
+	fprintf(fp, "\t\t\temissiveColor 0.700000 0.700000 0.000000\n");
+	fprintf(fp, "\t\t}\n");
+	fprintf(fp, "\t\tDEF STLVertices Coordinate3 {\n");
+	fprintf(fp, "\t\t\tpoint [\n");
 
-  fprintf(fp, "#VRML V1.0 ascii\n\n");
-  fprintf(fp, "Separator {\n");
-  fprintf(fp, "\tDEF STLShape ShapeHints {\n");
-  fprintf(fp, "\t\tvertexOrdering COUNTERCLOCKWISE\n");
-  fprintf(fp, "\t\tfaceType CONVEX\n");
-  fprintf(fp, "\t\tshapeType SOLID\n");
-  fprintf(fp, "\t\tcreaseAngle 0.0\n");
-  fprintf(fp, "\t}\n");
-  fprintf(fp, "\tDEF STLModel Separator {\n");
-  fprintf(fp, "\t\tDEF STLColor Material {\n");
-  fprintf(fp, "\t\t\temissiveColor 0.700000 0.700000 0.000000\n");
-  fprintf(fp, "\t\t}\n");
-  fprintf(fp, "\t\tDEF STLVertices Coordinate3 {\n");
-  fprintf(fp, "\t\t\tpoint [\n");
+	int i = 0;
+	for (; i < (stl->stats.shared_vertices - 1); i++)
+		fprintf(fp, "\t\t\t\t%f %f %f,\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
+	fprintf(fp, "\t\t\t\t%f %f %f]\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
+	fprintf(fp, "\t\t}\n");
+	fprintf(fp, "\t\tDEF STLTriangles IndexedFaceSet {\n");
+	fprintf(fp, "\t\t\tcoordIndex [\n");
 
-  for(i = 0; i < (stl->stats.shared_vertices - 1); i++) {
-    fprintf(fp, "\t\t\t\t%f %f %f,\n",
-            stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
-  }
-  fprintf(fp, "\t\t\t\t%f %f %f]\n",
-          stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
-  fprintf(fp, "\t\t}\n");
-  fprintf(fp, "\t\tDEF STLTriangles IndexedFaceSet {\n");
-  fprintf(fp, "\t\t\tcoordIndex [\n");
-
-  for(i = 0; i < (stl->stats.number_of_facets - 1); i++) {
-    fprintf(fp, "\t\t\t\t%d, %d, %d, -1,\n", stl->v_indices[i].vertex[0],
-            stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
-  }
-  fprintf(fp, "\t\t\t\t%d, %d, %d, -1]\n", stl->v_indices[i].vertex[0],
-          stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
-  fprintf(fp, "\t\t}\n");
-  fprintf(fp, "\t}\n");
-  fprintf(fp, "}\n");
-  fclose(fp);
+	for (int i = 0; i + 1 < (int)stl->stats.number_of_facets; ++ i)
+		fprintf(fp, "\t\t\t\t%d, %d, %d, -1,\n", stl->v_indices[i].vertex[0], stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
+	fprintf(fp, "\t\t\t\t%d, %d, %d, -1]\n", stl->v_indices[i].vertex[0], stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
+	fprintf(fp, "\t\t}\n");
+	fprintf(fp, "\t}\n");
+	fprintf(fp, "}\n");
+	fclose(fp);
 }
 
-void stl_write_obj (stl_file *stl, const char *file) {
-  int i;
-  FILE* fp;
+void stl_write_obj (stl_file *stl, const char *file)
+{
+	if (stl->error)
+		return;
 
-  if (stl->error) return;
+  	FILE *fp = boost::nowide::fopen(file, "w");
+  	if (fp == nullptr) {
+    	char* error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
+    	sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
+    	perror(error_msg);
+    	free(error_msg);
+    	stl->error = 1;
+    	return;
+  	}
 
-  /* Open the file */
-  fp = boost::nowide::fopen(file, "w");
-  if (fp == NULL) {
-    char* error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-    sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
-    perror(error_msg);
-    free(error_msg);
-    stl->error = 1;
-    return;
-  }
-
-  for (i = 0; i < stl->stats.shared_vertices; i++) {
-    fprintf(fp, "v %f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
-  }
-  for (i = 0; i < stl->stats.number_of_facets; i++) {
-    fprintf(fp, "f %d %d %d\n", stl->v_indices[i].vertex[0]+1, stl->v_indices[i].vertex[1]+1, stl->v_indices[i].vertex[2]+1);
-  }
-
-  fclose(fp);
+	for (int i = 0; i < stl->stats.shared_vertices; ++ i)
+    	fprintf(fp, "v %f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
+  	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
+    	fprintf(fp, "f %d %d %d\n", stl->v_indices[i].vertex[0]+1, stl->v_indices[i].vertex[1]+1, stl->v_indices[i].vertex[2]+1);
+  	fclose(fp);
 }

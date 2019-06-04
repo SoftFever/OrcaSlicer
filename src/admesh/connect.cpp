@@ -37,7 +37,6 @@ static void stl_match_neighbors_nearby(stl_file *stl,
                                        stl_hash_edge *edge_a, stl_hash_edge *edge_b);
 static void stl_record_neighbors(stl_file *stl,
                                  stl_hash_edge *edge_a, stl_hash_edge *edge_b);
-static void stl_initialize_facet_check_exact(stl_file *stl);
 static void stl_initialize_facet_check_nearby(stl_file *stl);
 static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_vertex *a, const stl_vertex *b);
 static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge,
@@ -47,63 +46,90 @@ static void insert_hash_edge(stl_file *stl, stl_hash_edge edge,
                                  stl_hash_edge *edge_a, stl_hash_edge *edge_b));
 static int stl_compare_function(stl_hash_edge *edge_a, stl_hash_edge *edge_b);
 static void stl_free_edges(stl_file *stl);
-static void stl_remove_facet(stl_file *stl, int facet_number);
 static void stl_change_vertices(stl_file *stl, int facet_num, int vnot,
                                 stl_vertex new_vertex);
 static void stl_which_vertices_to_change(stl_file *stl, stl_hash_edge *edge_a,
     stl_hash_edge *edge_b, int *facet1, int *vertex1,
     int *facet2, int *vertex2,
     stl_vertex *new_vertex1, stl_vertex *new_vertex2);
-static void stl_remove_degenerate(stl_file *stl, int facet);
 extern int stl_check_normal_vector(stl_file *stl,
                                    int facet_num, int normal_fix_flag);
-static void stl_update_connects_remove_1(stl_file *stl, int facet_num);
+
+static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
+{
+	// Good primes for addressing a cca. 30 bit space.
+	// https://planetmath.org/goodhashtableprimes
+	static std::vector<uint32_t> primes{ 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741 };
+	// Find a prime number for 50% filling of the shared triangle edges in the mesh.
+	auto it = std::upper_bound(primes.begin(), primes.end(), nr_faces * 3 * 2 - 1);
+	return (it == primes.end()) ? primes.back() : *it;
+}
 
 // This function builds the neighbors list.  No modifications are made
 // to any of the facets.  The edges are said to match only if all six
 // floats of the first edge matches all six floats of the second edge.
 void stl_check_facets_exact(stl_file *stl)
 {
-  if (stl->error)
-	  return;
+	if (stl->error)
+		return;
 
-  stl->stats.connected_edges = 0;
-  stl->stats.connected_facets_1_edge = 0;
-  stl->stats.connected_facets_2_edge = 0;
-  stl->stats.connected_facets_3_edge = 0;
+  	stl->stats.connected_edges         = 0;
+  	stl->stats.connected_facets_1_edge = 0;
+  	stl->stats.connected_facets_2_edge = 0;
+  	stl->stats.connected_facets_3_edge = 0;
 
-  // If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet.
-  // Do it before the next step, as the next step stores references to the face indices in the hash tables and removing a facet
-  // will break the references.
-  for (int i = 0; i < stl->stats.number_of_facets;) {
-	  stl_facet &facet = stl->facet_start[i];
-	  if (facet.vertex[0] == facet.vertex[1] || facet.vertex[1] == facet.vertex[2] || facet.vertex[0] == facet.vertex[2]) {
-		  // Remove the degenerate facet.
-		  facet = stl->facet_start[--stl->stats.number_of_facets];
-		  stl->stats.facets_removed += 1;
-		  stl->stats.degenerate_facets += 1;
-	  } else
-		  ++ i;
-  }
+  	// If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet.
+  	// Do it before the next step, as the next step stores references to the face indices in the hash tables and removing a facet
+  	// will break the references.
+  	for (uint32_t i = 0; i < stl->stats.number_of_facets;) {
+		stl_facet &facet = stl->facet_start[i];
+	  	if (facet.vertex[0] == facet.vertex[1] || facet.vertex[1] == facet.vertex[2] || facet.vertex[0] == facet.vertex[2]) {
+		  	// Remove the degenerate facet.
+		  	facet = stl->facet_start[--stl->stats.number_of_facets];
+		  	stl->stats.facets_removed += 1;
+		  	stl->stats.degenerate_facets += 1;
+	  	} else
+		  	++ i;
+  	}
 
-  // Connect neighbor edges.
-  stl_initialize_facet_check_exact(stl);
-  for (int i = 0; i < stl->stats.number_of_facets; i++) {
-	const stl_facet &facet = stl->facet_start[i];
-    for (int j = 0; j < 3; j++) {
-	  stl_hash_edge  edge;
-	  edge.facet_number = i;
-      edge.which_edge = j;
-      stl_load_edge_exact(stl, &edge, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
-      insert_hash_edge(stl, edge, stl_record_neighbors);
-    }
-  }
-  stl_free_edges(stl);
+  	// Initialize hash table.
+	stl->stats.malloced   = 0;
+	stl->stats.freed      = 0;
+	stl->stats.collisions = 0;
+	stl->M = (int)hash_size_from_nr_faces(stl->stats.number_of_facets);
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+		// initialize neighbors list to -1 to mark unconnected edges
+		stl->neighbors_start[i].neighbor[0] = -1;
+		stl->neighbors_start[i].neighbor[1] = -1;
+		stl->neighbors_start[i].neighbor[2] = -1;
+	}
+	stl->heads = (stl_hash_edge**)calloc(stl->M, sizeof(*stl->heads));
+	if (stl->heads == NULL)
+		perror("stl_initialize_facet_check_exact");
+	stl->tail = (stl_hash_edge*)malloc(sizeof(stl_hash_edge));
+	if (stl->tail == NULL) 
+		perror("stl_initialize_facet_check_exact");
+	stl->tail->next = stl->tail;
+	for (int i = 0; i < stl->M; ++ i)
+		stl->heads[i] = stl->tail;
+
+  	// Connect neighbor edges.
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
+		const stl_facet &facet = stl->facet_start[i];
+		for (int j = 0; j < 3; ++ j) {
+			stl_hash_edge  edge;
+			edge.facet_number = i;
+			edge.which_edge = j;
+			stl_load_edge_exact(stl, &edge, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
+			insert_hash_edge(stl, edge, stl_record_neighbors);
+		}
+	}
+	stl_free_edges(stl);
 
 #if 0
-  printf("Number of faces: %d, number of manifold edges: %d, number of connected edges: %d, number of unconnected edges: %d\r\n", 
-    stl->stats.number_of_facets, stl->stats.number_of_facets * 3, 
-    stl->stats.connected_edges, stl->stats.number_of_facets * 3 - stl->stats.connected_edges);
+	printf("Number of faces: %d, number of manifold edges: %d, number of connected edges: %d, number of unconnected edges: %d\r\n", 
+    	stl->stats.number_of_facets, stl->stats.number_of_facets * 3, 
+    	stl->stats.connected_edges, stl->stats.number_of_facets * 3 - stl->stats.connected_edges);
 #endif
 }
 
@@ -138,48 +164,6 @@ static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_ve
       // Negative zero, switch to positive zero.
       p[0] = 0;
 #endif /* BOOST_LITTLE_ENDIAN */
-  }
-}
-
-static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
-{
-	// Good primes for addressing a cca. 30 bit space.
-	// https://planetmath.org/goodhashtableprimes
-	static std::vector<uint32_t> primes{ 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741 };
-	// Find a prime number for 50% filling of the shared triangle edges in the mesh.
-	auto it = std::upper_bound(primes.begin(), primes.end(), nr_faces * 3 * 2 - 1);
-	return (it == primes.end()) ? primes.back() : *it;
-}
-
-static void
-stl_initialize_facet_check_exact(stl_file *stl) {
-  int i;
-
-  if (stl->error) return;
-
-  stl->stats.malloced = 0;
-  stl->stats.freed = 0;
-  stl->stats.collisions = 0;
-
-  stl->M = hash_size_from_nr_faces(stl->stats.number_of_facets);
-
-  for (i = 0; i < stl->stats.number_of_facets ; i++) {
-    /* initialize neighbors list to -1 to mark unconnected edges */
-    stl->neighbors_start[i].neighbor[0] = -1;
-    stl->neighbors_start[i].neighbor[1] = -1;
-    stl->neighbors_start[i].neighbor[2] = -1;
-  }
-
-  stl->heads = (stl_hash_edge**)calloc(stl->M, sizeof(*stl->heads));
-  if(stl->heads == NULL) perror("stl_initialize_facet_check_exact");
-
-  stl->tail = (stl_hash_edge*)malloc(sizeof(stl_hash_edge));
-  if(stl->tail == NULL) perror("stl_initialize_facet_check_exact");
-
-  stl->tail->next = stl->tail;
-
-  for(i = 0; i < stl->M; i++) {
-    stl->heads[i] = stl->tail;
   }
 }
 
@@ -264,7 +248,7 @@ void stl_check_facets_nearby(stl_file *stl, float tolerance)
 
   stl_initialize_facet_check_nearby(stl);
 
-  for (int i = 0; i < stl->stats.number_of_facets; ++ i) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
     //FIXME is the copy necessary?
     stl_facet facet = stl->facet_start[i];
     for (int j = 0; j < 3; j++) {
@@ -348,7 +332,7 @@ static void stl_initialize_facet_check_nearby(stl_file *stl)
   /*  tolerance = STL_MAX((stl->stats.bounding_diameter / 500000.0), tolerance);*/
   /*  tolerance *= 0.5;*/
 
-  stl->M = hash_size_from_nr_faces(stl->stats.number_of_facets);
+  stl->M = (int)hash_size_from_nr_faces(stl->stats.number_of_facets);
 
   stl->heads = (stl_hash_edge**)calloc(stl->M, sizeof(*stl->heads));
   if(stl->heads == NULL) perror("stl_initialize_facet_check_nearby");
@@ -611,181 +595,170 @@ stl_which_vertices_to_change(stl_file *stl, stl_hash_edge *edge_a,
   }
 }
 
-static void
-stl_remove_facet(stl_file *stl, int facet_number) {
-  int neighbor[3];
-  int vnot[3];
-  int i;
-  int j;
+static void remove_facet(stl_file *stl, int facet_number)
+{
+	assert(! stl->error);
+	++ stl->stats.facets_removed;
+	/* Update list of connected edges */
+	stl_neighbors &neighbors = stl->neighbors_start[facet_number];
+	// Update statistics on unconnected triangle edges.
+	switch ((neighbors.neighbor[0] == -1) + (neighbors.neighbor[1] == -1) + (neighbors.neighbor[2] == -1)) {
+	case 0: // Facet has 3 neighbors
+		-- stl->stats.connected_facets_3_edge;
+		-- stl->stats.connected_facets_2_edge;
+		-- stl->stats.connected_facets_1_edge;
+		break;
+	case 1: // Facet has 2 neighbors
+		-- stl->stats.connected_facets_2_edge;
+		-- stl->stats.connected_facets_1_edge;
+		break;
+	case 2: // Facet has 1 neighbor
+		-- stl->stats.connected_facets_1_edge;
+	case 3: // Facet has 0 neighbors
+		break;
+	default:
+		assert(false);
+	}
 
-  if (stl->error) return;
+  	if (facet_number == -- stl->stats.number_of_facets)
+  		// Removing the last face is easy, just forget the last face.
+  		return;
 
-  stl->stats.facets_removed += 1;
-  /* Update list of connected edges */
-  j = ((stl->neighbors_start[facet_number].neighbor[0] == -1) +
-       (stl->neighbors_start[facet_number].neighbor[1] == -1) +
-       (stl->neighbors_start[facet_number].neighbor[2] == -1));
-  if(j == 2) {
-    stl->stats.connected_facets_1_edge -= 1;
-  } else if(j == 1) {
-    stl->stats.connected_facets_2_edge -= 1;
-    stl->stats.connected_facets_1_edge -= 1;
-  } else if(j == 0) {
-    stl->stats.connected_facets_3_edge -= 1;
-    stl->stats.connected_facets_2_edge -= 1;
-    stl->stats.connected_facets_1_edge -= 1;
-  }
+  	// Copy the face and neighborship from the last face to facet_number.
+  	stl->facet_start[facet_number] = stl->facet_start[stl->stats.number_of_facets];
+  	neighbors = stl->neighbors_start[stl->stats.number_of_facets];
+  	// Update neighborship of faces, which used to point to the last face, now moved to facet_number.
+  	for (int i = 0; i < 3; ++ i)
+    	if (neighbors.neighbor[i] != -1) {
+	    	int &other_face_idx = stl->neighbors_start[neighbors.neighbor[i]].neighbor[(neighbors.which_vertex_not[i] + 1) % 3];
+	  		if (other_face_idx != stl->stats.number_of_facets) {
+	    		printf("in remove_facet: neighbor = %d numfacets = %d this is wrong\n", other_face_idx, stl->stats.number_of_facets);
+	    		return;
+	  		}
+	  		other_face_idx = facet_number;
+  		}
+}
 
-  stl->facet_start[facet_number] =
-    stl->facet_start[stl->stats.number_of_facets - 1];
-  /* I could reallocate at this point, but it is not really necessary. */
-  stl->neighbors_start[facet_number] =
-    stl->neighbors_start[stl->stats.number_of_facets - 1];
-  stl->stats.number_of_facets -= 1;
+static void remove_degenerate(stl_file *stl, int facet) 
+{
+	assert(! stl->error);
 
-  for(i = 0; i < 3; i++) {
-    neighbor[i] = stl->neighbors_start[facet_number].neighbor[i];
-    vnot[i] = stl->neighbors_start[facet_number].which_vertex_not[i];
-  }
+	// Update statistics on face connectivity.
+	auto stl_update_connects_remove_1 = [stl](int facet_num) {
+		assert(! stl->error);
+		//FIXME when decreasing 3_edge, should I increase 2_edge etc?
+		switch ((stl->neighbors_start[facet_num].neighbor[0] == -1) + (stl->neighbors_start[facet_num].neighbor[1] == -1) + (stl->neighbors_start[facet_num].neighbor[2] == -1)) {
+		case 0: // Facet has 3 neighbors
+			-- stl->stats.connected_facets_3_edge; break;
+		case 1: // Facet has 2 neighbors
+			-- stl->stats.connected_facets_2_edge; break;
+		case 2: // Facet has 1 neighbor
+			-- stl->stats.connected_facets_1_edge; break;
+		case 3: // Facet has 0 neighbors
+			break;
+		default:
+			assert(false);
+	  	}
+	};
 
-  for(i = 0; i < 3; i++) {
-    if(neighbor[i] != -1) {
-      if(stl->neighbors_start[neighbor[i]].neighbor[(vnot[i] + 1)% 3] !=
-          stl->stats.number_of_facets) {
-        printf("\
-in stl_remove_facet: neighbor = %d numfacets = %d this is wrong\n",
-               stl->neighbors_start[neighbor[i]].neighbor[(vnot[i] + 1)% 3],
-               stl->stats.number_of_facets);
-        return;
-      }
-      stl->neighbors_start[neighbor[i]].neighbor[(vnot[i] + 1)% 3]
-        = facet_number;
-    }
-  }
+	int edge_to_collapse = 0;
+   	if (stl->facet_start[facet].vertex[0] == stl->facet_start[facet].vertex[1]) {
+		if (stl->facet_start[facet].vertex[1] == stl->facet_start[facet].vertex[2]) {
+			// All 3 vertices are equal. Collapse the edge with no neighbor if it exists.
+			const int *nbr = stl->neighbors_start[facet].neighbor;
+			edge_to_collapse = (nbr[0] == -1) ? 0 : (nbr[1] == -1) ? 1 : 2;
+		} else {
+			edge_to_collapse = 0;
+		}
+  	} else if (stl->facet_start[facet].vertex[1] == stl->facet_start[facet].vertex[2]) {
+		edge_to_collapse = 1;
+  	} else if (stl->facet_start[facet].vertex[2] == stl->facet_start[facet].vertex[0]) {
+		edge_to_collapse = 2;
+  	} else {
+    	// No degenerate. Function shouldn't have been called.
+    	return;
+  	}
+
+	int edge[3] = { (edge_to_collapse + 1) % 3, (edge_to_collapse + 2) % 3, edge_to_collapse };
+	int neighbor[] = {
+		stl->neighbors_start[facet].neighbor[edge[0]],
+		stl->neighbors_start[facet].neighbor[edge[1]],
+		stl->neighbors_start[facet].neighbor[edge[2]]
+	};
+	int vnot[] = {
+		stl->neighbors_start[facet].which_vertex_not[edge[0]],
+		stl->neighbors_start[facet].which_vertex_not[edge[1]],
+		stl->neighbors_start[facet].which_vertex_not[edge[2]]
+	};
+	// Update statistics on edge connectivity.
+  	if (neighbor[0] == -1)
+    	stl_update_connects_remove_1(neighbor[1]);
+  	if (neighbor[1] == -1)
+    	stl_update_connects_remove_1(neighbor[0]);
+
+  	if (neighbor[0] >= 0) {
+		if (neighbor[1] >= 0) {
+			// Adjust the "flip" flag for the which_vertex_not values.
+			if (vnot[0] > 2) {
+				if (vnot[1] > 2) {
+					// The face to be removed has its normal flipped compared to the left & right neighbors, therefore after removing this face
+					// the two remaining neighbors will be oriented correctly.
+					vnot[0] -= 3;
+					vnot[1] -= 3;
+				} else
+					// One neighbor has its normal inverted compared to the face to be removed, the other is oriented equally.
+					// After removal, the two neighbors will have their normals flipped.
+					vnot[1] += 3;
+			} else if (vnot[1] > 2)
+				// One neighbor has its normal inverted compared to the face to be removed, the other is oriented equally.
+				// After removal, the two neighbors will have their normals flipped.
+				vnot[0] += 3;
+		}
+		stl->neighbors_start[neighbor[0]].neighbor[(vnot[0] + 1) % 3] = (neighbor[0] == neighbor[1]) ? -1 : neighbor[1];
+    	stl->neighbors_start[neighbor[0]].which_vertex_not[(vnot[0] + 1) % 3] = vnot[1];
+  	}
+  	if (neighbor[1] >= 0) {
+		stl->neighbors_start[neighbor[1]].neighbor[(vnot[1] + 1) % 3] = (neighbor[0] == neighbor[1]) ? -1 : neighbor[0];
+    	stl->neighbors_start[neighbor[1]].which_vertex_not[(vnot[1] + 1) % 3] = vnot[0];
+  	}
+	if (neighbor[2] >= 0) {
+		stl_update_connects_remove_1(neighbor[2]);
+		stl->neighbors_start[neighbor[2]].neighbor[(vnot[2] + 1) % 3] = -1;
+	}
+
+  	remove_facet(stl, facet);
 }
 
 void stl_remove_unconnected_facets(stl_file *stl)
 {
-  /* A couple of things need to be done here.  One is to remove any */
-  /* completely unconnected facets (0 edges connected) since these are */
-  /* useless and could be completely wrong.   The second thing that needs to */
-  /* be done is to remove any degenerate facets that were created during */
-  /* stl_check_facets_nearby(). */
-  if (stl->error)
-    return;
+	// A couple of things need to be done here.  One is to remove any completely unconnected facets (0 edges connected) since these are
+	// useless and could be completely wrong.   The second thing that needs to be done is to remove any degenerate facets that were created during
+	// stl_check_facets_nearby().
+	if (stl->error)
+		return;
 
-  // remove degenerate facets
-  for (int i = 0; i < stl->stats.number_of_facets; ++ i) {
-    if(stl->facet_start[i].vertex[0] == stl->facet_start[i].vertex[1] ||
-       stl->facet_start[i].vertex[0] == stl->facet_start[i].vertex[2] ||
-       stl->facet_start[i].vertex[1] == stl->facet_start[i].vertex[2]) {
-      stl_remove_degenerate(stl, i);
-      i--;
-    }
-  }
+	// remove degenerate facets
+	for (uint32_t i = 0; i < stl->stats.number_of_facets;)
+		if (stl->facet_start[i].vertex[0] == stl->facet_start[i].vertex[1] ||
+			stl->facet_start[i].vertex[0] == stl->facet_start[i].vertex[2] ||
+			stl->facet_start[i].vertex[1] == stl->facet_start[i].vertex[2]) {
+			remove_degenerate(stl, i);
+//			assert(stl_validate(stl));
+		} else
+			++ i;
 
-  if(stl->stats.connected_facets_1_edge < stl->stats.number_of_facets) {
-    // remove completely unconnected facets
-    for (int i = 0; i < stl->stats.number_of_facets; i++) {
-      if (stl->neighbors_start[i].neighbor[0] == -1 &&
-          stl->neighbors_start[i].neighbor[1] == -1 &&
-          stl->neighbors_start[i].neighbor[2] == -1) {
-        // This facet is completely unconnected.  Remove it.
-        stl_remove_facet(stl, i);
-        -- i;
-      }
-    }
-  }
-}
-
-static void
-stl_remove_degenerate(stl_file *stl, int facet) {
-  int edge1;
-  int edge2;
-  int edge3;
-  int neighbor1;
-  int neighbor2;
-  int neighbor3;
-  int vnot1;
-  int vnot2;
-  int vnot3;
-
-  if (stl->error) return;
-
-  if (stl->facet_start[facet].vertex[0] == stl->facet_start[facet].vertex[1] &&
-      stl->facet_start[facet].vertex[1] == stl->facet_start[facet].vertex[2]) {
-    /* all 3 vertices are equal.  Just remove the facet.  I don't think*/
-    /* this is really possible, but just in case... */
-    printf("removing a facet in stl_remove_degenerate\n");
-    stl_remove_facet(stl, facet);
-    return;
-  }
-
-  if (stl->facet_start[facet].vertex[0] == stl->facet_start[facet].vertex[1]) {
-    edge1 = 1;
-    edge2 = 2;
-    edge3 = 0;
-  } else if (stl->facet_start[facet].vertex[1] == stl->facet_start[facet].vertex[2]) {
-    edge1 = 0;
-    edge2 = 2;
-    edge3 = 1;
-  } else if (stl->facet_start[facet].vertex[2] == stl->facet_start[facet].vertex[0]) {
-    edge1 = 0;
-    edge2 = 1;
-    edge3 = 2;
-  } else {
-    /* No degenerate. Function shouldn't have been called. */
-    return;
-  }
-  neighbor1 = stl->neighbors_start[facet].neighbor[edge1];
-  neighbor2 = stl->neighbors_start[facet].neighbor[edge2];
-
-  if(neighbor1 == -1) {
-    stl_update_connects_remove_1(stl, neighbor2);
-  }
-  if(neighbor2 == -1) {
-    stl_update_connects_remove_1(stl, neighbor1);
-  }
-
-
-  neighbor3 = stl->neighbors_start[facet].neighbor[edge3];
-  vnot1 = stl->neighbors_start[facet].which_vertex_not[edge1];
-  vnot2 = stl->neighbors_start[facet].which_vertex_not[edge2];
-  vnot3 = stl->neighbors_start[facet].which_vertex_not[edge3];
-
-  if(neighbor1 >= 0){
-    stl->neighbors_start[neighbor1].neighbor[(vnot1 + 1) % 3] = neighbor2;
-    stl->neighbors_start[neighbor1].which_vertex_not[(vnot1 + 1) % 3] = vnot2;
-  }
-  if(neighbor2 >= 0){
-    stl->neighbors_start[neighbor2].neighbor[(vnot2 + 1) % 3] = neighbor1;
-    stl->neighbors_start[neighbor2].which_vertex_not[(vnot2 + 1) % 3] = vnot1;
-  }
-
-  stl_remove_facet(stl, facet);
-
-  if(neighbor3 >= 0) {
-    stl_update_connects_remove_1(stl, neighbor3);
-    stl->neighbors_start[neighbor3].neighbor[(vnot3 + 1) % 3] = -1;
-  }
-}
-
-void
-stl_update_connects_remove_1(stl_file *stl, int facet_num) {
-  int j;
-
-  if (stl->error) return;
-  /* Update list of connected edges */
-  j = ((stl->neighbors_start[facet_num].neighbor[0] == -1) +
-       (stl->neighbors_start[facet_num].neighbor[1] == -1) +
-       (stl->neighbors_start[facet_num].neighbor[2] == -1));
-  if(j == 0) {		       /* Facet has 3 neighbors */
-    stl->stats.connected_facets_3_edge -= 1;
-  } else if(j == 1) {	     /* Facet has 2 neighbors */
-    stl->stats.connected_facets_2_edge -= 1;
-  } else if(j == 2) {	     /* Facet has 1 neighbor  */
-    stl->stats.connected_facets_1_edge -= 1;
-  }
+	if (stl->stats.connected_facets_1_edge < (int)stl->stats.number_of_facets) {
+		// remove completely unconnected facets
+		for (uint32_t i = 0; i < stl->stats.number_of_facets;)
+			if (stl->neighbors_start[i].neighbor[0] == -1 &&
+				stl->neighbors_start[i].neighbor[1] == -1 &&
+				stl->neighbors_start[i].neighbor[2] == -1) {
+				// This facet is completely unconnected.  Remove it.
+				remove_facet(stl, i);
+				assert(stl_validate(stl));
+			} else
+				++ i;
+	}
 }
 
 void
@@ -801,7 +774,6 @@ stl_fill_holes(stl_file *stl) {
   int next_edge;
   int pivot_vertex;
   int next_facet;
-  int i;
   int j;
   int k;
 
@@ -809,7 +781,7 @@ stl_fill_holes(stl_file *stl) {
 
   /* Insert all unconnected edges into hash list */
   stl_initialize_facet_check_nearby(stl);
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     facet = stl->facet_start[i];
     for(j = 0; j < 3; j++) {
       if(stl->neighbors_start[i].neighbor[j] != -1) continue;
@@ -822,7 +794,7 @@ stl_fill_holes(stl_file *stl) {
     }
   }
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     facet = stl->facet_start[i];
     neighbors_initial[0] = stl->neighbors_start[i].neighbor[0];
     neighbors_initial[1] = stl->neighbors_start[i].neighbor[1];
@@ -900,7 +872,7 @@ stl_add_facet(stl_file *stl, stl_facet *new_facet) {
   if (stl->error) return;
 
   stl->stats.facets_added += 1;
-  if(stl->stats.facets_malloced < stl->stats.number_of_facets + 1) {
+  if(stl->stats.facets_malloced < (int)stl->stats.number_of_facets + 1) {
     stl->facet_start = (stl_facet*)realloc(stl->facet_start,
                                            (sizeof(stl_facet) * (stl->stats.facets_malloced + 256)));
     if(stl->facet_start == NULL) perror("stl_add_facet");

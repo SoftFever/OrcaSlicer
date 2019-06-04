@@ -104,18 +104,21 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 
 void TriangleMesh::repair()
 {
-    if (this->repaired) return;
+    if (this->repaired)
+    	return;
     
     // admesh fails when repairing empty meshes
-    if (this->stl.stats.number_of_facets == 0) return;
+    if (this->stl.stats.number_of_facets == 0)
+    	return;
 
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() started";
-    
+
     // checking exact
 #ifdef SLIC3R_TRACE_REPAIR
 	BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_exact";
 #endif /* SLIC3R_TRACE_REPAIR */
 	stl_check_facets_exact(&stl);
+    assert(stl_validate(&this->stl));
     stl.stats.facets_w_1_bad_edge = (stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge);
     stl.stats.facets_w_2_bad_edge = (stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge);
     stl.stats.facets_w_3_bad_edge = (stl.stats.number_of_facets - stl.stats.connected_facets_1_edge);
@@ -141,6 +144,7 @@ void TriangleMesh::repair()
             }
         }
     }
+    assert(stl_validate(&this->stl));
     
     // remove_unconnected
     if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
@@ -148,6 +152,7 @@ void TriangleMesh::repair()
         BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
 #endif /* SLIC3R_TRACE_REPAIR */
         stl_remove_unconnected_facets(&stl);
+	    assert(stl_validate(&this->stl));
     }
     
     // fill_holes
@@ -168,24 +173,28 @@ void TriangleMesh::repair()
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_directions";
 #endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_directions(&stl);
+    assert(stl_validate(&this->stl));
 
     // normal_values
 #ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_values";
 #endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_values(&stl);
+    assert(stl_validate(&this->stl));
     
     // always calculate the volume and reverse all normals if volume is negative
 #ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_calculate_volume";
 #endif /* SLIC3R_TRACE_REPAIR */
     stl_calculate_volume(&stl);
+    assert(stl_validate(&this->stl));
     
     // neighbors
 #ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_verify_neighbors";
 #endif /* SLIC3R_TRACE_REPAIR */
     stl_verify_neighbors(&stl);
+    assert(stl_validate(&this->stl));
 
     this->repaired = true;
 
@@ -594,27 +603,14 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 void TriangleMesh::require_shared_vertices()
 {
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
-    if (!this->repaired) 
+    assert(stl_validate(&this->stl));
+    if (! this->repaired) 
         this->repair();
-    if (this->stl.v_shared == NULL) {
+    if (this->stl.v_shared == nullptr) {
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
         stl_generate_shared_vertices(&(this->stl));
     }
-#ifdef _DEBUG
-    // Verify validity of neighborship data.
-    for (int facet_idx = 0; facet_idx < stl.stats.number_of_facets; ++facet_idx) {
-        const stl_neighbors &nbr = stl.neighbors_start[facet_idx];
-        const int *vertices = stl.v_indices[facet_idx].vertex;
-        for (int nbr_idx = 0; nbr_idx < 3; ++nbr_idx) {
-            int nbr_face = this->stl.neighbors_start[facet_idx].neighbor[nbr_idx];
-            if (nbr_face != -1) {
-				assert(
-					(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[(nbr_idx + 1) % 3] && stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[nbr_idx]) ||
-					(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[(nbr_idx + 1) % 3] && stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[nbr_idx]));
-            }
-        }
-    }
-#endif /* _DEBUG */
+    assert(stl_validate(&this->stl));
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
