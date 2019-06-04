@@ -21,90 +21,100 @@ namespace GUI
 ObjectLayers::ObjectLayers(wxWindow* parent) :
     OG_Settings(parent, true)
 {
-    m_og->label_width = 1;
-    m_og->set_grid_vgap(5);
+    m_grid_sizer = new wxFlexGridSizer(3, 5, 5); // "Min Z", "Max Z", "Layer height" & buttons sizer
+    m_grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
 
-    m_og->m_on_change = std::bind(&ObjectLayers::on_change, this, std::placeholders::_1, std::placeholders::_2);
-    
     // Legend for object layers
-    Line line = Line{ "", "" };
-
-    ConfigOptionDef def;
-    def.label = "";
-    def.gui_type = "legend";
-    def.type = coString;
-    def.width = field_width;
-
     for (const std::string col : { "Min Z", "Max Z", "Layer height" }) {
-        def.set_default_value(new ConfigOptionString{ col });
-        std::string label = boost::algorithm::replace_all_copy(col, " ", "_");
-        boost::algorithm::to_lower(label);
-        line.append_option(Option(def, label + "_legend"));
+        auto temp = new wxStaticText(m_parent, wxID_ANY, _(L(col)), wxDefaultPosition, /*size*/wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
+        temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        temp->SetFont(wxGetApp().bold_font());
 
-        m_legends.push_back(label + "_legend");
+        m_grid_sizer->Add(temp);
     }
 
-    m_og->append_line(line);
+    m_og->sizer->Clear(true);
+    m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 
     m_bmp_delete    = ScalableBitmap(parent, "remove_copies"/*"cross"*/);
     m_bmp_add       = ScalableBitmap(parent, "add_copies");
 }
 
-static Line create_new_layer(const t_layer_config_ranges::value_type& layer, const int idx)
+wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges::value_type& layer)
 {
-    Line line = Line{ "", "" };
-    ConfigOptionDef def;
-    def.label = "";
-    def.gui_type = "";
-    def.type = coFloat;
-    def.width = field_width;
+    auto size = wxSize(field_width * em_unit(m_parent), wxDefaultCoord);
 
-    std::string label = (boost::format("min_z_%d") % idx).str();
-    def.set_default_value(new ConfigOptionFloat(layer.first.first));
-    line.append_option(Option(def, label));
+    // Add control for the "Min Z"
+    wxString text_value = double_to_string(layer.first.first);
+    auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-    label = (boost::format("max_z_%d") % idx).str();
-    def.set_default_value(new ConfigOptionFloat(layer.first.second));
-    line.append_option(Option(def, label));
+    temp->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent& e)
+    {
 
-    label = (boost::format("layer_height_%d") % idx).str();
-    def.set_default_value(new ConfigOptionFloat(layer.second.option("layer_height")->getFloat()));
-    line.append_option(Option(def, label));
+    }), temp->GetId());
 
-    return line;
+    temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
+    {
+
+    }), temp->GetId());
+
+
+    temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
+    {
+        // select all text using Ctrl+A
+        if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+            temp->SetSelection(-1, -1); //select all
+        event.Skip();
+    }));
+
+    m_grid_sizer->Add(temp);
+
+    // Add control for the "Max Z"
+    text_value = double_to_string(layer.first.second);
+    temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    
+    m_grid_sizer->Add(temp);
+
+    // Add control for the "Layer height"
+    auto sizer = new wxBoxSizer(wxHORIZONTAL); 
+
+    text_value = double_to_string(layer.second.option("layer_height")->getFloat());
+    temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    sizer->Add(temp);
+
+    m_grid_sizer->Add(sizer);
+
+    return sizer;
 }
 
 void ObjectLayers::create_layers_list()
 {
     for (const auto layer : m_object->layer_config_ranges)
     {
-        auto create_btns = [this, layer](wxWindow* parent) {
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto sizer = create_layer_without_buttons(layer);
 
-            auto del_btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
-            del_btn->SetToolTip(_(L("Remove layer")));
+        wxWindow* parent = m_parent;
+        auto del_btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
+        del_btn->SetToolTip(_(L("Remove layer")));
 
-            sizer->Add(del_btn, 0, wxRIGHT, em_unit(parent));
+        sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(parent));
 
-            del_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
-                wxGetApp().obj_list()->del_layer_range(layer.first);
-            });
+        del_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
+            wxGetApp().obj_list()->del_layer_range(layer.first);
+        });
 
-            auto add_btn = new ScalableButton(parent, wxID_ANY, m_bmp_add);
-            add_btn->SetToolTip(_(L("Add layer")));
+        auto add_btn = new ScalableButton(parent, wxID_ANY, m_bmp_add);
+        add_btn->SetToolTip(_(L("Add layer")));
 
-            sizer->Add(add_btn, 0, wxRIGHT, em_unit(parent));
+        sizer->Add(add_btn, 0, wxRIGHT, em_unit(parent));
 
-            add_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
-                wxGetApp().obj_list()->add_layer_range(layer.first);
-            });
-
-            return sizer;
-        };
-
-        Line line = create_new_layer(layer, m_og->get_grid_sizer()->GetEffectiveRowsCount()-1);
-        line.append_widget(create_btns);
-        m_og->append_line(line);
+        add_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
+            wxGetApp().obj_list()->add_layer_range(layer.first);
+        });
     }
 }
 
@@ -117,8 +127,8 @@ void ObjectLayers::create_layer(int id)
         ++layer_range;
         id--;
     }
-        
-    m_og->append_line(create_new_layer(*layer_range, m_og->get_grid_sizer()->GetEffectiveRowsCount()-1));
+
+    create_layer_without_buttons(*layer_range);
 }
 
 void ObjectLayers::update_layers_list()
@@ -140,18 +150,16 @@ void ObjectLayers::update_layers_list()
 
     // Delete all controls from options group except of the legends
 
-    auto grid_sizer = m_og->get_grid_sizer();
-    const int cols = grid_sizer->GetEffectiveColsCount();
-    const int rows = grid_sizer->GetEffectiveRowsCount();
+    const int cols = m_grid_sizer->GetEffectiveColsCount();
+    const int rows = m_grid_sizer->GetEffectiveRowsCount();
     for (int idx = cols*rows-1; idx >= cols; idx--) {
-        wxSizerItem* t = grid_sizer->GetItem(idx);
+        wxSizerItem* t = m_grid_sizer->GetItem(idx);
         if (t->IsSizer())
             t->GetSizer()->Clear(true);
-            grid_sizer->Remove(idx);
+        else
+            t->DeleteWindows();
+        m_grid_sizer->Remove(idx);
     }
-
-    m_og->clear_fields_except_of(m_legends);
-
 
     // Add new control according to the selected item  
 
@@ -175,11 +183,6 @@ void ObjectLayers::msw_rescale()
 {
     m_bmp_delete.msw_rescale();
     m_bmp_add.msw_rescale();
-}
-
-void ObjectLayers::on_change(t_config_option_key opt_key, const boost::any& value)
-{
-
 }
 
 } //namespace GUI

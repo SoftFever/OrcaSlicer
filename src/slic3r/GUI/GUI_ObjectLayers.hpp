@@ -18,19 +18,19 @@ class ObjectLayers : public OG_Settings
     ScalableBitmap  m_bmp_add;
     ModelObject*    m_object {nullptr};
 
-    std::vector<std::string> m_legends;
+    wxFlexGridSizer*            m_grid_sizer;
 
 public:
     ObjectLayers(wxWindow* parent);
     ~ObjectLayers() {}
 
-    void        create_layers_list();
+    wxSizer*    create_layer_without_buttons(const std::map<std::pair<coordf_t, coordf_t>, DynamicPrintConfig>::value_type& layer);
     void        create_layer(int id);
+    void        create_layers_list();
     void        update_layers_list();
 
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
-    void        on_change(t_config_option_key opt_key, const boost::any& value);
 };
 
 }}
