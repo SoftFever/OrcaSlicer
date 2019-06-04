@@ -276,7 +276,7 @@ public:
     void add_layer_item (const std::pair<coordf_t, coordf_t>& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);
-    void edit_layer_range(const std::pair<coordf_t, coordf_t>& range);
+    void edit_layer_range(const std::pair<coordf_t, coordf_t>& range, coordf_t layer_height);
 
     void init_objects();
     bool multiple_selection() const ;

@@ -46,44 +46,21 @@ wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges:
     auto size = wxSize(field_width * em_unit(m_parent), wxDefaultCoord);
 
     // Add control for the "Min Z"
-    wxString text_value = double_to_string(layer.first.first);
-    auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
-    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-
-    temp->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent& e)
-    {
-
-    }), temp->GetId());
-
-    temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
-    {
-
-    }), temp->GetId());
-
-
-    temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
-    {
-        // select all text using Ctrl+A
-        if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
-            temp->SetSelection(-1, -1); //select all
-        event.Skip();
-    }));
-
+    auto temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.first), size);
     m_grid_sizer->Add(temp);
 
     // Add control for the "Max Z"
-    text_value = double_to_string(layer.first.second);
-    temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
-    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    
+    temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.second), size);    
     m_grid_sizer->Add(temp);
 
     // Add control for the "Layer height"
     auto sizer = new wxBoxSizer(wxHORIZONTAL); 
 
-    text_value = double_to_string(layer.second.option("layer_height")->getFloat());
-    temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
-    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    const wxString text_value = double_to_string(layer.second.option("layer_height")->getFloat());
+
+    temp = new LayerRangeEditor(m_parent, text_value, size, [temp, layer](coordf_t layer_height) {
+        wxGetApp().obj_list()->edit_layer_range(layer.first, layer_height);
+    } );
     sizer->Add(temp);
 
     m_grid_sizer->Add(sizer);
@@ -183,6 +160,60 @@ void ObjectLayers::msw_rescale()
 {
     m_bmp_delete.msw_rescale();
     m_bmp_add.msw_rescale();
+}
+
+LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
+                                    const wxString& value,
+                                    const wxSize& size,
+                                    std::function<void(coordf_t)> edit_fn
+                                    ) :
+    wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, size, wxTE_PROCESS_ENTER)
+{
+    this->SetFont(wxGetApp().normal_font());
+    
+    this->Bind(wxEVT_TEXT_ENTER, ([this, edit_fn](wxEvent& e)
+    {
+        edit_fn(get_value());
+        m_enter_pressed = true;
+    }), this->GetId());
+
+    this->Bind(wxEVT_KILL_FOCUS, ([this, edit_fn](wxEvent& e)
+    {
+        e.Skip();
+        if (!m_enter_pressed)
+            edit_fn(get_value());
+        m_enter_pressed = false;
+    }), this->GetId());
+
+
+    this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
+    {
+        // select all text using Ctrl+A
+        if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+            this->SetSelection(-1, -1); //select all
+        event.Skip();
+    }));
+}
+
+coordf_t LayerRangeEditor::get_value()
+{
+    wxString str = GetValue();
+
+    coordf_t layer_height;
+    // Replace the first occurence of comma in decimal number.
+    str.Replace(",", ".", false);
+    if (str == ".")
+        layer_height = 0.0;
+    else
+    {
+        if (!str.ToCDouble(&layer_height) || layer_height < 0.0f)
+        {
+            show_error(m_parent, _(L("Invalid numeric input.")));
+            SetValue(double_to_string(layer_height));
+        }
+    }
+
+    return layer_height;
 }
 
 } //namespace GUI

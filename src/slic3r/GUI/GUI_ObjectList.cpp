@@ -2312,9 +2312,15 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
     m_objects_model->AddLayersChild(layers_item, label, layer_idx);
 }
 
-void ObjectList::edit_layer_range(const std::pair<coordf_t, coordf_t>& range)
+void ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
 {
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
 
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+
+    DynamicPrintConfig* config = &ranges[range];
+    config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
 }
 
 void ObjectList::init_objects()

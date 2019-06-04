@@ -12,6 +12,22 @@ class ModelObject;
 namespace GUI {
 class ConfigOptionsGroup;
 
+class LayerRangeEditor : public wxTextCtrl
+{
+    bool                m_enter_pressed { false };
+public:
+    LayerRangeEditor(   wxWindow* parent,
+                        const wxString& value = wxEmptyString,
+                        const wxSize& size = wxDefaultSize,
+                        std::function<void(coordf_t val)> edit_fn = [](coordf_t) {; }
+                        );
+    ~LayerRangeEditor() {}
+
+
+private:
+    coordf_t            get_value();
+};
+
 class ObjectLayers : public OG_Settings
 {
     ScalableBitmap  m_bmp_delete;
