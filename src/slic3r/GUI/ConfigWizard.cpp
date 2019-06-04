@@ -584,7 +584,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     , version_check(true)
     , preset_update(true)
 {
-    const AppConfig *app_config = GUI::get_app_config();
+    const AppConfig *app_config = wxGetApp().app_config;
     auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
@@ -1084,7 +1084,7 @@ const std::string& Materials::get_filament_vendor(const Preset &preset)
 const std::string& Materials::get_material_type(Preset &preset)
 {
     // XXX: The initial_layer_height is of a float type and contains no string to reference,
-    // and so here he serialize it into an ad-hoc option initial_layer_height_str, which is then referenced
+    // and so here we serialize it into an ad-hoc option initial_layer_height_str, which is then referenced
 
     const auto *opt_str = preset.config.opt<ConfigOptionString>("initial_layer_height_str");
     if (opt_str == nullptr) {
@@ -1234,7 +1234,7 @@ void ConfigWizard::priv::load_vendors()
     }
 
     // Load up the set of vendors / models / variants the user has had enabled up till now
-    AppConfig *app_config = GUI::get_app_config();
+    AppConfig *app_config = wxGetApp().app_config;
     if (! app_config->legacy_datadir()) {
         appconfig_new.set_vendors(*app_config);
     } else {
@@ -1269,6 +1269,16 @@ void ConfigWizard::priv::enable_next(bool enable)
 {
     btn_next->Enable(enable);
     btn_finish->Enable(enable);
+}
+
+void ConfigWizard::priv::set_start_page(ConfigWizard::StartPage start_page)
+{
+    switch (start_page) {
+        case ConfigWizard::SP_PRINTERS: index->go_to(page_fff); break;
+        case ConfigWizard::SP_FILAMENTS: index->go_to(page_filaments); break;
+        case ConfigWizard::SP_MATERIALS: index->go_to(page_sla_materials); break;
+        default: index->go_to(page_welcome); break;
+    }
 }
 
 void ConfigWizard::priv::on_custom_setup()
@@ -1390,12 +1400,11 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
 // Public
 
-ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
-    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+ConfigWizard::ConfigWizard()
+    : DPIDialog(nullptr, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());
-    p->run_reason = reason;
 
     p->load_vendors();
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
@@ -1499,13 +1508,18 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
 
 ConfigWizard::~ConfigWizard() {}
 
-bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater)
+bool ConfigWizard::run(RunReason reason, StartPage start_page)
 {
-    BOOST_LOG_TRIVIAL(info) << "Running ConfigWizard, reason: " << p->run_reason;
+    BOOST_LOG_TRIVIAL(info) << boost::format("Running ConfigWizard, reason: %1%, start_page: %2%") % reason % start_page;
+
+    GUI_App &app = wxGetApp();
+
+    p->run_reason = reason;
+    p->set_start_page(start_page);
+
     if (ShowModal() == wxID_OK) {
-        auto *app_config = GUI::get_app_config();
-        p->apply_config(app_config, preset_bundle, updater);
-        app_config->set_legacy_datadir(false);
+        p->apply_config(app.app_config, app.preset_bundle, app.preset_updater);
+        app.app_config->set_legacy_datadir(false);
         BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
         return true;
     } else {
@@ -1513,7 +1527,6 @@ bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater
         return false;
     }
 }
-
 
 const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 {

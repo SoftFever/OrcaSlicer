@@ -1601,6 +1601,9 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
+
+    ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove filaments")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_FILAMENTS);
+
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();

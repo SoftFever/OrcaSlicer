@@ -192,11 +192,9 @@ typedef DataList<wxCheckListBox, Preset> PresetList;
 
 struct PageMaterials: ConfigWizardPage
 {
-    // Technology technology;
     Materials *materials;
     StringList *list_l1, *list_l2;
     PresetList *list_l3;
-    // wxCheckListBox *list_l3;
     int sel1_prev, sel2_prev;
 
     PageMaterials(ConfigWizard *parent, Materials *materials, wxString title, wxString shortname, wxString list1name);
@@ -333,7 +331,7 @@ wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
 struct ConfigWizard::priv
 {
     ConfigWizard *q;
-    ConfigWizard::RunReason run_reason;
+    ConfigWizard::RunReason run_reason = RR_USER;
     AppConfig appconfig_new;      // Backing for vendor/model/variant and material selections in the GUI
     std::unordered_map<std::string, VendorProfile> vendors;
     Materials filaments;          // Holds available filament presets and their types & vendors
@@ -382,6 +380,7 @@ struct ConfigWizard::priv
     void load_vendors();
     void add_page(ConfigWizardPage *page);
     void enable_next(bool enable);
+    void set_start_page(ConfigWizard::StartPage start_page);
 
     void on_custom_setup();
     void on_printer_pick(PagePrinters *page);

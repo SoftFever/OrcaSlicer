@@ -56,8 +56,12 @@ public:
     ScalableButton* edit_btn { nullptr };
 
 	enum LabelItemType {
-		LABEL_ITEM_MARKER = 0x4d,
-		LABEL_ITEM_CONFIG_WIZARD = 0x4e
+		LABEL_ITEM_MARKER = 0xffffff01,
+		LABEL_ITEM_WIZARD_PRINTERS,
+        LABEL_ITEM_WIZARD_FILAMENTS,
+        LABEL_ITEM_WIZARD_MATERIALS,
+
+        LABEL_ITEM_MAX,
 	};
 
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
