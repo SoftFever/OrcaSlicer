@@ -18,8 +18,8 @@ class LayerRangeEditor : public wxTextCtrl
 public:
     LayerRangeEditor(   wxWindow* parent,
                         const wxString& value = wxEmptyString,
-                        const wxSize& size = wxDefaultSize,
-                        std::function<void(coordf_t val)> edit_fn = [](coordf_t) {; }
+                        std::function<void(coordf_t val)> edit_fn = [](coordf_t) {},
+                        const bool deletable_after_change = true
                         );
     ~LayerRangeEditor() {}
 

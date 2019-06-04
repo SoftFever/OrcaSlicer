@@ -43,26 +43,31 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 
 wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges::value_type& layer)
 {
-    auto size = wxSize(field_width * em_unit(m_parent), wxDefaultCoord);
-
     // Add control for the "Min Z"
-    auto temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.first), size);
+    auto temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.first),
+                                     [layer](coordf_t min_z) {
+        wxGetApp().obj_list()->edit_layer_range(layer.first, { min_z, layer.first.second });
+    });
+
     m_grid_sizer->Add(temp);
 
     // Add control for the "Max Z"
-    temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.second), size);    
+    temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.second),
+                                [layer](coordf_t max_z) {
+        wxGetApp().obj_list()->edit_layer_range(layer.first, { layer.first.first, max_z });
+    });
+    
     m_grid_sizer->Add(temp);
 
     // Add control for the "Layer height"
-    auto sizer = new wxBoxSizer(wxHORIZONTAL); 
-
-    const wxString text_value = double_to_string(layer.second.option("layer_height")->getFloat());
-
-    temp = new LayerRangeEditor(m_parent, text_value, size, [temp, layer](coordf_t layer_height) {
+    temp = new LayerRangeEditor(m_parent, 
+                                double_to_string(layer.second.option("layer_height")->getFloat()), 
+                                [layer](coordf_t layer_height) {
         wxGetApp().obj_list()->edit_layer_range(layer.first, layer_height);
-    } );
-    sizer->Add(temp);
+    }, false );
 
+    auto sizer = new wxBoxSizer(wxHORIZONTAL); 
+    sizer->Add(temp);
     m_grid_sizer->Add(sizer);
 
     return sizer;
@@ -164,25 +169,28 @@ void ObjectLayers::msw_rescale()
 
 LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
                                     const wxString& value,
-                                    const wxSize& size,
-                                    std::function<void(coordf_t)> edit_fn
+                                    std::function<void(coordf_t)> edit_fn,
+                                    const bool deletable_after_change
                                     ) :
-    wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, size, wxTE_PROCESS_ENTER)
+    wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, 
+               wxSize(field_width * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
     this->SetFont(wxGetApp().normal_font());
     
     this->Bind(wxEVT_TEXT_ENTER, ([this, edit_fn](wxEvent& e)
     {
-        edit_fn(get_value());
         m_enter_pressed = true;
+        edit_fn(get_value());
     }), this->GetId());
 
-    this->Bind(wxEVT_KILL_FOCUS, ([this, edit_fn](wxEvent& e)
+    this->Bind(wxEVT_KILL_FOCUS, ([this, edit_fn, deletable_after_change](wxEvent& e)
     {
-        e.Skip();
-        if (!m_enter_pressed)
+        if (!deletable_after_change)
+            e.Skip();
+        if (!m_enter_pressed) {
+            m_enter_pressed = false;
             edit_fn(get_value());
-        m_enter_pressed = false;
+        }
     }), this->GetId());
 
 

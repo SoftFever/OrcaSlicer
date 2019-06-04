@@ -2265,6 +2265,9 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
             ++it;
         }
 
+        if (selected_range->first.second > next_range->first.first)
+            return; // range devision has no mean
+        
         if (selected_range->first.second == next_range->first.first)
         {
             const coordf_t delta = (next_range->first.second - next_range->first.first);
@@ -2321,6 +2324,31 @@ void ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
 
     DynamicPrintConfig* config = &ranges[range];
     config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+}
+
+void ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range)
+{
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
+
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+
+    const DynamicPrintConfig config = ranges[range];
+
+    ranges.erase(range);
+    ranges[new_range] = config;
+
+    wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
+    m_objects_model->DeleteChildren(root_item);
+
+    if (root_item.IsOk())
+        // create Layer item(s) according to the layer_config_ranges
+        for (const auto r : ranges)
+            add_layer_item(r.first, root_item);
+
+    // To update(recreate) layers sizer call select_item for LayerRoot item expand
+    select_item(root_item);
+    Expand(root_item);
 }
 
 void ObjectList::init_objects()
