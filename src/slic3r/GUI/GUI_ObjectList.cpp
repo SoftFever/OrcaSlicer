@@ -2212,7 +2212,7 @@ void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
-    t_layer_height_ranges& ranges = object(obj_idx)->layer_height_ranges;
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
     wxDataViewItem selectable_item = GetSelection();
     int layer_idx = 0;
@@ -2221,10 +2221,10 @@ void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
         selectable_item = m_objects_model->GetParent(selectable_item);
     else {
         // May be not a best solution #ys_FIXME
-        t_layer_height_ranges::iterator layer_selected = ranges.find(range);
-        t_layer_height_ranges::iterator it = ranges.begin();
+        t_layer_config_ranges::iterator layer_selected = ranges.find(range);
+        t_layer_config_ranges::iterator it = ranges.begin();
         while (it != layer_selected) {
-            it++;
+            ++it;
             layer_idx++;
         }
     }

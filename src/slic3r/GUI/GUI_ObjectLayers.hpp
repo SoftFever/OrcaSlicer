@@ -14,15 +14,15 @@ class ConfigOptionsGroup;
 
 class LayerRangeEditor : public wxTextCtrl
 {
-    bool                m_enter_pressed { false };
+    bool                m_enter_pressed     { false };
+    bool                m_call_kill_focus   { false };
+
 public:
     LayerRangeEditor(   wxWindow* parent,
                         const wxString& value = wxEmptyString,
-                        std::function<void(coordf_t val)> edit_fn = [](coordf_t) {},
-                        const bool deletable_after_change = true
+                        std::function<bool(coordf_t val)> edit_fn = [](coordf_t) {return false; }
                         );
     ~LayerRangeEditor() {}
-
 
 private:
     coordf_t            get_value();
@@ -34,7 +34,16 @@ class ObjectLayers : public OG_Settings
     ScalableBitmap  m_bmp_add;
     ModelObject*    m_object {nullptr};
 
-    wxFlexGridSizer*            m_grid_sizer;
+    wxFlexGridSizer*                m_grid_sizer;
+    std::pair<coordf_t, coordf_t>   m_last_edited_range;
+
+    enum SelectedItemType
+    {
+        sitUndef,
+        sitMinZ,
+        sitMaxZ,
+        sitLayerHeight,
+    } m_selection_type {sitUndef};
 
 public:
     ObjectLayers(wxWindow* parent);
