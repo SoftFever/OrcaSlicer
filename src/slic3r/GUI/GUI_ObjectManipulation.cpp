@@ -172,33 +172,50 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.type = coString;
     def.width = field_width - mirror_btn_width;//field_width/*50*/;
 
+    // Load bitmaps to be used for the mirroring buttons:
+    m_mirror_bitmap_on  = ScalableBitmap(parent, "mirroring_on.png");
+    m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off.png");
+    m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
+
 	for (const std::string axis : { "x", "y", "z" }) {
         const std::string label = boost::algorithm::to_upper_copy(axis);
         def.set_default_value(new ConfigOptionString{ "   " + label });
         Option option = Option(def, axis + "_axis_legend");
 
+        unsigned int axis_idx = (axis[0] - 'x'); // 0, 1 or 2
+
         // We will add a button to toggle mirroring to each axis:
         auto mirror_button = [=](wxWindow* parent) {
-            m_mirror_bitmap_on  = ScalableBitmap(parent, "colorchange_add_on.png");
-            m_mirror_bitmap_off = ScalableBitmap(parent, "colorchange_delete_off.png");
-            auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png", wxEmptyString, wxSize(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width));
-            btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), boost::algorithm::to_upper_copy(axis)));
-            m_mirror_buttons[axis] = btn;
+            wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
+            auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off.png", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+            btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), label));
+
+            m_mirror_buttons[axis_idx].first = btn;
+            m_mirror_buttons[axis_idx].second = mbShown;
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(btn, wxBU_EXACTFIT/* | wxRESERVE_SPACE_EVEN_IF_HIDDEN*/);
+            sizer->Add(btn);
+
             btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
-                wxWindow* btn = dynamic_cast<wxWindow*>(e.GetEventObject());
-                Axis axis = (btn == m_mirror_buttons["x"] ? X : ( btn == m_mirror_buttons["y"] ? Y : Z));
+                Axis axis = (Axis)(axis_idx + X);
+                if (m_mirror_buttons[axis_idx].second == mbHidden)
+                    return;
+
                 GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
                 Selection& selection = canvas->get_selection();
-                GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
 
-                if (selection.is_single_volume() || selection.is_single_modifier())
+                if (selection.is_single_volume() || selection.is_single_modifier()) {
+                    GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
                     volume->set_volume_mirror(axis, -volume->get_volume_mirror(axis));
-                else if (selection.is_single_full_instance())
-                    volume->set_instance_mirror(axis, -volume->get_instance_mirror(axis));
+                }
+                else if (selection.is_single_full_instance()) {
+                    for (unsigned int idx : selection.get_volume_idxs()){
+                        GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+                        volume->set_instance_mirror(axis, -volume->get_instance_mirror(axis));
+                    }
+                }
                 else
                     return;
+
                 canvas->do_mirror();
                 canvas->set_as_dirty();
                 UpdateAndShow(true);
@@ -238,7 +255,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             };
             // Add reset scale button
             auto reset_scale_button = [=](wxWindow* parent) {
-                auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png");
+                auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
                 btn->SetToolTip(_(L("Reset scale")));
                 m_reset_scale_button = btn;
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -255,7 +272,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         else if (option_name == "Rotation") {
             // Add reset rotation button
             auto reset_rotation_button = [=](wxWindow* parent) {
-                auto btn = new ScalableButton(parent, wxID_ANY, "colorchange_delete_off.png");
+                auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
                 btn->SetToolTip(_(L("Reset rotation")));
                 m_reset_rotation_button = btn;
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -263,12 +280,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
                     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
                     Selection& selection = canvas->get_selection();
-                    GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
 
-                    if (selection.is_single_volume() || selection.is_single_modifier())
+                    if (selection.is_single_volume() || selection.is_single_modifier()) {
+                        GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
                         volume->set_volume_rotation(Vec3d::Zero());
-                    else if (selection.is_single_full_instance())
-                        volume->set_instance_rotation(Vec3d::Zero());
+                    }
+                    else if (selection.is_single_full_instance()) {
+                        for (unsigned int idx : selection.get_volume_idxs()){
+                            GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+                            volume->set_instance_rotation(Vec3d::Zero());
+                        }
+                    }
                     else
                         return;
 
@@ -534,25 +556,42 @@ void ObjectManipulation::update_mirror_buttons_visibility()
 {
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     Selection& selection = canvas->get_selection();
-    std::array<bool, 3> show = {false, false, false};
+    std::array<MirrorButtonState, 3> new_states = {mbHidden, mbHidden, mbHidden};
 
-    if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        Vec3d mirror;
+    if (!m_world_coordinates) {
+        if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            Vec3d mirror;
 
-        if (selection.is_single_full_instance())
-            mirror = volume->get_instance_mirror();
-        else
-            mirror = volume->get_volume_mirror();
+            if (selection.is_single_full_instance())
+                mirror = volume->get_instance_mirror();
+            else
+                mirror = volume->get_volume_mirror();
 
-        for (unsigned char i=0; i<3; ++i)
-            show[i] = mirror[i] < 0.;
+            for (unsigned char i=0; i<3; ++i)
+                new_states[i] = (mirror[i] < 0. ? mbActive : mbShown);
+        }
+    }
+    else {
+        // the mirroring buttons should be hidden in world coordinates,
+        // unless we make it actually mirror in world coords.
     }
 
-    wxGetApp().CallAfter([this, show]{
-        m_mirror_buttons["x"]->SetBitmap(show[0] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
-        m_mirror_buttons["y"]->SetBitmap(show[1] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
-        m_mirror_buttons["z"]->SetBitmap(show[2] ? m_mirror_bitmap_on.bmp() : m_mirror_bitmap_off.bmp());
+    // Hiding the buttons through Hide() always messed up the sizers. As a workaround, the button
+    // is assigned a transparent bitmap. We must of course remember the actual state.
+    wxGetApp().CallAfter([this, new_states]{
+        for (int i=0; i<3; ++i) {
+            if (new_states[i] != m_mirror_buttons[i].second) {
+                const wxBitmap* bmp;
+                switch (new_states[i]) {
+                    case mbHidden : bmp = &m_mirror_bitmap_hidden.bmp(); m_mirror_buttons[i].first->Enable(false); break;
+                    case mbShown  : bmp = &m_mirror_bitmap_off.bmp(); m_mirror_buttons[i].first->Enable(true); break;
+                    case mbActive : bmp = &m_mirror_bitmap_on.bmp(); m_mirror_buttons[i].first->Enable(true); break;
+                }
+                m_mirror_buttons[i].first->SetBitmap(*bmp);
+                m_mirror_buttons[i].second = new_states[i];
+            }
+        }
     });
 }
 
@@ -817,6 +856,7 @@ void ObjectManipulation::msw_rescale()
 
     m_mirror_bitmap_on.msw_rescale();
     m_mirror_bitmap_off.msw_rescale();
+    m_mirror_bitmap_hidden.msw_rescale();
     m_reset_scale_button->msw_rescale();
     m_reset_rotation_button->msw_rescale();
 

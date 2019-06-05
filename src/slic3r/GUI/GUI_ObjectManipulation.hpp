@@ -56,9 +56,19 @@ class ObjectManipulation : public OG_Settings
     // Non-owning pointers to the reset buttons, so we can hide and show them.
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
-    std::map<std::string, ScalableButton*> m_mirror_buttons;
+
+    // Mirroring buttons and their current state
+    enum MirrorButtonState {
+        mbHidden,
+        mbShown,
+        mbActive
+    };
+    std::array<std::pair<ScalableButton*, MirrorButtonState>, 3> m_mirror_buttons;
+
+    // Bitmaps for the mirroring buttons.
     ScalableBitmap m_mirror_bitmap_on;
     ScalableBitmap m_mirror_bitmap_off;
+    ScalableBitmap m_mirror_bitmap_hidden;
 
     // Needs to be updated from OnIdle?
     bool            m_dirty = false;
