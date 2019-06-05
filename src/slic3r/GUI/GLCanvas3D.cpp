@@ -1266,6 +1266,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
 #endif // ENABLE_SVG_ICONS
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
+#if ENABLE_COMPRESSED_TEXTURES
+    , m_keep_dirty(false)
+#endif // ENABLE_COMPRESSED_TEXTURES
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -1483,6 +1486,10 @@ void GLCanvas3D::bed_shape_changed()
     m_camera.set_scene_box(scene_bounding_box());
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
+#if ENABLE_COMPRESSED_TEXTURES
+    if (m_bed.is_prusa())
+        start_keeping_dirty();
+#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -2353,6 +2360,11 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         return;
 
     _refresh_if_shown_on_screen();
+
+#if ENABLE_COMPRESSED_TEXTURES
+    if (m_keep_dirty)
+        m_dirty = true;
+#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -3966,7 +3978,11 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
+#if ENABLE_COMPRESSED_TEXTURES
+    m_bed.render(const_cast<GLCanvas3D*>(this), theta, m_use_VBOs, scale_factor);
+#else
     m_bed.render(theta, m_use_VBOs, scale_factor);
+#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::_render_axes() const

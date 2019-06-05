@@ -85,6 +85,17 @@ void GLTexture::Compressor::send_compressed_data_to_gpu()
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
+bool GLTexture::Compressor::all_compressed_data_sent_to_gpu() const
+{
+    for (const Level& level : m_levels)
+    {
+        if (!level.sent_to_gpu)
+            return false;
+    }
+
+    return true;
+}
+
 void GLTexture::Compressor::compress()
 {
     // reference: https://github.com/Cyan4973/RygsDXTc
@@ -512,7 +523,9 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
 bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px)
 #endif // ENABLE_COMPRESSED_TEXTURES
 {
+#if ENABLE_COMPRESSED_TEXTURES
     bool compression_enabled = compress && GLEW_EXT_texture_compression_s3tc;
+#endif // ENABLE_COMPRESSED_TEXTURES
 
     NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
     if (image == nullptr)

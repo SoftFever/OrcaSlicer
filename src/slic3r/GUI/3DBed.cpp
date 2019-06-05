@@ -9,6 +9,9 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
+#if ENABLE_COMPRESSED_TEXTURES
+#include "GLCanvas3D.hpp"
+#endif // ENABLE_COMPRESSED_TEXTURES
 
 #include <GL/glew.h>
 
@@ -273,6 +276,9 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
+#if ENABLE_COMPRESSED_TEXTURES
+    , m_requires_canvas_update(false)
+#endif // ENABLE_COMPRESSED_TEXTURES
 #if ENABLE_TEXTURES_FROM_SVG
     , m_vbo_id(0)
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -328,14 +334,34 @@ Point Bed3D::point_projection(const Point& point) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
+#if ENABLE_COMPRESSED_TEXTURES
+void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
+#else
 void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     m_scale_factor = scale_factor;
 
     EType type = useVBOs ? m_type : Custom;
     switch (type)
-
     {
+#if ENABLE_COMPRESSED_TEXTURES
+    case MK2:
+    {
+        render_prusa(canvas, "mk2", theta > 90.0f);
+        break;
+    }
+    case MK3:
+    {
+        render_prusa(canvas, "mk3", theta > 90.0f);
+        break;
+    }
+    case SL1:
+    {
+        render_prusa(canvas, "sl1", theta > 90.0f);
+        break;
+    }
+#else
     case MK2:
     {
         render_prusa("mk2", theta > 90.0f);
@@ -351,6 +377,7 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
         render_prusa("sl1", theta > 90.0f);
         break;
     }
+#endif // ENABLE_COMPRESSED_TEXTURES
     default:
     case Custom:
     {
@@ -360,7 +387,11 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
     }
 }
 #else
+#if ENABLE_COMPRESSED_TEXTURES
+void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
+#else
 void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     m_scale_factor = scale_factor;
 
@@ -369,6 +400,23 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
 
     switch (m_type)
     {
+#if ENABLE_COMPRESSED_TEXTURES
+    case MK2:
+    {
+        render_prusa(canvas, "mk2", theta, useVBOs);
+        break;
+    }
+    case MK3:
+    {
+        render_prusa(canvas, "mk3", theta, useVBOs);
+        break;
+    }
+    case SL1:
+    {
+        render_prusa(canvas, "sl1", theta, useVBOs);
+        break;
+    }
+#else
     case MK2:
     {
         render_prusa("mk2", theta, useVBOs);
@@ -383,7 +431,8 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
     {
         render_prusa("sl1", theta, useVBOs);
         break;
-    }
+    } 
+#endif // ENABLE_COMPRESSED_TEXTURES
     default:
     case Custom:
     {
@@ -487,7 +536,11 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
+#if ENABLE_COMPRESSED_TEXTURES
+void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom) const
+#else
 void Bed3D::render_prusa(const std::string &key, bool bottom) const
+#endif // ENABLE_COMPRESSED_TEXTURES
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
 
@@ -557,6 +610,15 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
         // the temporary texture is not needed anymore, reset it
         if (m_temp_texture.get_id() != 0)
             m_temp_texture.reset();
+
+        m_requires_canvas_update = true;
+    }
+    else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
+    {
+        if (canvas != nullptr)
+            canvas->stop_keeping_dirty();
+
+        m_requires_canvas_update = false;
     }
 #endif // ENABLE_COMPRESSED_TEXTURES
 

@@ -42,6 +42,7 @@ namespace GUI {
 
             bool unsent_compressed_data_available() const;
             void send_compressed_data_to_gpu();
+            bool all_compressed_data_sent_to_gpu() const;
 
         private:
             void compress();
@@ -109,6 +110,7 @@ namespace GUI {
 #if ENABLE_COMPRESSED_TEXTURES
         bool unsent_compressed_data_available() const { return m_compressor.unsent_compressed_data_available(); }
         void send_compressed_data_to_gpu() { m_compressor.send_compressed_data_to_gpu(); }
+        bool all_compressed_data_sent_to_gpu() const { return m_compressor.all_compressed_data_sent_to_gpu(); }
 #endif // ENABLE_COMPRESSED_TEXTURES
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);

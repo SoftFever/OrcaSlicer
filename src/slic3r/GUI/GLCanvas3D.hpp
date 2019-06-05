@@ -449,6 +449,9 @@ private:
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
+#if ENABLE_COMPRESSED_TEXTURES
+    bool m_keep_dirty;
+#endif // ENABLE_COMPRESSED_TEXTURES
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -634,6 +637,11 @@ public:
 
     void set_cursor(ECursorType type);
     void msw_rescale();
+
+#if ENABLE_COMPRESSED_TEXTURES
+    void start_keeping_dirty() { m_keep_dirty = true; }
+    void stop_keeping_dirty() { m_keep_dirty = false; }
+#endif // ENABLE_COMPRESSED_TEXTURES
 
 private:
     bool _is_shown_on_screen() const;

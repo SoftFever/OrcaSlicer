@@ -13,6 +13,10 @@ typedef class GLUquadric GLUquadricObj;
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_COMPRESSED_TEXTURES
+class GLCanvas3D;
+#endif // ENABLE_COMPRESSED_TEXTURES
+
 class GeometryBuffer
 {
 #if ENABLE_TEXTURES_FROM_SVG
@@ -94,6 +98,8 @@ private:
 #if ENABLE_COMPRESSED_TEXTURES
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
+    // used to trigger 3D scene update once all compressed textures have been sent to GPU
+    mutable bool m_requires_canvas_update;
 #endif // ENABLE_COMPRESSED_TEXTURES
     mutable Shader m_shader;
     mutable unsigned int m_vbo_id;
@@ -125,7 +131,11 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
+#if ENABLE_COMPRESSED_TEXTURES
+    void render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const;
+#else
     void render(float theta, bool useVBOs, float scale_factor) const;
+#endif // ENABLE_COMPRESSED_TEXTURES
     void render_axes() const;
 
 private:
@@ -134,7 +144,11 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     EType detect_type(const Pointfs& shape) const;
 #if ENABLE_TEXTURES_FROM_SVG
+#if ENABLE_COMPRESSED_TEXTURES
+    void render_prusa(GLCanvas3D* canvas, const std::string& key, bool bottom) const;
+#else
     void render_prusa(const std::string& key, bool bottom) const;
+#endif // ENABLE_COMPRESSED_TEXTURES
     void render_prusa_shader(bool transparent) const;
 #else
     void render_prusa(const std::string &key, float theta, bool useVBOs) const;
