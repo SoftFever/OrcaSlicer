@@ -9,12 +9,12 @@ class wxBoxSizer;
 namespace Slic3r {
 class ModelObject;
 
-namespace GUI {
-class ConfigOptionsGroup;
-
 typedef double                                              coordf_t;
 typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
 typedef std::map<t_layer_height_range, DynamicPrintConfig>  t_layer_config_ranges;
+
+namespace GUI {
+class ConfigOptionsGroup;
 
 class LayerRangeEditor : public wxTextCtrl
 {
