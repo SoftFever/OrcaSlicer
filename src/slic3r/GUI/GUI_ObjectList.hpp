@@ -235,6 +235,7 @@ public:
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
     void                layers_editing();
+    DynamicPrintConfig  get_default_layer_config(const int obj_idx);
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable();
     bool                selected_instances_of_same_object();
@@ -244,6 +245,7 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
+    const t_layer_height_range& get_layer_range_from_item(const wxDataViewItem layer_item, const int obj_idx) const;
 
     void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();

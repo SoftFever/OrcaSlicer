@@ -360,6 +360,21 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
                             (*m_objects)[obj_idx]->config;
 }
 
+const t_layer_height_range& ObjectList::get_layer_range_from_item(const wxDataViewItem layer_item, const int obj_idx) const
+{
+    ModelObject* object = (*m_objects)[obj_idx];
+    t_layer_config_ranges::iterator layer_range = object->layer_config_ranges.begin();
+    int id = m_objects_model->GetLayerIdByItem(layer_item);
+
+    // May be not a best solution #ys_FIXME
+    while (id > 0 && layer_range != object->layer_config_ranges.end()) {
+        ++layer_range;
+        id--;
+    }
+
+    return layer_range->first;
+}
+
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
 {
     wxArrayString choices;
@@ -1037,11 +1052,11 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
     std::vector<std::string> options = get_options_for_bundle(bundle_name);
 
-    /* Because of we couldn't edited layer_height for ItVolume and itLayer from settings list,
+    /* Because of we couldn't edited layer_height for ItVolume from settings list,
      * correct options according to the selected item type :
      * remove "layer_height" option
      */
-    if (m_objects_model->GetItemType(GetSelection()) & (itVolume | itLayer) && bundle_name == _("Layers and Perimeters")) {
+    if ((m_objects_model->GetItemType(GetSelection()) & itVolume) && bundle_name == _("Layers and Perimeters")) {
         const auto layer_height_it = std::find(options.begin(), options.end(), "layer_height");
         if (layer_height_it != options.end())
             options.erase(layer_height_it);
@@ -1833,7 +1848,7 @@ void ObjectList::layers_editing()
         t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
         
         if (ranges.empty())
-            ranges[{ 0.0f, 0.2f }] = *DynamicPrintConfig::new_from_defaults_keys({"layer_height"});// some default value
+            ranges[{ 0.0f, 0.6f }] = get_default_layer_config(obj_idx);
 
         // and create Layer item(s) according to the layer_config_ranges
         for (const auto range : ranges)
@@ -1843,6 +1858,18 @@ void ObjectList::layers_editing()
     // select LayerRoor item and expand
     select_item(layers_item);
     Expand(layers_item);
+}
+
+DynamicPrintConfig ObjectList::get_default_layer_config(const int obj_idx)
+{
+    DynamicPrintConfig config;
+    coordf_t layer_height = object(obj_idx)->config.has("layer_height") ? 
+                            object(obj_idx)->config.opt_float("layer_height") : 
+                            wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
+    config.set_key_value("layer_height",new ConfigOptionFloat(layer_height));
+    config.set_key_value("extruder",    new ConfigOptionInt(0));
+
+    return config;
 }
 
 bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume)
@@ -1937,21 +1964,27 @@ void ObjectList::part_selection_changed()
                 update_and_show_manipulations = true;
             }
             else {
-                auto parent = m_objects_model->GetParent(item);
-                // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
-                obj_idx = m_objects_model->GetIdByItem(parent);
+                obj_idx = m_objects_model->GetObjectIdByItem(item);
+                
                 const ItemType type = m_objects_model->GetItemType(item);
                 if (type & itSettings) {
-                    if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
+                    const auto parent = m_objects_model->GetParent(item);
+                    const ItemType parent_type = m_objects_model->GetItemType(parent);
+
+                    if (parent_type & itObject) {
                         og_name = _(L("Object Settings to modify"));
                         m_config = &(*m_objects)[obj_idx]->config;
                     }
-                    else {
+                    else if (parent_type & itVolume) {
                         og_name = _(L("Part Settings to modify"));
-                        auto main_parent = m_objects_model->GetParent(parent);
-                        obj_idx = m_objects_model->GetIdByItem(main_parent);
-                        const auto volume_id = m_objects_model->GetVolumeIdByItem(parent);
+                        volume_id = m_objects_model->GetVolumeIdByItem(parent);
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+                    }
+                    else if (parent_type & itLayer) {
+                        og_name = _(L("Layer range Settings to modify"));
+
+                        const t_layer_height_range& layer_height_range = get_layer_range_from_item(parent, obj_idx);
+                        m_config = &(*m_objects)[obj_idx]->layer_config_ranges[layer_height_range];
                     }
                     update_and_show_settings = true;
                 }
@@ -1966,12 +1999,14 @@ void ObjectList::part_selection_changed()
                     update_and_show_manipulations = true;
 
                     // fill m_config by object's values
-                    const int obj_idx_ = m_objects_model->GetObjectIdByItem(item);
-                    m_config = &(*m_objects)[obj_idx_]->config;
+                    m_config = &(*m_objects)[obj_idx]->config;
                 }
                 else if (type & (itLayerRoot|itLayer)) {
                     og_name = type & itLayerRoot ? _(L("Layers Editing")) : _(L("Layer Editing"));
                     update_and_show_layers = true;
+
+                    const t_layer_height_range& layer_height_range = get_layer_range_from_item(item, obj_idx);
+                    m_config = &(*m_objects)[obj_idx]->layer_config_ranges[layer_height_range];
                 }
             }
         }
@@ -2259,8 +2294,8 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
     
     if (selected_range->first == last_range->first)
     {
-        const t_layer_height_range new_range = { last_range->first.second, last_range->first.second + 0.2f };
-        ranges[new_range] = last_range->second;
+        const t_layer_height_range new_range = { last_range->first.second, last_range->first.second + 0.5f };
+        ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
     else
@@ -2300,13 +2335,13 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
             add_layer_item(new_range, layers_item, layer_idx);
 
             new_range = { selected_range->first.second, midl_layer };
-            ranges[new_range] = selected_range->second;            
+            ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
         }
         else
         {
             const t_layer_height_range new_range = { selected_range->first.second, next_range->first.first };
-            ranges[new_range] = selected_range->second;
+            ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
         }        
     }
@@ -2322,7 +2357,16 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                 const int layer_idx /* = -1*/)
 {
     const std::string label = (boost::format(" %.2f-%.2f ") % range.first % range.second).str();
-    m_objects_model->AddLayersChild(layers_item, label, layer_idx);
+    const wxDataViewItem layer_item = m_objects_model->AddLayersChild(layers_item, label, layer_idx);
+
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
+
+//     auto opt_keys = object(obj_idx)->layer_config_ranges[range].keys();
+    const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range];
+//     if (!opt_keys.empty() && !(opt_keys.size() == 2 && opt_keys[0] == "layer_height" && opt_keys[1] == "extruder"))
+    if (config.keys().size() > 2)
+        select_item(m_objects_model->AddSettingsChild(layer_item));
 }
 
 void ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
