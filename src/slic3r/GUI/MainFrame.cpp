@@ -143,7 +143,9 @@ void MainFrame::update_title()
     wxString title = wxEmptyString;
     if (m_plater != nullptr)
     {
-        wxString project = from_path(into_path(m_plater->get_project_filename()).stem());
+        // m_plater->get_project_filename() produces file name including path, but excluding extension.
+        // Don't try to remove the extension, it would remove part of the file name after the last dot!
+        wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
         if (!project.empty())
             title += (project + " - ");
     }
@@ -380,7 +382,11 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, menu_icon("save"), nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+#ifdef __APPLE__
+        append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Shift+S", _(L("Save current project file as")),
+#else
         append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
+#endif // __APPLE__
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, menu_icon("save"), nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 
@@ -481,11 +487,9 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
             _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
-#if !DISABLE_DESELECT_ALL_MENU_ITEM
-        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + GUI::shortkey_ctrl_prefix() + sep + "Esc",
+        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + "Esc",
             _(L("Deselects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
-#endif // !DISABLE_DESELECT_ALL_MENU_ITEM
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
             _(L("Deletes the current selection")),[this](wxCommandEvent&) { m_plater->remove_selected(); },

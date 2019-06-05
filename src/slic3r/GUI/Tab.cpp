@@ -1235,15 +1235,40 @@ void TabPrint::update()
         return; // ys_FIXME
 
     // #ys_FIXME_to_delete
-    //! Temporary workaround for the correct updates of the SpinCtrl (like "perimeters"):
+    //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
     // KillFocus() for the wxSpinCtrl use CallAfter function. So,
     // to except the duplicate call of the update() after dialog->ShowModal(),
     // let check if this process is already started.
-//     if (is_msg_dlg_already_exist)    // ! It looks like a fixed problem after start to using of a m_dirty_options
-//         return;                      // ! TODO Let delete this part of code after a common aplication testing
+    if (is_msg_dlg_already_exist)
+        return;
 
     m_update_cnt++;
 //	Freeze();
+
+    // layer_height shouldn't be equal to zero
+    if (m_config->opt_float("layer_height") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero layer height is not valid.\n\nThe layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *m_config;
+        is_msg_dlg_already_exist = true;
+        dialog->ShowModal();
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.01));
+        load_config(new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    if (fabs(m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value - 0) < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero first layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *m_config;
+        is_msg_dlg_already_exist = true;
+        dialog->ShowModal();
+        new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.01, false));
+        load_config(new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
 
@@ -1258,7 +1283,6 @@ void TabPrint::update()
 			"- no ensure_vertical_shell_thickness\n"
 			"\nShall I adjust those settings in order to enable Spiral Vase?"));
 		auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Spiral Vase")), wxICON_WARNING | wxYES | wxNO);
-//         is_msg_dlg_already_exist = true;
 		DynamicPrintConfig new_conf = *m_config;
 		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
@@ -1274,7 +1298,6 @@ void TabPrint::update()
 		}
 		load_config(new_conf);
 		on_value_change("fill_density", fill_density);
-//         is_msg_dlg_already_exist = false;
 	}
 
 	if (m_config->opt_bool("wipe_tower") && m_config->opt_bool("support_material") &&
@@ -2215,6 +2238,18 @@ void TabPrinter::build_unregular_pages()
      *  */
     Freeze();
 
+#ifdef __WXMSW__
+    /* Workaround for correct layout of controls inside the created page:
+     * In some _strange_ way we should we should imitate page resizing.
+     */
+    auto layout_page = [this](PageShp page)
+    {
+        const wxSize& sz = page->GetSize();
+        page->SetSize(sz.x + 1, sz.y + 1);
+        page->SetSize(sz);
+    };
+#endif //__WXMSW__
+
 	// Add/delete Kinematics page according to is_marlin_flavor
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -2228,6 +2263,9 @@ void TabPrinter::build_unregular_pages()
 
 	if (existed_page < n_before_extruders && is_marlin_flavor) {
 		auto page = build_kinematics_page();
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 		m_pages.insert(m_pages.begin() + n_before_extruders, page);
 	}
 
@@ -2299,6 +2337,10 @@ void TabPrinter::build_unregular_pages()
 
 			optgroup = page->new_optgroup(_(L("Preview")));
 			optgroup->append_single_option_line("extruder_colour", extruder_idx);
+
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 	}
  
 	// # remove extra pages

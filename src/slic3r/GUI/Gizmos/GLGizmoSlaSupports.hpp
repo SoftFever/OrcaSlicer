@@ -95,6 +95,10 @@ private:
     mutable Vec3d m_old_clipping_plane_normal;
     mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
+    // This map holds all translated description texts, so they can be easily referenced during layout calculations
+    // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
+    std::map<std::string, wxString> m_desc;
+
     GLSelectionRectangle m_selection_rectangle;
 
     bool m_wait_for_up_event = false;

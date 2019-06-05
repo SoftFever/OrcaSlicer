@@ -44,6 +44,20 @@ GLGizmoSlaSupports::~GLGizmoSlaSupports()
 bool GLGizmoSlaSupports::on_init()
 {
     m_shortcut_key = WXK_CONTROL_L;
+
+    m_desc["head_diameter"]    = _(L("Head diameter")) + ": ";
+    m_desc["lock_supports"]    = _(L("Lock supports under new islands"));
+    m_desc["remove_selected"]  = _(L("Remove selected points"));
+    m_desc["remove_all"]       = _(L("Remove all points"));
+    m_desc["apply_changes"]    = _(L("Apply changes"));
+    m_desc["discard_changes"]  = _(L("Discard changes"));
+    m_desc["minimal_distance"] = _(L("Minimal points distance")) + ": ";
+    m_desc["points_density"]   = _(L("Support points density")) + ": ";
+    m_desc["auto_generate"]    = _(L("Auto-generate points"));
+    m_desc["manual_editing"]   = _(L("Manual editing"));
+    m_desc["clipping_of_view"] = _(L("Clipping of view"))+ ": ";
+    m_desc["reset_direction"]  = _(L("Reset direction"));
+
     return true;
 }
 
@@ -303,6 +317,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         glsafe(::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2)));
         glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
+        if (vol->is_left_handed())
+            glFrontFace(GL_CW);
+
         // Matrices set, we can render the point mark now.
         // If in editing mode, we'll also render a cone pointing to the sphere.
         if (m_editing_mode) {
@@ -324,6 +341,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             glsafe(::glPopMatrix());
         }
         ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 24, 12);
+        if (vol->is_left_handed())
+            glFrontFace(GL_CCW);
+
         glsafe(::glPopMatrix());
     }
 
@@ -825,7 +845,18 @@ RENDER_AGAIN:
     m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-    //ImGui::PushItemWidth(m_imgui->scaled(5.55f));
+    // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+
+    const float settings_sliders_left = std::max(m_imgui->calc_text_size(m_desc.at("minimal_distance")).x, m_imgui->calc_text_size(m_desc.at("points_density")).x) + m_imgui->scaled(1.f);
+    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
+    const float diameter_slider_left = m_imgui->calc_text_size(m_desc.at("head_diameter")).x + m_imgui->scaled(1.f);
+    const float minimal_slider_width = m_imgui->scaled(4.f);
+    const float buttons_width_approx = m_imgui->calc_text_size(m_desc.at("apply_changes")).x + m_imgui->calc_text_size(m_desc.at("discard_changes")).x + m_imgui->scaled(1.5f);
+    const float lock_supports_width_approx = m_imgui->calc_text_size(m_desc.at("lock_supports")).x + m_imgui->scaled(2.f);
+
+    float window_width = minimal_slider_width + std::max(std::max(settings_sliders_left, clipping_slider_left), diameter_slider_left);
+    window_width = std::max(std::max(window_width, buttons_width_approx), lock_supports_width_approx);
+
 
     bool force_refresh = false;
     bool remove_selected = false;
@@ -836,12 +867,9 @@ RENDER_AGAIN:
         float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
         if (m_new_point_head_diameter > diameter_upper_cap)
             m_new_point_head_diameter = diameter_upper_cap;
-
-        wxString text = _(L("Head diameter")) + ": ";
-        m_imgui->text(text);
-        float slider_left = m_imgui->calc_text_size(text).x + m_imgui->scaled(1.f);
-        ImGui::SameLine(/*m_imgui->scaled(6.66f)*/slider_left);
-        ImGui::PushItemWidth(/*m_imgui->scaled(8.33f)*/m_imgui->scaled(15.f) - slider_left);
+        m_imgui->text(m_desc.at("head_diameter"));
+        ImGui::SameLine(diameter_slider_left);
+        ImGui::PushItemWidth(window_width - diameter_slider_left);
 
         if (ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f")) {
             // value was changed
@@ -853,37 +881,34 @@ RENDER_AGAIN:
         }
 
         bool changed = m_lock_unique_islands;
-        m_imgui->checkbox(_(L("Lock supports under new islands")), m_lock_unique_islands);
+        m_imgui->checkbox(m_desc.at("lock_supports"), m_lock_unique_islands);
         force_refresh |= changed != m_lock_unique_islands;
 
         m_imgui->disabled_begin(m_selection_empty);
-        remove_selected = m_imgui->button(_(L("Remove selected points")));
+        remove_selected = m_imgui->button(m_desc.at("remove_selected"));
         m_imgui->disabled_end();
 
         m_imgui->disabled_begin(m_editing_mode_cache.empty());
-        remove_all = m_imgui->button(_(L("Remove all points")));
+        remove_all = m_imgui->button(m_desc.at("remove_all"));
         m_imgui->disabled_end();
 
         m_imgui->text(" "); // vertical gap
 
-        if (m_imgui->button(_(L("Apply changes")))) {
+        if (m_imgui->button(m_desc.at("apply_changes"))) {
             editing_mode_apply_changes();
             force_refresh = true;
         }
         ImGui::SameLine();
-        bool discard_changes = m_imgui->button(_(L("Discard changes")));
+        bool discard_changes = m_imgui->button(m_desc.at("discard_changes"));
         if (discard_changes) {
             editing_mode_discard_changes();
             force_refresh = true;
         }
     }
     else { // not in editing mode:
-        wxString text1 = _(L("Minimal points distance")) + ": ";
-        wxString text2 = _(L("Support points density")) + ": ";
-        float sliders_left = std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.f);
-        m_imgui->text(text1);
-        ImGui::SameLine(/*m_imgui->scaled(9.44f)*/sliders_left);
-        ImGui::PushItemWidth(/*m_imgui->scaled(5.55f)*/m_imgui->scaled(15.f)-sliders_left);
+        m_imgui->text(m_desc.at("minimal_distance"));
+        ImGui::SameLine(settings_sliders_left);
+        ImGui::PushItemWidth(window_width - settings_sliders_left);
 
         std::vector<const ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
         float density = static_cast<const ConfigOptionInt*>(opts[0])->value;
@@ -893,8 +918,8 @@ RENDER_AGAIN:
         if (value_changed)
             m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
 
-        m_imgui->text(text2);
-        ImGui::SameLine(/*m_imgui->scaled(9.44f)*/sliders_left);
+        m_imgui->text(m_desc.at("points_density"));
+        ImGui::SameLine(settings_sliders_left);
 
         if (ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%")) {
             value_changed = true;
@@ -908,17 +933,17 @@ RENDER_AGAIN:
             });
         }
 
-        bool generate = m_imgui->button(_(L("Auto-generate points")));
+        bool generate = m_imgui->button(m_desc.at("auto_generate"));
 
         if (generate)
             auto_generate();
 
         m_imgui->text("");
-        if (m_imgui->button(_(L("Manual editing"))))
+        if (m_imgui->button(m_desc.at("manual_editing")))
             switch_to_editing_mode();
 
         m_imgui->disabled_begin(m_editing_mode_cache.empty());
-        remove_all = m_imgui->button(_(L("Remove all points")));
+        remove_all = m_imgui->button(m_desc.at("remove_all"));
         m_imgui->disabled_end();
 
         // m_imgui->text("");
@@ -931,21 +956,18 @@ RENDER_AGAIN:
 
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
-    wxString text1 = _(L("Clipping of view"))+ ": ";
-    wxString text2 = _(L("Reset direction"));
-    float slider_left = std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.5f);
     if (m_clipping_plane_distance == 0.f)
-        m_imgui->text(text1);
+        m_imgui->text(m_desc.at("clipping_of_view"));
     else {
-        if (m_imgui->button(text2)) {
+        if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){
                     reset_clipping_plane_normal();
                 });
         }
     }
 
-    ImGui::SameLine(/*m_imgui->scaled(6.66f)*/slider_left);
-    ImGui::PushItemWidth(/*m_imgui->scaled(8.33f)*/m_imgui->scaled(15.f) - slider_left);
+    ImGui::SameLine(clipping_slider_left);
+    ImGui::PushItemWidth(window_width - clipping_slider_left);
     ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
 
 

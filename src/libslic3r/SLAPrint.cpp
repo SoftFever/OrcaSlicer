@@ -425,7 +425,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             print_object->set_trafo(sla_trafo(*this, model_object), model_object.instances.front()->is_left_handed());
 
             print_object->set_instances(std::move(new_instances));
-            print_object->config_apply(config, true);
+			
+			SLAPrintObjectConfig new_config = m_default_object_config;
+			normalize_and_apply_config(new_config, model_object.config);
+			print_object->config_apply(new_config, true);
             print_objects_new.emplace_back(print_object);
             new_objects = true;
         }
@@ -1530,7 +1533,7 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 
 SLAPrintObject::~SLAPrintObject() {}
 
-// Called by SLAPrint::apply_config().
+// Called by SLAPrint::apply().
 // This method only accepts SLAPrintObjectConfig option keys.
 bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {

@@ -84,7 +84,7 @@ public:
 
     // Set the step as started. Block on mutex while the Print / PrintObject / PrintRegion objects are being
     // modified by the UI thread.
-    // This is necessary to block until the Print::apply_config() updates its state, which may
+    // This is necessary to block until the Print::apply() updates its state, which may
     // influence the processing step being entered.
     template<typename ThrowIfCanceled>
     bool set_started(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {

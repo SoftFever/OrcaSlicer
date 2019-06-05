@@ -1,4 +1,5 @@
 min_slic3r_version = 1.42.0-alpha6
+0.8.0 Updated for the PrusaSlicer 2.0.0 final release
 0.8.0-rc2 Updated firmware versions for MK2.5/S and MK3/S
 0.8.0-rc1 Updated SLA profiles
 0.8.0-rc Updated for the PrusaSlicer 2.0.0-rc release

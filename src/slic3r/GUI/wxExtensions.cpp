@@ -2557,6 +2557,11 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
         {_(L("Expert")),    "mode_expert_sq.png"}
     };
 
+    auto modebtnfn = [](wxCommandEvent &event, int mode_id) {
+        Slic3r::GUI::wxGetApp().save_mode(mode_id);
+        event.Skip();
+    };
+    
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
 #ifdef __WXOSX__
@@ -2567,37 +2572,22 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 #else
         m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
 #endif // __WXOSX__
+        
+        m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, m_mode_btns.size() - 1));
+        Add(m_mode_btns.back());
     }
-
-    for (auto btn : m_mode_btns)
-    {
-        btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event) {
-            event.Skip();
-            int mode_id = 0;
-            for (auto cur_btn : m_mode_btns) {
-                if (cur_btn == btn)
-                    break;
-                else
-                    mode_id++;
-            }
-            Slic3r::GUI::wxGetApp().save_mode(mode_id);
-        });
-
-        Add(btn);
-    }
-
 }
 
 void ModeSizer::SetMode(const int mode)
 {
-    for (int m = 0; m < m_mode_btns.size(); m++)
-        m_mode_btns[m]->SetState(m == mode);
+    for (size_t m = 0; m < m_mode_btns.size(); m++)
+        m_mode_btns[m]->SetState(int(m) == mode);
 }
 
 
 void ModeSizer::msw_rescale()
 {
-    for (int m = 0; m < m_mode_btns.size(); m++)
+    for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
 

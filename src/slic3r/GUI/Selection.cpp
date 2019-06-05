@@ -662,14 +662,28 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     {
         GLVolume &volume = *(*m_volumes)[i];
         if (is_single_full_instance()) {
-            assert(transformation_type.absolute());
-			if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
-                // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
-                // This is only possible, if the instance rotation is mulitples of ninety degrees.
-                assert(Geometry::is_rotation_ninety_degrees(volume.get_instance_rotation()));
-				volume.set_instance_scaling_factor((volume.get_instance_transformation().get_matrix(true, false, true, true).matrix().block<3, 3>(0, 0).transpose() * scale).cwiseAbs());
-            } else
-				volume.set_instance_scaling_factor(scale);
+            if (transformation_type.relative())
+            {
+                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
+                Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
+                // extracts scaling factors from the composed transformation
+                Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+                if (transformation_type.joint())
+                    volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+
+                volume.set_instance_scaling_factor(new_scale);
+            }
+            else
+            {
+                if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
+                    // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
+                    // This is only possible, if the instance rotation is mulitples of ninety degrees.
+                    assert(Geometry::is_rotation_ninety_degrees(volume.get_instance_rotation()));
+                    volume.set_instance_scaling_factor((volume.get_instance_transformation().get_matrix(true, false, true, true).matrix().block<3, 3>(0, 0).transpose() * scale).cwiseAbs());
+                }
+                else
+                    volume.set_instance_scaling_factor(scale);
+            }
         }
         else if (is_single_volume() || is_single_modifier())
             volume.set_volume_scaling_factor(scale);
@@ -711,6 +725,49 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     ensure_on_bed();
 
     this->set_bounding_boxes_dirty();
+}
+
+void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
+{
+    if (is_empty() || (m_mode == Volume))
+        return;
+
+    // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
+    Vec3d box_size = get_bounding_box().size() + 0.01 * Vec3d::Ones();
+
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("bed_shape"));
+    if (opt != nullptr)
+    {
+        BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+        BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("max_print_height")));
+        Vec3d print_volume_size = print_volume.size();
+        double sx = (box_size(0) != 0.0) ? print_volume_size(0) / box_size(0) : 0.0;
+        double sy = (box_size(1) != 0.0) ? print_volume_size(1) / box_size(1) : 0.0;
+        double sz = (box_size(2) != 0.0) ? print_volume_size(2) / box_size(2) : 0.0;
+        if ((sx != 0.0) && (sy != 0.0) && (sz != 0.0))
+        {
+            double s = std::min(sx, std::min(sy, sz));
+            if (s != 1.0)
+            {
+                TransformationType type;
+                type.set_world();
+                type.set_relative();
+                type.set_joint();
+
+                // apply scale
+                start_dragging();
+                scale(s * Vec3d::Ones(), type);
+                wxGetApp().plater()->canvas3D()->do_scale();
+
+                // center selection on print bed
+                start_dragging();
+                translate(print_volume.center() - get_bounding_box().center());
+                wxGetApp().plater()->canvas3D()->do_move();
+
+                wxGetApp().obj_manipul()->set_dirty();
+            }
+        }
+    }
 }
 
 void Selection::mirror(Axis axis)
@@ -955,14 +1012,14 @@ void Selection::render(float scale_factor) const
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
-void Selection::render_center() const
+void Selection::render_center(bool gizmo_is_dragging) const
 {
     if (!m_valid || is_empty() || (m_quadric == nullptr))
         return;
 
-    const Vec3d& center = get_bounding_box().center();
+    Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
-    glsafe(::glDisable(GL_DEPTH_TEST)));
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glEnable(GL_LIGHTING));
 
@@ -1863,7 +1920,12 @@ void Selection::paste_objects_from_clipboard()
     {
         ModelObject* dst_object = m_model->add_object(*src_object);
         double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-        dst_object->translate(offset, offset, 0.0);
+        Vec3d displacement(offset, offset, 0.0);
+        for (ModelInstance* inst : dst_object->instances)
+        {
+            inst->set_offset(inst->get_offset() + displacement);
+        }
+
         object_idxs.push_back(m_model->objects.size() - 1);
     }
 

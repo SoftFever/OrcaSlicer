@@ -1252,6 +1252,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
         m_timer.SetOwner(m_canvas);
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
+        // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
+        m_view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif
     }
 
@@ -2020,7 +2022,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (it->new_geometry())
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
-								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
+                                // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
                                 m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                         }
                 }
@@ -2292,6 +2294,9 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
+    if (!m_initialized)
+        return;
+
     m_dirty |= m_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 
@@ -3415,9 +3420,6 @@ bool GLCanvas3D::_init_toolbar()
         return true;
     }
 
-#if ENABLE_SVG_ICONS
-    m_toolbar.set_icons_size(40);
-#endif // ENABLE_SVG_ICONS
 //    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
@@ -4022,8 +4024,7 @@ void GLCanvas3D::_render_selection() const
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const
 {
-    if (!m_gizmos.is_running())
-        m_selection.render_center();
+    m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
@@ -4095,10 +4096,14 @@ void GLCanvas3D::_render_current_gizmo() const
 void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
-    m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+//     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
+    m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
-    m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
+//     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLGizmosManager::Default_Icons_Size*wxGetApp().toolbar_icon_scale());
+    m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay(*this, m_selection);
@@ -4108,10 +4113,14 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-    m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+//     m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
+    m_toolbar.set_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-    m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
+//     m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
+    m_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -4172,10 +4181,14 @@ void GLCanvas3D::_render_view_toolbar() const
 {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-    m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
+//     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
+    m_view_toolbar.set_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-    m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f); //! #ys_FIXME_experiment
+//     m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    m_view_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -5485,6 +5498,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
+        v.set_convex_hull(new TriangleMesh(std::move(mesh.convex_hull_3d())), true);
     };
 
     // adds objects' volumes 
@@ -5499,7 +5513,7 @@ void GLCanvas3D::_load_sla_shells()
                 if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
                     add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
                 if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
+                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
             }
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
@@ -5622,7 +5636,7 @@ void GLCanvas3D::_update_sla_shells_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->shader_outside_printer_detection_enabled) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
 }
 

@@ -115,6 +115,7 @@ public:
     const wxFont&   normal_font()           { return m_normal_font; }
     size_t          em_unit() const         { return m_em_unit; }
     void            set_em_unit(const size_t em_unit)    { m_em_unit = em_unit; }
+    float           toolbar_icon_scale(const bool is_limited = false) const;
 
     void            recreate_GUI();
     void            system_info();
@@ -165,6 +166,7 @@ public:
 
     wxNotebook*     tab_panel() const ;
     int             extruders_cnt() const;
+    int             extruders_edited_cnt() const;
 
     std::vector<Tab *>      tabs_list;
 
