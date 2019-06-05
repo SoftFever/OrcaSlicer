@@ -84,6 +84,7 @@ if (MSVC)
         dep_wxwidgets
         dep_gtest
         dep_nlopt
+        dep_qhull
         dep_zlib    # on Windows we still need zlib
     )
 
@@ -97,6 +98,7 @@ else()
         dep_wxwidgets
         dep_gtest
         dep_nlopt
+        dep_qhull
     )
 
 endif()
