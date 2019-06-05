@@ -33,6 +33,9 @@ typedef std::map< std::string, std::vector< std::pair<std::string, std::string> 
 
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 
+typedef double                                      coordf_t;
+typedef std::pair<coordf_t, coordf_t>               t_layer_height_range;
+
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
@@ -271,14 +274,14 @@ public:
 
     // Remove objects/sub-object from the list
     void remove();
-    void del_layer_range(const std::pair<coordf_t, coordf_t>& range);
-    void add_layer_range(const std::pair<coordf_t, coordf_t>& range);
-    void add_layer_item (const std::pair<coordf_t, coordf_t>& range, 
+    void del_layer_range(const t_layer_height_range& range);
+    void add_layer_range(const t_layer_height_range& range);
+    void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);
-    void edit_layer_range(const std::pair<coordf_t, coordf_t>& range, coordf_t layer_height);
-    void edit_layer_range(const std::pair<coordf_t, coordf_t>& range, 
-                          const std::pair<coordf_t, coordf_t>& new_range);
+    void edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
+    void edit_layer_range(const t_layer_height_range& range, 
+                          const t_layer_height_range& new_range);
 
     void init_objects();
     bool multiple_selection() const ;

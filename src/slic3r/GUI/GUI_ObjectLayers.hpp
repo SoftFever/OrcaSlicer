@@ -12,6 +12,10 @@ class ModelObject;
 namespace GUI {
 class ConfigOptionsGroup;
 
+typedef double                                              coordf_t;
+typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
+typedef std::map<t_layer_height_range, DynamicPrintConfig>  t_layer_config_ranges;
+
 class LayerRangeEditor : public wxTextCtrl
 {
     bool                m_enter_pressed     { false };
@@ -34,8 +38,8 @@ class ObjectLayers : public OG_Settings
     ScalableBitmap  m_bmp_add;
     ModelObject*    m_object {nullptr};
 
-    wxFlexGridSizer*                m_grid_sizer;
-    std::pair<coordf_t, coordf_t>   m_last_edited_range;
+    wxFlexGridSizer*       m_grid_sizer;
+    t_layer_height_range   m_last_edited_range;
 
     enum SelectedItemType
     {
@@ -49,7 +53,7 @@ public:
     ObjectLayers(wxWindow* parent);
     ~ObjectLayers() {}
 
-    wxSizer*    create_layer_without_buttons(const std::map<std::pair<coordf_t, coordf_t>, DynamicPrintConfig>::value_type& layer);
+    wxSizer*    create_layer_without_buttons(const t_layer_config_ranges::value_type& layer);
     void        create_layer(int id);
     void        create_layers_list();
     void        update_layers_list();
