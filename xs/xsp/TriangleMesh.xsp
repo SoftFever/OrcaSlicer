@@ -100,7 +100,7 @@ TriangleMesh::vertices()
     CODE:
         if (!THIS->repaired) CONFESS("vertices() requires repair()");
         
-        if (THIS->stl.v_shared == NULL)
+        if (THIS->stl.v_shared.empty())
             stl_generate_shared_vertices(&(THIS->stl));
         
         // vertices
@@ -124,7 +124,7 @@ TriangleMesh::facets()
     CODE:
         if (!THIS->repaired) CONFESS("facets() requires repair()");
         
-        if (THIS->stl.v_shared == NULL)
+        if (THIS->stl.v_shared.empty())
             stl_generate_shared_vertices(&(THIS->stl));
         
         // facets
