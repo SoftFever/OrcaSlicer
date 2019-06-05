@@ -1035,7 +1035,17 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 
 void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
-    const std::vector<std::string>& options = get_options_for_bundle(bundle_name);
+    std::vector<std::string> options = get_options_for_bundle(bundle_name);
+
+    /* Because of we couldn't edited layer_height for ItVolume and itLayer from settings list,
+     * correct options according to the selected item type :
+     * remove "layer_height" option
+     */
+    if (m_objects_model->GetItemType(GetSelection()) & (itVolume | itLayer) && bundle_name == _("Layers and Perimeters")) {
+        const auto layer_height_it = std::find(options.begin(), options.end(), "layer_height");
+        if (layer_height_it != options.end())
+            options.erase(layer_height_it);
+    }
 
     assert(m_config);
     auto opt_keys = m_config->keys();
