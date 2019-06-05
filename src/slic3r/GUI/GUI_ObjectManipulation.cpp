@@ -216,6 +216,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 else
                     return;
 
+                selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+                selection.synchronize_unselected_volumes();
+
                 canvas->do_mirror();
                 canvas->set_as_dirty();
                 UpdateAndShow(true);
@@ -294,6 +297,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     else
                         return;
 
+                    selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+                    selection.synchronize_unselected_volumes();
                     canvas->do_rotate();
 
                     UpdateAndShow(true);

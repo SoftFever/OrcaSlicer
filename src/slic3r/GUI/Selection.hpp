@@ -333,6 +333,8 @@ private:
     void render_sidebar_rotation_hint(Axis axis) const;
     void render_sidebar_scale_hint(Axis axis) const;
     void render_sidebar_size_hint(Axis axis, double length) const;
+
+public:
     enum SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
         SYNC_ROTATION_NONE = 0,
@@ -343,6 +345,8 @@ private:
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
+
+private:
     void ensure_on_bed();
     bool is_from_fully_selected_instance(unsigned int volume_idx) const;
 
