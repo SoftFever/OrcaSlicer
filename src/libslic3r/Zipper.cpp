@@ -1,11 +1,8 @@
 #include <exception>
-#include <sstream>
-#include <iostream>
 
 #include "Zipper.hpp"
-#include "miniz/miniz_zip.h"
+#include "miniz_extension.hpp"
 #include <boost/log/trivial.hpp>
-
 #include "I18N.hpp"
 
 //! macro used to mark string used at localization,
@@ -126,9 +123,9 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 
     memset(&m_impl->arch, 0, sizeof(m_impl->arch));
 
-    // Initialize the archive data
-    if(!mz_zip_writer_init_file(&m_impl->arch, zipfname.c_str(), 0))
+    if (!open_zip_writer(&m_impl->arch, zipfname)) {
         m_impl->blow_up();
+    }
 }
 
 Zipper::~Zipper()
@@ -144,7 +141,7 @@ Zipper::~Zipper()
     }
 
     // The file should be closed no matter what...
-    if(!mz_zip_writer_end(&m_impl->arch))
+    if(!close_zip_writer(&m_impl->arch))
         BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
 }
 

@@ -167,6 +167,7 @@ public:
 
     wxNotebook*     tab_panel() const ;
     int             extruders_cnt() const;
+    int             extruders_edited_cnt() const;
 
     std::vector<Tab *>      tabs_list;
 

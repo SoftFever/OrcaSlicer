@@ -944,9 +944,18 @@ wxNotebook* GUI_App::tab_panel() const
     return mainframe->m_tabpanel;
 }
 
+// extruders count from selected printer preset
 int GUI_App::extruders_cnt() const
 {
     const Preset& preset = preset_bundle->printers.get_selected_preset();
+    return preset.printer_technology() == ptSLA ? 1 :
+           preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+}
+
+// extruders count from edited printer preset
+int GUI_App::extruders_edited_cnt() const
+{
+    const Preset& preset = preset_bundle->printers.get_edited_preset();
     return preset.printer_technology() == ptSLA ? 1 :
            preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 }

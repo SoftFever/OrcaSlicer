@@ -13,10 +13,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include <expat.h>
 #include <Eigen/Dense>
-#include <miniz/miniz_zip.h>
+#include "miniz_extension.hpp"
 
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
@@ -502,10 +503,8 @@ namespace Slic3r {
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
-       
-        mz_bool res = mz_zip_reader_init_file(&archive, filename.c_str(), 0);
-        if (res == 0)
-        {
+
+        if (!open_zip_reader(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -529,7 +528,7 @@ namespace Slic3r {
                     // valid model name -> extract model
                     if (!_extract_model_from_archive(archive, stat))
                     {
-                        mz_zip_reader_end(&archive);
+                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model");
                         return false;
                     }
@@ -565,7 +564,7 @@ namespace Slic3r {
                     // extract slic3r model config file
                     if (!_extract_model_config_from_archive(archive, stat, model))
                     {
-                        mz_zip_reader_end(&archive);
+                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
@@ -573,7 +572,7 @@ namespace Slic3r {
             }
         }
 
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
 
         for (const IdToModelObjectMap::value_type& object : m_objects)
         {
@@ -1639,9 +1638,7 @@ namespace Slic3r {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        mz_bool res = mz_zip_writer_init_file(&archive, filename.c_str(), 0);
-        if (res == 0)
-        {
+        if (!open_zip_writer(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -1650,7 +1647,7 @@ namespace Slic3r {
         // The content of this file is the same for each PrusaSlicer 3mf.
         if (!_add_content_types_file_to_archive(archive))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1660,7 +1657,7 @@ namespace Slic3r {
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1670,7 +1667,7 @@ namespace Slic3r {
         IdToObjectDataMap objects_data;
         if (!_add_model_file_to_archive(archive, model, objects_data))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1680,7 +1677,7 @@ namespace Slic3r {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_height_profile_file_to_archive(archive, model))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1690,7 +1687,7 @@ namespace Slic3r {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1701,7 +1698,7 @@ namespace Slic3r {
         {
             if (!_add_print_config_file_to_archive(archive, *config))
             {
-                mz_zip_writer_end(&archive);
+                close_zip_writer(&archive);
                 boost::filesystem::remove(filename);
                 return false;
             }
@@ -1713,20 +1710,20 @@ namespace Slic3r {
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, objects_data))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
 
         if (!mz_zip_writer_finalize_archive(&archive))
         {
-            mz_zip_writer_end(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             add_error("Unable to finalize the archive");
             return false;
         }
 
-        mz_zip_writer_end(&archive);
+        close_zip_writer(&archive);
 
         return true;
     }

@@ -10,3 +10,5 @@ add_library(admesh STATIC
     stlinit.cpp
     util.cpp
 )
+
+target_include_directories(admesh SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
