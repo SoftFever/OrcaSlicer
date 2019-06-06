@@ -216,6 +216,33 @@ if (${DEP_DEBUG})
     )
 endif ()
 
+find_package(Git REQUIRED)
+
+ExternalProject_Add(dep_qhull
+    EXCLUDE_FROM_ALL 1
+    URL "https://github.com/qhull/qhull/archive/v7.2.1.tar.gz"
+    URL_HASH SHA256=6fc251e0b75467e00943bfb7191e986fce0e1f8f6f0251f9c6ce5a843821ea78
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    INSTALL_COMMAND ""
+)
+
+if (${DEP_DEBUG})
+    ExternalProject_Get_Property(dep_qhull BINARY_DIR)
+    ExternalProject_Add_Step(dep_qhull build_debug
+        DEPENDEES build
+        DEPENDERS install
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
+        WORKING_DIRECTORY "${BINARY_DIR}"
+    )
+endif ()
+
 
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_WXWIDGETS_TARGET "")
