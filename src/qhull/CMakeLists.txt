@@ -17,7 +17,7 @@ add_library(qhull INTERFACE)
 if(Qhull_FOUND)
 
 message(STATUS "Using qhull from system.")
-if(SLICER_STATIC)
+if(SLIC3R_STATIC)
     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
 else()
     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
