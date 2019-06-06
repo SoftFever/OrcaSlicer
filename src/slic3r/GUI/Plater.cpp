@@ -37,7 +37,12 @@
 #include "libslic3r/SLA/SLARotfinder.hpp"
 #include "libslic3r/Utils.hpp"
 
-#include "libnest2d/optimizers/nlopt/genetic.hpp"
+//#include "libslic3r/ClipperUtils.hpp"
+
+// #include "libnest2d/optimizers/nlopt/genetic.hpp"
+// #include "libnest2d/backends/clipper/geometries.hpp"
+// #include "libnest2d/utils/rotcalipers.hpp"
+#include "libslic3r/MinAreaBoundingBox.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -2261,46 +2266,18 @@ void Plater::priv::sla_optimize_rotation() {
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
     double mindist = 6.0; // FIXME
-    double offs = mindist / 2.0 - EPSILON;
-
+    
     if(rotoptimizing) // wasn't canceled
     for(ModelInstance * oi : o->instances) {
         oi->set_rotation({r[X], r[Y], r[Z]});
-
-        auto trchull = o->convex_hull_2d(oi->get_transformation().get_matrix());
-
-        namespace opt = libnest2d::opt;
-        opt::StopCriteria stopcr;
-        stopcr.relative_score_difference = 0.01;
-        stopcr.max_iterations = 10000;
-        stopcr.stop_score = 0.0;
-        opt::GeneticOptimizer solver(stopcr);
-        Polygon pbed(bed);
-
-        auto bin = pbed.bounding_box();
-        double binw = bin.size()(X) * SCALING_FACTOR - offs;
-        double binh = bin.size()(Y) * SCALING_FACTOR - offs;
-
-        auto result = solver.optimize_min([&trchull, binw, binh](double rot){
-            auto chull = trchull;
-            chull.rotate(rot);
-
-            auto bb = chull.bounding_box();
-            double bbw = bb.size()(X) * SCALING_FACTOR;
-            double bbh = bb.size()(Y) * SCALING_FACTOR;
-
-            auto wdiff = bbw - binw;
-            auto hdiff = bbh - binh;
-            double diff = 0;
-            if(wdiff < 0 && hdiff < 0) diff = wdiff + hdiff;
-            if(wdiff > 0) diff += wdiff;
-            if(hdiff > 0) diff += hdiff;
-
-            return diff;
-        }, opt::initvals(0.0), opt::bound(-PI/2, PI/2));
-
-        double r = std::get<0>(result.optimum);
-
+        
+        Polygon trchull = o->convex_hull_2d(oi->get_transformation().get_matrix());
+        MinAreaBoundigBox rotbb(trchull, MinAreaBoundigBox::pcConvex);
+        double r = rotbb.angle_to_X();
+        
+        // The box should be landscape
+        if(rotbb.width() < rotbb.height()) r += PI / 2;
+        
         Vec3d rt = oi->get_rotation(); rt(Z) += r;
         oi->set_rotation(rt);
     }
