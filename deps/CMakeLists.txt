@@ -84,7 +84,7 @@ if (MSVC)
         dep_wxwidgets
         dep_gtest
         dep_nlopt
-        dep_qhull
+        # dep_qhull # Experimental
         dep_zlib    # on Windows we still need zlib
     )
 
