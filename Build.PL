@@ -16,6 +16,8 @@ my %prereqs = qw(
     ExtUtils::MakeMaker             6.80
     ExtUtils::ParseXS               3.22
     ExtUtils::XSpp                  0
+    ExtUtils::XSpp::Cmd             0
+    ExtUtils::CppGuess              0
     ExtUtils::Typemaps              0
     ExtUtils::Typemaps::Basic       0
     File::Basename                  0

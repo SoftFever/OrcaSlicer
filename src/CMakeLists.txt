@@ -17,9 +17,6 @@ add_subdirectory(semver)
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
 add_subdirectory(libnest2d)
 
-include_directories(${LIBDIR}/qhull/src)
-#message(STATUS ${LIBDIR}/qhull/src)
-
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
