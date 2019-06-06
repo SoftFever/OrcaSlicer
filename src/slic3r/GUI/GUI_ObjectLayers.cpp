@@ -16,8 +16,6 @@ namespace Slic3r
 namespace GUI
 {
 
-#define field_width 8
-
 ObjectLayers::ObjectLayers(wxWindow* parent) :
     OG_Settings(parent, true)
 {
@@ -41,27 +39,27 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_bmp_add       = ScalableBitmap(parent, "add_copies");
 }
 
-wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges::value_type& layer)
+wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range) 
 {
-    const bool is_last_edited_range = layer.first == m_last_edited_range;
+    const bool is_last_edited_range = range == m_last_edited_range;
 
     // Add control for the "Min Z"
 
-    auto temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.first),
-                                     [layer, this](coordf_t min_z) 
+    auto temp = new LayerRangeEditor(m_parent, double_to_string(range.first),
+        [range, this](coordf_t min_z)
     {
-        if (fabs(min_z - layer.first.first) < EPSILON) {
-            m_selection_type = sitUndef;            
+        if (fabs(min_z - range.first) < EPSILON) {
+            m_selection_type = sitUndef;
             return false;       // LayersList would not be updated/recreated
         }
 
         // data for next focusing
-        m_last_edited_range = { min_z, layer.first.second };
+        m_last_edited_range = { min_z, range.second };
         m_selection_type = sitMinZ;
 
-        wxGetApp().obj_list()->edit_layer_range(layer.first, m_last_edited_range);
+        wxGetApp().obj_list()->edit_layer_range(range, m_last_edited_range);
         return true;            // LayersList will be updated/recreated
-    } );
+    });
 
     if (is_last_edited_range && m_selection_type == sitMinZ) {
         temp->SetFocus();
@@ -72,19 +70,19 @@ wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges:
 
     // Add control for the "Max Z"
 
-    temp = new LayerRangeEditor(m_parent, double_to_string(layer.first.second),
-                                [layer, this](coordf_t max_z)
+    temp = new LayerRangeEditor(m_parent, double_to_string(range.second),
+                                [range, this](coordf_t max_z)
     {
-        if (fabs(max_z - layer.first.second) < EPSILON) {
+        if (fabs(max_z - range.second) < EPSILON) {
             m_selection_type = sitUndef;
             return false;       // LayersList would not be updated/recreated
         }
 
         // data for next focusing
-        m_last_edited_range = { layer.first.first, max_z };
+        m_last_edited_range = { range.first, max_z };
         m_selection_type = sitMaxZ;
 
-        wxGetApp().obj_list()->edit_layer_range(layer.first, m_last_edited_range);
+        wxGetApp().obj_list()->edit_layer_range(range, m_last_edited_range);
         return true;            // LayersList will not be updated/recreated
     });
 
@@ -92,20 +90,20 @@ wxSizer* ObjectLayers::create_layer_without_buttons(const t_layer_config_ranges:
         temp->SetFocus();
         temp->SetInsertionPointEnd();
     }
-    
+
     m_grid_sizer->Add(temp);
 
     // Add control for the "Layer height"
 
-    temp = new LayerRangeEditor(m_parent, 
-                                double_to_string(layer.second.option("layer_height")->getFloat()), 
-                                [layer, this](coordf_t layer_height)
+    temp = new LayerRangeEditor(m_parent,
+                                double_to_string(m_object->layer_config_ranges[range].option("layer_height")->getFloat()),
+                                [range, this](coordf_t layer_height)
     {
-        wxGetApp().obj_list()->edit_layer_range(layer.first, layer_height);
+        wxGetApp().obj_list()->edit_layer_range(range, layer_height);
         return false;           // LayersList would not be updated/recreated
     });
 
-    auto sizer = new wxBoxSizer(wxHORIZONTAL); 
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(temp);
     m_grid_sizer->Add(sizer);
 
@@ -116,40 +114,27 @@ void ObjectLayers::create_layers_list()
 {
     for (const auto layer : m_object->layer_config_ranges)
     {
-        auto sizer = create_layer_without_buttons(layer);
+        const t_layer_height_range& range = layer.first;
+        auto sizer = create_layer(range);
 
-        wxWindow* parent = m_parent;
-        auto del_btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
+        auto del_btn = new ScalableButton(m_parent, wxID_ANY, m_bmp_delete);
         del_btn->SetToolTip(_(L("Remove layer")));
 
-        sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(parent));
+        sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));
 
-        del_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
-            wxGetApp().obj_list()->del_layer_range(layer.first);
+        del_btn->Bind(wxEVT_BUTTON, [this, range](wxEvent &event) {
+            wxGetApp().obj_list()->del_layer_range(range);
         });
 
-        auto add_btn = new ScalableButton(parent, wxID_ANY, m_bmp_add);
+        auto add_btn = new ScalableButton(m_parent, wxID_ANY, m_bmp_add);
         add_btn->SetToolTip(_(L("Add layer")));
 
-        sizer->Add(add_btn, 0, wxRIGHT, em_unit(parent));
+        sizer->Add(add_btn, 0, wxRIGHT, em_unit(m_parent));
 
-        add_btn->Bind(wxEVT_BUTTON, [this, layer](wxEvent &event) {
-            wxGetApp().obj_list()->add_layer_range(layer.first);
+        add_btn->Bind(wxEVT_BUTTON, [this, range](wxEvent &event) {
+            wxGetApp().obj_list()->add_layer_range_after_current(range);
         });
     }
-}
-
-void ObjectLayers::create_layer(int id)
-{
-    t_layer_config_ranges::iterator layer_range = m_object->layer_config_ranges.begin();
-
-    // May be not a best solution #ys_FIXME
-    while (id > 0 && layer_range != m_object->layer_config_ranges.end()) {
-        ++layer_range;
-        id--;
-    }
-
-    create_layer_without_buttons(*layer_range);
 }
 
 void ObjectLayers::update_layers_list()
@@ -187,7 +172,7 @@ void ObjectLayers::update_layers_list()
     if (type & itLayerRoot)
         create_layers_list();
     else
-        create_layer(objects_ctrl->GetModel()->GetLayerIdByItem(item));
+        create_layer(objects_ctrl->GetModel()->GetLayerRangeByItem(item));
     
     m_parent->Layout();
 }
@@ -211,7 +196,7 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
                                     std::function<bool(coordf_t)> edit_fn
                                     ) :
     wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, 
-               wxSize(field_width * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
+               wxSize(8 * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
     this->SetFont(wxGetApp().normal_font());
     

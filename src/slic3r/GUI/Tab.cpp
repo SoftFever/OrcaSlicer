@@ -3442,9 +3442,9 @@ void TabSLAMaterial::reload_config()
 void TabSLAMaterial::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
-        return; // #ys_FIXME
+        return;
     
-// #ys_FIXME
+// #ys_FIXME. Just a template for this function
 //     m_update_cnt++;
 //     ! something to update
 //     m_update_cnt--;
@@ -3542,9 +3542,8 @@ void TabSLAPrint::reload_config()
 void TabSLAPrint::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
-        return; // #ys_FIXME
+        return;
 
-// #ys_FIXME
      m_update_cnt++;
 
      double head_penetration = m_config->opt_float("support_head_penetration");

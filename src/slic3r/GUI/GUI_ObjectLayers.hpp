@@ -16,9 +16,8 @@ class ModelObject;
 namespace GUI {
 class ConfigOptionsGroup;
 
-typedef double                                              coordf_t;
-typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
-typedef std::map<t_layer_height_range, DynamicPrintConfig>  t_layer_config_ranges;
+typedef double                          coordf_t;
+typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 
 class LayerRangeEditor : public wxTextCtrl
 {
@@ -57,8 +56,7 @@ public:
     ObjectLayers(wxWindow* parent);
     ~ObjectLayers() {}
 
-    wxSizer*    create_layer_without_buttons(const t_layer_config_ranges::value_type& layer);
-    void        create_layer(int id);
+    wxSizer*    create_layer(const t_layer_height_range& range);    // without_buttons
     void        create_layers_list();
     void        update_layers_list();
 

@@ -229,8 +229,9 @@ public:
 	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
-    void                del_settings_from_config();
+    void                del_settings_from_config(const wxDataViewItem& parent_item);
     void                del_instances_from_object(const int obj_idx);
+    void                del_layer_from_object(const int obj_idx, const t_layer_height_range& layer_range);
     void                del_layers_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
@@ -245,7 +246,6 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
-    const t_layer_height_range& get_layer_range_from_item(const wxDataViewItem layer_item, const int obj_idx) const;
 
     void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();
@@ -277,7 +277,7 @@ public:
     // Remove objects/sub-object from the list
     void remove();
     void del_layer_range(const t_layer_height_range& range);
-    void add_layer_range(const t_layer_height_range& range);
+    void add_layer_range_after_current(const t_layer_height_range& current_range);
     void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);

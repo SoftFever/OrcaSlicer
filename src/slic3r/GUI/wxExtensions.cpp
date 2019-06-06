@@ -464,12 +464,13 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 }
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
-                                                 const wxString& label_range, 
+                                                 const t_layer_height_range& layer_range,
                                                  const int idx /*= -1 */, 
                                                  const wxString& extruder) :
     m_parent(parent),
     m_type(itLayer),
     m_idx(idx),
+    m_layer_range(layer_range),
     m_extruder(extruder)
 {
     const int children_cnt = parent->GetChildCount();
@@ -481,7 +482,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         for (int i = m_idx; i < children_cnt; i++)
             parent->GetNthChild(i)->SetIdx(i + 1);
     }
-//     m_name = wxString::Format(_(L("Layer %s (mm)")), label_range);
+    const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
     m_bmp = create_scaled_bitmap(nullptr, "layers_white");    // FIXME: pass window ptr
 
@@ -751,7 +752,7 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
 }
 
 wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
-                                                   const std::string& label_range, 
+                                                   const t_layer_height_range& layer_range, 
                                                    const int index /* = -1*/)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
@@ -773,7 +774,7 @@ wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_
     }
 
     // Add layer node
-    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, label_range, index);
+    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, layer_range, index);
     if (index < 0)
         layer_root_node->Append(layer_node);
     else
@@ -1122,7 +1123,7 @@ wxDataViewItem ObjectDataViewModel::GetItemById(const int obj_idx, const int sub
     if (!item)
         return wxDataViewItem(0);
 
-    auto parent = (ObjectDataViewModelNode*)item.GetID();;
+    auto parent = (ObjectDataViewModelNode*)item.GetID();
     for (size_t i = 0; i < parent->GetChildCount(); i++)
         if (parent->GetNthChild(i)->m_idx == sub_obj_idx)
             return wxDataViewItem(parent->GetNthChild(i));
@@ -1138,6 +1139,34 @@ wxDataViewItem ObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_id
 wxDataViewItem ObjectDataViewModel::GetItemByLayerId(int obj_idx, int layer_idx)
 {
     return GetItemById(obj_idx, layer_idx, itLayerRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range)
+{
+    if (obj_idx >= m_objects.size() || obj_idx < 0) {
+        printf("Error! Out of objects range.\n");
+        return wxDataViewItem(0);
+    }
+
+    auto item = GetItemByType(wxDataViewItem(m_objects[obj_idx]), itLayerRoot);
+    if (!item)
+        return wxDataViewItem(0);
+
+    auto parent = (ObjectDataViewModelNode*)item.GetID();
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+        if (parent->GetNthChild(i)->m_layer_range == layer_range)
+            return wxDataViewItem(parent->GetNthChild(i));
+
+    return wxDataViewItem(0);
+}
+
+int  ObjectDataViewModel::GetItemIdByLayerRange(const int obj_idx, const t_layer_height_range& layer_range)
+{
+    wxDataViewItem item = GetItemByLayerRange(obj_idx, layer_range);
+    if (!item)
+        return -1;
+
+    return GetLayerIdByItem(item);
 }
 
 int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
@@ -1182,6 +1211,16 @@ int ObjectDataViewModel::GetLayerIdByItem(const wxDataViewItem& item) const
     return GetIdByItemAndType(item, itLayer);
 }
 
+t_layer_height_range ObjectDataViewModel::GetLayerRangeByItem(const wxDataViewItem& item) const
+{
+    wxASSERT(item.IsOk());
+
+    ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node || node->m_type != itLayer)
+        return { 0.0f, 0.0f };
+    return node->GetLayerRange();
+}
+
 void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx)
 {
     wxASSERT(item.IsOk());
@@ -1196,9 +1235,10 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
 
     ObjectDataViewModelNode *parent_node = node->GetParent();
     if (!parent_node) return;
-    if (type & (itInstance | itLayer))
-        parent_node = node->GetParent()->GetParent();
-    if (!parent_node || parent_node->m_type != itObject) { type = itUndef; return; }
+
+    // get top parent (Object) node
+    while (parent_node->m_type != itObject)
+        parent_node = parent_node->GetParent();
 
     auto it = find(m_objects.begin(), m_objects.end(), parent_node);
     if (it != m_objects.end())
@@ -1366,10 +1406,7 @@ wxDataViewItem ObjectDataViewModel::GetTopParent(const wxDataViewItem &item) con
 
     ObjectDataViewModelNode *parent_node = node->GetParent();
     while (parent_node->m_type != itObject)
-    {
-        node = parent_node;
-        parent_node = node->GetParent();
-    }
+        parent_node = parent_node->GetParent();
 
     return wxDataViewItem((void*)parent_node);
 }

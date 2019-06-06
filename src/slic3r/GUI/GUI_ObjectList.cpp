@@ -351,28 +351,14 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
     const ItemType type = m_objects_model->GetItemType(item);
 
     const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-        m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+                        m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
 
     const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
     return type & itVolume ?(*m_objects)[obj_idx]->volumes[vol_idx]->config :
+           type & itLayer  ?(*m_objects)[obj_idx]->layer_config_ranges[m_objects_model->GetLayerRangeByItem(item)] :
                             (*m_objects)[obj_idx]->config;
-}
-
-const t_layer_height_range& ObjectList::get_layer_range_from_item(const wxDataViewItem layer_item, const int obj_idx) const
-{
-    ModelObject* object = (*m_objects)[obj_idx];
-    t_layer_config_ranges::iterator layer_range = object->layer_config_ranges.begin();
-    int id = m_objects_model->GetLayerIdByItem(layer_item);
-
-    // May be not a best solution #ys_FIXME
-    while (id > 0 && layer_range != object->layer_config_ranges.end()) {
-        ++layer_range;
-        id--;
-    }
-
-    return layer_range->first;
 }
 
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
@@ -457,16 +443,23 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
 {
     if (m_prevent_update_extruder_in_config)
         return;
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+
+    const ItemType item_type = m_objects_model->GetItemType(item);
+    if (item_type & itObject) {
         const int obj_idx = m_objects_model->GetIdByItem(item);
         m_config = &(*m_objects)[obj_idx]->config;
     }
     else {
-        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
+        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+        if (item_type & itVolume)
+        {
         const int volume_id = m_objects_model->GetVolumeIdByItem(item);
         if (obj_idx < 0 || volume_id < 0)
             return;
         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+        }
+        else if (item_type & itLayer)
+            m_config = &get_item_config(item);
     }
 
     wxVariant variant;
@@ -669,7 +662,7 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
     if (!item)
-#ifdef __WXOSX__ // #ys_FIXME temporary workaround for OSX 
+#ifdef __WXOSX__ // temporary workaround for OSX 
         // after Yosemite OS X version, HitTest return undefined item
         item = GetSelection();
     if (item)
@@ -1668,40 +1661,52 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     ItemType type;
 
     m_objects_model->GetItemInfo(item, type, obj_idx, idx);
-    if (type == itUndef)
+    if (type & itUndef)
         return;
 
-    if (type == itSettings)
-        del_settings_from_config();
-    else if (type == itInstanceRoot && obj_idx != -1)
+    if (type & itSettings)
+        del_settings_from_config(m_objects_model->GetParent(item));
+    else if (type & itInstanceRoot && obj_idx != -1)
         del_instances_from_object(obj_idx);
-    else if ((type & itLayerRoot) && obj_idx != -1)
+    else if (type & itLayerRoot && obj_idx != -1)
         del_layers_from_object(obj_idx);
+    else if (type & itLayer && obj_idx != -1)
+        del_layer_from_object(obj_idx, m_objects_model->GetLayerRangeByItem(item));
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
         return;
 
     // If last volume item with warning was deleted, unmark object item
-    if (type == itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
+    if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
     m_objects_model->Delete(item);
 }
 
-void ObjectList::del_settings_from_config()
+void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
 {
-    auto opt_keys = m_config->keys();
-    if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
+    const bool is_layer_settings = m_objects_model->GetItemType(parent_item) == itLayer;
+
+    const int opt_cnt = m_config->keys().size();
+    if (opt_cnt == 1 && m_config->has("extruder") || 
+        is_layer_settings && opt_cnt == 2 && m_config->has("extruder") && m_config->has("layer_height"))
         return;
+
     int extruder = -1;
     if (m_config->has("extruder"))
         extruder = m_config->option<ConfigOptionInt>("extruder")->value;
+
+    coordf_t layer_height = 0.0;
+    if (is_layer_settings)
+        layer_height = m_config->opt_float("layer_height");
 
     m_config->clear();
 
     if (extruder >= 0)
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
+    if (is_layer_settings)
+        m_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
 }
 
 void ObjectList::del_instances_from_object(const int obj_idx)
@@ -1714,6 +1719,17 @@ void ObjectList::del_instances_from_object(const int obj_idx)
         instances.pop_back();
 
     (*m_objects)[obj_idx]->invalidate_bounding_box(); // ? #ys_FIXME
+
+    changed_object(obj_idx);
+}
+
+void ObjectList::del_layer_from_object(const int obj_idx, const t_layer_height_range& layer_range)
+{
+    const auto del_range = object(obj_idx)->layer_config_ranges.find(layer_range);
+    if (del_range == object(obj_idx)->layer_config_ranges.end())
+        return;
+        
+    object(obj_idx)->layer_config_ranges.erase(del_range);
 
     changed_object(obj_idx);
 }
@@ -1763,15 +1779,6 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             return false;
         }
         object->delete_instance(idx);
-    }
-    else if (type == itLayer) {
-        t_layer_config_ranges::iterator layer_range = object->layer_config_ranges.begin();
-        int id = idx;
-        while (id > 0 && layer_range != object->layer_config_ranges.end()) {
-            layer_range++;
-            id--;
-        }
-        object->layer_config_ranges.erase(layer_range);
     }
     else
         return false;
@@ -1982,9 +1989,7 @@ void ObjectList::part_selection_changed()
                     }
                     else if (parent_type & itLayer) {
                         og_name = _(L("Layer range Settings to modify"));
-
-                        const t_layer_height_range& layer_height_range = get_layer_range_from_item(parent, obj_idx);
-                        m_config = &(*m_objects)[obj_idx]->layer_config_ranges[layer_height_range];
+                        m_config = &get_item_config(parent);
                     }
                     update_and_show_settings = true;
                 }
@@ -2005,8 +2010,8 @@ void ObjectList::part_selection_changed()
                     og_name = type & itLayerRoot ? _(L("Layers Editing")) : _(L("Layer Editing"));
                     update_and_show_layers = true;
 
-                    const t_layer_height_range& layer_height_range = get_layer_range_from_item(item, obj_idx);
-                    m_config = &(*m_objects)[obj_idx]->layer_config_ranges[layer_height_range];
+                    if (type & itLayer)
+                        m_config = &get_item_config(item);
                 }
             }
         }
@@ -2252,7 +2257,7 @@ void ObjectList::remove()
     }
 }
 
-void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
+void ObjectList::del_layer_range(const t_layer_height_range& range)
 {
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
@@ -2260,73 +2265,58 @@ void ObjectList::del_layer_range(const std::pair<coordf_t, coordf_t>& range)
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
     wxDataViewItem selectable_item = GetSelection();
-    int layer_idx = 0;
 
     if (ranges.size() == 1)
         selectable_item = m_objects_model->GetParent(selectable_item);
-    else {
-        // May be not a best solution #ys_FIXME
-        t_layer_config_ranges::iterator layer_selected = ranges.find(range);
-        t_layer_config_ranges::iterator it = ranges.begin();
-        while (it != layer_selected) {
-            ++it;
-            layer_idx++;
-        }
-    }
 
-    wxDataViewItem layer_item = m_objects_model->GetItemByLayerId(obj_idx, layer_idx);
+    wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, range);
     del_subobject_item(layer_item);
 
     select_item(selectable_item);
 }
 
-void ObjectList::add_layer_range(const t_layer_height_range& range)
+void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
 {
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
-    wxDataViewItem layers_item = GetSelection();
+    const wxDataViewItem layers_item = GetSelection();
 
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
-    const t_layer_config_ranges::iterator selected_range = ranges.find(range);
-    const t_layer_config_ranges::iterator last_range = --ranges.end();   
+    const t_layer_height_range& last_range = (--ranges.end())->first;
     
-    if (selected_range->first == last_range->first)
+    if (current_range == last_range)
     {
-        const t_layer_height_range new_range = { last_range->first.second, last_range->first.second + 0.5f };
+        const t_layer_height_range& new_range = { last_range.second, last_range.second + 0.5f };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
     else
     {
-        int layer_idx = 0;
-        t_layer_config_ranges::iterator next_range = ++ranges.find(range);
+        const t_layer_height_range& next_range = (++ranges.find(current_range))->first;
 
-        // May be not a best solution #ys_FIXME
-        t_layer_config_ranges::iterator it = ranges.begin();
-        while (it != next_range && it != ranges.end()) {
-            layer_idx++;
-            ++it;
-        }
-
-        if (selected_range->first.second > next_range->first.first)
-            return; // range devision has no mean
+        if (current_range.second > next_range.first)
+            return; // range division has no sense
         
-        if (selected_range->first.second == next_range->first.first)
+        const int layer_idx = m_objects_model->GetItemIdByLayerRange(obj_idx, next_range);
+        if (layer_idx < 0)
+            return;
+
+        if (current_range.second == next_range.first)
         {
-            const coordf_t delta = (next_range->first.second - next_range->first.first);
-            if (delta < 0.05f) // next range devision has no mean 
+            const coordf_t delta = (next_range.second - next_range.first);
+            if (delta < 0.05f) // next range division has no sense 
                 return; 
 
-            const coordf_t midl_layer = next_range->first.first + 0.5f * delta;
-            // #ys_FIXME  May be it should be copied just a "layer_height" option
-            const /*coordf_t*/auto old_config = next_range->second;
-            t_layer_height_range new_range = { midl_layer, next_range->first.second };
+            const coordf_t midl_layer = next_range.first + 0.5f * delta;
+            
+            const auto old_config = ranges.at(next_range);
+            t_layer_height_range new_range = { midl_layer, next_range.second };
 
             // delete old layer
 
-            wxDataViewItem layer_item = m_objects_model->GetItemByLayerId(obj_idx, layer_idx);
+            wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
             del_subobject_item(layer_item);
 
             // create new 2 layers instead of deleted one
@@ -2334,13 +2324,13 @@ void ObjectList::add_layer_range(const t_layer_height_range& range)
             ranges[new_range] = old_config;
             add_layer_item(new_range, layers_item, layer_idx);
 
-            new_range = { selected_range->first.second, midl_layer };
+            new_range = { current_range.second, midl_layer };
             ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
         }
         else
         {
-            const t_layer_height_range new_range = { selected_range->first.second, next_range->first.first };
+            const t_layer_height_range new_range = { current_range.second, next_range.first };
             ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
         }        
@@ -2356,15 +2346,12 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                 const wxDataViewItem layers_item, 
                                 const int layer_idx /* = -1*/)
 {
-    const std::string label = (boost::format(" %.2f-%.2f ") % range.first % range.second).str();
-    const wxDataViewItem layer_item = m_objects_model->AddLayersChild(layers_item, label, layer_idx);
+    const wxDataViewItem layer_item = m_objects_model->AddLayersChild(layers_item, range, layer_idx);
 
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
-//     auto opt_keys = object(obj_idx)->layer_config_ranges[range].keys();
     const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range];
-//     if (!opt_keys.empty() && !(opt_keys.size() == 2 && opt_keys[0] == "layer_height" && opt_keys[1] == "extruder"))
     if (config.keys().size() > 2)
         select_item(m_objects_model->AddSettingsChild(layer_item));
 }
