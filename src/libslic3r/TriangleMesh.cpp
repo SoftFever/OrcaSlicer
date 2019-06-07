@@ -578,7 +578,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
         {   // iterate through facet's vertices
 
             orgQhull::QhullPoint p = vertices[i].point();
-            const float* coords = p.coordinates();
+            const auto* coords = p.coordinates();
             dst_vertices.emplace_back(coords[0], coords[1], coords[2]);
         }
         unsigned int size = (unsigned int)dst_vertices.size();
