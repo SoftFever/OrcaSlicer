@@ -401,7 +401,8 @@ public:
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
     wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item, 
-                                    const t_layer_height_range& layer_range, 
+                                    const t_layer_height_range& layer_range,
+                                    const int extruder = 0, 
                                     const int index = -1);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);

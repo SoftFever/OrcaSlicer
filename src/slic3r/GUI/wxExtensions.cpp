@@ -752,11 +752,14 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
 }
 
 wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
-                                                   const t_layer_height_range& layer_range, 
+                                                   const t_layer_height_range& layer_range,
+                                                   const int extruder/* = 0*/, 
                                                    const int index /* = -1*/)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return wxDataViewItem(0);
+
+    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
     // get LayerRoot node
     ObjectDataViewModelNode *layer_root_node;
@@ -774,7 +777,7 @@ wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_
     }
 
     // Add layer node
-    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, layer_range, index);
+    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, layer_range, index, extruder_str);
     if (index < 0)
         layer_root_node->Append(layer_node);
     else

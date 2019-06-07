@@ -2346,12 +2346,18 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                 const wxDataViewItem layers_item, 
                                 const int layer_idx /* = -1*/)
 {
-    const wxDataViewItem layer_item = m_objects_model->AddLayersChild(layers_item, range, layer_idx);
-
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
     const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range];
+    if (!config.has("extruder"))
+        return;
+
+    const auto layer_item = m_objects_model->AddLayersChild(layers_item, 
+                                                            range, 
+                                                            config.opt_int("extruder"),
+                                                            layer_idx);
+
     if (config.keys().size() > 2)
         select_item(m_objects_model->AddSettingsChild(layer_item));
 }
