@@ -5,10 +5,13 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 #include <boost/asio.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/optional.hpp>
+
+#if _WIN32
+	#include <regex>
+#endif
 
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
@@ -159,6 +162,7 @@ struct FirmwareDialog::priv
 	void flashing_start(unsigned tasks);
 	void flashing_done(AvrDudeComplete complete);
 	void enable_port_picker(bool enable);
+	void update_flash_enabled();
 	void load_hex_file(const wxString &path);
 	void queue_event(AvrdudeEvent aevt, wxString message);
 
@@ -171,6 +175,7 @@ struct FirmwareDialog::priv
 	void prepare_mk2();
 	void prepare_mk3();
 	void prepare_avr109(Avr109Pid usb_pid);
+	bool get_serial_port();
 	void perform_upload();
 
 	void user_cancel();
@@ -284,6 +289,14 @@ void FirmwareDialog::priv::enable_port_picker(bool enable)
 	port_autodetect->Show(! enable);
 	q->Layout();
 	fit_no_shrink();
+}
+
+void FirmwareDialog::priv::update_flash_enabled()
+{
+	const bool hex_exists = wxFileExists(hex_picker->GetPath());
+	const bool port_valid = get_serial_port();
+
+	btn_flash->Enable(hex_exists && port_valid);
 }
 
 void FirmwareDialog::priv::load_hex_file(const wxString &path)
@@ -553,6 +566,31 @@ void FirmwareDialog::priv::prepare_avr109(Avr109Pid usb_pid)
 }
 
 
+bool FirmwareDialog::priv::get_serial_port()
+{
+	const int selection = port_picker->GetSelection();
+	if (selection != wxNOT_FOUND) {
+		port = this->ports[selection];
+	} else {
+		// User has supplied a custom filename
+
+		std::string path_u8 = GUI::into_u8(port_picker->GetValue());
+#ifdef _WIN32
+		static const std::regex com_pattern("COM[0-9]+", std::regex::icase);
+		std::smatch matches;
+		if (std::regex_match(path_u8, matches, com_pattern)) {
+#else
+		if (fs::is_other(fs::path(path_u8))) {
+#endif
+			port = SerialPortInfo(std::move(path_u8));
+		} else {
+			port = boost::none;
+		}
+	}
+
+	return !!port;
+}
+
 void FirmwareDialog::priv::perform_upload()
 {
 	auto filename = hex_picker->GetPath();
@@ -560,14 +598,8 @@ void FirmwareDialog::priv::perform_upload()
 
 	load_hex_file(filename);  // Might already be loaded, but we want to make sure it's fresh
 
-	int selection = port_picker->GetSelection();
-	if (selection != wxNOT_FOUND) {
-		port = this->ports[selection];
-
-		// Verify whether the combo box list selection equals to the combo box edit value.
-		if (wxString::FromUTF8(port->friendly_name.data()) != port_picker->GetValue()) {
-			return;
-		}
+	if (! get_serial_port()) {
+		return;
 	}
 
 	const bool extra_verbose = false;   // For debugging
@@ -836,9 +868,12 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	p->hex_picker->Bind(wxEVT_FILEPICKER_CHANGED, [this](wxFileDirPickerEvent& evt) {
 		if (wxFileExists(evt.GetPath())) {
 			this->p->load_hex_file(evt.GetPath());
-			this->p->btn_flash->Enable();
 		}
+		p->update_flash_enabled();
 	});
+
+	p->port_picker->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) { p->update_flash_enabled(); });
+	p->port_picker->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { p->update_flash_enabled(); });
 
 	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [=](wxCollapsiblePaneEvent &evt) {
 		if (evt.GetCollapsed()) {
