@@ -47,7 +47,6 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
 {
     stl_initialize(&this->stl);
     stl_file &stl = this->stl;
-    stl.error = 0;
     stl.stats.type = inmemory;
 
     // count facets and allocate memory
@@ -55,7 +54,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl.stats.original_num_facets = stl.stats.number_of_facets;
     stl_allocate(&stl);
 
-    for (uint32_t i = 0; i < stl.stats.number_of_facets; i++) {
+	for (uint32_t i = 0; i < stl.stats.number_of_facets; ++ i) {
         stl_facet facet;
         facet.vertex[0] = points[facets[i](0)].cast<float>();
         facet.vertex[1] = points[facets[i](1)].cast<float>();
@@ -76,16 +75,8 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
 TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 {
     stl_close(&this->stl);
-    this->stl       = other.stl;
-    this->repaired  = other.repaired;
-	this->stl.heads.clear();
-    this->stl.tail  = nullptr;
-    this->stl.error = other.stl.error;
-    this->stl.facet_start = other.stl.facet_start;
-    this->stl.neighbors_start = other.stl.neighbors_start;
-    this->stl.v_indices = other.stl.v_indices;
-	this->stl.v_shared = other.stl.v_shared;
-	this->stl.stats = other.stl.stats;
+    this->stl = other.stl;
+	this->repaired = other.repaired;
     return *this;
 }
 
@@ -1711,10 +1702,12 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         
         if (min_z > z || (min_z == z && max_z > z)) {
             // facet is above the cut plane and does not belong to it
-            if (upper != NULL) stl_add_facet(&upper->stl, facet);
+            if (upper != nullptr)
+				stl_add_facet(&upper->stl, facet);
         } else if (max_z < z || (max_z == z && min_z < z)) {
             // facet is below the cut plane and does not belong to it
-            if (lower != NULL) stl_add_facet(&lower->stl, facet);
+            if (lower != nullptr)
+				stl_add_facet(&lower->stl, facet);
         } else if (min_z < z && max_z > z) {
             // Facet is cut by the slicing plane.
 
@@ -1761,22 +1754,24 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
             quadrilateral[1].vertex[2] = v0v1;
             
             if (v0(2) > z) {
-                if (upper != NULL) stl_add_facet(&upper->stl, &triangle);
-                if (lower != NULL) {
+                if (upper != nullptr) 
+					stl_add_facet(&upper->stl, &triangle);
+                if (lower != nullptr) {
                     stl_add_facet(&lower->stl, &quadrilateral[0]);
                     stl_add_facet(&lower->stl, &quadrilateral[1]);
                 }
             } else {
-                if (upper != NULL) {
+                if (upper != nullptr) {
                     stl_add_facet(&upper->stl, &quadrilateral[0]);
                     stl_add_facet(&upper->stl, &quadrilateral[1]);
                 }
-                if (lower != NULL) stl_add_facet(&lower->stl, &triangle);
+                if (lower != nullptr) 
+					stl_add_facet(&lower->stl, &triangle);
             }
         }
     }
     
-    if (upper != NULL) {
+    if (upper != nullptr) {
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating upper part";
         ExPolygons section;
         this->make_expolygons_simple(upper_lines, &section);
@@ -1790,7 +1785,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         }
     }
     
-    if (lower != NULL) {
+    if (lower != nullptr) {
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating lower part";
         ExPolygons section;
         this->make_expolygons_simple(lower_lines, &section);

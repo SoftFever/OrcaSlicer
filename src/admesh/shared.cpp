@@ -33,6 +33,7 @@ void stl_invalidate_shared_vertices(stl_file *stl)
 {
   	stl->v_indices.clear();
   	stl->v_shared.clear();
+  	stl->stats.shared_vertices = 0;
 }
 
 void stl_generate_shared_vertices(stl_file *stl)
@@ -46,7 +47,7 @@ void stl_generate_shared_vertices(stl_file *stl)
 	// 3 indices to vertex per face
 	stl->v_indices.assign(stl->stats.number_of_facets, v_indices_struct());
 	// Shared vertices (3D coordinates)
-	stl->v_shared.assign(stl->stats.number_of_facets / 2, stl_vertex());
+	stl->v_shared.reserve(stl->stats.number_of_facets / 2);
 	stl->stats.shared_vertices = 0;
 
 	// A degenerate mesh may contain loops: Traversing a fan will end up in an endless loop

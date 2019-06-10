@@ -837,10 +837,12 @@ void stl_add_facet(stl_file *stl, const stl_facet *new_facet)
 {
 	if (stl->error)
 		return;
-  	++ stl->stats.facets_added;
-  	++ stl->stats.number_of_facets;
-  	stl->facet_start.emplace_back(*new_facet);
+	assert(stl->facet_start.size() == stl->stats.number_of_facets);
+	assert(stl->neighbors_start.size() == stl->stats.number_of_facets);
+	stl->facet_start.emplace_back(*new_facet);
   	// note that the normal vector is not set here, just initialized to 0.
   	stl->facet_start[stl->stats.number_of_facets].normal = stl_normal::Zero();
   	stl->neighbors_start.emplace_back();
+	++ stl->stats.facets_added;
+	++ stl->stats.number_of_facets;
 }
