@@ -161,7 +161,6 @@ static void extract_model_from_archive(
         else {
             // Header has been extracted. Now read the faces.
             stl_file &stl = mesh.stl;
-            stl.error = 0;
             stl.stats.type = inmemory;
             stl.stats.number_of_facets = header.nTriangles;
             stl.stats.original_num_facets = header.nTriangles;

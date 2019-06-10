@@ -33,10 +33,8 @@
 #define SEEK_END 2
 #endif
 
-void
-stl_stats_out(stl_file *stl, FILE *file, char *input_file) {
-  if (stl->error) return;
-
+void stl_stats_out(stl_file *stl, FILE *file, char *input_file)
+{
   /* this is here for Slic3r, without our config.h
      it won't use this part of the code anyway */
 #ifndef VERSION
@@ -107,11 +105,9 @@ Backwards edges       : %5d\n", stl->stats.backwards_edges);
 Normals fixed         : %5d\n", stl->stats.normals_fixed);
 }
 
-void
-stl_write_ascii(stl_file *stl, const char *file, const char *label) {
+bool stl_write_ascii(stl_file *stl, const char *file, const char *label)
+{
   char      *error_msg;
-
-  if (stl->error) return;
 
   /* Open the file */
   FILE *fp = boost::nowide::fopen(file, "w");
@@ -122,8 +118,7 @@ stl_write_ascii(stl_file *stl, const char *file, const char *label) {
             file);
     perror(error_msg);
     free(error_msg);
-    stl->error = 1;
-    return;
+    return false;
   }
 
   fprintf(fp, "solid  %s\n", label);
@@ -149,14 +144,13 @@ stl_write_ascii(stl_file *stl, const char *file, const char *label) {
   fprintf(fp, "endsolid  %s\n", label);
 
   fclose(fp);
+  return true;
 }
 
-void
-stl_print_neighbors(stl_file *stl, char *file) {
+bool stl_print_neighbors(stl_file *stl, char *file)
+{
   FILE *fp;
   char *error_msg;
-
-  if (stl->error) return;
 
   /* Open the file */
   fp = boost::nowide::fopen(file, "w");
@@ -167,8 +161,7 @@ stl_print_neighbors(stl_file *stl, char *file) {
             file);
     perror(error_msg);
     free(error_msg);
-    stl->error = 1;
-    return;
+    return false;
   }
 
   for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
@@ -182,6 +175,7 @@ stl_print_neighbors(stl_file *stl, char *file) {
             (int)stl->neighbors_start[i].which_vertex_not[2]);
   }
   fclose(fp);
+  return true;
 }
 
 #ifndef BOOST_LITTLE_ENDIAN
@@ -195,12 +189,10 @@ void stl_internal_reverse_quads(char *buf, size_t cnt)
 }
 #endif
 
-void
-stl_write_binary(stl_file *stl, const char *file, const char *label) {
+bool stl_write_binary(stl_file *stl, const char *file, const char *label)
+{
   FILE      *fp;
   char      *error_msg;
-
-  if (stl->error) return;
 
   /* Open the file */
   fp = boost::nowide::fopen(file, "wb");
@@ -211,8 +203,7 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
             file);
     perror(error_msg);
     free(error_msg);
-    stl->error = 1;
-    return;
+    return false;
   }
 
   fprintf(fp, "%s", label);
@@ -237,40 +228,38 @@ stl_write_binary(stl_file *stl, const char *file, const char *label) {
   }
 #endif /* BOOST_LITTLE_ENDIAN */
   fclose(fp);
+  return true;
 }
 
-void
-stl_write_vertex(stl_file *stl, int facet, int vertex) {
-  if (stl->error) return;
-  printf("  vertex %d/%d % .8E % .8E % .8E\n", vertex, facet,
+void stl_write_vertex(stl_file *stl, int facet, int vertex)
+{
+  	printf("  vertex %d/%d % .8E % .8E % .8E\n", vertex, facet,
          stl->facet_start[facet].vertex[vertex](0),
          stl->facet_start[facet].vertex[vertex](1),
          stl->facet_start[facet].vertex[vertex](2));
 }
 
-void
-stl_write_facet(stl_file *stl, char *label, int facet) {
-  if (stl->error) return;
-  printf("facet (%d)/ %s\n", facet, label);
-  stl_write_vertex(stl, facet, 0);
-  stl_write_vertex(stl, facet, 1);
-  stl_write_vertex(stl, facet, 2);
+void stl_write_facet(stl_file *stl, char *label, int facet)
+{
+	printf("facet (%d)/ %s\n", facet, label);
+	stl_write_vertex(stl, facet, 0);
+	stl_write_vertex(stl, facet, 1);
+	stl_write_vertex(stl, facet, 2);
 }
 
-void
-stl_write_neighbor(stl_file *stl, int facet) {
-  if (stl->error) return;
-  printf("Neighbors %d: %d, %d, %d ;  %d, %d, %d\n", facet,
-         stl->neighbors_start[facet].neighbor[0],
-         stl->neighbors_start[facet].neighbor[1],
-         stl->neighbors_start[facet].neighbor[2],
-         stl->neighbors_start[facet].which_vertex_not[0],
-         stl->neighbors_start[facet].which_vertex_not[1],
-         stl->neighbors_start[facet].which_vertex_not[2]);
+void stl_write_neighbor(stl_file *stl, int facet)
+{
+	printf("Neighbors %d: %d, %d, %d ;  %d, %d, %d\n", facet,
+		stl->neighbors_start[facet].neighbor[0],
+		stl->neighbors_start[facet].neighbor[1],
+		stl->neighbors_start[facet].neighbor[2],
+		stl->neighbors_start[facet].which_vertex_not[0],
+		stl->neighbors_start[facet].which_vertex_not[1],
+		stl->neighbors_start[facet].which_vertex_not[2]);
 }
 
-void
-stl_write_quad_object(stl_file *stl, char *file) {
+bool stl_write_quad_object(stl_file *stl, char *file)
+{
   FILE      *fp;
   char      *error_msg;
   stl_vertex connect_color = stl_vertex::Zero();
@@ -278,8 +267,6 @@ stl_write_quad_object(stl_file *stl, char *file) {
   stl_vertex uncon_2_color = stl_vertex::Zero();
   stl_vertex uncon_3_color = stl_vertex::Zero();
   stl_vertex color;
-
-  if (stl->error) return;
 
   /* Open the file */
   fp = boost::nowide::fopen(file, "w");
@@ -290,8 +277,7 @@ stl_write_quad_object(stl_file *stl, char *file) {
             file);
     perror(error_msg);
     free(error_msg);
-    stl->error = 1;
-    return;
+    return false;
   }
 
   fprintf(fp, "CQUAD\n");
@@ -326,14 +312,13 @@ stl_write_quad_object(stl_file *stl, char *file) {
             stl->facet_start[i].vertex[2](2), color(0), color(1), color(2));
   }
   fclose(fp);
+  return true;
 }
 
-void stl_write_dxf(stl_file *stl, const char *file, char *label) 
+bool stl_write_dxf(stl_file *stl, const char *file, char *label) 
 {
   FILE      *fp;
   char      *error_msg;
-
-  if (stl->error) return;
 
   /* Open the file */
   fp = boost::nowide::fopen(file, "w");
@@ -344,8 +329,7 @@ void stl_write_dxf(stl_file *stl, const char *file, char *label)
             file);
     perror(error_msg);
     free(error_msg);
-    stl->error = 1;
-    return;
+    return false;
   }
 
   fprintf(fp, "999\n%s\n", label);
@@ -375,22 +359,5 @@ void stl_write_dxf(stl_file *stl, const char *file, char *label)
   fprintf(fp, "0\nENDSEC\n0\nEOF\n");
 
   fclose(fp);
-}
-
-void
-stl_clear_error(stl_file *stl) {
-  stl->error = 0;
-}
-
-void
-stl_exit_on_error(stl_file *stl) {
-  if (!stl->error) return;
-  stl->error = 0;
-  stl_close(stl);
-  exit(1);
-}
-
-int
-stl_get_error(stl_file *stl) {
-  return stl->error;
+  return true;
 }

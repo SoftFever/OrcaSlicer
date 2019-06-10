@@ -38,15 +38,10 @@ void stl_invalidate_shared_vertices(stl_file *stl)
 
 void stl_generate_shared_vertices(stl_file *stl)
 {
-	if (stl->error)
-		return;
-
-	/* make sure this function is idempotent and does not leak memory */
-	stl_invalidate_shared_vertices(stl);
-
 	// 3 indices to vertex per face
 	stl->v_indices.assign(stl->stats.number_of_facets, v_indices_struct());
 	// Shared vertices (3D coordinates)
+	stl->v_shared.clear();
 	stl->v_shared.reserve(stl->stats.number_of_facets / 2);
 	stl->stats.shared_vertices = 0;
 
@@ -139,11 +134,8 @@ void stl_generate_shared_vertices(stl_file *stl)
 	}
 }
 
-void stl_write_off(stl_file *stl, const char *file)
+bool stl_write_off(stl_file *stl, const char *file)
 {
-	if (stl->error)
-		return;
-
 	/* Open the file */
 	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
@@ -151,8 +143,7 @@ void stl_write_off(stl_file *stl, const char *file)
 		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
 		perror(error_msg);
 		free(error_msg);
-		stl->error = 1;
-		return;
+		return false;
 	}
 
 	fprintf(fp, "OFF\n");
@@ -162,13 +153,11 @@ void stl_write_off(stl_file *stl, const char *file)
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		fprintf(fp, "\t3 %d %d %d\n", stl->v_indices[i].vertex[0], stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
 	fclose(fp);
+	return true;
 }
 
-void stl_write_vrml(stl_file *stl, const char *file)
+bool stl_write_vrml(stl_file *stl, const char *file)
 {
-  	if (stl->error) 
-  		return;
-
 	/* Open the file */
   	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
@@ -176,8 +165,7 @@ void stl_write_vrml(stl_file *stl, const char *file)
 		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
 		perror(error_msg);
 		free(error_msg);
-		stl->error = 1;
-		return;
+		return false;
 	}
 
 	fprintf(fp, "#VRML V1.0 ascii\n\n");
@@ -210,12 +198,11 @@ void stl_write_vrml(stl_file *stl, const char *file)
 	fprintf(fp, "\t}\n");
 	fprintf(fp, "}\n");
 	fclose(fp);
+	return true;
 }
 
-void stl_write_obj (stl_file *stl, const char *file)
+bool stl_write_obj(stl_file *stl, const char *file)
 {
-	if (stl->error)
-		return;
 
   	FILE *fp = boost::nowide::fopen(file, "w");
   	if (fp == nullptr) {
@@ -223,8 +210,7 @@ void stl_write_obj (stl_file *stl, const char *file)
     	sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
     	perror(error_msg);
     	free(error_msg);
-    	stl->error = 1;
-    	return;
+    	return false;
   	}
 
 	for (int i = 0; i < stl->stats.shared_vertices; ++ i)
@@ -232,4 +218,5 @@ void stl_write_obj (stl_file *stl, const char *file)
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
     	fprintf(fp, "f %d %d %d\n", stl->v_indices[i].vertex[0]+1, stl->v_indices[i].vertex[1]+1, stl->v_indices[i].vertex[2]+1);
   	fclose(fp);
+  	return true;
 }

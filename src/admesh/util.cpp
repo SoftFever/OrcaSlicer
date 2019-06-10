@@ -34,9 +34,6 @@ static float get_volume(stl_file *stl);
 
 void stl_verify_neighbors(stl_file *stl)
 {
-	if (stl->error)
-		return;
-
 	stl->stats.backwards_edges = 0;
 
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
@@ -69,9 +66,6 @@ void stl_verify_neighbors(stl_file *stl)
 
 void stl_translate(stl_file *stl, float x, float y, float z)
 {
-  if (stl->error)
-  	return;
-
   stl_vertex new_min(x, y, z);
   stl_vertex shift = new_min - stl->stats.min;
   for (int i = 0; i < stl->stats.number_of_facets; ++ i)
@@ -85,9 +79,6 @@ void stl_translate(stl_file *stl, float x, float y, float z)
 /* Translates the stl by x,y,z, relatively from wherever it is currently */
 void stl_translate_relative(stl_file *stl, float x, float y, float z)
 {
-  if (stl->error)
-  	return;
-
   stl_vertex shift(x, y, z);
   for (int i = 0; i < stl->stats.number_of_facets; ++ i)
     for (int j = 0; j < 3; ++ j)
@@ -99,9 +90,6 @@ void stl_translate_relative(stl_file *stl, float x, float y, float z)
 
 void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
 {
-  if (stl->error)
-  	return;
-
   // Scale extents.
   auto s = versor.array();
   stl->stats.min.array() *= s;
@@ -120,9 +108,6 @@ void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
 
 static void calculate_normals(stl_file *stl) 
 {
-  if (stl->error)
-  	return;
-
   stl_normal normal;
   for(uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     stl_calculate_normal(normal, &stl->facet_start[i]);
@@ -138,8 +123,6 @@ stl_rotate_x(stl_file *stl, float angle) {
   double radian_angle = (angle / 180.0) * M_PI;
   double c = cos(radian_angle);
   double s = sin(radian_angle);
-
-  if (stl->error) return;
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
@@ -159,8 +142,6 @@ stl_rotate_y(stl_file *stl, float angle) {
   double c = cos(radian_angle);
   double s = sin(radian_angle);
 
-  if (stl->error) return;
-
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
       stl_rotate(&stl->facet_start[i].vertex[j](2),
@@ -178,8 +159,6 @@ stl_rotate_z(stl_file *stl, float angle) {
   double radian_angle = (angle / 180.0) * M_PI;
   double c = cos(radian_angle);
   double s = sin(radian_angle);
-
-  if (stl->error) return;
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
@@ -203,7 +182,7 @@ stl_rotate(float *x, float *y, const double c, const double s) {
 
 void stl_get_size(stl_file *stl)
 {
-  if (stl->error || stl->stats.number_of_facets == 0)
+  if (stl->stats.number_of_facets == 0)
   	return;
   stl->stats.min = stl->facet_start[0].vertex[0];
   stl->stats.max = stl->stats.min;
@@ -220,9 +199,6 @@ void stl_get_size(stl_file *stl)
 
 void stl_mirror_xy(stl_file *stl)
 {
-  if (stl->error) 
-  	return;
-
   for(int i = 0; i < stl->stats.number_of_facets; i++) {
     for(int j = 0; j < 3; j++) {
       stl->facet_start[i].vertex[j](2) *= -1.0;
@@ -239,8 +215,6 @@ void stl_mirror_xy(stl_file *stl)
 
 void stl_mirror_yz(stl_file *stl)
 {
-  if (stl->error) return;
-
   for (int i = 0; i < stl->stats.number_of_facets; i++) {
     for (int j = 0; j < 3; j++) {
       stl->facet_start[i].vertex[j](0) *= -1.0;
@@ -257,9 +231,6 @@ void stl_mirror_yz(stl_file *stl)
 
 void stl_mirror_xz(stl_file *stl)
 {
-	if (stl->error)
-		return;
-
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		for (int j = 0; j < 3; ++ j)
 			stl->facet_start[i].vertex[j](1) *= -1.0;
@@ -274,9 +245,6 @@ void stl_mirror_xz(stl_file *stl)
 
 static float get_volume(stl_file *stl)
 {
-  if (stl->error)
-  	return 0;
-
   // Choose a point, any point as the reference.
   stl_vertex p0 = stl->facet_start[0].vertex[0];
   float volume = 0.f;
@@ -291,7 +259,6 @@ static float get_volume(stl_file *stl)
 
 void stl_calculate_volume(stl_file *stl)
 {
-  if (stl->error) return;
   stl->stats.volume = get_volume(stl);
   if(stl->stats.volume < 0.0) {
     stl_reverse_all_facets(stl);
@@ -345,8 +312,6 @@ void stl_repair(stl_file *stl,
   
   int i;
   int last_edges_fixed = 0;
-
-  if (stl->error) return;
 
   if(exact_flag || fixall_flag || nearby_flag || remove_unconnected_flag
       || fill_holes_flag || normal_directions_flag) {
@@ -453,8 +418,6 @@ All facets connected.  No further nearby check necessary.\n");
 // Check validity of the mesh, assert on error.
 bool stl_validate(stl_file *stl)
 {
-	assert(! stl->error);
-	assert(stl->fp == nullptr);
 	assert(! stl->facet_start.empty());
 	assert(stl->facet_start.size() == stl->stats.number_of_facets);
 	assert(stl->neighbors_start.size() == stl->stats.number_of_facets);

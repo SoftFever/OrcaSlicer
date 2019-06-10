@@ -29,61 +29,43 @@
 
 static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag);
 
-static void
-stl_reverse_facet(stl_file *stl, int facet_num) {
-  stl_vertex tmp_vertex;
-  /*  int tmp_neighbor;*/
-  int neighbor[3];
-  int vnot[3];
+static void reverse_facet(stl_file *stl, int facet_num)
+{
+	stl->stats.facets_reversed += 1;
 
-  stl->stats.facets_reversed += 1;
+	int neighbor[3] = { stl->neighbors_start[facet_num].neighbor[0], stl->neighbors_start[facet_num].neighbor[1], stl->neighbors_start[facet_num].neighbor[2] };
+	int vnot[3] = { stl->neighbors_start[facet_num].which_vertex_not[0], stl->neighbors_start[facet_num].which_vertex_not[1], stl->neighbors_start[facet_num].which_vertex_not[2] };
 
-  neighbor[0] = stl->neighbors_start[facet_num].neighbor[0];
-  neighbor[1] = stl->neighbors_start[facet_num].neighbor[1];
-  neighbor[2] = stl->neighbors_start[facet_num].neighbor[2];
-  vnot[0] = stl->neighbors_start[facet_num].which_vertex_not[0];
-  vnot[1] = stl->neighbors_start[facet_num].which_vertex_not[1];
-  vnot[2] = stl->neighbors_start[facet_num].which_vertex_not[2];
+	// reverse the facet
+	stl_vertex tmp_vertex = stl->facet_start[facet_num].vertex[0];
+	stl->facet_start[facet_num].vertex[0] =
+	stl->facet_start[facet_num].vertex[1];
+	stl->facet_start[facet_num].vertex[1] = tmp_vertex;
 
-  /* reverse the facet */
-  tmp_vertex = stl->facet_start[facet_num].vertex[0];
-  stl->facet_start[facet_num].vertex[0] =
-    stl->facet_start[facet_num].vertex[1];
-  stl->facet_start[facet_num].vertex[1] = tmp_vertex;
+	// fix the vnots of the neighboring facets
+	if (neighbor[0] != -1)
+		stl->neighbors_start[neighbor[0]].which_vertex_not[(vnot[0] + 1) % 3] = (stl->neighbors_start[neighbor[0]].which_vertex_not[(vnot[0] + 1) % 3] + 3) % 6;
+	if (neighbor[1] != -1)
+		stl->neighbors_start[neighbor[1]].which_vertex_not[(vnot[1] + 1) % 3] = (stl->neighbors_start[neighbor[1]].which_vertex_not[(vnot[1] + 1) % 3] + 4) % 6;
+	if (neighbor[2] != -1)
+		stl->neighbors_start[neighbor[2]].which_vertex_not[(vnot[2] + 1) % 3] = (stl->neighbors_start[neighbor[2]].which_vertex_not[(vnot[2] + 1) % 3] + 2) % 6;
 
-  /* fix the vnots of the neighboring facets */
-  if(neighbor[0] != -1)
-    stl->neighbors_start[neighbor[0]].which_vertex_not[(vnot[0] + 1) % 3] =
-      (stl->neighbors_start[neighbor[0]].
-       which_vertex_not[(vnot[0] + 1) % 3] + 3) % 6;
-  if(neighbor[1] != -1)
-    stl->neighbors_start[neighbor[1]].which_vertex_not[(vnot[1] + 1) % 3] =
-      (stl->neighbors_start[neighbor[1]].
-       which_vertex_not[(vnot[1] + 1) % 3] + 4) % 6;
-  if(neighbor[2] != -1)
-    stl->neighbors_start[neighbor[2]].which_vertex_not[(vnot[2] + 1) % 3] =
-      (stl->neighbors_start[neighbor[2]].
-       which_vertex_not[(vnot[2] + 1) % 3] + 2) % 6;
+	// swap the neighbors of the facet that is being reversed
+	stl->neighbors_start[facet_num].neighbor[1] = neighbor[2];
+	stl->neighbors_start[facet_num].neighbor[2] = neighbor[1];
 
-  /* swap the neighbors of the facet that is being reversed */
-  stl->neighbors_start[facet_num].neighbor[1] = neighbor[2];
-  stl->neighbors_start[facet_num].neighbor[2] = neighbor[1];
+	// swap the vnots of the facet that is being reversed 
+	stl->neighbors_start[facet_num].which_vertex_not[1] = vnot[2];
+	stl->neighbors_start[facet_num].which_vertex_not[2] = vnot[1];
 
-  /* swap the vnots of the facet that is being reversed */
-  stl->neighbors_start[facet_num].which_vertex_not[1] = vnot[2];
-  stl->neighbors_start[facet_num].which_vertex_not[2] = vnot[1];
-
-  /* reverse the values of the vnots of the facet that is being reversed */
-  stl->neighbors_start[facet_num].which_vertex_not[0] =
-    (stl->neighbors_start[facet_num].which_vertex_not[0] + 3) % 6;
-  stl->neighbors_start[facet_num].which_vertex_not[1] =
-    (stl->neighbors_start[facet_num].which_vertex_not[1] + 3) % 6;
-  stl->neighbors_start[facet_num].which_vertex_not[2] =
-    (stl->neighbors_start[facet_num].which_vertex_not[2] + 3) % 6;
+	// reverse the values of the vnots of the facet that is being reversed
+	stl->neighbors_start[facet_num].which_vertex_not[0] = (stl->neighbors_start[facet_num].which_vertex_not[0] + 3) % 6;
+	stl->neighbors_start[facet_num].which_vertex_not[1] = (stl->neighbors_start[facet_num].which_vertex_not[1] + 3) % 6;
+	stl->neighbors_start[facet_num].which_vertex_not[2] = (stl->neighbors_start[facet_num].which_vertex_not[2] + 3) % 6;
 }
 
-void
-stl_fix_normal_directions(stl_file *stl) {
+void stl_fix_normal_directions(stl_file *stl)
+{
   /*  int edge_num;*/
   /*  int vnot;*/
   int checked = 0;
@@ -104,8 +86,6 @@ stl_fix_normal_directions(stl_file *stl) {
   int id;
   int force_exit = 0;
 
-  if (stl->error) return;
-
   // this may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
   if (stl->stats.number_of_facets == 0) return;
 
@@ -125,7 +105,7 @@ stl_fix_normal_directions(stl_file *stl) {
      Arbitrarily starts at face 0.  If this one is wrong, we're screwed.  Thankfully, the chances
      of it being wrong randomly are low if most of the triangles are right: */
   if (stl_check_normal_vector(stl, 0, 0) == 2) {
-      stl_reverse_facet(stl, 0);
+      reverse_facet(stl, 0);
       reversed_ids[reversed_count++] = 0;
   }
 
@@ -144,12 +124,12 @@ stl_fix_normal_directions(stl_file *stl) {
             if (norm_sw[stl->neighbors_start[facet_num].neighbor[j]] == 1) {
                 /* trying to modify a facet already marked as fixed, revert all changes made until now and exit (fixes: #716, #574, #413, #269, #262, #259, #230, #228, #206) */
                 for (id = reversed_count - 1; id >= 0; --id) {
-                    stl_reverse_facet(stl, reversed_ids[id]);
+                    reverse_facet(stl, reversed_ids[id]);
                 }
                 force_exit = 1;
                 break;
             } else {
-                stl_reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
+                reverse_facet(stl, stl->neighbors_start[facet_num].neighbor[j]);
                 reversed_ids[reversed_count++] = stl->neighbors_start[facet_num].neighbor[j];
             }
         }
@@ -193,7 +173,7 @@ stl_fix_normal_directions(stl_file *stl) {
             /* This is the first facet of the next part. */
             facet_num = i;
             if(stl_check_normal_vector(stl, i, 0) == 2) {
-                stl_reverse_facet(stl, i);
+                reverse_facet(stl, i);
                 reversed_ids[reversed_count++] = i;
             }
 
@@ -209,7 +189,8 @@ stl_fix_normal_directions(stl_file *stl) {
   delete tail;
 }
 
-static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag) {
+static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag)
+{
   /* Returns 0 if the normal is within tolerance */
   /* Returns 1 if the normal is not within tolerance, but direction is OK */
   /* Returns 2 if the normal is not within tolerance and backwards */
@@ -260,26 +241,19 @@ static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_
   return 4;
 }
 
-void stl_fix_normal_values(stl_file *stl) {
-  int i;
-
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    stl_check_normal_vector(stl, i, 1);
-  }
+void stl_fix_normal_values(stl_file *stl)
+{
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
+    	stl_check_normal_vector(stl, i, 1);
 }
 
 void stl_reverse_all_facets(stl_file *stl)
 {
-  if (stl->error)
-  	return;
-
-  stl_normal normal;
-  for(int i = 0; i < stl->stats.number_of_facets; i++) {
-    stl_reverse_facet(stl, i);
-    stl_calculate_normal(normal, &stl->facet_start[i]);
-    stl_normalize_vector(normal);
-    stl->facet_start[i].normal = normal;
-  }
+	stl_normal normal;
+  	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+    	reverse_facet(stl, i);
+    	stl_calculate_normal(normal, &stl->facet_start[i]);
+    	stl_normalize_vector(normal);
+    	stl->facet_start[i].normal = normal;
+  	}
 }

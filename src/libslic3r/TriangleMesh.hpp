@@ -21,18 +21,18 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
 public:
-    TriangleMesh() : repaired(false) { stl_initialize(&this->stl); }
+    TriangleMesh() : repaired(false) { stl_reset(&this->stl); }
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
-    TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_initialize(&this->stl); *this = other; }
-    TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_initialize(&this->stl); this->swap(other); }
+    TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_reset(&this->stl); *this = other; }
+    TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_reset(&this->stl); this->swap(other); }
     ~TriangleMesh() { clear(); }
     TriangleMesh& operator=(const TriangleMesh &other);
     TriangleMesh& operator=(TriangleMesh &&other) { this->swap(other); return *this; }
-    void clear() { stl_close(&this->stl); this->repaired = false; }
+    void clear() { stl_reset(&this->stl); this->repaired = false; }
     void swap(TriangleMesh &other) { std::swap(this->stl, other.stl); std::swap(this->repaired, other.repaired); }
-    void ReadSTLFile(const char* input_file) { stl_open(&stl, input_file); }
-    void write_ascii(const char* output_file) { stl_write_ascii(&this->stl, output_file, ""); }
-    void write_binary(const char* output_file) { stl_write_binary(&this->stl, output_file, ""); }
+    bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
+    bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
+    bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
     void repair();
     float volume();
     void check_topology();

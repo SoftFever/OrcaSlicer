@@ -45,7 +45,7 @@ namespace Slic3r {
 TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets)
     : repaired(false)
 {
-    stl_initialize(&this->stl);
+    stl_reset(&this->stl);
     stl_file &stl = this->stl;
     stl.stats.type = inmemory;
 
@@ -74,7 +74,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
 
 TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 {
-    stl_close(&this->stl);
+    stl_reset(&this->stl);
     this->stl = other.stl;
 	this->repaired = other.repaired;
     return *this;
@@ -426,7 +426,6 @@ TriangleMeshPtrs TriangleMesh::split() const
         mesh->stl.stats.type = inmemory;
         mesh->stl.stats.number_of_facets = (uint32_t)facets.size();
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
-        stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
 
         // Assign the facets to the new mesh.

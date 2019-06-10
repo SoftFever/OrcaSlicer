@@ -127,15 +127,9 @@ struct stl_stats {
 	int           normals_fixed;
 	int           number_of_parts;
 	int           shared_vertices;
-
-	// hash table statistics
-	int           malloced;
-	int           freed;
-	int           collisions;
 };
 
 struct stl_file {
-	FILE          			   	   *fp;
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Indexed face set
@@ -143,17 +137,15 @@ struct stl_file {
 	std::vector<stl_vertex>       	v_shared;
 	// Statistics
 	stl_stats     					stats;
-	char          					error;
 };
 
-extern void stl_open(stl_file *stl, const char *file);
-extern void stl_close(stl_file *stl);
+extern bool stl_open(stl_file *stl, const char *file);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
-extern void stl_print_neighbors(stl_file *stl, char *file);
+extern bool stl_print_neighbors(stl_file *stl, char *file);
 extern void stl_put_little_int(FILE *fp, int value_in);
 extern void stl_put_little_float(FILE *fp, float value_in);
-extern void stl_write_ascii(stl_file *stl, const char *file, const char *label);
-extern void stl_write_binary(stl_file *stl, const char *file, const char *label);
+extern bool stl_write_ascii(stl_file *stl, const char *file, const char *label);
+extern bool stl_write_binary(stl_file *stl, const char *file, const char *label);
 extern void stl_write_binary_block(stl_file *stl, FILE *fp);
 extern void stl_check_facets_exact(stl_file *stl);
 extern void stl_check_facets_nearby(stl_file *stl, float tolerance);
@@ -161,7 +153,7 @@ extern void stl_remove_unconnected_facets(stl_file *stl);
 extern void stl_write_vertex(stl_file *stl, int facet, int vertex);
 extern void stl_write_facet(stl_file *stl, char *label, int facet);
 extern void stl_write_neighbor(stl_file *stl, int facet);
-extern void stl_write_quad_object(stl_file *stl, char *file);
+extern bool stl_write_quad_object(stl_file *stl, char *file);
 extern void stl_verify_neighbors(stl_file *stl);
 extern void stl_fill_holes(stl_file *stl);
 extern void stl_fix_normal_directions(stl_file *stl);
@@ -183,34 +175,28 @@ extern void stl_get_size(stl_file *stl);
 template<typename T>
 extern void stl_transform(stl_file *stl, T *trafo3x4)
 {
-  if (stl->error)
-    return;
+	for (uint32_t i_face = 0; i_face < stl->stats.number_of_facets; ++ i_face) {
+		stl_facet &face = stl->facet_start[i_face];
+		for (int i_vertex = 0; i_vertex < 3; ++ i_vertex) {
+			stl_vertex &v_dst = face.vertex[i_vertex];
+			stl_vertex  v_src = v_dst;
+			v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3]);
+			v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7]);
+			v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11]);
+		}
+		stl_vertex &v_dst = face.normal;
+		stl_vertex  v_src = v_dst;
+		v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2));
+		v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2));
+		v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2));
+	}
 
-  for (uint32_t i_face = 0; i_face < stl->stats.number_of_facets; ++ i_face) {
-    stl_facet &face = stl->facet_start[i_face];
-    for (int i_vertex = 0; i_vertex < 3; ++ i_vertex) {
-      stl_vertex &v_dst = face.vertex[i_vertex];
-      stl_vertex  v_src = v_dst;
-      v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3]);
-      v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7]);
-      v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11]);
-    }
-    stl_vertex &v_dst = face.normal;
-    stl_vertex  v_src = v_dst;
-    v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2));
-    v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2));
-    v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2));
-  }
-
-  stl_get_size(stl);
+	stl_get_size(stl);
 }
 
 template<typename T>
 inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
 {
-	if (stl->error)
-		return;
-
 	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
 	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
 		stl_facet &f = stl->facet_start[i];
@@ -225,9 +211,6 @@ inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Aff
 template<typename T>
 inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m)
 {
-	if (stl->error)
-		return;
-
 	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
@@ -238,13 +221,12 @@ inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::Don
 	stl_get_size(stl);
 }
 
-extern void stl_open_merge(stl_file *stl, char *file);
 extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);
-extern void stl_write_obj(stl_file *stl, const char *file);
-extern void stl_write_off(stl_file *stl, const char *file);
-extern void stl_write_dxf(stl_file *stl, const char *file, char *label);
-extern void stl_write_vrml(stl_file *stl, const char *file);
+extern bool stl_write_obj(stl_file *stl, const char *file);
+extern bool stl_write_off(stl_file *stl, const char *file);
+extern bool stl_write_dxf(stl_file *stl, const char *file, char *label);
+extern bool stl_write_vrml(stl_file *stl, const char *file);
 inline void stl_calculate_normal(stl_normal &normal, stl_facet *facet) {
   normal = (facet->vertex[1] - facet->vertex[0]).cross(facet->vertex[2] - facet->vertex[0]);
 }
@@ -263,17 +245,13 @@ extern void stl_calculate_volume(stl_file *stl);
 
 extern void stl_repair(stl_file *stl, int fixall_flag, int exact_flag, int tolerance_flag, float tolerance, int increment_flag, float increment, int nearby_flag, int iterations, int remove_unconnected_flag, int fill_holes_flag, int normal_directions_flag, int normal_values_flag, int reverse_all_flag, int verbose_flag);
 
-extern void stl_initialize(stl_file *stl);
-extern void stl_count_facets(stl_file *stl, const char *file);
+extern void stl_reset(stl_file *stl);
 extern void stl_allocate(stl_file *stl);
 extern void stl_read(stl_file *stl, int first_facet, bool first);
 extern void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first);
 extern void stl_reallocate(stl_file *stl);
 extern void stl_add_facet(stl_file *stl, const stl_facet *new_facet);
 
-extern void stl_clear_error(stl_file *stl);
-extern int stl_get_error(stl_file *stl);
-extern void stl_exit_on_error(stl_file *stl);
 // Validate the mesh, assert on error.
 extern bool stl_validate(stl_file *stl);
 

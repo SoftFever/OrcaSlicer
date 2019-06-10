@@ -46,7 +46,6 @@ TriangleMesh::ReadFromPerl(vertices, facets)
     SV* facets
     CODE:
         stl_file &stl = THIS->stl;
-        stl.error = 0;
         stl.stats.type = inmemory;
     
         // count facets and allocate memory

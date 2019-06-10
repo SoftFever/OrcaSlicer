@@ -396,9 +396,6 @@ static void match_neighbors_nearby(stl_file *stl, const HashEdge &edge_a, const 
 // floats of the first edge matches all six floats of the second edge.
 void stl_check_facets_exact(stl_file *stl)
 {
-	if (stl->error)
-		return;
-
   	stl->stats.connected_edges         = 0;
   	stl->stats.connected_facets_1_edge = 0;
   	stl->stats.connected_facets_2_edge = 0;
@@ -444,9 +441,6 @@ void stl_check_facets_exact(stl_file *stl)
 
 void stl_check_facets_nearby(stl_file *stl, float tolerance)
 {
-	if (stl->error)
-		return;
-
   	if (  (stl->stats.connected_facets_1_edge == stl->stats.number_of_facets)
        && (stl->stats.connected_facets_2_edge == stl->stats.number_of_facets)
        && (stl->stats.connected_facets_3_edge == stl->stats.number_of_facets)) {
@@ -476,9 +470,6 @@ void stl_remove_unconnected_facets(stl_file *stl)
 	// A couple of things need to be done here.  One is to remove any completely unconnected facets (0 edges connected) since these are
 	// useless and could be completely wrong.   The second thing that needs to be done is to remove any degenerate facets that were created during
 	// stl_check_facets_nearby().
-	if (stl->error)
-		return;
-
 	auto remove_facet = [stl](int facet_number)
 	{
 		++ stl->stats.facets_removed;
@@ -526,7 +517,6 @@ void stl_remove_unconnected_facets(stl_file *stl)
 	{
 		// Update statistics on face connectivity.
 		auto stl_update_connects_remove_1 = [stl](int facet_num) {
-			assert(! stl->error);
 			//FIXME when decreasing 3_edge, should I increase 2_edge etc?
 			switch ((stl->neighbors_start[facet_num].neighbor[0] == -1) + (stl->neighbors_start[facet_num].neighbor[1] == -1) + (stl->neighbors_start[facet_num].neighbor[2] == -1)) {
 			case 0: // Facet has 3 neighbors
@@ -636,9 +626,6 @@ void stl_remove_unconnected_facets(stl_file *stl)
 
 void stl_fill_holes(stl_file *stl)
 {
-	if (stl->error)
-		return;
-
 	// Insert all unconnected edges into hash list.
 	HashTableEdges hash_table(stl->stats.number_of_facets);
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
@@ -720,8 +707,6 @@ void stl_fill_holes(stl_file *stl)
 
 void stl_add_facet(stl_file *stl, const stl_facet *new_facet)
 {
-	if (stl->error)
-		return;
 	assert(stl->facet_start.size() == stl->stats.number_of_facets);
 	assert(stl->neighbors_start.size() == stl->stats.number_of_facets);
 	stl->facet_start.emplace_back(*new_facet);
