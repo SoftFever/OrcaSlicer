@@ -2554,7 +2554,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             gcode += buf;
         }
 
-        if (m_last_mm3_per_mm != path.mm3_per_mm)
+        if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm))
         {
             m_last_mm3_per_mm = path.mm3_per_mm;
 

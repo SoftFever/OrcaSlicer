@@ -68,6 +68,16 @@ public:
             return *this;
     }
 
+        Writer&          change_analyzer_mm3_per_mm(float len, float e) {
+            static const float area = M_PI * 1.75f * 1.75f / 4.f;
+            float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
+            // adds tag for analyzer:
+            char buf[64];
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), mm3_per_mm);
+            m_gcode += buf;
+            return *this;
+    }
+
 	Writer& 			 set_initial_position(const WipeTower::xy &pos, float width = 0.f, float depth = 0.f, float internal_angle = 0.f) {
         m_wipe_tower_width = width;
         m_wipe_tower_depth = depth;
@@ -127,12 +137,12 @@ public:
         if (record_length)
             m_used_filament_length += e;
 
-
 		// Now do the "internal rotation" with respect to the wipe tower center
 		WipeTower::xy rotated_current_pos(WipeTower::xy(m_current_pos,0.f,m_y_shift).rotate(m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle)); // this is where we are
 		WipeTower::xy rot(WipeTower::xy(x,y+m_y_shift).rotate(m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle));                               // this is where we want to go
 
 		if (! m_preview_suppressed && e > 0.f && len > 0.) {
+            change_analyzer_mm3_per_mm(len, e);
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
 			float width = float(double(e) * /*Filament_Area*/2.40528 / (len * m_layer_height));
@@ -155,7 +165,7 @@ public:
 			m_gcode += set_format_E(e);
 
 		if (f != 0.f && f != m_current_feedrate)
-			m_gcode += set_format_F(f);
+            m_gcode += set_format_F(f);
 
         m_current_pos.x = x;
         m_current_pos.y = y;
