@@ -2733,8 +2733,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    /* Settings list can be changed after printer preset changing, so
+     * update all settings items for all item had it.
+     * Furthermore, Layers editing is implemented only for FFF printers 
+     * and for SLA presets they should be deleted
+     */
     if (preset_type == Preset::TYPE_PRINTER)
-        wxGetApp().obj_list()->update_settings_items();
+//        wxGetApp().obj_list()->update_settings_items();
+        wxGetApp().obj_list()->update_object_list_by_printer_technology();
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)

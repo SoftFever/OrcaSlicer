@@ -236,6 +236,9 @@ public:
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split();
     void                layers_editing();
+
+    wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
+
     DynamicPrintConfig  get_default_layer_config(const int obj_idx);
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable();
@@ -305,6 +308,8 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
+    void update_settings_item_for_item(wxDataViewItem item, wxDataViewItemArray& selections);
+    void update_object_list_by_printer_technology();
     void update_object_menu();
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);

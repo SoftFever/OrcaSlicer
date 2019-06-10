@@ -1849,22 +1849,39 @@ void ObjectList::layers_editing()
     // if it doesn't exist now
     if (!layers_item.IsOk())
     {
-        // create LayerRoot item
-        layers_item = m_objects_model->AddLayersRoot(obj_item);
-
         t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
-        
+
+        // set some default value
         if (ranges.empty())
             ranges[{ 0.0f, 0.6f }] = get_default_layer_config(obj_idx);
 
-        // and create Layer item(s) according to the layer_config_ranges
-        for (const auto range : ranges)
-            add_layer_item(range.first, layers_item);
+        // create layer root item
+        layers_item = add_layer_root_item(obj_item);
     }
+    if (!layers_item.IsOk())
+        return;
 
     // select LayerRoor item and expand
     select_item(layers_item);
     Expand(layers_item);
+}
+
+wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)
+{
+    const int obj_idx = m_objects_model->GetIdByItem(obj_item);
+    if (obj_idx < 0 || 
+        object(obj_idx)->layer_config_ranges.empty() ||
+        printer_technology() == ptSLA)
+        return wxDataViewItem(0);
+
+    // create LayerRoot item
+    wxDataViewItem layers_item = m_objects_model->AddLayersRoot(obj_item);
+
+    // and create Layer item(s) according to the layer_config_ranges
+    for (const auto range : object(obj_idx)->layer_config_ranges)
+        add_layer_item(range.first, layers_item);
+
+    return layers_item;
 }
 
 DynamicPrintConfig ObjectList::get_default_layer_config(const int obj_idx)
@@ -2031,7 +2048,9 @@ void ObjectList::part_selection_changed()
     if (update_and_show_settings)
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 
-    if (update_and_show_layers)
+    if (printer_technology() == ptSLA)
+        update_and_show_layers = false;
+    else if (update_and_show_layers)
         wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
 
     Sidebar& panel = wxGetApp().sidebar();
@@ -2346,7 +2365,7 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                 const wxDataViewItem layers_item, 
                                 const int layer_idx /* = -1*/)
 {
-    const int obj_idx = get_selected_obj_idx();
+    const int obj_idx = m_objects_model->GetObjectIdByItem(layers_item);
     if (obj_idx < 0) return;
 
     const DynamicPrintConfig& config = object(obj_idx)->layer_config_ranges[range];
@@ -2900,6 +2919,87 @@ void ObjectList::update_settings_items()
         if (settings_item != m_objects_model->GetSettingsItem(item) && 
             sel.Index(settings_item) != wxNOT_FOUND) {
             sel.Remove(settings_item);
+        }
+    }
+
+    // restore selection:
+    SetSelections(sel);
+    m_prevent_canvas_selection_update = false;
+}
+
+// Update settings item for item had it
+void ObjectList::update_settings_item_for_item(wxDataViewItem item, wxDataViewItemArray& selections)
+{
+    const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
+    select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
+
+    // If settings item was deleted from the list, 
+    // it's need to be deleted from selection array, if it was there
+    if (settings_item != m_objects_model->GetSettingsItem(item) &&
+        selections.Index(settings_item) != wxNOT_FOUND) {
+        selections.Remove(settings_item);
+
+        // Select item, if settings_item doesn't exist for item anymore, but was selected
+        if (selections.Index(item) == wxNOT_FOUND)
+            selections.Add(item);
+    }
+}
+
+void ObjectList::update_object_list_by_printer_technology()
+{
+    m_prevent_canvas_selection_update = true;
+    wxDataViewItemArray sel;
+    GetSelections(sel); // stash selection
+
+    wxDataViewItemArray object_items;
+    m_objects_model->GetChildren(wxDataViewItem(0), object_items);
+
+    for (auto& object_item : object_items) {
+        // Update Settings Item for object
+        update_settings_item_for_item(object_item, sel);
+
+        // Update settings for Volumes
+        wxDataViewItemArray all_object_subitems;
+        m_objects_model->GetChildren(object_item, all_object_subitems);
+        for (auto item : all_object_subitems)
+            if (m_objects_model->GetItemType(item) & itVolume)
+                // update settings for volume
+                update_settings_item_for_item(item, sel);
+
+        // Update Layers Items
+        wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(object_item);
+        if (!layers_item)
+            layers_item = add_layer_root_item(object_item);
+        else if (printer_technology() == ptSLA) {
+            // If layers root item will be deleted from the list, so
+            // it's need to be deleted from selection array, if it was there
+            wxDataViewItemArray del_items;
+            bool some_layers_was_selected = false;
+            m_objects_model->GetAllChildren(layers_item, del_items);
+            for (auto& del_item:del_items)
+                if (sel.Index(del_item) != wxNOT_FOUND) {
+                    some_layers_was_selected = true;
+                    sel.Remove(del_item);
+                }
+            if (sel.Index(layers_item) != wxNOT_FOUND) {
+                some_layers_was_selected = true;
+                sel.Remove(layers_item);
+            }
+
+            // delete all "layers" items
+            m_objects_model->Delete(layers_item);
+
+            // Select object_item, if layers_item doesn't exist for item anymore, but was some of layer items was/were selected
+            if (some_layers_was_selected)
+                sel.Add(object_item);
+        }
+        else {
+            wxDataViewItemArray all_obj_layers;
+            m_objects_model->GetChildren(layers_item, all_obj_layers);
+
+            for (auto item : all_obj_layers)
+                // update settings for layer
+                update_settings_item_for_item(item, sel);
         }
     }
 
