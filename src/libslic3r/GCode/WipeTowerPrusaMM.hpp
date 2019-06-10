@@ -73,17 +73,12 @@ public:
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
                       float unloading_speed, float unloading_speed_start, float delay, int cooling_moves,
-                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
+                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float max_volumetric_speed, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
 
         m_filpar[idx].material = material;
-        if (material == FLEX || material == SCAFF || material == PVA) {
-    		// MMU2 lowers the print speed using the speed override (M220) for printing of soluble PVA/BVOH and flex materials.
-    		// Therefore it does not make sense to use the new M220 B and M220 R (backup / restore).
-        	m_retain_speed_override = false;
-        }
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
         m_filpar[idx].loading_speed = loading_speed;
@@ -94,6 +89,8 @@ public:
         m_filpar[idx].cooling_moves = cooling_moves;
         m_filpar[idx].cooling_initial_speed = cooling_initial_speed;
         m_filpar[idx].cooling_final_speed = cooling_final_speed;
+        if (max_volumetric_speed != 0.f)
+            m_filpar[idx].max_e_speed = (max_volumetric_speed / Filament_Area);
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
@@ -188,6 +185,24 @@ public:
     virtual std::vector<float> get_used_filament() const override { return m_used_filament_length; }
     virtual int get_number_of_toolchanges() const override { return m_num_tool_changes; }
 
+    struct FilamentParameters {
+        material_type 	    material = PLA;
+        int  			    temperature = 0;
+        int  			    first_layer_temperature = 0;
+        float               loading_speed = 0.f;
+        float               loading_speed_start = 0.f;
+        float               unloading_speed = 0.f;
+        float               unloading_speed_start = 0.f;
+        float               delay = 0.f ;
+        int                 cooling_moves = 0;
+        float               cooling_initial_speed = 0.f;
+        float               cooling_final_speed = 0.f;
+        float               ramming_line_width_multiplicator = 0.f;
+        float               ramming_step_multiplicator = 0.f;
+        float               max_e_speed = std::numeric_limits<float>::max();
+        std::vector<float>  ramming_speed;
+        float               nozzle_diameter;
+    };
 
 private:
 	WipeTowerPrusaMM();
@@ -224,31 +239,11 @@ private:
     float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
     bool            m_set_extruder_trimpot      = false;
-    bool 			m_retain_speed_override		= true;
     bool            m_adhesion                  = true;
     GCodeFlavor     m_gcode_flavor;
 
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
-
-
-    struct FilamentParameters {
-        material_type 	    material = PLA;
-        int  			    temperature = 0;
-        int  			    first_layer_temperature = 0;
-        float               loading_speed = 0.f;
-        float               loading_speed_start = 0.f;
-        float               unloading_speed = 0.f;
-        float               unloading_speed_start = 0.f;
-        float               delay = 0.f ;
-        int                 cooling_moves = 0;
-        float               cooling_initial_speed = 0.f;
-        float               cooling_final_speed = 0.f;
-        float               ramming_line_width_multiplicator = 0.f;
-        float               ramming_step_multiplicator = 0.f;
-        std::vector<float>  ramming_speed;
-        float               nozzle_diameter;
-    };
 
 	// Extruder specific parameters.
     std::vector<FilamentParameters> m_filpar;

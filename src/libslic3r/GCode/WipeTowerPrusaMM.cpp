@@ -40,7 +40,7 @@ namespace PrusaMultiMaterial {
 class Writer
 {
 public:
-	Writer(float layer_height, float line_width, GCodeFlavor flavor) :
+	Writer(float layer_height, float line_width, GCodeFlavor flavor, const std::vector<WipeTowerPrusaMM::FilamentParameters>& filament_parameters) :
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
@@ -49,7 +49,8 @@ public:
 		m_preview_suppressed(false),
 		m_elapsed_time(0.f),
         m_default_analyzer_line_width(line_width),
-        m_gcode_flavor(flavor)
+        m_gcode_flavor(flavor),
+        m_filpar(filament_parameters)
         {
             // adds tag for analyzer:
             char buf[64];
@@ -125,7 +126,7 @@ public:
     float                get_and_reset_used_filament_length() { float temp = m_used_filament_length; m_used_filament_length = 0.f; return temp; }
 
 	// Extrude with an explicitely provided amount of extrusion.
-	Writer& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false)
+	Writer& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
 	{
 		if (x == m_current_pos.x && y == m_current_pos.y && e == 0.f && (f == 0.f || f == m_current_feedrate))
 			// Neither extrusion nor a travel move.
@@ -164,8 +165,13 @@ public:
 		if (e != 0.f)
 			m_gcode += set_format_E(e);
 
-		if (f != 0.f && f != m_current_feedrate)
-            m_gcode += set_format_F(f);
+		if (f != 0.f && f != m_current_feedrate) {
+            if (limit_volumetric_flow) {
+                float e_speed = e / (((len == 0) ? std::abs(e) : len) / f * 60.f);
+                f /= std::max(1.f, e_speed / m_filpar[m_current_tool].max_e_speed);
+            }
+			m_gcode += set_format_F(f);
+        }
 
         m_current_pos.x = x;
         m_current_pos.y = y;
@@ -176,7 +182,7 @@ public:
 		return *this;
 	}
 
-	Writer& extrude_explicit(const WipeTower::xy &dest, float e, float f = 0.f, bool record_length = false)
+	Writer& extrude_explicit(const WipeTower::xy &dest, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
 		{ return extrude_explicit(dest.x, dest.y, e, f, record_length); }
 
 	// Travel to a new XY position. f=0 means use the current value.
@@ -273,8 +279,8 @@ public:
 	// extrude quickly amount e to x2 with feed f.
 	Writer& ram(float x1, float x2, float dy, float e0, float e, float f)
 	{
-		extrude_explicit(x1, m_current_pos.y + dy, e0, f, true);
-		extrude_explicit(x2, m_current_pos.y, e, 0.f, true);
+		extrude_explicit(x1, m_current_pos.y + dy, e0, f, true, false);
+		extrude_explicit(x2, m_current_pos.y, e, 0.f, true, false);
 		return *this;
 	}
 
@@ -422,6 +428,7 @@ private:
     const float   m_default_analyzer_line_width;
     float         m_used_filament_length = 0.f;
     GCodeFlavor   m_gcode_flavor;
+    const std::vector<WipeTowerPrusaMM::FilamentParameters>& m_filpar;
 
 	std::string   set_format_X(float x)
 	{
@@ -528,15 +535,14 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
 	box_coordinates cleaning_box(xy(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
 		  .set_initial_tool(m_current_tool)
 		  .append(";--------------------\n"
 			 	  "; CP PRIMING START\n")
 		  .append(";--------------------\n");
-	if (m_retain_speed_override)
-		writer.speed_override_backup();
+	writer.speed_override_backup();
 	writer.speed_override(100);
 
 	writer.set_initial_position(xy(0.f, 0.f))	// Always move to the starting position
@@ -571,8 +577,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// Reset the extruder current to a normal value.
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);
-	if (m_retain_speed_override)
-		writer.speed_override_restore();
+	writer.speed_override_restore();
 	writer.feedrate(6000)
 		  .flush_planner_queue()
 		  .reset_extruder()
@@ -630,7 +635,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		(tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5*m_perimeter_width
                                     : m_wipe_tower_depth-m_perimeter_width));
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
@@ -640,8 +645,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1) // the number is zero-based
 		.comment_material(m_filpar[m_current_tool].material)
 		.append(";--------------------\n");
-	if (m_retain_speed_override)
-		writer.speed_override_backup();
+	writer.speed_override_backup();
 	writer.speed_override(100);
 
 	xy initial_position = cleaning_box.ld + WipeTower::xy(0.f,m_depth_traversed);
@@ -679,8 +683,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
-	if (m_retain_speed_override)
-		writer.speed_override_restore();
+	writer.speed_override_restore();
     writer.feedrate(6000)
           .flush_planner_queue()
           .reset_extruder()
@@ -711,7 +714,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 		m_wipe_tower_width,
 		m_wipe_tower_depth);
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow * 1.1f)
 		  .set_z(m_z_pos) // Let the writer know the current Z position as a base for Z-hop.
 		  .set_initial_tool(m_current_tool)
@@ -917,19 +920,7 @@ void WipeTowerPrusaMM::toolchange_Change(
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-	// Speed override for the material. Go slow for flex and soluble materials.
-	int speed_override;
-	switch (new_material) {
-	case PVA:   speed_override = (m_z_pos < 0.80f) ? 60 : 80; break;
-	case SCAFF: speed_override = 35; break;
-	case FLEX:  speed_override = 35; break;
-	default:    speed_override = 100;
-	}
 	writer.set_tool(new_tool);
-	if (m_retain_speed_override)
-		assert(speed_override == 100);
-	else
-		writer.speed_override(speed_override);
 	writer.flush_planner_queue();
 	m_current_tool = new_tool;
 }
@@ -1040,7 +1031,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
