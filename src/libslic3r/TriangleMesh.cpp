@@ -614,8 +614,8 @@ void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callbac
     for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
         for (int i = 0; i < 3; ++ i) {
             EdgeToFace &e2f = edges_map[facet_idx*3+i];
-            e2f.vertex_low  = this->mesh->its.indices[facet_idx].vertex[i];
-            e2f.vertex_high = this->mesh->its.indices[facet_idx].vertex[(i + 1) % 3];
+            e2f.vertex_low  = this->mesh->its.indices[facet_idx][i];
+            e2f.vertex_high = this->mesh->its.indices[facet_idx][(i + 1) % 3];
             e2f.face        = facet_idx;
             // 1 based indexing, to be always strictly positive.
             e2f.face_edge   = i + 1;
@@ -852,7 +852,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
     // Reorder vertices so that the first one is the one with lowest Z.
     // This is needed to get all intersection lines in a consistent order
     // (external on the right of the line)
-    const int *vertices = this->mesh->its.indices[facet_idx].vertex;
+    const stl_triangle_vertex_indices &vertices = this->mesh->its.indices[facet_idx];
     int i = (facet.vertex[1].z() == min_z) ? 1 : ((facet.vertex[2].z() == min_z) ? 2 : 0);
 
     // These are used only if the cut plane is tilted:

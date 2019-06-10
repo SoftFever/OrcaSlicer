@@ -41,6 +41,7 @@
 
 typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> stl_vertex;
 typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> stl_normal;
+typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices;
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
@@ -68,12 +69,6 @@ static_assert(sizeof(stl_facet) >= SIZEOF_STL_FACET, "size of stl_facet incorrec
 
 typedef enum {binary, ascii, inmemory} stl_type;
 
-struct stl_edge {
-	stl_vertex p1;
-	stl_vertex p2;
-	int        facet_number;
-};
-
 struct stl_neighbors {
   	stl_neighbors() { reset(); }
   	void reset() {
@@ -91,12 +86,6 @@ struct stl_neighbors {
   	int   neighbor[3];
   	// Index of an opposite vertex at the neighbor face.
   	char  which_vertex_not[3];
-};
-
-struct v_indices_struct {
-	// -1 means no vertex index has been assigned yet
-	v_indices_struct() { vertex[0] = -1; vertex[1] = -1; vertex[2] = -1; }
-  	int   vertex[3];
 };
 
 struct stl_stats {
@@ -137,8 +126,8 @@ struct stl_file {
 struct indexed_triangle_set
 {
 	void clear() { indices.clear(); vertices.clear(); }
-	std::vector<v_indices_struct> 	indices;
-	std::vector<stl_vertex>       	vertices;
+	std::vector<stl_triangle_vertex_indices> 	indices;
+	std::vector<stl_vertex>       				vertices;
 };
 
 extern bool stl_open(stl_file *stl, const char *file);

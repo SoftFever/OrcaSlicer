@@ -33,7 +33,7 @@
 void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its)
 {
 	// 3 indices to vertex per face
-	its.indices.assign(stl->stats.number_of_facets, v_indices_struct());
+	its.indices.assign(stl->stats.number_of_facets, stl_triangle_vertex_indices(-1, -1, -1));
 	// Shared vertices (3D coordinates)
 	its.vertices.clear();
 	its.vertices.reserve(stl->stats.number_of_facets / 2);
@@ -46,7 +46,7 @@ void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its)
 
 	for (uint32_t facet_idx = 0; facet_idx < stl->stats.number_of_facets; ++ facet_idx) {
 		for (int j = 0; j < 3; ++ j) {
-			if (its.indices[facet_idx].vertex[j] != -1)
+			if (its.indices[facet_idx][j] != -1)
 				// Shared vertex was already assigned.
 				continue;
 			// Create a new shared vertex.
@@ -84,7 +84,7 @@ void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its)
 			    		next_edge    = pivot_vertex;
 			  		}
 				}
-				its.indices[facet_in_fan_idx].vertex[pivot_vertex] = its.vertices.size() - 1;
+				its.indices[facet_in_fan_idx][pivot_vertex] = its.vertices.size() - 1;
 				fan_traversal_facet_visited[facet_in_fan_idx] = fan_traversal_stamp;
 
 				// next_edge is an index of the starting vertex of the edge, not an index of the opposite vertex to the edge!
@@ -139,7 +139,7 @@ bool its_write_off(const indexed_triangle_set &its, const char *file)
 	for (int i = 0; i < its.vertices.size(); ++ i)
 		fprintf(fp, "\t%f %f %f\n", its.vertices[i](0), its.vertices[i](1), its.vertices[i](2));
 	for (uint32_t i = 0; i < its.indices.size(); ++ i)
-		fprintf(fp, "\t3 %d %d %d\n", its.indices[i].vertex[0], its.indices[i].vertex[1], its.indices[i].vertex[2]);
+		fprintf(fp, "\t3 %d %d %d\n", its.indices[i][0], its.indices[i][1], its.indices[i][2]);
 	fclose(fp);
 	return true;
 }
@@ -177,8 +177,8 @@ bool its_write_vrml(const indexed_triangle_set &its, const char *file)
 	fprintf(fp, "\t\t\tcoordIndex [\n");
 
 	for (size_t i = 0; i + 1 < its.indices.size(); ++ i)
-		fprintf(fp, "\t\t\t\t%d, %d, %d, -1,\n", its.indices[i].vertex[0], its.indices[i].vertex[1], its.indices[i].vertex[2]);
-	fprintf(fp, "\t\t\t\t%d, %d, %d, -1]\n", its.indices[i].vertex[0], its.indices[i].vertex[1], its.indices[i].vertex[2]);
+		fprintf(fp, "\t\t\t\t%d, %d, %d, -1,\n", its.indices[i][0], its.indices[i][1], its.indices[i][2]);
+	fprintf(fp, "\t\t\t\t%d, %d, %d, -1]\n", its.indices[i][0], its.indices[i][1], its.indices[i][2]);
 	fprintf(fp, "\t\t}\n");
 	fprintf(fp, "\t}\n");
 	fprintf(fp, "}\n");
@@ -198,7 +198,7 @@ bool its_write_obj(const indexed_triangle_set &its, const char *file)
 	for (size_t i = 0; i < its.vertices.size(); ++ i)
     	fprintf(fp, "v %f %f %f\n", its.vertices[i](0), its.vertices[i](1), its.vertices[i](2));
   	for (size_t i = 0; i < its.indices.size(); ++ i)
-    	fprintf(fp, "f %d %d %d\n", its.indices[i].vertex[0]+1, its.indices[i].vertex[1]+1, its.indices[i].vertex[2]+1);
+    	fprintf(fp, "f %d %d %d\n", its.indices[i][0]+1, its.indices[i][1]+1, its.indices[i][2]+1);
   	fclose(fp);
   	return true;
 }
@@ -220,7 +220,7 @@ bool stl_validate(const stl_file *stl, const indexed_triangle_set &its)
     // Verify validity of neighborship data.
     for (int facet_idx = 0; facet_idx < (int)stl->stats.number_of_facets; ++ facet_idx) {
         const stl_neighbors &nbr 		= stl->neighbors_start[facet_idx];
-        const int 			*vertices 	= (its.indices.empty()) ? nullptr : its.indices[facet_idx].vertex;
+        const int 			*vertices 	= (its.indices.empty()) ? nullptr : its.indices[facet_idx];
         for (int nbr_idx = 0; nbr_idx < 3; ++ nbr_idx) {
             int nbr_face = stl->neighbors_start[facet_idx].neighbor[nbr_idx];
             assert(nbr_face < (int)stl->stats.number_of_facets);
@@ -237,10 +237,10 @@ bool stl_validate(const stl_file *stl, const indexed_triangle_set &its)
 					// Has shared vertices.
 	            	if (nbr_vnot < 3) {
 	            		// Faces facet_idx and nbr_face share two vertices accross the common edge. Faces are correctly oriented.
-						assert((its.indices[nbr_face].vertex[(nbr_vnot + 1) % 3] == vertices[(nbr_idx + 1) % 3] && its.indices[nbr_face].vertex[(nbr_vnot + 2) % 3] == vertices[nbr_idx]));
+						assert((its.indices[nbr_face][(nbr_vnot + 1) % 3] == vertices[(nbr_idx + 1) % 3] && its.indices[nbr_face][(nbr_vnot + 2) % 3] == vertices[nbr_idx]));
 					} else {
 	            		// Faces facet_idx and nbr_face share two vertices accross the common edge. Faces are incorrectly oriented, one of them is flipped.
-						assert((its.indices[nbr_face].vertex[(nbr_vnot + 2) % 3] == vertices[(nbr_idx + 1) % 3] && its.indices[nbr_face].vertex[(nbr_vnot + 1) % 3] == vertices[nbr_idx]));
+						assert((its.indices[nbr_face][(nbr_vnot + 2) % 3] == vertices[(nbr_idx + 1) % 3] && its.indices[nbr_face][(nbr_vnot + 1) % 3] == vertices[nbr_idx]));
 					}
 				}
             }

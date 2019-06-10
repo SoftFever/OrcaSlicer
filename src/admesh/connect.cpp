@@ -196,13 +196,13 @@ struct HashTableEdges {
 
 	// Hash table on edges
 	std::vector<HashEdge*> 	heads;
-	HashEdge* 					tail;
-	int           					M;
+	HashEdge* 				tail;
+	int           			M;
 
 #ifndef NDEBUG
-	size_t 							malloced   	= 0;
-	size_t 							freed 	  	= 0;
-	size_t 							collisions 	= 0;
+	size_t 					malloced   	= 0;
+	size_t 					freed 	  	= 0;
+	size_t 					collisions 	= 0;
 #endif /* NDEBUG */
 
 private:

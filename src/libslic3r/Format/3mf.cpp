@@ -1928,7 +1928,7 @@ namespace Slic3r {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << its.indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
+                    stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
                 stream << "/>\n";
             }

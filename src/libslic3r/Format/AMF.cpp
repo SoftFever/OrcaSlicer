@@ -958,7 +958,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             for (size_t i = 0; i < (int)volume->mesh.its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
-                stream << "          <v" << j + 1 << ">" << volume->mesh.its.indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "          <v" << j + 1 << ">" << volume->mesh.its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";
                 stream << "        </triangle>\n";
             }
             stream << "      </volume>\n";

@@ -22,94 +22,55 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "stl.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/detail/endian.hpp>
 
-#if !defined(SEEK_SET)
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
-#endif
+#include "stl.h"
 
 void stl_stats_out(stl_file *stl, FILE *file, char *input_file)
 {
-  /* this is here for Slic3r, without our config.h
-     it won't use this part of the code anyway */
+  	// This is here for Slic3r, without our config.h it won't use this part of the code anyway.
 #ifndef VERSION
 #define VERSION "unknown"
 #endif
-  fprintf(file, "\n\
-================= Results produced by ADMesh version " VERSION " ================\n");
-  fprintf(file, "\
-Input file         : %s\n", input_file);
-  if(stl->stats.type == binary) {
-    fprintf(file, "\
-File type          : Binary STL file\n");
-  } else {
-    fprintf(file, "\
-File type          : ASCII STL file\n");
-  }
-  fprintf(file, "\
-Header             : %s\n", stl->stats.header);
-  fprintf(file, "============== Size ==============\n");
-  fprintf(file, "Min X = % f, Max X = % f\n",
-          stl->stats.min(0), stl->stats.max(0));
-  fprintf(file, "Min Y = % f, Max Y = % f\n",
-          stl->stats.min(1), stl->stats.max(1));
-  fprintf(file, "Min Z = % f, Max Z = % f\n",
-          stl->stats.min(2), stl->stats.max(2));
-
-  fprintf(file, "\
-========= Facet Status ========== Original ============ Final ====\n");
-  fprintf(file, "\
-Number of facets                 : %5d               %5d\n",
-          stl->stats.original_num_facets, stl->stats.number_of_facets);
-  fprintf(file, "\
-Facets with 1 disconnected edge  : %5d               %5d\n",
-          stl->stats.facets_w_1_bad_edge, stl->stats.connected_facets_2_edge -
-          stl->stats.connected_facets_3_edge);
-  fprintf(file, "\
-Facets with 2 disconnected edges : %5d               %5d\n",
-          stl->stats.facets_w_2_bad_edge, stl->stats.connected_facets_1_edge -
-          stl->stats.connected_facets_2_edge);
-  fprintf(file, "\
-Facets with 3 disconnected edges : %5d               %5d\n",
-          stl->stats.facets_w_3_bad_edge, stl->stats.number_of_facets -
-          stl->stats.connected_facets_1_edge);
-  fprintf(file, "\
-Total disconnected facets        : %5d               %5d\n",
-          stl->stats.facets_w_1_bad_edge + stl->stats.facets_w_2_bad_edge +
-          stl->stats.facets_w_3_bad_edge, stl->stats.number_of_facets -
-          stl->stats.connected_facets_3_edge);
-
-  fprintf(file,
-          "=== Processing Statistics ===     ===== Other Statistics =====\n");
-  fprintf(file, "\
-Number of parts       : %5d        Volume   : % f\n",
-          stl->stats.number_of_parts, stl->stats.volume);
-  fprintf(file, "\
-Degenerate facets     : %5d\n", stl->stats.degenerate_facets);
-  fprintf(file, "\
-Edges fixed           : %5d\n", stl->stats.edges_fixed);
-  fprintf(file, "\
-Facets removed        : %5d\n", stl->stats.facets_removed);
-  fprintf(file, "\
-Facets added          : %5d\n", stl->stats.facets_added);
-  fprintf(file, "\
-Facets reversed       : %5d\n", stl->stats.facets_reversed);
-  fprintf(file, "\
-Backwards edges       : %5d\n", stl->stats.backwards_edges);
-  fprintf(file, "\
-Normals fixed         : %5d\n", stl->stats.normals_fixed);
+  	fprintf(file, "\n================= Results produced by ADMesh version " VERSION " ================\n");
+  	fprintf(file, "Input file         : %s\n", input_file);
+  	if (stl->stats.type == binary)
+    	fprintf(file, "File type          : Binary STL file\n");
+  	else
+    	fprintf(file, "File type          : ASCII STL file\n");
+  	fprintf(file, "Header             : %s\n", stl->stats.header);
+  	fprintf(file, "============== Size ==============\n");
+  	fprintf(file, "Min X = % f, Max X = % f\n", stl->stats.min(0), stl->stats.max(0));
+  	fprintf(file, "Min Y = % f, Max Y = % f\n", stl->stats.min(1), stl->stats.max(1));
+  	fprintf(file, "Min Z = % f, Max Z = % f\n", stl->stats.min(2), stl->stats.max(2));
+  	fprintf(file, "========= Facet Status ========== Original ============ Final ====\n");
+  	fprintf(file, "Number of facets                 : %5d               %5d\n", stl->stats.original_num_facets, stl->stats.number_of_facets);
+  	fprintf(file, "Facets with 1 disconnected edge  : %5d               %5d\n", 
+  		stl->stats.facets_w_1_bad_edge, stl->stats.connected_facets_2_edge - stl->stats.connected_facets_3_edge);
+  	fprintf(file, "Facets with 2 disconnected edges : %5d               %5d\n",
+    	stl->stats.facets_w_2_bad_edge, stl->stats.connected_facets_1_edge - stl->stats.connected_facets_2_edge);
+  	fprintf(file, "Facets with 3 disconnected edges : %5d               %5d\n",
+        stl->stats.facets_w_3_bad_edge, stl->stats.number_of_facets - stl->stats.connected_facets_1_edge);
+  	fprintf(file, "Total disconnected facets        : %5d               %5d\n",
+		stl->stats.facets_w_1_bad_edge + stl->stats.facets_w_2_bad_edge + stl->stats.facets_w_3_bad_edge, stl->stats.number_of_facets - stl->stats.connected_facets_3_edge);
+  	fprintf(file, "=== Processing Statistics ===     ===== Other Statistics =====\n");
+  	fprintf(file, "Number of parts       : %5d        Volume   : %f\n", stl->stats.number_of_parts, stl->stats.volume);
+  	fprintf(file, "Degenerate facets     : %5d\n", stl->stats.degenerate_facets);
+  	fprintf(file, "Edges fixed           : %5d\n", stl->stats.edges_fixed);
+  	fprintf(file, "Facets removed        : %5d\n", stl->stats.facets_removed);
+  	fprintf(file, "Facets added          : %5d\n", stl->stats.facets_added);
+  	fprintf(file, "Facets reversed       : %5d\n", stl->stats.facets_reversed);
+  	fprintf(file, "Backwards edges       : %5d\n", stl->stats.backwards_edges);
+  	fprintf(file, "Normals fixed         : %5d\n", stl->stats.normals_fixed);
 }
 
 bool stl_write_ascii(stl_file *stl, const char *file, const char *label)
 {
 	FILE *fp = boost::nowide::fopen(file, "w");
-  	if (fp == NULL) {
+  	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_write_ascii: Couldn't open " << file << " for writing";
     	return false;
   	}
@@ -117,19 +78,11 @@ bool stl_write_ascii(stl_file *stl, const char *file, const char *label)
 	fprintf(fp, "solid  %s\n", label);
 
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
-		fprintf(fp, "  facet normal % .8E % .8E % .8E\n",
-	        stl->facet_start[i].normal(0), stl->facet_start[i].normal(1),
-	        stl->facet_start[i].normal(2));
+		fprintf(fp, "  facet normal % .8E % .8E % .8E\n", stl->facet_start[i].normal(0), stl->facet_start[i].normal(1), stl->facet_start[i].normal(2));
 		fprintf(fp, "    outer loop\n");
-		fprintf(fp, "      vertex % .8E % .8E % .8E\n",
-	        stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1),
-	        stl->facet_start[i].vertex[0](2));
-		fprintf(fp, "      vertex % .8E % .8E % .8E\n",
-	        stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1),
-	        stl->facet_start[i].vertex[1](2));
-		fprintf(fp, "      vertex % .8E % .8E % .8E\n",
-	        stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1),
-	        stl->facet_start[i].vertex[2](2));
+		fprintf(fp, "      vertex % .8E % .8E % .8E\n", stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1), stl->facet_start[i].vertex[0](2));
+		fprintf(fp, "      vertex % .8E % .8E % .8E\n", stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1), stl->facet_start[i].vertex[1](2));
+		fprintf(fp, "      vertex % .8E % .8E % .8E\n", stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1), stl->facet_start[i].vertex[2](2));
 		fprintf(fp, "    endloop\n");
 		fprintf(fp, "  endfacet\n");
 	}
@@ -142,7 +95,7 @@ bool stl_write_ascii(stl_file *stl, const char *file, const char *label)
 bool stl_print_neighbors(stl_file *stl, char *file)
 {
 	FILE *fp = boost::nowide::fopen(file, "w");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_print_neighbors: Couldn't open " << file << " for writing";
     	return false;
   	}
@@ -175,7 +128,7 @@ void stl_internal_reverse_quads(char *buf, size_t cnt)
 bool stl_write_binary(stl_file *stl, const char *file, const char *label)
 {
 	FILE *fp = boost::nowide::fopen(file, "wb");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_write_binary: Couldn't open " << file << " for writing";
     	return false;
   	}
@@ -184,6 +137,9 @@ bool stl_write_binary(stl_file *stl, const char *file, const char *label)
 	for (size_t i = strlen(label); i < LABEL_SIZE; ++ i)
 		putc(0, fp);
 
+#if !defined(SEEK_SET)
+	#define SEEK_SET 0
+#endif
 	fseek(fp, LABEL_SIZE, SEEK_SET);
 #ifdef BOOST_LITTLE_ENDIAN
 	fwrite(&stl->stats.number_of_facets, 4, 1, fp);
@@ -242,7 +198,7 @@ bool stl_write_quad_object(stl_file *stl, char *file)
 	stl_vertex color;
 
 	FILE *fp = boost::nowide::fopen(file, "w");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_write_quad_object: Couldn't open " << file << " for writing";
 		return false;
 	}
@@ -255,22 +211,10 @@ bool stl_write_quad_object(stl_file *stl, char *file)
     	case 2: color = uncon_2_color; break;
     	default: color = uncon_3_color;
 	    }
-	    fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n",
-            stl->facet_start[i].vertex[0](0),
-            stl->facet_start[i].vertex[0](1),
-            stl->facet_start[i].vertex[0](2), color(0), color(1), color(2));
-    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n",
-            stl->facet_start[i].vertex[1](0),
-            stl->facet_start[i].vertex[1](1),
-            stl->facet_start[i].vertex[1](2), color(0), color(1), color(2));
-    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n",
-            stl->facet_start[i].vertex[2](0),
-            stl->facet_start[i].vertex[2](1),
-            stl->facet_start[i].vertex[2](2), color(0), color(1), color(2));
-    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n",
-            stl->facet_start[i].vertex[2](0),
-            stl->facet_start[i].vertex[2](1),
-            stl->facet_start[i].vertex[2](2), color(0), color(1), color(2));
+	    fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1), stl->facet_start[i].vertex[0](2), color(0), color(1), color(2));
+    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1), stl->facet_start[i].vertex[1](2), color(0), color(1), color(2));
+    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1), stl->facet_start[i].vertex[2](2), color(0), color(1), color(2));
+    	fprintf(fp, "%f %f %f    %1.1f %1.1f %1.1f 1\n", stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1), stl->facet_start[i].vertex[2](2), color(0), color(1), color(2));
   }
   fclose(fp);
   return true;
@@ -279,7 +223,7 @@ bool stl_write_quad_object(stl_file *stl, char *file)
 bool stl_write_dxf(stl_file *stl, const char *file, char *label) 
 {
 	FILE *fp = boost::nowide::fopen(file, "w");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		BOOST_LOG_TRIVIAL(error) << "stl_write_quad_object: Couldn't open " << file << " for writing";
     	return false;
   	}
@@ -292,20 +236,12 @@ bool stl_write_dxf(stl_file *stl, const char *file, char *label)
 
 	fprintf(fp, "0\nSECTION\n2\nENTITIES\n");
 
-	for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		fprintf(fp, "0\n3DFACE\n8\n0\n");
-		fprintf(fp, "10\n%f\n20\n%f\n30\n%f\n",
-	        stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1),
-	        stl->facet_start[i].vertex[0](2));
-		fprintf(fp, "11\n%f\n21\n%f\n31\n%f\n",
-	        stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1),
-	        stl->facet_start[i].vertex[1](2));
-		fprintf(fp, "12\n%f\n22\n%f\n32\n%f\n",
-	        stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1),
-	        stl->facet_start[i].vertex[2](2));
-		fprintf(fp, "13\n%f\n23\n%f\n33\n%f\n",
-	        stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1),
-	        stl->facet_start[i].vertex[2](2));
+		fprintf(fp, "10\n%f\n20\n%f\n30\n%f\n", stl->facet_start[i].vertex[0](0), stl->facet_start[i].vertex[0](1), stl->facet_start[i].vertex[0](2));
+		fprintf(fp, "11\n%f\n21\n%f\n31\n%f\n", stl->facet_start[i].vertex[1](0), stl->facet_start[i].vertex[1](1), stl->facet_start[i].vertex[1](2));
+		fprintf(fp, "12\n%f\n22\n%f\n32\n%f\n", stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1), stl->facet_start[i].vertex[2](2));
+		fprintf(fp, "13\n%f\n23\n%f\n33\n%f\n", stl->facet_start[i].vertex[2](0), stl->facet_start[i].vertex[2](1), stl->facet_start[i].vertex[2](2));
 	}
 
   	fprintf(fp, "0\nENDSEC\n0\nEOF\n");

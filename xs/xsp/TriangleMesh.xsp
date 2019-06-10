@@ -129,9 +129,9 @@ TriangleMesh::facets()
             AV* facet = newAV();
             av_store(facets, i, newRV_noinc((SV*)facet));
             av_extend(facet, 2);
-            av_store(facet, 0, newSVnv(THIS->its.indices[i].vertex[0]));
-            av_store(facet, 1, newSVnv(THIS->its.indices[i].vertex[1]));
-            av_store(facet, 2, newSVnv(THIS->its.indices[i].vertex[2]));
+            av_store(facet, 0, newSVnv(THIS->its.indices[i][0]));
+            av_store(facet, 1, newSVnv(THIS->its.indices[i][1]));
+            av_store(facet, 2, newSVnv(THIS->its.indices[i][2]));
         }
         
         RETVAL = newRV_noinc((SV*)facets);
