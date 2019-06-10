@@ -220,7 +220,7 @@ bool stl_validate(const stl_file *stl, const indexed_triangle_set &its)
     // Verify validity of neighborship data.
     for (int facet_idx = 0; facet_idx < (int)stl->stats.number_of_facets; ++ facet_idx) {
         const stl_neighbors &nbr 		= stl->neighbors_start[facet_idx];
-        const int 			*vertices 	= (its.indices.empty()) ? nullptr : its.indices[facet_idx];
+        const int 			*vertices 	= its.indices.empty() ? nullptr : its.indices[facet_idx].data();
         for (int nbr_idx = 0; nbr_idx < 3; ++ nbr_idx) {
             int nbr_face = stl->neighbors_start[facet_idx].neighbor[nbr_idx];
             assert(nbr_face < (int)stl->stats.number_of_facets);
