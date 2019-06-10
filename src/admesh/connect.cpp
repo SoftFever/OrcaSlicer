@@ -32,37 +32,363 @@
 
 #include "stl.h"
 
+struct HashEdge {
+	// Key of a hash edge: sorted vertices of the edge.
+	uint32_t       key[6];
+	// Compare two keys.
+	bool operator==(const HashEdge &rhs) const { return memcmp(key, rhs.key, sizeof(key)) == 0; }
+	bool operator!=(const HashEdge &rhs) const { return ! (*this == rhs); }
+	int  hash(int M) const { return ((key[0] / 11 + key[1] / 7 + key[2] / 3) ^ (key[3] / 11  + key[4] / 7 + key[5] / 3)) % M; }
 
-static void stl_match_neighbors_nearby(stl_file *stl,
-                                       stl_hash_edge *edge_a, stl_hash_edge *edge_b);
-static void stl_record_neighbors(stl_file *stl,
-                                 stl_hash_edge *edge_a, stl_hash_edge *edge_b);
-static void stl_initialize_facet_check_nearby(stl_file *stl);
-static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_vertex *a, const stl_vertex *b);
-static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge,
-                                stl_vertex *a, stl_vertex *b, float tolerance);
-static void insert_hash_edge(stl_file *stl, stl_hash_edge edge,
-                             void (*match_neighbors)(stl_file *stl,
-                                 stl_hash_edge *edge_a, stl_hash_edge *edge_b));
-static int stl_compare_function(stl_hash_edge *edge_a, stl_hash_edge *edge_b);
-static void stl_free_edges(stl_file *stl);
-static void stl_change_vertices(stl_file *stl, int facet_num, int vnot,
-                                stl_vertex new_vertex);
-static void stl_which_vertices_to_change(stl_file *stl, stl_hash_edge *edge_a,
-    stl_hash_edge *edge_b, int *facet1, int *vertex1,
-    int *facet2, int *vertex2,
-    stl_vertex *new_vertex1, stl_vertex *new_vertex2);
-extern int stl_check_normal_vector(stl_file *stl,
-                                   int facet_num, int normal_fix_flag);
+	// Index of a facet owning this edge.
+	int            facet_number;
+	// Index of this edge inside the facet with an index of facet_number.
+	// If this edge is stored backwards, which_edge is increased by 3.
+	int            which_edge;
+	struct HashEdge  *next;
 
-static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
+	void load_exact(stl_file *stl, const stl_vertex *a, const stl_vertex *b)
+	{
+		{
+	    	stl_vertex diff = (*a - *b).cwiseAbs();
+	    	float max_diff = std::max(diff(0), std::max(diff(1), diff(2)));
+	    	stl->stats.shortest_edge = std::min(max_diff, stl->stats.shortest_edge);
+	  	}
+
+	  	// Ensure identical vertex ordering of equal edges.
+	  	// This method is numerically robust.
+	  	if (stl_vertex_lower(*a, *b)) {
+	  	} else {
+	  		// This edge is loaded backwards.
+		    std::swap(a, b);
+		    this->which_edge += 3;
+	  	}
+	  	memcpy(&this->key[0], a->data(), sizeof(stl_vertex));
+	  	memcpy(&this->key[3], b->data(), sizeof(stl_vertex));
+	  	// Switch negative zeros to positive zeros, so memcmp will consider them to be equal.
+	  	for (size_t i = 0; i < 6; ++ i) {
+	    	unsigned char *p = (unsigned char*)(this->key + i);
+	#ifdef BOOST_LITTLE_ENDIAN
+	    	if (p[0] == 0 && p[1] == 0 && p[2] == 0 && p[3] == 0x80)
+	      		// Negative zero, switch to positive zero.
+	      		p[3] = 0;
+	#else /* BOOST_LITTLE_ENDIAN */
+	    	if (p[0] == 0x80 && p[1] == 0 && p[2] == 0 && p[3] == 0)
+	      		// Negative zero, switch to positive zero.
+	      		p[0] = 0;
+	#endif /* BOOST_LITTLE_ENDIAN */
+	  	}
+	}
+
+	bool load_nearby(const stl_file *stl, const stl_vertex &a, const stl_vertex &b, float tolerance)
+	{
+		// Index of a grid cell spaced by tolerance.
+		typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i;
+		Vec3i vertex1 = ((a - stl->stats.min) / tolerance).cast<int32_t>();
+		Vec3i vertex2 = ((b - stl->stats.min) / tolerance).cast<int32_t>();
+		static_assert(sizeof(Vec3i) == 12, "size of Vec3i incorrect");
+
+		if (vertex1 == vertex2)
+			// Both vertices hash to the same value
+			return false;
+
+		// Ensure identical vertex ordering of edges, which vertices land into equal grid cells.
+		// This method is numerically robust.
+		if ((vertex1[0] != vertex2[0]) ? 
+		    (vertex1[0] < vertex2[0]) : 
+		    ((vertex1[1] != vertex2[1]) ? 
+		        (vertex1[1] < vertex2[1]) : 
+		        (vertex1[2] < vertex2[2]))) {
+			memcpy(&this->key[0], vertex1.data(), sizeof(stl_vertex));
+			memcpy(&this->key[3], vertex2.data(), sizeof(stl_vertex));
+		} else {
+			memcpy(&this->key[0], vertex2.data(), sizeof(stl_vertex));
+			memcpy(&this->key[3], vertex1.data(), sizeof(stl_vertex));
+			this->which_edge += 3; /* this edge is loaded backwards */
+		}
+		return true;
+	}
+};
+
+struct HashTableEdges {
+	HashTableEdges(size_t number_of_faces) {
+		this->M = (int)hash_size_from_nr_faces(number_of_faces);
+		this->heads.assign(this->M, nullptr);
+		this->tail = new HashEdge;
+		this->tail->next = this->tail;
+		for (int i = 0; i < this->M; ++ i)
+			this->heads[i] = this->tail;
+	}
+	~HashTableEdges() {
+	    for (int i = 0; i < this->M; ++ i) {
+	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i]) {
+	        	this->heads[i] = this->heads[i]->next;
+	        	delete temp;
+	        	++ this->freed;
+	      	}
+	    }
+		this->heads.clear();
+		delete this->tail;
+		this->tail = nullptr;
+	}
+
+	void insert_edge(stl_file *stl, const HashEdge &edge, void (*match_neighbors)(stl_file *stl, const HashEdge &edge_a, const HashEdge &edge_b))
+	{
+		int       chain_number = edge.hash(this->M);
+		HashEdge *link         = this->heads[chain_number];
+		if (link == this->tail) {
+			// This list doesn't have any edges currently in it.  Add this one.
+			HashEdge *new_edge = new HashEdge(edge);
+			++ this->malloced;
+			new_edge->next = this->tail;
+			this->heads[chain_number] = new_edge;
+		} else if (edges_equal(edge, *link)) {
+			// This is a match.  Record result in neighbors list.
+			match_neighbors(stl, edge, *link);
+			// Delete the matched edge from the list.
+			this->heads[chain_number] = link->next;
+			delete link;
+			++ this->freed;
+		} else {
+			// Continue through the rest of the list.
+			for (;;) {
+				if (link->next == this->tail) {
+					// This is the last item in the list. Insert a new edge.
+					HashEdge *new_edge = new HashEdge;
+					++ this->malloced;
+					*new_edge = edge;
+					new_edge->next = this->tail;
+					link->next = new_edge;
+					++ this->collisions;
+					break;
+				}
+				if (edges_equal(edge, *link->next)) {
+					// This is a match.  Record result in neighbors list.
+					match_neighbors(stl, edge, *link->next);
+					// Delete the matched edge from the list.
+					HashEdge *temp = link->next;
+					link->next = link->next->next;
+					delete temp;
+					++ this->freed;
+					break;
+				}
+				// This is not a match.  Go to the next link.
+				link = link->next;
+				++ this->collisions;
+			}
+		}
+	}
+
+	// Hash table on edges
+	std::vector<HashEdge*> 	heads;
+	HashEdge* 					tail;
+	int           					M;
+
+	size_t 							malloced   	= 0;
+	size_t 							freed 	  	= 0;
+	size_t 							collisions 	= 0;
+
+private:
+	static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
+	{
+		// Good primes for addressing a cca. 30 bit space.
+		// https://planetmath.org/goodhashtableprimes
+		static std::vector<uint32_t> primes{ 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741 };
+		// Find a prime number for 50% filling of the shared triangle edges in the mesh.
+		auto it = std::upper_bound(primes.begin(), primes.end(), nr_faces * 3 * 2 - 1);
+		return (it == primes.end()) ? primes.back() : *it;
+	}
+
+	// Edges equal for hashing. Edgesof different facet are allowed to be matched.
+	static inline bool edges_equal(const HashEdge &edge_a, const HashEdge &edge_b)
+	{
+	    return edge_a.facet_number != edge_b.facet_number && edge_a == edge_b;
+	}
+};
+
+static void record_neighbors(stl_file *stl, const HashEdge &edge_a, const HashEdge &edge_b)
 {
-	// Good primes for addressing a cca. 30 bit space.
-	// https://planetmath.org/goodhashtableprimes
-	static std::vector<uint32_t> primes{ 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741 };
-	// Find a prime number for 50% filling of the shared triangle edges in the mesh.
-	auto it = std::upper_bound(primes.begin(), primes.end(), nr_faces * 3 * 2 - 1);
-	return (it == primes.end()) ? primes.back() : *it;
+	// Facet a's neighbor is facet b
+	stl->neighbors_start[edge_a.facet_number].neighbor[edge_a.which_edge % 3] = edge_b.facet_number;	/* sets the .neighbor part */
+	stl->neighbors_start[edge_a.facet_number].which_vertex_not[edge_a.which_edge % 3] = (edge_b.which_edge + 2) % 3; /* sets the .which_vertex_not part */
+
+	// Facet b's neighbor is facet a
+	stl->neighbors_start[edge_b.facet_number].neighbor[edge_b.which_edge % 3] = edge_a.facet_number;	/* sets the .neighbor part */
+	stl->neighbors_start[edge_b.facet_number].which_vertex_not[edge_b.which_edge % 3] = (edge_a.which_edge + 2) % 3; /* sets the .which_vertex_not part */
+
+	if (((edge_a.which_edge < 3) && (edge_b.which_edge < 3)) || ((edge_a.which_edge > 2) && (edge_b.which_edge > 2))) {
+		// These facets are oriented in opposite directions, their normals are probably messed up.
+		stl->neighbors_start[edge_a.facet_number].which_vertex_not[edge_a.which_edge % 3] += 3;
+		stl->neighbors_start[edge_b.facet_number].which_vertex_not[edge_b.which_edge % 3] += 3;
+	}
+
+	// Count successful connects:
+	// Total connects:
+	stl->stats.connected_edges += 2;
+	// Count individual connects:
+	switch (stl->neighbors_start[edge_a.facet_number].num_neighbors()) {
+	case 1:	++ stl->stats.connected_facets_1_edge; break;
+	case 2: ++ stl->stats.connected_facets_2_edge; break;
+	case 3: ++ stl->stats.connected_facets_3_edge; break;
+	default: assert(false);
+	}
+	switch (stl->neighbors_start[edge_b.facet_number].num_neighbors()) {
+	case 1:	++ stl->stats.connected_facets_1_edge; break;
+	case 2: ++ stl->stats.connected_facets_2_edge; break;
+	case 3: ++ stl->stats.connected_facets_3_edge; break;
+	default: assert(false);
+	}
+}
+
+static void match_neighbors_nearby(stl_file *stl, const HashEdge &edge_a, const HashEdge &edge_b)
+{
+	record_neighbors(stl, edge_a, edge_b);
+
+	// Which vertices to change
+	int facet1 = -1;
+	int facet2 = -1;
+	int vertex1, vertex2;
+	stl_vertex new_vertex1, new_vertex2;
+	{
+		int v1a; // pair 1, facet a
+		int v1b; // pair 1, facet b
+		int v2a; // pair 2, facet a
+		int v2b; // pair 2, facet b
+		// Find first pair.
+		if (edge_a.which_edge < 3) {
+			v1a = edge_a.which_edge;
+			v2a = (edge_a.which_edge + 1) % 3;
+		} else {
+			v2a = edge_a.which_edge % 3;
+			v1a = (edge_a.which_edge + 1) % 3;
+		}
+		if (edge_b.which_edge < 3) {
+			v1b = edge_b.which_edge;
+			v2b = (edge_b.which_edge + 1) % 3;
+		} else {
+			v2b = edge_b.which_edge % 3;
+			v1b = (edge_b.which_edge + 1) % 3;
+		}
+
+		// Of the first pair, which vertex, if any, should be changed
+		if (stl->facet_start[edge_a.facet_number].vertex[v1a] != stl->facet_start[edge_b.facet_number].vertex[v1b]) {
+			// These facets are different.
+			if (   (stl->neighbors_start[edge_a.facet_number].neighbor[v1a] == -1)
+		        && (stl->neighbors_start[edge_a.facet_number].neighbor[(v1a + 2) % 3] == -1)) {
+		  		// This vertex has no neighbors.  This is a good one to change.
+		  		facet1 = edge_a.facet_number;
+		  		vertex1 = v1a;
+		  		new_vertex1 = stl->facet_start[edge_b.facet_number].vertex[v1b];
+			} else {
+			  	facet1 = edge_b.facet_number;
+		  		vertex1 = v1b;
+		  		new_vertex1 = stl->facet_start[edge_a.facet_number].vertex[v1a];
+			}
+		}
+
+		// Of the second pair, which vertex, if any, should be changed.
+		if (stl->facet_start[edge_a.facet_number].vertex[v2a] == stl->facet_start[edge_b.facet_number].vertex[v2b]) {
+			// These facets are different.
+			if (  (stl->neighbors_start[edge_a.facet_number].neighbor[v2a] == -1)
+		       && (stl->neighbors_start[edge_a.facet_number].neighbor[(v2a + 2) % 3] == -1)) {
+		  		// This vertex has no neighbors.  This is a good one to change.
+		  		facet2 = edge_a.facet_number;
+		  		vertex2 = v2a;
+		  		new_vertex2 = stl->facet_start[edge_b.facet_number].vertex[v2b];
+			} else {
+		  		facet2 = edge_b.facet_number;
+		  		vertex2 = v2b;
+		  		new_vertex2 = stl->facet_start[edge_a.facet_number].vertex[v2a];
+			}
+		}
+	}
+
+	auto change_vertices = [stl](int facet_num, int vnot, stl_vertex new_vertex)
+	{
+		int first_facet = facet_num;
+		bool direction = false;
+
+		for (;;) {
+			int pivot_vertex;
+			int next_edge;
+			if (vnot > 2) {
+				if (direction) {
+					pivot_vertex = (vnot + 1) % 3;
+					next_edge = vnot % 3;
+				}
+				else {
+					pivot_vertex = (vnot + 2) % 3;
+					next_edge = pivot_vertex;
+				}
+				direction = !direction;
+			}
+			else {
+				if (direction) {
+					pivot_vertex = (vnot + 2) % 3;
+					next_edge = pivot_vertex;
+				}
+				else {
+					pivot_vertex = (vnot + 1) % 3;
+					next_edge = vnot;
+				}
+			}
+#if 0
+			if (stl->facet_start[facet_num].vertex[pivot_vertex](0) == new_vertex(0) &&
+				stl->facet_start[facet_num].vertex[pivot_vertex](1) == new_vertex(1) &&
+				stl->facet_start[facet_num].vertex[pivot_vertex](2) == new_vertex(2))
+				printf("Changing vertex %f,%f,%f: Same !!!\r\n", new_vertex(0), new_vertex(1), new_vertex(2));
+			else {
+				if (stl->facet_start[facet_num].vertex[pivot_vertex](0) != new_vertex(0))
+					printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n",
+						stl->facet_start[facet_num].vertex[pivot_vertex](0),
+						*reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](0)),
+						new_vertex(0),
+						*reinterpret_cast<const int*>(&new_vertex(0)));
+				if (stl->facet_start[facet_num].vertex[pivot_vertex](1) != new_vertex(1))
+					printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n",
+						stl->facet_start[facet_num].vertex[pivot_vertex](1),
+						*reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](1)),
+						new_vertex(1),
+						*reinterpret_cast<const int*>(&new_vertex(1)));
+				if (stl->facet_start[facet_num].vertex[pivot_vertex](2) != new_vertex(2))
+					printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n",
+						stl->facet_start[facet_num].vertex[pivot_vertex](2),
+						*reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](2)),
+						new_vertex(2),
+						*reinterpret_cast<const int*>(&new_vertex(2)));
+			}
+#endif
+			stl->facet_start[facet_num].vertex[pivot_vertex] = new_vertex;
+			vnot = stl->neighbors_start[facet_num].which_vertex_not[next_edge];
+			facet_num = stl->neighbors_start[facet_num].neighbor[next_edge];
+			if (facet_num == -1)
+				break;
+
+			if (facet_num == first_facet) {
+				// back to the beginning
+				printf("Back to the first facet changing vertices: probably a mobius part.\nTry using a smaller tolerance or don't do a nearby check\n");
+				return;
+			}
+		}
+	};
+
+	if (facet1 != -1) {
+		int vnot1 = (facet1 == edge_a.facet_number) ? 
+	  		(edge_a.which_edge + 2) % 3 :
+			(edge_b.which_edge + 2) % 3;
+		if (((vnot1 + 2) % 3) == vertex1)
+	  		vnot1 += 3;
+		change_vertices(facet1, vnot1, new_vertex1);
+	}
+	if (facet2 != -1) {
+		int vnot2 = (facet2 == edge_a.facet_number) ?
+	  		(edge_a.which_edge + 2) % 3 :
+			(edge_b.which_edge + 2) % 3;
+		if (((vnot2 + 2) % 3) == vertex2)
+	  		vnot2 += 3;
+		change_vertices(facet2, vnot2, new_vertex2);
+	}
+	stl->stats.edges_fixed += 2;
 }
 
 // This function builds the neighbors list.  No modifications are made
@@ -93,30 +419,21 @@ void stl_check_facets_exact(stl_file *stl)
   	}
 
   	// Initialize hash table.
-	stl->stats.malloced   = 0;
-	stl->stats.freed      = 0;
-	stl->stats.collisions = 0;
-	stl->M = (int)hash_size_from_nr_faces(stl->stats.number_of_facets);
+  	HashTableEdges hash_table(stl->stats.number_of_facets);
 	for (auto &neighbor : stl->neighbors_start)
 		neighbor.reset();
-	stl->heads.assign(stl->M, nullptr);
-	stl->tail = new stl_hash_edge;
-	stl->tail->next = stl->tail;
-	for (int i = 0; i < stl->M; ++ i)
-		stl->heads[i] = stl->tail;
 
   	// Connect neighbor edges.
-	for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		const stl_facet &facet = stl->facet_start[i];
 		for (int j = 0; j < 3; ++ j) {
-			stl_hash_edge  edge;
+			HashEdge edge;
 			edge.facet_number = i;
 			edge.which_edge = j;
-			stl_load_edge_exact(stl, &edge, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
-			insert_hash_edge(stl, edge, stl_record_neighbors);
+			edge.load_exact(stl, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
+			hash_table.insert_edge(stl, edge, record_neighbors);
 		}
 	}
-	stl_free_edges(stl);
 
 #if 0
 	printf("Number of faces: %d, number of manifold edges: %d, number of connected edges: %d, number of unconnected edges: %d\r\n", 
@@ -125,444 +442,33 @@ void stl_check_facets_exact(stl_file *stl)
 #endif
 }
 
-static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_vertex *a, const stl_vertex *b) {
-
-  if (stl->error) return;
-
-  {
-    stl_vertex diff = (*a - *b).cwiseAbs();
-    float max_diff = std::max(diff(0), std::max(diff(1), diff(2)));
-    stl->stats.shortest_edge = std::min(max_diff, stl->stats.shortest_edge);
-  }
-
-  // Ensure identical vertex ordering of equal edges.
-  // This method is numerically robust.
-  if (stl_vertex_lower(*a, *b)) {
-  } else {
-    std::swap(a, b);
-    edge->which_edge += 3; /* this edge is loaded backwards */
-  }
-  memcpy(&edge->key[0], a->data(), sizeof(stl_vertex));
-  memcpy(&edge->key[3], b->data(), sizeof(stl_vertex));
-  // Switch negative zeros to positive zeros, so memcmp will consider them to be equal.
-  for (size_t i = 0; i < 6; ++ i) {
-    unsigned char *p = (unsigned char*)(edge->key + i);
-#ifdef BOOST_LITTLE_ENDIAN
-    if (p[0] == 0 && p[1] == 0 && p[2] == 0 && p[3] == 0x80)
-      // Negative zero, switch to positive zero.
-      p[3] = 0;
-#else /* BOOST_LITTLE_ENDIAN */
-    if (p[0] == 0x80 && p[1] == 0 && p[2] == 0 && p[3] == 0)
-      // Negative zero, switch to positive zero.
-      p[0] = 0;
-#endif /* BOOST_LITTLE_ENDIAN */
-  }
-}
-
-static void insert_hash_edge(stl_file *stl, stl_hash_edge edge,
-                 void (*match_neighbors)(stl_file *stl,
-                     stl_hash_edge *edge_a, stl_hash_edge *edge_b))
-{
-  if (stl->error) return;
-
-  int            chain_number = edge.hash(stl->M);
-  stl_hash_edge *link = stl->heads[chain_number];
-
-  stl_hash_edge *new_edge;
-  stl_hash_edge *temp;
-  if(link == stl->tail) {
-    /* This list doesn't have any edges currently in it.  Add this one. */
-    new_edge = new stl_hash_edge;
-    if(new_edge == NULL) perror("insert_hash_edge");
-    stl->stats.malloced++;
-    *new_edge = edge;
-    new_edge->next = stl->tail;
-    stl->heads[chain_number] = new_edge;
-    return;
-  } else  if(!stl_compare_function(&edge, link)) {
-    /* This is a match.  Record result in neighbors list. */
-    match_neighbors(stl, &edge, link);
-    /* Delete the matched edge from the list. */
-    stl->heads[chain_number] = link->next;
-    delete link;
-    stl->stats.freed++;
-    return;
-  } else {
-    /* Continue through the rest of the list */
-    for(;;) {
-      if(link->next == stl->tail) {
-        /* This is the last item in the list. Insert a new edge. */
-        new_edge = new stl_hash_edge;
-        if(new_edge == NULL) perror("insert_hash_edge");
-        stl->stats.malloced++;
-        *new_edge = edge;
-        new_edge->next = stl->tail;
-        link->next = new_edge;
-        stl->stats.collisions++;
-        return;
-      } else  if(!stl_compare_function(&edge, link->next)) {
-        /* This is a match.  Record result in neighbors list. */
-        match_neighbors(stl, &edge, link->next);
-
-        /* Delete the matched edge from the list. */
-        temp = link->next;
-        link->next = link->next->next;
-        delete temp;
-        stl->stats.freed++;
-        return;
-      } else {
-        /* This is not a match.  Go to the next link */
-        link = link->next;
-        stl->stats.collisions++;
-      }
-    }
-  }
-}
-
-// Return 1 if the edges are not matched.
-static inline int stl_compare_function(stl_hash_edge *edge_a, stl_hash_edge *edge_b)
-{
-    // Don't match edges of the same facet
-    return (edge_a->facet_number == edge_b->facet_number) || (*edge_a != *edge_b);
-}
-
 void stl_check_facets_nearby(stl_file *stl, float tolerance)
-{
-  if (stl->error)
-    return;
-
-  if(   (stl->stats.connected_facets_1_edge == stl->stats.number_of_facets)
-        && (stl->stats.connected_facets_2_edge == stl->stats.number_of_facets)
-        && (stl->stats.connected_facets_3_edge == stl->stats.number_of_facets)) {
-    /* No need to check any further.  All facets are connected */
-    return;
-  }
-
-  stl_initialize_facet_check_nearby(stl);
-
-  for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
-    //FIXME is the copy necessary?
-    stl_facet facet = stl->facet_start[i];
-    for (int j = 0; j < 3; j++) {
-      if(stl->neighbors_start[i].neighbor[j] == -1) {
-        stl_hash_edge edge;
-        edge.facet_number = i;
-        edge.which_edge = j;
-        if(stl_load_edge_nearby(stl, &edge, &facet.vertex[j],
-                                &facet.vertex[(j + 1) % 3],
-                                tolerance)) {
-          /* only insert edges that have different keys */
-          insert_hash_edge(stl, edge, stl_match_neighbors_nearby);
-        }
-      }
-    }
-  }
-
-  stl_free_edges(stl);
-}
-
-static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge, stl_vertex *a, stl_vertex *b, float tolerance)
-{
-  // Index of a grid cell spaced by tolerance.
-  typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i;
-  Vec3i vertex1 = ((*a - stl->stats.min) / tolerance).cast<int32_t>();
-  Vec3i vertex2 = ((*b - stl->stats.min) / tolerance).cast<int32_t>();
-  static_assert(sizeof(Vec3i) == 12, "size of Vec3i incorrect");
-
-  if (vertex1 == vertex2)
-    // Both vertices hash to the same value
-    return 0;
-
-  // Ensure identical vertex ordering of edges, which vertices land into equal grid cells.
-  // This method is numerically robust.
-  if ((vertex1[0] != vertex2[0]) ? 
-        (vertex1[0] < vertex2[0]) : 
-        ((vertex1[1] != vertex2[1]) ? 
-            (vertex1[1] < vertex2[1]) : 
-            (vertex1[2] < vertex2[2]))) {
-    memcpy(&edge->key[0], vertex1.data(), sizeof(stl_vertex));
-    memcpy(&edge->key[3], vertex2.data(), sizeof(stl_vertex));
-  } else {
-    memcpy(&edge->key[0], vertex2.data(), sizeof(stl_vertex));
-    memcpy(&edge->key[3], vertex1.data(), sizeof(stl_vertex));
-    edge->which_edge += 3; /* this edge is loaded backwards */
-  }
-  return 1;
-}
-
-static void stl_free_edges(stl_file *stl)
-{
-  if (stl->error)
-    return;
-
-  if(stl->stats.malloced != stl->stats.freed) {
-    for (int i = 0; i < stl->M; i++) {
-      for (stl_hash_edge *temp = stl->heads[i]; stl->heads[i] != stl->tail; temp = stl->heads[i]) {
-        stl->heads[i] = stl->heads[i]->next;
-        delete temp;
-        ++ stl->stats.freed;
-      }
-    }
-  }
-  stl->heads.clear();
-  delete stl->tail;
-  stl->tail = nullptr;
-}
-
-static void stl_initialize_facet_check_nearby(stl_file *stl)
 {
 	if (stl->error)
 		return;
 
-	stl->stats.malloced   = 0;
-	stl->stats.freed 	  = 0;
-	stl->stats.collisions = 0;
+  	if (  (stl->stats.connected_facets_1_edge == stl->stats.number_of_facets)
+       && (stl->stats.connected_facets_2_edge == stl->stats.number_of_facets)
+       && (stl->stats.connected_facets_3_edge == stl->stats.number_of_facets)) {
+    	// No need to check any further.  All facets are connected.
+    	return;
+  	}
 
-	/*  tolerance = STL_MAX(stl->stats.shortest_edge, tolerance);*/
-	/*  tolerance = STL_MAX((stl->stats.bounding_diameter / 500000.0), tolerance);*/
-	/*  tolerance *= 0.5;*/
-	stl->M = (int)hash_size_from_nr_faces(stl->stats.number_of_facets);
-
-	stl->heads.assign(stl->M, nullptr);
-	stl->tail = new stl_hash_edge;
-	stl->tail->next = stl->tail;
-
-	for (int i = 0; i < stl->M; ++ i)
-		stl->heads[i] = stl->tail;
-}
-
-static void
-stl_record_neighbors(stl_file *stl,
-                     stl_hash_edge *edge_a, stl_hash_edge *edge_b) {
-  int i;
-  int j;
-
-  if (stl->error) return;
-
-  /* Facet a's neighbor is facet b */
-  stl->neighbors_start[edge_a->facet_number].neighbor[edge_a->which_edge % 3] = edge_b->facet_number;	/* sets the .neighbor part */
-  stl->neighbors_start[edge_a->facet_number].which_vertex_not[edge_a->which_edge % 3] = (edge_b->which_edge + 2) % 3; /* sets the .which_vertex_not part */
-
-  /* Facet b's neighbor is facet a */
-  stl->neighbors_start[edge_b->facet_number].neighbor[edge_b->which_edge % 3] = edge_a->facet_number;	/* sets the .neighbor part */
-  stl->neighbors_start[edge_b->facet_number].which_vertex_not[edge_b->which_edge % 3] = (edge_a->which_edge + 2) % 3; /* sets the .which_vertex_not part */
-
-  if(   ((edge_a->which_edge < 3) && (edge_b->which_edge < 3))
-        || ((edge_a->which_edge > 2) && (edge_b->which_edge > 2))) {
-    /* these facets are oriented in opposite directions.  */
-    /*  their normals are probably messed up. */
-    stl->neighbors_start[edge_a->facet_number].which_vertex_not[edge_a->which_edge % 3] += 3;
-    stl->neighbors_start[edge_b->facet_number].which_vertex_not[edge_b->which_edge % 3] += 3;
-  }
-
-
-  /* Count successful connects */
-  /* Total connects */
-  stl->stats.connected_edges += 2;
-  /* Count individual connects */
-  i = ((stl->neighbors_start[edge_a->facet_number].neighbor[0] == -1) +
-       (stl->neighbors_start[edge_a->facet_number].neighbor[1] == -1) +
-       (stl->neighbors_start[edge_a->facet_number].neighbor[2] == -1));
-  j = ((stl->neighbors_start[edge_b->facet_number].neighbor[0] == -1) +
-       (stl->neighbors_start[edge_b->facet_number].neighbor[1] == -1) +
-       (stl->neighbors_start[edge_b->facet_number].neighbor[2] == -1));
-  if(i == 2) {
-    stl->stats.connected_facets_1_edge +=1;
-  } else if(i == 1) {
-    stl->stats.connected_facets_2_edge +=1;
-  } else {
-    stl->stats.connected_facets_3_edge +=1;
-  }
-  if(j == 2) {
-    stl->stats.connected_facets_1_edge +=1;
-  } else if(j == 1) {
-    stl->stats.connected_facets_2_edge +=1;
-  } else {
-    stl->stats.connected_facets_3_edge +=1;
-  }
-}
-
-static void stl_match_neighbors_nearby(stl_file *stl, stl_hash_edge *edge_a, stl_hash_edge *edge_b)
-{
-  int facet1;
-  int facet2;
-  int vertex1;
-  int vertex2;
-  int vnot1;
-  int vnot2;
-  stl_vertex new_vertex1;
-  stl_vertex new_vertex2;
-
-  if (stl->error) return;
-
-  stl_record_neighbors(stl, edge_a, edge_b);
-  stl_which_vertices_to_change(stl, edge_a, edge_b, &facet1, &vertex1,
-                               &facet2, &vertex2, &new_vertex1, &new_vertex2);
-  if(facet1 != -1) {
-    if(facet1 == edge_a->facet_number) {
-      vnot1 = (edge_a->which_edge + 2) % 3;
-    } else {
-      vnot1 = (edge_b->which_edge + 2) % 3;
-    }
-    if(((vnot1 + 2) % 3) == vertex1) {
-      vnot1 += 3;
-    }
-    stl_change_vertices(stl, facet1, vnot1, new_vertex1);
-  }
-  if(facet2 != -1) {
-    if(facet2 == edge_a->facet_number) {
-      vnot2 = (edge_a->which_edge + 2) % 3;
-    } else {
-      vnot2 = (edge_b->which_edge + 2) % 3;
-    }
-    if(((vnot2 + 2) % 3) == vertex2) {
-      vnot2 += 3;
-    }
-    stl_change_vertices(stl, facet2, vnot2, new_vertex2);
-  }
-  stl->stats.edges_fixed += 2;
-}
-
-
-static void stl_change_vertices(stl_file *stl, int facet_num, int vnot, stl_vertex new_vertex) {
-  int first_facet;
-  int direction;
-  int next_edge;
-  int pivot_vertex;
-
-  if (stl->error) return;
-
-  first_facet = facet_num;
-  direction = 0;
-
-  for(;;) {
-    if(vnot > 2) {
-      if(direction == 0) {
-        pivot_vertex = (vnot + 2) % 3;
-        next_edge = pivot_vertex;
-        direction = 1;
-      } else {
-        pivot_vertex = (vnot + 1) % 3;
-        next_edge = vnot % 3;
-        direction = 0;
-      }
-    } else {
-      if(direction == 0) {
-        pivot_vertex = (vnot + 1) % 3;
-        next_edge = vnot;
-      } else {
-        pivot_vertex = (vnot + 2) % 3;
-        next_edge = pivot_vertex;
-      }
-    }
-#if 0
-    if (stl->facet_start[facet_num].vertex[pivot_vertex](0) == new_vertex(0) &&
-        stl->facet_start[facet_num].vertex[pivot_vertex](1) == new_vertex(1) &&
-        stl->facet_start[facet_num].vertex[pivot_vertex](2) == new_vertex(2))
-      printf("Changing vertex %f,%f,%f: Same !!!\r\n", 
-        new_vertex(0), new_vertex(1), new_vertex(2));
-    else {
-      if (stl->facet_start[facet_num].vertex[pivot_vertex](0) != new_vertex(0))
-        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
-          stl->facet_start[facet_num].vertex[pivot_vertex](0),
-          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](0)),
-          new_vertex(0),
-          *reinterpret_cast<const int*>(&new_vertex(0)));
-      if (stl->facet_start[facet_num].vertex[pivot_vertex](1) != new_vertex(1))
-        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
-          stl->facet_start[facet_num].vertex[pivot_vertex](1),
-          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](1)),
-          new_vertex(1),
-          *reinterpret_cast<const int*>(&new_vertex(1)));
-      if (stl->facet_start[facet_num].vertex[pivot_vertex](2) != new_vertex(2))
-        printf("Changing coordinate x, vertex %e (0x%08x) to %e(0x%08x)\r\n", 
-          stl->facet_start[facet_num].vertex[pivot_vertex](2),
-          *reinterpret_cast<const int*>(&stl->facet_start[facet_num].vertex[pivot_vertex](2)),
-          new_vertex(2),
-          *reinterpret_cast<const int*>(&new_vertex(2)));
-    }
-#endif
-    stl->facet_start[facet_num].vertex[pivot_vertex] = new_vertex;
-    vnot = stl->neighbors_start[facet_num].which_vertex_not[next_edge];
-    facet_num = stl->neighbors_start[facet_num].neighbor[next_edge];
-
-    if(facet_num == -1) {
-      break;
-    }
-
-    if(facet_num == first_facet) {
-      /* back to the beginning */
-      printf("\
-Back to the first facet changing vertices: probably a mobius part.\n\
-Try using a smaller tolerance or don't do a nearby check\n");
-      return;
-    }
-  }
-}
-
-static void
-stl_which_vertices_to_change(stl_file *stl, stl_hash_edge *edge_a,
-                             stl_hash_edge *edge_b, int *facet1, int *vertex1,
-                             int *facet2, int *vertex2,
-                             stl_vertex *new_vertex1, stl_vertex *new_vertex2) {
-  int v1a;			/* pair 1, facet a */
-  int v1b;			/* pair 1, facet b */
-  int v2a;			/* pair 2, facet a */
-  int v2b;			/* pair 2, facet b */
-
-  /* Find first pair */
-  if(edge_a->which_edge < 3) {
-    v1a = edge_a->which_edge;
-    v2a = (edge_a->which_edge + 1) % 3;
-  } else {
-    v2a = edge_a->which_edge % 3;
-    v1a = (edge_a->which_edge + 1) % 3;
-  }
-  if(edge_b->which_edge < 3) {
-    v1b = edge_b->which_edge;
-    v2b = (edge_b->which_edge + 1) % 3;
-  } else {
-    v2b = edge_b->which_edge % 3;
-    v1b = (edge_b->which_edge + 1) % 3;
-  }
-
-  // Of the first pair, which vertex, if any, should be changed
-  if(stl->facet_start[edge_a->facet_number].vertex[v1a] == 
-     stl->facet_start[edge_b->facet_number].vertex[v1b]) {
-    // These facets are already equal.  No need to change.
-    *facet1 = -1;
-  } else {
-    if(   (stl->neighbors_start[edge_a->facet_number].neighbor[v1a] == -1)
-          && (stl->neighbors_start[edge_a->facet_number].neighbor[(v1a + 2) % 3] == -1)) {
-      /* This vertex has no neighbors.  This is a good one to change */
-      *facet1 = edge_a->facet_number;
-      *vertex1 = v1a;
-      *new_vertex1 = stl->facet_start[edge_b->facet_number].vertex[v1b];
-    } else {
-      *facet1 = edge_b->facet_number;
-      *vertex1 = v1b;
-      *new_vertex1 = stl->facet_start[edge_a->facet_number].vertex[v1a];
-    }
-  }
-
-  /* Of the second pair, which vertex, if any, should be changed */
-  if(stl->facet_start[edge_a->facet_number].vertex[v2a] == 
-     stl->facet_start[edge_b->facet_number].vertex[v2b]) {
-    // These facets are already equal.  No need to change.
-    *facet2 = -1;
-  } else {
-    if(   (stl->neighbors_start[edge_a->facet_number].neighbor[v2a] == -1)
-          && (stl->neighbors_start[edge_a->facet_number].neighbor[(v2a + 2) % 3] == -1)) {
-      /* This vertex has no neighbors.  This is a good one to change */
-      *facet2 = edge_a->facet_number;
-      *vertex2 = v2a;
-      *new_vertex2 = stl->facet_start[edge_b->facet_number].vertex[v2b];
-    } else {
-      *facet2 = edge_b->facet_number;
-      *vertex2 = v2b;
-      *new_vertex2 = stl->facet_start[edge_a->facet_number].vertex[v2a];
-    }
-  }
+  	HashTableEdges hash_table(stl->stats.number_of_facets);
+  	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+    	//FIXME is the copy necessary?
+    	stl_facet facet = stl->facet_start[i];
+    	for (int j = 0; j < 3; j++) {
+      		if (stl->neighbors_start[i].neighbor[j] == -1) {
+        		HashEdge edge;
+        		edge.facet_number = i;
+        		edge.which_edge = j;
+        		if (edge.load_nearby(stl, facet.vertex[j], facet.vertex[(j + 1) % 3], tolerance))
+          			// Only insert edges that have different keys.
+          			hash_table.insert_edge(stl, edge, match_neighbors_nearby);
+      		}
+    	}
+  	}
 }
 
 void stl_remove_unconnected_facets(stl_file *stl)
@@ -728,109 +634,88 @@ void stl_remove_unconnected_facets(stl_file *stl)
 	}
 }
 
-void
-stl_fill_holes(stl_file *stl) {
-  stl_facet facet;
-  stl_facet new_facet;
-  int neighbors_initial[3];
-  stl_hash_edge edge;
-  int first_facet;
-  int direction;
-  int facet_num;
-  int vnot;
-  int next_edge;
-  int pivot_vertex;
-  int next_facet;
-  int j;
-  int k;
+void stl_fill_holes(stl_file *stl)
+{
+	if (stl->error)
+		return;
 
-  if (stl->error) return;
+	// Insert all unconnected edges into hash list.
+	HashTableEdges hash_table(stl->stats.number_of_facets);
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+  		stl_facet facet = stl->facet_start[i];
+		for (int j = 0; j < 3; ++ j) {
+	  		if(stl->neighbors_start[i].neighbor[j] != -1)
+	  			continue;
+			HashEdge edge;
+	  		edge.facet_number = i;
+	  		edge.which_edge = j;
+	  		edge.load_exact(stl, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
+	  		hash_table.insert_edge(stl, edge, record_neighbors);
+		}
+	}
 
-  /* Insert all unconnected edges into hash list */
-  stl_initialize_facet_check_nearby(stl);
-  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
-    facet = stl->facet_start[i];
-    for(j = 0; j < 3; j++) {
-      if(stl->neighbors_start[i].neighbor[j] != -1) continue;
-      edge.facet_number = i;
-      edge.which_edge = j;
-      stl_load_edge_exact(stl, &edge, &facet.vertex[j],
-                          &facet.vertex[(j + 1) % 3]);
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+		stl_facet facet = stl->facet_start[i];
+		int neighbors_initial[3] = { stl->neighbors_start[i].neighbor[0], stl->neighbors_start[i].neighbor[1], stl->neighbors_start[i].neighbor[2] };
+		int first_facet = i;
+		for (int j = 0; j < 3; ++ j) {
+	  		if (stl->neighbors_start[i].neighbor[j] != -1)
+	  			continue;
 
-      insert_hash_edge(stl, edge, stl_record_neighbors);
-    }
-  }
+  			stl_facet new_facet;
+	  		new_facet.vertex[0] = facet.vertex[j];
+	  		new_facet.vertex[1] = facet.vertex[(j + 1) % 3];
+		  	bool direction = neighbors_initial[(j + 2) % 3] == -1;
+  			int facet_num = i;
+		  	int vnot = (j + 2) % 3;
 
-  for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
-    facet = stl->facet_start[i];
-    neighbors_initial[0] = stl->neighbors_start[i].neighbor[0];
-    neighbors_initial[1] = stl->neighbors_start[i].neighbor[1];
-    neighbors_initial[2] = stl->neighbors_start[i].neighbor[2];
-    first_facet = i;
-    for(j = 0; j < 3; j++) {
-      if(stl->neighbors_start[i].neighbor[j] != -1) continue;
+	  		for (;;) {
+				int pivot_vertex = 0;
+				int next_edge = 0;
+	    		if (vnot > 2) {
+	      			if (direction) {
+	        			pivot_vertex = (vnot + 1) % 3;
+	        			next_edge = vnot % 3;
+	      			} else {
+	        			pivot_vertex = (vnot + 2) % 3;
+	        			next_edge = pivot_vertex;
+	      			}
+	      			direction = ! direction;
+	    		} else {
+	      			if(direction == 0) {
+	        			pivot_vertex = (vnot + 1) % 3;
+	        			next_edge = vnot;
+	      			} else {
+	        			pivot_vertex = (vnot + 2) % 3;
+	        			next_edge = pivot_vertex;
+	      			}
+	    		}
 
-      new_facet.vertex[0] = facet.vertex[j];
-      new_facet.vertex[1] = facet.vertex[(j + 1) % 3];
-      if(neighbors_initial[(j + 2) % 3] == -1) {
-        direction = 1;
-      } else {
-        direction = 0;
-      }
+	    		int next_facet = stl->neighbors_start[facet_num].neighbor[next_edge];
+	    		if (next_facet == -1) {
+	      			new_facet.vertex[2] = stl->facet_start[facet_num].vertex[vnot % 3];
+				    stl_add_facet(stl, &new_facet);
+	      			for (int k = 0; k < 3; ++ k) {
+	      				HashEdge edge;
+	        			edge.facet_number = stl->stats.number_of_facets - 1;
+	        			edge.which_edge = k;
+	        			edge.load_exact(stl, &new_facet.vertex[k], &new_facet.vertex[(k + 1) % 3]);
+	        			hash_table.insert_edge(stl, edge, record_neighbors);
+	      			}
+	      			break;
+	    		}
 
-      facet_num = i;
-      vnot = (j + 2) % 3;
+	      		vnot = stl->neighbors_start[facet_num].which_vertex_not[next_edge];
+	      		facet_num = next_facet;
 
-      for(;;) {
-        if(vnot > 2) {
-          if(direction == 0) {
-            pivot_vertex = (vnot + 2) % 3;
-            next_edge = pivot_vertex;
-            direction = 1;
-          } else {
-            pivot_vertex = (vnot + 1) % 3;
-            next_edge = vnot % 3;
-            direction = 0;
-          }
-        } else {
-          if(direction == 0) {
-            pivot_vertex = (vnot + 1) % 3;
-            next_edge = vnot;
-          } else {
-            pivot_vertex = (vnot + 2) % 3;
-            next_edge = pivot_vertex;
-          }
-        }
-        next_facet = stl->neighbors_start[facet_num].neighbor[next_edge];
-
-        if(next_facet == -1) {
-          new_facet.vertex[2] = stl->facet_start[facet_num].
-                                vertex[vnot % 3];
-          stl_add_facet(stl, &new_facet);
-          for(k = 0; k < 3; k++) {
-            edge.facet_number = stl->stats.number_of_facets - 1;
-            edge.which_edge = k;
-            stl_load_edge_exact(stl, &edge, &new_facet.vertex[k],
-                                &new_facet.vertex[(k + 1) % 3]);
-
-            insert_hash_edge(stl, edge, stl_record_neighbors);
-          }
-          break;
-        } else {
-          vnot = stl->neighbors_start[facet_num].which_vertex_not[next_edge];
-          facet_num = next_facet;
-        }
-
-        if(facet_num == first_facet) {
-          /* back to the beginning */
-          printf("\
-Back to the first facet filling holes: probably a mobius part.\n\
-Try using a smaller tolerance or don't do a nearby check\n");
-          return;
-        }
-      }
-    }
-  }
+	    		if (facet_num == first_facet) {
+	      			// back to the beginning
+	      			printf("Back to the first facet filling holes: probably a mobius part.\nTry using a smaller tolerance or don't do a nearby check\n");
+	      			return;
+	    		}
+	  		}
+		}
+	}
 }
 
 void stl_add_facet(stl_file *stl, const stl_facet *new_facet)

@@ -50,8 +50,6 @@ void stl_open(stl_file *stl, const char *file)
 void stl_initialize(stl_file *stl)
 {
 	stl->fp = nullptr;
-	stl->tail = nullptr;
-	stl->M = 0;
 	stl->error = 0;
 	stl->facet_start.clear();
 	stl->neighbors_start.clear();
@@ -64,8 +62,6 @@ void stl_initialize(stl_file *stl)
 void stl_close(stl_file *stl)
 {
 	assert(stl->fp == nullptr);
-	assert(stl->heads.empty());
-	assert(stl->tail == nullptr);
 	stl_initialize(stl);
 }
 

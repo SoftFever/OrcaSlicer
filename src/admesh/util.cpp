@@ -459,8 +459,6 @@ bool stl_validate(stl_file *stl)
 	assert(stl->facet_start.size() == stl->stats.number_of_facets);
 	assert(stl->neighbors_start.size() == stl->stats.number_of_facets);
 	assert(stl->facet_start.size() == stl->neighbors_start.size());
-	assert(stl->heads.empty());
-	assert(stl->tail  == nullptr);
 	assert(! stl->neighbors_start.empty());
 	assert((stl->v_indices.empty()) == (stl->v_shared.empty()));
 	assert(stl->stats.number_of_facets > 0);

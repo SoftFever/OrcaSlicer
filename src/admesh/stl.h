@@ -74,21 +74,6 @@ struct stl_edge {
 	int        facet_number;
 };
 
-struct stl_hash_edge {
-	// Key of a hash edge: sorted vertices of the edge.
-	uint32_t       key[6];
-	// Compare two keys.
-	bool operator==(const stl_hash_edge &rhs) { return memcmp(key, rhs.key, sizeof(key)) == 0; }
-	bool operator!=(const stl_hash_edge &rhs) { return ! (*this == rhs); }
-	int  hash(int M) const { return ((key[0] / 11 + key[1] / 7 + key[2] / 3) ^ (key[3] / 11  + key[4] / 7 + key[5] / 3)) % M; }
-	// Index of a facet owning this edge.
-	int            facet_number;
-	// Index of this edge inside the facet with an index of facet_number.
-	// If this edge is stored backwards, which_edge is increased by 3.
-	int            which_edge;
-	struct stl_hash_edge  *next;
-};
-
 struct stl_neighbors {
   	stl_neighbors() { reset(); }
   	void reset() {
@@ -99,8 +84,10 @@ struct stl_neighbors {
   		which_vertex_not[1] = -1;
   		which_vertex_not[2] = -1;
   	}
+  	int num_neighbors_missing() const { return (this->neighbor[0] == -1) + (this->neighbor[1] == -1) + (this->neighbor[2] == -1); }
+  	int num_neighbors() const { return 3 - this->num_neighbors_missing(); }
 
-	// Index of a neighbor facet.
+  	// Index of a neighbor facet.
   	int   neighbor[3];
   	// Index of an opposite vertex at the neighbor face.
   	char  which_vertex_not[3];
@@ -151,10 +138,6 @@ struct stl_file {
 	FILE          			   	   *fp;
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
-	// Hash table on edges
-	std::vector<stl_hash_edge*> 	heads;
-	stl_hash_edge* 					tail;
-	int           					M;
 	// Indexed face set
 	std::vector<v_indices_struct> 	v_indices;
 	std::vector<stl_vertex>       	v_shared;
@@ -177,7 +160,6 @@ extern void stl_check_facets_nearby(stl_file *stl, float tolerance);
 extern void stl_remove_unconnected_facets(stl_file *stl);
 extern void stl_write_vertex(stl_file *stl, int facet, int vertex);
 extern void stl_write_facet(stl_file *stl, char *label, int facet);
-extern void stl_write_edge(stl_file *stl, char *label, stl_hash_edge edge);
 extern void stl_write_neighbor(stl_file *stl, int facet);
 extern void stl_write_quad_object(stl_file *stl, char *file);
 extern void stl_verify_neighbors(stl_file *stl);
