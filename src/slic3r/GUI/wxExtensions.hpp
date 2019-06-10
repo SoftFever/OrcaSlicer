@@ -20,7 +20,8 @@ namespace Slic3r {
 	enum class ModelVolumeType : int;
 };
 
-typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
+typedef double                          coordf_t;
+typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 
 #ifdef __WXMSW__
 void                msw_rescale_menu(wxMenu* menu);
