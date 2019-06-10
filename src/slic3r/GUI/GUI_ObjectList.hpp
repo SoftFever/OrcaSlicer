@@ -33,8 +33,9 @@ typedef std::map< std::string, std::vector< std::pair<std::string, std::string> 
 
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 
-typedef double                                      coordf_t;
-typedef std::pair<coordf_t, coordf_t>               t_layer_height_range;
+typedef double                                              coordf_t;
+typedef std::pair<coordf_t, coordf_t>                       t_layer_height_range;
+typedef std::map<t_layer_height_range, DynamicPrintConfig>  t_layer_config_ranges;
 
 namespace GUI {
 
@@ -67,9 +68,10 @@ class ObjectList : public wxDataViewCtrl
 {
     enum SELECTION_MODE
     {
-        smUndef,
-        smVolume,
-        smInstance
+        smUndef     = 0,
+        smVolume    = 1,
+        smInstance  = 2,
+        smLayer     = 4
     } m_selection_mode {smUndef};
 
     struct dragged_item_data
@@ -130,7 +132,9 @@ class ObjectList : public wxDataViewCtrl
     DynamicPrintConfig          *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
 
-    std::vector<wxBitmap*> m_bmp_vector;
+    std::vector<wxBitmap*>      m_bmp_vector;
+
+    t_layer_config_ranges       m_layer_config_ranges_cache;
 
     int			m_selected_object_id = -1;
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -308,7 +312,7 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
-    void update_settings_item_for_item(wxDataViewItem item, wxDataViewItemArray& selections);
+    void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);
     void update_object_list_by_printer_technology();
     void update_object_menu();
 
@@ -319,6 +323,8 @@ public:
     void fix_through_netfabb();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
+    void fill_layer_config_ranges_cache();
+    void paste_layers_into_list();
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
 

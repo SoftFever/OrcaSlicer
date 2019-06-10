@@ -1174,7 +1174,8 @@ int  ObjectDataViewModel::GetItemIdByLayerRange(const int obj_idx, const t_layer
 
 int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
 {
-	wxASSERT(item.IsOk());
+	if(!item.IsOk())
+        return -1;
 
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 	auto it = find(m_objects.begin(), m_objects.end(), node);

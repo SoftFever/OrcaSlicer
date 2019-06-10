@@ -581,6 +581,56 @@ void ObjectList::selection_changed()
     part_selection_changed();
 }
 
+void ObjectList::fill_layer_config_ranges_cache()
+{
+    wxDataViewItemArray sel_layers;
+    GetSelections(sel_layers);
+
+    const int obj_idx = m_objects_model->GetObjectIdByItem(sel_layers[0]);
+    if (obj_idx < 0 || (int)m_objects->size() <= obj_idx)
+        return;
+
+    const t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    m_layer_config_ranges_cache.clear();
+
+    for (const auto layer_item : sel_layers)
+        if (m_objects_model->GetItemType(layer_item) & itLayer) {
+            auto range = m_objects_model->GetLayerRangeByItem(layer_item);
+            auto it = ranges.find(range);
+            if (it != ranges.end())
+                m_layer_config_ranges_cache[it->first] = it->second;
+        }
+}
+
+void ObjectList::paste_layers_into_list()
+{
+    const int obj_idx = m_objects_model->GetObjectIdByItem(GetSelection());
+
+    if (obj_idx < 0 || (int)m_objects->size() <= obj_idx || 
+        m_layer_config_ranges_cache.empty() || printer_technology() == ptSLA)
+        return;
+
+    const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
+    wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(object_item);
+    if (layers_item)
+        m_objects_model->Delete(layers_item);
+
+    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+
+    // and create Layer item(s) according to the layer_config_ranges
+    for (const auto range : m_layer_config_ranges_cache)
+        ranges.emplace(range);
+
+    layers_item = add_layer_root_item(object_item);
+
+    changed_object(obj_idx);
+
+    select_item(layers_item);
+#ifndef __WXOSX__
+    selection_changed();
+#endif //no __WXOSX__
+}
+
 void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
 {
     if ((obj_idx < 0) || ((int)m_objects->size() <= obj_idx))
@@ -737,10 +787,18 @@ void ObjectList::key_event(wxKeyEvent& event)
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
         select_item_all_children();
-    else if (wxGetKeyState(wxKeyCode('C')) && wxGetKeyState(WXK_CONTROL))
-        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
-    else if (wxGetKeyState(wxKeyCode('V')) && wxGetKeyState(WXK_CONTROL))
-        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
+    else if (wxGetKeyState(wxKeyCode('C')) && wxGetKeyState(WXK_CONTROL)) {
+        if (m_selection_mode & smLayer)
+            fill_layer_config_ranges_cache();
+        else
+            wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
+    }
+    else if (wxGetKeyState(wxKeyCode('V')) && wxGetKeyState(WXK_CONTROL)) {
+        if (!m_layer_config_ranges_cache.empty())
+            paste_layers_into_list();
+        else
+            wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
+    }
     else
         event.Skip();
 }
@@ -2104,6 +2162,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         Expand(item);
     }
 
+    // Add layers if it has
+    add_layer_root_item(item);
+
 #ifndef __WXOSX__ 
     selection_changed();
 #endif //__WXMSW__
@@ -2568,22 +2629,18 @@ void ObjectList::update_selections_on_canvas()
     auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, int instance_idx, bool as_single_selection)
     {
         const ItemType& type = m_objects_model->GetItemType(item);
-        if ( type == itLayerRoot || m_objects_model->GetParent(item) == wxDataViewItem(0) ) {
-            wxDataViewItem obj_item = type == itLayerRoot ? m_objects_model->GetParent(item) : item;
-            selection.add_object(m_objects_model->GetIdByItem(obj_item), as_single_selection);
-            return;
-        }
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
         if (type == itVolume) {
-            const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
             selection.add_volume(obj_idx, vol_idx, std::max(instance_idx, 0), as_single_selection);
         }
         else if (type == itInstance) {
-            const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
             const int inst_idx = m_objects_model->GetInstanceIdByItem(item);
             selection.add_instance(obj_idx, inst_idx, as_single_selection);
         }
+        else
+            selection.add_object(obj_idx, as_single_selection);
     };
 
     // stores current instance idx before to clear the selection
@@ -2654,11 +2711,13 @@ void ObjectList::select_item_all_children()
     }
     else {
         const auto item = GetSelection();
-        // Some volume(instance) is selected    =>  select all volumes(instances) inside the current object
-        if (m_objects_model->GetItemType(item) & (itVolume | itInstance))
+        const ItemType item_type = m_objects_model->GetItemType(item);
+        // Some volume/layer/instance is selected    =>  select all volumes/layers/instances inside the current object
+        if (item_type & (itVolume | itInstance | itLayer))
             m_objects_model->GetChildren(m_objects_model->GetParent(item), sels);
 
-        m_selection_mode = m_objects_model->GetItemType(item)&itVolume ? smVolume : smInstance;
+        m_selection_mode = item_type&itVolume ? smVolume : 
+                           item_type&itLayer  ? smLayer  : smInstance;
     }
 
     SetSelections(sels);
@@ -2677,8 +2736,9 @@ void ObjectList::update_selection_mode()
     }
 
     const ItemType type = m_objects_model->GetItemType(GetSelection());
-    m_selection_mode =  type&itSettings ? smUndef   :
-                        type&itVolume   ? smVolume  : smInstance;
+    m_selection_mode =  type & itSettings ? smUndef  :
+                        type & itLayer    ? smLayer  :
+                        type & itVolume   ? smVolume : smInstance;
 }
 
 // check last selected item. If is it possible to select it
@@ -2689,33 +2749,37 @@ bool ObjectList::check_last_selection(wxString& msg_str)
         
     const bool is_shift_pressed = wxGetKeyState(WXK_SHIFT);
 
-    /* We can't mix Parts and Objects/Instances.
+    /* We can't mix Volumes, Layers and Objects/Instances.
      * So, show information about it
      */
     const ItemType type = m_objects_model->GetItemType(m_last_selected_item);
 
-    // check a case of a selection of the Parts from different Objects
-    bool impossible_multipart_selection = false;
-    if (type & itVolume && m_selection_mode == smVolume)
-    {
+    // check a case of a selection of the same type items from different Objects
+    auto impossible_multi_selection = [type, this](const ItemType item_type, const SELECTION_MODE selection_mode) {
+        if (!(type & item_type && m_selection_mode & selection_mode))
+            return false;
+
         wxDataViewItemArray sels;
         GetSelections(sels);
-        for (const auto& sel: sels)
-            if (sel != m_last_selected_item && 
-                m_objects_model->GetParent(sel) != m_objects_model->GetParent(m_last_selected_item))
-            {
-                impossible_multipart_selection = true;
-                break;
-            }
-    }
+        for (const auto& sel : sels)
+            if (sel != m_last_selected_item &&
+                m_objects_model->GetTopParent(sel) != m_objects_model->GetTopParent(m_last_selected_item))
+                return true;
 
-    if (impossible_multipart_selection ||
+        return false;
+    };
+
+    if (impossible_multi_selection(itVolume, smVolume) ||
+        impossible_multi_selection(itLayer,  smLayer ) ||
         type & itSettings ||
-        type & itVolume && m_selection_mode == smInstance ||
-        !(type & itVolume) && m_selection_mode == smVolume)
+        type & itVolume   && !(m_selection_mode & smVolume  ) ||
+        type & itLayer    && !(m_selection_mode & smLayer   ) ||
+        type & itInstance && !(m_selection_mode & smInstance)
+        )
     {
         // Inform user why selection isn't complited
-        const wxString item_type = m_selection_mode == smInstance ? _(L("Object or Instance")) : _(L("Part"));
+        const wxString item_type = m_selection_mode & smInstance ? _(L("Object or Instance")) : 
+                                   m_selection_mode & smVolume   ? _(L("Part")) : _(L("Layer"));
 
         msg_str = wxString::Format( _(L("Unsupported selection")) + "\n\n" + 
                                     _(L("You started your selection with %s Item.")) + "\n" +
@@ -2752,7 +2816,7 @@ void ObjectList::fix_multiselection_conflicts()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
-    if (m_selection_mode == smVolume)
+    if (m_selection_mode & (smVolume|smLayer))
     {
         // identify correct parent of the initial selected item
         const wxDataViewItem& parent = m_objects_model->GetParent(m_last_selected_item == sels.front() ? sels.back() : sels.front());
@@ -2761,8 +2825,10 @@ void ObjectList::fix_multiselection_conflicts()
         wxDataViewItemArray children; // selected volumes from current parent
         m_objects_model->GetChildren(parent, children);
 
+        const ItemType item_type = m_selection_mode & smVolume ? itVolume : itLayer;
+
         for (const auto child : children)
-            if (IsSelected(child) && m_objects_model->GetItemType(child)&itVolume)
+            if (IsSelected(child) && m_objects_model->GetItemType(child) & item_type)
                 sels.Add(child);
 
         // If some part is selected, unselect all items except of selected parts of the current object
@@ -2928,7 +2994,7 @@ void ObjectList::update_settings_items()
 }
 
 // Update settings item for item had it
-void ObjectList::update_settings_item_for_item(wxDataViewItem item, wxDataViewItemArray& selections)
+void ObjectList::update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections)
 {
     const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
     select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
@@ -2956,7 +3022,7 @@ void ObjectList::update_object_list_by_printer_technology()
 
     for (auto& object_item : object_items) {
         // Update Settings Item for object
-        update_settings_item_for_item(object_item, sel);
+        update_settings_item_and_selection(object_item, sel);
 
         // Update settings for Volumes
         wxDataViewItemArray all_object_subitems;
@@ -2964,7 +3030,7 @@ void ObjectList::update_object_list_by_printer_technology()
         for (auto item : all_object_subitems)
             if (m_objects_model->GetItemType(item) & itVolume)
                 // update settings for volume
-                update_settings_item_for_item(item, sel);
+                update_settings_item_and_selection(item, sel);
 
         // Update Layers Items
         wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(object_item);
@@ -2999,7 +3065,7 @@ void ObjectList::update_object_list_by_printer_technology()
 
             for (auto item : all_obj_layers)
                 // update settings for layer
-                update_settings_item_for_item(item, sel);
+                update_settings_item_and_selection(item, sel);
         }
     }
 
