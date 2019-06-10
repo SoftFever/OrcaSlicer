@@ -425,7 +425,6 @@ bool stl_validate(stl_file *stl)
 	assert(! stl->neighbors_start.empty());
 	assert((stl->v_indices.empty()) == (stl->v_shared.empty()));
 	assert(stl->stats.number_of_facets > 0);
-	assert(stl->v_shared.size() == stl->stats.shared_vertices);
 	assert(stl->v_shared.empty() || stl->v_indices.size() == stl->stats.number_of_facets);
 
 #ifdef _DEBUG

@@ -33,7 +33,6 @@ void stl_invalidate_shared_vertices(stl_file *stl)
 {
   	stl->v_indices.clear();
   	stl->v_shared.clear();
-  	stl->stats.shared_vertices = 0;
 }
 
 void stl_generate_shared_vertices(stl_file *stl)
@@ -43,7 +42,6 @@ void stl_generate_shared_vertices(stl_file *stl)
 	// Shared vertices (3D coordinates)
 	stl->v_shared.clear();
 	stl->v_shared.reserve(stl->stats.number_of_facets / 2);
-	stl->stats.shared_vertices = 0;
 
 	// A degenerate mesh may contain loops: Traversing a fan will end up in an endless loop
 	// while never reaching the starting face. To avoid these endless loops, traversed faces at each fan traversal
@@ -91,7 +89,7 @@ void stl_generate_shared_vertices(stl_file *stl)
 			    		next_edge    = pivot_vertex;
 			  		}
 				}
-				stl->v_indices[facet_in_fan_idx].vertex[pivot_vertex] = stl->stats.shared_vertices;
+				stl->v_indices[facet_in_fan_idx].vertex[pivot_vertex] = stl->v_shared.size() - 1;
 				fan_traversal_facet_visited[facet_in_fan_idx] = fan_traversal_stamp;
 
 				// next_edge is an index of the starting vertex of the edge, not an index of the opposite vertex to the edge!
@@ -128,8 +126,6 @@ void stl_generate_shared_vertices(stl_file *stl)
 					facet_in_fan_idx = next_facet;
 				}
 			}
-
-			++ stl->stats.shared_vertices;
 		}
 	}
 }
@@ -147,8 +143,8 @@ bool stl_write_off(stl_file *stl, const char *file)
 	}
 
 	fprintf(fp, "OFF\n");
-	fprintf(fp, "%d %d 0\n", stl->stats.shared_vertices, stl->stats.number_of_facets);
-	for (int i = 0; i < stl->stats.shared_vertices; ++ i)
+	fprintf(fp, "%d %d 0\n", stl->v_shared.size(), stl->stats.number_of_facets);
+	for (int i = 0; i < stl->v_shared.size(); ++ i)
 		fprintf(fp, "\t%f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
 	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
 		fprintf(fp, "\t3 %d %d %d\n", stl->v_indices[i].vertex[0], stl->v_indices[i].vertex[1], stl->v_indices[i].vertex[2]);
@@ -184,7 +180,7 @@ bool stl_write_vrml(stl_file *stl, const char *file)
 	fprintf(fp, "\t\t\tpoint [\n");
 
 	int i = 0;
-	for (; i < (stl->stats.shared_vertices - 1); i++)
+	for (; i + 1 < stl->v_shared.size(); ++ i)
 		fprintf(fp, "\t\t\t\t%f %f %f,\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
 	fprintf(fp, "\t\t\t\t%f %f %f]\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
 	fprintf(fp, "\t\t}\n");
@@ -213,7 +209,7 @@ bool stl_write_obj(stl_file *stl, const char *file)
     	return false;
   	}
 
-	for (int i = 0; i < stl->stats.shared_vertices; ++ i)
+	for (size_t i = 0; i < stl->v_shared.size(); ++ i)
     	fprintf(fp, "v %f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
     	fprintf(fp, "f %d %d %d\n", stl->v_indices[i].vertex[0]+1, stl->v_indices[i].vertex[1]+1, stl->v_indices[i].vertex[2]+1);

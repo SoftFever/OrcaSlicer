@@ -109,7 +109,6 @@ struct stl_stats {
 	float         bounding_diameter;
 	float         shortest_edge;
 	float         volume;
-	unsigned      number_of_blocks;
 	int           connected_edges;
 	int           connected_facets_1_edge;
 	int           connected_facets_2_edge;
@@ -126,7 +125,6 @@ struct stl_stats {
 	int           backwards_edges;
 	int           normals_fixed;
 	int           number_of_parts;
-	int           shared_vertices;
 };
 
 struct stl_file {

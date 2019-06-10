@@ -919,7 +919,7 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
                     }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
-                for (int i = 0; i < stl.stats.shared_vertices; ++ i) {
+                for (size_t i = 0; i < stl.v_shared.size(); ++ i) {
                     Vec3d p = trafo * stl.v_shared[i].cast<double>();
                     pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }

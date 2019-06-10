@@ -1888,17 +1888,17 @@ namespace Slic3r {
             if (stl.v_shared.empty())
                 stl_generate_shared_vertices(&stl);
 
-            if (stl.stats.shared_vertices == 0)
+            if (stl.v_shared.empty())
             {
                 add_error("Found invalid mesh");
                 return false;
             }
 
-            vertices_count += stl.stats.shared_vertices;
+            vertices_count += stl.v_shared.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
-            for (int i = 0; i < stl.stats.shared_vertices; ++i)
+            for (size_t i = 0; i < stl.v_shared.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
                 Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();

@@ -104,8 +104,8 @@ TriangleMesh::vertices()
         
         // vertices
         AV* vertices = newAV();
-        av_extend(vertices, THIS->stl.stats.shared_vertices);
-        for (int i = 0; i < THIS->stl.stats.shared_vertices; i++) {
+        av_extend(vertices, THIS->stl.v_shared.size());
+        for (size_t i = 0; i < THIS->stl.v_shared.size(); i++) {
             AV* vertex = newAV();
             av_store(vertices, i, newRV_noinc((SV*)vertex));
             av_extend(vertex, 2);

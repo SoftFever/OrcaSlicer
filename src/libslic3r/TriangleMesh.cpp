@@ -484,8 +484,8 @@ Polygon TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
     Points pp;
-    pp.reserve(this->stl.stats.shared_vertices);
-    for (int i = 0; i < this->stl.stats.shared_vertices; ++ i) {
+    pp.reserve(this->stl.v_shared.size());
+    for (size_t i = 0; i < this->stl.v_shared.size(); ++ i) {
         const stl_vertex &v = this->stl.v_shared[i];
         pp.emplace_back(Point::new_scale(v(0), v(1)));
     }

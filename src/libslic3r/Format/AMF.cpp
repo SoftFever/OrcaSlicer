@@ -929,7 +929,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (stl.v_shared.empty())
                 stl_generate_shared_vertices(&stl);
             const Transform3d& matrix = volume->get_matrix();
-            for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
+            for (size_t i = 0; i < stl.v_shared.size(); ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
                 Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
@@ -939,7 +939,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += stl.stats.shared_vertices;
+            num_vertices += stl.v_shared.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {
