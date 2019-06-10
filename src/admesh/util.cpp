@@ -73,7 +73,6 @@ void stl_translate(stl_file *stl, float x, float y, float z)
       stl->facet_start[i].vertex[j] += shift;
   stl->stats.min = new_min;
   stl->stats.max += shift;
-  stl_invalidate_shared_vertices(stl);
 }
 
 /* Translates the stl by x,y,z, relatively from wherever it is currently */
@@ -85,7 +84,6 @@ void stl_translate_relative(stl_file *stl, float x, float y, float z)
       stl->facet_start[i].vertex[j] += shift;
   stl->stats.min += shift;
   stl->stats.max += shift;
-  stl_invalidate_shared_vertices(stl);
 }
 
 void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
@@ -103,7 +101,6 @@ void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
   for (int i = 0; i < stl->stats.number_of_facets; ++ i)
     for (int j = 0; j < 3; ++ j)
       stl->facet_start[i].vertex[j].array() *= s;
-  stl_invalidate_shared_vertices(stl);
 }
 
 static void calculate_normals(stl_file *stl) 
@@ -413,51 +410,4 @@ All facets connected.  No further nearby check necessary.\n");
       printf("Verifying neighbors...\n");
     stl_verify_neighbors(stl);
   }
-}
-
-// Check validity of the mesh, assert on error.
-bool stl_validate(stl_file *stl)
-{
-	assert(! stl->facet_start.empty());
-	assert(stl->facet_start.size() == stl->stats.number_of_facets);
-	assert(stl->neighbors_start.size() == stl->stats.number_of_facets);
-	assert(stl->facet_start.size() == stl->neighbors_start.size());
-	assert(! stl->neighbors_start.empty());
-	assert((stl->v_indices.empty()) == (stl->v_shared.empty()));
-	assert(stl->stats.number_of_facets > 0);
-	assert(stl->v_shared.empty() || stl->v_indices.size() == stl->stats.number_of_facets);
-
-#ifdef _DEBUG
-    // Verify validity of neighborship data.
-    for (int facet_idx = 0; facet_idx < (int)stl->stats.number_of_facets; ++ facet_idx) {
-        const stl_neighbors &nbr 		= stl->neighbors_start[facet_idx];
-        const int 			*vertices 	= (stl->v_indices.empty()) ? nullptr : stl->v_indices[facet_idx].vertex;
-        for (int nbr_idx = 0; nbr_idx < 3; ++ nbr_idx) {
-            int nbr_face = stl->neighbors_start[facet_idx].neighbor[nbr_idx];
-            assert(nbr_face < (int)stl->stats.number_of_facets);
-            if (nbr_face != -1) {
-            	int nbr_vnot = nbr.which_vertex_not[nbr_idx];
-				assert(nbr_vnot >= 0 && nbr_vnot < 6);
-				// Neighbor of the neighbor is the original face.
-				assert(stl->neighbors_start[nbr_face].neighbor[(nbr_vnot + 1) % 3] == facet_idx);
-				int vnot_back = stl->neighbors_start[nbr_face].which_vertex_not[(nbr_vnot + 1) % 3];
-				assert(vnot_back >= 0 && vnot_back < 6);
-				assert((nbr_vnot < 3) == (vnot_back < 3));
-				assert(vnot_back % 3 == (nbr_idx + 2) % 3);
-				if (vertices != nullptr) {
-					// Has shared vertices.
-	            	if (nbr_vnot < 3) {
-	            		// Faces facet_idx and nbr_face share two vertices accross the common edge. Faces are correctly oriented.
-						assert((stl->v_indices[nbr_face].vertex[(nbr_vnot + 1) % 3] == vertices[(nbr_idx + 1) % 3] && stl->v_indices[nbr_face].vertex[(nbr_vnot + 2) % 3] == vertices[nbr_idx]));
-					} else {
-	            		// Faces facet_idx and nbr_face share two vertices accross the common edge. Faces are incorrectly oriented, one of them is flipped.
-						assert((stl->v_indices[nbr_face].vertex[(nbr_vnot + 2) % 3] == vertices[(nbr_idx + 1) % 3] && stl->v_indices[nbr_face].vertex[(nbr_vnot + 1) % 3] == vertices[nbr_idx]));
-					}
-				}
-            }
-        }
-    }
-#endif /* _DEBUG */
-
-	return true;
 }

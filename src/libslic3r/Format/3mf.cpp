@@ -1881,27 +1881,23 @@ namespace Slic3r {
 
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
-            if (!volume->mesh.repaired)
-                volume->mesh.repair();
+			volume->mesh.require_shared_vertices();
 
-            stl_file& stl = volume->mesh.stl;
-            if (stl.v_shared.empty())
-                stl_generate_shared_vertices(&stl);
-
-            if (stl.v_shared.empty())
+            const indexed_triangle_set &its = volume->mesh.its;
+            if (its.vertices.empty())
             {
                 add_error("Found invalid mesh");
                 return false;
             }
 
-            vertices_count += stl.v_shared.size();
+            vertices_count += its.vertices.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
-            for (size_t i = 0; i < stl.v_shared.size(); ++i)
+            for (size_t i = 0; i < its.vertices.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
@@ -1920,19 +1916,19 @@ namespace Slic3r {
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
-            stl_file& stl = volume->mesh.stl;
+            const indexed_triangle_set &its = volume->mesh.its;
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += stl.stats.number_of_facets;
+            triangles_count += its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
-            for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i)
+            for (size_t i = 0; i < its.indices.size(); ++ i)
             {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
+                    stream << "v" << j + 1 << "=\"" << its.indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
                 }
                 stream << "/>\n";
             }

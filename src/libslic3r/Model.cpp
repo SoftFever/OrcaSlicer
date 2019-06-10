@@ -908,10 +908,11 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
     Points pts;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
-            const stl_file &stl = v->mesh.stl;
             Transform3d trafo = trafo_instance * v->get_matrix();
-            if (stl.v_shared.empty()) {
+			const indexed_triangle_set &its = v->mesh.its;
+			if (its.vertices.empty()) {
                 // Using the STL faces.
+				const stl_file& stl = v->mesh.stl;
 				for (const stl_facet &facet : stl.facet_start)
                     for (size_t j = 0; j < 3; ++ j) {
                         Vec3d p = trafo * facet.vertex[j].cast<double>();
@@ -919,8 +920,8 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance) const
                     }
             } else {
                 // Using the shared vertices should be a bit quicker than using the STL faces.
-                for (size_t i = 0; i < stl.v_shared.size(); ++ i) {
-                    Vec3d p = trafo * stl.v_shared[i].cast<double>();
+                for (size_t i = 0; i < its.vertices.size(); ++ i) {
+                    Vec3d p = trafo * its.vertices[i].cast<double>();
                     pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
                 }
             }

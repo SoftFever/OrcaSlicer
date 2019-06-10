@@ -238,20 +238,20 @@ bool TriangleMesh::needed_repair() const
 
 void TriangleMesh::WriteOBJFile(const char* output_file)
 {
-    stl_generate_shared_vertices(&stl);
-    stl_write_obj(&stl, output_file);
+    stl_generate_shared_vertices(&stl, its);
+    its_write_obj(its, output_file);
 }
 
 void TriangleMesh::scale(float factor)
 {
     stl_scale(&(this->stl), factor);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
 }
 
 void TriangleMesh::scale(const Vec3d &versor)
 {
     stl_scale_versor(&this->stl, versor.cast<float>());
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
 }
 
 void TriangleMesh::translate(float x, float y, float z)
@@ -259,7 +259,7 @@ void TriangleMesh::translate(float x, float y, float z)
     if (x == 0.f && y == 0.f && z == 0.f)
         return;
     stl_translate_relative(&(this->stl), x, y, z);
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
 }
 
 void TriangleMesh::translate(const Vec3f &displacement)
@@ -282,7 +282,7 @@ void TriangleMesh::rotate(float angle, const Axis &axis)
     } else if (axis == Z) {
         stl_rotate_z(&(this->stl), angle);
     }
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
 }
 
 void TriangleMesh::rotate(float angle, const Vec3d& axis)
@@ -305,13 +305,13 @@ void TriangleMesh::mirror(const Axis &axis)
     } else if (axis == Z) {
         stl_mirror_xy(&this->stl);
     }
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
 }
 
 void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
 {
     stl_transform(&stl, t);
-    stl_invalidate_shared_vertices(&stl);
+    this->its.clear();
 	if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.) {
 		// Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
 		this->repair();
@@ -322,7 +322,7 @@ void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
 void TriangleMesh::transform(const Matrix3d& m, bool fix_left_handed)
 {
     stl_transform(&stl, m);
-    stl_invalidate_shared_vertices(&stl);
+    this->its.clear();
     if (fix_left_handed && m.determinant() < 0.) {
         // Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
         this->repair();
@@ -443,7 +443,7 @@ void TriangleMesh::merge(const TriangleMesh &mesh)
 {
     // reset stats and metadata
     int number_of_facets = this->stl.stats.number_of_facets;
-    stl_invalidate_shared_vertices(&this->stl);
+    this->its.clear();
     this->repaired = false;
     
     // update facet count and allocate more memory
@@ -484,9 +484,9 @@ Polygon TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
     Points pp;
-    pp.reserve(this->stl.v_shared.size());
-    for (size_t i = 0; i < this->stl.v_shared.size(); ++ i) {
-        const stl_vertex &v = this->stl.v_shared[i];
+    pp.reserve(this->its.vertices.size());
+    for (size_t i = 0; i < this->its.vertices.size(); ++ i) {
+        const stl_vertex &v = this->its.vertices[i];
         pp.emplace_back(Point::new_scale(v(0), v(1)));
     }
     return Slic3r::Geometry::convex_hull(pp);
@@ -504,14 +504,14 @@ BoundingBoxf3 TriangleMesh::bounding_box() const
 BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) const
 {
     BoundingBoxf3 bbox;
-    if (stl.v_shared.empty()) {
+    if (this->its.vertices.empty()) {
         // Using the STL faces.
 		for (const stl_facet &facet : this->stl.facet_start)
             for (size_t j = 0; j < 3; ++ j)
                 bbox.merge(trafo * facet.vertex[j].cast<double>());
     } else {
         // Using the shared vertices should be a bit quicker than using the STL faces.
-		for (const stl_vertex &v : this->stl.v_shared)
+		for (const stl_vertex &v : this->its.vertices)
             bbox.merge(trafo * v.cast<double>());
     }
     return bbox;
@@ -576,11 +576,11 @@ void TriangleMesh::require_shared_vertices()
     assert(stl_validate(&this->stl));
     if (! this->repaired) 
         this->repair();
-    if (this->stl.v_shared.empty()) {
+    if (this->its.vertices.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
-        stl_generate_shared_vertices(&(this->stl));
+        stl_generate_shared_vertices(&this->stl, this->its);
     }
-    assert(stl_validate(&this->stl));
+    assert(stl_validate(&this->stl, this->its));
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
@@ -592,9 +592,9 @@ void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callbac
 
     throw_on_cancel();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
-	v_scaled_shared.assign(_mesh->stl.v_shared.size(), stl_vertex());
+	v_scaled_shared.assign(_mesh->its.vertices.size(), stl_vertex());
 	for (size_t i = 0; i < v_scaled_shared.size(); ++ i)
-        this->v_scaled_shared[i] = _mesh->stl.v_shared[i] / float(SCALING_FACTOR);
+        this->v_scaled_shared[i] = _mesh->its.vertices[i] / float(SCALING_FACTOR);
 
     // Create a mapping from triangle edge into face.
     struct EdgeToFace {
@@ -614,8 +614,8 @@ void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callbac
     for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
         for (int i = 0; i < 3; ++ i) {
             EdgeToFace &e2f = edges_map[facet_idx*3+i];
-            e2f.vertex_low  = this->mesh->stl.v_indices[facet_idx].vertex[i];
-            e2f.vertex_high = this->mesh->stl.v_indices[facet_idx].vertex[(i + 1) % 3];
+            e2f.vertex_low  = this->mesh->its.indices[facet_idx].vertex[i];
+            e2f.vertex_high = this->mesh->its.indices[facet_idx].vertex[(i + 1) % 3];
             e2f.face        = facet_idx;
             // 1 based indexing, to be always strictly positive.
             e2f.face_edge   = i + 1;
@@ -852,7 +852,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
     // Reorder vertices so that the first one is the one with lowest Z.
     // This is needed to get all intersection lines in a consistent order
     // (external on the right of the line)
-    const int *vertices = this->mesh->stl.v_indices[facet_idx].vertex;
+    const int *vertices = this->mesh->its.indices[facet_idx].vertex;
     int i = (facet.vertex[1].z() == min_z) ? 1 : ((facet.vertex[2].z() == min_z) ? 2 : 0);
 
     // These are used only if the cut plane is tilted:

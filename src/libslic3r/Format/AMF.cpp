@@ -923,23 +923,22 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
-            if (! volume->mesh.repaired) 
+            if (! volume->mesh.repaired)
                 throw std::runtime_error("store_amf() requires repair()");
-            auto &stl = volume->mesh.stl;
-            if (stl.v_shared.empty())
-                stl_generate_shared_vertices(&stl);
+			volume->mesh.require_shared_vertices();
+            const indexed_triangle_set &its = volume->mesh.its;
             const Transform3d& matrix = volume->get_matrix();
-            for (size_t i = 0; i < stl.v_shared.size(); ++i) {
+            for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "             <x>" << v(0) << "</x>\n";
                 stream << "             <y>" << v(1) << "</y>\n";
                 stream << "             <z>" << v(2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += stl.v_shared.size();
+            num_vertices += its.vertices.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {
@@ -956,10 +955,10 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-            for (int i = 0; i < (int)volume->mesh.stl.stats.number_of_facets; ++i) {
+            for (size_t i = 0; i < (int)volume->mesh.its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
-                stream << "          <v" << j + 1 << ">" << volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "          <v" << j + 1 << ">" << volume->mesh.its.indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
                 stream << "        </triangle>\n";
             }
             stream << "      </volume>\n";

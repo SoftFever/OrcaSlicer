@@ -69,12 +69,13 @@ public:
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();
-    bool   has_shared_vertices() const { return ! stl.v_shared.empty(); }
+    bool   has_shared_vertices() const { return ! this->its.vertices.empty(); }
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;
 
     stl_file stl;
+    indexed_triangle_set its;
     bool repaired;
 
 private:

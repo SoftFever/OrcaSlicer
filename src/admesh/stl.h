@@ -130,21 +130,22 @@ struct stl_stats {
 struct stl_file {
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
-	// Indexed face set
-	std::vector<v_indices_struct> 	v_indices;
-	std::vector<stl_vertex>       	v_shared;
 	// Statistics
 	stl_stats     					stats;
+};
+
+struct indexed_triangle_set
+{
+	void clear() { indices.clear(); vertices.clear(); }
+	std::vector<v_indices_struct> 	indices;
+	std::vector<stl_vertex>       	vertices;
 };
 
 extern bool stl_open(stl_file *stl, const char *file);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
 extern bool stl_print_neighbors(stl_file *stl, char *file);
-extern void stl_put_little_int(FILE *fp, int value_in);
-extern void stl_put_little_float(FILE *fp, float value_in);
 extern bool stl_write_ascii(stl_file *stl, const char *file, const char *label);
 extern bool stl_write_binary(stl_file *stl, const char *file, const char *label);
-extern void stl_write_binary_block(stl_file *stl, FILE *fp);
 extern void stl_check_facets_exact(stl_file *stl);
 extern void stl_check_facets_nearby(stl_file *stl, float tolerance);
 extern void stl_remove_unconnected_facets(stl_file *stl);
@@ -219,12 +220,12 @@ inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::Don
 	stl_get_size(stl);
 }
 
-extern void stl_invalidate_shared_vertices(stl_file *stl);
-extern void stl_generate_shared_vertices(stl_file *stl);
-extern bool stl_write_obj(stl_file *stl, const char *file);
-extern bool stl_write_off(stl_file *stl, const char *file);
+extern void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its);
+extern bool its_write_obj(const indexed_triangle_set &its, const char *file);
+extern bool its_write_off(const indexed_triangle_set &its, const char *file);
+extern bool its_write_vrml(const indexed_triangle_set &its, const char *file);
+
 extern bool stl_write_dxf(stl_file *stl, const char *file, char *label);
-extern bool stl_write_vrml(stl_file *stl, const char *file);
 inline void stl_calculate_normal(stl_normal &normal, stl_facet *facet) {
   normal = (facet->vertex[1] - facet->vertex[0]).cross(facet->vertex[2] - facet->vertex[0]);
 }
@@ -251,6 +252,7 @@ extern void stl_reallocate(stl_file *stl);
 extern void stl_add_facet(stl_file *stl, const stl_facet *new_facet);
 
 // Validate the mesh, assert on error.
-extern bool stl_validate(stl_file *stl);
+extern bool stl_validate(const stl_file *stl);
+extern bool stl_validate(const stl_file *stl, const indexed_triangle_set &its);
 
 #endif

@@ -253,8 +253,6 @@ void stl_reset(stl_file *stl)
 {
 	stl->facet_start.clear();
 	stl->neighbors_start.clear();
-	stl->v_indices.clear();
-	stl->v_shared.clear();
   	memset(&stl->stats, 0, sizeof(stl_stats));
   	stl->stats.volume = -1.0;
 }
