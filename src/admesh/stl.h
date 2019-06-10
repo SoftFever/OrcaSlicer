@@ -242,7 +242,7 @@ inline bool stl_vertex_lower(const stl_vertex &a, const stl_vertex &b) {
 }
 extern void stl_calculate_volume(stl_file *stl);
 
-extern void stl_repair(stl_file *stl, int fixall_flag, int exact_flag, int tolerance_flag, float tolerance, int increment_flag, float increment, int nearby_flag, int iterations, int remove_unconnected_flag, int fill_holes_flag, int normal_directions_flag, int normal_values_flag, int reverse_all_flag, int verbose_flag);
+extern void stl_repair(stl_file *stl, bool fixall_flag, bool exact_flag, bool tolerance_flag, float tolerance, bool increment_flag, float increment, bool nearby_flag, int iterations, bool remove_unconnected_flag, bool fill_holes_flag, bool normal_directions_flag, bool normal_values_flag, bool reverse_all_flag, bool verbose_flag);
 
 extern void stl_reset(stl_file *stl);
 extern void stl_allocate(stl_file *stl);

@@ -25,6 +25,7 @@
 
 #include <vector>
 
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 #include "stl.h"
@@ -129,10 +130,7 @@ bool its_write_off(const indexed_triangle_set &its, const char *file)
 	/* Open the file */
 	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
-		char *error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
-		perror(error_msg);
-		free(error_msg);
+		BOOST_LOG_TRIVIAL(error) << "stl_write_ascii: Couldn't open " << file << " for writing";
 		return false;
 	}
 
@@ -151,10 +149,7 @@ bool its_write_vrml(const indexed_triangle_set &its, const char *file)
 	/* Open the file */
   	FILE *fp = boost::nowide::fopen(file, "w");
 	if (fp == nullptr) {
-  		char *error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-		sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
-		perror(error_msg);
-		free(error_msg);
+		BOOST_LOG_TRIVIAL(error) << "stl_write_vrml: Couldn't open " << file << " for writing";
 		return false;
 	}
 
@@ -196,10 +191,7 @@ bool its_write_obj(const indexed_triangle_set &its, const char *file)
 
   	FILE *fp = boost::nowide::fopen(file, "w");
   	if (fp == nullptr) {
-    	char* error_msg = (char*)malloc(81 + strlen(file)); /* Allow 80 chars+file size for message */
-    	sprintf(error_msg, "stl_write_ascii: Couldn't open %s for writing", file);
-    	perror(error_msg);
-    	free(error_msg);
+		BOOST_LOG_TRIVIAL(error) << "stl_write_obj: Couldn't open " << file << " for writing";
     	return false;
   	}
 

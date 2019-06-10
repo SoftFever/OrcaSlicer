@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <boost/log/trivial.hpp>
 #include <boost/detail/endian.hpp>
 
 #include "stl.h"
@@ -124,7 +125,9 @@ struct HashTableEdges {
 	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i]) {
 	        	this->heads[i] = this->heads[i]->next;
 	        	delete temp;
+#ifndef NDEBUG
 	        	++ this->freed;
+#endif /* NDEBUG */
 	      	}
 	    }
 		this->heads.clear();
@@ -139,7 +142,9 @@ struct HashTableEdges {
 		if (link == this->tail) {
 			// This list doesn't have any edges currently in it.  Add this one.
 			HashEdge *new_edge = new HashEdge(edge);
+#ifndef NDEBUG
 			++ this->malloced;
+#endif /* NDEBUG */
 			new_edge->next = this->tail;
 			this->heads[chain_number] = new_edge;
 		} else if (edges_equal(edge, *link)) {
@@ -148,18 +153,24 @@ struct HashTableEdges {
 			// Delete the matched edge from the list.
 			this->heads[chain_number] = link->next;
 			delete link;
+#ifndef NDEBUG
 			++ this->freed;
+#endif /* NDEBUG */
 		} else {
 			// Continue through the rest of the list.
 			for (;;) {
 				if (link->next == this->tail) {
 					// This is the last item in the list. Insert a new edge.
 					HashEdge *new_edge = new HashEdge;
+#ifndef NDEBUG
 					++ this->malloced;
+#endif /* NDEBUG */
 					*new_edge = edge;
 					new_edge->next = this->tail;
 					link->next = new_edge;
+#ifndef NDEBUG
 					++ this->collisions;
+#endif /* NDEBUG */
 					break;
 				}
 				if (edges_equal(edge, *link->next)) {
@@ -169,12 +180,16 @@ struct HashTableEdges {
 					HashEdge *temp = link->next;
 					link->next = link->next->next;
 					delete temp;
+#ifndef NDEBUG
 					++ this->freed;
+#endif /* NDEBUG */
 					break;
 				}
 				// This is not a match.  Go to the next link.
 				link = link->next;
+#ifndef NDEBUG
 				++ this->collisions;
+#endif /* NDEBUG */
 			}
 		}
 	}
@@ -184,9 +199,11 @@ struct HashTableEdges {
 	HashEdge* 					tail;
 	int           					M;
 
+#ifndef NDEBUG
 	size_t 							malloced   	= 0;
 	size_t 							freed 	  	= 0;
 	size_t 							collisions 	= 0;
+#endif /* NDEBUG */
 
 private:
 	static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
@@ -366,7 +383,7 @@ static void match_neighbors_nearby(stl_file *stl, const HashEdge &edge_a, const 
 
 			if (facet_num == first_facet) {
 				// back to the beginning
-				printf("Back to the first facet changing vertices: probably a mobius part.\nTry using a smaller tolerance or don't do a nearby check\n");
+				BOOST_LOG_TRIVIAL(info) << "Back to the first facet changing vertices: probably a mobius part. Try using a smaller tolerance or don't do a nearby check.";
 				return;
 			}
 		}
@@ -506,7 +523,7 @@ void stl_remove_unconnected_facets(stl_file *stl)
 	    	if (neighbors.neighbor[i] != -1) {
 		    	int &other_face_idx = stl->neighbors_start[neighbors.neighbor[i]].neighbor[(neighbors.which_vertex_not[i] + 1) % 3];
 		  		if (other_face_idx != stl->stats.number_of_facets) {
-		    		printf("in remove_facet: neighbor = %d numfacets = %d this is wrong\n", other_face_idx, stl->stats.number_of_facets);
+		  			BOOST_LOG_TRIVIAL(info) << "in remove_facet: neighbor = " << other_face_idx << " numfacets = " << stl->stats.number_of_facets << " this is wrong";
 		    		return;
 		  		}
 		  		other_face_idx = facet_number;
@@ -697,7 +714,7 @@ void stl_fill_holes(stl_file *stl)
 
 	    		if (facet_num == first_facet) {
 	      			// back to the beginning
-	      			printf("Back to the first facet filling holes: probably a mobius part.\nTry using a smaller tolerance or don't do a nearby check\n");
+		  			BOOST_LOG_TRIVIAL(info) << "Back to the first facet filling holes: probably a mobius part. Try using a smaller tolerance or don't do a nearby check.";
 	      			return;
 	    		}
 	  		}

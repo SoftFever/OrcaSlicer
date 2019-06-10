@@ -837,7 +837,7 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
                     return preset_name_dst;
                 // Try to generate another name.
                 char buf[64];
-                sprintf(buf, " (%d)", i);
+                sprintf(buf, " (%d)", (int)i);
                 preset_name_dst = preset_name_src + buf + bundle_name;
             }
         }
