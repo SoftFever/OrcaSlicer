@@ -42,7 +42,14 @@ struct PoolConfig {
     double max_merge_distance_mm = 50;
     double edge_radius_mm = 1;
     double wall_slope = std::atan(1.0);          // Universal constant for Pi/4
-    bool   embed_object = false;
+    struct EmbedObject {
+        double object_gap_mm = 0.5;
+        double stick_stride_mm = 10;
+        double stick_width_mm = 0.3;
+        double stick_penetration_mm = 0.1;
+        bool enabled = false;
+        operator bool() const { return enabled; }
+    } embed_object;
 
     ThrowOnCancel throw_on_cancel = [](){};
 
@@ -61,11 +68,7 @@ void create_base_pool(const Polygons& base_plate,
                       const ExPolygons& holes,
                       const PoolConfig& = PoolConfig());
 
-/// TODO: Currently the base plate of the pool will have half the height of the
-/// whole pool. So the carved out space has also half the height. This is not
-/// a particularly elegant solution, the thickness should be exactly
-/// min_wall_thickness and it should be corrected in the future. This method
-/// will return the correct value for further processing.
+/// Returns the elevation needed for compensating the pad.
 inline double get_pad_elevation(const PoolConfig& cfg) {
     return cfg.min_wall_thickness_mm;
 }

@@ -599,9 +599,20 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     return scfg;
 }
 
-bool use_builtin_pad(const SLAPrintObjectConfig& c) { 
-    return c.support_object_elevation.getFloat() <= EPSILON && 
-           c.pad_enable.getBool();
+sla::PoolConfig::EmbedObject use_builtin_pad(const SLAPrintObjectConfig& c) {
+    sla::PoolConfig::EmbedObject ret;
+    
+    ret.enabled = c.support_object_elevation.getFloat() <= EPSILON && 
+                  c.pad_enable.getBool();
+    
+    if(ret.enabled) {
+        ret.object_gap_mm   = c.support_base_safety_distance.getFloat();
+        ret.stick_width_mm  = c.pad_object_connector_width.getFloat();
+        ret.stick_stride_mm = c.pad_object_connector_stride.getFloat();
+        ret.stick_width_mm  = c.pad_object_connector_penetration.getFloat();
+    }
+    
+    return ret;
 }
 
 sla::PoolConfig make_pool_config(const SLAPrintObjectConfig& c) {
@@ -871,9 +882,10 @@ void SLAPrint::process()
         if(!po.m_supportdata) return;
         
         sla::PoolConfig pcfg = make_pool_config(po.m_config);
-        
-        if(pcfg.embed_object)
-            po.m_supportdata->emesh.ground_level() += pcfg.min_wall_thickness_mm;
+
+        if (pcfg.embed_object)
+            po.m_supportdata->emesh.ground_level_offset(
+                pcfg.min_wall_thickness_mm);
 
         if(!po.m_config.supports_enable.getBool()) {
             
@@ -1635,13 +1647,18 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
             || opt_key == "support_max_pillar_link_distance"
+            || opt_key == "support_base_safety_distance"
             ) {
             steps.emplace_back(slaposSupportTree);
         } else if (
                opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
             || opt_key == "pad_wall_slope"
-            || opt_key == "pad_edge_radius") {
+            || opt_key == "pad_edge_radius"
+            || opt_key == "pad_object_connector_stride"
+            || opt_key == "pad_object_connector_width"
+            || opt_key == "pad_object_connector_penetration"
+            ) {
             steps.emplace_back(slaposBasePool);
         } else {
             // All keys should be covered.

@@ -72,8 +72,6 @@ const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
 // The shortest distance of any support structure from the model surface
 const double SupportConfig::safety_distance_mm = 0.5;
 
-const double SupportConfig::pillar_base_safety_distance_mm = 0.5;
-
 const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
@@ -590,10 +588,10 @@ struct Pad {
             for(auto& poly : modelbase_sticks)
                 sla::offset_with_breakstick_holes(
                     poly,
-                    SupportConfig::pillar_base_safety_distance_mm, // padding
-                    10,     // stride (mm)
-                    0.3,    // stick_width (mm)
-                    0.1);   // penetration (mm)
+                    pcfg.embed_object.object_gap_mm,   // padding
+                    pcfg.embed_object.stick_stride_mm,
+                    pcfg.embed_object.stick_width_mm,
+                    pcfg.embed_object.stick_penetration_mm);
 
             create_base_pool(basep, tmesh, modelbase_sticks, cfg);
         } else {
@@ -1407,7 +1405,7 @@ class SLASupportTree::Algorithm {
 
         double gndlvl       = m_result.ground_level;
         Vec3d  endp         = {jp(X), jp(Y), gndlvl};
-        double sd           = SupportConfig::pillar_base_safety_distance_mm;
+        double sd           = m_cfg.pillar_base_safety_distance_mm;
         int    pillar_id    = -1;
         double min_dist     = sd + m_cfg.base_radius_mm + EPSILON;
         double dist         = 0;
@@ -2160,7 +2158,7 @@ public:
             std::vector<Vec3d> spts(needpillars); // vector of starting points
 
             double gnd      = m_result.ground_level;
-            double min_dist = SupportConfig::pillar_base_safety_distance_mm +
+            double min_dist = m_cfg.pillar_base_safety_distance_mm +
                               m_cfg.base_radius_mm + EPSILON;
             
             while(!found && alpha < 2*PI) {

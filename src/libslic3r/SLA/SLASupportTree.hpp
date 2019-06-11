@@ -81,6 +81,10 @@ struct SupportConfig {
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom.
     double object_elevation_mm = 10;
+    
+    // The shortest distance between a pillar base perimeter from the model
+    // body. This is only useful when elevation is set to zero.
+    const double pillar_base_safety_distance_mm = 0.5;
 
     // /////////////////////////////////////////////////////////////////////////
     // Compile time configuration values (candidates for runtime)
@@ -91,10 +95,6 @@ struct SupportConfig {
 
     // The shortest distance of any support structure from the model surface
     static const double safety_distance_mm;
-    
-    // The shortest distance between a pillar base perimeter from the model
-    // body. This is only useful when elevation is set to zero.
-    static const double pillar_base_safety_distance_mm;
 
     static const double max_solo_pillar_height_mm;
     static const double max_dual_pillar_height_mm;
@@ -186,7 +186,8 @@ public:
     /// Get the sliced 2d layers of the support geometry.
     std::vector<ExPolygons> slice(float layerh, float init_layerh = -1.0) const;
 
-    std::vector<ExPolygons> slice(const std::vector<float>&, float closing_radius) const;
+    std::vector<ExPolygons> slice(const std::vector<float> &,
+                                  float closing_radius) const;
 
     /// Adding the "pad" (base pool) under the supports
     /// modelbase will be used according to the embed_object flag in PoolConfig.
