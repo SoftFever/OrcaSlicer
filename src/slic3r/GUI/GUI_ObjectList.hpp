@@ -202,6 +202,9 @@ public:
     void                key_event(wxKeyEvent& event);
 #endif /* __WXOSX__ */
 
+    void                copy();
+    void                paste();
+
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
     void                update_settings_item();
