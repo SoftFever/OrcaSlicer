@@ -595,7 +595,10 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
     scfg.base_radius_mm = 0.5*c.support_base_diameter.getFloat();
     scfg.base_height_mm = c.support_base_height.getFloat();
-
+    scfg.pillar_base_safety_distance_mm =
+        c.support_base_safety_distance.getFloat() < EPSILON ?
+        scfg.safety_distance_mm : c.support_base_safety_distance.getFloat();
+    
     return scfg;
 }
 
@@ -1699,10 +1702,8 @@ bool SLAPrintObject::invalidate_all_steps()
 }
 
 double SLAPrintObject::get_elevation() const {
-    bool se = m_config.supports_enable.getBool();
-    double ret = se? m_config.support_object_elevation.getFloat() : 0;
+    double ret = m_config.support_object_elevation.getFloat();
 
-    // if the pad is enabled, then half of the pad height is its base plate
     if(m_config.pad_enable.getBool()) {
         // Normally the elevation for the pad itself would be the thickness of
         // its walls but currently it is half of its thickness. Whatever it
@@ -1717,14 +1718,13 @@ double SLAPrintObject::get_elevation() const {
 
 double SLAPrintObject::get_current_elevation() const
 {
-    bool se = m_config.supports_enable.getBool();
     bool has_supports = is_step_done(slaposSupportTree);
     bool has_pad = is_step_done(slaposBasePool);
 
     if(!has_supports && !has_pad)
         return 0;
     else if(has_supports && !has_pad) {
-        return se ? m_config.support_object_elevation.getFloat() : 0;
+        return m_config.support_object_elevation.getFloat();
     }
 
     return get_elevation();

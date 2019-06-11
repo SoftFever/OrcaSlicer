@@ -84,7 +84,7 @@ struct SupportConfig {
     
     // The shortest distance between a pillar base perimeter from the model
     // body. This is only useful when elevation is set to zero.
-    const double pillar_base_safety_distance_mm = 0.5;
+    double pillar_base_safety_distance_mm = 0.5;
 
     // /////////////////////////////////////////////////////////////////////////
     // Compile time configuration values (candidates for runtime)

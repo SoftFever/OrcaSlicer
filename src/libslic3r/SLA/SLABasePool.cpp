@@ -9,7 +9,7 @@
 // For debugging:
 // #include <fstream>
 // #include <libnest2d/tools/benchmark.h>
-#include "SVG.hpp"
+// #include "SVG.hpp"
 
 namespace Slic3r { namespace sla {
 
@@ -390,11 +390,13 @@ void offset_with_breakstick_holes(ExPolygon& poly,
                                   double penetration)
 {
     // We do the basic offsetting first
-    const bool dont_round_edges = false;
-    offset(poly, coord_t(padding / SCALING_FACTOR), dont_round_edges);
+    static const bool dont_round_edges = false;
+    
+    if(padding > 0.0)
+        offset(poly, coord_t(padding / SCALING_FACTOR), dont_round_edges);
 
-    SVG svg("bridgestick_plate.svg");
-    svg.draw(poly);
+    // SVG svg("bridgestick_plate.svg");
+    // svg.draw(poly);
 
     auto transf = [stick_width, penetration, padding, stride](Points &pts) {
         // The connector stick will be a small rectangle with dimensions
@@ -453,12 +455,14 @@ void offset_with_breakstick_holes(ExPolygon& poly,
         out.shrink_to_fit();
         pts.swap(out);
     };
-
-    transf(poly.contour.points);
-    for (auto &h : poly.holes) transf(h.points);
     
-    svg.draw(poly);
-    svg.Close();
+    if(stride > 0.0 && stick_width > 0.0 && padding > 0.0) {
+        transf(poly.contour.points);
+        for (auto &h : poly.holes) transf(h.points);
+    }
+    
+    // svg.draw(poly);
+    // svg.Close();
 }
 
 /// Only a debug function to generate top and bottom plates from a 2D shape.
