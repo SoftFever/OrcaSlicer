@@ -2164,7 +2164,10 @@ public:
                               m_cfg.base_radius_mm + EPSILON;
             
             while(!found && alpha < 2*PI) {
-                for (unsigned n = 0; n < needpillars; n++) {
+                for (unsigned n = 0;
+                     n < needpillars && (!n || canplace[n - 1]);
+                     n++)
+                {
                     double a = alpha + n * PI / 3;
                     Vec3d  s = sp;
                     s(X) += std::cos(a) * r;
@@ -2173,11 +2176,12 @@ public:
                     
                     // Check the path vertically down                    
                     auto hr = bridge_mesh_intersect(s, {0, 0, -1}, pillar().r);
+                    Vec3d gndsp{s(X), s(Y), gnd};
                     
                     // If the path is clear, check for pillar base collisions
-                    canplace[n] = std::isinf(hr.distance())
-                                  && m_mesh.squared_distance({s(X), s(Y), gnd})
-                                         > min_dist;
+                    canplace[n] = std::isinf(hr.distance()) &&
+                                  std::sqrt(m_mesh.squared_distance(gndsp)) >
+                                      min_dist;
                 }
 
                 found = std::all_of(canplace.begin(), canplace.end(),

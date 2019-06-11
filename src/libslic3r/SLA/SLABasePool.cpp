@@ -857,6 +857,7 @@ Contour3D create_base_pool(const Polygons &ground_layer,
         if(wingheight > 0) {
             // Generate the smoothed edge geometry
             wh = 0;
+            ob = middle_base;
             if(s_eradius) pool.merge(round_edges(middle_base,
                                    r,
                                    phi - 90, // from tangent lines
@@ -872,55 +873,58 @@ Contour3D create_base_pool(const Polygons &ground_layer,
         }
 
         if (cfg.embed_object) {
-            ExPolygons pp = diff_ex(to_polygons(bottom_poly),
-                                    to_polygons(obj_self_pad));
+            ExPolygons bttms = diff_ex(to_polygons(bottom_poly),
+                                       to_polygons(obj_self_pad));
+            
+            assert(!bttms.empty());
+            
+            std::sort(bttms.begin(), bttms.end(),
+                      [](const ExPolygon& e1, const ExPolygon& e2) {
+                          return e1.contour.area() > e2.contour.area();
+                      });
+            
+            if(wingheight > 0) inner_base.holes = bttms.front().holes;
+            else top_poly.holes = bttms.front().holes;
 
-            // Generate outer walls
-            auto fp = [](const Point &p, Point::coord_type z) {
-                return unscale(x(p), y(p), z);
-            };
-
-            auto straight_walls = [&pool, s_thickness, fp](const Polygon &cntr)
-            {
+            auto straight_walls =
+                [&pool](const Polygon &cntr, coord_t z_low, coord_t z_high) {
+                    
                 auto lines = cntr.lines();
-                bool cclk   = cntr.is_counter_clockwise();
                 
                 for (auto &l : lines) {
                     auto s = coord_t(pool.points.size());
-                    pool.points.emplace_back(fp(l.a, -s_thickness));
-                    pool.points.emplace_back(fp(l.b, -s_thickness));
-                    pool.points.emplace_back(fp(l.a, 0));
-                    pool.points.emplace_back(fp(l.b, 0));
+                    auto& pts = pool.points;
+                    pts.emplace_back(unscale(l.a.x(), l.a.y(), z_low));
+                    pts.emplace_back(unscale(l.b.x(), l.b.y(), z_low));
+                    pts.emplace_back(unscale(l.a.x(), l.a.y(), z_high));
+                    pts.emplace_back(unscale(l.b.x(), l.b.y(), z_high));
                     
-                    if(cclk) {
-                        pool.indices.emplace_back(s + 3, s + 1, s);
-                        pool.indices.emplace_back(s + 2, s + 3, s);
-                    } else {
-                        pool.indices.emplace_back(s, s + 1, s + 3);
-                        pool.indices.emplace_back(s, s + 3, s + 2);
-                    }
+                    pool.indices.emplace_back(s, s + 1, s + 3);
+                    pool.indices.emplace_back(s, s + 3, s + 2);
                 }
             };
-
-            for (ExPolygon &ep : pp) {
-                pool.merge(triangulate_expolygon_3d(ep));
+            
+            coord_t z_lo = -mm(fullheight), z_hi = -mm(wingheight);
+            for (ExPolygon &ep : bttms) {
                 pool.merge(triangulate_expolygon_3d(ep, -fullheight, true));
-
-                for (auto &h : ep.holes) straight_walls(h);
+                for (auto &h : ep.holes) straight_walls(h, z_lo, z_hi);
             }
             
-            // Skip the outer contour. TODO: make sure the first in the list
-            // IS the outer contour.
-            for (auto it = std::next(pp.begin()); it != pp.end(); ++it)
-                straight_walls(it->contour);
+            // Skip the outer contour, triangulate the holes
+            for (auto it = std::next(bttms.begin()); it != bttms.end(); ++it) {
+                pool.merge(triangulate_expolygon_3d(*it, -wingheight));
+                straight_walls(it->contour, z_lo, z_hi);
+            }
             
         } else {
             // Now we need to triangulate the top and bottom plates as well as
             // the cavity bottom plate which is the same as the bottom plate
             // but it is elevated by the thickness.
-            pool.merge(triangulate_expolygon_3d(top_poly));
+            
             pool.merge(triangulate_expolygon_3d(bottom_poly, -fullheight, true));
         }
+        
+        pool.merge(triangulate_expolygon_3d(top_poly));
 
         if(wingheight > 0)
             pool.merge(triangulate_expolygon_3d(inner_base, -wingheight));
