@@ -216,7 +216,6 @@ template<typename T>
 extern void its_transform(indexed_triangle_set &its, T *trafo3x4)
 {
 	for (stl_vertex &v_dst : its.vertices) {
-		stl_vertex &v_dst = face.vertex[i_vertex];
 		stl_vertex  v_src = v_dst;
 		v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3]);
 		v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7]);
