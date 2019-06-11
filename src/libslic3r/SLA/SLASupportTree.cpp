@@ -13,6 +13,7 @@
 #include <libslic3r/Model.hpp>
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
+#include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 #include <libslic3r/I18N.hpp>
@@ -70,6 +71,8 @@ const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
 // The shortest distance of any support structure from the model surface
 const double SupportConfig::safety_distance_mm = 0.5;
+
+const double SupportConfig::pillar_base_safety_distance_mm = 0.5;
 
 const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
@@ -413,7 +416,7 @@ struct Pillar {
         assert(steps > 0);
 
         height = jp(Z) - endp(Z);
-        if(height > 0) { // Endpoint is below the starting point
+        if(height > EPSILON) { // Endpoint is below the starting point
 
             // We just create a bridge geometry with the pillar parameters and
             // move the data.
@@ -556,28 +559,47 @@ struct Pad {
     PoolConfig cfg;
     double zlevel = 0;
 
-    Pad() {}
+    Pad() = default;
 
     Pad(const TriangleMesh& object_support_mesh,
-        const ExPolygons& baseplate,
+        const ExPolygons& modelbase,
         double ground_level,
         const PoolConfig& pcfg) :
         cfg(pcfg),
-        zlevel(ground_level +
-               (sla::get_pad_fullheight(pcfg) - sla::get_pad_elevation(pcfg)) )
+        zlevel(ground_level + 
+               sla::get_pad_fullheight(pcfg) -
+               sla::get_pad_elevation(pcfg))
     {
-        ExPolygons basep;
+        Polygons basep;
         cfg.throw_on_cancel();
-
+        
         // The 0.1f is the layer height with which the mesh is sampled and then
         // the layers are unified into one vector of polygons.
-        base_plate(object_support_mesh, basep,
+        ExPolygons platetmp;
+        base_plate(object_support_mesh, platetmp,
                    float(cfg.min_wall_height_mm + cfg.min_wall_thickness_mm),
                    0.1f, pcfg.throw_on_cancel);
+        
+        // We don't need the holes for the base plate from the supports
+        for (const ExPolygon &bp : platetmp)  basep.emplace_back(bp.contour);
+        for (const ExPolygon &bp : modelbase) basep.emplace_back(bp.contour);
+        
+        if(pcfg.embed_object) {
+            
+            auto modelbase_sticks = modelbase;
+            for(auto& poly : modelbase_sticks)
+                sla::offset_with_breakstick_holes(
+                    poly,
+                    SupportConfig::pillar_base_safety_distance_mm, // padding
+                    10,     // stride (mm)
+                    0.3,    // stick_width (mm)
+                    0.1);   // penetration (mm)
 
-        for(auto& bp : baseplate) basep.emplace_back(bp);
+            create_base_pool(basep, tmesh, modelbase_sticks, cfg);
+        } else {
+            create_base_pool(basep, tmesh, {}, cfg);
+        }
 
-        create_base_pool(basep, tmesh, cfg);
         tmesh.translate(0, 0, float(zlevel));
     }
 
@@ -763,9 +785,9 @@ public:
     }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
-                          const ExPolygons& baseplate,
+                          const ExPolygons& modelbase,
                           const PoolConfig& cfg) {
-        m_pad = Pad(object_supports, baseplate, ground_level, cfg);
+        m_pad = Pad(object_supports, modelbase, ground_level, cfg);
         return m_pad;
     }
 
@@ -1149,7 +1171,7 @@ class SLASupportTree::Algorithm {
             auto hr = m.query_ray_hit(p + sd*dir, dir);
 
             if(ins_check && hr.is_inside()) {
-                if(hr.distance() > r + sd) hits[i] = HitResult(0.0);
+                if(hr.distance() > 2 * r + sd) hits[i] = HitResult(0.0);
                 else {
                     // re-cast the ray from the outside of the object
                     auto hr2 =
@@ -1264,9 +1286,12 @@ class SLASupportTree::Algorithm {
 
     // For connecting a head to a nearby pillar.
     bool connect_to_nearpillar(const Head& head, long nearpillar_id) {
-
-        auto nearpillar = [this, nearpillar_id]() { return m_result.pillar(nearpillar_id); };
-        if(nearpillar().bridges > m_cfg.max_bridges_on_pillar) return false;
+        
+        auto nearpillar = [this, nearpillar_id]() {
+            return m_result.pillar(nearpillar_id);
+        };
+        
+        if (nearpillar().bridges > m_cfg.max_bridges_on_pillar) return false;
 
         Vec3d headjp = head.junction_point();
         Vec3d nearjp_u = nearpillar().startpoint();
@@ -1369,6 +1394,108 @@ class SLASupportTree::Algorithm {
 
         return nearest_id >= 0;
     }
+    
+    // This is a proxy function for pillar creation which will mind the gap
+    // between the pad and the model bottom in zero elevation mode.
+    void create_ground_pillar(const Vec3d &jp,
+                              const Vec3d &sourcedir,
+                              double       radius,
+                              int          head_id = -1)
+    {
+        // People were killed for this number (seriously)
+        static const double SQR2 = std::sqrt(2.0);
+
+        double gndlvl       = m_result.ground_level;
+        Vec3d  endp         = {jp(X), jp(Y), gndlvl};
+        double sd           = SupportConfig::pillar_base_safety_distance_mm;
+        int    pillar_id    = -1;
+        double min_dist     = sd + m_cfg.base_radius_mm + EPSILON;
+        double dist         = 0;
+        bool   can_add_base = true;
+        bool   normal_mode  = true;
+
+        if (m_cfg.object_elevation_mm < EPSILON
+            && (dist = std::sqrt(m_mesh.squared_distance(endp))) < min_dist) {
+            // Get the distance from the mesh. This can be later optimized
+            // to get the distance in 2D plane because we are dealing with
+            // the ground level only.
+
+            normal_mode     = false;
+            double mv       = min_dist - dist;
+            double azimuth  = std::atan2(sourcedir(Y), sourcedir(X));
+            double sinpolar = std::sin(PI - m_cfg.bridge_slope);
+            double cospolar = std::cos(PI - m_cfg.bridge_slope);
+            double cosazm   = std::cos(azimuth);
+            double sinazm   = std::sin(azimuth);
+
+            auto dir = Vec3d(cosazm * sinpolar, sinazm * sinpolar, cospolar)
+                           .normalized();
+
+            using namespace libnest2d::opt;
+            StopCriteria scr;
+            scr.stop_score = min_dist;
+            SubplexOptimizer solver(scr);
+
+            auto result = solver.optimize_max(
+                [this, dir, jp, gndlvl](double mv) {
+                    Vec3d endp = jp + SQR2 * mv * dir;
+                    endp(Z)    = gndlvl;
+                    return std::sqrt(m_mesh.squared_distance(endp));
+                },
+                initvals(mv), bound(0.0, 2 * min_dist));
+
+            mv           = std::get<0>(result.optimum);
+            endp         = jp + std::sqrt(2) * mv * dir;
+            Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
+            can_add_base = result.score > min_dist;
+
+            // We have to check if the bridge is feasible.
+            if (bridge_mesh_intersect(jp, dir, radius) < (endp - jp).norm()) {
+                normal_mode = true;
+                endp        = {jp(X), jp(Y), gndlvl};
+            }
+            else {
+                // If the new endpoint is below ground, do not make a pillar
+                if (endp(Z) < gndlvl)
+                    endp = endp - SQR2 * (gndlvl - endp(Z)) * dir; // back off
+                else {
+                    Pillar &plr = m_result.add_pillar(endp, pgnd, radius);
+
+                    if (can_add_base)
+                        plr.add_base(m_cfg.base_height_mm,
+                                     m_cfg.base_radius_mm);
+
+                    pillar_id = plr.id;
+                }
+
+                m_result.add_bridge(jp, endp, radius);
+                m_result.add_junction(endp, radius);
+
+                // Add a degenerated pillar and the bridge.
+                // The degenerate pillar will have zero length and it will
+                // prevent from queries of head_pillar() to have non-existing
+                // pillar when the head should have one.
+                if (head_id >= 0)
+                    m_result.add_pillar(unsigned(head_id), jp, radius);
+            }
+        }
+        
+        if (normal_mode) {
+            Pillar &plr = head_id >= 0
+                              ? m_result.add_pillar(unsigned(head_id),
+                                                    endp,
+                                                    radius)
+                              : m_result.add_pillar(jp, endp, radius);
+
+            if (can_add_base)
+                plr.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
+
+            pillar_id = plr.id;
+        } 
+            
+        if(pillar_id >= 0) // Save the pillar endpoint in the spatial index
+            m_pillar_index.insert(endp, pillar_id);
+    }
 
 public:
 
@@ -1447,9 +1574,9 @@ public:
             // (Quaternion::FromTwoVectors) and apply the rotation to the
             // arrow head.
 
-            double z = n(2);
-            double r = 1.0;     // for normalized vector
-            double polar = std::acos(z / r);
+            double z       = n(2);
+            double r       = 1.0; // for normalized vector
+            double polar   = std::acos(z / r);
             double azimuth = std::atan2(n(1), n(0));
 
             // skip if the tilt is not sane
@@ -1473,14 +1600,14 @@ public:
                                 std::cos(polar)).normalized();
 
                 // check available distance
-                double t = pinhead_mesh_intersect(
-                                  hp, // touching point
-                                  nn, // normal
-                                  pin_r,
-                                  m_cfg.head_back_radius_mm,
-                                  w);
+                EigenMesh3D::hit_result t
+                    = pinhead_mesh_intersect(hp, // touching point
+                                             nn, // normal
+                                             pin_r,
+                                             m_cfg.head_back_radius_mm,
+                                             w);
 
-                if(t <= w) {
+                if(t.distance() <= w) {
 
                     // Let's try to optimize this angle, there might be a
                     // viable normal that doesn't collide with the model
@@ -1523,12 +1650,17 @@ public:
                 // save the verified and corrected normal
                 m_support_nmls.row(fidx) = nn;
 
-                if(t > w) {
-                    // mark the point for needing a head.
-                    m_iheads.emplace_back(fidx);
-                } else if( polar >= 3*PI/4 ) {
-                    // Headless supports do not tilt like the headed ones so
-                    // the normal should point almost to the ground.
+                if (t.distance() > w) {
+                    // Check distance from ground, we might have zero elevation.
+                    if (hp(Z) + w * nn(Z) < m_result.ground_level) {
+                        m_iheadless.emplace_back(fidx);
+                    } else {
+                        // mark the point for needing a head.
+                        m_iheads.emplace_back(fidx);
+                    }
+                } else if (polar >= 3 * PI / 4) {
+                    // Headless supports do not tilt like the headed ones
+                    // so the normal should point almost to the ground.
                     m_iheadless.emplace_back(fidx);
                 }
             }
@@ -1594,16 +1726,22 @@ public:
         // from each other in the XY plane to not cross their pillar bases
         // These clusters of support points will join in one pillar,
         // possibly in their centroid support point.
+        
         auto pointfn = [this](unsigned i) {
             return m_result.head(i).junction_point();
         };
-        auto predicate = [this](const SpatElement& e1, const SpatElement& e2) {
+
+        auto predicate = [this](const SpatElement &e1,
+                                const SpatElement &e2) {
             double d2d = distance(to_2d(e1.first), to_2d(e2.first));
             double d3d = distance(e1.first, e2.first);
-            return d2d < 2 * m_cfg.base_radius_mm &&
-                   d3d < m_cfg.max_bridge_length_mm;
+            return d2d < 2 * m_cfg.base_radius_mm
+                   && d3d < m_cfg.max_bridge_length_mm;
         };
-        m_pillar_clusters = cluster(ground_head_indices, pointfn, predicate,
+
+        m_pillar_clusters = cluster(ground_head_indices,
+                                    pointfn,
+                                    predicate,
                                     m_cfg.max_bridges_on_pillar);
     }
 
@@ -1615,7 +1753,7 @@ public:
     void routing_to_ground()
     {
         const double pradius = m_cfg.head_back_radius_mm;
-        const double gndlvl = m_result.ground_level;
+        // const double gndlvl = m_result.ground_level;
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(m_pillar_clusters.size());
@@ -1648,13 +1786,8 @@ public:
 
             Head& h = m_result.head(hid);
             h.transform();
-            Vec3d p = h.junction_point(); p(Z) = gndlvl;
-            auto& plr = m_result.add_pillar(hid, p, h.r_back_mm)
-                                .add_base(m_cfg.base_height_mm,
-                                          m_cfg.base_radius_mm);
 
-            // Save the pillar endpoint and the pillar id in the spatial index
-            m_pillar_index.insert(plr.endpoint(), unsigned(plr.id));
+            create_ground_pillar(h.junction_point(), h.dir, h.r_back_mm, h.id);
         }
 
         // now we will go through the clusters ones again and connect the
@@ -1681,15 +1814,12 @@ public:
                    !search_pillar_and_connect(sidehead))
                 {
                     Vec3d pstart = sidehead.junction_point();
-                    Vec3d pend = Vec3d{pstart(X), pstart(Y), gndlvl};
+                    //Vec3d pend = Vec3d{pstart(X), pstart(Y), gndlvl};
                     // Could not find a pillar, create one
-                    auto& pillar = m_result.add_pillar(unsigned(sidehead.id),
-                                                       pend, pradius)
-                                           .add_base(m_cfg.base_height_mm,
-                                                     m_cfg.base_radius_mm);
-
-                    // connects to ground, eligible for bridging
-                    m_pillar_index.insert(pend, unsigned(pillar.id));
+                    create_ground_pillar(pstart,
+                                         sidehead.dir,
+                                         pradius,
+                                         sidehead.id);
                 }
             }
         }
@@ -1718,12 +1848,7 @@ public:
             m_result.add_bridge(hjp, endp, head.r_back_mm);
             m_result.add_junction(endp, head.r_back_mm);
 
-            auto groundp = endp;
-            groundp(Z) = m_result.ground_level;
-            auto& newpillar = m_result.add_pillar(endp, groundp, head.r_back_mm)
-                                      .add_base(m_cfg.base_height_mm,
-                                                m_cfg.base_radius_mm);
-            m_pillar_index.insert(groundp, unsigned(newpillar.id));
+            this->create_ground_pillar(endp, dir, head.r_back_mm);
         };
 
         std::vector<unsigned> modelpillars;
@@ -1883,6 +2008,28 @@ public:
             m_pillar_index.insert(pillar.endpoint(), pillid);
         }
     }
+    
+    // Helper function for interconnect_pillars where pairs of already connected
+    // pillars should be checked for not to be processed again. This can be done
+    // in O(log) or even constant time with a set or an unordered set of hash
+    // values uniquely representing a pair of integers. The order of numbers
+    // within the pair should not matter, it has the same unique hash.
+    template<class I> static I pairhash(I a, I b)
+    {
+        using std::ceil; using std::log2; using std::max; using std::min;
+        
+        static_assert(std::is_integral<I>::value,
+                      "This function works only for integral types.");
+
+        I g = min(a, b), l = max(a, b);
+        
+        auto bits_g = g ? int(ceil(log2(g))) : 0;
+
+        // Assume the hash will fit into the output variable
+        assert((l ? (ceil(log2(l))) : 0) + bits_g < int(sizeof(I) * CHAR_BIT));
+        
+        return (l << bits_g) + g;
+    }
 
     void interconnect_pillars() {
         // Now comes the algorithm that connects pillars with each other.
@@ -1900,17 +2047,23 @@ public:
         double min_height_ratio = 0.5;
 
         std::set<unsigned long> pairs;
-
+        
+        // A function to connect one pillar with its neighbors. THe number of
+        // neighbors is given in the configuration. This function if called
+        // for every pillar in the pillar index. A pair of pillar will not
+        // be connected multiple times this is ensured by the 'pairs' set which
+        // remembers the processed pillar pairs
         auto cascadefn =
                 [this, d, &pairs, min_height_ratio, H1] (const SpatElement& el)
         {
-            Vec3d qp = el.first;
+            Vec3d qp = el.first;    // endpoint of the pillar
 
-            const Pillar& pillar = m_result.pillar(el.second);
-
+            const Pillar& pillar = m_result.pillar(el.second); // actual pillar
+            
+            // Get the max number of neighbors a pillar should connect to
             unsigned neighbors = m_cfg.pillar_cascade_neighbors;
 
-            // connections are enough for one pillar
+            // connections are already enough for the pillar
             if(pillar.links >= neighbors) return;
 
             // Query all remaining points within reach
@@ -1924,21 +2077,21 @@ public:
                 return distance(e1.first, qp) < distance(e2.first, qp);
             });
 
-            for(auto& re : qres) {
+            for(auto& re : qres) { // process the queried neighbors
 
-                if(re.second == el.second) continue;
+                if(re.second == el.second) continue; // Skip self
 
                 auto a = el.second, b = re.second;
 
-                // I hope that the area of a square is never equal to its
-                // circumference
-                auto hashval = 2 * (a + b) + a * b;
-
+                // Get unique hash for the given pair (order doesn't matter)
+                auto hashval = pairhash(a, b);
+                
+                // Search for the pair amongst the remembered pairs
                 if(pairs.find(hashval) != pairs.end()) continue;
 
                 const Pillar& neighborpillar = m_result.pillars()[re.second];
 
-                // this neighbor is occupied
+                // this neighbor is occupied, skip
                 if(neighborpillar.links >= neighbors) continue;
 
                 if(interconnect(pillar, neighborpillar)) {
@@ -1960,47 +2113,75 @@ public:
                 if(pillar.links >= neighbors) break;
             }
         };
-
+        
+        // Run the cascade for the pillars in the index
         m_pillar_index.foreach(cascadefn);
-
+       
+        // We would be done here if we could allow some pillars to not be
+        // connected with any neighbors. But this might leave the support tree
+        // unprintable.
+        //
+        // The current solution is to insert additional pillars next to these
+        // lonely pillars. One or even two additional pillar might get inserted
+        // depending on the length of the lonely pillar.
+        
         size_t pillarcount = m_result.pillars().size();
-
+        
+        // Again, go through all pillars, this time in the whole support tree
+        // not just the index.
         for(size_t pid = 0; pid < pillarcount; pid++) {
             auto pillar = [this, pid]() { return m_result.pillar(pid); };
-
+           
+            // Decide how many additional pillars will be needed:
+            
             unsigned needpillars = 0;
-            if(pillar().bridges > m_cfg.max_bridges_on_pillar) needpillars = 3;
-            else if(pillar().links < 2 && pillar().height > H2) {
+            if (pillar().bridges > m_cfg.max_bridges_on_pillar)
+                needpillars = 3;
+            else if (pillar().links < 2 && pillar().height > H2) {
                 // Not enough neighbors to support this pillar
                 needpillars = 2 - pillar().links;
-            }
-            else if(pillar().links < 1 && pillar().height > H1) {
+            } else if (pillar().links < 1 && pillar().height > H1) {
                 // No neighbors could be found and the pillar is too long.
                 needpillars = 1;
             }
 
-            // Search for new pillar locations
-            bool found = false;
-            double alpha = 0; // goes to 2Pi
-            double r = 2 * m_cfg.base_radius_mm;
-            Vec3d pillarsp = pillar().startpoint();
+            // Search for new pillar locations:
+
+            bool   found    = false;
+            double alpha    = 0; // goes to 2Pi
+            double r        = 2 * m_cfg.base_radius_mm;
+            Vec3d  pillarsp = pillar().startpoint();
+
+            // temp value for starting point detection
             Vec3d sp(pillarsp(X), pillarsp(Y), pillarsp(Z) - r);
-            std::vector<bool> tv(needpillars, false);
-            std::vector<Vec3d> spts(needpillars);
 
+            // A vector of bool for placement feasbility
+            std::vector<bool>  canplace(needpillars, false);
+            std::vector<Vec3d> spts(needpillars); // vector of starting points
+
+            double gnd      = m_result.ground_level;
+            double min_dist = SupportConfig::pillar_base_safety_distance_mm +
+                              m_cfg.base_radius_mm + EPSILON;
+            
             while(!found && alpha < 2*PI) {
-
-                for(unsigned n = 0; n < needpillars; n++) {
-                    double a = alpha + n * PI/3;
-                    Vec3d s = sp;
+                for (unsigned n = 0; n < needpillars; n++) {
+                    double a = alpha + n * PI / 3;
+                    Vec3d  s = sp;
                     s(X) += std::cos(a) * r;
                     s(Y) += std::sin(a) * r;
                     spts[n] = s;
+                    
+                    // Check the path vertically down                    
                     auto hr = bridge_mesh_intersect(s, {0, 0, -1}, pillar().r);
-                    tv[n] = std::isinf(hr.distance());
+                    
+                    // If the path is clear, check for pillar base collisions
+                    canplace[n] = std::isinf(hr.distance())
+                                  && m_mesh.squared_distance({s(X), s(Y), gnd})
+                                         > min_dist;
                 }
 
-                found = std::all_of(tv.begin(), tv.end(), [](bool v){return v;});
+                found = std::all_of(canplace.begin(), canplace.end(),
+                                    [](bool v) { return v; });
 
                 // 20 angles will be tried...
                 alpha += 0.1 * PI;
@@ -2010,7 +2191,7 @@ public:
             newpills.reserve(needpillars);
 
             if(found) for(unsigned n = 0; n < needpillars; n++) {
-                Vec3d s = spts[n]; double gnd = m_result.ground_level;
+                Vec3d s = spts[n]; 
                 Pillar p(s, Vec3d(s(X), s(Y), gnd), pillar().r);
                 p.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
@@ -2075,9 +2256,12 @@ public:
             // This is only for checking
             double idist = bridge_mesh_intersect(sph, dir, R, true);
             double dist = ray_mesh_intersect(sj, dir);
+            if (std::isinf(dist))
+                dist = sph(Z) - m_result.ground_level - HWIDTH_MM;
 
-            if(std::isinf(idist) || std::isnan(idist) || idist < 2*R ||
-               std::isinf(dist)  || std::isnan(dist)   || dist < 2*R) {
+            if(std::isnan(idist) || idist < 2*R ||
+               std::isnan(dist)  || dist  < 2*R)
+            {
                 BOOST_LOG_TRIVIAL(warning) << "Can not find route for headless"
                                            << " support stick at: "
                                            << sj.transpose();
@@ -2214,7 +2398,9 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
     return pc == ABORT;
 }
 
-SLASupportTree::SLASupportTree(): m_impl(new Impl()) {}
+SLASupportTree::SLASupportTree(double gnd_lvl): m_impl(new Impl()) {
+    m_impl->ground_level = gnd_lvl;
+}
 
 const TriangleMesh &SLASupportTree::merged_mesh() const
 {
@@ -2226,7 +2412,7 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
     outmesh.merge(get_pad());
 }
 
-SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
+std::vector<ExPolygons> SLASupportTree::slice(float layerh, float init_layerh) const
 {
     if(init_layerh < 0) init_layerh = layerh;
     auto& stree = get();
@@ -2247,34 +2433,29 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     fullmesh.merge(get_pad());
     fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
     TriangleMeshSlicer slicer(&fullmesh);
-    SlicedSupports ret;
+    std::vector<ExPolygons> ret;
     slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
 
     return ret;
 }
 
-SlicedSupports SLASupportTree::slice(const std::vector<float> &heights,
+std::vector<ExPolygons> SLASupportTree::slice(const std::vector<float> &heights,
                                      float cr) const
 {
     TriangleMesh fullmesh = m_impl->merged_mesh();
     fullmesh.merge(get_pad());
     fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
     TriangleMeshSlicer slicer(&fullmesh);
-    SlicedSupports ret;
+    std::vector<ExPolygons> ret;
     slicer.slice(heights, cr, &ret, get().ctl().cancelfn);
 
     return ret;
 }
 
-const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
+const TriangleMesh &SLASupportTree::add_pad(const ExPolygons& modelbase,
                                             const PoolConfig& pcfg) const
 {
-//    PoolConfig pcfg;
-//    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
-//    pcfg.min_wall_height_mm    = min_wall_height_mm;
-//    pcfg.max_merge_distance_mm = max_merge_distance_mm;
-//    pcfg.edge_radius_mm        = edge_radius_mm;
-    return m_impl->create_pad(merged_mesh(), baseplate, pcfg).tmesh;
+    return m_impl->create_pad(merged_mesh(), modelbase, pcfg).tmesh;
 }
 
 const TriangleMesh &SLASupportTree::get_pad() const

@@ -15,7 +15,8 @@ const std::string USAGE_STR = {
 
 namespace Slic3r { namespace sla {
 
-Contour3D create_base_pool(const ExPolygons &ground_layer, 
+Contour3D create_base_pool(const Polygons &ground_layer, 
+                           const Polygons &holes = {},
                            const PoolConfig& cfg = PoolConfig());
 
 Contour3D walls(const Polygon& floor_plate, const Polygon& ceiling,
@@ -42,37 +43,28 @@ int main(const int argc, const char *argv[]) {
     model.ReadSTLFile(argv[1]);
     model.align_to_origin();
 
-    ExPolygons ground_slice;
-    sla::Contour3D mesh;
-//    TriangleMesh basepool;
-
+    Polygons ground_slice;
     sla::base_plate(model, ground_slice, 0.1f);
-
     if(ground_slice.empty()) return EXIT_FAILURE;
 
-//    ExPolygon bottom_plate = ground_slice.front();
-//    ExPolygon top_plate = bottom_plate;
-//    sla::offset(top_plate, coord_t(3.0/SCALING_FACTOR));
-//    sla::offset(bottom_plate, coord_t(1.0/SCALING_FACTOR));
+    Polygon gndfirst; gndfirst = ground_slice.front();
+    sla::offset_with_breakstick_holes(gndfirst, 0.5, 10, 0.3);
+
+    sla::Contour3D mesh;
+
 
     bench.start();
 
-//    TriangleMesh pool;
     sla::PoolConfig cfg;
     cfg.min_wall_height_mm = 0;
-    cfg.edge_radius_mm = 0.2;
-    mesh = sla::create_base_pool(ground_slice, cfg);
-    
-//    mesh.merge(triangulate_expolygon_3d(top_plate, 3.0, false));
-//    mesh.merge(triangulate_expolygon_3d(bottom_plate, 0.0, true));
-//    mesh = sla::walls(bottom_plate.contour, top_plate.contour, 0, 3, 2.0, [](){});
-    
+    cfg.edge_radius_mm = 0;
+    mesh = sla::create_base_pool(ground_slice, {}, cfg);
+
     bench.stop();
 
     cout << "Base pool creation time: " << std::setprecision(10)
          << bench.getElapsedSec() << " seconds." << endl;
-    
-//    auto point = []()
+
     for(auto& trind : mesh.indices) {
         Vec3d p0 = mesh.points[size_t(trind[0])];
         Vec3d p1 = mesh.points[size_t(trind[1])];

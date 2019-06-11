@@ -24,10 +24,11 @@ class TriangleMesh;
 class Model;
 class ModelInstance;
 class ModelObject;
+class Polygon;
 class ExPolygon;
 
-using SliceLayer = std::vector<ExPolygon>;
-using SlicedSupports = std::vector<SliceLayer>;
+using Polygons = std::vector<Polygon>;
+using ExPolygons = std::vector<ExPolygon>;
 
 namespace sla {
 
@@ -90,6 +91,10 @@ struct SupportConfig {
 
     // The shortest distance of any support structure from the model surface
     static const double safety_distance_mm;
+    
+    // The shortest distance between a pillar base perimeter from the model
+    // body. This is only useful when elevation is set to zero.
+    static const double pillar_base_safety_distance_mm;
 
     static const double max_solo_pillar_height_mm;
     static const double max_dual_pillar_height_mm;
@@ -160,7 +165,7 @@ class SLASupportTree {
 
 public:
 
-    SLASupportTree();
+    SLASupportTree(double ground_level = 0.0);
 
     SLASupportTree(const std::vector<SupportPoint>& pts,
                    const EigenMesh3D& em,
@@ -179,12 +184,16 @@ public:
     void merged_mesh_with_pad(TriangleMesh&) const;
 
     /// Get the sliced 2d layers of the support geometry.
-    SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
+    std::vector<ExPolygons> slice(float layerh, float init_layerh = -1.0) const;
 
-    SlicedSupports slice(const std::vector<float>&, float closing_radius) const;
+    std::vector<ExPolygons> slice(const std::vector<float>&, float closing_radius) const;
 
     /// Adding the "pad" (base pool) under the supports
-    const TriangleMesh& add_pad(const SliceLayer& baseplate,
+    /// modelbase will be used according to the embed_object flag in PoolConfig.
+    /// If set, the plate will interpreted as the model's intrinsic pad. 
+    /// Otherwise, the modelbase will be unified with the base plate calculated
+    /// from the supports.
+    const TriangleMesh& add_pad(const ExPolygons& modelbase,
                                 const PoolConfig& pcfg) const;
 
     /// Get the pad geometry
