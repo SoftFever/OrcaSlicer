@@ -25,7 +25,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
-#include <boost/detail/endian.hpp>
+#include <boost/predef/other/endian.h>
 
 #include "stl.h"
 
@@ -114,7 +114,7 @@ bool stl_print_neighbors(stl_file *stl, char *file)
   	return true;
 }
 
-#ifndef BOOST_LITTLE_ENDIAN
+#if BOOST_ENDIAN_BIG_BYTE
 // Swap a buffer of 32bit data from little endian to big endian and vice versa.
 void stl_internal_reverse_quads(char *buf, size_t cnt)
 {
@@ -141,11 +141,11 @@ bool stl_write_binary(stl_file *stl, const char *file, const char *label)
 	#define SEEK_SET 0
 #endif
 	fseek(fp, LABEL_SIZE, SEEK_SET);
-#ifdef BOOST_LITTLE_ENDIAN
+#if BOOST_ENDIAN_LITTLE_BYTE
 	fwrite(&stl->stats.number_of_facets, 4, 1, fp);
 	for (const stl_facet &facet : stl->facet_start)
 	  	fwrite(&facet, SIZEOF_STL_FACET, 1, fp);
-#else /* BOOST_LITTLE_ENDIAN */
+#else /* BOOST_ENDIAN_LITTLE_BYTE */
 	char buffer[50];
 	// Convert the number of facets to little endian.
 	memcpy(buffer, &stl->stats.number_of_facets, 4);
@@ -157,7 +157,7 @@ bool stl_write_binary(stl_file *stl, const char *file, const char *label)
 		stl_internal_reverse_quads(buffer, 48);
 		fwrite(buffer, SIZEOF_STL_FACET, 1, fp);
 	}
-#endif /* BOOST_LITTLE_ENDIAN */
+#endif /* BOOST_ENDIAN_LITTLE_BYTE */
 	fclose(fp);
 	return true;
 }

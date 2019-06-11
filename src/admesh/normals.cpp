@@ -25,6 +25,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <boost/pool/object_pool.hpp>
+
 #include "stl.h"
 
 static void reverse_facet(stl_file *stl, int facet_num)
@@ -120,8 +122,9 @@ void stl_fix_normal_directions(stl_file *stl)
   	};
 
   	// Initialize linked list.
-   	stl_normal *head = new stl_normal;
-  	stl_normal *tail = new stl_normal;
+  	boost::object_pool<stl_normal> pool;
+   	stl_normal *head = pool.construct();
+  	stl_normal *tail = pool.construct();
 	head->next = tail;
 	tail->next = tail;
 
@@ -168,7 +171,7 @@ void stl_fix_normal_directions(stl_file *stl)
         		// If we haven't fixed this facet yet, add it to the list:
         		if (norm_sw[stl->neighbors_start[facet_num].neighbor[j]] != 1) {
 	          		// Add node to beginning of list.
-	          		stl_normal *newn = new stl_normal;
+	          		stl_normal *newn = pool.construct();
 	          		newn->facet_num = stl->neighbors_start[facet_num].neighbor[j];
 	          		newn->next = head->next;
 	          		head->next = newn;
@@ -189,7 +192,7 @@ void stl_fix_normal_directions(stl_file *stl)
       		}
       		stl_normal *temp = head->next;	// Delete this facet from the list.
       		head->next = head->next->next;
-      		delete temp;
+      		pool.destroy(temp);
     	} else { // If we ran out of facets to fix: All of the facets in this part have been fixed.
       		++ stl->stats.number_of_parts;
       		if (checked >= stl->stats.number_of_facets)
@@ -211,8 +214,8 @@ void stl_fix_normal_directions(stl_file *stl)
     	}
   	}
 
-	delete head;
-	delete tail;
+	pool.destroy(head);
+	pool.destroy(tail);
 }
 
 void stl_fix_normal_values(stl_file *stl)
