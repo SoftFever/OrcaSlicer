@@ -33,7 +33,7 @@ public:
     bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
     bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
     bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
-    void repair();
+    void repair(bool update_shared_vertices = true);
     float volume();
     void check_topology();
     bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == (int)this->stl.stats.number_of_facets; }

@@ -128,6 +128,8 @@ struct indexed_triangle_set
 	void clear() { indices.clear(); vertices.clear(); }
 	std::vector<stl_triangle_vertex_indices> 	indices;
 	std::vector<stl_vertex>       				vertices;
+	//FIXME add normals once we get rid of the stl_file from TriangleMesh completely.
+	//std::vector<stl_normal> 					normals
 };
 
 extern bool stl_open(stl_file *stl, const char *file);
@@ -186,7 +188,7 @@ template<typename T>
 inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
 {
 	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
-	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
+	for (size_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
 			f.vertex[j] = (t * f.vertex[j].template cast<T>()).template cast<float>().eval();
@@ -199,7 +201,7 @@ inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Aff
 template<typename T>
 inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m)
 {
-	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
+	for (size_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
 			f.vertex[j] = (m * f.vertex[j].template cast<T>()).template cast<float>().eval();
@@ -207,6 +209,34 @@ inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::Don
 	}
 
 	stl_get_size(stl);
+}
+
+
+template<typename T>
+extern void its_transform(indexed_triangle_set &its, T *trafo3x4)
+{
+	for (stl_vertex &v_dst : its.vertices) {
+		stl_vertex &v_dst = face.vertex[i_vertex];
+		stl_vertex  v_src = v_dst;
+		v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3]);
+		v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7]);
+		v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11]);
+	}
+}
+
+template<typename T>
+inline void its_transform(indexed_triangle_set &its, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
+{
+	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
+	for (stl_vertex &v : its.vertices)
+		v = (t * v.template cast<T>()).template cast<float>().eval();
+}
+
+template<typename T>
+inline void its_transform(indexed_triangle_set &its, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m)
+{
+	for (stl_vertex &v : its.vertices)
+		v = (m * v.template cast<T>()).template cast<float>().eval();
 }
 
 extern void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its);
@@ -224,10 +254,6 @@ inline void stl_normalize_vector(stl_normal &normal) {
     normal = stl_normal::Zero();
   else
     normal *= float(1.0 / length);
-}
-inline bool stl_vertex_lower(const stl_vertex &a, const stl_vertex &b) {
-  return (a(0) != b(0)) ? (a(0) < b(0)) :
-        ((a(1) != b(1)) ? (a(1) < b(1)) : (a(2) < b(2)));
 }
 extern void stl_calculate_volume(stl_file *stl);
 

@@ -108,7 +108,7 @@ void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
 static void calculate_normals(stl_file *stl) 
 {
 	stl_normal normal;
-	for (uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
+	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		stl_calculate_normal(normal, &stl->facet_start[i]);
 		stl_normalize_vector(normal);
 		stl->facet_start[i].normal = normal;

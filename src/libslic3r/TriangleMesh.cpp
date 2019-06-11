@@ -82,11 +82,14 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 
 // #define SLIC3R_TRACE_REPAIR
 
-void TriangleMesh::repair()
+void TriangleMesh::repair(bool update_shared_vertices)
 {
-    if (this->repaired)
+    if (this->repaired) {
+    	if (update_shared_vertices)
+    		this->require_shared_vertices();
     	return;
-    
+    }
+
     // admesh fails when repairing empty meshes
     if (this->stl.stats.number_of_facets == 0)
     	return;
@@ -97,6 +100,7 @@ void TriangleMesh::repair()
 #ifdef SLIC3R_TRACE_REPAIR
 	BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_exact";
 #endif /* SLIC3R_TRACE_REPAIR */
+	assert(stl_validate(&this->stl));
 	stl_check_facets_exact(&stl);
     assert(stl_validate(&this->stl));
     stl.stats.facets_w_1_bad_edge = (stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge);
@@ -179,6 +183,12 @@ void TriangleMesh::repair()
     this->repaired = true;
 
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
+
+    // This call should be quite cheap, a lot of code requires the indexed_triangle_set data structure,
+    // and it is risky to generate such a structure once the meshes are shared. Do it now.
+    this->its.clear();
+    if (update_shared_vertices)
+    	this->require_shared_vertices();
 }
 
 float TriangleMesh::volume()
@@ -238,8 +248,7 @@ bool TriangleMesh::needed_repair() const
 
 void TriangleMesh::WriteOBJFile(const char* output_file)
 {
-    stl_generate_shared_vertices(&stl, its);
-    its_write_obj(its, output_file);
+    its_write_obj(this->its, output_file);
 }
 
 void TriangleMesh::scale(float factor)
@@ -294,6 +303,7 @@ void TriangleMesh::rotate(float angle, const Vec3d& axis)
     Transform3d m = Transform3d::Identity();
     m.rotate(Eigen::AngleAxisd(angle, axis_norm));
     stl_transform(&stl, m);
+    its_transform(its, m);
 }
 
 void TriangleMesh::mirror(const Axis &axis)
@@ -311,22 +321,26 @@ void TriangleMesh::mirror(const Axis &axis)
 void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
 {
     stl_transform(&stl, t);
-    this->its.clear();
+    its_transform(its, t);
 	if (fix_left_handed && t.matrix().block(0, 0, 3, 3).determinant() < 0.) {
 		// Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
-		this->repair();
+		this->repair(false);
 		stl_reverse_all_facets(&stl);
+		this->its.clear();
+		this->require_shared_vertices();
 	}
 }
 
 void TriangleMesh::transform(const Matrix3d& m, bool fix_left_handed)
 {
     stl_transform(&stl, m);
-    this->its.clear();
+    its_transform(its, m);
     if (fix_left_handed && m.determinant() < 0.) {
         // Left handed transformation is being applied. It is a good idea to flip the faces and their normals.
-        this->repair();
+        this->repair(false);
         stl_reverse_all_facets(&stl);
+		this->its.clear();
+		this->require_shared_vertices();
     }
 }
 
@@ -482,7 +496,6 @@ ExPolygons TriangleMesh::horizontal_projection() const
 // 2D convex hull of a 3D mesh projected into the Z=0 plane.
 Polygon TriangleMesh::convex_hull()
 {
-    this->require_shared_vertices();
     Points pp;
     pp.reserve(this->its.vertices.size());
     for (size_t i = 0; i < this->its.vertices.size(); ++ i) {
@@ -519,26 +532,32 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {
-    // Helper struct for qhull:
-    struct PointForQHull{
-        PointForQHull(float x_p, float y_p, float z_p) : x((realT)x_p), y((realT)y_p), z((realT)z_p) {}
-        realT x, y, z;
-    };
-    std::vector<PointForQHull> src_vertices;
-
-    // We will now fill the vector with input points for computation:
-	for (const stl_facet &facet : stl.facet_start)
-        for (int i = 0; i < 3; ++ i) {
-            const stl_vertex& v = facet.vertex[i];
-            src_vertices.emplace_back(v(0), v(1), v(2));
-        }
-
     // The qhull call:
     orgQhull::Qhull qhull;
     qhull.disableOutputStream(); // we want qhull to be quiet
-    try
+	std::vector<realT> src_vertices;
+	try
     {
-        qhull.runQhull("", 3, (int)src_vertices.size(), (const realT*)(src_vertices.data()), "Qt");
+    	if (this->has_shared_vertices()) {
+#if REALfloat
+	    	qhull.runQhull("", 3, (int)this->its.vertices.size() / 3, (const realT*)(this->its.vertices.front().data()), "Qt");
+#else
+	    	src_vertices.reserve(this->its.vertices() * 3);
+	    	// We will now fill the vector with input points for computation:
+			for (const stl_vertex &v : ths->its.vertices.size())
+				for (int i = 0; i < 3; ++ i)
+		        	src_vertices.emplace_back(v(i));
+	        qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");
+#endif
+	    } else {
+	    	src_vertices.reserve(this->stl.facet_start.size() * 9);
+	    	// We will now fill the vector with input points for computation:
+			for (const stl_facet &f : this->stl.facet_start)
+				for (int i = 0; i < 3; ++ i)
+					for (int j = 0; j < 3; ++ j)
+		        		src_vertices.emplace_back(f.vertex[i](j));
+	        qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");
+	    }
     }
     catch (...)
     {
@@ -566,7 +585,6 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 
     TriangleMesh output_mesh(dst_vertices, facets);
     output_mesh.repair();
-    output_mesh.require_shared_vertices();
     return output_mesh;
 }
 

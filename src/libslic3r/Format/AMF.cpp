@@ -522,7 +522,8 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VOLUME:
     {
 		assert(m_object && m_volume);
-        stl_file &stl = m_volume->mesh.stl;
+		TriangleMesh  mesh;
+        stl_file	 &stl = mesh.stl;
         stl.stats.type = inmemory;
         stl.stats.number_of_facets = int(m_volume_facets.size() / 3);
         stl.stats.original_num_facets = stl.stats.number_of_facets;
@@ -533,8 +534,9 @@ void AMFParserContext::endElement(const char * /* name */)
                 memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
         }
         stl_get_size(&stl);
-        m_volume->mesh.repair();
-        m_volume->center_geometry();
+        mesh.repair();
+		m_volume->set_mesh(std::move(mesh));
+        m_volume->center_geometry_after_creation();
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -923,10 +925,11 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
-            if (! volume->mesh.repaired)
+            if (! volume->mesh().repaired)
                 throw std::runtime_error("store_amf() requires repair()");
-			volume->mesh.require_shared_vertices();
-            const indexed_triangle_set &its = volume->mesh.its;
+			if (! volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_amf() requires shared vertices");
+            const indexed_triangle_set &its = volume->mesh().its;
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
@@ -955,10 +958,11 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-            for (size_t i = 0; i < (int)volume->mesh.its.indices.size(); ++i) {
+			const indexed_triangle_set &its = volume->mesh().its;
+            for (size_t i = 0; i < (int)its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
-                stream << "          <v" << j + 1 << ">" << volume->mesh.its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "          <v" << j + 1 << ">" << its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";
                 stream << "        </triangle>\n";
             }
             stream << "      </volume>\n";

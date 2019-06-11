@@ -59,7 +59,7 @@ struct HashEdge {
 
 	  	// Ensure identical vertex ordering of equal edges.
 	  	// This method is numerically robust.
-	  	if (stl_vertex_lower(*a, *b)) {
+	  	if (vertex_lower(*a, *b)) {
 	  	} else {
 	  		// This edge is loaded backwards.
 		    std::swap(a, b);
@@ -109,6 +109,12 @@ struct HashEdge {
 			this->which_edge += 3; /* this edge is loaded backwards */
 		}
 		return true;
+	}
+
+private:
+	inline bool vertex_lower(const stl_vertex &a, const stl_vertex &b) {
+	  	return (a(0) != b(0)) ? (a(0) < b(0)) :
+	           ((a(1) != b(1)) ? (a(1) < b(1)) : (a(2) < b(2)));
 	}
 };
 
@@ -440,7 +446,9 @@ void stl_check_facets_exact(stl_file *stl)
 		stl_facet &facet = stl->facet_start[i];
 	  	if (facet.vertex[0] == facet.vertex[1] || facet.vertex[1] == facet.vertex[2] || facet.vertex[0] == facet.vertex[2]) {
 		  	// Remove the degenerate facet.
-		  	facet = stl->facet_start[--stl->stats.number_of_facets];
+		  	facet = stl->facet_start[-- stl->stats.number_of_facets];
+			stl->facet_start.pop_back();
+			stl->neighbors_start.pop_back();
 		  	stl->stats.facets_removed += 1;
 		  	stl->stats.degenerate_facets += 1;
 	  	} else
@@ -526,23 +534,25 @@ void stl_remove_unconnected_facets(stl_file *stl)
 			assert(false);
 		}
 
-	  	if (facet_number == -- stl->stats.number_of_facets)
-	  		// Removing the last face is easy, just forget the last face.
-	  		return;
-
-	  	// Copy the face and neighborship from the last face to facet_number.
-	  	stl->facet_start[facet_number] = stl->facet_start[stl->stats.number_of_facets];
-	  	neighbors = stl->neighbors_start[stl->stats.number_of_facets];
-	  	// Update neighborship of faces, which used to point to the last face, now moved to facet_number.
-	  	for (int i = 0; i < 3; ++ i)
-	    	if (neighbors.neighbor[i] != -1) {
-		    	int &other_face_idx = stl->neighbors_start[neighbors.neighbor[i]].neighbor[(neighbors.which_vertex_not[i] + 1) % 3];
-		  		if (other_face_idx != stl->stats.number_of_facets) {
-		  			BOOST_LOG_TRIVIAL(info) << "in remove_facet: neighbor = " << other_face_idx << " numfacets = " << stl->stats.number_of_facets << " this is wrong";
-		    		return;
+	  	if (facet_number < -- stl->stats.number_of_facets) {
+	  		// Removing a face, which was not the last one.
+		  	// Copy the face and neighborship from the last face to facet_number.
+		  	stl->facet_start[facet_number] = stl->facet_start[stl->stats.number_of_facets];
+		  	neighbors = stl->neighbors_start[stl->stats.number_of_facets];
+		  	// Update neighborship of faces, which used to point to the last face, now moved to facet_number.
+		  	for (int i = 0; i < 3; ++ i)
+		    	if (neighbors.neighbor[i] != -1) {
+			    	int &other_face_idx = stl->neighbors_start[neighbors.neighbor[i]].neighbor[(neighbors.which_vertex_not[i] + 1) % 3];
+			  		if (other_face_idx != stl->stats.number_of_facets) {
+			  			BOOST_LOG_TRIVIAL(info) << "in remove_facet: neighbor = " << other_face_idx << " numfacets = " << stl->stats.number_of_facets << " this is wrong";
+			    		return;
+			  		}
+			  		other_face_idx = facet_number;
 		  		}
-		  		other_face_idx = facet_number;
-	  		}
+		}
+
+	  	stl->facet_start.pop_back();
+	  	stl->neighbors_start.pop_back();
 	};
 
 	auto remove_degenerate = [stl, remove_facet](int facet)

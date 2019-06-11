@@ -147,7 +147,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
     	rewind(fp);
 
   	char normal_buf[3][32];
-  	for (uint32_t i = first_facet; i < stl->stats.number_of_facets; ++i) {
+  	for (uint32_t i = first_facet; i < stl->stats.number_of_facets; ++ i) {
   	  	stl_facet facet;
 
     	if (stl->stats.type == binary) {

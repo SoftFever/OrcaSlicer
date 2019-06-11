@@ -241,8 +241,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "cut" || opt_key == "cut_x" || opt_key == "cut_y") {
             std::vector<Model> new_models;
             for (auto &model : m_models) {
-                model.repair();
-                model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0                
+                model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0
 				size_t num_objects = model.objects.size();
 				for (size_t i = 0; i < num_objects; ++ i) {
 
@@ -301,8 +300,9 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-            for (auto &model : m_models)
-                model.repair();
+			// Models are repaired by default.
+            //for (auto &model : m_models)
+            //    model.repair();
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
             return 1;

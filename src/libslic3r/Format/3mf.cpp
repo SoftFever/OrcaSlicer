@@ -1489,10 +1489,10 @@ namespace Slic3r {
             }
 
             // splits volume out of imported geometry
-            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-            ModelVolume* volume = object.add_volume(TriangleMesh());
-            stl_file& stl = volume->mesh.stl;
-            stl.stats.type = inmemory;
+			TriangleMesh triangle_mesh;
+            stl_file    &stl             = triangle_mesh.stl;
+			unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
+			stl.stats.type = inmemory;
             stl.stats.number_of_facets = (uint32_t)triangles_count;
             stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
             stl_allocate(&stl);
@@ -1509,9 +1509,11 @@ namespace Slic3r {
                 }
             }
 
-            stl_get_size(&stl);
-            volume->mesh.repair();
-            volume->center_geometry();
+			stl_get_size(&stl);
+			triangle_mesh.repair();
+
+			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+            volume->center_geometry_after_creation();
             volume->calculate_convex_hull();
 
             // apply volume's name and config data
@@ -1879,11 +1881,14 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
+			if (!volume->mesh().repaired)
+				throw std::runtime_error("store_3mf() requires repair()");
+			if (!volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_3mf() requires shared vertices");
+
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
-			volume->mesh.require_shared_vertices();
-
-            const indexed_triangle_set &its = volume->mesh.its;
+            const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty())
             {
                 add_error("Found invalid mesh");
@@ -1916,7 +1921,7 @@ namespace Slic3r {
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
-            const indexed_triangle_set &its = volume->mesh.its;
+            const indexed_triangle_set &its = volume->mesh().its;
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;

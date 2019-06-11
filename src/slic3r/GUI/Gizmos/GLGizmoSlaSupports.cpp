@@ -388,8 +388,7 @@ void GLGizmoSlaSupports::update_mesh()
     wxBusyCursor wait;
     // this way we can use that mesh directly.
     // This mesh does not account for the possible Z up SLA offset.
-    m_mesh = &m_model_object->volumes.front()->mesh;
-    const_cast<TriangleMesh*>(m_mesh)->require_shared_vertices(); // TriangleMeshSlicer needs this
+    m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
     m_current_mesh_model_id = m_model_object->id();
     m_editing_mode = false;

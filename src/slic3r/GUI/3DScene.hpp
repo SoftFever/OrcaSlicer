@@ -10,6 +10,7 @@
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
 
 #include <functional>
+#include <memory>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -243,7 +244,6 @@ public:
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
-    ~GLVolume();
 
 private:
     Geometry::Transformation m_instance_transformation;
@@ -255,10 +255,8 @@ private:
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
     mutable bool          m_transformed_bounding_box_dirty;
-    // Pointer to convex hull of the original mesh, if any.
-    // This object may or may not own the convex hull instance based on m_convex_hull_owned
-    const TriangleMesh*   m_convex_hull;
-    bool                  m_convex_hull_owned;
+    // Convex hull of the volume, if any.
+    std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
     // Whether or not is needed to recalculate the transformed convex hull bounding box.
@@ -395,7 +393,9 @@ public:
     double get_sla_shift_z() const { return m_sla_shift_z; }
     void set_sla_shift_z(double z) { m_sla_shift_z = z; }
 
-    void set_convex_hull(const TriangleMesh *convex_hull, bool owned);
+    void set_convex_hull(std::shared_ptr<const TriangleMesh> &convex_hull) { m_convex_hull = convex_hull; }
+    void set_convex_hull(const TriangleMesh &convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(convex_hull); }
+    void set_convex_hull(TriangleMesh &&convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(std::move(convex_hull)); }
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }
