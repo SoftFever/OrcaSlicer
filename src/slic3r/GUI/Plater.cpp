@@ -259,29 +259,45 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            int shifl_Left = 0;
+            float scale = m_em_unit*0.1f;
+#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
+            shifl_Left  = int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
+#endif
+            int icon_right_pos = int(scale * (24+4) + 0.5);
+            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
+//             if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            if ( extruder_idx < 0 || mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
                 // Let the combo box process the mouse click.
                 event.Skip();
                 return;
             }
             
             // Swallow the mouse click and open the color picker.
+
+            // get current color
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
+            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+            wxColour clr(colors->values[extruder_idx]);
+            if (!clr.IsOk())
+                clr = wxTransparentColour;
+
             auto data = new wxColourData();
             data->SetChooseFull(1);
-            auto dialog = new wxColourDialog(/* wxGetApp().mainframe */this, data);
-            dialog->CenterOnParent();
-            if (dialog->ShowModal() == wxID_OK) {
-                DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
+            data->SetColour(clr);
 
-                //FIXME this is too expensive to call full_config to get just the extruder color!
-                auto colors = static_cast<ConfigOptionStrings*>(wxGetApp().preset_bundle->full_config().option("extruder_colour")->clone());
+            auto dialog = new wxColourDialog(this, data);
+            dialog->CenterOnParent();
+            if (dialog->ShowModal() == wxID_OK)
+            {
                 colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
-                cfg.set_key_value("extruder_colour", colors);
+                DynamicPrintConfig cfg_new = *cfg; 
+                cfg_new.set_key_value("extruder_colour", colors);
 
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
+                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(cfg);
+                wxGetApp().plater()->on_config_change(cfg_new);
             }
             dialog->Destroy();
         });
@@ -305,7 +321,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         /* In a case of a multi-material printing, for editing another Filament Preset 
          * it's needed to select this preset for the "Filament settings" Tab 
          */
-        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_cnt() > 1) 
+        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1) 
         {
             const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
 
@@ -832,7 +848,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            const std::string &name = preset_bundle.filaments.get_selected_preset().name;
+            const std::string &name = preset_bundle.filaments.get_selected_preset_name();
             preset_bundle.set_filament_preset(0, name);
         }
 
@@ -1251,9 +1267,7 @@ struct Plater::priv
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
     static const std::regex pattern_any_amf;
-#if ENABLE_VOLUMES_CENTERING_FIXES
     static const std::regex pattern_prusa;
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     priv(Plater *q, MainFrame *main_frame);
 
@@ -1288,7 +1302,8 @@ struct Plater::priv
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
-	bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
+    void scale_selection_to_fit_print_volume();
+    bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
@@ -1387,9 +1402,7 @@ const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
-#if ENABLE_VOLUMES_CENTERING_FIXES
 const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
@@ -1644,11 +1657,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
-#if ENABLE_VOLUMES_CENTERING_FIXES
         const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
         Slic3r::Model model;
+        bool is_project_file = type_prusa;
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
@@ -1672,6 +1684,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         wxGetApp().load_current_presets();
+                        is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
                 }
@@ -1691,9 +1704,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             // The model should now be initialized
 
-#if ENABLE_VOLUMES_CENTERING_FIXES
-            if (!type_3mf && !type_any_amf && !type_prusa) {
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
+            if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
                     wxMessageDialog dlg(q, _(L(
                         "This file contains several objects positioned at multiple heights. "
@@ -1704,7 +1715,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         model.convert_multipart_object(nozzle_dmrs->values.size());
                     }
                 }
-#if ENABLE_VOLUMES_CENTERING_FIXES
             }
             else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf))
             {
@@ -1761,22 +1771,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         return obj_idxs;
                 }
             }
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-            if (type_3mf || type_any_amf) {
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 for (ModelObject* model_object : model.objects) {
-#if ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->center_around_origin(false);
-#else
-                    model_object->center_around_origin();
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->ensure_on_bed();
                 }
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-            }
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA)
@@ -2364,6 +2363,11 @@ void Plater::priv::split_object()
 void Plater::priv::split_volume()
 {
     wxGetApp().obj_list()->split();
+}
+
+void Plater::priv::scale_selection_to_fit_print_volume()
+{
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 }
 
 void Plater::priv::schedule_background_process()
@@ -3028,6 +3032,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
+    sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
+
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
         return false;
@@ -3465,6 +3471,11 @@ void Plater::set_number_of_copies(/*size_t num*/)
 bool Plater::is_selection_empty() const
 {
     return p->get_selection().is_empty() || p->get_selection().is_wipe_tower();
+}
+
+void Plater::scale_selection_to_fit_print_volume()
+{
+    p->scale_selection_to_fit_print_volume();
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)

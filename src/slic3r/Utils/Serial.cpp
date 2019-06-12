@@ -384,7 +384,13 @@ void Serial::reset_line_num()
 
 bool Serial::read_line(unsigned timeout, std::string &line, error_code &ec)
 {
-	auto &io_service = get_io_service();
+	auto& io_service =
+#if BOOST_VERSION >= 107000
+		//FIXME this is most certainly wrong!
+		(boost::asio::io_context&)this->get_executor().context();
+ #else
+		this->get_io_service();
+#endif
 	asio::deadline_timer timer(io_service);
 	char c = 0;
 	bool fail = false;

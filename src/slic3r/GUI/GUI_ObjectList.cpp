@@ -1,3 +1,4 @@
+#include "libslic3r/libslic3r.h"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_App.hpp"
@@ -354,8 +355,8 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
     const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
-    return type & itObject|itInstance ? (*m_objects)[obj_idx]->config :
-        (*m_objects)[obj_idx]->volumes[vol_idx]->config;
+    return type & itVolume ?(*m_objects)[obj_idx]->volumes[vol_idx]->config :
+                            (*m_objects)[obj_idx]->config;
 }
 
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
@@ -1283,6 +1284,12 @@ void ObjectList::append_menu_item_delete(wxMenu* menu)
         [this](wxCommandEvent&) { remove(); }, "", menu);
 }
 
+void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
+{
+    append_menu_item(menu, wxID_ANY, _(L("Scale to print volume")), _(L("Scale the selected object to fit the print volume")),
+        [this](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+}
+
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
 #ifdef __WXOSX__  
@@ -1291,6 +1298,7 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
+    append_menu_item_scale_selection_to_fit_print_volume(menu);
 
     // Split object to parts
     m_menu_item_split = append_menu_item_split(menu);
@@ -1457,9 +1465,6 @@ void ObjectList::load_part( ModelObject* model_object,
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-                volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 volume->translate(delta);
                 auto new_volume = model_object->add_volume(*volume);
                 new_volume->set_type(type);
@@ -1582,14 +1587,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
     new_volume->set_type(type);
 
-#if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    new_volume->set_offset(Vec3d(0.0, 0.0, model_object.origin_translation(2) - mesh.stl.stats.min(2)));
-#endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-    new_volume->center_geometry();
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
-
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
     if (instance_idx != -1)
     {
         // First (any) GLVolume of the selected instance. They all share the same instance matrix.
@@ -1605,7 +1602,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
             Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
         new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
     }
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
@@ -2828,8 +2824,10 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(0)->GetRenderer());
 
     if (renderer->WasCanceled())
-        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
-                         _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+		wxTheApp->CallAfter([this]{
+			show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+				             _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+		});
 }
 
 void ObjectList::show_multi_selection_menu()

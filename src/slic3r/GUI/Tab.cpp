@@ -1854,13 +1854,17 @@ void TabPrinter::build_fff()
 
 			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
-				auto dlg = new BedShapeDialog(this);
-				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-				if (dlg->ShowModal() == wxID_OK) {
-					load_key_value("bed_shape", dlg->GetValue());
-					update_changed_ui();
-				}
-			}));
+                BedShapeDialog dlg(this);
+                dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+                if (dlg.ShowModal() == wxID_OK) {
+                    std::vector<Vec2d> shape = dlg.GetValue();
+                    if (!shape.empty())
+                    {
+                        load_key_value("bed_shape", shape);
+                        update_changed_ui();
+                    }
+                }
+            }));
 
 			return sizer;
 		};
@@ -2056,11 +2060,15 @@ void TabPrinter::build_sla()
 
         btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
-            auto dlg = new BedShapeDialog(this);
-            dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-            if (dlg->ShowModal() == wxID_OK) {
-                load_key_value("bed_shape", dlg->GetValue());
-                update_changed_ui();
+            BedShapeDialog dlg(this);
+            dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<Vec2d> shape = dlg.GetValue();
+                if (!shape.empty())
+                {
+                    load_key_value("bed_shape", shape);
+                    update_changed_ui();
+                }
             }
         }));
 
@@ -2234,6 +2242,18 @@ void TabPrinter::build_unregular_pages()
      *  */
     Freeze();
 
+#ifdef __WXMSW__
+    /* Workaround for correct layout of controls inside the created page:
+     * In some _strange_ way we should we should imitate page resizing.
+     */
+    auto layout_page = [this](PageShp page)
+    {
+        const wxSize& sz = page->GetSize();
+        page->SetSize(sz.x + 1, sz.y + 1);
+        page->SetSize(sz);
+    };
+#endif //__WXMSW__
+
 	// Add/delete Kinematics page according to is_marlin_flavor
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -2247,6 +2267,9 @@ void TabPrinter::build_unregular_pages()
 
 	if (existed_page < n_before_extruders && is_marlin_flavor) {
 		auto page = build_kinematics_page();
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 		m_pages.insert(m_pages.begin() + n_before_extruders, page);
 	}
 
@@ -2318,6 +2341,10 @@ void TabPrinter::build_unregular_pages()
 
 			optgroup = page->new_optgroup(_(L("Preview")));
 			optgroup->append_single_option_line("extruder_colour", extruder_idx);
+
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 	}
  
 	// # remove extra pages

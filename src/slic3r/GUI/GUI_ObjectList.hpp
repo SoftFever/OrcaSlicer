@@ -207,6 +207,7 @@ public:
     void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                append_menu_item_change_extruder(wxMenu* menu) const;
     void                append_menu_item_delete(wxMenu* menu);
+    void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);

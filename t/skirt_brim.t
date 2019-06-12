@@ -106,7 +106,7 @@ use Slic3r::Test;
     
     # we enable support material after skirt has been generated
     $config->set('support_material', 1);
-    $print->apply_config($config);
+    $print->apply_config_perl_tests_only($config);
     
     my $skirt_length = 0;
     my @extrusion_points = ();
