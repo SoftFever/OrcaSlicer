@@ -39,72 +39,83 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_bmp_add       = ScalableBitmap(parent, "add_copies");
 }
 
+void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_edited_range)
+{
+    if (is_last_edited_range && m_selection_type == editor->type()) {
+        editor->SetFocus();
+        editor->SetInsertionPointEnd();
+    }    
+}
+
 wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range) 
 {
     const bool is_last_edited_range = range == m_last_edited_range;
 
+    auto set_focus_fn = [range, this](const EditorType type)
+    {
+        m_last_edited_range = range;
+        m_selection_type = type;
+    };
+
     // Add control for the "Min Z"
 
-    auto temp = new LayerRangeEditor(m_parent, double_to_string(range.first),
-        [range, this](coordf_t min_z)
+    auto editor = new LayerRangeEditor(m_parent, double_to_string(range.first), etMinZ,
+                                       set_focus_fn, [range, this](coordf_t min_z, bool enter_pressed)
     {
-        if (fabs(min_z - range.first) < EPSILON) {
-            m_selection_type = sitUndef;
-            return false;       // LayersList would not be updated/recreated
+        if (fabs(min_z - range.first) < EPSILON || min_z > range.second) {
+            m_selection_type = etUndef;
+            return false;
         }
 
         // data for next focusing
-        m_last_edited_range = { min_z, range.second };
-        m_selection_type = sitMinZ;
+        const t_layer_height_range& new_range = { min_z, range.second };
+        if (enter_pressed) {
+            m_last_edited_range = new_range;
+            m_selection_type = etMinZ;
+        }
 
-        wxGetApp().obj_list()->edit_layer_range(range, m_last_edited_range);
-        return true;            // LayersList will be updated/recreated
+        return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
 
-    if (is_last_edited_range && m_selection_type == sitMinZ) {
-        temp->SetFocus();
-        temp->SetInsertionPointEnd();
-    }
-
-    m_grid_sizer->Add(temp);
+    select_editor(editor, is_last_edited_range);
+    m_grid_sizer->Add(editor);
 
     // Add control for the "Max Z"
 
-    temp = new LayerRangeEditor(m_parent, double_to_string(range.second),
-                                [range, this](coordf_t max_z)
+    editor = new LayerRangeEditor(m_parent, double_to_string(range.second), etMaxZ,
+                                  set_focus_fn, [range, this](coordf_t max_z, bool enter_pressed)
     {
-        if (fabs(max_z - range.second) < EPSILON) {
-            m_selection_type = sitUndef;
+        if (fabs(max_z - range.second) < EPSILON || range.first > max_z) {
+            m_selection_type = etUndef;
             return false;       // LayersList would not be updated/recreated
         }
 
         // data for next focusing
-        m_last_edited_range = { range.first, max_z };
-        m_selection_type = sitMaxZ;
+        const t_layer_height_range& new_range = { range.first, max_z };
+        if (enter_pressed) {
+            m_last_edited_range = new_range;
+            m_selection_type = etMaxZ;
+        }
 
-        wxGetApp().obj_list()->edit_layer_range(range, m_last_edited_range);
-        return true;            // LayersList will not be updated/recreated
+        return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
 
-    if (is_last_edited_range && m_selection_type == sitMaxZ) {
-        temp->SetFocus();
-        temp->SetInsertionPointEnd();
-    }
-
-    m_grid_sizer->Add(temp);
+    select_editor(editor, is_last_edited_range);
+    m_grid_sizer->Add(editor);
 
     // Add control for the "Layer height"
 
-    temp = new LayerRangeEditor(m_parent,
+    editor = new LayerRangeEditor(m_parent,
                                 double_to_string(m_object->layer_config_ranges[range].option("layer_height")->getFloat()),
-                                [range, this](coordf_t layer_height)
+                             etLayerHeight, set_focus_fn, [range, this](coordf_t layer_height, bool)
     {
-        wxGetApp().obj_list()->edit_layer_range(range, layer_height);
-        return false;           // LayersList would not be updated/recreated
+        return wxGetApp().obj_list()->edit_layer_range(range, layer_height);
     });
 
+    select_editor(editor, is_last_edited_range);
+
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(temp);
+    sizer->Add(editor);
     m_grid_sizer->Add(sizer);
 
     return sizer;
@@ -193,34 +204,61 @@ void ObjectLayers::msw_rescale()
 
 LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
                                     const wxString& value,
-                                    std::function<bool(coordf_t)> edit_fn
+                                    EditorType type,
+                                    std::function<void(EditorType)> set_focus_fn,
+                                    std::function<bool(coordf_t, bool enter_pressed)>   edit_fn
                                     ) :
+    m_valid_value(value),
+    m_type(type),
     wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, 
                wxSize(8 * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
     this->SetFont(wxGetApp().normal_font());
     
-    this->Bind(wxEVT_TEXT_ENTER, ([this, edit_fn](wxEvent& e)
+    this->Bind(wxEVT_TEXT_ENTER, [this, edit_fn](wxEvent&)
     {
         m_enter_pressed     = true;
         // If LayersList wasn't updated/recreated, we can call wxEVT_KILL_FOCUS.Skip()
-        if ( !edit_fn(get_value()) )
+        if (m_type&etLayerHeight) {
+            if (!edit_fn(get_value(), true))
+                SetValue(m_valid_value);
+            else
+                m_valid_value = double_to_string(get_value());
             m_call_kill_focus = true;
-    }), this->GetId());
+        }
+        else if (!edit_fn(get_value(), true)) {
+            SetValue(m_valid_value);
+            m_call_kill_focus = true;
+        }
+    }, this->GetId());
 
-    this->Bind(wxEVT_KILL_FOCUS, ([this, edit_fn](wxEvent& e)
+    this->Bind(wxEVT_KILL_FOCUS, [this, edit_fn](wxFocusEvent& e)
     {
         if (!m_enter_pressed) {
-            m_enter_pressed = false;
-
             // If LayersList wasn't updated/recreated, we should call e.Skip()
-            if ( !edit_fn(get_value()) )
+            if (m_type & etLayerHeight) {
+                if (!edit_fn(get_value(), false))
+                    SetValue(m_valid_value);
+                else
+                    m_valid_value = double_to_string(get_value());
                 e.Skip();
+            }
+            else if (!edit_fn(get_value(), false)) {
+                SetValue(m_valid_value);
+                e.Skip();
+            } 
         }
-        else if (m_call_kill_focus)
+        else if (m_call_kill_focus) {
+            m_call_kill_focus = false;
             e.Skip();
-    }), this->GetId());
+        }
+    }, this->GetId());
 
+    this->Bind(wxEVT_LEFT_DOWN, ([this, set_focus_fn](wxEvent& e)
+    {
+        set_focus_fn(m_type);
+        e.Skip();
+    }));
 
     this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
     {

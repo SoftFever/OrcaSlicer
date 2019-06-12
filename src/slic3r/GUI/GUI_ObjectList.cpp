@@ -2363,6 +2363,18 @@ void ObjectList::del_layer_range(const t_layer_height_range& range)
     select_item(selectable_item);
 }
 
+double get_min_layer_height(const int extruder_idx)
+{
+    const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    return config.opt_float("min_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+}
+
+double get_max_layer_height(const int extruder_idx)
+{
+    const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    return config.opt_float("max_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+}
+
 void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
 {
     const int obj_idx = get_selected_obj_idx();
@@ -2393,13 +2405,14 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
 
         if (current_range.second == next_range.first)
         {
+            const auto old_config = ranges.at(next_range);
+
             const coordf_t delta = (next_range.second - next_range.first);
-            if (delta < 0.05f) // next range division has no sense 
+            if (delta < get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) // next range division has no sense 
                 return; 
 
             const coordf_t midl_layer = next_range.first + 0.5f * delta;
             
-            const auto old_config = ranges.at(next_range);
             t_layer_height_range new_range = { midl_layer, next_range.second };
 
             // delete old layer
@@ -2450,21 +2463,32 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
         select_item(m_objects_model->AddSettingsChild(layer_item));
 }
 
-void ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
+bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
 {
     const int obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    if (obj_idx < 0) 
+        return false;
 
-    t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
+    DynamicPrintConfig* config = &object(obj_idx)->layer_config_ranges[range];
+    if (fabs(layer_height - config->opt_float("layer_height")) < EPSILON)
+        return false;
 
-    DynamicPrintConfig* config = &ranges[range];
-    config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    const int extruder_idx = config->opt_int("extruder");
+
+    if (layer_height >= get_min_layer_height(extruder_idx) && 
+        layer_height <= get_max_layer_height(extruder_idx)) 
+    {
+        config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+        return true;
+    }
+
+    return false;
 }
 
-void ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range)
+bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_layer_height_range& new_range)
 {
     const int obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    if (obj_idx < 0) return false;
 
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
@@ -2484,6 +2508,8 @@ void ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     // To update(recreate) layers sizer call select_item for LayerRoot item expand
     select_item(root_item);
     Expand(root_item);
+
+    return true;
 }
 
 void ObjectList::init_objects()

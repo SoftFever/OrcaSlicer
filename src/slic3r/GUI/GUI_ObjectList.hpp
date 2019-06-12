@@ -291,8 +291,8 @@ public:
     void add_layer_item (const t_layer_height_range& range, 
                          const wxDataViewItem layers_item, 
                          const int layer_idx = -1);
-    void edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
-    void edit_layer_range(const t_layer_height_range& range, 
+    bool edit_layer_range(const t_layer_height_range& range, coordf_t layer_height);
+    bool edit_layer_range(const t_layer_height_range& range, 
                           const t_layer_height_range& new_range);
 
     void init_objects();
