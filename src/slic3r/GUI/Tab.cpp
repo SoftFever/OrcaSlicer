@@ -1854,13 +1854,17 @@ void TabPrinter::build_fff()
 
 			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
-				auto dlg = new BedShapeDialog(this);
-				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-				if (dlg->ShowModal() == wxID_OK) {
-					load_key_value("bed_shape", dlg->GetValue());
-					update_changed_ui();
-				}
-			}));
+                BedShapeDialog dlg(this);
+                dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+                if (dlg.ShowModal() == wxID_OK) {
+                    std::vector<Vec2d> shape = dlg.GetValue();
+                    if (!shape.empty())
+                    {
+                        load_key_value("bed_shape", shape);
+                        update_changed_ui();
+                    }
+                }
+            }));
 
 			return sizer;
 		};
@@ -2056,11 +2060,15 @@ void TabPrinter::build_sla()
 
         btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
-            auto dlg = new BedShapeDialog(this);
-            dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-            if (dlg->ShowModal() == wxID_OK) {
-                load_key_value("bed_shape", dlg->GetValue());
-                update_changed_ui();
+            BedShapeDialog dlg(this);
+            dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<Vec2d> shape = dlg.GetValue();
+                if (!shape.empty())
+                {
+                    load_key_value("bed_shape", shape);
+                    update_changed_ui();
+                }
             }
         }));
 
