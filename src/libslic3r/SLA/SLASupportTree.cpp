@@ -1410,6 +1410,7 @@ class SLASupportTree::Algorithm {
     {
         // People were killed for this number (seriously)
         static const double SQR2 = std::sqrt(2.0);
+        static const Vec3d  DOWN = {0.0, 0.0, -1.0};
 
         double gndlvl       = m_result.ground_level;
         Vec3d  endp         = {jp(X), jp(Y), gndlvl};
@@ -1451,20 +1452,30 @@ class SLASupportTree::Algorithm {
                 initvals(mv), bound(0.0, 2 * min_dist));
 
             mv           = std::get<0>(result.optimum);
-            endp         = jp + std::sqrt(2) * mv * dir;
+            endp         = jp + SQR2 * mv * dir;
             Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
             can_add_base = result.score > min_dist;
+            
+            auto abort_in_shame =
+                [&normal_mode, &can_add_base, &endp, jp, gndlvl]()
+            {
+                normal_mode  = true;
+                can_add_base = false;   // Nothing left to do, hope for the best
+                endp         = {jp(X), jp(Y), gndlvl};
+            };
 
             // We have to check if the bridge is feasible.
-            if (bridge_mesh_intersect(jp, dir, radius) < (endp - jp).norm()) {
-                normal_mode = true;
-                endp        = {jp(X), jp(Y), gndlvl};
-            }
+            if (bridge_mesh_intersect(jp, dir, radius) < (endp - jp).norm())
+                abort_in_shame();
             else {
                 // If the new endpoint is below ground, do not make a pillar
                 if (endp(Z) < gndlvl)
                     endp = endp - SQR2 * (gndlvl - endp(Z)) * dir; // back off
                 else {
+                    
+                    if (!std::isinf(bridge_mesh_intersect(endp, DOWN, radius)))
+                        abort_in_shame();
+
                     Pillar &plr = m_result.add_pillar(endp, pgnd, radius);
 
                     if (can_add_base)

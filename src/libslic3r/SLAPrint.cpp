@@ -439,12 +439,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         update_apply_status(this->invalidate_all_steps());
         m_objects = print_objects_new;
         // Delete the PrintObjects marked as Unknown or Deleted.
-        bool deleted_objects = false;
         for (auto &pos : print_object_status)
             if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
                 update_apply_status(pos.print_object->invalidate_all_steps());
                 delete pos.print_object;
-                deleted_objects = true;
             }
         if (new_objects)
             update_apply_status(false);
@@ -870,19 +868,22 @@ void SLAPrint::process()
             po.m_supportdata->support_points = po.transformed_support_points();
         }
         
-        // If the builtin pad mode is engaged, we have to filter out all the
+        // If the zero elevation mode is engaged, we have to filter out all the
         // points that are on the bottom of the object
-        if(builtin_pad_cfg(po.m_config)) {
-            double gnd   = po.m_supportdata->emesh.ground_level();
-            auto & pts   = po.m_supportdata->support_points;
-            
+        if (po.config().support_object_elevation.getFloat() <= EPSILON) {
+            double gnd       = po.m_supportdata->emesh.ground_level();
+            auto & pts       = po.m_supportdata->support_points;
+            double tolerance = po.config().pad_enable.getBool()
+                                   ? po.m_config.pad_wall_thickness.getFloat()
+                                   : po.m_config.support_base_height.getFloat();
+
             // get iterator to the reorganized vector end
             auto endit = std::remove_if(
                 pts.begin(),
                 pts.end(),
-                [&po, gnd](const sla::SupportPoint &sp) {
+                [tolerance, gnd](const sla::SupportPoint &sp) {
                     double diff = std::abs(gnd - double(sp.pos(Z)));
-                    return diff <= po.m_config.pad_wall_thickness.getFloat();
+                    return diff <= tolerance;
                 });
             
             // erase all elements after the new end
@@ -1352,7 +1353,7 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, max_objstatus]() {
+    auto rasterize = [this]() {
         if(canceled()) return;
 
         // collect all the keys
