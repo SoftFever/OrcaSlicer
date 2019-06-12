@@ -1472,8 +1472,8 @@ class SLASupportTree::Algorithm {
                     endp = endp - SQR2 * (gndlvl - endp(Z)) * dir; // back off
                 else {
                     
-                    if (!std::isinf(bridge_mesh_intersect(endp, DOWN, radius)))
-                        abort_in_shame();
+                    auto hit = bridge_mesh_intersect(endp, DOWN, radius);
+                    if (!std::isinf(hit.distance())) abort_in_shame();
 
                     Pillar &plr = m_result.add_pillar(endp, pgnd, radius);
 
