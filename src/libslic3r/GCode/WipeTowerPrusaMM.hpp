@@ -46,26 +46,32 @@ public:
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
-	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
+	WipeTowerPrusaMM(bool semm, float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
                      float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, 
                      float bridging, bool set_extruder_trimpot, GCodeFlavor flavor,
                      const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
-    m_wipe_tower_pos(x, y),
+        m_semm(semm),
+        m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
 		m_y_shift(0.f),
 		m_z_pos(0.f),
 		m_is_first_layer(false),
-        m_cooling_tube_retraction(cooling_tube_retraction),
-        m_cooling_tube_length(cooling_tube_length),
-        m_parking_pos_retraction(parking_pos_retraction),
-        m_extra_loading_move(extra_loading_move),
-		m_bridging(bridging),
-		m_set_extruder_trimpot(set_extruder_trimpot),
         m_gcode_flavor(flavor),
+        m_bridging(bridging),
         m_current_tool(initial_tool),
         wipe_volumes(wiping_matrix)
-        {}
+        {
+            // If this is a single extruder MM printer, we will use all the SE-specific config values.
+            // Otherwise, the defaults will be used to turn off the SE stuff.
+            if (m_semm) {
+                m_cooling_tube_retraction = cooling_tube_retraction;
+                m_cooling_tube_length = cooling_tube_length;
+                m_parking_pos_retraction = parking_pos_retraction;
+                m_extra_loading_move = extra_loading_move;
+                m_set_extruder_trimpot = set_extruder_trimpot;
+            }
+        }
 
 	virtual ~WipeTowerPrusaMM() {}
 
@@ -81,21 +87,27 @@ public:
         m_filpar[idx].material = material;
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
-        m_filpar[idx].loading_speed = loading_speed;
-        m_filpar[idx].loading_speed_start = loading_speed_start;
-        m_filpar[idx].unloading_speed = unloading_speed;
-        m_filpar[idx].unloading_speed_start = unloading_speed_start;
-        m_filpar[idx].delay = delay;
-        m_filpar[idx].cooling_moves = cooling_moves;
-        m_filpar[idx].cooling_initial_speed = cooling_initial_speed;
-        m_filpar[idx].cooling_final_speed = cooling_final_speed;
+
+        // If this is a single extruder MM printer, we will use all the SE-specific config values.
+        // Otherwise, the defaults will be used to turn off the SE stuff.
+        if (m_semm) {
+            m_filpar[idx].loading_speed           = loading_speed;
+            m_filpar[idx].loading_speed_start     = loading_speed_start;
+            m_filpar[idx].unloading_speed         = unloading_speed;
+            m_filpar[idx].unloading_speed_start   = unloading_speed_start;
+            m_filpar[idx].delay                   = delay;
+            m_filpar[idx].cooling_moves           = cooling_moves;
+            m_filpar[idx].cooling_initial_speed   = cooling_initial_speed;
+            m_filpar[idx].cooling_final_speed     = cooling_final_speed;
+        }
+
         if (max_volumetric_speed != 0.f)
             m_filpar[idx].max_e_speed = (max_volumetric_speed / Filament_Area);
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
 
-        std::stringstream stream{ramming_parameters};
+        std::stringstream stream{m_semm ? ramming_parameters : std::string()};
         float speed = 0.f;
         stream >> m_filpar[idx].ramming_line_width_multiplicator >> m_filpar[idx].ramming_step_multiplicator;
         m_filpar[idx].ramming_line_width_multiplicator /= 100;
@@ -220,7 +232,8 @@ private:
     const float WT_EPSILON            = 1e-3f;
 
 
-	xy 	   m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
+	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
+    xy 	   m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
 	float  m_wipe_tower_rotation_angle = 0.f; // Wipe tower rotation angle in degrees (with respect to x axis)

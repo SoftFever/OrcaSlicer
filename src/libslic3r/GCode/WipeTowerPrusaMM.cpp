@@ -857,7 +857,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
     // Retraction:
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
-    if ((m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0) && m_filpar[m_current_tool].unloading_speed_start != 0 && m_filpar[m_current_tool].unloading_speed != 0) {
+    if (m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
         float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
         writer.suppress_preview()
               .retract(15.f, m_filpar[m_current_tool].unloading_speed_start * 60.f) // feedrate 5000mm/min = 83mm/s
@@ -935,7 +935,7 @@ void WipeTowerPrusaMM::toolchange_Load(
 	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates  &cleaning_box)
 {
-    if ((m_parking_pos_retraction != 0 || m_extra_loading_move != 0) && m_filpar[m_current_tool].loading_speed_start != 0 && m_filpar[m_current_tool].loading_speed != 0) {
+    if (m_semm && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
         float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
         float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
         float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
