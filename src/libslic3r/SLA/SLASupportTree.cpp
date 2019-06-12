@@ -580,9 +580,8 @@ struct Pad {
         
         for (const ExPolygon &bp : platetmp)  basep.emplace_back(bp.contour);
         
-        
         if(pcfg.embed_object) {
-            auto modelbase_sticks = modelbase;
+            ExPolygons modelbase_sticks = modelbase;
             
             if (pcfg.embed_object.object_gap_mm > 0.0)
                 modelbase_sticks
@@ -591,7 +590,7 @@ struct Pad {
                                         / SCALING_FACTOR));
             
             for(auto& poly : modelbase_sticks) {
-                basep.emplace_back(poly);
+                basep.emplace_back(poly.contour);
                 sla::breakstick_holes(
                     poly,
                     pcfg.embed_object.object_gap_mm,   // padding
