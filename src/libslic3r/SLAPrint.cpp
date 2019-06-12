@@ -1353,7 +1353,7 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this]() {
+    auto rasterize = [this, max_objstatus]() {
         if(canceled()) return;
 
         // collect all the keys
