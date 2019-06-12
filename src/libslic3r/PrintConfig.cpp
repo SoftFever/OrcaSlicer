@@ -2502,7 +2502,7 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->max = 10;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloat(0.5));
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("support_critical_angle", coFloat);
     def->label = L("Critical angle");
@@ -2625,6 +2625,17 @@ void PrintConfigDef::init_sla_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45.0));
     
+    def = this->add("pad_object_gap", coFloat);
+    def->label = L("Pad object gap");
+    def->category = L("Pad");
+    def->tooltip  = L("The gap between the object bottom and the generated "
+                      "pad in zero elevation mode.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1));
+    
     def = this->add("pad_object_connector_stride", coFloat);
     def->label = L("Pad object connector stride");
     def->category = L("Pad");
@@ -2643,7 +2654,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloat(0.3));
+    def->set_default_value(new ConfigOptionFloat(0.5));
     
     def = this->add("pad_object_connector_penetration", coFloat);
     def->label = L("Pad object connector penetration");

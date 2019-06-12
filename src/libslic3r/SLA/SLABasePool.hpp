@@ -30,11 +30,11 @@ void base_plate(const TriangleMesh& mesh,       // input mesh
 // inserted along the perimeter in every "stride" distance. The stick rectangles
 // will have a with about "stick_width". The input dimensions are in world 
 // measure, not the scaled clipper units.
-void offset_with_breakstick_holes(ExPolygon& poly,
-                                  double padding,
-                                  double stride,
-                                  double stick_width,
-                                  double penetration = 0.0);
+void breakstick_holes(ExPolygon &poly,
+                      double     padding,
+                      double     stride,
+                      double     stick_width,
+                      double     penetration = 0.0);
 
 struct PoolConfig {
     double min_wall_thickness_mm = 2;

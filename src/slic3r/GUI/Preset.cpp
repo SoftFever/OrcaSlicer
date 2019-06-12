@@ -475,6 +475,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_max_merge_distance",
             "pad_edge_radius",
             "pad_wall_slope",
+            "pad_object_gap",
             "pad_object_connector_stride",
             "pad_object_connector_width",
             "pad_object_connector_penetration",

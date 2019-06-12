@@ -1033,6 +1033,9 @@ public:
     //    - The two pads will be connected with tiny connector sticks
     // /////////////////////////////////////////////////////////////////////////
     
+    // This is the gap between the object bottom and the generated pad
+    ConfigOptionFloat pad_object_gap;
+    
     // How far to place the connector sticks on the object pad perimeter
     ConfigOptionFloat pad_object_connector_stride;
     
@@ -1071,6 +1074,7 @@ protected:
         OPT_PTR(pad_max_merge_distance);
         OPT_PTR(pad_edge_radius);
         OPT_PTR(pad_wall_slope);
+        OPT_PTR(pad_object_gap);
         OPT_PTR(pad_object_connector_stride);
         OPT_PTR(pad_object_connector_width);
         OPT_PTR(pad_object_connector_penetration);

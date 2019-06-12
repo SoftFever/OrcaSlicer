@@ -383,18 +383,12 @@ Polygons unify(const Polygons& shapes) {
 // inserted along the perimeter in every "stride" distance. The stick rectangles
 // will have a with about "stick_width". The input dimensions are in world 
 // measure, not the scaled clipper units.
-void offset_with_breakstick_holes(ExPolygon& poly,
-                                  double padding,
-                                  double stride,
-                                  double stick_width,
-                                  double penetration)
-{
-    // We do the basic offsetting first
-    static const bool dont_round_edges = false;
-    
-    if(padding > 0.0)
-        offset(poly, coord_t(padding / SCALING_FACTOR), dont_round_edges);
-
+void breakstick_holes(ExPolygon& poly,
+                      double padding,
+                      double stride,
+                      double stick_width,
+                      double penetration)
+{   
     // SVG svg("bridgestick_plate.svg");
     // svg.draw(poly);
 
@@ -428,8 +422,8 @@ void offset_with_breakstick_holes(ExPolygon& poly,
             out.emplace_back(a);
 
             // dodge the start point, do not make sticks on the joins
-            while (t < sright) t += sright;
-            double tend = nrm - sright;
+            while (t < sbottom) t += sbottom;
+            double tend = nrm - sbottom;
 
             while (t < tend) { // insert the stick on the polygon perimeter
 

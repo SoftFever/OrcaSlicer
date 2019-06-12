@@ -578,23 +578,31 @@ struct Pad {
                    float(cfg.min_wall_height_mm + cfg.min_wall_thickness_mm),
                    0.1f, pcfg.throw_on_cancel);
         
-        // We don't need the holes for the base plate from the supports
         for (const ExPolygon &bp : platetmp)  basep.emplace_back(bp.contour);
-        for (const ExPolygon &bp : modelbase) basep.emplace_back(bp.contour);
+        
         
         if(pcfg.embed_object) {
-            
             auto modelbase_sticks = modelbase;
-            for(auto& poly : modelbase_sticks)
-                sla::offset_with_breakstick_holes(
+            
+            if (pcfg.embed_object.object_gap_mm > 0.0)
+                modelbase_sticks
+                    = offset_ex(modelbase_sticks,
+                                coord_t(pcfg.embed_object.object_gap_mm
+                                        / SCALING_FACTOR));
+            
+            for(auto& poly : modelbase_sticks) {
+                basep.emplace_back(poly);
+                sla::breakstick_holes(
                     poly,
                     pcfg.embed_object.object_gap_mm,   // padding
                     pcfg.embed_object.stick_stride_mm,
                     pcfg.embed_object.stick_width_mm,
                     pcfg.embed_object.stick_penetration_mm);
+            }
 
             create_base_pool(basep, tmesh, modelbase_sticks, cfg);
         } else {
+            for (const ExPolygon &bp : modelbase) basep.emplace_back(bp.contour);
             create_base_pool(basep, tmesh, {}, cfg);
         }
 

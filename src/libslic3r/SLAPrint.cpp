@@ -602,17 +602,18 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     return scfg;
 }
 
-sla::PoolConfig::EmbedObject use_builtin_pad(const SLAPrintObjectConfig& c) {
+sla::PoolConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c) {
     sla::PoolConfig::EmbedObject ret;
     
     ret.enabled = c.support_object_elevation.getFloat() <= EPSILON && 
                   c.pad_enable.getBool();
     
     if(ret.enabled) {
-        ret.object_gap_mm   = c.support_base_safety_distance.getFloat();
-        ret.stick_width_mm  = c.pad_object_connector_width.getFloat();
-        ret.stick_stride_mm = c.pad_object_connector_stride.getFloat();
-        ret.stick_width_mm  = c.pad_object_connector_penetration.getFloat();
+        ret.object_gap_mm        = c.pad_object_gap.getFloat();
+        ret.stick_width_mm       = c.pad_object_connector_width.getFloat();
+        ret.stick_stride_mm      = c.pad_object_connector_stride.getFloat();
+        ret.stick_penetration_mm = c.pad_object_connector_penetration
+                                    .getFloat();
     }
     
     return ret;
@@ -631,7 +632,7 @@ sla::PoolConfig make_pool_config(const SLAPrintObjectConfig& c) {
     pcfg.min_wall_height_mm = c.pad_wall_height.getFloat();
 
     // set builtin pad implicitly ON
-    pcfg.embed_object = use_builtin_pad(c);
+    pcfg.embed_object = builtin_pad_cfg(c);
     
     return pcfg;
 }
@@ -663,6 +664,16 @@ std::string SLAPrint::validate() const
 
         if(supports_en && elv > EPSILON && elv < pinhead_width )
             return L("Elevation is too low for object.");
+        
+        sla::PoolConfig::EmbedObject builtinpad = builtin_pad_cfg(po->config());
+        if(supports_en && builtinpad.enabled &&
+           cfg.pillar_base_safety_distance_mm < builtinpad.object_gap_mm) {
+            return L(
+                "The endings of the support pillars will be deployed on the "
+                "gap between the object and the pad. 'Support base safety "
+                "distance' has to be greater than the 'Pad object gap' "
+                "parameter to avoid this.");
+        }
     }
 
     return "";
@@ -861,7 +872,7 @@ void SLAPrint::process()
         
         // If the builtin pad mode is engaged, we have to filter out all the
         // points that are on the bottom of the object
-        if(use_builtin_pad(po.m_config)) {
+        if(builtin_pad_cfg(po.m_config)) {
             double gnd   = po.m_supportdata->emesh.ground_level();
             auto & pts   = po.m_supportdata->support_points;
             
@@ -1658,6 +1669,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_max_merge_distance"
             || opt_key == "pad_wall_slope"
             || opt_key == "pad_edge_radius"
+            || opt_key == "pad_object_gap"
             || opt_key == "pad_object_connector_stride"
             || opt_key == "pad_object_connector_width"
             || opt_key == "pad_object_connector_penetration"
