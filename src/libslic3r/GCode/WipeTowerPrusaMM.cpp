@@ -922,9 +922,14 @@ void WipeTowerPrusaMM::toolchange_Change(
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
+    // This is where we want to place the custom gcodes. We will use placeholders for this.
+    // These will be substituted by the actual gcodes when the gcode is generated.
     writer.append("[end_filament_gcode]\n");
     writer.append("[toolchange_gcode]\n");
-	writer.set_tool(new_tool);
+
+    // The toolchange Tn command will be inserted later, only in case that the user does
+    // not provide a custom toolchange gcode.
+	//writer.set_tool(new_tool);
     writer.append("[start_filament_gcode]\n");
 
 	writer.flush_planner_queue();

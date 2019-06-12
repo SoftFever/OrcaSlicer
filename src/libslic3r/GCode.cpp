@@ -195,6 +195,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         "Travel to a Wipe Tower");
     gcode += gcodegen.unretract();
 
+
     // Process the end filament gcode.
     std::string end_filament_gcode_str;
     if (gcodegen.writer().extruder() != nullptr) {
@@ -206,21 +207,36 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
             check_add_eol(end_filament_gcode_str);
         }
     }
-    
-    // Process the tool chagne gcode.
+
+    // Process the custom toolchange_gcode. If it is empty, provide a simple Tn command to change the filament.
+    // Otherwise, leave control to the user completely.
     std::string toolchange_gcode_str;
-    const std::string  &toolchange_gcode  = gcodegen.config().toolchange_gcode.value;
-    if (gcodegen.writer().extruder() != nullptr && ! toolchange_gcode.empty()) {
-        // Process the custom toolchange_gcode.
-        DynamicConfig config;
-        config.set_key_value("previous_extruder", new ConfigOptionInt((int)gcodegen.writer().extruder()->id()));
-        config.set_key_value("next_extruder",     new ConfigOptionInt((int)new_extruder_id));
-        config.set_key_value("layer_num",         new ConfigOptionInt(gcodegen.m_layer_index));
-        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
-        toolchange_gcode_str = gcodegen.placeholder_parser_process("toolchange_gcode", toolchange_gcode, new_extruder_id, &config);
-        check_add_eol(toolchange_gcode_str);
+    if (gcodegen.writer().extruder() != nullptr) {
+        const std::string& toolchange_gcode = gcodegen.config().toolchange_gcode.value;
+        if (!toolchange_gcode.empty()) {
+            DynamicConfig config;
+            config.set_key_value("previous_extruder", new ConfigOptionInt((int)gcodegen.writer().extruder()->id()));
+            config.set_key_value("next_extruder",     new ConfigOptionInt((int)new_extruder_id));
+            config.set_key_value("layer_num",         new ConfigOptionInt(gcodegen.m_layer_index));
+            config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
+            toolchange_gcode_str = gcodegen.placeholder_parser_process("toolchange_gcode", toolchange_gcode, new_extruder_id, &config);
+            check_add_eol(toolchange_gcode_str);
+        }
+
+        std::string toolchange_command;
+        if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
+            toolchange_command = gcodegen.writer().toolchange(new_extruder_id);
+        if (toolchange_gcode.empty())
+            toolchange_gcode_str = toolchange_command;
+        else {
+            // We have informed the m_writer about the current extruder_id, we can ignore the generated G-code.
+        }
     }
-    
+
+
+
+    gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+
     // Process the start filament gcode.
     std::string start_filament_gcode_str;
     const std::string &start_filament_gcode = gcodegen.config().start_filament_gcode.get_at(new_extruder_id);
@@ -231,8 +247,8 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         start_filament_gcode_str = gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id, &config);
         check_add_eol(start_filament_gcode_str);
     }
-    
-    // Insert the end filament, toolchange, and start filament gcode.
+
+    // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
     DynamicConfig config;
     config.set_key_value("end_filament_gcode",   new ConfigOptionString(end_filament_gcode_str));
     config.set_key_value("toolchange_gcode",     new ConfigOptionString(toolchange_gcode_str));
@@ -242,9 +258,6 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     gcode += tcr_gcode;
     check_add_eol(toolchange_gcode_str);
 
-    // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
-        gcodegen.writer().toolchange(new_extruder_id);
 
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(Vec2d(end_pos.x, end_pos.y));
@@ -837,22 +850,16 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // Write the custom start G-code
     _writeln(file, start_gcode);
-    // Process filament-specific gcode in extruder order.
-    if (has_wipe_tower) {
+
+    // Process filament-specific gcode.
+   /* if (has_wipe_tower) {
         // Wipe tower will control the extruder switching, it will call the start_filament_gcode.
-    } else if (print.config().single_extruder_multi_material) {
-        // Only initialize the initial extruder.
-        DynamicConfig config;
-        config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(initial_extruder_id)));
-        _writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config().start_filament_gcode.values[initial_extruder_id], initial_extruder_id, &config));
     } else {
-        DynamicConfig config;
-        for (const std::string &start_gcode : print.config().start_filament_gcode.values) {
-            int extruder_id = (unsigned int)(&start_gcode - &print.config().start_filament_gcode.values.front());
-            config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
-            _writeln(file, this->placeholder_parser_process("start_filament_gcode", start_gcode, extruder_id, &config));
-        }
+            DynamicConfig config;
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(initial_extruder_id)));
+            _writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config().start_filament_gcode.values[initial_extruder_id], initial_extruder_id, &config));
     }
+*/
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     print.throw_if_canceled();
 
@@ -2763,38 +2770,50 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     m_wipe.reset_path();
     
     if (m_writer.extruder() != nullptr) {
-        // Process the custom end_filament_gcode in case of single_extruder_multi_material.
+        // Process the custom end_filament_gcode. set_extruder() is only called if there is no wipe tower
+        // so it should not be injected twice.
         unsigned int        old_extruder_id     = m_writer.extruder()->id();
         const std::string  &end_filament_gcode  = m_config.end_filament_gcode.get_at(old_extruder_id);
-        if (m_config.single_extruder_multi_material && ! end_filament_gcode.empty()) {
+        if (! end_filament_gcode.empty()) {
             gcode += placeholder_parser_process("end_filament_gcode", end_filament_gcode, old_extruder_id);
             check_add_eol(gcode);
         }
     }
 
-    m_placeholder_parser.set("current_extruder", extruder_id);
-
-    if (m_writer.extruder() != nullptr && ! m_config.toolchange_gcode.value.empty()) {
-        // Process the custom toolchange_gcode.
-        DynamicConfig config;
-        config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
-        config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-        config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
-        gcode += placeholder_parser_process("toolchange_gcode", m_config.toolchange_gcode.value, extruder_id, &config);
-        check_add_eol(gcode);
-    }
     
     // If ooze prevention is enabled, park current extruder in the nearest
     // standby point and set it to the standby temperature.
     if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
-    // Append the toolchange command.
-    gcode += m_writer.toolchange(extruder_id);
-    // Append the filament start G-code for single_extruder_multi_material.
+
+    const std::string& toolchange_gcode = m_config.toolchange_gcode.value;
+    if (m_writer.extruder() != nullptr) {
+        // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
+        if (!toolchange_gcode.empty()) {
+            DynamicConfig config;
+            config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
+            config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
+            config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
+            gcode += placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
+            check_add_eol(gcode);
+        }
+    }
+
+    // We inform the writer about what is happening, but we may not use the resulting gcode.
+    std::string toolchange_command = m_writer.toolchange(extruder_id);
+    if (toolchange_gcode.empty())
+        gcode += toolchange_command;
+    else {
+        // user provided his own toolchange gcode, no need to do anything
+    }
+
+    m_placeholder_parser.set("current_extruder", extruder_id);
+
+    // Append the filament start G-code.
     const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
-    if (m_config.single_extruder_multi_material && ! start_filament_gcode.empty()) {
-        // Process the start_filament_gcode for the active filament only.
+    if (! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the new filament.
         gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id);
         check_add_eol(gcode);
     }
