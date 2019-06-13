@@ -7,10 +7,13 @@
     #include <Windows.h>
     #include <wchar.h>
     #ifdef SLIC3R_GUI
+    extern "C" 
+    { 
         // Let the NVIDIA and AMD know we want to use their graphics card
         // on a dual graphics card system.
         __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
         __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+    }
     #endif /* SLIC3R_GUI */
 #endif /* WIN32 */
 
