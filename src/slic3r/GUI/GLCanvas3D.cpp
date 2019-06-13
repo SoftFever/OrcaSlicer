@@ -1624,6 +1624,7 @@ void GLCanvas3D::render()
     }
 
     m_camera.apply_view_matrix();
+    m_camera.apply_projection(_max_bounding_box());
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -2515,7 +2516,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
                 m_layers_editing.band_width = std::max(std::min(m_layers_editing.band_width * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f);
                 if (m_canvas != nullptr)
                     m_canvas->Refresh();
-                
+
                 return;
             }
         }
@@ -2526,8 +2527,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
-    float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-    set_camera_zoom(zoom);
+    set_camera_zoom((float)evt.GetWheelRotation() / (float)evt.GetWheelDelta());
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -3293,7 +3293,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     zoom = std::min(zoom, 100.0f);
 
     m_camera.zoom = zoom;
-    _refresh_if_shown_on_screen();
+    m_dirty = true;
 }
 
 void GLCanvas3D::update_gizmos_on_off_state()
@@ -3609,7 +3609,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // updates camera
     m_camera.apply_viewport(0, 0, w, h);
-    m_camera.apply_projection(_max_bounding_box());
 
     m_dirty = false;
 }

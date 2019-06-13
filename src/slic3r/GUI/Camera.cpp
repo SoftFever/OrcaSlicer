@@ -48,7 +48,7 @@ std::string Camera::get_type_as_string() const
 //    case Perspective:
 //        return "perspective";
     case Ortho:
-        return "ortho";
+        return "orthographic";
     };
 }
 
@@ -160,12 +160,15 @@ void Camera::debug_render() const
     imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+    std::string type = get_type_as_string();
     Vec3f position = get_position().cast<float>();
     Vec3f target = m_target.cast<float>();
     Vec3f forward = get_dir_forward().cast<float>();
     Vec3f right = get_dir_right().cast<float>();
     Vec3f up = get_dir_up().cast<float>();
 
+    ImGui::InputText("Type", const_cast<char*>(type.data()), type.length(), ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
     ImGui::InputFloat3("Position", position.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Target", target.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
