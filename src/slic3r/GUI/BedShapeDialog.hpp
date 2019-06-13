@@ -16,7 +16,8 @@ namespace GUI {
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class BedShapePanel : public wxPanel
 {
-	Bed_2D*			m_canvas;
+	Bed_2D*			   m_canvas;
+    std::vector<Vec2d> m_loaded_bed_shape;
 
 public:
 	BedShapePanel(wxWindow* parent) : wxPanel(parent, wxID_ANY) {}
@@ -24,8 +25,8 @@ public:
 
 	void		build_panel(ConfigOptionPoints* default_pt);
 	
-	ConfigOptionsGroupShp	init_shape_options_page(wxString title);
-	void		set_shape(ConfigOptionPoints* points);
+    ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
+    void		set_shape(ConfigOptionPoints* points);
 	void		update_preview();
 	void		update_shape();
 	void		load_stl();

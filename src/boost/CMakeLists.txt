@@ -19,6 +19,6 @@ add_library(nowide STATIC
     nowide/windows.hpp
 )
 
-target_include_directories(nowide SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+target_link_libraries(nowide PUBLIC boost_headeronly)
 
 
