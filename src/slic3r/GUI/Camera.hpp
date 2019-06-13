@@ -56,7 +56,7 @@ public:
 
     Vec3d get_dir_right() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(0); }
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
-    Vec3d get_dir_forward() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
+    Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
 
     Vec3d get_position() const { return m_view_matrix.matrix().block(0, 3, 3, 1); }
 
