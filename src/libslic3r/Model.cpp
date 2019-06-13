@@ -691,8 +691,9 @@ ModelVolume* ModelObject::add_volume(const ModelVolume &other)
 {
     ModelVolume* v = new ModelVolume(this, other);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+	// The volume should already be centered at this point of time when copying shared pointers of the triangle mesh and convex hull.
+//	v->center_geometry_after_creation();
+//    this->invalidate_bounding_box();
     return v;
 }
 
