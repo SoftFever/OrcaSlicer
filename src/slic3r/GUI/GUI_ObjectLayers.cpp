@@ -42,8 +42,19 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_edited_range)
 {
     if (is_last_edited_range && m_selection_type == editor->type()) {
+    /* Workaround! Under OSX we should use CallAfter() for SetFocus() after LayerEditors "reorganizations", 
+     * because of selected control's strange behavior: 
+     * cursor is set to the control, but blue border - doesn't.
+     * And as a result we couldn't edit this control.
+     * */
+#ifdef __WXOSX__
+        wxTheApp->CallAfter([editor]() {
+#endif
         editor->SetFocus();
         editor->SetInsertionPointEnd();
+#ifdef __WXOSX__
+        });
+#endif
     }    
 }
 
@@ -239,11 +250,15 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
     this->Bind(wxEVT_KILL_FOCUS, [this, edit_fn](wxFocusEvent& e)
     {
         if (!m_enter_pressed) {
-            // update data for next editor selection
+#ifndef __WXGTK__
+            /* Update data for next editor selection.
+             * But under GTK it lucks like there is no information about selected control at e.GetWindow(),
+             * so we'll take it from wxEVT_LEFT_DOWN event
+             * */
             LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());
             if (new_editor)
                 new_editor->set_focus();
-
+#endif // not __WXGTK__
             // If LayersList wasn't updated/recreated, we should call e.Skip()
             if (m_type & etLayerHeight) {
                 if (!edit_fn(get_value(), false))
@@ -262,6 +277,14 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
             e.Skip();
         }
     }, this->GetId());
+
+#ifdef __WXGTK__ // Workaround! To take information about selectable range
+    this->Bind(wxEVT_LEFT_DOWN, [this](wxEvent& e)
+    {
+        set_focus();
+        e.Skip();
+    }, this->GetId());
+#endif //__WXGTK__
 
     this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
     {
