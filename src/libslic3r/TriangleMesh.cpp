@@ -42,10 +42,8 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets)
-    : repaired(false)
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets) : repaired(false)
 {
-    stl_reset(&this->stl);
     stl_file &stl = this->stl;
     stl.stats.type = inmemory;
 
@@ -70,14 +68,6 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
         stl.facet_start[i] = facet;
     }
     stl_get_size(&stl);
-}
-
-TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
-{
-    stl_reset(&this->stl);
-    this->stl = other.stl;
-	this->repaired = other.repaired;
-    return *this;
 }
 
 // #define SLIC3R_TRACE_REPAIR
@@ -254,13 +244,18 @@ void TriangleMesh::WriteOBJFile(const char* output_file)
 void TriangleMesh::scale(float factor)
 {
     stl_scale(&(this->stl), factor);
-    this->its.clear();
+	for (stl_vertex& v : this->its.vertices)
+		v *= factor;
 }
 
 void TriangleMesh::scale(const Vec3d &versor)
 {
     stl_scale_versor(&this->stl, versor.cast<float>());
-    this->its.clear();
+	for (stl_vertex& v : this->its.vertices) {
+		v.x() *= versor.x();
+		v.y() *= versor.y();
+		v.z() *= versor.z();
+	}
 }
 
 void TriangleMesh::translate(float x, float y, float z)
@@ -268,7 +263,9 @@ void TriangleMesh::translate(float x, float y, float z)
     if (x == 0.f && y == 0.f && z == 0.f)
         return;
     stl_translate_relative(&(this->stl), x, y, z);
-    this->its.clear();
+	stl_vertex shift(x, y, z);
+	for (stl_vertex& v : this->its.vertices)
+		v += shift;
 }
 
 void TriangleMesh::translate(const Vec3f &displacement)
@@ -285,13 +282,15 @@ void TriangleMesh::rotate(float angle, const Axis &axis)
     angle = Slic3r::Geometry::rad2deg(angle);
     
     if (axis == X) {
-        stl_rotate_x(&(this->stl), angle);
+        stl_rotate_x(&this->stl, angle);
+        its_rotate_x(this->its, angle);
     } else if (axis == Y) {
-        stl_rotate_y(&(this->stl), angle);
+        stl_rotate_y(&this->stl, angle);
+        its_rotate_y(this->its, angle);
     } else if (axis == Z) {
-        stl_rotate_z(&(this->stl), angle);
+        stl_rotate_z(&this->stl, angle);
+        its_rotate_z(this->its, angle);
     }
-    this->its.clear();
 }
 
 void TriangleMesh::rotate(float angle, const Vec3d& axis)
@@ -310,12 +309,17 @@ void TriangleMesh::mirror(const Axis &axis)
 {
     if (axis == X) {
         stl_mirror_yz(&this->stl);
+        for (stl_vertex &v : this->its.vertices)
+      		v(0) *= -1.0;
     } else if (axis == Y) {
         stl_mirror_xz(&this->stl);
+        for (stl_vertex &v : this->its.vertices)
+      		v(1) *= -1.0;
     } else if (axis == Z) {
         stl_mirror_xy(&this->stl);
+        for (stl_vertex &v : this->its.vertices)
+      		v(2) *= -1.0;
     }
-    this->its.clear();
 }
 
 void TriangleMesh::transform(const Transform3d& t, bool fix_left_handed)
@@ -358,7 +362,8 @@ void TriangleMesh::rotate(double angle, Point* center)
         return;
     Vec2f c = center->cast<float>();
     this->translate(-c(0), -c(1), 0);
-    stl_rotate_z(&(this->stl), (float)angle);
+    stl_rotate_z(&this->stl, (float)angle);
+    its_rotate_z(this->its, (float)angle);
     this->translate(c(0), c(1), 0);
 }
 
@@ -540,7 +545,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     {
     	if (this->has_shared_vertices()) {
 #if REALfloat
-	    	qhull.runQhull("", 3, (int)this->its.vertices.size() / 3, (const realT*)(this->its.vertices.front().data()), "Qt");
+	    	qhull.runQhull("", 3, (int)this->its.vertices.size(), (const realT*)(this->its.vertices.front().data()), "Qt");
 #else
 	    	src_vertices.reserve(this->its.vertices() * 3);
 	    	// We will now fill the vector with input points for computation:

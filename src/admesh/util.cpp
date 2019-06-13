@@ -115,12 +115,12 @@ static void calculate_normals(stl_file *stl)
 	}
 }
 
-static void rotate_point_2d(float *x, float *y, const double c, const double s)
+static inline void rotate_point_2d(float &x, float &y, const double c, const double s)
 {
-	double xold = *x;
-	double yold = *y;
-	*x = float(c * xold - s * yold);
-	*y = float(s * xold + c * yold);
+	double xold = x;
+	double yold = y;
+	x = float(c * xold - s * yold);
+	y = float(s * xold + c * yold);
 }
 
 void stl_rotate_x(stl_file *stl, float angle)
@@ -130,7 +130,7 @@ void stl_rotate_x(stl_file *stl, float angle)
 	double s = sin(radian_angle);
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
     	for (int j = 0; j < 3; ++ j)
-      		rotate_point_2d(&stl->facet_start[i].vertex[j](1), &stl->facet_start[i].vertex[j](2), c, s);
+      		rotate_point_2d(stl->facet_start[i].vertex[j](1), stl->facet_start[i].vertex[j](2), c, s);
   	stl_get_size(stl);
   	calculate_normals(stl);
 }
@@ -142,7 +142,7 @@ void stl_rotate_y(stl_file *stl, float angle)
 	double s = sin(radian_angle);
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
     	for (int j = 0; j < 3; ++ j)
-			rotate_point_2d(&stl->facet_start[i].vertex[j](2), &stl->facet_start[i].vertex[j](0), c, s);
+			rotate_point_2d(stl->facet_start[i].vertex[j](2), stl->facet_start[i].vertex[j](0), c, s);
   	stl_get_size(stl);
   	calculate_normals(stl);
 }
@@ -154,9 +154,36 @@ void stl_rotate_z(stl_file *stl, float angle)
 	double s = sin(radian_angle);
   	for (uint32_t i = 0; i < stl->stats.number_of_facets; ++ i)
     	for (int j = 0; j < 3; ++ j)
-      		rotate_point_2d(&stl->facet_start[i].vertex[j](0), &stl->facet_start[i].vertex[j](1), c, s);
+      		rotate_point_2d(stl->facet_start[i].vertex[j](0), stl->facet_start[i].vertex[j](1), c, s);
   	stl_get_size(stl);
   	calculate_normals(stl);
+}
+
+void its_rotate_x(indexed_triangle_set &its, float angle)
+{
+	double radian_angle = (angle / 180.0) * M_PI;
+	double c = cos(radian_angle);
+	double s = sin(radian_angle);
+	for (stl_vertex &v : its.vertices)
+		rotate_point_2d(v(1), v(2), c, s);
+}
+
+void its_rotate_y(indexed_triangle_set& its, float angle)
+{
+	double radian_angle = (angle / 180.0) * M_PI;
+	double c = cos(radian_angle);
+	double s = sin(radian_angle);
+	for (stl_vertex& v : its.vertices)
+		rotate_point_2d(v(2), v(0), c, s);
+}
+
+void its_rotate_z(indexed_triangle_set& its, float angle)
+{
+	double radian_angle = (angle / 180.0) * M_PI;
+	double c = cos(radian_angle);
+	double s = sin(radian_angle);
+	for (stl_vertex& v : its.vertices)
+		rotate_point_2d(v(0), v(1), c, s);
 }
 
 void stl_get_size(stl_file *stl)

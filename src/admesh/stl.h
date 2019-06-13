@@ -89,6 +89,8 @@ struct stl_neighbors {
 };
 
 struct stl_stats {
+	stl_stats() { this->reset(); }
+	void reset() { memset(this, 0, sizeof(stl_stats)); this->volume = -1.0; }
 	char          header[81];
 	stl_type      type;
 	uint32_t      number_of_facets;
@@ -117,6 +119,18 @@ struct stl_stats {
 };
 
 struct stl_file {
+	stl_file() {}
+	stl_file(const stl_file &rhs) : facet_start(rhs.facet_start), neighbors_start(rhs.neighbors_start), stats(rhs.stats) {}
+	stl_file(stl_file &&rhs) : facet_start(std::move(rhs.facet_start)), neighbors_start(std::move(rhs.neighbors_start)), stats(rhs.stats) {}
+	stl_file& operator=(const stl_file &rhs) { this->facet_start = rhs.facet_start; this->neighbors_start = rhs.neighbors_start; this->stats = rhs.stats; return *this; }
+	stl_file& operator=(stl_file &&rhs) { this->facet_start = std::move(rhs.facet_start); this->neighbors_start = std::move(rhs.neighbors_start); this->stats = rhs.stats; return *this; }
+
+	void clear() {
+		this->facet_start.clear();
+		this->neighbors_start.clear();
+		this->stats.reset();
+	}
+
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Statistics
@@ -125,7 +139,14 @@ struct stl_file {
 
 struct indexed_triangle_set
 {
+	indexed_triangle_set() {}
+	indexed_triangle_set(const indexed_triangle_set &rhs) : indices(rhs.indices), vertices(rhs.vertices) {}
+	indexed_triangle_set(indexed_triangle_set &&rhs) : indices(std::move(rhs.indices)), vertices(std::move(rhs.vertices)) {}
+	indexed_triangle_set& operator=(const indexed_triangle_set &rhs) { this->indices = rhs.indices; this->vertices = rhs.vertices; return *this; }
+	indexed_triangle_set& operator=(indexed_triangle_set &&rhs) { this->indices = std::move(rhs.indices); this->vertices = std::move(rhs.vertices); return *this; }
+
 	void clear() { indices.clear(); vertices.clear(); }
+
 	std::vector<stl_triangle_vertex_indices> 	indices;
 	std::vector<stl_vertex>       				vertices;
 	//FIXME add normals once we get rid of the stl_file from TriangleMesh completely.
@@ -238,6 +259,10 @@ inline void its_transform(indexed_triangle_set &its, const Eigen::Matrix<T, 3, 3
 		v = (m * v.template cast<T>()).template cast<float>().eval();
 }
 
+extern void its_rotate_x(indexed_triangle_set &its, float angle);
+extern void its_rotate_y(indexed_triangle_set &its, float angle);
+extern void its_rotate_z(indexed_triangle_set &its, float angle);
+
 extern void stl_generate_shared_vertices(stl_file *stl, indexed_triangle_set &its);
 extern bool its_write_obj(const indexed_triangle_set &its, const char *file);
 extern bool its_write_off(const indexed_triangle_set &its, const char *file);
@@ -258,7 +283,6 @@ extern void stl_calculate_volume(stl_file *stl);
 
 extern void stl_repair(stl_file *stl, bool fixall_flag, bool exact_flag, bool tolerance_flag, float tolerance, bool increment_flag, float increment, bool nearby_flag, int iterations, bool remove_unconnected_flag, bool fill_holes_flag, bool normal_directions_flag, bool normal_values_flag, bool reverse_all_flag, bool verbose_flag);
 
-extern void stl_reset(stl_file *stl);
 extern void stl_allocate(stl_file *stl);
 extern void stl_read(stl_file *stl, int first_facet, bool first);
 extern void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first);

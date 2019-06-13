@@ -221,7 +221,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
 
 bool stl_open(stl_file *stl, const char *file)
 {
-	stl_reset(stl);
+	stl->clear();
 	FILE *fp = stl_open_count_facets(stl, file);
 	if (fp == nullptr)
 		return false;
@@ -229,14 +229,6 @@ bool stl_open(stl_file *stl, const char *file)
 	bool result = stl_read(stl, fp, 0, true);
   	fclose(fp);
   	return result;
-}
-
-void stl_reset(stl_file *stl)
-{
-	stl->facet_start.clear();
-	stl->neighbors_start.clear();
-  	memset(&stl->stats, 0, sizeof(stl_stats));
-  	stl->stats.volume = -1.0;
 }
 
 #ifndef BOOST_LITTLE_ENDIAN

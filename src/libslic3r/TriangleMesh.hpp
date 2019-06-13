@@ -21,15 +21,13 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
 public:
-    TriangleMesh() : repaired(false) { stl_reset(&this->stl); }
+    TriangleMesh() : repaired(false) {}
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
-    TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_reset(&this->stl); *this = other; }
-    TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_reset(&this->stl); this->swap(other); }
-    ~TriangleMesh() { clear(); }
-    TriangleMesh& operator=(const TriangleMesh &other);
-    TriangleMesh& operator=(TriangleMesh &&other) { this->swap(other); return *this; }
-    void clear() { stl_reset(&this->stl); this->repaired = false; }
-    void swap(TriangleMesh &other) { std::swap(this->stl, other.stl); std::swap(this->repaired, other.repaired); }
+	TriangleMesh(const TriangleMesh& rhs) : stl(rhs.stl), its(rhs.its), repaired(rhs.repaired) {}
+	TriangleMesh(TriangleMesh&& rhs) : stl(std::move(rhs.stl)), its(std::move(rhs.its)), repaired(rhs.repaired) {}
+	TriangleMesh& operator=(const TriangleMesh& rhs) { this->stl = rhs.stl; this->its = rhs.its; this->repaired = rhs.repaired; return *this; }
+	TriangleMesh& operator=(TriangleMesh &&rhs) { this->stl = std::move(rhs.stl); this->its = std::move(rhs.its); this->repaired = rhs.repaired; return *this; }
+	void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
     bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
     bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
     bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
