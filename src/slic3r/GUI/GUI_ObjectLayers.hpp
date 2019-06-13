@@ -34,6 +34,8 @@ class LayerRangeEditor : public wxTextCtrl
     wxString            m_valid_value;
     EditorType          m_type;
 
+    std::function<void(EditorType)> m_set_focus;
+
 public:
     LayerRangeEditor(   wxWindow* parent,
                         const wxString& value = wxEmptyString,
@@ -44,6 +46,7 @@ public:
     ~LayerRangeEditor() {}
 
     EditorType          type() const {return m_type;}
+    void                set_focus() const { m_set_focus(m_type);}
 
 private:
     coordf_t            get_value();
@@ -56,7 +59,7 @@ class ObjectLayers : public OG_Settings
     ModelObject*    m_object {nullptr};
 
     wxFlexGridSizer*       m_grid_sizer;
-    t_layer_height_range   m_last_edited_range;
+    t_layer_height_range   m_selectable_range;
     EditorType             m_selection_type {etUndef};
 
 public:

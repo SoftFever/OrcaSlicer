@@ -49,18 +49,27 @@ void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_ed
 
 wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range) 
 {
-    const bool is_last_edited_range = range == m_last_edited_range;
+    const bool is_last_edited_range = range == m_selectable_range;
 
     auto set_focus_fn = [range, this](const EditorType type)
     {
-        m_last_edited_range = range;
+        m_selectable_range = range;
         m_selection_type = type;
+    };
+
+    auto set_focus = [range, this](const t_layer_height_range& new_range, EditorType type, bool enter_pressed)
+    {
+        // change selectable range for new one, if enter was pressed or if same range was selected
+        if (enter_pressed || m_selectable_range == range)
+            m_selectable_range = new_range;
+        if (enter_pressed)
+            m_selection_type = type;
     };
 
     // Add control for the "Min Z"
 
     auto editor = new LayerRangeEditor(m_parent, double_to_string(range.first), etMinZ,
-                                       set_focus_fn, [range, this](coordf_t min_z, bool enter_pressed)
+                                       set_focus_fn, [range, set_focus, this](coordf_t min_z, bool enter_pressed)
     {
         if (fabs(min_z - range.first) < EPSILON || min_z > range.second) {
             m_selection_type = etUndef;
@@ -69,10 +78,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
         // data for next focusing
         const t_layer_height_range& new_range = { min_z, range.second };
-        if (enter_pressed) {
-            m_last_edited_range = new_range;
-            m_selection_type = etMinZ;
-        }
+        set_focus(new_range, etMinZ, enter_pressed);
 
         return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
@@ -83,7 +89,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
     // Add control for the "Max Z"
 
     editor = new LayerRangeEditor(m_parent, double_to_string(range.second), etMaxZ,
-                                  set_focus_fn, [range, this](coordf_t max_z, bool enter_pressed)
+                                  set_focus_fn, [range, set_focus, this](coordf_t max_z, bool enter_pressed)
     {
         if (fabs(max_z - range.second) < EPSILON || range.first > max_z) {
             m_selection_type = etUndef;
@@ -92,10 +98,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
         // data for next focusing
         const t_layer_height_range& new_range = { range.first, max_z };
-        if (enter_pressed) {
-            m_last_edited_range = new_range;
-            m_selection_type = etMaxZ;
-        }
+        set_focus(new_range, etMaxZ, enter_pressed);
 
         return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
@@ -210,6 +213,7 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
                                     ) :
     m_valid_value(value),
     m_type(type),
+    m_set_focus(set_focus_fn),
     wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, 
                wxSize(8 * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
@@ -235,6 +239,11 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
     this->Bind(wxEVT_KILL_FOCUS, [this, edit_fn](wxFocusEvent& e)
     {
         if (!m_enter_pressed) {
+            // update data for next editor selection
+            LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());
+            if (new_editor)
+                new_editor->set_focus();
+
             // If LayersList wasn't updated/recreated, we should call e.Skip()
             if (m_type & etLayerHeight) {
                 if (!edit_fn(get_value(), false))
@@ -253,12 +262,6 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
             e.Skip();
         }
     }, this->GetId());
-
-    this->Bind(wxEVT_LEFT_DOWN, ([this, set_focus_fn](wxEvent& e)
-    {
-        set_focus_fn(m_type);
-        e.Skip();
-    }));
 
     this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
     {
