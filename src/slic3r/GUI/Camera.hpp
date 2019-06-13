@@ -58,7 +58,7 @@ public:
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
     Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
 
-    Vec3d get_position() const { return m_view_matrix.matrix().block(0, 3, 3, 1); }
+    Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h) const;
     void apply_view_matrix() const;
