@@ -2543,9 +2543,11 @@ void ObjectList::update_selections()
     if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) & (itSettings | itLayerRoot | itLayer))
     {
         const auto item = GetSelection();
-        if (selection.is_single_full_object() && 
-            m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
-            return; 
+        if (selection.is_single_full_object()) {
+            if (m_objects_model->GetObjectIdByItem(item) == selection.get_object_idx())
+                return;
+            sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
+        }
         if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
