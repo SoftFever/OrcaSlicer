@@ -9,6 +9,8 @@ namespace GUI {
 
 struct Camera
 {
+    static const float DefaultDistance;
+
     enum EType : unsigned char
     {
         Unknown,
@@ -20,7 +22,8 @@ struct Camera
     EType type;
     float zoom;
     float phi;
-//    float distance;
+    // Distance between camera position and camera target measured along the camera Z axis
+    float distance;
     bool requires_zoom_to_bed;
     bool inverted_phi;
 

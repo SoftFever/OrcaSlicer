@@ -22,11 +22,13 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 namespace Slic3r {
 namespace GUI {
 
+const float Camera::DefaultDistance = 1000.0f;
+
 Camera::Camera()
     : type(Ortho)
     , zoom(1.0f)
     , phi(45.0f)
-//    , distance(0.0f)
+    , distance(DefaultDistance)
     , requires_zoom_to_bed(false)
     , inverted_phi(false)
     , m_theta(45.0f)
@@ -107,12 +109,18 @@ void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h) const
 
 void Camera::apply_view_matrix() const
 {
+    double theta_rad = Geometry::deg2rad(-(double)m_theta);
+    double phi_rad = Geometry::deg2rad((double)phi);
+    double sin_theta = ::sin(theta_rad);
+    Vec3d camera_pos = m_target + (double)distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
+
     glsafe(::glMatrixMode(GL_MODELVIEW));
     glsafe(::glLoadIdentity());
 
     glsafe(::glRotatef(-m_theta, 1.0f, 0.0f, 0.0f)); // pitch
     glsafe(::glRotatef(phi, 0.0f, 0.0f, 1.0f));      // yaw
-    glsafe(::glTranslated(-m_target(0), -m_target(1), -m_target(2))); // target to origin
+
+    glsafe(::glTranslated(-camera_pos(0), -camera_pos(1), -camera_pos(2))); 
 
     glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, m_view_matrix.data()));
 }
@@ -136,8 +144,7 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
         // FIXME: calculate a tighter value for depth will improve z-fighting
         // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
         double depth = std::max(1.0, 5.0 * box.max_size());
-        apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
-
+        apply_ortho_projection(-w2, w2, -h2, h2, (double)distance - depth, (double)distance + depth);
         break;
     }
 //    case Perspective:
