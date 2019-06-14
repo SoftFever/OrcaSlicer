@@ -167,7 +167,7 @@ static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const Wipe
     return Point(scale_(wipe_tower_pt.x - gcodegen.origin()(0)), scale_(wipe_tower_pt.y - gcodegen.origin()(1)));
 }
 
-std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, float print_z) const
+std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
 {
     std::string gcode;
 
@@ -224,7 +224,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
             config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
             config.set_key_value("next_extruder",     new ConfigOptionInt((int)new_extruder_id));
             config.set_key_value("layer_num",         new ConfigOptionInt(gcodegen.m_layer_index));
-            config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
+            config.set_key_value("layer_z",           new ConfigOptionFloat(tcr.print_z));
             toolchange_gcode_str = gcodegen.placeholder_parser_process("toolchange_gcode", toolchange_gcode, new_extruder_id, &config);
             check_add_eol(toolchange_gcode_str);
         }
@@ -344,7 +344,7 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
 
         for (const WipeTower::ToolChangeResult& tcr : m_priming) {
             if (!tcr.extrusions.empty())
-                gcode += append_tcr(gcodegen, tcr, tcr.new_tool, tcr.print_z);
+                gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
 
 
             // Let the tool change be executed by the wipe tower class.
@@ -372,14 +372,14 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     return gcode;
 }
 
-std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer, float print_z)
+std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
 	assert(m_layer_idx >= 0 && m_layer_idx <= m_tool_changes.size());
     if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
 		if (m_layer_idx < m_tool_changes.size()) {
 			assert(m_tool_change_idx < m_tool_changes[m_layer_idx].size());
-			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, print_z);
+			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
 		}
         m_brim_done = true;
     }
@@ -392,7 +392,7 @@ std::string WipeTowerIntegration::finalize(GCode &gcodegen)
     std::string gcode;
     if (std::abs(gcodegen.writer().get_position()(2) - m_final_purge.print_z) > EPSILON)
         gcode += gcodegen.change_layer(m_final_purge.print_z);
-    gcode += append_tcr(gcodegen, m_final_purge, -1, m_final_purge.print_z);
+    gcode += append_tcr(gcodegen, m_final_purge, -1);
     return gcode;
 }
 
@@ -1649,7 +1649,7 @@ void GCode::process_layer(
     for (unsigned int extruder_id : layer_tools.extruders)
     {
         gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
-            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back(), print_z) :
+            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
             this->set_extruder(extruder_id, print_z);
 
         // let analyzer tag generator aware of a role type change
