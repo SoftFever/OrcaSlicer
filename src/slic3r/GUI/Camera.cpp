@@ -23,6 +23,8 @@ namespace Slic3r {
 namespace GUI {
 
 const float Camera::DefaultDistance = 1000.0f;
+double Camera::FrustrumMinZSize = 50.0;
+double Camera::FrustrumZMargin = 10.0;
 
 Camera::Camera()
     : type(Ortho)
@@ -127,6 +129,8 @@ void Camera::apply_view_matrix() const
 
 void Camera::apply_projection(const BoundingBoxf3& box) const
 {
+    m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+
     switch (type)
     {
     case Ortho:
@@ -141,10 +145,7 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
             h2 *= inv_two_zoom;
         }
 
-        // FIXME: calculate a tighter value for depth will improve z-fighting
-        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
-        double depth = std::max(1.0, 5.0 * box.max_size());
-        apply_ortho_projection(-w2, w2, -h2, h2, (double)distance - depth, (double)distance + depth);
+        apply_ortho_projection(-w2, w2, -h2, h2, m_frustrum_zs.first, m_frustrum_zs.second);
         break;
     }
 //    case Perspective:
@@ -166,6 +167,8 @@ void Camera::debug_render() const
     Vec3f forward = get_dir_forward().cast<float>();
     Vec3f right = get_dir_right().cast<float>();
     Vec3f up = get_dir_up().cast<float>();
+    float nearZ = (float)m_frustrum_zs.first;
+    float farZ = (float)m_frustrum_zs.second;
 
     ImGui::InputText("Type", const_cast<char*>(type.data()), type.length(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
@@ -175,6 +178,9 @@ void Camera::debug_render() const
     ImGui::InputFloat3("Forward", forward.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Right", right.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Up", up.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
+    ImGui::InputFloat("Near Z", &nearZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat("Far Z", &farZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
 }
 #endif // ENABLE_CAMERA_STATISTICS
@@ -188,6 +194,47 @@ void Camera::apply_ortho_projection(double x_min, double x_max, double y_min, do
     glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
 
     glsafe(::glMatrixMode(GL_MODELVIEW));
+}
+
+std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
+{
+    std::pair<double, double> ret = std::make_pair(DBL_MAX, -DBL_MAX);
+
+    Vec3d bb_min = box.min;
+    Vec3d bb_max = box.max;
+
+    // bbox vertices in world space
+    std::vector<Vec3d> vertices;
+    vertices.reserve(8);
+    vertices.push_back(bb_min);
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
+    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
+    vertices.push_back(bb_max);
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
+
+    // set the Z range in eye coordinates (only negative Zs are in front of the camera)
+    for (const Vec3d& v : vertices)
+    {
+        // ensure non-negative values
+        double z = std::max(-(m_view_matrix * v)(2), 0.0);
+        ret.first = std::min(ret.first, z);
+        ret.second = std::max(ret.second, z);
+    }
+
+    // apply margin
+    ret.first -= FrustrumZMargin;
+    ret.second += FrustrumZMargin;
+
+    // ensure min size
+    if (ret.second - ret.first < FrustrumMinZSize)
+        ret.second = ret.first + FrustrumMinZSize;
+
+    assert(ret.first > 0.0);
+
+    return ret;
 }
 
 } // GUI

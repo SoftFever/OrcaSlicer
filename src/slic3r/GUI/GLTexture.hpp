@@ -62,6 +62,7 @@ namespace GUI {
 
     protected:
         unsigned int generate_mipmaps(wxImage& image);
+
     private:
         bool load_from_png(const std::string& filename, bool use_mipmaps);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);

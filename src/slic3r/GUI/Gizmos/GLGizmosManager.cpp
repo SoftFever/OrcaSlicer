@@ -531,17 +531,8 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     do_render_overlay(canvas, selection);
-
-    glsafe(::glPopMatrix());
 }
-
-
 
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
 {

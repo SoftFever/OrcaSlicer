@@ -635,7 +635,7 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box() const;
+    BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
 
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
@@ -652,6 +652,7 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    void _render_overlays() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_volumes_for_picking() const;

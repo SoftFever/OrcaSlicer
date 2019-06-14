@@ -390,19 +390,12 @@ void GLToolbar::render(const GLCanvas3D& parent) const
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     switch (m_layout.type)
     {
     default:
     case Layout::Horizontal: { render_horizontal(parent); break; }
     case Layout::Vertical: { render_vertical(parent); break; }
     }
-
-    glsafe(::glPopMatrix());
 }
 
 bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)

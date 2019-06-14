@@ -304,22 +304,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
     const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    // The viewport and camera are set to complete view and glOrtho(-$x / 2, $x / 2, -$y / 2, $y / 2, -$depth, $depth),
-    // where x, y is the window size divided by $self->_zoom.
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(reset_rect);
     _render_active_object_annotations(canvas, bar_rect);
     _render_profile(bar_rect);
-
-    // Revert the matrices.
-    glsafe(::glPopMatrix());
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -880,10 +868,6 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
         float zoom = canvas.get_camera().zoom;
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -904,9 +888,6 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1160,10 +1141,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 {
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
         float zoom = canvas.get_camera().zoom;
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1184,9 +1161,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1466,7 +1440,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(false));
 
     if (m_config != nullptr)
     {
@@ -1550,7 +1524,7 @@ void GLCanvas3D::allow_multisample(bool allow)
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(m_bed.get_bounding_box());
+    _zoom_to_bounding_box(m_bed.get_bounding_box(false));
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -1624,7 +1598,7 @@ void GLCanvas3D::render()
     }
 
     m_camera.apply_view_matrix();
-    m_camera.apply_projection(_max_bounding_box());
+    m_camera.apply_projection(_max_bounding_box(true));
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -1686,16 +1660,7 @@ void GLCanvas3D::render()
         m_rectangle_selection.render(*this);
 
     // draw overlays
-    _render_gizmos_overlay();
-    _render_warning_texture();
-    _render_legend_texture();
-#if !ENABLE_SVG_ICONS
-    _resize_toolbars();
-#endif // !ENABLE_SVG_ICONS
-    _render_toolbar();
-    _render_view_toolbar();
-    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
-        m_layers_editing.render_overlay(*this);
+    _render_overlays();
 
 #if ENABLE_RENDER_STATISTICS
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -3285,7 +3250,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     zoom = m_camera.zoom / (1.0f - zoom);
 
     // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
+    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box(false));
     if (zoom_min > 0.0f)
         zoom = std::max(zoom, zoom_min * 0.7f);
 
@@ -3375,7 +3340,7 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {
-    return factor * m_bed.get_bounding_box().max_size();
+    return factor * m_bed.get_bounding_box(false).max_size();
 }
 
 void GLCanvas3D::set_cursor(ECursorType type)
@@ -3613,10 +3578,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     m_dirty = false;
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_bed_model) const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(include_bed_model));
     return bb;
 }
 
@@ -3907,7 +3872,7 @@ void GLCanvas3D::_render_objects() const
 
             if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box(false);
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
@@ -3988,6 +3953,29 @@ void GLCanvas3D::_render_selection_center() const
     m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
+
+void GLCanvas3D::_render_overlays() const
+{
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    // ensure the textures are renderered inside the frustrum
+    glsafe(::glTranslated(0.0, 0.0, -(m_camera.get_near_z() + 0.5)));
+
+    _render_gizmos_overlay();
+    _render_warning_texture();
+    _render_legend_texture();
+#if !ENABLE_SVG_ICONS
+    _resize_toolbars();
+#endif // !ENABLE_SVG_ICONS
+    _render_toolbar();
+    _render_view_toolbar();
+
+    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
+        m_layers_editing.render_overlay(*this);
+
+    glsafe(::glPopMatrix());
+}
 
 void GLCanvas3D::_render_warning_texture() const
 {

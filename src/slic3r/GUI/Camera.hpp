@@ -10,6 +10,8 @@ namespace GUI {
 struct Camera
 {
     static const float DefaultDistance;
+    static double FrustrumMinZSize;
+    static double FrustrumZMargin;
 
     enum EType : unsigned char
     {
@@ -34,6 +36,7 @@ private:
     mutable std::array<int, 4> m_viewport;
     mutable Transform3d m_view_matrix;
     mutable Transform3d m_projection_matrix;
+    mutable std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
 
@@ -63,6 +66,9 @@ public:
 
     Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
 
+    double get_near_z() const { return m_frustrum_zs.first; }
+    double get_far_z() const { return m_frustrum_zs.second; }
+
     void apply_viewport(int x, int y, unsigned int w, unsigned int h) const;
     void apply_view_matrix() const;
     void apply_projection(const BoundingBoxf3& box) const;
@@ -73,6 +79,9 @@ public:
 
 private:
     void apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const;
+    // returns tight values for nearZ and farZ plane around the given bounding box
+    // the camera MUST be outside of the bounding box in eye coordinate of the given box
+    std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
 };
 
 } // GUI
