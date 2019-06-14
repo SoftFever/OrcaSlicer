@@ -130,18 +130,12 @@ struct HashTableEdges {
 			this->heads[i] = this->tail;
 	}
 	~HashTableEdges() {
-	    for (int i = 0; i < this->M; ++ i) {
-	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i]) {
-	        	this->heads[i] = this->heads[i]->next;
-	        	pool.destroy(temp);
 #ifndef NDEBUG
+		for (int i = 0; i < this->M; ++ i)
+	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i])
 	        	++ this->freed;
-#endif /* NDEBUG */
-	      	}
-	    }
-		this->heads.clear();
-		pool.destroy(this->tail);
 		this->tail = nullptr;
+#endif /* NDEBUG */
 	}
 
 	void insert_edge_exact(stl_file *stl, const HashEdge &edge)
@@ -197,7 +191,7 @@ private:
 			match_neighbors(edge, *link);
 			// Delete the matched edge from the list.
 			this->heads[chain_number] = link->next;
-			pool.destroy(link);
+			// pool.destroy(link);
 #ifndef NDEBUG
 			++ this->freed;
 #endif /* NDEBUG */
@@ -224,7 +218,7 @@ private:
 					// Delete the matched edge from the list.
 					HashEdge *temp = link->next;
 					link->next = link->next->next;
-					pool.destroy(temp);
+					// pool.destroy(temp);
 #ifndef NDEBUG
 					++ this->freed;
 #endif /* NDEBUG */

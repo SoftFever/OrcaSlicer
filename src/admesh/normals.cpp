@@ -25,6 +25,8 @@
 #include <string.h>
 #include <math.h>
 
+// Boost pool: Don't use mutexes to synchronize memory allocation.
+#define BOOST_POOL_NO_MT
 #include <boost/pool/object_pool.hpp>
 
 #include "stl.h"
@@ -192,7 +194,7 @@ void stl_fix_normal_directions(stl_file *stl)
       		}
       		stl_normal *temp = head->next;	// Delete this facet from the list.
       		head->next = head->next->next;
-      		pool.destroy(temp);
+      		// pool.destroy(temp);
     	} else { // If we ran out of facets to fix: All of the facets in this part have been fixed.
       		++ stl->stats.number_of_parts;
       		if (checked >= stl->stats.number_of_facets)
@@ -214,8 +216,8 @@ void stl_fix_normal_directions(stl_file *stl)
     	}
   	}
 
-	pool.destroy(head);
-	pool.destroy(tail);
+	// pool.destroy(head);
+	// pool.destroy(tail);
 }
 
 void stl_fix_normal_values(stl_file *stl)
