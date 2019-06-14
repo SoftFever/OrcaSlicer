@@ -120,10 +120,6 @@ struct stl_stats {
 
 struct stl_file {
 	stl_file() {}
-	stl_file(const stl_file &rhs) : facet_start(rhs.facet_start), neighbors_start(rhs.neighbors_start), stats(rhs.stats) {}
-	stl_file(stl_file &&rhs) : facet_start(std::move(rhs.facet_start)), neighbors_start(std::move(rhs.neighbors_start)), stats(rhs.stats) {}
-	stl_file& operator=(const stl_file &rhs) { this->facet_start = rhs.facet_start; this->neighbors_start = rhs.neighbors_start; this->stats = rhs.stats; return *this; }
-	stl_file& operator=(stl_file &&rhs) { this->facet_start = std::move(rhs.facet_start); this->neighbors_start = std::move(rhs.neighbors_start); this->stats = rhs.stats; return *this; }
 
 	void clear() {
 		this->facet_start.clear();
@@ -140,10 +136,6 @@ struct stl_file {
 struct indexed_triangle_set
 {
 	indexed_triangle_set() {}
-	indexed_triangle_set(const indexed_triangle_set &rhs) : indices(rhs.indices), vertices(rhs.vertices) {}
-	indexed_triangle_set(indexed_triangle_set &&rhs) : indices(std::move(rhs.indices)), vertices(std::move(rhs.vertices)) {}
-	indexed_triangle_set& operator=(const indexed_triangle_set &rhs) { this->indices = rhs.indices; this->vertices = rhs.vertices; return *this; }
-	indexed_triangle_set& operator=(indexed_triangle_set &&rhs) { this->indices = std::move(rhs.indices); this->vertices = std::move(rhs.vertices); return *this; }
 
 	void clear() { indices.clear(); vertices.clear(); }
 

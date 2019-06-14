@@ -8,7 +8,6 @@
 #include <wchar.h>
 
 #ifdef SLIC3R_GUI
-//Turn on high power graphics for NVidia cards on laptops (with built in graphics cards + Nvidia cards)
 extern "C" 
 { 
 	// Let the NVIDIA and AMD know we want to use their graphics card
