@@ -172,7 +172,7 @@ public:
 	virtual bool 	  		 finished() const { return m_max_color_changes == 0; }
 
 	// Returns gcode to prime the nozzles at the front edge of the print bed.
-	virtual ToolChangeResult prime(
+	virtual std::vector<ToolChangeResult> prime(
 		// print_z of the first layer.
 		float 						first_layer_height, 
 		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.

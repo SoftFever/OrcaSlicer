@@ -119,6 +119,12 @@ public:
         // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
         bool                    priming;
 
+        // Initial tool
+        int initial_tool;
+
+        // New tool
+        int new_tool;
+
 		// Sum the total length of the extrusion.
 		float total_extrusion_length_in_plane() {
 			float e_length = 0.f;
@@ -134,7 +140,7 @@ public:
 	};
 
 	// Returns gcode to prime the nozzles at the front edge of the print bed.
-	virtual ToolChangeResult prime(
+	virtual std::vector<ToolChangeResult> prime(
 		// print_z of the first layer.
 		float 						first_layer_height, 
 		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.

@@ -1824,7 +1824,7 @@ void Print::_make_wipe_tower()
             m_config.filament_max_volumetric_speed.get_at(i),
             m_config.nozzle_diameter.get_at(i));
 
-    m_wipe_tower_data.priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
+    m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
         wipe_tower.prime(this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each

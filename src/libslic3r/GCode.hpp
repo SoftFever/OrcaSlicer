@@ -83,7 +83,7 @@ class WipeTowerIntegration {
 public:
     WipeTowerIntegration(
         const PrintConfig                                           &print_config,
-        const WipeTower::ToolChangeResult                           &priming,
+        const std::vector<WipeTower::ToolChangeResult>              &priming,
         const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
         const WipeTower::ToolChangeResult                           &final_purge) :
         m_left(/*float(print_config.wipe_tower_x.value)*/ 0.f),
@@ -116,7 +116,7 @@ private:
     const WipeTower::xy                                          m_wipe_tower_pos;
     const float                                                  m_wipe_tower_rotation;
     // Reference to cached values at the Printer class.
-    const WipeTower::ToolChangeResult                           &m_priming;
+    const std::vector<WipeTower::ToolChangeResult>              &m_priming;
     const std::vector<std::vector<WipeTower::ToolChangeResult>> &m_tool_changes;
     const WipeTower::ToolChangeResult                           &m_final_purge;
     // Current layer index.

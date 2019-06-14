@@ -515,7 +515,7 @@ std::string WipeTowerPrusaMM::to_string(material_type material)
 }
 
 // Returns gcode to prime the nozzles at the front edge of the print bed.
-WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
+std::vector<WipeTower::ToolChangeResult> WipeTowerPrusaMM::prime(
 	// print_z of the first layer.
 	float 						first_layer_height, 
 	// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.
@@ -535,22 +535,34 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
 	box_coordinates cleaning_box(xy(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
-	writer.set_extrusion_flow(m_extrusion_flow)
-		  .set_z(m_z_pos)
-		  .set_initial_tool(m_current_tool)
-		  .append(";--------------------\n"
-			 	  "; CP PRIMING START\n")
-		  .append(";--------------------\n");
-	writer.speed_override_backup();
-	writer.speed_override(100);
 
-	writer.set_initial_position(xy(0.f, 0.f))	// Always move to the starting position
-		.travel(cleaning_box.ld, 7200);
-	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
+    std::vector<ToolChangeResult> results;
 
+    // Iterate over all priming toolchanges and push respective ToolChangeResults into results vector.
     for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
+        int old_tool = m_current_tool;
+
+        PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+        writer.set_extrusion_flow(m_extrusion_flow)
+              .set_z(m_z_pos)
+              .set_initial_tool(m_current_tool);
+
+        // This is the first toolchange - initiate priming
+        if (idx_tool == 0) {
+            writer.append(";--------------------\n"
+                          "; CP PRIMING START\n")
+                  .append(";--------------------\n")
+                  .speed_override_backup()
+                  .speed_override(100)
+                  .set_initial_position(xy(0.f, 0.f))	// Always move to the starting position
+                  .travel(cleaning_box.ld, 7200);
+            if (m_set_extruder_trimpot)
+                writer.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
+        }
+        else
+            writer.set_initial_position(results.back().end_pos);
+
+
         unsigned int tool = tools[idx_tool];
         m_left_to_right = true;
         toolchange_Change(writer, tool, m_filpar[tool].material); // Select the tool, set a speed override for soluble and flex materials.
@@ -569,45 +581,56 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
             writer.travel(cleaning_box.ld, 7200);
         }
         ++ m_num_tool_changes;
+
+
+        // Ask our writer about how much material was consumed:
+        if (m_current_tool < m_used_filament_length.size())
+            m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+
+        ToolChangeResult result;
+        result.priming      = true;
+        result.initial_tool = old_tool;
+        result.new_tool     = m_current_tool;
+        result.print_z 	  	= this->m_z_pos;
+        result.layer_height = this->m_layer_height;
+        result.gcode   	  	= writer.gcode();
+        result.elapsed_time = writer.elapsed_time();
+        result.extrusions 	= writer.extrusions();
+        result.start_pos  	= writer.start_pos_rotated();
+        result.end_pos 	  	= writer.pos_rotated();
+
+        results.push_back(std::move(result));
+
+        // This is the last priming toolchange - finish priming
+        if (idx_tool+1 == tools.size()) {
+            // Reset the extruder current to a normal value.
+            if (m_set_extruder_trimpot)
+                writer.set_extruder_trimpot(550);
+            writer.speed_override_restore()
+                  .feedrate(6000)
+                  .flush_planner_queue()
+                  .reset_extruder()
+                  .append("; CP PRIMING END\n"
+                          ";------------------\n"
+                          "\n\n");
+        }
     }
 
     m_old_temperature = -1; // If the priming is turned off in config, the temperature changing commands will not actually appear
                             // in the output gcode - we should not remember emitting them (we will output them twice in the worst case)
 
-	// Reset the extruder current to a normal value.
-	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(550);
-	writer.speed_override_restore();
-	writer.feedrate(6000)
-		  .flush_planner_queue()
-		  .reset_extruder()
-		  .append("; CP PRIMING END\n"
-	 		      ";------------------\n"
-				  "\n\n");
-
 	// so that tool_change() will know to extrude the wipe tower brim:
 	m_print_brim = true;
 
-    // Ask our writer about how much material was consumed:
-    if (m_current_tool < m_used_filament_length.size())
-    	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
-
-	ToolChangeResult result;
-    result.priming      = true;
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
-	result.gcode   	  	= writer.gcode();
-	result.elapsed_time = writer.elapsed_time();
-	result.extrusions 	= writer.extrusions();
-	result.start_pos  	= writer.start_pos_rotated();
-	result.end_pos 	  	= writer.pos_rotated();
-	return result;
+	return results;
 }
 
 WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, bool last_in_layer)
 {
 	if ( m_print_brim )
 		return toolchange_Brim();
+
+    int old_tool = m_current_tool;
 
 	float wipe_area = 0.f;
 	bool last_change_in_layer = false;
@@ -697,6 +720,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
 	ToolChangeResult result;
     result.priming      = false;
+    result.initial_tool = old_tool;
+    result.new_tool     = m_current_tool;
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();
@@ -709,6 +734,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
 WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, float y_offset)
 {
+    int old_tool = m_current_tool;
+
 	const box_coordinates wipeTower_box(
 		WipeTower::xy(0.f, 0.f),
 		m_wipe_tower_width,
@@ -751,6 +778,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 
 	ToolChangeResult result;
     result.priming      = false;
+    result.initial_tool = old_tool;
+    result.new_tool     = m_current_tool;
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();
@@ -1044,6 +1073,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
 
+    int old_tool = m_current_tool;
+
 	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
@@ -1125,6 +1156,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 
 	ToolChangeResult result;
     result.priming      = false;
+    result.initial_tool = old_tool;
+    result.new_tool     = m_current_tool;
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();
