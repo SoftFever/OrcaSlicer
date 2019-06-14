@@ -119,8 +119,6 @@ target_include_directories(XS PRIVATE src ${LIBDIR}/libslic3r)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 
-target_link_libraries(XS ${Boost_LIBRARIES})
-
 if (APPLE)
     # -liconv: boost links to libiconv by default
     target_link_libraries(XS "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
@@ -156,12 +154,6 @@ if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
 
-target_link_libraries(XS ${Boost_LIBRARIES})
-target_link_libraries(XS ${TBB_LIBRARIES})
-# target_link_libraries(XS ${wxWidgets_LIBRARIES})
-target_link_libraries(XS ${EXPAT_LIBRARIES})
-# target_link_libraries(XS ${GLEW_LIBRARIES})
-
 # Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
 set(PERL_LOCAL_LIB_DIR "../../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
 add_custom_command(
@@ -179,10 +171,6 @@ if(APPLE)
         POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS.bundle"
     )
-endif()
-
-if(SLIC3R_PROFILE)
-    target_link_libraries(Shiny)
 endif()
 
 if (MSVC)
