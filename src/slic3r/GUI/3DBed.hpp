@@ -87,7 +87,6 @@ private:
     Pointfs m_shape;
     mutable BoundingBoxf3 m_bounding_box;
     mutable BoundingBoxf3 m_extended_bounding_box;
-    mutable bool m_extended_bounding_box_dirty;
     Polygon m_polygon;
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;

@@ -1590,8 +1590,8 @@ void GLCanvas3D::render()
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
-        const Size& cnv_size = get_canvas_size();
-        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+//        const Size& cnv_size = get_canvas_size();
+//        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_camera.requires_zoom_to_bed = false;
     }
 

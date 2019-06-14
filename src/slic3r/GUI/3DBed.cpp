@@ -211,7 +211,7 @@ const double Bed3D::Axes::ArrowLength = 5.0;
 
 Bed3D::Axes::Axes()
 : origin(Vec3d::Zero())
-, length(Vec3d::Zero())
+, length(25.0 * Vec3d::Ones())
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -273,7 +273,6 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
-    , m_extended_bounding_box_dirty(true)
 #if ENABLE_TEXTURES_FROM_SVG
     , m_vbo_id(0)
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -313,8 +312,6 @@ bool Bed3D::set_shape(const Pointfs& shape)
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
-
-    m_extended_bounding_box_dirty = true;
 
     // Let the calee to update the UI.
     return true;
@@ -413,17 +410,12 @@ void Bed3D::calc_bounding_boxes() const
 
     m_extended_bounding_box = m_bounding_box;
 
-    if (m_extended_bounding_box_dirty)
-    {
-        // extend to contain Z axis
-        m_extended_bounding_box.merge(0.1 * m_bounding_box.max_size() * Vec3d::UnitZ());
+    // extend to contain axes
+    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
 
-        if (!m_model.get_filename().empty())
-            // extend to contain model
-            m_extended_bounding_box.merge(m_model.get_bounding_box());
-
-        m_extended_bounding_box_dirty = false;
-    }
+    // extend to contain model, if any
+    if (!m_model.get_filename().empty())
+        m_extended_bounding_box.merge(m_model.get_transformed_bounding_box());
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)

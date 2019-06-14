@@ -169,6 +169,7 @@ void Camera::debug_render() const
     Vec3f up = get_dir_up().cast<float>();
     float nearZ = (float)m_frustrum_zs.first;
     float farZ = (float)m_frustrum_zs.second;
+    float deltaZ = farZ - nearZ;
 
     ImGui::InputText("Type", const_cast<char*>(type.data()), type.length(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
@@ -181,6 +182,7 @@ void Camera::debug_render() const
     ImGui::Separator();
     ImGui::InputFloat("Near Z", &nearZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat("Far Z", &farZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat("Delta Z", &deltaZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
 }
 #endif // ENABLE_CAMERA_STATISTICS
@@ -230,7 +232,12 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     // ensure min size
     if (ret.second - ret.first < FrustrumMinZSize)
-        ret.second = ret.first + FrustrumMinZSize;
+    {
+        double mid_z = 0.5 * (ret.first + ret.second);
+        double half_size = 0.5 * FrustrumMinZSize;
+        ret.first = mid_z - half_size;
+        ret.second = mid_z + half_size;
+    }
 
     assert(ret.first > 0.0);
 
