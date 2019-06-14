@@ -23,25 +23,6 @@ namespace PrusaMultiMaterial {
 class WipeTowerPrusaMM : public WipeTower
 {
 public:
-	enum material_type
-	{
-		INVALID = -1,
-		PLA   = 0,		// E:210C	B:55C
-		ABS   = 1,		// E:255C	B:100C
-		PET   = 2,		// E:240C	B:90C
-		HIPS  = 3,		// E:220C	B:100C
-		FLEX  = 4,		// E:245C	B:80C
-		SCAFF = 5,		// E:215C	B:55C
-		EDGE  = 6,		// E:240C	B:80C
-		NGEN  = 7,		// E:230C	B:80C
-		PVA   = 8,	    // E:210C	B:80C
-		PC    = 9
-	};
-
-	// Parse material name into material_type.
-	static material_type parse_material(const char *name);
-	static std::string   to_string(material_type material);
-
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
@@ -77,7 +58,7 @@ public:
 
 
 	// Set the extruder properties.
-	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
+	void set_extruder(size_t idx, std::string material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
                       float unloading_speed, float unloading_speed_start, float delay, int cooling_moves,
                       float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float max_volumetric_speed, float nozzle_diameter)
 	{
@@ -198,7 +179,7 @@ public:
     virtual int get_number_of_toolchanges() const override { return m_num_tool_changes; }
 
     struct FilamentParameters {
-        material_type 	    material = PLA;
+        std::string 	    material = "PLA";
         int  			    temperature = 0;
         int  			    first_layer_temperature = 0;
         float               loading_speed = 0.f;
@@ -370,13 +351,13 @@ private:
 	void toolchange_Unload(
 		PrusaMultiMaterial::Writer &writer,
 		const box_coordinates  &cleaning_box, 
-		const material_type	 	current_material,
+		const std::string&	 	current_material,
 		const int 				new_temperature);
 
 	void toolchange_Change(
 		PrusaMultiMaterial::Writer &writer,
 		const unsigned int		new_tool,
-		material_type 			new_material);
+		const std::string& 		new_material);
 	
 	void toolchange_Load(
 		PrusaMultiMaterial::Writer &writer,

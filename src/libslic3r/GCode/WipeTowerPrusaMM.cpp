@@ -398,13 +398,6 @@ public:
 		return *this;
 	}
 
-	Writer& comment_material(WipeTowerPrusaMM::material_type material)
-	{
-		m_gcode += "; material : ";
-		m_gcode += WipeTowerPrusaMM::to_string(material) + "\n";
-		return *this;
-	};
-
 	Writer& append(const char *text) { m_gcode += text; return *this; }
 
 private:
@@ -469,50 +462,6 @@ private:
 
 }; // namespace PrusaMultiMaterial
 
-
-
-WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *name)
-{
-	if (strcasecmp(name, "PLA") == 0)
-		return PLA;
-	if (strcasecmp(name, "ABS") == 0)
-		return ABS;
-	if (strcasecmp(name, "PET") == 0)
-		return PET;
-	if (strcasecmp(name, "HIPS") == 0)
-		return HIPS;
-	if (strcasecmp(name, "FLEX") == 0)
-		return FLEX;
-	if (strcasecmp(name, "SCAFF") == 0)
-		return SCAFF;
-	if (strcasecmp(name, "EDGE") == 0)
-		return EDGE;
-	if (strcasecmp(name, "NGEN") == 0)
-		return NGEN;
-	if (strcasecmp(name, "PVA") == 0)
-		return PVA;
-	if (strcasecmp(name, "PC") == 0)
-		return PC;
-	return INVALID;
-}
-
-std::string WipeTowerPrusaMM::to_string(material_type material)
-{
-	switch (material) {
-	case PLA:		return "PLA";
-	case ABS:		return "ABS";
-	case PET:		return "PET";
-	case HIPS:		return "HIPS";
-	case FLEX:		return "FLEX";
-	case SCAFF:		return "SCAFF";
-	case EDGE:		return "EDGE";
-	case NGEN:		return "NGEN";
-	case PVA:		return "PVA";
-	case PC:		return "PC";
-	case INVALID: 	
-	default: 		return "INVALID";
-	}
-}
 
 // Returns gcode to prime the nozzles at the front edge of the print bed.
 std::vector<WipeTower::ToolChangeResult> WipeTowerPrusaMM::prime(
@@ -665,9 +614,12 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		.set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
 		.append(";--------------------\n"
 				"; CP TOOLCHANGE START\n")
-		.comment_with_value(" toolchange #", m_num_tool_changes + 1) // the number is zero-based
-		.comment_material(m_filpar[m_current_tool].material)
-		.append(";--------------------\n");
+		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
+
+    if (tool != (unsigned)(-1))
+        writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
+              .append(";--------------------\n");
+
 	writer.speed_override_backup();
 	writer.speed_override(100);
 
@@ -796,7 +748,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 void WipeTowerPrusaMM::toolchange_Unload(
 	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates 	&cleaning_box,
-	const material_type		 current_material,
+	const std::string&		 current_material,
 	const int 				 new_temperature)
 {
 	float xl = cleaning_box.ld.x + 1.f * m_perimeter_width;
@@ -945,7 +897,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 void WipeTowerPrusaMM::toolchange_Change(
 	PrusaMultiMaterial::Writer &writer,
 	const unsigned int 	new_tool, 
-	material_type 		new_material)
+	const std::string&  new_material)
 {
     // Ask the writer about how much of the old filament we consumed:
     if (m_current_tool < m_used_filament_length.size())

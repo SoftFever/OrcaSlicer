@@ -1809,7 +1809,7 @@ void Print::_make_wipe_tower()
 
         wipe_tower.set_extruder(
             i, 
-            WipeTowerPrusaMM::parse_material(m_config.filament_type.get_at(i).c_str()),
+            m_config.filament_type.get_at(i),
             m_config.temperature.get_at(i),
             m_config.first_layer_temperature.get_at(i),
             m_config.filament_loading_speed.get_at(i),
