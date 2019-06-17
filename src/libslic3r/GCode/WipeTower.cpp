@@ -251,12 +251,6 @@ public:
 		m_gcode += "\n";
 		return *this;
 	}
- 
-	// Derectract while moving in the X direction.
-	// If |x| > 0, the feed rate relates to the x distance,
-	// otherwise the feed rate relates to the e distance.
-	WipeTowerWriter& load_move_x(float x, float e, float f = 0.f)
-		{ return extrude_explicit(x, m_current_pos.y(), e, f); }
 
 	WipeTowerWriter& retract(float e, float f = 0.f)
 		{ return load(-e, f); }
@@ -264,12 +258,18 @@ public:
 // Loads filament while also moving towards given points in x-axis (x feedrate is limited by cutting the distance short if necessary)
     WipeTowerWriter& load_move_x_advanced(float farthest_x, float loading_dist, float loading_speed, float max_x_speed = 50.f)
     {
-        float time = std::abs(loading_dist / loading_speed);
-        float x_speed = std::min(max_x_speed, std::abs(farthest_x - x()) / time);
-        float feedrate = 60.f * std::hypot(x_speed, loading_speed);
+        float time = std::abs(loading_dist / loading_speed); // time that the move must take
+        float x_distance = std::abs(farthest_x - x());       // max x-distance that we can travel
+        float x_speed = x_distance / time;                   // x-speed to do it in that time
 
-        float end_point = x() + (farthest_x > x() ? 1.f : -1.f) * x_speed * time;
-        return extrude_explicit(end_point, y(), loading_dist, feedrate);
+        if (x_speed > max_x_speed) {
+            // Necessary x_speed is too high - we must shorten the distance to achieve max_x_speed and still respect the time.
+            x_distance = max_x_speed * time;
+            x_speed = max_x_speed;
+        }
+
+        float end_point = x() + (farthest_x > x() ? 1.f : -1.f) * x_distance;
+        return extrude_explicit(end_point, y(), loading_dist, x_speed * 60.f, false, false);
     }
 
 	// Elevate the extruder head above the current print_z position.
@@ -300,8 +300,8 @@ public:
 	// at the current Y position to spread the leaking material.
 	WipeTowerWriter& cool(float x1, float x2, float e1, float e2, float f)
 	{
-		extrude_explicit(x1, m_current_pos.y(), e1, f);
-		extrude_explicit(x2, m_current_pos.y(), e2);
+		extrude_explicit(x1, m_current_pos.y(), e1, f, false, false);
+		extrude_explicit(x2, m_current_pos.y(), e2, false, false);
 		return *this;
 	}
 
@@ -406,7 +406,7 @@ public:
 		return *this;
 	}
 
-	WipeTowerWriter& append(const char *text) { m_gcode += text; return *this; }
+	WipeTowerWriter& append(const std::string& text) { m_gcode += text; return *this; }
 
 private:
 	Vec2f         m_start_pos;
@@ -825,7 +825,7 @@ void WipeTower::toolchange_Unload(
         const float e = m_filpar[m_current_tool].ramming_speed[i] * 0.25f / Filament_Area; // transform volume per sec to E move;
         const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
         const float actual_time = dist/x * 0.25;
-        writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), std::hypot(dist, e * (dist / x)) / (actual_time / 60.));
+        writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), dist / (actual_time / 60.));
         remaining -= dist;
 
 		if (remaining < WT_EPSILON)	{ // we reached a turning point
