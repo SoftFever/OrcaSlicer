@@ -586,7 +586,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
-        if (insert_position > 0) insert_position++;
+        if (insert_position >= 0) insert_position++;
 	}
 
     const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);

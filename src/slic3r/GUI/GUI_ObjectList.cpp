@@ -1415,12 +1415,17 @@ void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
 
 void ObjectList::load_subobject(ModelVolumeType type)
 {
-    auto item = GetSelection();
-    if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0))
+    wxDataViewItem item = GetSelection();
+    // we can add volumes for Object or Instance
+    if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
         return;
-    int obj_idx = m_objects_model->GetIdByItem(item);
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
     if (obj_idx < 0) return;
+
+    // Get object item, if Instance is selected
+    if (m_objects_model->GetItemType(item)&itInstance)
+        item = m_objects_model->GetItemById(obj_idx);
 
     std::vector<std::pair<wxString, bool>> volumes_info;
     load_part((*m_objects)[obj_idx], volumes_info, type);
