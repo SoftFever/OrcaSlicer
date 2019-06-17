@@ -21,8 +21,13 @@ using ThrowOnCancel = std::function<void(void)>;
 /// Calculate the polygon representing the silhouette from the specified height
 void base_plate(const TriangleMesh& mesh,       // input mesh
                 ExPolygons& output,             // Output will be merged with
-                float zlevel = 0.1f,            // Plate creation level
+                float samplingheight = 0.1f,    // The height range to sample
                 float layerheight = 0.05f,      // The sampling height
+                ThrowOnCancel thrfn = [](){});  // Will be called frequently
+
+void base_plate(const TriangleMesh& mesh,       // input mesh
+                ExPolygons& output,             // Output will be merged with
+                const std::vector<float>&,      // Exact Z levels to sample
                 ThrowOnCancel thrfn = [](){});  // Will be called frequently
 
 // Function to cut tiny connector cavities for a given polygon. The input poly

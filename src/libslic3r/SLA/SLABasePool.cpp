@@ -666,24 +666,19 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
     return punion;
 }
 
-void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
-                float layerh, ThrowOnCancel thrfn)
+void base_plate(const TriangleMesh &      mesh,
+                ExPolygons &              output,
+                const std::vector<float> &heights,
+                ThrowOnCancel             thrfn)
 {
-    TriangleMesh m = mesh;
-    m.require_shared_vertices(); // TriangleMeshSlicer needs this
-    TriangleMeshSlicer slicer(&m);
-
-    auto bb = mesh.bounding_box();
-    float gnd = float(bb.min(Z));
-    std::vector<float> heights = {float(bb.min(Z))};
-    for(float hi = gnd + layerh; hi <= gnd + h; hi += layerh)
-        heights.emplace_back(hi);
-
-    std::vector<ExPolygons> out; out.reserve(size_t(std::ceil(h/layerh)));
+    //    m.require_shared_vertices(); // TriangleMeshSlicer needs this    
+    TriangleMeshSlicer slicer(&mesh);
+    
+    std::vector<ExPolygons> out; out.reserve(heights.size());
     slicer.slice(heights, 0.f, &out, thrfn);
-
+    
     size_t count = 0; for(auto& o : out) count += o.size();
-
+    
     // Now we have to unify all slice layers which can be an expensive operation
     // so we will try to simplify the polygons
     ExPolygons tmp; tmp.reserve(count);
@@ -692,13 +687,29 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
             auto&& exss = e.simplify(scaled(0.1));
             for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
         }
-
+    
     ExPolygons utmp = unify(tmp);
-
+    
     for(auto& o : utmp) {
         auto&& smp = o.simplify(scaled(0.1));
         output.insert(output.end(), smp.begin(), smp.end());
     }
+}
+
+void base_plate(const TriangleMesh &mesh,
+                ExPolygons &        output,
+                float               h,
+                float               layerh,
+                ThrowOnCancel       thrfn)
+{
+    auto bb = mesh.bounding_box();
+    float gnd = float(bb.min(Z));
+    std::vector<float> heights = {float(bb.min(Z))};
+    
+    for(float hi = gnd + layerh; hi <= gnd + h; hi += layerh)
+        heights.emplace_back(hi);
+    
+    base_plate(mesh, output, heights, thrfn);
 }
 
 Contour3D create_base_pool(const Polygons &ground_layer, 

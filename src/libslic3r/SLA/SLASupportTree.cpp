@@ -569,37 +569,74 @@ struct Pad {
                sla::get_pad_elevation(pcfg))
     {
         Polygons basep;
-        cfg.throw_on_cancel();
+        auto &thr = cfg.throw_on_cancel;
         
-        // The 0.1f is the layer height with which the mesh is sampled and then
-        // the layers are unified into one vector of polygons.
-        ExPolygons platetmp;
-        base_plate(object_support_mesh, platetmp,
-                   float(cfg.min_wall_height_mm + cfg.min_wall_thickness_mm),
-                   0.1f, pcfg.throw_on_cancel);
+        thr();
         
-        for (const ExPolygon &bp : platetmp)  basep.emplace_back(bp.contour);
+        // Get a sample for the pad from the support mesh
+        {
+            ExPolygons platetmp;
+            float      plateZ = float(get_pad_fullheight(pcfg) + EPSILON);
+
+            base_plate(object_support_mesh, platetmp, plateZ, 0.1f, thr);
+
+            // We don't need no... holes control...
+            for (const ExPolygon &bp : platetmp)
+                basep.emplace_back(std::move(bp.contour));
+        }
         
         if(pcfg.embed_object) {
-            ExPolygons modelbase_sticks = modelbase;
             
+            // If the zero elevation mode is ON, we need to process the model
+            // base silhouette. Create the offsetted version and punch the
+            // breaksticks across its perimeter.
+            
+            ExPolygons modelbase_sticks = modelbase;
+
             if (pcfg.embed_object.object_gap_mm > 0.0)
                 modelbase_sticks
                     = offset_ex(modelbase_sticks,
-                                coord_t(pcfg.embed_object.object_gap_mm
-                                        / SCALING_FACTOR));
+                                float(scaled(pcfg.embed_object.object_gap_mm)));
             
+            BoxIndex bindex;
+            {
+                unsigned idx = 0;
+                for(auto &bp : basep) {
+                    auto bb = bp.bounding_box();
+                    bb.offset(float(scaled(pcfg.min_wall_thickness_mm)));
+                    bindex.insert(bb, idx++);
+                }
+            }
+            
+            ExPolygons pad_stickholes; pad_stickholes.reserve(modelbase.size());
             for(auto& poly : modelbase_sticks) {
-                basep.emplace_back(poly.contour);
-                sla::breakstick_holes(
-                    poly,
-                    pcfg.embed_object.object_gap_mm,   // padding
-                    pcfg.embed_object.stick_stride_mm,
-                    pcfg.embed_object.stick_width_mm,
-                    pcfg.embed_object.stick_penetration_mm);
+                
+                if (!bindex.query(poly.contour.bounding_box(),
+                                  BoxIndex::qtIntersects).empty()) {
+                    
+                    basep.emplace_back(poly.contour);
+                    
+                    auto it = poly.holes.begin();
+                    while(it != poly.holes.end()) {
+                        if (bindex.query(it->bounding_box(),
+                                         BoxIndex::qtIntersects).empty())
+                            it = poly.holes.erase(it);
+                        else
+                            ++it;
+                    }
+
+                    sla::breakstick_holes(
+                        poly,
+                        pcfg.embed_object.object_gap_mm,   // padding
+                        pcfg.embed_object.stick_stride_mm,
+                        pcfg.embed_object.stick_width_mm,
+                        pcfg.embed_object.stick_penetration_mm);
+                    
+                    pad_stickholes.emplace_back(poly);
+                }
             }
 
-            create_base_pool(basep, tmesh, modelbase_sticks, cfg);
+            create_base_pool(basep, tmesh, pad_stickholes, cfg);
         } else {
             for (const ExPolygon &bp : modelbase) basep.emplace_back(bp.contour);
             create_base_pool(basep, tmesh, {}, cfg);
@@ -630,7 +667,7 @@ inline Vec2d to_vec2(const Vec3d& v3) {
     return {v3(X), v3(Y)};
 }
 
-bool operator==(const SpatElement& e1, const SpatElement& e2) {
+bool operator==(const PointIndexEl& e1, const PointIndexEl& e2) {
     return e1.second == e2.second;
 }
 
@@ -647,7 +684,7 @@ ClusteredPoints cluster(const PointSet& points,
 ClusteredPoints cluster(
         const std::vector<unsigned>& indices,
         std::function<Vec3d(unsigned)> pointfn,
-        std::function<bool(const SpatElement&, const SpatElement&)> predicate,
+        std::function<bool(const PointIndexEl&, const PointIndexEl&)> predicate,
         unsigned max_points);
 
 // This class will hold the support tree meshes with some additional bookkeeping
@@ -974,7 +1011,7 @@ class SLASupportTree::Algorithm {
     ThrowOnCancel m_thr;
 
     // A spatial index to easily find strong pillars to connect to.
-    SpatIndex m_pillar_index;
+    PointIndex m_pillar_index;
 
     inline double ray_mesh_intersect(const Vec3d& s,
                                      const Vec3d& dir)
@@ -1367,7 +1404,7 @@ class SLASupportTree::Algorithm {
     }
 
     bool search_pillar_and_connect(const Head& head) {
-        SpatIndex spindex = m_pillar_index;
+        PointIndex spindex = m_pillar_index;
 
         long nearest_id = -1;
 
@@ -1747,8 +1784,8 @@ public:
             return m_result.head(i).junction_point();
         };
 
-        auto predicate = [this](const SpatElement &e1,
-                                const SpatElement &e2) {
+        auto predicate = [this](const PointIndexEl &e1,
+                                const PointIndexEl &e2) {
             double d2d = distance(to_2d(e1.first), to_2d(e2.first));
             double d3d = distance(e1.first, e2.first);
             return d2d < 2 * m_cfg.base_radius_mm
@@ -2070,7 +2107,7 @@ public:
         // be connected multiple times this is ensured by the 'pairs' set which
         // remembers the processed pillar pairs
         auto cascadefn =
-                [this, d, &pairs, min_height_ratio, H1] (const SpatElement& el)
+                [this, d, &pairs, min_height_ratio, H1] (const PointIndexEl& el)
         {
             Vec3d qp = el.first;    // endpoint of the pillar
 
@@ -2083,13 +2120,13 @@ public:
             if(pillar.links >= neighbors) return;
 
             // Query all remaining points within reach
-            auto qres = m_pillar_index.query([qp, d](const SpatElement& e){
+            auto qres = m_pillar_index.query([qp, d](const PointIndexEl& e){
                 return distance(e.first, qp) < d;
             });
 
             // sort the result by distance (have to check if this is needed)
             std::sort(qres.begin(), qres.end(),
-                      [qp](const SpatElement& e1, const SpatElement& e2){
+                      [qp](const PointIndexEl& e1, const PointIndexEl& e2){
                 return distance(e1.first, qp) < distance(e2.first, qp);
             });
 
