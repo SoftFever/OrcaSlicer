@@ -604,8 +604,8 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
 sla::PoolConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c) {
     sla::PoolConfig::EmbedObject ret;
     
-    ret.enabled = c.support_object_elevation.getFloat() <= EPSILON && 
-                  c.pad_enable.getBool();
+    ret.enabled = c.support_object_elevation.getFloat() <= EPSILON &&
+                  c.pad_enable.getBool() && c.supports_enable.getBool();
     
     if(ret.enabled) {
         ret.object_gap_mm        = c.pad_object_gap.getFloat();
@@ -1737,7 +1737,8 @@ bool SLAPrintObject::invalidate_all_steps()
 }
 
 double SLAPrintObject::get_elevation() const {
-    double ret = m_config.support_object_elevation.getFloat();
+    bool   en  = m_config.supports_enable.getBool();
+    double ret = en ? m_config.support_object_elevation.getFloat() : 0.;
 
     if(m_config.pad_enable.getBool()) {
         // Normally the elevation for the pad itself would be the thickness of
