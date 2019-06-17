@@ -49,13 +49,21 @@ typedef double  coordf_t;
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
 
+#if defined(_MSC_VER) && (_MSC_VER < 1910)
+template<class Tf> inline coord_t scaled(Tf val)
+#else
 template<class Tf> inline constexpr coord_t scaled(Tf val)
+#endif // _MSC_VER
 {
     static_assert (std::is_floating_point<Tf>::value, "Floating point only");
     return coord_t(val / Tf(SCALING_FACTOR));
 }
 
+#if defined(_MSC_VER) && (_MSC_VER < 1910)
+template<class Tf> inline Tf unscaled(coord_t val)
+#else
 template<class Tf> inline constexpr Tf unscaled(coord_t val)
+#endif // _MSC_VER
 {
     static_assert (std::is_floating_point<Tf>::value, "Floating point only");
     return Tf(val * Tf(SCALING_FACTOR));
