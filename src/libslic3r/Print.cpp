@@ -7,7 +7,7 @@
 #include "I18N.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
-#include "GCode/WipeTowerPrusaMM.hpp"
+#include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 
 //#include "PrintExport.hpp"
@@ -1791,7 +1791,7 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTowerPrusaMM wipe_tower(
+    WipeTower wipe_tower(
         m_config.single_extruder_multi_material.value,
         float(m_config.wipe_tower_x.value),     float(m_config.wipe_tower_y.value), 
         float(m_config.wipe_tower_width.value),

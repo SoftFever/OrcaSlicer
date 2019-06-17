@@ -149,8 +149,8 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
                 const WipeTower::Extrusion &e = tcr.extrusions[i];
                 if (e.width > 0) {
                     Vec2d delta = 0.5 * Vec2d(e.width, e.width);
-                    Vec2d p1 = trafo * Vec2d((&e - 1)->pos.x, (&e - 1)->pos.y);
-                    Vec2d p2 = trafo * Vec2d(e.pos.x, e.pos.y);
+                    Vec2d p1 = trafo * (&e - 1)->pos.cast<double>();
+                    Vec2d p2 = trafo * e.pos.cast<double>();
                     bbox.merge(p1.cwiseMin(p2) - delta);
                     bbox.merge(p1.cwiseMax(p2) + delta);
                 }
@@ -169,8 +169,8 @@ BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
             for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
                 const WipeTower::Extrusion &e = tcr.extrusions[i];
                 if (e.width > 0) {
-                    Vec2d  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
-                    Vec2d  p2(e.pos.x, e.pos.y);
+                    const Vec2d& p1 = (&e - 1)->pos.cast<double>();
+                    const Vec2d& p2 = e.pos.cast<double>();
                     bbox.merge(p1);
                     coordf_t radius = 0.5 * e.width;
                     bbox.min(0) = std::min(bbox.min(0), std::min(p1(0), p2(0)) - radius);

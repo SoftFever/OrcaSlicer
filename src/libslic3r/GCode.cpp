@@ -4,7 +4,7 @@
 #include "EdgeGrid.hpp"
 #include "Geometry.hpp"
 #include "GCode/PrintExtents.hpp"
-#include "GCode/WipeTowerPrusaMM.hpp"
+#include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
@@ -162,9 +162,9 @@ std::string Wipe::wipe(GCode &gcodegen, bool toolchange)
     return gcode;
 }
 
-static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const WipeTower::xy &wipe_tower_pt)
+static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const Vec2f &wipe_tower_pt)
 {
-    return Point(scale_(wipe_tower_pt.x - gcodegen.origin()(0)), scale_(wipe_tower_pt.y - gcodegen.origin()(1)));
+    return Point(scale_(wipe_tower_pt.x() - gcodegen.origin()(0)), scale_(wipe_tower_pt.y() - gcodegen.origin()(1)));
 }
 
 std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
@@ -174,13 +174,13 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
     // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
     float alpha = m_wipe_tower_rotation/180.f * float(M_PI);
-    WipeTower::xy start_pos = tcr.start_pos;
-    WipeTower::xy end_pos = tcr.end_pos;
+    Vec2f start_pos = tcr.start_pos;
+    Vec2f end_pos = tcr.end_pos;
     if (!tcr.priming) {
-        start_pos.rotate(alpha);
-        start_pos.translate(m_wipe_tower_pos);
-        end_pos.rotate(alpha);
-        end_pos.translate(m_wipe_tower_pos);
+        start_pos = Eigen::Rotation2Df(alpha) * start_pos;
+        start_pos += m_wipe_tower_pos;
+        end_pos = Eigen::Rotation2Df(alpha) * end_pos;
+        end_pos += m_wipe_tower_pos;
     }
     std::string tcr_rotated_gcode = tcr.priming ? tcr.gcode : rotate_wipe_tower_moves(tcr.gcode, tcr.start_pos, m_wipe_tower_pos, alpha);
     
@@ -264,7 +264,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
 
     // A phony move to the end position at the wipe tower.
-    gcodegen.writer().travel_to_xy(Vec2d(end_pos.x, end_pos.y));
+    gcodegen.writer().travel_to_xy(end_pos.cast<double>());
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
 
     // Prepare a future wipe.
@@ -274,8 +274,8 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
         // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
         gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
-            WipeTower::xy((std::abs(m_left - end_pos.x) < std::abs(m_right - end_pos.x)) ? m_right : m_left,
-            end_pos.y)));
+            Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
+            end_pos.y())));
     }
 
     // Let the planner know we are traveling between objects.
@@ -285,14 +285,14 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
 // This function postprocesses gcode_original, rotates and moves all G1 extrusions and returns resulting gcode
 // Starting position has to be supplied explicitely (otherwise it would fail in case first G1 command only contained one coordinate)
-std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gcode_original, const WipeTower::xy& start_pos, const WipeTower::xy& translation, float angle) const
+std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gcode_original, const Vec2f& start_pos, const Vec2f& translation, float angle) const
 {
     std::istringstream gcode_str(gcode_original);
     std::string gcode_out;
     std::string line;
-    WipeTower::xy pos = start_pos;
-    WipeTower::xy transformed_pos;
-    WipeTower::xy old_pos(-1000.1f, -1000.1f);
+    Vec2f pos = start_pos;
+    Vec2f transformed_pos;
+    Vec2f old_pos(-1000.1f, -1000.1f);
 
     while (gcode_str) {
         std::getline(gcode_str, line);  // we read the gcode line by line
@@ -303,25 +303,25 @@ std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gco
             char ch = 0;
             while (line_str >> ch) {
                 if (ch == 'X')
-                    line_str >> pos.x;
+                    line_str >> pos.x();
                 else
                     if (ch == 'Y')
-                        line_str >> pos.y;
+                        line_str >> pos.y();
                     else
                         line_out << ch;
             }
 
             transformed_pos = pos;
-            transformed_pos.rotate(angle);
-            transformed_pos.translate(translation);
+            transformed_pos = Eigen::Rotation2Df(angle) * transformed_pos;
+            transformed_pos += translation;
 
             if (transformed_pos != old_pos) {
                 line = line_out.str();
                 char buf[2048] = "G1";
-                if (transformed_pos.x != old_pos.x)
-                    sprintf(buf + strlen(buf), " X%.3f", transformed_pos.x);
-                if (transformed_pos.y != old_pos.y)
-                    sprintf(buf + strlen(buf), " Y%.3f", transformed_pos.y);
+                if (transformed_pos.x() != old_pos.x())
+                    sprintf(buf + strlen(buf), " X%.3f", transformed_pos.x());
+                if (transformed_pos.y() != old_pos.y())
+                    sprintf(buf + strlen(buf), " Y%.3f", transformed_pos.y());
 
                 line.replace(line.find("G1 "), 3, buf);
                 old_pos = transformed_pos;

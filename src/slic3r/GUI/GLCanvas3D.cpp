@@ -4773,7 +4773,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     {
         const Print                 *print;
         const std::vector<float>    *tool_colors;
-        WipeTower::xy                wipe_tower_pos;
+        Vec2f                        wipe_tower_pos;
         float                        wipe_tower_angle;
 
         // Number of vertices (each vertex is 6x4=24 bytes long)
@@ -4810,7 +4810,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
 
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
-    ctxt.wipe_tower_pos = WipeTower::xy(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
+    ctxt.wipe_tower_pos = Vec2f(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
@@ -4872,19 +4872,19 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                     WipeTower::Extrusion e_prev = extrusions.extrusions[i-1];
 
                     if (!extrusions.priming) { // wipe tower extrusions describe the wipe tower at the origin with no rotation
-                        e_prev.pos.rotate(ctxt.wipe_tower_angle);
-                        e_prev.pos.translate(ctxt.wipe_tower_pos);
+                        e_prev.pos = Eigen::Rotation2Df(ctxt.wipe_tower_angle) * e_prev.pos;
+                        e_prev.pos += ctxt.wipe_tower_pos;
                     }
 
                     for (; i < j; ++i) {
                         WipeTower::Extrusion e = extrusions.extrusions[i];
                         assert(e.width > 0.f);
                         if (!extrusions.priming) {
-                            e.pos.rotate(ctxt.wipe_tower_angle);
-                            e.pos.translate(ctxt.wipe_tower_pos);
+                            e.pos = Eigen::Rotation2Df(ctxt.wipe_tower_angle) * e.pos;
+                            e.pos += ctxt.wipe_tower_pos;
                         }
 
-                        lines.emplace_back(Point::new_scale(e_prev.pos.x, e_prev.pos.y), Point::new_scale(e.pos.x, e.pos.y));
+                        lines.emplace_back(Point::new_scale(e_prev.pos.x(), e_prev.pos.y()), Point::new_scale(e.pos.x(), e.pos.y()));
                         widths.emplace_back(e.width);
 
                         e_prev = e;
