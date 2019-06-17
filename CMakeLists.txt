@@ -240,17 +240,34 @@ if(NOT WIN32)
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
-if(Boost_FOUND)
-#    message("Boost include dir: ${Boost_INCLUDE_DIRS}")
-#    message("Boost library dirs: ${Boost_LIBRARY_DIRS}")
-#    message("Boost libraries: ${Boost_LIBRARIES}")
-    if (APPLE)
-        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-        add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)
-    endif()
-    if(NOT SLIC3R_STATIC)
-        add_definitions(-DBOOST_LOG_DYN_LINK)
-    endif()
+
+add_library(boost_libs INTERFACE)
+add_library(boost_headeronly INTERFACE)
+
+if (APPLE)
+    # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
+endif()
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
+endif()
+
+if(TARGET Boost::system)
+    message(STATUS "Boost::boost exists")
+    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+    target_link_libraries(boost_libs INTERFACE 
+        boost_headeronly # includes the custom compile definitions as well
+        Boost::system
+        Boost::filesystem
+        Boost::thread
+        Boost::log
+        Boost::locale
+        Boost::regex
+        )
+else()
+    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
 # Find and configure intel-tbb

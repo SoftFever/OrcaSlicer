@@ -53,7 +53,7 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
 
     // Shorthand for the vertex arrays
     auto& upoints = upper.points, &lpoints = lower.points;
-    auto& rpts = ret.points; auto& rfaces = ret.indices;
+    auto& rpts = ret.points; auto& ind = ret.indices;
 
     // If the Z levels are flipped, or the offset difference is negative, we
     // will interpret that as the triangles normals should be inverted.
@@ -61,10 +61,11 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
 
     // Copy the points into the mesh, convert them from 2D to 3D
     rpts.reserve(upoints.size() + lpoints.size());
-    rfaces.reserve(2*upoints.size() + 2*lpoints.size());
-    const double sf = SCALING_FACTOR;
-    for(auto& p : upoints) rpts.emplace_back(p.x()*sf, p.y()*sf, upper_z_mm);
-    for(auto& p : lpoints) rpts.emplace_back(p.x()*sf, p.y()*sf, lower_z_mm);
+    ind.reserve(2 * upoints.size() + 2 * lpoints.size());
+    for (auto &p : upoints)
+        rpts.emplace_back(unscaled(p.x()), unscaled(p.y()), upper_z_mm);
+    for (auto &p : lpoints)
+        rpts.emplace_back(unscaled(p.x()), unscaled(p.y()), lower_z_mm);
 
     // Create pointing indices into vertex arrays. u-upper, l-lower
     size_t uidx = 0, lidx = offs, unextidx = 1, lnextidx = offs + 1;
@@ -121,9 +122,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
         case Proceed::UPPER:
             if(!ustarted || uidx != uendidx) { // there are vertices remaining
                 // Get the 3D vertices in order
-                const Vec3d& p_up1 = rpts[size_t(uidx)];
-                const Vec3d& p_low = rpts[size_t(lidx)];
-                const Vec3d& p_up2 = rpts[size_t(unextidx)];
+                const Vec3d& p_up1 = rpts[uidx];
+                const Vec3d& p_low = rpts[lidx];
+                const Vec3d& p_up2 = rpts[unextidx];
 
                 // Calculate fitness: the average of the two connecting edges
                 double a = offsdiff2 - (distfn(p_up1, p_low) - zdiff2);
@@ -133,8 +134,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
                 if(current_fit > prev_fit) { // fit is worse than previously
                     proceed = Proceed::LOWER;
                 } else {    // good to go, create the triangle
-                    inverted? rfaces.emplace_back(unextidx, lidx, uidx) :
-                              rfaces.emplace_back(uidx, lidx, unextidx) ;
+                    inverted
+                        ? ind.emplace_back(int(unextidx), int(lidx), int(uidx))
+                        : ind.emplace_back(int(uidx), int(lidx), int(unextidx));
 
                     // Increment the iterators, rotate if necessary
                     ++uidx; ++unextidx;
@@ -150,9 +152,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
         case Proceed::LOWER:
             // Mode with lower segment, upper vertex. Same structure:
             if(!lstarted || lidx != lendidx) {
-                const Vec3d& p_low1 = rpts[size_t(lidx)];
-                const Vec3d& p_low2 = rpts[size_t(lnextidx)];
-                const Vec3d& p_up   = rpts[size_t(uidx)];
+                const Vec3d& p_low1 = rpts[lidx];
+                const Vec3d& p_low2 = rpts[lnextidx];
+                const Vec3d& p_up   = rpts[uidx];
 
                 double a = offsdiff2 - (distfn(p_up, p_low1) - zdiff2);
                 double b = offsdiff2 - (distfn(p_up, p_low2) - zdiff2);
@@ -161,8 +163,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
                 if(current_fit > prev_fit) {
                     proceed = Proceed::UPPER;
                 } else {
-                    inverted? rfaces.emplace_back(uidx, lnextidx, lidx) :
-                              rfaces.emplace_back(lidx, lnextidx, uidx);
+                    inverted
+                        ? ind.emplace_back(int(uidx), int(lnextidx), int(lidx))
+                        : ind.emplace_back(int(lidx), int(lnextidx), int(uidx));
 
                     ++lidx; ++lnextidx;
                     if(lnextidx == rpts.size()) lnextidx = offs;
@@ -203,7 +206,7 @@ void offset(ExPolygon& sh, coord_t distance, bool edgerounding = true) {
     auto jointype = edgerounding? jtRound : jtMiter;
     
     ClipperOffset offs;
-    offs.ArcTolerance = 0.01*mm(1);
+    offs.ArcTolerance = 0.01*scaled(1.);
     Paths result;
     offs.AddPath(ctour, jointype, etClosedPolygon);
     offs.AddPaths(holes, jointype, etClosedPolygon);
@@ -236,48 +239,48 @@ void offset(ExPolygon& sh, coord_t distance, bool edgerounding = true) {
     }
 }
 
-void offset(Polygon& sh, coord_t distance, bool edgerounding = true) {
-    using ClipperLib::ClipperOffset;
-    using ClipperLib::jtRound;
-    using ClipperLib::jtMiter;
-    using ClipperLib::etClosedPolygon;
-    using ClipperLib::Paths;
-    using ClipperLib::Path;
+ void offset(Polygon& sh, coord_t distance, bool edgerounding = true) {
+     using ClipperLib::ClipperOffset;
+     using ClipperLib::jtRound;
+     using ClipperLib::jtMiter;
+     using ClipperLib::etClosedPolygon;
+     using ClipperLib::Paths;
+     using ClipperLib::Path;
 
-    auto&& ctour = Slic3rMultiPoint_to_ClipperPath(sh);
+     auto&& ctour = Slic3rMultiPoint_to_ClipperPath(sh);
 
-    // If the input is not at least a triangle, we can not do this algorithm
-    if(ctour.size() < 3) {
-        BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
-        return;
-    }
+     // If the input is not at least a triangle, we can not do this algorithm
+     if(ctour.size() < 3) {
+         BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
+         return;
+     }
 
-    ClipperOffset offs;
-    offs.ArcTolerance = 0.01*mm(1);
-    Paths result;
-    offs.AddPath(ctour, edgerounding ? jtRound : jtMiter, etClosedPolygon);
-    offs.Execute(result, static_cast<double>(distance));
+     ClipperOffset offs;
+     offs.ArcTolerance = 0.01*scaled(1.);
+     Paths result;
+     offs.AddPath(ctour, edgerounding ? jtRound : jtMiter, etClosedPolygon);
+     offs.Execute(result, static_cast<double>(distance));
 
-    // Offsetting reverts the orientation and also removes the last vertex
-    // so boost will not have a closed polygon.
+     // Offsetting reverts the orientation and also removes the last vertex
+     // so boost will not have a closed polygon.
 
-    bool found_the_contour = false;
-    for(auto& r : result) {
-        if(ClipperLib::Orientation(r)) {
-            // We don't like if the offsetting generates more than one contour
-            // but throwing would be an overkill. Instead, we should warn the
-            // caller about the inability to create correct geometries
-            if(!found_the_contour) {
-                auto rr = ClipperPath_to_Slic3rPolygon(r);
-                sh.points.swap(rr.points);
-                found_the_contour = true;
-            } else {
-                BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: offsetting result is invalid!";
-            }
-        }
-    }
-}
+     bool found_the_contour = false;
+     for(auto& r : result) {
+         if(ClipperLib::Orientation(r)) {
+             // We don't like if the offsetting generates more than one contour
+             // but throwing would be an overkill. Instead, we should warn the
+             // caller about the inability to create correct geometries
+             if(!found_the_contour) {
+                 auto rr = ClipperPath_to_Slic3rPolygon(r);
+                 sh.points.swap(rr.points);
+                 found_the_contour = true;
+             } else {
+                 BOOST_LOG_TRIVIAL(warning)
+                         << "Warning: offsetting result is invalid!";
+             }
+         }
+     }
+ }
 
 /// Unification of polygons (with clipper) preserving holes as well.
 ExPolygons unify(const ExPolygons& shapes) {
@@ -401,11 +404,11 @@ void breakstick_holes(ExPolygon& poly,
         out.reserve(2 * pts.size()); // output polygon points
 
         // stick bottom and right edge dimensions
-        double sbottom = stick_width / SCALING_FACTOR;
-        double sright  = (penetration + padding) / SCALING_FACTOR;
+        double sbottom = scaled(stick_width);
+        double sright  = scaled(penetration + padding);
 
         // scaled stride distance
-        double sstride = stride / SCALING_FACTOR;
+        double sstride = scaled(stride);
         double t       = 0;
 
         // process pairs of vertices as an edge, start with the last and
@@ -459,16 +462,6 @@ void breakstick_holes(ExPolygon& poly,
     // svg.Close();
 }
 
-/// Only a debug function to generate top and bottom plates from a 2D shape.
-/// It is not used in the algorithm directly.
-inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
-    auto lower = triangulate_expolygon_3d(poly);
-    auto upper = triangulate_expolygon_3d(poly, z_distance*SCALING_FACTOR, true);
-    Contour3D ret;
-    ret.merge(lower); ret.merge(upper);
-    return ret;
-}
-
 /// This method will create a rounded edge around a flat polygon in 3d space.
 /// 'base_plate' parameter is the target plate.
 /// 'radius' is the radius of the edges.
@@ -514,7 +507,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
         double x2 = xx*xx;
         double stepy = std::sqrt(r2 - x2);
 
-        offset(ob, s*mm(xx));
+        offset(ob, s*scaled(xx));
         wh = ceilheight_mm - radius_mm + stepy;
 
         Contour3D pwalls;
@@ -538,7 +531,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
             double xx = radius_mm - i*stepx;
             double x2 = xx*xx;
             double stepy = std::sqrt(r2 - x2);
-            offset(ob, s*mm(xx));
+            offset(ob, s*scaled(xx));
             wh = ceilheight_mm - radius_mm - stepy;
 
             Contour3D pwalls;
@@ -556,41 +549,6 @@ Contour3D round_edges(const ExPolygon& base_plate,
     last_height = wh;
 
     return curvedwalls;
-}
-
-/// Generating the concave part of the 3D pool with the bottom plate and the
-/// side walls.
-Contour3D inner_bed(const ExPolygon& poly,
-                    double depth_mm,
-                    double begin_h_mm = 0)
-{
-    Contour3D bottom;
-    Pointf3s triangles = triangulate_expolygon_3d(poly, -depth_mm + begin_h_mm);
-    bottom.merge(triangles);
-
-    coord_t depth = mm(depth_mm);
-    coord_t begin_h = mm(begin_h_mm);
-
-    auto lines = poly.lines();
-
-    // Generate outer walls
-    auto fp = [](const Point& p, Point::coord_type z) {
-        return unscale(x(p), y(p), z);
-    };
-
-    for(auto& l : lines) {
-        auto s = coord_t(bottom.points.size());
-
-        bottom.points.emplace_back(fp(l.a, -depth + begin_h));
-        bottom.points.emplace_back(fp(l.b, -depth + begin_h));
-        bottom.points.emplace_back(fp(l.a, begin_h));
-        bottom.points.emplace_back(fp(l.b, begin_h));
-
-        bottom.indices.emplace_back(s + 3, s + 1, s);
-        bottom.indices.emplace_back(s + 2, s + 3, s);
-    }
-
-    return bottom;
 }
 
 inline Point centroid(Points& pp) {
@@ -640,7 +598,7 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
 
     if(polys.empty()) return Polygons();
     
-    const double max_dist = mm(max_dist_mm);
+    const double max_dist = scaled(max_dist_mm);
 
     Polygons punion = unify(polys);   // could be redundant
 
@@ -694,11 +652,11 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
         ctour.reserve(3);
         ctour.emplace_back(cc);
 
-        Point d(coord_t(mm(1)*nx), coord_t(mm(1)*ny));
+        Point d(coord_t(scaled(1.)*nx), coord_t(scaled(1.)*ny));
         ctour.emplace_back(c + Point( -y(d),  x(d) ));
         ctour.emplace_back(c + Point(  y(d), -x(d) ));
-        offset(r, mm(1));
-            
+        offset(r, scaled(1.));
+
         return r;
     });
 
@@ -729,15 +687,16 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
     // Now we have to unify all slice layers which can be an expensive operation
     // so we will try to simplify the polygons
     ExPolygons tmp; tmp.reserve(count);
-    for(ExPolygons& o : out) for(ExPolygon& e : o) {
-        auto&& exss = e.simplify(0.1/SCALING_FACTOR);
-        for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
-    }
+    for(ExPolygons& o : out)
+        for(ExPolygon& e : o) {
+            auto&& exss = e.simplify(scaled(0.1));
+            for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
+        }
 
     ExPolygons utmp = unify(tmp);
 
-    for(ExPolygon& o : utmp) {
-        auto&& smp = o.simplify(0.1/SCALING_FACTOR); // TODO: is this important?
+    for(auto& o : utmp) {
+        auto&& smp = o.simplify(scaled(0.1));
         output.insert(output.end(), smp.begin(), smp.end());
     }
 }
@@ -768,11 +727,11 @@ Contour3D create_base_pool(const Polygons &ground_layer,
     const double bottom_offs    = (thickness + wingheight) / std::tan(slope);
 
     // scaled values
-    const coord_t s_thickness   = mm(thickness);
-    const coord_t s_eradius     = mm(cfg.edge_radius_mm);
+    const coord_t s_thickness   = scaled(thickness);
+    const coord_t s_eradius     = scaled(cfg.edge_radius_mm);
     const coord_t s_safety_dist = 2*s_eradius + coord_t(0.8*s_thickness);
-    const coord_t s_wingdist    = mm(wingdist);
-    const coord_t s_bottom_offs = mm(bottom_offs);
+    const coord_t s_wingdist    = scaled(wingdist);
+    const coord_t s_bottom_offs = scaled(bottom_offs);
 
     auto& thrcl = cfg.throw_on_cancel;
 
@@ -902,7 +861,7 @@ Contour3D create_base_pool(const Polygons &ground_layer,
                 }
             };
             
-            coord_t z_lo = -mm(fullheight), z_hi = -mm(wingheight);
+            coord_t z_lo = -scaled(fullheight), z_hi = -scaled(wingheight);
             for (ExPolygon &ep : bttms) {
                 pool.merge(triangulate_expolygon_3d(ep, -fullheight, true));
                 for (auto &h : ep.holes) straight_walls(h, z_lo, z_hi);

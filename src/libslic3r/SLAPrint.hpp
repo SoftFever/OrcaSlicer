@@ -54,15 +54,15 @@ public:
     bool                        is_left_handed() const { return m_left_handed; }
 
     struct Instance {
-    	Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
-		bool operator==(const Instance &rhs) const { return this->instance_id == rhs.instance_id && this->shift == rhs.shift && this->rotation == rhs.rotation; }
-    	// ID of the corresponding ModelInstance.
-		ModelID instance_id;
-		// Slic3r::Point objects in scaled G-code coordinates
-    	Point 	shift;
-    	// Rotation along the Z axis, in radians.
-    	float 	rotation;
-	};
+        Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
+        bool operator==(const Instance &rhs) const { return this->instance_id == rhs.instance_id && this->shift == rhs.shift && this->rotation == rhs.rotation; }
+        // ID of the corresponding ModelInstance.
+        ModelID instance_id;
+        // Slic3r::Point objects in scaled G-code coordinates
+        Point 	shift;
+        // Rotation along the Z axis, in radians.
+        float 	rotation;
+    };
     const std::vector<Instance>& instances() const { return m_instances; }
 
     bool                    has_mesh(SLAPrintObjectStep step) const;
@@ -142,15 +142,19 @@ public:
     };
 
 private:
-
-    template <class T> inline static T level(const SliceRecord& sr) {
+    template<class T> inline static T level(const SliceRecord &sr)
+    {
         static_assert(std::is_arithmetic<T>::value, "Arithmetic only!");
-        return std::is_integral<T>::value ? T(sr.print_level()) : T(sr.slice_level());
+        return std::is_integral<T>::value ? T(sr.print_level())
+                                          : T(sr.slice_level());
     }
 
-    template <class T> inline static SliceRecord create_slice_record(T val) {
+    template<class T> inline static SliceRecord create_slice_record(T val)
+    {
         static_assert(std::is_arithmetic<T>::value, "Arithmetic only!");
-        return std::is_integral<T>::value ? SliceRecord{ coord_t(val), 0.f, 0.f } : SliceRecord{ 0, float(val), 0.f };
+        return std::is_integral<T>::value
+                   ? SliceRecord{coord_t(val), 0.f, 0.f}
+                   : SliceRecord{0, float(val), 0.f};
     }
 
     // This is a template method for searching the slice index either by
@@ -241,11 +245,11 @@ protected:
     ~SLAPrintObject();
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
-    void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
-    	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
+    void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false)
+        { this->m_config.apply_only(other, keys, ignore_nonexistent); }
 
     void                    set_trafo(const Transform3d& trafo, bool left_handed) {
-		m_transformed_rmesh.invalidate([this, &trafo, left_handed](){ m_trafo = trafo; m_left_handed = left_handed; });
+        m_transformed_rmesh.invalidate([this, &trafo, left_handed](){ m_trafo = trafo; m_left_handed = left_handed; });
     }
 
     template<class InstVec> inline void set_instances(InstVec&& instances) { m_instances = std::forward<InstVec>(instances); }
@@ -380,7 +384,7 @@ public:
     void                set_task(const TaskParams &params) override;
     void                process() override;
     void                finalize() override;
-    // Returns true if an object step is done on all objects and there's at least one object.    
+    // Returns true if an object step is done on all objects and there's at least one object.
     bool                is_step_done(SLAPrintObjectStep step) const;
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }

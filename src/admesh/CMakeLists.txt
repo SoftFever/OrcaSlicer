@@ -11,4 +11,4 @@ add_library(admesh STATIC
     util.cpp
 )
 
-target_include_directories(admesh SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(admesh PRIVATE boost_headeronly)
