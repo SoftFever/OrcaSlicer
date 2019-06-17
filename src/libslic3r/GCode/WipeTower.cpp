@@ -307,9 +307,6 @@ public:
 
 	WipeTowerWriter& set_tool(int tool)
 	{
-		char buf[64];
-		sprintf(buf, "T%d\n", tool);
-		m_gcode += buf;
 		m_current_tool = tool;
 		return *this;
 	}
@@ -920,7 +917,7 @@ void WipeTower::toolchange_Change(
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.
-	//writer.set_tool(new_tool);
+	writer.set_tool(new_tool); // This outputs nothing, the writer just needs to know the tool has changed.
     writer.append("[start_filament_gcode]\n");
 
 	writer.flush_planner_queue();
