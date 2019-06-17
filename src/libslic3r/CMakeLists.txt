@@ -81,9 +81,8 @@ add_library(libslic3r STATIC
     GCode/SpiralVase.hpp
     GCode/ToolOrdering.cpp
     GCode/ToolOrdering.hpp
+    GCode/WipeTower.cpp
     GCode/WipeTower.hpp
-    GCode/WipeTowerPrusaMM.cpp
-    GCode/WipeTowerPrusaMM.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
