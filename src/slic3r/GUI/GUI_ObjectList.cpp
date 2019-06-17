@@ -2317,32 +2317,28 @@ void ObjectList::remove()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
+    wxDataViewItem  parent = wxDataViewItem(0);
+
     for (auto& item : sels)
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
-//             if (sels.size() == 1)
-//                 select_item(m_objects_model->GetParent(item));
-            wxDataViewItem  parent = m_objects_model->GetParent(item);
-            if (sels.size() == 1) {
-                if (!(m_objects_model->GetItemType(item) & itLayer)) {
-                    select_item(parent);
-                    parent = wxDataViewItem(0);
-                }
-                else {
-                    wxDataViewItemArray children;
-                    if (m_objects_model->GetChildren(parent, children) == 1)
-                        parent = m_objects_model->GetTopParent(item);
-                }
+            if (m_objects_model->GetItemType(item) & itLayer) {
+                parent = m_objects_model->GetParent(item);
+                wxDataViewItemArray children;
+                if (m_objects_model->GetChildren(parent, children) == 1)
+                    parent = m_objects_model->GetTopParent(item);
             }
+            else if (sels.size() == 1)
+                select_item(m_objects_model->GetParent(item));
             
             del_subobject_item(item);
-
-            if (sels.size() == 1 && parent)
-                select_item(parent);
         }
     }
+
+    if (parent)
+        select_item(parent);
 }
 
 void ObjectList::del_layer_range(const t_layer_height_range& range)
