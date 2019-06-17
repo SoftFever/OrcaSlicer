@@ -2486,6 +2486,8 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return false;
 
+    const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
+
     t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
     const DynamicPrintConfig config = ranges[range];
@@ -2501,8 +2503,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
         for (const auto r : ranges)
             add_layer_item(r.first, root_item);
 
-    // To update(recreate) layers sizer call select_item for LayerRoot item expand
-    select_item(root_item);
+    select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
     Expand(root_item);
 
     return true;
