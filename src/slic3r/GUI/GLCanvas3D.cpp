@@ -63,11 +63,6 @@ static const float GROUND_Z = -0.02f;
 static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
-static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
-                                     0.0f, 1.0f, 0.0f, 0.0f,
-                                     0.0f, 0.0f, 1.0f, 0.0f,
-                                     0.0f, 0.0f, 0.0f, 1.0f };
-
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
@@ -452,8 +447,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 	m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)m_layers_texture.height);
     m_shader.set_uniform("z_cursor", m_object_max_z * this->get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", band_width);
-    // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
-    m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
+    m_shader.set_uniform("object_max_z", m_object_max_z);
 
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
@@ -466,10 +460,10 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 
     ::glBegin(GL_QUADS);
     ::glNormal3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f(l, b, 0.0f);
-    ::glVertex3f(r, b, 0.0f);
-    ::glVertex3f(r, t, m_object_max_z);
-    ::glVertex3f(l, t, m_object_max_z);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(l, b);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(r, b);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(r, t);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(l, t);
     glsafe(::glEnd());
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
@@ -522,6 +516,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     GLint z_cursor_id                       = ::glGetUniformLocation(shader_id, "z_cursor");
     GLint z_cursor_band_width_id            = ::glGetUniformLocation(shader_id, "z_cursor_band_width");
     GLint world_matrix_id                   = ::glGetUniformLocation(shader_id, "volume_world_matrix");
+    GLint object_max_z_id                   = ::glGetUniformLocation(shader_id, "object_max_z");
     glcheck();
 
     if (z_to_texture_row_id != -1 && z_texture_row_to_normalized_id != -1 && z_cursor_id != -1 && z_cursor_band_width_id != -1 && world_matrix_id != -1) 
@@ -548,7 +543,10 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
-            glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (world_matrix_id != -1)
+                glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (object_max_z_id != -1)
+                glsafe(::glUniform1f(object_max_z_id, GLfloat(0)));
             glvolume->render();
         }
         // Revert back to the previous shader.
