@@ -976,7 +976,8 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 				if (! boost::algorithm::ends_with(opt_key, "_settings_id"))
 					tab->get_config()->option(opt_key)->set(config.option(opt_key));
         }
-	wxGetApp().load_current_presets();
+    
+    wxGetApp().load_current_presets();
 #endif
 }
 
