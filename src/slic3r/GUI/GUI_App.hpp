@@ -98,7 +98,7 @@ class GUI_App : public wxApp
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
-    std::unique_ptr<ConfigWizard> m_wizard;
+    ConfigWizard* m_wizard;    // Managed by wxWindow tree
 
 public:
     bool            OnInit() override;

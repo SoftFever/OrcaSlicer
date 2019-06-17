@@ -1059,8 +1059,10 @@ void GUI_App::open_web_page_localized(const std::string &http_address)
 
 bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
 {
+    wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
+
     if (! m_wizard) {
-        m_wizard.reset(new ConfigWizard());
+        m_wizard = new ConfigWizard(mainframe);
     }
 
     const bool res = m_wizard->run(reason, start_page);

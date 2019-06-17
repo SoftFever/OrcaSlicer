@@ -41,6 +41,8 @@ static std::vector<std::string> s_project_options {
     "wiping_volumes_matrix"
 };
 
+const char *PresetBundle::PRUSA_BUNDLE = "PrusaResearch";
+
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
@@ -244,6 +246,48 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     this->load_selections(config, preferred_model_id);
 }
 
+// FIXME: Comment
+// XXX: rm
+void PresetBundle::load_available_system_presets()
+{
+    const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
+    const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+
+    const auto prusa_bundle_vendor = (vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
+    const auto prusa_bundle = boost::filesystem::exists(prusa_bundle_vendor) ? prusa_bundle_vendor
+        : (rsrc_vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
+
+    // Reset this PresetBundle and load the Prusa bundle first.
+    this->load_configbundle(prusa_bundle.string(), LOAD_CFGBNDLE_SYSTEM);
+
+    // Load the other bundles in the datadir/vendor directory
+    // and then additionally from resources/profiles.
+    for (auto dir : { &vendor_dir, &rsrc_vendor_dir }) {
+        for (const auto &dir_entry : boost::filesystem::directory_iterator(*dir)) {
+            if (Slic3r::is_ini_file(dir_entry)) {
+                std::string id = dir_entry.path().stem().string();  // stem() = filename() without the trailing ".ini" part
+
+                // Don't load this bundle if we've already loaded it.
+                // Note that this takes care of not loading the PRUSA_BUNDLE which was loaded upfront
+                // as well as bundles with the same name (id) in rsrc_vendor_dir as in vendor_dir.
+                if (vendors.find(id) != vendors.end()) { continue; }
+
+                PresetBundle other;
+                other.load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
+
+                std::vector<std::string> duplicates = this->merge_presets(std::move(other));
+                if (! duplicates.empty()) {
+                    std::string msg = "Vendor configuration file " + id + " contains the following presets with names used by other vendors: ";
+                    for (size_t i = 0; i < duplicates.size(); ++ i) {
+                        if (i > 0) { msg += ", "; }
+                        msg += duplicates[i];
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Load system presets into this PresetBundle.
 // For each vendor, there will be a single PresetBundle loaded.
 std::string PresetBundle::load_system_presets()
@@ -414,14 +458,14 @@ void PresetBundle::export_selections(AppConfig &config)
 void PresetBundle::init_materials_selection(AppConfig &config) const {
     if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
         for (const auto &vendor : this->vendors) {
-            for (const auto &profile : vendor.default_filaments) {
+            for (const auto &profile : vendor.second.default_filaments) {
                 config.set(AppConfig::SECTION_FILAMENTS, profile, "1");
             }
         }
     }
     if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
         for (const auto &vendor : this->vendors) {
-            for (const auto &profile : vendor.default_sla_materials) {
+            for (const auto &profile : vendor.second.default_sla_materials) {
                 config.set(AppConfig::SECTION_MATERIALS, profile, "1");
             }
         }
@@ -1061,9 +1105,9 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         auto vp = VendorProfile::from_ini(tree, path);
         if (vp.num_variants() == 0)
             return 0;
-        vendor_profile = &(*this->vendors.insert(vp).first);
+        vendor_profile = &this->vendors.insert({vp.id, vp}).first->second;
     }
-    
+
     if (flags & LOAD_CFGBUNDLE_VENDOR_ONLY) {
         return 0;
     }

@@ -34,7 +34,7 @@ public:
         SP_MATERIALS,
     };
 
-    ConfigWizard();
+    ConfigWizard(wxWindow *parent);
     ConfigWizard(ConfigWizard &&) = delete;
     ConfigWizard(const ConfigWizard &) = delete;
     ConfigWizard &operator=(ConfigWizard &&) = delete;

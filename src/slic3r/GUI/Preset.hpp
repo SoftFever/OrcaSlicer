@@ -2,6 +2,8 @@
 #define slic3r_Preset_hpp_
 
 #include <deque>
+#include <set>
+#include <unordered_map>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
@@ -88,6 +90,12 @@ public:
     bool        operator< (const VendorProfile &rhs) const { return this->id <  rhs.id; }
     bool        operator==(const VendorProfile &rhs) const { return this->id == rhs.id; }
 };
+
+// Note: it is imporant that map is used here rather than unordered_map,
+// because we need iterators to not be invalidated,
+// because Preset and the ConfigWizard hold pointers to VendorProfiles.
+// XXX: maybe set is enough (cf. changes in Wizard)
+typedef std::map<std::string, VendorProfile> VendorMap;
 
 class Preset
 {
@@ -435,7 +443,7 @@ protected:
     bool            select_preset_by_name_strict(const std::string &name);
 
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
-    std::vector<std::string> merge_presets(PresetCollection &&other, const std::set<VendorProfile> &new_vendors);
+    std::vector<std::string> merge_presets(PresetCollection &&other, const VendorMap &new_vendors);
 
 private:
     PresetCollection();

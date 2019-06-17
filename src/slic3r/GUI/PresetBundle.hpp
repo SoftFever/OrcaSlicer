@@ -4,7 +4,9 @@
 #include "AppConfig.hpp"
 #include "Preset.hpp"
 
+#include <memory>
 #include <set>
+#include <unordered_map>
 #include <boost/filesystem/path.hpp>
 
 class wxWindow;
@@ -56,7 +58,8 @@ public:
 
     // There will be an entry for each system profile loaded, 
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
-    std::set<VendorProfile>     vendors;
+    // std::set<VendorProfile>     vendors;
+    VendorMap                      vendors;
 
     struct ObsoletePresets {
         std::vector<std::string> prints;
@@ -135,6 +138,9 @@ public:
 
     void                        load_default_preset_bitmaps(wxWindow *window);
 
+    void                        load_available_system_presets();   // XXX: name  XXX: retval (VendorMap stored internally)
+
+    static const char *PRUSA_BUNDLE;
 private:
     std::string                 load_system_presets();
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
