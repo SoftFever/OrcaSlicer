@@ -131,6 +131,11 @@ private:
 
 protected:
     void on_set_state() override;
+    virtual void on_set_hover_id()
+    {
+        if ((int)m_editing_mode_cache.size() <= m_hover_id)
+            m_hover_id = -1;
+    }
     void on_start_dragging(const Selection& selection) override;
     virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
 
