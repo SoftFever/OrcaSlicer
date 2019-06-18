@@ -72,6 +72,8 @@ public:
         this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
 
+            m_new_font_point_size = get_default_font_for_dpi(evt.dpi).GetPointSize();
+
             if (!m_can_rescale)
                 return;
 
@@ -124,6 +126,8 @@ private:
     float m_prev_scale_factor;
     bool  m_can_rescale{ true };
 
+    int   m_new_font_point_size;
+
 //    void recalc_font()
 //    {
 //        wxClientDC dc(this);
@@ -148,18 +152,42 @@ private:
         window->Layout();
     }
 
+    void    scale_win_font(wxWindow *window, const int font_point_size)
+    {
+        wxFont new_font(window->GetFont());
+        new_font.SetPointSize(font_point_size);
+        window->SetFont(new_font);
+    }
+
+    // recursive function for scaling fonts for all controls in Window
+    void    scale_controls_fonts(wxWindow *window, const int font_point_size)
+    {
+        auto children = window->GetChildren();
+
+        for (auto child : children) {
+            scale_controls_fonts(child, font_point_size);
+            scale_win_font(child, font_point_size);
+        }
+
+        window->Layout();
+    }
+
     void    rescale(const wxRect &suggested_rect)
     {
         this->Freeze();
-        const float relative_scale_factor = m_scale_factor / m_prev_scale_factor;
+//        const float relative_scale_factor = m_scale_factor / m_prev_scale_factor;
 
         // rescale fonts of all controls
-        scale_controls_fonts(this, relative_scale_factor);
-        this->SetFont(this->GetFont().Scaled(relative_scale_factor));
+//        scale_controls_fonts(this, relative_scale_factor);
+        scale_controls_fonts(this, m_new_font_point_size);
+
+//        this->SetFont(this->GetFont().Scaled(relative_scale_factor));
+        scale_win_font(this, m_new_font_point_size);
 
 
         // rescale normal_font value
-        m_normal_font = m_normal_font.Scaled(relative_scale_factor);
+//         m_normal_font = m_normal_font.Scaled(relative_scale_factor);
+        m_normal_font = this->GetFont();
 
         // An analog of em_unit value from GUI_App.
         m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);

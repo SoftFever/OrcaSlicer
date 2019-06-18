@@ -2478,6 +2478,8 @@ void LockButton::msw_rescale()
     m_bmp_lock_off  .msw_rescale();
     m_bmp_unlock_on .msw_rescale();
     m_bmp_unlock_off.msw_rescale();
+
+    enter_button(false);
 }
 
 void LockButton::enter_button(const bool enter)
