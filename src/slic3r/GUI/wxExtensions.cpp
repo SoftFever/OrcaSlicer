@@ -2366,9 +2366,9 @@ void DoubleSlider::OnWheel(wxMouseEvent& event)
 void DoubleSlider::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' || key == WXK_NUMPAD_ADD)
+    if (key == WXK_NUMPAD_ADD)
         action_tick(taAdd);
-    else if (key == '-' || key == 390 || key == WXK_DELETE || key == WXK_BACK)
+    else if (key == 390 || key == WXK_DELETE || key == WXK_BACK)
         action_tick(taDel);
     else if (is_horizontal())
     {
@@ -2396,6 +2396,15 @@ void DoubleSlider::OnKeyUp(wxKeyEvent &event)
     Refresh();
     Update();
     event.Skip();
+}
+
+void DoubleSlider::OnChar(wxKeyEvent& event)
+{
+    const int key = event.GetKeyCode();
+    if (key == '+')
+        action_tick(taAdd);
+    else if (key == '-')
+        action_tick(taDel);
 }
 
 void DoubleSlider::OnRightDown(wxMouseEvent& event)
