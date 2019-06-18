@@ -247,7 +247,7 @@ int copy_file(const std::string &from, const std::string &to)
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
-// https://github.com/prusa3d/Slic3r/issues/1298
+// https://github.com/prusa3d/PrusaSlicer/issues/1298
 bool is_plain_file(const boost::filesystem::directory_entry &dir_entry)
 {
     if (! boost::filesystem::is_regular_file(dir_entry.status()))

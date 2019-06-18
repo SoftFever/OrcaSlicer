@@ -474,6 +474,8 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 		return NGEN;
 	if (strcasecmp(name, "PVA") == 0)
 		return PVA;
+	if (strcasecmp(name, "PC") == 0)
+		return PC;
 	return INVALID;
 }
 
@@ -489,6 +491,7 @@ std::string WipeTowerPrusaMM::to_string(material_type material)
 	case EDGE:		return "EDGE";
 	case NGEN:		return "NGEN";
 	case PVA:		return "PVA";
+	case PC:		return "PC";
 	case INVALID: 	
 	default: 		return "INVALID";
 	}

@@ -61,6 +61,7 @@ class MainFrame : public DPIFrame
     void on_presets_changed(SimpleEvent&);
     void on_value_changed(wxCommandEvent&);
 
+    bool can_start_new_project() const;
     bool can_save() const;
     bool can_export_model() const;
     bool can_export_supports() const;
@@ -68,8 +69,10 @@ class MainFrame : public DPIFrame
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
+    bool can_deselect() const;
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_reslice() const;
 
     // MenuBar items changeable in respect to printer technology 
     enum MenuItems
@@ -89,6 +92,8 @@ public:
     ~MainFrame();
 
     Plater*     plater() { return m_plater; }
+
+    void        update_title();
 
     void        init_tabpanel();
     void        create_preset_tabs();

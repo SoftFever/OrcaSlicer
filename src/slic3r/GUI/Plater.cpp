@@ -6,9 +6,7 @@
 #include <string>
 #include <regex>
 #include <future>
-
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -262,29 +260,45 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
     {
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            int shifl_Left = 0;
+            float scale = m_em_unit*0.1f;
+#if defined(wxBITMAPCOMBOBOX_OWNERDRAWN_BASED)
+            shifl_Left  = int(scale * 4 + 0.5f); // IMAGE_SPACING_RIGHT = 4 for wxBitmapComboBox -> Space left of image
+#endif
+            int icon_right_pos = int(scale * (24+4) + 0.5);
+            int mouse_pos = event.GetLogicalPosition(wxClientDC(this)).x;
+//             if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+            if ( extruder_idx < 0 || mouse_pos < shifl_Left || mouse_pos > icon_right_pos ) {
                 // Let the combo box process the mouse click.
                 event.Skip();
                 return;
             }
             
             // Swallow the mouse click and open the color picker.
+
+            // get current color
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
+            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+            wxColour clr(colors->values[extruder_idx]);
+            if (!clr.IsOk())
+                clr = wxTransparentColour;
+
             auto data = new wxColourData();
             data->SetChooseFull(1);
-            auto dialog = new wxColourDialog(/* wxGetApp().mainframe */this, data);
-            dialog->CenterOnParent();
-            if (dialog->ShowModal() == wxID_OK) {
-                DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
+            data->SetColour(clr);
 
-                //FIXME this is too expensive to call full_config to get just the extruder color!
-                auto colors = static_cast<ConfigOptionStrings*>(wxGetApp().preset_bundle->full_config().option("extruder_colour")->clone());
+            auto dialog = new wxColourDialog(this, data);
+            dialog->CenterOnParent();
+            if (dialog->ShowModal() == wxID_OK)
+            {
                 colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
-                cfg.set_key_value("extruder_colour", colors);
+                DynamicPrintConfig cfg_new = *cfg; 
+                cfg_new.set_key_value("extruder_colour", colors);
 
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
+                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(cfg);
+                wxGetApp().plater()->on_config_change(cfg_new);
             }
             dialog->Destroy();
         });
@@ -308,7 +322,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         /* In a case of a multi-material printing, for editing another Filament Preset 
          * it's needed to select this preset for the "Filament settings" Tab 
          */
-        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_cnt() > 1) 
+        if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1) 
         {
             const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
 
@@ -672,7 +686,8 @@ Sidebar::Sidebar(Plater *parent)
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
         if ((*combo)->edit_btn)
-            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxLEFT|wxRIGHT, int(0.3*wxGetApp().em_unit()));
+            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 
+                                    int(0.3*wxGetApp().em_unit()));
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
@@ -778,7 +793,8 @@ void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-    combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxLEFT | wxRIGHT, int(0.3*wxGetApp().em_unit()));
+    combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+                            int(0.3*wxGetApp().em_unit()));
 
     auto /***/sizer_filaments = this->p->sizer_filaments;
     sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND | wxBOTTOM, 1);
@@ -833,7 +849,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            const std::string &name = preset_bundle.filaments.get_selected_preset().name;
+            const std::string &name = preset_bundle.filaments.get_selected_preset_name();
             preset_bundle.set_filament_preset(0, name);
         }
 
@@ -1172,7 +1188,26 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         }
     }
 
+    // FIXME: when drag and drop is done on a .3mf or a .amf file we should clear the plater for consistence with the open project command
+    // (the following call to plater->load_files() will load the config data, if present)
+
     plater->load_files(paths);
+
+    // because right now the plater is not cleared, we set the project file (from the latest imported .3mf or .amf file)
+    // only if not set yet
+    if (plater->get_project_filename().empty())
+    {
+        for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it)
+        {
+            std::string filename = (*it).filename().string();
+            if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf"))
+            {
+                plater->set_project_filename(from_path(*it));
+                break;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -1217,8 +1252,6 @@ struct Plater::priv
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
-
-    wxString project_filename;
 
     BackgroundSlicingProcess    background_process;
     
@@ -1368,9 +1401,7 @@ struct Plater::priv
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
     static const std::regex pattern_any_amf;
-#if ENABLE_VOLUMES_CENTERING_FIXES
     static const std::regex pattern_prusa;
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     priv(Plater *q, MainFrame *main_frame);
 
@@ -1396,6 +1427,7 @@ struct Plater::priv
     void object_list_changed();
 
     void select_all();
+    void deselect_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
     void reset();
@@ -1404,7 +1436,8 @@ struct Plater::priv
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
-	bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
+    void scale_selection_to_fit_print_volume();
+    bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
@@ -1476,6 +1509,11 @@ struct Plater::priv
 
     void msw_rescale_object_menu();
 
+    // returns the path to project file with the given extension (none if extension == wxEmptyString)
+    // extension should contain the leading dot, i.e.: ".3mf"
+    wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    void set_project_filename(const wxString& filename);
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1489,15 +1527,16 @@ private:
 
     void update_fff_scene();
     void update_sla_scene();
+
+    // path to project file stored with no extension
+    wxString m_project_filename;
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
-#if ENABLE_VOLUMES_CENTERING_FIXES
 const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
@@ -1515,12 +1554,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
-    , project_filename(wxEmptyString)
 #if ENABLE_SVG_ICONS
     , view_toolbar(GLToolbar::Radio, "View")
 #else
     , view_toolbar(GLToolbar::Radio)
 #endif // ENABLE_SVG_ICONS
+    , m_project_filename(wxEmptyString)
 {
 	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -1610,6 +1649,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -1750,11 +1790,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
-#if ENABLE_VOLUMES_CENTERING_FIXES
         const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
         Slic3r::Model model;
+        bool is_project_file = type_prusa;
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
@@ -1764,6 +1803,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (load_config && !config_loaded.empty()) {
                         // Based on the printer technology field found in the loaded config, select the base for the config,
 					    PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
+
+                        // We can't to load SLA project if there is at least one multi-part object on the bed
+                        if (printer_technology == ptSLA)
+                        {
+                            const ModelObjectPtrs& objects = q->model().objects;
+                            for (auto object : objects)
+                                if (object->volumes.size() > 1)
+                                {
+                                    Slic3r::GUI::show_info(nullptr,
+                                        _(L("You can't to load SLA project if there is at least one multi-part object on the bed")) + "\n\n" +
+                                        _(L("Please check your object list before preset changing.")),
+                                        _(L("Attention!")));
+                                    return obj_idxs;
+                                }
+                        }
+
 					    config.apply(printer_technology == ptFFF ?
                             static_cast<const ConfigBase&>(FullPrintConfig::defaults()) : 
                             static_cast<const ConfigBase&>(SLAFullPrintConfig::defaults()));
@@ -1778,6 +1833,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         wxGetApp().load_current_presets();
+                        is_project_file = true;
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
                 }
@@ -1797,9 +1853,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             // The model should now be initialized
 
-#if ENABLE_VOLUMES_CENTERING_FIXES
-            if (!type_3mf && !type_any_amf && !type_prusa) {
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
+            if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
                     wxMessageDialog dlg(q, _(L(
                         "This file contains several objects positioned at multiple heights. "
@@ -1810,7 +1864,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         model.convert_multipart_object(nozzle_dmrs->values.size());
                     }
                 }
-#if ENABLE_VOLUMES_CENTERING_FIXES
             }
             else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf))
             {
@@ -1867,22 +1920,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         return obj_idxs;
                 }
             }
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-            if (type_3mf || type_any_amf) {
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 for (ModelObject* model_object : model.objects) {
-#if ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->center_around_origin(false);
-#else
-                    model_object->center_around_origin();
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->ensure_on_bed();
                 }
-#if !ENABLE_VOLUMES_CENTERING_FIXES
-            }
-#endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA)
@@ -2062,13 +2104,20 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     int obj_idx = selection.get_object_idx();
 
     fs::path output_file;
-    // first try to get the file name from the current selection
-    if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
-        output_file = this->model.objects[obj_idx]->get_export_filename();
+    if (file_type == FT_3MF)
+        // for 3mf take the path from the project filename, if any
+        output_file = into_path(get_project_filename(".3mf"));
 
     if (output_file.empty())
-        // Find the file name of the first printable object.
-        output_file = this->model.propose_export_file_name_and_path();
+    {
+        // first try to get the file name from the current selection
+        if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
+            output_file = this->model.objects[obj_idx]->get_export_filename();
+
+        if (output_file.empty())
+            // Find the file name of the first printable object.
+            output_file = this->model.propose_export_file_name_and_path();
+    }
 
     wxString dlg_title;
     switch (file_type) {
@@ -2165,6 +2214,11 @@ void Plater::priv::select_all()
     this->sidebar->obj_list()->update_selections();
 }
 
+void Plater::priv::deselect_all()
+{
+    view3D->deselect_all();
+}
+
 void Plater::priv::remove(size_t obj_idx)
 {
     // Prevent toolpaths preview from rendering while we modify the Print object
@@ -2174,10 +2228,9 @@ void Plater::priv::remove(size_t obj_idx)
         view3D->enable_layers_editing(false);
 
     model.delete_object(obj_idx);
-    // Delete object from Sidebar list
-    sidebar->obj_list()->delete_object_from_list(obj_idx);
-
     update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_object_from_list(obj_idx);
     object_list_changed();
 }
 
@@ -2191,7 +2244,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
-    project_filename.Clear();
+    set_project_filename(wxEmptyString);
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
@@ -2202,10 +2255,9 @@ void Plater::priv::reset()
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
-
-    // Delete all objects from list on c++ side
-    sidebar->obj_list()->delete_all_objects_from_list();
     update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
@@ -2417,6 +2469,11 @@ void Plater::priv::split_object()
 void Plater::priv::split_volume()
 {
     wxGetApp().obj_list()->split();
+}
+
+void Plater::priv::scale_selection_to_fit_print_volume()
+{
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 }
 
 void Plater::priv::schedule_background_process()
@@ -3016,6 +3073,31 @@ void Plater::priv::msw_rescale_object_menu()
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
+wxString Plater::priv::get_project_filename(const wxString& extension) const
+{
+    return m_project_filename.empty() ? "" : m_project_filename + extension;
+}
+
+void Plater::priv::set_project_filename(const wxString& filename)
+{
+    boost::filesystem::path full_path = into_path(filename);
+    boost::filesystem::path ext = full_path.extension();
+    if (boost::iequals(ext.string(), ".amf")) {
+        // Remove the first extension.
+        full_path.replace_extension("");
+        // It may be ".zip.amf".
+        if (boost::iequals(full_path.extension().string(), ".zip"))
+            // Remove the 2nd extension.
+            full_path.replace_extension("");
+    } else {
+        // Remove just one extension.
+        full_path.replace_extension("");
+    }
+
+    m_project_filename = from_path(full_path);
+    wxGetApp().mainframe->update_title();
+}
+
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
     if (is_part) {
@@ -3055,6 +3137,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     }
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+
+    sidebar->obj_list()->append_menu_item_scale_selection_to_fit_print_volume(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -3325,6 +3409,11 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
+void Plater::new_project()
+{
+    wxPostEvent(p->view3D->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+}
+
 void Plater::load_project()
 {
     wxString input_file;
@@ -3334,7 +3423,7 @@ void Plater::load_project()
         return;
 
     p->reset();
-    p->project_filename = input_file;
+    p->set_project_filename(input_file);
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(input_file));
@@ -3404,6 +3493,7 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 void Plater::select_view_3D(const std::string& name) { p->select_view_3D(name); }
 
 void Plater::select_all() { p->select_all(); }
+void Plater::deselect_all() { p->deselect_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
@@ -3464,13 +3554,13 @@ void Plater::decrease_instances(size_t num)
     if (model_object->instances.size() > num) {
         for (size_t i = 0; i < num; ++ i)
             model_object->delete_last_instance();
+        p->update();
+        // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
         sidebar().obj_list()->decrease_object_instances(obj_idx, num);
     }
     else {
         remove(obj_idx);
     }
-
-    p->update();
 
     if (!model_object->instances.empty())
         p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
@@ -3502,6 +3592,11 @@ void Plater::set_number_of_copies(/*size_t num*/)
 bool Plater::is_selection_empty() const
 {
     return p->get_selection().is_empty() || p->get_selection().is_wipe_tower();
+}
+
+void Plater::scale_selection_to_fit_print_volume()
+{
+    p->scale_selection_to_fit_print_volume();
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
@@ -3536,8 +3631,9 @@ void Plater::export_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-		default_output_file = this->p->background_process.current_print()->output_filepath("");
-    } catch (const std::exception &ex) {
+        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
+    }
+    catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
     }
@@ -3590,7 +3686,7 @@ void Plater::export_stl(bool extended, bool selection_only)
         else
         {
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            mesh = model_object->volumes[volume->volume_idx()]->mesh;
+            mesh = model_object->volumes[volume->volume_idx()]->mesh();
             mesh.transform(volume->get_volume_transformation().get_matrix());
             mesh.translate(-model_object->origin_translation.cast<float>());
         }
@@ -3702,7 +3798,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
-    } else {
+        p->set_project_filename(path);
+    }
+    else {
         // Failure
         p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting 3MF file %s")), path));
     }
@@ -3781,8 +3879,9 @@ void Plater::send_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-		default_output_file = this->p->background_process.current_print()->output_filepath("");
-    } catch (const std::exception &ex) {
+        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
+    }
+    catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
     }
@@ -3896,9 +3995,14 @@ void Plater::on_activate()
 	}
 }
 
-const wxString& Plater::get_project_filename() const
+wxString Plater::get_project_filename(const wxString& extension) const
 {
-    return p->project_filename;
+    return p->get_project_filename(extension);
+}
+
+void Plater::set_project_filename(const wxString& filename)
+{
+    return p->set_project_filename(filename);
 }
 
 bool Plater::is_export_gcode_scheduled() const

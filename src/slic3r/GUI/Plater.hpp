@@ -134,6 +134,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
+    void new_project();
     void load_project();
     void add_model();
     void extract_config_from_project();
@@ -152,6 +153,7 @@ public:
     void update_ui_from_settings();
 
     void select_all();
+    void deselect_all();
     void remove(size_t obj_idx);
     void reset();
     void reset_with_confirm();
@@ -161,6 +163,7 @@ public:
     void decrease_instances(size_t num = 1);
     void set_number_of_copies(/*size_t num*/);
     bool is_selection_empty() const;
+    void scale_selection_to_fit_print_volume();
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
@@ -183,7 +186,9 @@ public:
 
     void update_object_menu();
 
-    const wxString& get_project_filename() const;
+    wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    void set_project_filename(const wxString& filename);
+
     bool is_export_gcode_scheduled() const;
 
     int get_selected_object_idx();

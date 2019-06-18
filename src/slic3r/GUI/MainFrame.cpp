@@ -33,14 +33,14 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
-        m_printhost_queue_dlg(new PrintHostQueueDialog(this))
+DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+    m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
     this->SetFont(this->normal_font());
-    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
+#endif
 
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -95,6 +95,8 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
 #endif
     Layout();
 
+    update_title();
+
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
@@ -138,15 +140,32 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
     update_ui_from_settings();    // FIXME (?)
 }
 
-MainFrame::~MainFrame() {}
+MainFrame::~MainFrame() = default;
 
+void MainFrame::update_title()
+{
+    wxString title = wxEmptyString;
+    if (m_plater != nullptr)
+    {
+        // m_plater->get_project_filename() produces file name including path, but excluding extension.
+        // Don't try to remove the extension, it would remove part of the file name after the last dot!
+        wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
+        if (!project.empty())
+            title += (project + " - ");
+    }
+    title += (wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r")));
+
+    SetTitle(title);
+}
 
 void MainFrame::init_tabpanel()
 {
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+#endif
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
@@ -210,6 +229,11 @@ void MainFrame::add_created_tab(Tab* panel)
         m_tabpanel->AddPage(panel, panel->title());
 }
 
+bool MainFrame::can_start_new_project() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
 bool MainFrame::can_save() const
 {
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
@@ -271,6 +295,11 @@ bool MainFrame::can_select() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+bool MainFrame::can_deselect() const
+{
+    return (m_plater != nullptr) && !m_plater->is_selection_empty();
+}
+
 bool MainFrame::can_delete() const
 {
     return (m_plater != nullptr) && !m_plater->is_selection_empty();
@@ -281,12 +310,15 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+bool MainFrame::can_reslice() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     wxGetApp().update_fonts();
     this->SetFont(this->normal_font());
-    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value
@@ -345,13 +377,20 @@ void MainFrame::init_menubar()
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
+        append_menu_item(fileMenu, wxID_ANY, _(L("&New Project")) + "\tCtrl+N", _(L("Start a new project")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
+            [this](){return m_plater != nullptr && can_start_new_project(); }, this);
         append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"), nullptr,
             [this](){return m_plater != nullptr; }, this);
         append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, menu_icon("save"), nullptr,
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, menu_icon("save"), nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+#ifdef __APPLE__
+        append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Shift+S", _(L("Save current project file as")),
+#else
         append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
+#endif // __APPLE__
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, menu_icon("save"), nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 
@@ -417,8 +456,9 @@ void MainFrame::init_menubar()
         m_menu_item_repeat->Enable(false);
         fileMenu->AppendSeparator();
 #endif
-        m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice &Now")) + "\tCtrl+R", _(L("Start new slicing process")),
-            [this](wxCommandEvent&) { reslice_now(); }, menu_icon("re_slice"));
+        m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice No&w")) + "\tCtrl+R", _(L("Start new slicing process")),
+            [this](wxCommandEvent&) { reslice_now(); }, menu_icon("re_slice"), nullptr,
+            [this](){return m_plater != nullptr && can_reslice(); }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("&Repair STL file")) + dots, _(L("Automatically repair an STL file")),
             [this](wxCommandEvent&) { repair_stl(); }, menu_icon("wrench"));
@@ -451,6 +491,9 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
             _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
+        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + "Esc",
+            _(L("Deselects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->deselect_all(); },
+            "", nullptr, [this](){return can_deselect(); }, this);
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
             _(L("Deletes the current selection")),[this](wxCommandEvent&) { m_plater->remove_selected(); },
@@ -460,7 +503,6 @@ void MainFrame::init_menubar()
             menu_icon("delete_all_menu"), nullptr, [this](){return can_delete_all(); }, this);
 
         editMenu->AppendSeparator();
-
         append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
             _(L("Copy selection to clipboard")), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy(); }, this);
@@ -938,7 +980,8 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 				if (! boost::algorithm::ends_with(opt_key, "_settings_id"))
 					tab->get_config()->option(opt_key)->set(config.option(opt_key));
         }
-	wxGetApp().load_current_presets();
+    
+    wxGetApp().load_current_presets();
 #endif
 }
 
@@ -1030,7 +1073,6 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
     return boost::filesystem::path(full_name.wx_str()).parent_path().string();
 }
-
 
 } // GUI
 } // Slic3r

@@ -35,10 +35,11 @@ private:
     const float RenderPointScale = 1.f;
 
     GLUquadricObj* m_quadric;
-    Eigen::MatrixXf m_V; // vertices
-    Eigen::MatrixXi m_F; // facets indices
-    igl::AABB<Eigen::MatrixXf,3> m_AABB;
+    typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
+    typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
+    igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
     const TriangleMesh* m_mesh;
+    const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
     mutable std::vector<Vec2f> m_supports_triangles;
@@ -95,6 +96,10 @@ private:
     mutable Vec3d m_old_clipping_plane_normal;
     mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
+    // This map holds all translated description texts, so they can be easily referenced during layout calculations
+    // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
+    std::map<std::string, wxString> m_desc;
+
     GLSelectionRectangle m_selection_rectangle;
 
     bool m_wait_for_up_event = false;
@@ -127,6 +132,11 @@ private:
 
 protected:
     void on_set_state() override;
+    virtual void on_set_hover_id()
+    {
+        if ((int)m_editing_mode_cache.size() <= m_hover_id)
+            m_hover_id = -1;
+    }
     void on_start_dragging(const Selection& selection) override;
     virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
 

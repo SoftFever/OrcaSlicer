@@ -1,6 +1,7 @@
 #include "wxExtensions.hpp"
 
 #include <stdexcept>
+#include <cmath>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -19,6 +20,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
+#include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
 
@@ -389,7 +391,15 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
     static Slic3r::GUI::BitmapCache cache;
 
 #ifdef __APPLE__
-    const float scale_factor = win != nullptr ? win->GetContentScaleFactor() : 1.0f;
+    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
+    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
+    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+
+    static float max_scaling_factor = NAN;
+    if (std::isnan(max_scaling_factor)) {
+        max_scaling_factor = Slic3r::GUI::mac_max_scaling_factor();
+    }
+    const float scale_factor = win != nullptr ? max_scaling_factor : 1.0f;
 #else
     (void)(win);
     const float scale_factor = 1.0f;
@@ -576,7 +586,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
-        if (insert_position > 0) insert_position++;
+        if (insert_position >= 0) insert_position++;
 	}
 
     const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
@@ -1871,9 +1881,9 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
-    wxBitmap& icon = m_is_action_icon_focesed ? m_bmp_add_tick_off.bmp() : m_bmp_add_tick_on.bmp();
+    wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     if (m_ticks.find(tick) != m_ticks.end())
-        icon = m_is_action_icon_focesed ? m_bmp_del_tick_off.bmp() : m_bmp_del_tick_on.bmp();
+        icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
 
     wxCoord x_draw, y_draw;
     is_horizontal() ? x_draw = pt_beg.x - 0.5*m_tick_icon_dim : y_draw = pt_beg.y - 0.5*m_tick_icon_dim;
@@ -1882,7 +1892,7 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
     else
         is_horizontal() ? y_draw = pt_beg.y - m_tick_icon_dim-2 : x_draw = pt_end.x + 3;
 
-    dc.DrawBitmap(icon, x_draw, y_draw);
+    dc.DrawBitmap(*icon, x_draw, y_draw);
 
     //update rect of the tick action icon
     m_rect_tick_action = wxRect(x_draw, y_draw, m_tick_icon_dim, m_tick_icon_dim);
@@ -2235,14 +2245,16 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
+            int current_value = m_lower_value;
             m_lower_value = get_value_from_position(pos.x, pos.y);
             correct_lower_value();
-            action = true;
+            action = (current_value != m_lower_value);
         }
         else if (m_selection == ssHigher) {
+            int current_value = m_higher_value;
             m_higher_value = get_value_from_position(pos.x, pos.y);
             correct_higher_value();
-            action = true;
+            action = (current_value != m_higher_value);
         }
     }
     Refresh();
@@ -2253,6 +2265,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     {
         wxCommandEvent e(wxEVT_SCROLL_CHANGED);
         e.SetEventObject(this);
+        e.SetString("moving");
         ProcessWindowEvent(e);
     }
 }
@@ -2544,6 +2557,11 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
         {_(L("Expert")),    "mode_expert_sq.png"}
     };
 
+    auto modebtnfn = [](wxCommandEvent &event, int mode_id) {
+        Slic3r::GUI::wxGetApp().save_mode(mode_id);
+        event.Skip();
+    };
+    
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
 #ifdef __WXOSX__
@@ -2554,37 +2572,22 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 #else
         m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
 #endif // __WXOSX__
+        
+        m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, m_mode_btns.size() - 1));
+        Add(m_mode_btns.back());
     }
-
-    for (auto btn : m_mode_btns)
-    {
-        btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event) {
-            event.Skip();
-            int mode_id = 0;
-            for (auto cur_btn : m_mode_btns) {
-                if (cur_btn == btn)
-                    break;
-                else
-                    mode_id++;
-            }
-            Slic3r::GUI::wxGetApp().save_mode(mode_id);
-        });
-
-        Add(btn);
-    }
-
 }
 
 void ModeSizer::SetMode(const int mode)
 {
-    for (int m = 0; m < m_mode_btns.size(); m++)
-        m_mode_btns[m]->SetState(m == mode);
+    for (size_t m = 0; m < m_mode_btns.size(); m++)
+        m_mode_btns[m]->SetState(int(m) == mode);
 }
 
 
 void ModeSizer::msw_rescale()
 {
-    for (int m = 0; m < m_mode_btns.size(); m++)
+    for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
 
@@ -2653,7 +2656,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     if (style & wxNO_BORDER)
         SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
- 
+
     SetBitmap(create_scaled_bitmap(parent, icon_name));
 }
 

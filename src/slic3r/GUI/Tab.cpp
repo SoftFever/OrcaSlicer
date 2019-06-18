@@ -178,7 +178,7 @@ void Tab::create_preset_tab()
     // Sizer with buttons for mode changing
     m_mode_sizer = new ModeSizer(panel);
 
-    const float scale_factor = wxGetApp().em_unit()*0.1;// GetContentScaleFactor();
+    const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxEXPAND | wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 0, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
@@ -212,7 +212,8 @@ void Tab::create_preset_tab()
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
-    m_icons = new wxImageList(int(16 * scale_factor), int(16 * scale_factor), true, 1);
+    const int img_sz = int(16 * scale_factor + 0.5f);
+    m_icons = new wxImageList(img_sz, img_sz, true, 1);
 	// Index of the last icon inserted into $self->{icons}.
 	m_icon_count = -1;
 	m_treectrl->AssignImageList(m_icons);
@@ -285,9 +286,10 @@ void Tab::add_scaled_bitmap(wxWindow* parent,
 void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
-	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
-	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
-	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
+	bool has_parent = m_presets->get_selected_preset_parent() != nullptr;
+	m_bmp_non_system = has_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+	m_ttg_non_system = has_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
+	m_tt_non_system  = has_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
 }
 
 Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages /*= false*/)
@@ -1233,15 +1235,40 @@ void TabPrint::update()
         return; // ys_FIXME
 
     // #ys_FIXME_to_delete
-    //! Temporary workaround for the correct updates of the SpinCtrl (like "perimeters"):
+    //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
     // KillFocus() for the wxSpinCtrl use CallAfter function. So,
     // to except the duplicate call of the update() after dialog->ShowModal(),
     // let check if this process is already started.
-//     if (is_msg_dlg_already_exist)    // ! It looks like a fixed problem after start to using of a m_dirty_options
-//         return;                      // ! TODO Let delete this part of code after a common aplication testing
+    if (is_msg_dlg_already_exist)
+        return;
 
     m_update_cnt++;
 //	Freeze();
+
+    // layer_height shouldn't be equal to zero
+    if (m_config->opt_float("layer_height") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero layer height is not valid.\n\nThe layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *m_config;
+        is_msg_dlg_already_exist = true;
+        dialog->ShowModal();
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.01));
+        load_config(new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    if (fabs(m_config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value - 0) < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero first layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
+        auto dialog = new wxMessageDialog(parent(), msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *m_config;
+        is_msg_dlg_already_exist = true;
+        dialog->ShowModal();
+        new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.01, false));
+        load_config(new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
 
@@ -1256,7 +1283,6 @@ void TabPrint::update()
 			"- no ensure_vertical_shell_thickness\n"
 			"\nShall I adjust those settings in order to enable Spiral Vase?"));
 		auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Spiral Vase")), wxICON_WARNING | wxYES | wxNO);
-//         is_msg_dlg_already_exist = true;
 		DynamicPrintConfig new_conf = *m_config;
 		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
@@ -1272,7 +1298,6 @@ void TabPrint::update()
 		}
 		load_config(new_conf);
 		on_value_change("fill_density", fill_density);
-//         is_msg_dlg_already_exist = false;
 	}
 
 	if (m_config->opt_bool("wipe_tower") && m_config->opt_bool("support_material") &&
@@ -1829,13 +1854,17 @@ void TabPrinter::build_fff()
 
 			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
-				auto dlg = new BedShapeDialog(this);
-				dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-				if (dlg->ShowModal() == wxID_OK) {
-					load_key_value("bed_shape", dlg->GetValue());
-					update_changed_ui();
-				}
-			}));
+                BedShapeDialog dlg(this);
+                dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+                if (dlg.ShowModal() == wxID_OK) {
+                    std::vector<Vec2d> shape = dlg.GetValue();
+                    if (!shape.empty())
+                    {
+                        load_key_value("bed_shape", shape);
+                        update_changed_ui();
+                    }
+                }
+            }));
 
 			return sizer;
 		};
@@ -2031,11 +2060,15 @@ void TabPrinter::build_sla()
 
         btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
-            auto dlg = new BedShapeDialog(this);
-            dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
-            if (dlg->ShowModal() == wxID_OK) {
-                load_key_value("bed_shape", dlg->GetValue());
-                update_changed_ui();
+            BedShapeDialog dlg(this);
+            dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<Vec2d> shape = dlg.GetValue();
+                if (!shape.empty())
+                {
+                    load_key_value("bed_shape", shape);
+                    update_changed_ui();
+                }
             }
         }));
 
@@ -2209,6 +2242,18 @@ void TabPrinter::build_unregular_pages()
      *  */
     Freeze();
 
+#ifdef __WXMSW__
+    /* Workaround for correct layout of controls inside the created page:
+     * In some _strange_ way we should we should imitate page resizing.
+     */
+    auto layout_page = [this](PageShp page)
+    {
+        const wxSize& sz = page->GetSize();
+        page->SetSize(sz.x + 1, sz.y + 1);
+        page->SetSize(sz);
+    };
+#endif //__WXMSW__
+
 	// Add/delete Kinematics page according to is_marlin_flavor
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -2222,6 +2267,9 @@ void TabPrinter::build_unregular_pages()
 
 	if (existed_page < n_before_extruders && is_marlin_flavor) {
 		auto page = build_kinematics_page();
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 		m_pages.insert(m_pages.begin() + n_before_extruders, page);
 	}
 
@@ -2293,6 +2341,10 @@ void TabPrinter::build_unregular_pages()
 
 			optgroup = page->new_optgroup(_(L("Preview")));
 			optgroup->append_single_option_line("extruder_colour", extruder_idx);
+
+#ifdef __WXMSW__
+		layout_page(page);
+#endif
 	}
  
 	// # remove extra pages
@@ -2826,7 +2878,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	if (m_disable_tree_sel_changed_event)         
         return;
 
-// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
 // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
 #ifdef __linux__	
@@ -3287,27 +3339,27 @@ void SavePresetWindow::accept()
 {
 	m_chosen_name = normalize_utf8_nfc(m_combo->GetValue().ToUTF8());
 	if (!m_chosen_name.empty()) {
-		const char* unusable_symbols = "<>:/\\|?*\"";
+		const char* unusable_symbols = "<>[]:/\\|?*\"";
 		bool is_unusable_symbol = false;
-		bool is_unusable_postfix = false;
-		const std::string unusable_postfix = PresetCollection::get_suffix_modified();//"(modified)";
+		bool is_unusable_suffix = false;
+		const std::string unusable_suffix = PresetCollection::get_suffix_modified();//"(modified)";
 		for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
 			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
 				is_unusable_symbol = true;
 				break;
 			}
 		}
-		if (m_chosen_name.find(unusable_postfix) != std::string::npos)
-			is_unusable_postfix = true;
+		if (m_chosen_name.find(unusable_suffix) != std::string::npos)
+			is_unusable_suffix = true;
 
 		if (is_unusable_symbol) {
 			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
-							_(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+							_(L("the following characters are not allowed:")) + " " + unusable_symbols);
 		}
-		else if (is_unusable_postfix) {
+		else if (is_unusable_suffix) {
 			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
-							_(L("the following postfix are not allowed:")) + "\n\t" + //unusable_postfix);
-							wxString::FromUTF8(unusable_postfix.c_str()));
+							_(L("the following suffix is not allowed:")) + "\n\t" +
+							wxString::FromUTF8(unusable_suffix.c_str()));
 		}
 		else if (m_chosen_name == "- default -") {
 			show_error(this, _(L("The supplied name is not available.")));

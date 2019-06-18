@@ -22,7 +22,7 @@ namespace Slic3r {
 
 static const std::string VENDOR_PREFIX = "vendor:";
 static const std::string MODEL_PREFIX = "model:";
-static const std::string VERSION_CHECK_URL = "https://raw.githubusercontent.com/prusa3d/PrusaSlicer-settings/master/live/PrusaSlicer.version";
+static const std::string VERSION_CHECK_URL = "http://files.prusa3d.com/wp-content/uploads/repository/PrusaSlicer-settings-master/live/PrusaSlicer.version";
 
 void AppConfig::reset()
 {
@@ -55,7 +55,7 @@ void AppConfig::set_defaults()
         set("preset_update", "1");
 
     // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
-    // https://github.com/prusa3d/Slic3r/issues/233
+    // github.com/prusa3d/PrusaSlicer/issues/233
     if (get("use_legacy_opengl").empty())
         set("use_legacy_opengl", "0");
 
@@ -66,6 +66,12 @@ void AppConfig::set_defaults()
 
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
+
+    if (get("use_custom_toolbar_size").empty())
+        set("use_custom_toolbar_size", "0");
+
+    if (get("custom_toolbar_size").empty())
+        set("custom_toolbar_size", "100");
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

@@ -248,14 +248,14 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
     }
 }
 
-void GLGizmosManager::update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos)
+void GLGizmosManager::update(const Linef3& mouse_ray, const Selection& selection, const Point* mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down), selection);
+        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos), selection);
 }
 
 void GLGizmosManager::update_data(GLCanvas3D& canvas)
@@ -416,6 +416,15 @@ void GLGizmosManager::set_scale(const Vec3d& scale)
     GizmosMap::const_iterator it = m_gizmos.find(Scale);
     if (it != m_gizmos.end())
         reinterpret_cast<GLGizmoScale3D*>(it->second)->set_scale(scale);
+}
+
+Vec3d GLGizmosManager::get_scale_offset() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Scale);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale3D*>(it->second)->get_offset() : Vec3d::Zero();
 }
 
 Vec3d GLGizmosManager::get_rotation() const
@@ -627,7 +636,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 canvas.get_wxglcanvas()->CaptureMouse();
 
             canvas.set_mouse_as_dragging();
-            update(canvas.mouse_ray(pos), selection, evt.ShiftDown(), &pos);
+            update(canvas.mouse_ray(pos), selection, &pos);
 
             switch (m_current)
             {
@@ -645,6 +654,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 				if (evt.AltDown())
 					transformation_type.set_independent();
 				selection.scale(get_scale(), transformation_type);
+                if (evt.ControlDown())
+                    selection.translate(get_scale_offset(), true);
                 wxGetApp().obj_manipul()->set_dirty();
                 break;
             }
@@ -780,10 +791,13 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
         // key ESC
         case WXK_ESCAPE:
         {
-            if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
-                reset_all_states();
+            if (m_current != Undefined)
+            {
+                if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+                    reset_all_states();
 
-            processed = true;
+                processed = true;
+            }
             break;
         }
         case WXK_RETURN:
@@ -831,6 +845,19 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
             if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ManualEditing))
                 processed = true;
                 
+            break;
+        }
+        case 'F':
+        case 'f':
+        {
+            if (m_current == Scale)
+            {
+                if (!is_dragging())
+                    wxGetApp().plater()->scale_selection_to_fit_print_volume();
+
+                processed = true;
+            }
+
             break;
         }
         }

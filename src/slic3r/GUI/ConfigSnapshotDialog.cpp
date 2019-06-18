@@ -159,13 +159,11 @@ void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)
 {
     m_snapshot_to_activate = event.GetLinkInfo().GetHref();
     this->EndModal(wxID_CLOSE);
-    this->Close();
 }
 
 void ConfigSnapshotDialog::onCloseDialog(wxEvent &)
 {
     this->EndModal(wxID_CLOSE);
-    this->Close();
 }
 
 } // namespace GUI

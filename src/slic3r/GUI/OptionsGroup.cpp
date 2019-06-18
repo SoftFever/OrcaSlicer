@@ -276,7 +276,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// add sidetext if any
 		if (option.sidetext != "") {
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
-												/*wxSize(sidetext_width*wxGetApp().em_unit(), -1)*/wxDefaultSize, wxALIGN_LEFT);
+												wxSize(sidetext_width != -1 ? sidetext_width*wxGetApp().em_unit() : -1, -1) /*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
             sidetext->SetFont(wxGetApp().normal_font());
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
@@ -410,17 +410,17 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
-	else if (m_opt_map.find(opt_key) != m_opt_map.end())
+    else if (m_opt_map.find(opt_key) == m_opt_map.end() || opt_key == "bed_shape") {
+        value = get_config_value(config, opt_key);
+        change_opt_value(*m_config, opt_key, value);
+        return;
+    }
+	else
 	{
 		auto opt_id = m_opt_map.find(opt_key)->first;
 		std::string opt_short_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
 		value = get_config_value(config, opt_short_key, opt_index);
-	}
-	else{
-		value = get_config_value(config, opt_key);
-		change_opt_value(*m_config, opt_key, value);
-		return;
 	}
 
 	set_value(opt_key, value);
@@ -524,8 +524,7 @@ void ConfigOptionsGroup::msw_rescale()
             {
                 auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
                 if (label != nullptr) {
-                    const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
-                    label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
+                    label->SetMinSize(wxSize(label_width*em, -1));
                 }
             }
             else if (label_item->IsSizer()) // case when we have near_label_widget
@@ -535,8 +534,7 @@ void ConfigOptionsGroup::msw_rescale()
                 {
                     auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
                     if (label != nullptr) {
-                        const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
-                        label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
+                        label->SetMinSize(wxSize(label_width*em, -1));
                     }
                 }
             }

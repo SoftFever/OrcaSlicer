@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "slic3r/Utils/Semver.hpp"
 #include "MsgDialog.hpp"
@@ -40,8 +41,22 @@ private:
 class MsgUpdateConfig : public MsgDialog
 {
 public:
-	// updates is a map of "vendor name" -> "version (comment)"
-	MsgUpdateConfig(const std::unordered_map<std::string, std::string> &updates);
+	struct Update
+	{
+		std::string vendor;
+		Semver version;
+		std::string comment;
+		std::string changelog_url;
+
+		Update(std::string vendor, Semver version, std::string comment, std::string changelog_url)
+			: vendor(std::move(vendor))
+			, version(std::move(version))
+			, comment(std::move(comment))
+			, changelog_url(std::move(changelog_url))
+		{}
+	};
+
+	MsgUpdateConfig(const std::vector<Update> &updates);
 	MsgUpdateConfig(MsgUpdateConfig &&) = delete;
 	MsgUpdateConfig(const MsgUpdateConfig &) = delete;
 	MsgUpdateConfig &operator=(MsgUpdateConfig &&) = delete;

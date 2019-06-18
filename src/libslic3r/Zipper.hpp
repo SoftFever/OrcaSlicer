@@ -1,6 +1,7 @@
 #ifndef ZIPPER_HPP
 #define ZIPPER_HPP
 
+#include <cstdint>
 #include <string>
 #include <memory>
 

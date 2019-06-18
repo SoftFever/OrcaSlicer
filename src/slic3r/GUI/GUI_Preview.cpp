@@ -99,6 +99,12 @@ void View3D::select_all()
         m_canvas->select_all();
 }
 
+void View3D::deselect_all()
+{
+    if (m_canvas != nullptr)
+        m_canvas->deselect_all();
+}
+
 void View3D::delete_selected()
 {
     if (m_canvas != nullptr)
@@ -408,6 +414,12 @@ void Preview::msw_rescale()
     refresh_print();
 }
 
+void Preview::move_double_slider(wxKeyEvent& evt)
+{
+    if (m_slider) 
+        m_slider->OnKeyDown(evt);
+}
+
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);
@@ -526,6 +538,7 @@ void Preview::create_double_slider()
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
+
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
             auto& config = wxGetApp().preset_bundle->project_config;
@@ -817,7 +830,7 @@ void Preview::load_print_as_sla()
     }
 }
 
-void Preview::on_sliders_scroll_changed(wxEvent& event)
+void Preview::on_sliders_scroll_changed(wxCommandEvent& event)
 {
     if (IsShown())
     {
@@ -825,7 +838,7 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
         if (tech == ptFFF)
         {
             m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
-            m_canvas_widget->Refresh();
+            m_canvas->render();
             m_canvas->set_use_clipping_planes(false);
         }
         else if (tech == ptSLA)
@@ -833,10 +846,11 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
             m_canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -m_slider->GetLowerValueD()));
             m_canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), m_slider->GetHigherValueD()));
             m_canvas->set_use_clipping_planes(m_slider->GetHigherValue() != 0);
-            m_canvas_widget->Refresh();
+            m_canvas->render();
         }
     }
 }
+
 
 } // namespace GUI
 } // namespace Slic3r

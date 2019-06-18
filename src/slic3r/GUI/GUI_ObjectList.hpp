@@ -188,7 +188,9 @@ public:
 
     void                selection_changed();
     void                show_context_menu();
+#ifndef __WXOSX__
     void                key_event(wxKeyEvent& event);
+#endif /* __WXOSX__ */
 
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
@@ -205,6 +207,7 @@ public:
     void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                append_menu_item_change_extruder(wxMenu* menu) const;
     void                append_menu_item_delete(wxMenu* menu);
+    void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -298,7 +301,9 @@ public:
     void msw_rescale();
 
 private:
-    void OnChar(wxKeyEvent& event);
+#ifdef __WXOSX__
+//    void OnChar(wxKeyEvent& event);
+#endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
 
     void OnBeginDrag(wxDataViewEvent &event);

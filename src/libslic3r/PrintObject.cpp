@@ -435,7 +435,7 @@ SupportLayerPtrs::const_iterator PrintObject::insert_support_layer(SupportLayerP
     return m_support_layers.insert(pos, new SupportLayer(id, this, height, print_z, slice_z));
 }
 
-// Called by Print::apply_config().
+// Called by Print::apply().
 // This method only accepts PrintObjectConfig and PrintRegionConfig option keys.
 bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
 {
@@ -1797,7 +1797,7 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
     if (! volumes.empty()) {
         // Compose mesh.
         //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
-		TriangleMesh mesh(volumes.front()->mesh);
+		TriangleMesh mesh(volumes.front()->mesh());
         mesh.transform(volumes.front()->get_matrix(), true);
 		assert(mesh.repaired);
 		if (volumes.size() == 1 && mesh.repaired) {
@@ -1806,7 +1806,7 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
 		}
         for (size_t idx_volume = 1; idx_volume < volumes.size(); ++ idx_volume) {
             const ModelVolume &model_volume = *volumes[idx_volume];
-            TriangleMesh vol_mesh(model_volume.mesh);
+            TriangleMesh vol_mesh(model_volume.mesh());
             vol_mesh.transform(model_volume.get_matrix(), true);
             mesh.merge(vol_mesh);
         }
@@ -1815,10 +1815,11 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
             // apply XY shift
             mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
             // perform actual slicing
-            TriangleMeshSlicer mslicer;
             const Print *print = this->print();
             auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
-            mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
+            // TriangleMeshSlicer needs shared vertices, also this calls the repair() function.
+            mesh.require_shared_vertices();
+            TriangleMeshSlicer mslicer;
             mslicer.init(&mesh, callback);
 			mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
             m_print->throw_if_canceled();
@@ -1832,7 +1833,7 @@ std::vector<ExPolygons> PrintObject::_slice_volume(const std::vector<float> &z, 
     std::vector<ExPolygons> layers;
     // Compose mesh.
     //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
-    TriangleMesh mesh(volume.mesh);
+    TriangleMesh mesh(volume.mesh());
     mesh.transform(volume.get_matrix(), true);
 	if (mesh.repaired) {
 		//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
@@ -1846,7 +1847,8 @@ std::vector<ExPolygons> PrintObject::_slice_volume(const std::vector<float> &z, 
         TriangleMeshSlicer mslicer;
         const Print *print = this->print();
         auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
-        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
+        // TriangleMeshSlicer needs the shared vertices.
+        mesh.require_shared_vertices();
         mslicer.init(&mesh, callback);
         mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
         m_print->throw_if_canceled();
@@ -2259,7 +2261,7 @@ void PrintObject::discover_horizontal_shells()
                     // when spacing is added in Fill.pm
                     {
                         //FIXME Vojtech: Disable this and you will be sorry.
-                        // https://github.com/prusa3d/Slic3r/issues/26 bottom
+                        // https://github.com/prusa3d/PrusaSlicer/issues/26 bottom
                         float margin = 3.f * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
                         // we use a higher miterLimit here to handle areas with acute angles
                         // in those cases, the default miterLimit would cut the corner and we'd

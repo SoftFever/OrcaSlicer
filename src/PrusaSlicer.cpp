@@ -7,10 +7,13 @@
     #include <Windows.h>
     #include <wchar.h>
     #ifdef SLIC3R_GUI
+    extern "C" 
+    { 
         // Let the NVIDIA and AMD know we want to use their graphics card
         // on a dual graphics card system.
         __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
         __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+    }
     #endif /* SLIC3R_GUI */
 #endif /* WIN32 */
 
@@ -241,8 +244,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "cut" || opt_key == "cut_x" || opt_key == "cut_y") {
             std::vector<Model> new_models;
             for (auto &model : m_models) {
-                model.repair();
-                model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0                
+                model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0
 				size_t num_objects = model.objects.size();
 				for (size_t i = 0; i < num_objects; ++ i) {
 
@@ -301,8 +303,9 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-            for (auto &model : m_models)
-                model.repair();
+			// Models are repaired by default.
+            //for (auto &model : m_models)
+            //    model.repair();
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
             return 1;
@@ -575,7 +578,7 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
         << " (without GUI support)"
 #endif /* SLIC3R_GUI */
         << std::endl
-        << "https://github.com/prusa3d/Slic3r" << std::endl << std::endl
+        << "https://github.com/prusa3d/PrusaSlicer" << std::endl << std::endl
         << "Usage: slic3r [ ACTIONS ] [ TRANSFORM ] [ OPTIONS ] [ file.stl ... ]" << std::endl
         << std::endl
         << "Actions:" << std::endl;

@@ -1,5 +1,5 @@
 This distribution of qhull library is only meant for interfacing qhull with Slic3rPE
-(https://github.com/prusa3d/Slic3r).
+(https://github.com/prusa3d/PrusaSlicer).
 
 The qhull source file was acquired from https://github.com/qhull/qhull at revision
 f0bd8ceeb84b554d7cdde9bbfae7d3351270478c.

@@ -236,13 +236,13 @@ Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d sp = {0,0,0})
     // According to the slicing algorithms, we need to aid them with generating
     // a watertight body. So we create a triangle fan for the upper and lower
     // ending of the cylinder to close the geometry.
-    points.emplace_back(jp); size_t ci = points.size() - 1;
+    points.emplace_back(jp); int ci = int(points.size() - 1);
     for(int i = 0; i < steps - 1; ++i)
         indices.emplace_back(i + offs + 1, i + offs, ci);
 
     indices.emplace_back(offs, steps + offs - 1, ci);
 
-    points.emplace_back(endp); ci = points.size() - 1;
+    points.emplace_back(endp); ci = int(points.size() - 1);
     for(int i = 0; i < steps - 1; ++i)
         indices.emplace_back(ci, i, i + 1);
 
@@ -757,8 +757,8 @@ public:
 
     template<class T> inline const Pillar& pillar(T id) const {
         static_assert(std::is_integral<T>::value, "Invalid index type");
-        assert(id >= 0 && id < m_pillars.size() &&
-               id < std::numeric_limits<size_t>::max());
+        assert(id >= 0 && size_t(id) < m_pillars.size() &&
+               size_t(id) < std::numeric_limits<size_t>::max());
         return m_pillars[size_t(id)];
     }
 

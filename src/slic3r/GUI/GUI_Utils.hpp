@@ -34,6 +34,7 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
 enum { DPI_DEFAULT = 96 };
 
 int get_dpi_for_window(wxWindow *window);
+wxFont get_default_font_for_dpi(int dpi);
 
 struct DpiChangedEvent : public wxEvent {
     int dpi;
@@ -58,15 +59,13 @@ public:
         const wxSize &size=wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, const wxString &name=wxFrameNameStr)
         : P(parent, id, title, pos, size, style, name)
     {
-        m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
+        int dpi = get_dpi_for_window(this);
+        m_scale_factor = (float)dpi / (float)DPI_DEFAULT;
         m_prev_scale_factor = m_scale_factor;
-		float scale_primary_display = (float)get_dpi_for_window(nullptr) / (float)DPI_DEFAULT;
-		m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-		if (std::abs(m_scale_factor - scale_primary_display) > 1e-6)
-			m_normal_font = m_normal_font.Scale(m_scale_factor / scale_primary_display);
+		m_normal_font = get_default_font_for_dpi(dpi);
 
-        // An analog of em_unit value from GUI_App.
-        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+        m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 
 //        recalc_font();
 

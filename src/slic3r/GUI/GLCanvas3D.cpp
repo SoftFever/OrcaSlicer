@@ -63,11 +63,6 @@ static const float GROUND_Z = -0.02f;
 static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
-static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
-                                     0.0f, 1.0f, 0.0f, 0.0f,
-                                     0.0f, 0.0f, 1.0f, 0.0f,
-                                     0.0f, 0.0f, 0.0f, 1.0f };
-
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
@@ -452,8 +447,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 	m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)m_layers_texture.height);
     m_shader.set_uniform("z_cursor", m_object_max_z * this->get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", band_width);
-    // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
-    m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
+    m_shader.set_uniform("object_max_z", m_object_max_z);
 
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
@@ -466,10 +460,10 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 
     ::glBegin(GL_QUADS);
     ::glNormal3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f(l, b, 0.0f);
-    ::glVertex3f(r, b, 0.0f);
-    ::glVertex3f(r, t, m_object_max_z);
-    ::glVertex3f(l, t, m_object_max_z);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(l, b);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(r, b);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(r, t);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(l, t);
     glsafe(::glEnd());
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
@@ -522,6 +516,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     GLint z_cursor_id                       = ::glGetUniformLocation(shader_id, "z_cursor");
     GLint z_cursor_band_width_id            = ::glGetUniformLocation(shader_id, "z_cursor_band_width");
     GLint world_matrix_id                   = ::glGetUniformLocation(shader_id, "volume_world_matrix");
+    GLint object_max_z_id                   = ::glGetUniformLocation(shader_id, "object_max_z");
     glcheck();
 
     if (z_to_texture_row_id != -1 && z_texture_row_to_normalized_id != -1 && z_cursor_id != -1 && z_cursor_band_width_id != -1 && world_matrix_id != -1) 
@@ -548,7 +543,10 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
-            glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (world_matrix_id != -1)
+                glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (object_max_z_id != -1)
+                glsafe(::glUniform1f(object_max_z_id, GLfloat(0)));
             glvolume->render();
         }
         // Revert back to the previous shader.
@@ -1210,6 +1208,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -1252,6 +1251,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
         m_timer.SetOwner(m_canvas);
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
+        // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
+        m_view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif
     }
 
@@ -1577,7 +1578,13 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 void GLCanvas3D::render()
 {
-    wxCHECK_RET(!m_in_render, "GLCanvas3D::render() called recursively");
+    if (m_in_render)
+    {
+        // if called recursively, return
+        m_dirty = true;
+        return;
+    }
+
     m_in_render = true;
     Slic3r::ScopeGuard in_render_guard([this]() { m_in_render = false; });
     (void)in_render_guard;
@@ -1713,6 +1720,16 @@ void GLCanvas3D::select_all()
 {
     m_selection.add_all();
     m_dirty = true;
+}
+
+void GLCanvas3D::deselect_all()
+{
+    m_selection.clear();
+    m_selection.set_mode(Selection::Instance);
+    wxGetApp().obj_manipul()->set_dirty();
+    m_gizmos.reset_all_states();
+    m_gizmos.update_data(*this);
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
 void GLCanvas3D::delete_selected()
@@ -2010,7 +2027,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (it->new_geometry())
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
-								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
+                                // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
                                 m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                         }
                 }
@@ -2282,6 +2299,9 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
+    if (!m_initialized)
+        return;
+
     m_dirty |= m_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 
@@ -2359,7 +2379,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
 
-		case '0': { select_view("iso"); break; }
+        case WXK_ESCAPE: { deselect_all(); break; }
+        case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -2379,11 +2400,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
-        default:
-        {
-            evt.Skip();
-            break;
-        }
+        default:  { evt.Skip(); break; }
         }
     }
 }
@@ -2451,6 +2468,20 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
+                // DoubleSlider navigation in Preview
+                else if (keyCode == WXK_LEFT    || 
+                         keyCode == WXK_RIGHT   ||
+                         keyCode == WXK_UP      || 
+                         keyCode == WXK_DOWN    ||
+                         keyCode == '+'         || 
+                         keyCode == WXK_NUMPAD_ADD || 
+                         keyCode == '-'         || 
+                         keyCode == 390         || 
+                         keyCode == WXK_DELETE  || 
+                         keyCode == WXK_BACK    )
+                {
+                    post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                }
             }
         }
     }
@@ -2900,14 +2931,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
-            {
-                m_selection.clear();
-                m_selection.set_mode(Selection::Instance);
-                wxGetApp().obj_manipul()->set_dirty();
-                m_gizmos.reset_all_states();
-                m_gizmos.update_data(*this);
-                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-            }
+                deselect_all();
         }
         else if (evt.LeftUp() && m_mouse.dragging)
             // Flips X mouse deltas if bed is upside down
@@ -3415,9 +3439,6 @@ bool GLCanvas3D::_init_toolbar()
         return true;
     }
 
-#if ENABLE_SVG_ICONS
-    m_toolbar.set_icons_size(40);
-#endif // ENABLE_SVG_ICONS
 //    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
@@ -4022,8 +4043,7 @@ void GLCanvas3D::_render_selection() const
 #if ENABLE_RENDER_SELECTION_CENTER
 void GLCanvas3D::_render_selection_center() const
 {
-    if (!m_gizmos.is_running())
-        m_selection.render_center();
+    m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
@@ -4095,10 +4115,14 @@ void GLCanvas3D::_render_current_gizmo() const
 void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
-    m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+//     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
+    m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
-    m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
+//     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLGizmosManager::Default_Icons_Size*wxGetApp().toolbar_icon_scale());
+    m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay(*this, m_selection);
@@ -4108,10 +4132,14 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-    m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+//     m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
+    m_toolbar.set_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-    m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
+//     m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
+    m_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -4172,10 +4200,14 @@ void GLCanvas3D::_render_view_toolbar() const
 {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-    m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
+//     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
+    m_view_toolbar.set_scale(scale); //! #ys_FIXME_experiment
 #else
 //     m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-    m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f); //! #ys_FIXME_experiment
+//     m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    m_view_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -5324,7 +5356,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     // creates a new volume for each tool
     for (Tool& tool : tools)
     {
-        // tool.value could be invalid (as it was with https://github.com/prusa3d/Slic3r/issues/2179), we better check
+        // tool.value could be invalid (as it was with https://github.com/prusa3d/PrusaSlicer/issues/2179), we better check
         if (tool.value >= tool_colors.size())
             continue;
 
@@ -5485,6 +5517,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
+        v.set_convex_hull(mesh.convex_hull_3d());
     };
 
     // adds objects' volumes 
@@ -5499,7 +5532,7 @@ void GLCanvas3D::_load_sla_shells()
                 if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
                     add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
                 if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
+                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
             }
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
@@ -5622,7 +5655,7 @@ void GLCanvas3D::_update_sla_shells_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->shader_outside_printer_detection_enabled) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
 }
 

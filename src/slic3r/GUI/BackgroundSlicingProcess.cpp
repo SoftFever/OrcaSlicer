@@ -67,6 +67,14 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 	return m_print->technology();
 }
 
+std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::filesystem::path &project_path)
+{
+	assert(m_print != nullptr);
+    if (project_path.empty())
+        return m_print->output_filepath("");
+    return m_print->output_filepath(project_path.parent_path().string(), project_path.stem().string());
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()
@@ -81,7 +89,7 @@ void BackgroundSlicingProcess::process_fff()
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 		    if (copy_file(m_temp_output_path, export_path) != 0)
-	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());

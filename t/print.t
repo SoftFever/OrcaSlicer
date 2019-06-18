@@ -44,7 +44,7 @@ use Slic3r::Test;
     is $print->print->regions->[0]->config->fill_density, 100, 'region config inherits model object config';
     
     # user exports G-code, thus the default config is reapplied
-    $print->print->apply_config($config);
+    $print->print->apply_config_perl_tests_only($config);
     
     is $print->print->regions->[0]->config->fill_density, 100, 'apply_config() does not override per-object settings';
     

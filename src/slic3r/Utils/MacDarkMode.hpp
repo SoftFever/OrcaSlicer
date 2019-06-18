@@ -6,6 +6,7 @@ namespace GUI {
 
 #if __APPLE__
 extern bool mac_dark_mode();
+extern double mac_max_scaling_factor();
 #endif
 
 

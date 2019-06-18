@@ -46,9 +46,11 @@ enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
 
+/*
 enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
+*/
 
 enum SLADisplayOrientation {
     sladoLandscape,
@@ -137,6 +139,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::ge
     return keys_map;
 }
 
+/*
 template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -152,6 +155,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::ge
     }
     return keys_map;
 }
+*/
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
     static const t_config_enum_values keys_map = {

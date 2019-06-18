@@ -294,7 +294,7 @@ public:
     // The following three methods are used by the Perl tests only. Get rid of them!
     void                reload_object(size_t idx);
     void                add_model_object(ModelObject* model_object, int idx = -1);
-    bool                apply_config(DynamicPrintConfig config);
+    bool                apply_config_perl_tests_only(DynamicPrintConfig config);
 
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
@@ -351,7 +351,7 @@ public:
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data() const { return m_wipe_tower_data; }
 
-	std::string                 output_filename() const override;
+	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }

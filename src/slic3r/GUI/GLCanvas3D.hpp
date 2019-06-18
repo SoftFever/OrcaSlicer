@@ -124,6 +124,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 
 class GLCanvas3D
 {
@@ -555,6 +556,7 @@ public:
     void render();
 
     void select_all();
+    void deselect_all();
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx);
 

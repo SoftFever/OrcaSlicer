@@ -2,7 +2,7 @@
 #include <string.h>
 #include <map>
 #include <string>
-#include <expat/expat.h>
+#include <expat.h>
 
 #include <boost/nowide/cstdio.hpp>
 
@@ -16,7 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <miniz/miniz_zip.h>
+#include "miniz_extension.hpp"
 
 #if 0
 // Enable debugging and assert in this file.
@@ -522,7 +522,8 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VOLUME:
     {
 		assert(m_object && m_volume);
-        stl_file &stl = m_volume->mesh.stl;
+		TriangleMesh  mesh;
+        stl_file	 &stl = mesh.stl;
         stl.stats.type = inmemory;
         stl.stats.number_of_facets = int(m_volume_facets.size() / 3);
         stl.stats.original_num_facets = stl.stats.number_of_facets;
@@ -533,8 +534,9 @@ void AMFParserContext::endElement(const char * /* name */)
                 memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
         }
         stl_get_size(&stl);
-        m_volume->mesh.repair();
-        m_volume->center_geometry();
+        mesh.repair();
+		m_volume->set_mesh(std::move(mesh));
+        m_volume->center_geometry_after_creation();
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -717,14 +719,14 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (stat.m_uncomp_size == 0)
     {
         printf("Found invalid size\n");
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
     if (!parser) {
         printf("Couldn't allocate memory for parser\n");
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -737,7 +739,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (parser_buffer == nullptr)
     {
         printf("Unable to create buffer\n");
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -745,14 +747,14 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (res == 0)
     {
         printf("Error while reading model data to buffer\n");
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
     {
         printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
-        mz_zip_reader_end(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -774,8 +776,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    mz_bool res = mz_zip_reader_init_file(&archive, path, 0);
-    if (res == 0)
+    if (!open_zip_reader(&archive, path))
     {
         printf("Unable to init zip reader\n");
         return false;
@@ -793,7 +794,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
             {
                 if (!extract_model_from_archive(archive, stat, config, model, version))
                 {
-                    mz_zip_reader_end(&archive);
+                    close_zip_reader(&archive);
                     printf("Archive does not contain a valid model");
                     return false;
                 }
@@ -814,7 +815,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
     }
 #endif // forward compatibility
 
-    mz_zip_reader_end(&archive);
+    close_zip_reader(&archive);
     return true;
 }
 
@@ -854,9 +855,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    mz_bool res = mz_zip_writer_init_file(&archive, export_path.c_str(), 0);
-    if (res == 0)
-        return false;
+    if (!open_zip_writer(&archive, export_path)) return false;
 
     std::stringstream stream;
     // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -926,23 +925,23 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
-            if (! volume->mesh.repaired) 
+            if (! volume->mesh().repaired)
                 throw std::runtime_error("store_amf() requires repair()");
-            auto &stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
-                stl_generate_shared_vertices(&stl);
+			if (! volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_amf() requires shared vertices");
+            const indexed_triangle_set &its = volume->mesh().its;
             const Transform3d& matrix = volume->get_matrix();
-            for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
+            for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "             <x>" << v(0) << "</x>\n";
                 stream << "             <y>" << v(1) << "</y>\n";
                 stream << "             <z>" << v(2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += stl.stats.shared_vertices;
+            num_vertices += its.vertices.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {
@@ -959,10 +958,11 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-            for (int i = 0; i < (int)volume->mesh.stl.stats.number_of_facets; ++i) {
+			const indexed_triangle_set &its = volume->mesh().its;
+            for (size_t i = 0; i < (int)its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
-                stream << "          <v" << j + 1 << ">" << volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "          <v" << j + 1 << ">" << its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";
                 stream << "        </triangle>\n";
             }
             stream << "      </volume>\n";
@@ -1018,19 +1018,19 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 
     if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
     {
-        mz_zip_writer_end(&archive);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
     if (!mz_zip_writer_finalize_archive(&archive))
     {
-        mz_zip_writer_end(&archive);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
-    mz_zip_writer_end(&archive);
+    close_zip_writer(&archive);
 
     return true;
 }

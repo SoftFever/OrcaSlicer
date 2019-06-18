@@ -198,6 +198,11 @@ size_t Index::load(const boost::filesystem::path &path)
     size_t idx_line = 0;
     Version ver;
     while (std::getline(ifs, line)) {
+#ifndef _MSVCVER
+		// On a Unix system, getline does not remove the trailing carriage returns, if the index is shared over a Windows filesystem. Remove them manually.
+		while (! line.empty() && line.back() == '\r')
+			line.pop_back();
+#endif
     	++ idx_line;
     	// Skip the initial white spaces.
     	char *key = left_trim(const_cast<char*>(line.data()));

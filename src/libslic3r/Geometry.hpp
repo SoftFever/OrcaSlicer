@@ -253,9 +253,7 @@ public:
 
     void set_from_transform(const Transform3d& transform);
 
-#if ENABLE_VOLUMES_CENTERING_FIXES
     void reset();
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 

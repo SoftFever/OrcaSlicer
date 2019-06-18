@@ -10,3 +10,5 @@ add_library(admesh STATIC
     stlinit.cpp
     util.cpp
 )
+
+target_link_libraries(admesh PRIVATE boost_headeronly)

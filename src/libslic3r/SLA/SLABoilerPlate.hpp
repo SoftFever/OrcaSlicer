@@ -11,11 +11,6 @@
 namespace Slic3r {
 namespace sla {
 
-using coord_t = Point::coord_type;
-
-/// get the scaled clipper units for a millimeter value
-inline coord_t mm(double v) { return coord_t(v/SCALING_FACTOR); }
-
 /// Get x and y coordinates (because we are eigenizing...)
 inline coord_t x(const Point& p) { return p(0); }
 inline coord_t y(const Point& p) { return p(1); }
@@ -36,12 +31,10 @@ inline coord_t x(const Vec3crd& p) { return p(0); }
 inline coord_t y(const Vec3crd& p) { return p(1); }
 inline coord_t z(const Vec3crd& p) { return p(2); }
 
-using Indices = std::vector<Vec3crd>;
-
 /// Intermediate struct for a 3D mesh
 struct Contour3D {
     Pointf3s points;
-    Indices indices;
+    std::vector<Vec3i> indices;
 
     void merge(const Contour3D& ctr) {
         auto s3 = coord_t(points.size());

@@ -22,6 +22,8 @@ use Slic3r::Test;
     $config->set('bottom_solid_layers', 1);
     $config->set('first_layer_extrusion_width', 2);
     $config->set('first_layer_height', '100%');
+    $config->set('filament_diameter', [ 3.0 ]);
+    $config->set('nozzle_diameter', [ 0.5 ]);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
     my @E_per_mm = ();

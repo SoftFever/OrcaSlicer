@@ -120,7 +120,7 @@ public:
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
 
-    void update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos = nullptr);
+    void update(const Linef3& mouse_ray, const Selection& selection, const Point* mouse_pos = nullptr);
     void update_data(GLCanvas3D& canvas);
 
     Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
@@ -137,6 +137,8 @@ public:
 
     Vec3d get_scale() const;
     void set_scale(const Vec3d& scale);
+
+    Vec3d get_scale_offset() const;
 
     Vec3d get_rotation() const;
     void set_rotation(const Vec3d& rotation);

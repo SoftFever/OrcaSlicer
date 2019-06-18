@@ -50,25 +50,25 @@ if(NOT TARGET clipper) # If there is a clipper target in the parent project we a
 else()
     # set(CLIPPER_INCLUDE_DIRS "" PARENT_SCOPE)
     # set(CLIPPER_LIBRARIES clipper PARENT_SCOPE)
-    add_library(ClipperBackend INTERFACE)
-    target_link_libraries(ClipperBackend INTERFACE clipper)
+    add_library(clipperBackend INTERFACE)
+    target_link_libraries(clipperBackend INTERFACE clipper)
 endif()
 
 # Clipper backend is not enough on its own, it still needs some functions
 # from Boost geometry
-if(NOT Boost_INCLUDE_DIRS_FOUND)
+if(NOT Boost_FOUND)
     find_package(Boost 1.58 REQUIRED)
     # TODO automatic download of boost geometry headers
 endif()
 
-target_include_directories(ClipperBackend INTERFACE ${Boost_INCLUDE_DIRS} )
-target_sources(ClipperBackend INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/geometries.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/clipper_polygon.hpp
-    ${SRC_DIR}/libnest2d/utils/boost_alg.hpp )
+target_link_libraries(clipperBackend INTERFACE Boost::boost )
+#target_sources(ClipperBackend INTERFACE
+#    ${CMAKE_CURRENT_SOURCE_DIR}/geometries.hpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/clipper_polygon.hpp
+#    ${SRC_DIR}/libnest2d/utils/boost_alg.hpp )
 
-target_compile_definitions(ClipperBackend INTERFACE LIBNEST2D_BACKEND_CLIPPER)
+target_compile_definitions(clipperBackend INTERFACE LIBNEST2D_BACKEND_CLIPPER)
 
 # And finally plug the ClipperBackend into libnest2d
-target_link_libraries(libnest2d INTERFACE ClipperBackend)
+#target_link_libraries(libnest2d INTERFACE ClipperBackend)
 

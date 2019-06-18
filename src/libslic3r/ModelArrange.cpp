@@ -568,7 +568,7 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo&
                 Polygon p = objptr->convex_hull_2d(trafo_instance);
 				assert(! p.points.empty());
 
-                // this may happen for malformed models, see: https://github.com/prusa3d/Slic3r/issues/2209
+                // this may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
                 if (p.points.empty())
                     continue;
 

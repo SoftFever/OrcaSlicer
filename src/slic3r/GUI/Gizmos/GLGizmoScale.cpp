@@ -5,6 +5,8 @@
 
 #include <GL/glew.h>
 
+#include <wx/utils.h> 
+
 namespace Slic3r {
 namespace GUI {
 
@@ -19,8 +21,8 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
 #endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
+    , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
-    , m_starting_scale(Vec3d::Ones())
 {
 }
 
@@ -55,19 +57,28 @@ void GLGizmoScale3D::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id != -1)
     {
-        m_starting_drag_position = m_grabbers[m_hover_id].center;
-        m_starting_box = selection.get_bounding_box();
+        m_starting.drag_position = m_grabbers[m_hover_id].center;
+        m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
+        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : selection.get_bounding_box();
+
+        const Vec3d& center = m_starting.box.center();
+        m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
+        m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min(0), center(1), center(2));
+        m_starting.pivots[2] = m_transform * Vec3d(center(0), m_starting.box.max(1), center(2));
+        m_starting.pivots[3] = m_transform * Vec3d(center(0), m_starting.box.min(1), center(2));
+        m_starting.pivots[4] = m_transform * Vec3d(center(0), center(1), m_starting.box.max(2));
+        m_starting.pivots[5] = m_transform * Vec3d(center(0), center(1), m_starting.box.min(2));
     }
 }
 
 void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selection)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
-        do_scale_x(data);
+        do_scale_along_axis(X, data);
     else if ((m_hover_id == 2) || (m_hover_id == 3))
-        do_scale_y(data);
+        do_scale_along_axis(Y, data);
     else if ((m_hover_id == 4) || (m_hover_id == 5))
-        do_scale_z(data);
+        do_scale_along_axis(Z, data);
     else if (m_hover_id >= 6)
         do_scale_uniform(data);
 }
@@ -111,10 +122,12 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    BoundingBoxf3 box;
-    Transform3d transform = Transform3d::Identity();
-    Vec3d angles = Vec3d::Zero();
+    m_box.reset();
+    m_transform = Transform3d::Identity();
+    // Transforms grabbers' offsets to world refefence system 
     Transform3d offsets_transform = Transform3d::Identity();
+    m_offsets_transform = Transform3d::Identity();
+    Vec3d angles = Vec3d::Zero();
 
     if (single_instance)
     {
@@ -123,59 +136,61 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
-            box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
+            m_box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
         const GLVolume* v = selection.get_volume(*idxs.begin());
-        transform = v->get_instance_transformation().get_matrix();
+        m_transform = v->get_instance_transformation().get_matrix();
         // gets angles from first selected volume
         angles = v->get_instance_rotation();
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        m_offsets_transform = offsets_transform;
     }
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        box = v->bounding_box;
-        transform = v->world_matrix();
-        angles = Geometry::extract_euler_angles(transform);
+        m_box = v->bounding_box;
+        m_transform = v->world_matrix();
+        angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        m_offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), v->get_volume_rotation(), Vec3d::Ones(), v->get_volume_mirror());
     }
     else
-        box = selection.get_bounding_box();
-
-    m_box = box;
+        m_box = selection.get_bounding_box();
 
     const Vec3d& center = m_box.center();
     Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
     Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
     Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 
+    bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
+
     // x axis
-    m_grabbers[0].center = transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
-    m_grabbers[1].center = transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
-    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
+    m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
+    ::memcpy((void*)m_grabbers[0].color, (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 3 * sizeof(float));
 
     // y axis
-    m_grabbers[2].center = transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
-    m_grabbers[3].center = transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
-    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
+    m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
+    ::memcpy((void*)m_grabbers[2].color, (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color, (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 3 * sizeof(float));
 
     // z axis
-    m_grabbers[4].center = transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
-    m_grabbers[5].center = transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
-    ::memcpy((void*)m_grabbers[4].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
+    m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
+    ::memcpy((void*)m_grabbers[4].color, (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color, (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
-    m_grabbers[6].center = transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
-    m_grabbers[7].center = transform * Vec3d(m_box.max(0), m_box.min(1), center(2)) + offset_x - offset_y;
-    m_grabbers[8].center = transform * Vec3d(m_box.max(0), m_box.max(1), center(2)) + offset_x + offset_y;
-    m_grabbers[9].center = transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
+    m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
+    m_grabbers[7].center = m_transform * Vec3d(m_box.max(0), m_box.min(1), center(2)) + offset_x - offset_y;
+    m_grabbers[8].center = m_transform * Vec3d(m_box.max(0), m_box.max(1), center(2)) + offset_x + offset_y;
+    m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
     for (int i = 6; i < 10; ++i)
     {
         ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
@@ -295,40 +310,50 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     }
 }
 
-void GLGizmoScale3D::do_scale_x(const UpdateData& data)
+void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
 {
     double ratio = calc_ratio(data);
     if (ratio > 0.0)
-        m_scale(0) = m_starting_scale(0) * ratio;
-}
+    {
+        m_scale(axis) = m_starting.scale(axis) * ratio;
+        if (m_starting.ctrl_down)
+        {
+            double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
+            if (m_hover_id == 2 * axis)
+                local_offset *= -1.0;
 
-void GLGizmoScale3D::do_scale_y(const UpdateData& data)
-{
-    double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-        m_scale(1) = m_starting_scale(1) * ratio;
-}
+            Vec3d local_offset_vec;
+            switch (axis)
+            {
+            case X: { local_offset_vec = local_offset * Vec3d::UnitX(); break; }
+            case Y: { local_offset_vec = local_offset * Vec3d::UnitY(); break; }
+            case Z: { local_offset_vec = local_offset * Vec3d::UnitZ(); break; }
+            }
 
-void GLGizmoScale3D::do_scale_z(const UpdateData& data)
-{
-    double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-        m_scale(2) = m_starting_scale(2) * ratio;
+            m_offset = m_offsets_transform * local_offset_vec;
+        }
+        else
+            m_offset = Vec3d::Zero();
+    }
 }
 
 void GLGizmoScale3D::do_scale_uniform(const UpdateData& data)
 {
     double ratio = calc_ratio(data);
     if (ratio > 0.0)
-        m_scale = m_starting_scale * ratio;
+    {
+        m_scale = m_starting.scale * ratio;
+        m_offset = Vec3d::Zero();
+    }
 }
 
 double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    // vector from the center to the starting position
-    Vec3d starting_vec = m_starting_drag_position - m_starting_box.center();
+    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.box.center();
+
+    Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
     {
@@ -337,9 +362,9 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
         // in our case plane normal and ray direction are the same (orthogonal view)
         // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        Vec3d inters = data.mouse_ray.a + (m_starting.drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
         // vector from the starting position to the found intersection
-        Vec3d inters_vec = inters - m_starting_drag_position;
+        Vec3d inters_vec = inters - m_starting.drag_position;
 
         // finds projection of the vector along the staring direction
         double proj = inters_vec.dot(starting_vec.normalized());
@@ -347,7 +372,7 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
         ratio = (len_starting_vec + proj) / len_starting_vec;
     }
 
-    if (data.shift_down)
+    if (wxGetKeyState(WXK_SHIFT))
         ratio = m_snap_step * (double)std::round(ratio / m_snap_step);
 
     return ratio;

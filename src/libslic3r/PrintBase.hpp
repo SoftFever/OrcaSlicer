@@ -84,7 +84,7 @@ public:
 
     // Set the step as started. Block on mutex while the Print / PrintObject / PrintRegion objects are being
     // modified by the UI thread.
-    // This is necessary to block until the Print::apply_config() updates its state, which may
+    // This is necessary to block until the Print::apply() updates its state, which may
     // influence the processing step being entered.
     template<typename ThrowIfCanceled>
     bool set_started(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {
@@ -318,8 +318,10 @@ public:
     const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
     PlaceholderParser&         placeholder_parser() { return m_placeholder_parser; }
 
-    virtual std::string        output_filename() const = 0;
-    std::string                output_filepath(const std::string &path) const;
+    virtual std::string        output_filename(const std::string &filename_base = std::string()) const = 0;
+    // If the filename_base is set, it is used as the input for the template processing. In that case the path is expected to be the directory (may be empty).
+    // If filename_set is empty, than the path may be a file or directory. If it is a file, then the macro will not be processed.
+    std::string                output_filepath(const std::string &path, const std::string &filename_base = std::string()) const;
 
 protected:
 	friend class PrintObjectBase;
@@ -334,9 +336,9 @@ protected:
     void                   throw_if_canceled() const { if (m_cancel_status) throw CanceledException(); }
 
     // To be called by this->output_filename() with the format string pulled from the configuration layer.
-    std::string            output_filename(const std::string &format, const std::string &default_ext, const DynamicConfig *config_override = nullptr) const;
+    std::string            output_filename(const std::string &format, const std::string &default_ext, const std::string &filename_base, const DynamicConfig *config_override = nullptr) const;
     // Update "scale", "input_filename", "input_filename_base" placeholders from the current printable ModelObjects.
-    void                   update_object_placeholders(DynamicConfig &config) const;
+    void                   update_object_placeholders(DynamicConfig &config, const std::string &default_ext) const;
 
 	Model                                   m_model;
 

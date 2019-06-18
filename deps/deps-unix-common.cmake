@@ -32,3 +32,16 @@ ExternalProject_Add(dep_nlopt
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )
+
+find_package(Git REQUIRED)
+
+ExternalProject_Add(dep_qhull
+    EXCLUDE_FROM_ALL 1
+    URL "https://github.com/qhull/qhull/archive/v7.2.1.tar.gz"
+    URL_HASH SHA256=6fc251e0b75467e00943bfb7191e986fce0e1f8f6f0251f9c6ce5a843821ea78
+    CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        ${DEP_CMAKE_OPTS}
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
+)

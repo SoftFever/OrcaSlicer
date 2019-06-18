@@ -18,3 +18,7 @@ add_library(nowide STATIC
     nowide/utf8_codecvt.hpp
     nowide/windows.hpp
 )
+
+target_link_libraries(nowide PUBLIC boost_headeronly)
+
+

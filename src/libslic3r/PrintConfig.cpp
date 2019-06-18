@@ -418,7 +418,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for external perimeters. "
                    "If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. "
                    "If expressed as percentage (for example 200%), it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -526,7 +526,7 @@ void PrintConfigDef::init_fff_params()
                    "If left to zero, Slic3r derives extrusion widths from the nozzle diameter "
                    "(see the tooltips for perimeter extrusion width, infill extrusion width etc). "
                    "If expressed as percentage (for example: 230%), it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for auto)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -680,7 +680,7 @@ void PrintConfigDef::init_fff_params()
                    "and do multiple measurements along the filament, then compute the average.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->set_default_value(new ConfigOptionFloats { 3. });
+    def->set_default_value(new ConfigOptionFloats { 1.75 });
 
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
@@ -699,12 +699,22 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("PET");
-    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("FLEX");
-    def->enum_values.push_back("SCAFF");
+    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("EDGE");
     def->enum_values.push_back("NGEN");
+    def->enum_values.push_back("NYLON");
     def->enum_values.push_back("PVA");
+    def->enum_values.push_back("PC");
+    def->enum_values.push_back("PP");
+    def->enum_values.push_back("PEI");
+    def->enum_values.push_back("PEEK");
+    def->enum_values.push_back("PEKK");
+    def->enum_values.push_back("POM");
+    def->enum_values.push_back("PSU");
+    def->enum_values.push_back("PVDF");
+    def->enum_values.push_back("SCAFF");
+
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -833,7 +843,7 @@ void PrintConfigDef::init_fff_params()
                    "You can use this to force fatter extrudates for better adhesion. If expressed "
                    "as percentage (for example 120%) it will be computed over first layer height. "
                    "If set to zero, it will use the default extrusion width.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->ratio_over = "first_layer_height";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
@@ -965,7 +975,7 @@ void PrintConfigDef::init_fff_params()
                    "If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. "
                    "You may want to use fatter extrudates to speed up the infill and make your parts stronger. "
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -1286,7 +1296,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Nozzle diameter");
     def->tooltip = L("This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)");
     def->sidetext = L("mm");
-    def->set_default_value(new ConfigOptionFloats { 0.5 });
+    def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
@@ -1323,7 +1333,7 @@ void PrintConfigDef::init_fff_params()
                    "[input_filename_base].");
     def->full_width = true;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionString("[input_filename_base]"));
+    def->set_default_value(new ConfigOptionString("[input_filename_base].gcode"));
 
     def = this->add("overhangs", coBool);
     def->label = L("Detect bridging perimeters");
@@ -1376,7 +1386,7 @@ void PrintConfigDef::init_fff_params()
                    "You may want to use thinner extrudates to get more accurate surfaces. "
                    "If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. "
                    "If expressed as percentage (for example 200%) it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->aliases = { "perimeters_extrusion_width" };
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
@@ -1714,7 +1724,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for infill for solid surfaces. "
                    "If left zero, default extrusion width will be used if set, otherwise 1.125 x nozzle diameter will be used. "
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -1887,7 +1897,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for support material. "
                    "If left zero, default extrusion width will be used if set, otherwise nozzle diameter will be used. "
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -2045,7 +2055,7 @@ void PrintConfigDef::init_fff_params()
                    "You may want to use thinner extrudates to fill all narrow regions and get a smoother finish. "
                    "If left zero, default extrusion width will be used if set, otherwise nozzle diameter will be used. "
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
-    def->sidetext = L("mm or % (leave 0 for default)");
+    def->sidetext = L("mm or %");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
