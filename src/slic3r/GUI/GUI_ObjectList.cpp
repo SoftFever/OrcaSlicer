@@ -1415,12 +1415,17 @@ void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
 
 void ObjectList::load_subobject(ModelVolumeType type)
 {
-    auto item = GetSelection();
-    if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0))
+    wxDataViewItem item = GetSelection();
+    // we can add volumes for Object or Instance
+    if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
         return;
-    int obj_idx = m_objects_model->GetIdByItem(item);
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
     if (obj_idx < 0) return;
+
+    // Get object item, if Instance is selected
+    if (m_objects_model->GetItemType(item)&itInstance)
+        item = m_objects_model->GetItemById(obj_idx);
 
     std::vector<std::pair<wxString, bool>> volumes_info;
     load_part((*m_objects)[obj_idx], volumes_info, type);
@@ -2150,9 +2155,11 @@ void ObjectList::update_selections()
     if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
     {
         const auto item = GetSelection();
-        if (selection.is_single_full_object() && 
-            m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
-            return; 
+        if (selection.is_single_full_object()) {
+            if ( m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
+                return;
+            sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
+        }
         if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
