@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
