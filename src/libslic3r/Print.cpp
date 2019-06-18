@@ -874,7 +874,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation         != model_object_new.origin_translation   ||
-            model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
+//             model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
+            model_object.layer_config_ranges        != model_object_new.layer_config_ranges  ||         // #ys_FIXME_experiment
             model_object.layer_height_profile       != model_object_new.layer_height_profile) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -1227,7 +1228,8 @@ std::string Print::validate() const
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;
             for (const PrintObject *object : m_objects) {
-                has_custom_layering = ! object->model_object()->layer_height_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
+//                 has_custom_layering = ! object->model_object()->layer_height_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
+                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();      // #ys_FIXME_experiment
                 if (has_custom_layering) {
                     layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
                     break;

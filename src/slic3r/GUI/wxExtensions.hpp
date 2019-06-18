@@ -20,6 +20,9 @@ namespace Slic3r {
 	enum class ModelVolumeType : int;
 };
 
+typedef double                          coordf_t;
+typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
+
 #ifdef __WXMSW__
 void                msw_rescale_menu(wxMenu* menu);
 #else /* __WXMSW__ */
@@ -159,12 +162,14 @@ DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 // ----------------------------------------------------------------------------
 
 enum ItemType {
-    itUndef = 0,
-    itObject = 1,
-    itVolume = 2,
-    itInstanceRoot = 4,
-    itInstance = 8,
-    itSettings = 16
+    itUndef         = 0,
+    itObject        = 1,
+    itVolume        = 2,
+    itInstanceRoot  = 4,
+    itInstance      = 8,
+    itSettings      = 16,
+    itLayerRoot     = 32,
+    itLayer         = 64,
 };
 
 class ObjectDataViewModelNode;
@@ -177,6 +182,7 @@ class ObjectDataViewModelNode
     wxBitmap                        m_empty_bmp;
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
+    t_layer_height_range            m_layer_range = { 0.0f, 0.0f };
 
     wxString				        m_name;
     wxBitmap&                       m_bmp = m_empty_bmp;
@@ -228,6 +234,11 @@ public:
 
         set_action_icon();
     }
+
+	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
+							const t_layer_height_range& layer_range,
+                            const int idx = -1,
+                            const wxString& extruder = wxEmptyString );
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
 
@@ -318,6 +329,7 @@ public:
     ItemType        GetType() const                 { return m_type; }
 	void			SetIdx(const int& idx);
 	int             GetIdx() const                  { return m_idx; }
+	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
 
 	// use this function only for childrens
 	void AssignAllVal(ObjectDataViewModelNode& from_node)
@@ -348,7 +360,7 @@ public:
 	}
 
 	// Set action icons for node
-    void set_action_icon();
+    void        set_action_icon();
 
     void        update_settings_digest_bitmaps();
 	bool        update_settings_digest(const std::vector<std::string>& categories);
@@ -388,6 +400,11 @@ public:
                                     const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
+    wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
+    wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item, 
+                                    const t_layer_height_range& layer_range,
+                                    const int extruder = 0, 
+                                    const int index = -1);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();
@@ -395,13 +412,18 @@ public:
     void DeleteVolumeChildren(wxDataViewItem& parent);
     void DeleteSettings(const wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
+    wxDataViewItem GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
+    wxDataViewItem GetItemByLayerId(int obj_idx, int layer_idx);
+    wxDataViewItem GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
+    int  GetItemIdByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
 	int  GetIdByItem(const wxDataViewItem& item) const;
     int  GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
     int  GetObjectIdByItem(const wxDataViewItem& item) const;
     int  GetVolumeIdByItem(const wxDataViewItem& item) const;
     int  GetInstanceIdByItem(const wxDataViewItem& item) const;
+    int  GetLayerIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
@@ -450,6 +472,7 @@ public:
                                     ItemType type) const;
     wxDataViewItem  GetSettingsItem(const wxDataViewItem &item) const;
     wxDataViewItem  GetInstanceRootItem(const wxDataViewItem &item) const;
+    wxDataViewItem  GetLayerRootItem(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
     void    UpdateSettingsDigest(   const wxDataViewItem &item, 
                                     const std::vector<std::string>& categories);
@@ -465,6 +488,7 @@ public:
     wxBitmap    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type, 
                               const bool is_marked = false);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
+    t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
 };
 
 // ----------------------------------------------------------------------------

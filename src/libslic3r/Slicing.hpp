@@ -11,6 +11,8 @@
 
 #include "libslic3r.h"
 #include "Utils.hpp"
+#include "PrintConfig.hpp"
+
 namespace Slic3r
 {
 
@@ -129,10 +131,12 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
 
 typedef std::pair<coordf_t,coordf_t> t_layer_height_range;
 typedef std::map<t_layer_height_range,coordf_t> t_layer_height_ranges;
+typedef std::map<t_layer_height_range, DynamicPrintConfig> t_layer_config_ranges;
 
 extern std::vector<coordf_t> layer_height_profile_from_ranges(
     const SlicingParameters     &slicing_params,
-    const t_layer_height_ranges &layer_height_ranges);
+//     const t_layer_height_ranges &layer_height_ranges);
+    const t_layer_config_ranges &layer_config_ranges);
 
 extern std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
