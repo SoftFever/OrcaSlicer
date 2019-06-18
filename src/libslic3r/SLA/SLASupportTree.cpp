@@ -9,6 +9,7 @@
 #include "SLASpatIndex.hpp"
 #include "SLABasePool.hpp"
 
+#include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Model.hpp>
 
@@ -559,7 +560,7 @@ struct Pad {
 
     Pad() = default;
 
-    Pad(const TriangleMesh& object_support_mesh,
+    Pad(const TriangleMesh& support_mesh,
         const ExPolygons& modelbase,
         double ground_level,
         const PoolConfig& pcfg) :
@@ -576,9 +577,11 @@ struct Pad {
         // Get a sample for the pad from the support mesh
         {
             ExPolygons platetmp;
-            float      plateZ = float(get_pad_fullheight(pcfg) + EPSILON);
 
-            base_plate(object_support_mesh, platetmp, plateZ, 0.1f, thr);
+            float zstart = float(zlevel);
+            float zend   = zstart + float(get_pad_fullheight(pcfg) + EPSILON);
+
+            base_plate(support_mesh, platetmp, grid(zstart, zend, 0.1f), thr);
 
             // We don't need no... holes control...
             for (const ExPolygon &bp : platetmp)
