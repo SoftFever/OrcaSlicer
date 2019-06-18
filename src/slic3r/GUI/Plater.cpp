@@ -1270,7 +1270,7 @@ struct Plater::priv
         std::future<void> m_ftr;
         priv *m_plater = nullptr;
         std::atomic<bool> m_running {false}, m_canceled {false};
-        bool m_stop_slicing = false;
+        bool m_finalized = false;
         
         void run() { 
             m_running.store(true); process(); m_running.store(false); 
@@ -1293,16 +1293,27 @@ struct Plater::priv
         priv& plater() { return *m_plater; }
         bool was_canceled() const { return m_canceled.load(); }
         
+        // Launched just before start(), a job can use it to prepare internals
+        virtual void prepare() {}
+        
+        // Launched when the job is finished. It refreshes the 3dscene by def.
+        virtual void finalize() {
+            // Do a full refresh of scene tree, including regenerating
+            // all the GLVolumes. FIXME The update function shall just
+            // reload the modified matrices.
+            if(! was_canceled())
+                plater().update(true);
+        }
+        
     public:
         
-        Job(priv *_plater, bool stop_slicing = false): 
-            m_plater(_plater), m_stop_slicing(stop_slicing)
+        Job(priv *_plater): m_plater(_plater)
         {
             Bind(wxEVT_THREAD, [this](const wxThreadEvent& evt){
                 auto msg = evt.GetString();
                 if(! msg.empty()) plater().statusbar()->set_status_text(msg);
                 
-                if(! m_range) return;
+                if(m_finalized) return;
                 
                 plater().statusbar()->set_progress(evt.GetInt());
                 if(evt.GetInt() == status_range()) {
@@ -1312,23 +1323,25 @@ struct Plater::priv
                     plater().statusbar()->set_cancel_callback();
                     wxEndBusyCursor();
                     
-                    // Do a full refresh of scene tree, including regenerating
-                    // all the GLVolumes. FIXME The update function shall just
-                    // reload the modified matrices.
-                    if(! was_canceled()) plater().update(true);
+                    finalize();
                     
                     // dont do finalization again for the same process
-                    m_range = 0;
+                    m_finalized = true;
                 }
             });
         }
         
+        Job(const Job&) = delete;
+        Job(Job&&) = default;
+        Job& operator=(const Job&) = delete;
+        Job& operator=(Job&&) = default;
+        
         virtual void process() = 0;
         
-        void start() {  // Start the job. No effect if the job is already running
+        void start() { // Start the job. No effect if the job is already running
             if(! m_running.load()) {
                 
-                if(m_stop_slicing) plater().background_process.stop();
+                prepare();                
                 
                 // Save the current status indicatior range and push the new one
                 m_range = plater().statusbar()->get_range();
@@ -1339,6 +1352,8 @@ struct Plater::priv
                 plater().statusbar()->set_cancel_callback( [this](){ 
                     m_canceled.store(true);
                 });
+                
+                m_finalized = false;
                 
                 // Changing cursor to busy
                 wxBeginBusyCursor();
@@ -1358,7 +1373,7 @@ struct Plater::priv
         // To wait for the running job and join the threads. False is returned
         // if the timeout has been reached and the job is still running. Call
         // cancel() before this fn if you want to explicitly end the job.
-        bool join(int timeout_ms = 0) { 
+        bool join(int timeout_ms = 0) const { 
             if(!m_ftr.valid()) return true;
             
             if(timeout_ms <= 0) 
@@ -1374,21 +1389,85 @@ struct Plater::priv
         void cancel() { m_canceled.store(true); }
     };
     
-    class ArrangeJob: public Job {
-        int count = 0;
-    public:
-        using Job::Job;
-        int status_range() const override { return count; }
-        void set_count(int c) { count = c; }
-        void process() override;
-    } arrange_job {this};
+    enum class Jobs : size_t {
+        Arrange,
+        Rotoptimize
+    };
     
-    class RotoptimizeJob: public Job {
+    // Jobs defined inside the group class will be managed so that only one can
+    // run at a time. Also, the background process will be stopped if a job is
+    // started.
+    class ExclusiveJobGroup {
+        
+        static const int ABORT_WAIT_MAX_MS = 10000;
+        
+        priv * m_plater;
+
+        class ArrangeJob : public Job
+        {
+            int count = 0;
+
+        protected:
+            void prepare() override
+            {
+                count = 0;
+                for (auto obj : plater().model.objects)
+                    count += int(obj->instances.size());
+            }
+
+        public:
+            using Job::Job;
+            int  status_range() const override { return count; }
+            void set_count(int c) { count = c; }
+            void process() override;
+        } arrange_job{m_plater};
+
+        class RotoptimizeJob : public Job
+        {
+        public:
+            using Job::Job;
+            void process() override;
+        } rotoptimize_job{m_plater};
+
+        std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
+                                                        rotoptimize_job};
+
     public:
-        using Job::Job;
-        void process() override;
-    } rotoptimize_job {this};
-    
+        
+        ExclusiveJobGroup(priv *_plater): m_plater(_plater) {}
+        
+        void start(Jobs jid) {
+            m_plater->background_process.stop();
+            stop_all();
+            m_jobs[size_t(jid)].get().start();
+        }
+        
+        void cancel_all() { for (Job& j : m_jobs) j.cancel(); }
+
+        void join_all(int wait_ms = 0)
+        {
+            std::vector<bool> aborted(m_jobs.size(), false);
+            
+            for (size_t jid = 0; jid < m_jobs.size(); ++jid)
+                aborted[jid] = m_jobs[jid].get().join(wait_ms);
+
+            if (!all_of(aborted))
+                BOOST_LOG_TRIVIAL(error) << "Could not abort a job!";
+        }
+        
+        void stop_all() { cancel_all(); join_all(ABORT_WAIT_MAX_MS); }
+        
+        const Job& get(Jobs jobid) const { return m_jobs[size_t(jobid)]; }
+
+        bool is_any_running() const
+        {
+            return std::any_of(m_jobs.begin(),
+                               m_jobs.end(),
+                               [](const Job &j) { return j.is_running(); });
+        }
+        
+    } m_ui_jobs{this};
+
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
 
@@ -2274,48 +2353,43 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
-    if(!arrange_job.is_running()) {
-        int count = 0;
-        for(auto obj : model.objects) count += int(obj->instances.size());
-        arrange_job.set_count(count);
-        arrange_job.start();
-    }
+    m_ui_jobs.start(Jobs::Arrange);
 }
 
 // This method will find an optimal orientation for the currently selected item
 // Very similar in nature to the arrange method above...
 void Plater::priv::sla_optimize_rotation() {
-    
-    rotoptimize_job.start();
+    m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-void Plater::priv::ArrangeJob::process() {
-    
+void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
     // TODO: we should decide whether to allow arrange when the search is
     // running we should probably disable explicit slicing and background
     // processing
 
-    static const std::string arrangestr = L("Arranging");
-    
-    auto& config = plater().config;
-    auto& view3D = plater().view3D;
-    auto& model  = plater().model;
+    static const auto arrangestr = _(L("Arranging"));
+
+    auto &config = plater().config;
+    auto &view3D = plater().view3D;
+    auto &model  = plater().model;
 
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
-    double dist = 6; //PrintConfig::min_object_distance(config);
-    if(plater().printer_technology == ptFFF) {
+    double dist = 6; // PrintConfig::min_object_distance(config);
+    if (plater().printer_technology == ptFFF) {
         dist = PrintConfig::min_object_distance(config);
     }
 
-    auto min_obj_distance = coord_t(dist/SCALING_FACTOR);
+    auto min_obj_distance = coord_t(dist / SCALING_FACTOR);
 
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>(
+        "bed_shape");
 
     assert(bed_shape_opt);
-    auto& bedpoints = bed_shape_opt->values;
-    Polyline bed; bed.points.reserve(bedpoints.size());
-    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+    auto &   bedpoints = bed_shape_opt->values;
+    Polyline bed;
+    bed.points.reserve(bedpoints.size());
+    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
     update_status(0, arrangestr);
 
@@ -2333,94 +2407,115 @@ void Plater::priv::ArrangeJob::process() {
                      bed,
                      hint,
                      false, // create many piles not just one pile
-                     [this](unsigned st) { if(st > 0) update_status(count - int(st), arrangestr); },
-                     [this] () { return was_canceled(); });
-    } catch(std::exception& /*e*/) {
-        GUI::show_error(plater().q, L("Could not arrange model objects! "
-                                      "Some geometries may be invalid."));
+                     [this](unsigned st) {
+                         if (st > 0)
+                             update_status(count - int(st), arrangestr);
+                     },
+                     [this]() { return was_canceled(); });
+    } catch (std::exception & /*e*/) {
+        GUI::show_error(plater().q,
+                        L("Could not arrange model objects! "
+                          "Some geometries may be invalid."));
     }
-    
-    update_status(count, was_canceled() ? L("Arranging canceled.") : L("Arranging done."));
+
+    update_status(count,
+                  was_canceled() ? _(L("Arranging canceled."))
+                                 : _(L("Arranging done.")));
 
     // it remains to move the wipe tower:
-    view3D->get_canvas3d()->arrange_wipe_tower(wti);   
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);
 }
 
-void Plater::priv::RotoptimizeJob::process()
+void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
 {
-
     int obj_idx = plater().get_selected_object_idx();
     if (obj_idx < 0) { return; }
 
-    ModelObject * o = plater().model.objects[size_t(obj_idx)];
-    
-    auto r = sla::find_best_rotation(
-                *o, .005f,
-                [this](unsigned s) { if(s < 100) update_status(int(s), L("Searching for optimal orientation")); },
-                [this](){ return was_canceled(); }
-    );
+    ModelObject *o = plater().model.objects[size_t(obj_idx)];
 
-    const auto *bed_shape_opt = plater().config->opt<ConfigOptionPoints>("bed_shape");
+    auto r = sla::find_best_rotation(
+        *o,
+        .005f,
+        [this](unsigned s) {
+            if (s < 100)
+                update_status(int(s),
+                              _(L("Searching for optimal orientation")));
+        },
+        [this]() { return was_canceled(); });
+
+    const auto *bed_shape_opt = plater().config->opt<ConfigOptionPoints>(
+        "bed_shape");
     assert(bed_shape_opt);
 
-    auto& bedpoints = bed_shape_opt->values;
-    Polyline bed; bed.points.reserve(bedpoints.size());
-    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+    auto &   bedpoints = bed_shape_opt->values;
+    Polyline bed;
+    bed.points.reserve(bedpoints.size());
+    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
     double mindist = 6.0; // FIXME
-    double offs = mindist / 2.0 - EPSILON;
+    double offs    = mindist / 2.0 - EPSILON;
 
-    if(! was_canceled()) // wasn't canceled
-    for(ModelInstance * oi : o->instances) {
-        oi->set_rotation({r[X], r[Y], r[Z]});
+    if (!was_canceled()) // wasn't canceled
+        for (ModelInstance *oi : o->instances) {
+            oi->set_rotation({r[X], r[Y], r[Z]});
 
-        auto trchull = o->convex_hull_2d(oi->get_transformation().get_matrix());
+            auto trchull = o->convex_hull_2d(
+                oi->get_transformation().get_matrix());
 
-        namespace opt = libnest2d::opt;
-        opt::StopCriteria stopcr;
-        stopcr.relative_score_difference = 0.01;
-        stopcr.max_iterations = 10000;
-        stopcr.stop_score = 0.0;
-        opt::GeneticOptimizer solver(stopcr);
-        Polygon pbed(bed);
+            namespace opt = libnest2d::opt;
+            opt::StopCriteria stopcr;
+            stopcr.relative_score_difference = 0.01;
+            stopcr.max_iterations            = 10000;
+            stopcr.stop_score                = 0.0;
+            opt::GeneticOptimizer solver(stopcr);
+            Polygon               pbed(bed);
 
-        auto bin = pbed.bounding_box();
-        double binw = bin.size()(X) * SCALING_FACTOR - offs;
-        double binh = bin.size()(Y) * SCALING_FACTOR - offs;
+            auto   bin  = pbed.bounding_box();
+            double binw = bin.size()(X) * SCALING_FACTOR - offs;
+            double binh = bin.size()(Y) * SCALING_FACTOR - offs;
 
-        auto result = solver.optimize_min([&trchull, binw, binh](double rot){
-            auto chull = trchull;
-            chull.rotate(rot);
+            auto result = solver.optimize_min(
+                [&trchull, binw, binh](double rot) {
+                    auto chull = trchull;
+                    chull.rotate(rot);
 
-            auto bb = chull.bounding_box();
-            double bbw = bb.size()(X) * SCALING_FACTOR;
-            double bbh = bb.size()(Y) * SCALING_FACTOR;
+                    auto   bb  = chull.bounding_box();
+                    double bbw = bb.size()(X) * SCALING_FACTOR;
+                    double bbh = bb.size()(Y) * SCALING_FACTOR;
 
-            auto wdiff = bbw - binw;
-            auto hdiff = bbh - binh;
-            double diff = 0;
-            if(wdiff < 0 && hdiff < 0) diff = wdiff + hdiff;
-            if(wdiff > 0) diff += wdiff;
-            if(hdiff > 0) diff += hdiff;
+                    auto   wdiff = bbw - binw;
+                    auto   hdiff = bbh - binh;
+                    double diff  = 0;
+                    if (wdiff < 0 && hdiff < 0) diff = wdiff + hdiff;
+                    if (wdiff > 0) diff += wdiff;
+                    if (hdiff > 0) diff += hdiff;
 
-            return diff;
-        }, opt::initvals(0.0), opt::bound(-PI/2, PI/2));
+                    return diff;
+                },
+                opt::initvals(0.0),
+                opt::bound(-PI / 2, PI / 2));
 
-        double r = std::get<0>(result.optimum);
+            double r = std::get<0>(result.optimum);
 
-        Vec3d rt = oi->get_rotation(); rt(Z) += r;
-        oi->set_rotation(rt);
+            Vec3d rt = oi->get_rotation();
+            rt(Z) += r;
+            oi->set_rotation(rt);
 
-        arr::WipeTowerInfo wti; // useless in SLA context
-        arr::find_new_position(plater().model, o->instances, 
-                               coord_t(mindist/SCALING_FACTOR), bed, wti);
-    
-        // Correct the z offset of the object which was corrupted be the rotation
-        o->ensure_on_bed();
-    
-        update_status(100, L("Orientation found."));
-    } else {
-        update_status(100, L("Orientation search canceled."));
+            arr::WipeTowerInfo wti; // useless in SLA context
+            arr::find_new_position(plater().model,
+                                   o->instances,
+                                   coord_t(mindist / SCALING_FACTOR),
+                                   bed,
+                                   wti);
+
+            // Correct the z offset of the object which was corrupted be
+            // the rotation
+            o->ensure_on_bed();
+            
+            update_status(100, _(L("Orientation found.")));
+        }
+    else {
+        update_status(100, _(L("Orientation search canceled.")));
     }
 }
 
@@ -2602,7 +2697,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
 bool Plater::priv::restart_background_process(unsigned int state)
 {
-    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
+    if (m_ui_jobs.is_any_running()) {
         // Avoid a race condition
         return false;
     }
@@ -2833,7 +2928,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     if (evt.status.percent >= -1) {
-        if (arrange_job.is_running() || rotoptimize_job.is_running()) {
+        if (m_ui_jobs.is_any_running()) {
             // Avoid a race condition
             return;
         }
@@ -3314,7 +3409,7 @@ bool Plater::priv::can_fix_through_netfabb() const
 
 bool Plater::priv::can_increase_instances() const
 {
-    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
+    if (m_ui_jobs.is_any_running()) {
         return false;
     }
 
@@ -3324,7 +3419,7 @@ bool Plater::priv::can_increase_instances() const
 
 bool Plater::priv::can_decrease_instances() const
 {
-    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
+    if (m_ui_jobs.is_any_running()) {
         return false;
     }
 
@@ -3344,7 +3439,7 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty() && !arrange_job.is_running();
+    return !model.objects.empty() && !m_ui_jobs.is_any_running();
 }
 
 bool Plater::priv::can_layers_editing() const
@@ -3471,20 +3566,7 @@ void Plater::load_files(const std::vector<std::string>& input_files, bool load_m
 
 void Plater::update() { p->update(); }
 
-void Plater::stop_jobs()
-{
-    static const int ABORT_WAIT_MAX_MS = 10000;
-    bool aborted = false;
-    
-    p->rotoptimize_job.cancel();
-    aborted = p->rotoptimize_job.join(ABORT_WAIT_MAX_MS);
-        
-    p->arrange_job.cancel();
-    aborted &= p->arrange_job.join(ABORT_WAIT_MAX_MS);
-    
-    if(!aborted) 
-        BOOST_LOG_TRIVIAL(error) << "Could not abort an optimization job!";
-}
+void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
@@ -3792,7 +3874,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     if (!path.Lower().EndsWith(".3mf"))
         return;
 
-	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
@@ -3846,7 +3928,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object)
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->view3D->reload_scene(false);
 
-	if (this->p->background_process.empty() || (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID))
+    if (this->p->background_process.empty() || (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID))
         // Nothing to do on empty input or invalid configuration.
         return;
 
