@@ -7,7 +7,9 @@
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "Slicing.hpp"
+
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -261,6 +263,7 @@ public:
     void rotate(double angle, const Vec3d& axis);
     void mirror(Axis axis);
 
+    // This method could only be called before the meshes of this ModelVolumes are not shared!
     void scale_mesh(const Vec3d& versor);
 
     size_t materials_count() const;
@@ -268,7 +271,6 @@ public:
     bool needed_repair() const;
     ModelObjectPtrs cut(size_t instance, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);    // Note: z is in world coordinates
     void split(ModelObjectPtrs* new_objects);
-    void repair();
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
     // then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
     // This situation is solved by baking in the instance transformation into the mesh vertices.
@@ -340,7 +342,12 @@ class ModelVolume : public ModelBase
 public:
     std::string         name;
     // The triangular model.
-    TriangleMesh        mesh;
+    const TriangleMesh& mesh() const { return *m_mesh.get(); }
+    void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<TriangleMesh>(mesh); }
+    void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<TriangleMesh>(std::move(mesh)); }
+    void                set_mesh(std::shared_ptr<TriangleMesh> &mesh) { m_mesh = mesh; }
+    void                set_mesh(std::unique_ptr<TriangleMesh> &&mesh) { m_mesh = std::move(mesh); }
+	void				reset_mesh() { m_mesh = std::make_shared<TriangleMesh>(); }
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
     DynamicPrintConfig  config;
@@ -377,13 +384,16 @@ public:
     void                rotate(double angle, const Vec3d& axis);
     void                mirror(Axis axis);
 
+    // This method could only be called before the meshes of this ModelVolumes are not shared!
     void                scale_geometry(const Vec3d& versor);
 
-    // translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box
-    void                center_geometry();
+    // Translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box.
+    // Attention! This method may only be called just after ModelVolume creation! It must not be called once the TriangleMesh of this ModelVolume is shared!
+    void                center_geometry_after_creation();
 
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
+    std::shared_ptr<const TriangleMesh> get_convex_hull_shared_ptr() const { return m_convex_hull; }
     // Get count of errors in the mesh
     int                 get_mesh_errors_count() const;
 
@@ -430,18 +440,20 @@ protected:
 
 	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
-    void     transform_mesh(const Transform3d& t, bool fix_left_handed);
-    void     transform_mesh(const Matrix3d& m, bool fix_left_handed);
+    void     transform_this_mesh(const Transform3d& t, bool fix_left_handed);
+    void     transform_this_mesh(const Matrix3d& m, bool fix_left_handed);
 
 private:
     // Parent object owning this ModelVolume.
-    ModelObject*            object;
+    ModelObject*                    object;
+    // The triangular model.
+    std::shared_ptr<TriangleMesh>   m_mesh;
     // Is it an object to be printed, or a modifier volume?
-    ModelVolumeType         m_type;
-    t_model_material_id     m_material_id;
+    ModelVolumeType                 m_type;
+    t_model_material_id             m_material_id;
     // The convex hull of this model's mesh.
-    TriangleMesh             m_convex_hull;
-    Geometry::Transformation m_transformation;
+    std::shared_ptr<TriangleMesh>   m_convex_hull;
+    Geometry::Transformation        m_transformation;
 
     // flag to optimize the checking if the volume is splittable
     //     -1   ->   is unknown value (before first cheking)
@@ -449,24 +461,24 @@ private:
     //      1   ->   is splittable
     mutable int               m_is_splittable{ -1 };
 
-	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(ModelVolumeType::MODEL_PART), object(object)
+	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : m_mesh(new TriangleMesh(mesh)), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
-		mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(ModelVolumeType::MODEL_PART), object(object) {}
+		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(ModelVolumeType::MODEL_PART), object(object) {}
 
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ModelBase(other), // copy the ID
-        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
     }
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
-        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
         if (mesh.stl.stats.number_of_facets > 1)
@@ -596,10 +608,6 @@ public:
 
     static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
-
-    /// Repair the ModelObjects of the current Model.
-    /// This function calls repair function on each TriangleMesh of each model object volume
-    void         repair();
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

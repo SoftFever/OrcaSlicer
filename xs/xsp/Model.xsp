@@ -253,7 +253,7 @@ ModelMaterial::attributes()
     Ref<DynamicPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Ref<TriangleMesh> mesh()
-        %code%{ RETVAL = &THIS->mesh; %};
+        %code%{ RETVAL = &THIS->mesh(); %};
     
     bool modifier()
         %code%{ RETVAL = THIS->is_modifier(); %};

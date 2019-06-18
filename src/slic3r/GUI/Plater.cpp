@@ -3565,7 +3565,7 @@ void Plater::export_stl(bool extended, bool selection_only)
         else
         {
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            mesh = model_object->volumes[volume->volume_idx()]->mesh;
+            mesh = model_object->volumes[volume->volume_idx()]->mesh();
             mesh.transform(volume->get_volume_transformation().get_matrix());
             mesh.translate(-model_object->origin_translation.cast<float>());
         }
