@@ -27,6 +27,7 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_i
     : GLGizmoBase(parent, sprite_id)
 #endif // ENABLE_SVG_ICONS
     , m_quadric(nullptr)
+    , m_its(nullptr)
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -379,36 +380,23 @@ bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_current_mesh_model_id) || m_V.size()==0);
+        && ((m_model_object->id() != m_current_mesh_model_id) || m_its == nullptr);
 }
 
 void GLGizmoSlaSupports::update_mesh()
 {
     wxBusyCursor wait;
-    Eigen::MatrixXf& V = m_V;
-    Eigen::MatrixXi& F = m_F;
-    // We rely on SLA model object having a single volume,
     // this way we can use that mesh directly.
     // This mesh does not account for the possible Z up SLA offset.
-    m_mesh = &m_model_object->volumes.front()->mesh;
-    const_cast<TriangleMesh*>(m_mesh)->require_shared_vertices(); // TriangleMeshSlicer needs this
-    const stl_file& stl = m_mesh->stl;
-    V.resize(3 * stl.stats.number_of_facets, 3);
-    F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
-        F(i, 0) = 3*i+0;
-        F(i, 1) = 3*i+1;
-        F(i, 2) = 3*i+2;
-    }
+    m_mesh = &m_model_object->volumes.front()->mesh();
+    m_its = &m_mesh->its;
     m_current_mesh_model_id = m_model_object->id();
     m_editing_mode = false;
 
-    m_AABB = igl::AABB<Eigen::MatrixXf,3>();
-    m_AABB.init(m_V, m_F);
+	m_AABB.deinit();
+    m_AABB.init(
+        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
+        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
 }
 
 // Unprojects the mouse position on the mesh and return the hit point and normal of the facet.
@@ -416,7 +404,7 @@ void GLGizmoSlaSupports::update_mesh()
 std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (m_V.size() == 0)
+    if (m_its == nullptr)
         update_mesh();
 
     const Camera& camera = m_parent.get_camera();
@@ -442,7 +430,10 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     point1 = inv * point1;
     point2 = inv * point2;
 
-    if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hits))
+    if (!m_AABB.intersect_ray(
+        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
+        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
+        point1.cast<float>(), (point2-point1).cast<float>(), hits))
         throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
 
     std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
@@ -457,9 +448,9 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
         igl::Hit& hit = hits[i];
         int fid = hit.id;   // facet id
         bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-        a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
-        b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
-        result = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
+        a = (m_its->vertices[m_its->indices[fid](1)] - m_its->vertices[m_its->indices[fid](0)]);
+        b = (m_its->vertices[m_its->indices[fid](2)] - m_its->vertices[m_its->indices[fid](0)]);
+        result = bc(0) * m_its->vertices[m_its->indices[fid](0)] + bc(1) * m_its->vertices[m_its->indices[fid](1)] + bc(2)*m_its->vertices[m_its->indices[fid](2)];
         if (m_clipping_plane_distance == 0.f || !is_point_clipped(result.cast<double>()))
             break;
     }
@@ -550,7 +541,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             const Selection& selection = m_parent.get_selection();
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
             const Transform3d& instance_matrix_no_translation_no_scaling = volume->get_instance_transformation().get_matrix(true,false,true);
-            Vec3f direction_to_camera = camera.get_dir_forward().cast<float>();
+            Vec3f direction_to_camera = -camera.get_dir_forward().cast<float>();
             Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
             Vec3f scaling = volume->get_instance_scaling_factor().cast<float>();
             direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
@@ -564,15 +555,18 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     // Cast a ray in the direction of the camera and look for intersection with the mesh:
                     std::vector<igl::Hit> hits;
                     // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
-                    if (m_AABB.intersect_ray(m_V, m_F, support_point.pos + direction_to_camera_mesh * (support_point.head_front_radius + EPSILON), direction_to_camera_mesh, hits)) {
+                    if (m_AABB.intersect_ray(
+                            MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
+                            MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
+                            support_point.pos + direction_to_camera_mesh * (support_point.head_front_radius + EPSILON), direction_to_camera_mesh, hits)) {
                         std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
 
                         if (m_clipping_plane_distance != 0.f) {
                             // If the closest hit facet normal points in the same direction as the ray,
                             // we are looking through the mesh and should therefore discard the point:
                             int fid = hits.front().id;   // facet id
-                            Vec3f a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
-                            Vec3f b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
+                            Vec3f a = (m_its->vertices[m_its->indices[fid](1)] - m_its->vertices[m_its->indices[fid](0)]);
+                            Vec3f b = (m_its->vertices[m_its->indices[fid](2)] - m_its->vertices[m_its->indices[fid](0)]);
                             if ((a.cross(b)).dot(direction_to_camera_mesh) > 0.f)
                                 is_obscured = true;
 
@@ -582,7 +576,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                                 int fid = hit.id;   // facet id
 
                                 Vec3f bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-                                Vec3f hit_pos = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
+                                Vec3f hit_pos = bc(0) * m_its->vertices[m_its->indices[fid](0)] + bc(1) * m_its->vertices[m_its->indices[fid](1)] + bc(2)*m_its->vertices[m_its->indices[fid](2)];
                                 if (is_point_clipped(hit_pos.cast<double>())) {
                                     hits.erase(hits.begin()+j);
                                     --j;
@@ -759,9 +753,12 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
     int idx = 0;
     Eigen::Matrix<float, 1, 3> pp = m_editing_mode_cache[i].support_point.pos;
     Eigen::Matrix<float, 1, 3> cc;
-    m_AABB.squared_distance(m_V, m_F, pp, idx, cc);
-    Vec3f a = (m_V.row(m_F(idx, 1)) - m_V.row(m_F(idx, 0)));
-    Vec3f b = (m_V.row(m_F(idx, 2)) - m_V.row(m_F(idx, 0)));
+    m_AABB.squared_distance(
+        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
+        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
+        pp, idx, cc);
+    Vec3f a = (m_its->vertices[m_its->indices[idx](1)] - m_its->vertices[m_its->indices[idx](0)]);
+    Vec3f b = (m_its->vertices[m_its->indices[idx](2)] - m_its->vertices[m_its->indices[idx](0)]);
     m_editing_mode_cache[i].normal = a.cross(b);
 }
 
@@ -1067,8 +1064,7 @@ void GLGizmoSlaSupports::on_set_state()
                 m_clipping_plane_distance = 0.f;
                 // Release triangle mesh slicer and the AABB spatial search structure.
                 m_AABB.deinit();
-				m_V = Eigen::MatrixXf();
-				m_F = Eigen::MatrixXi();
+                m_its = nullptr;
                 m_tms.reset();
                 m_supports_tms.reset();
             });

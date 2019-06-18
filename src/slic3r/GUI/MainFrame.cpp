@@ -54,7 +54,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // _WIN32
 
 	// initialize status bar
-	m_statusbar = new ProgressStatusBar(this);
+	m_statusbar.reset(new ProgressStatusBar(this));
 	m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
@@ -103,6 +103,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
             event.Veto();
             return;
         }
+        
+        if(m_plater) m_plater->stop_jobs();
 
         // Weird things happen as the Paint messages are floating around the windows being destructed.
         // Avoid the Paint messages by hiding the main window.
@@ -137,6 +139,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     update_ui_from_settings();    // FIXME (?)
 }
+
+MainFrame::~MainFrame() = default;
 
 void MainFrame::update_title()
 {
@@ -976,7 +980,8 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 				if (! boost::algorithm::ends_with(opt_key, "_settings_id"))
 					tab->get_config()->option(opt_key)->set(config.option(opt_key));
         }
-	wxGetApp().load_current_presets();
+    
+    wxGetApp().load_current_presets();
 #endif
 }
 

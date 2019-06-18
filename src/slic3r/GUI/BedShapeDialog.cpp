@@ -30,11 +30,9 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 	SetMinSize(GetSize());
 	main_sizer->SetSizeHints(this);
 
-	// needed to actually free memory
-	this->Bind(wxEVT_CLOSE_WINDOW, ([this](wxCloseEvent e) {
-		EndModal(wxID_OK);
-		Destroy();
-	}));
+    this->Bind(wxEVT_CLOSE_WINDOW, ([this](wxCloseEvent& evt) {
+        EndModal(wxID_CANCEL);
+    }));
 }
 
 void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -135,7 +133,7 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 
 // Called from the constructor.
 // Create a panel for a rectangular / circular / custom bed shape.
-ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title)
+ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& title)
 {
 
 	auto panel = new wxPanel(m_shape_options_book);
@@ -305,8 +303,9 @@ void BedShapePanel::update_shape()
 		}
 		m_canvas->m_bed_shape = points;
 	}
+    else if (page_idx == SHAPE_CUSTOM) 
+        m_canvas->m_bed_shape = m_loaded_bed_shape;
 
-//	$self->{on_change}->();
 	update_preview();
 }
 
@@ -351,8 +350,9 @@ void BedShapePanel::load_stl()
 	std::vector<Vec2d> points;
 	for (auto pt : polygon.points)
 		points.push_back(unscale(pt));
-	m_canvas->m_bed_shape = points;
-	update_preview();
+
+    m_loaded_bed_shape = points;
+    update_shape();
 }
 
 } // GUI
