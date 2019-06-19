@@ -782,6 +782,8 @@ BedShapeHint bedShape(const Polyline &bed) {
     return ret;
 }
 
+static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
+
 // The final client function to arrange the Model. A progress indicator and
 // a stop predicate can be also be passed to control the process.
 bool arrange(Model &model,              // The model with the geometries
@@ -798,7 +800,7 @@ bool arrange(Model &model,              // The model with the geometries
     bool ret = true;
     
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti, 0.1);
+    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
@@ -899,7 +901,7 @@ void find_new_position(const Model &model,
                        WipeTowerInfo& wti)
 {    
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti, 0.1);
+    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
