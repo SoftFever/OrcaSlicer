@@ -22,19 +22,19 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 namespace Slic3r {
 namespace GUI {
 
-const float Camera::DefaultDistance = 1000.0f;
+const double Camera::DefaultDistance = 1000.0;
 double Camera::FrustrumMinZSize = 50.0;
 double Camera::FrustrumZMargin = 10.0;
 
 Camera::Camera()
-    : type(Ortho)
-    , zoom(1.0f)
+    : zoom(1.0f)
     , phi(45.0f)
-    , distance(DefaultDistance)
     , requires_zoom_to_bed(false)
     , inverted_phi(false)
-    , m_theta(45.0f)
+    , m_type(Ortho)
     , m_target(Vec3d::Zero())
+    , m_theta(45.0f)
+    , m_distance(DefaultDistance)
     , m_view_matrix(Transform3d::Identity())
     , m_projection_matrix(Transform3d::Identity())
 {
@@ -42,16 +42,25 @@ Camera::Camera()
 
 std::string Camera::get_type_as_string() const
 {
-    switch (type)
+    switch (m_type)
     {
     default:
     case Unknown:
         return "unknown";
-//    case Perspective:
-//        return "perspective";
+    case Perspective:
+        return "perspective";
     case Ortho:
         return "orthographic";
     };
+}
+
+void Camera::select_next_type()
+{
+    unsigned char next = (unsigned char)m_type + 1;
+    if (next == (unsigned char)Num_types)
+        next = 1;
+
+    m_type = (EType)next;
 }
 
 void Camera::set_target(const Vec3d& target)
@@ -114,7 +123,7 @@ void Camera::apply_view_matrix() const
     double theta_rad = Geometry::deg2rad(-(double)m_theta);
     double phi_rad = Geometry::deg2rad((double)phi);
     double sin_theta = ::sin(theta_rad);
-    Vec3d camera_pos = m_target + (double)distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
+    Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
 
     glsafe(::glMatrixMode(GL_MODELVIEW));
     glsafe(::glLoadIdentity());
@@ -131,27 +140,36 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
 {
     m_frustrum_zs = calc_tight_frustrum_zs_around(box);
 
-    switch (type)
+    double w = (double)m_viewport[2];
+    double h = (double)m_viewport[3];
+    double two_zoom = 2.0 * zoom;
+    if (two_zoom != 0.0)
     {
+        double inv_two_zoom = 1.0 / two_zoom;
+        w *= inv_two_zoom;
+        h *= inv_two_zoom;
+    }
+
+    glsafe(::glMatrixMode(GL_PROJECTION));
+    glsafe(::glLoadIdentity());
+
+    switch (m_type)
+    {
+    default:
     case Ortho:
     {
-        double w2 = (double)m_viewport[2];
-        double h2 = (double)m_viewport[3];
-        double two_zoom = 2.0 * zoom;
-        if (two_zoom != 0.0)
-        {
-            double inv_two_zoom = 1.0 / two_zoom;
-            w2 *= inv_two_zoom;
-            h2 *= inv_two_zoom;
-        }
-
-        apply_ortho_projection(-w2, w2, -h2, h2, m_frustrum_zs.first, m_frustrum_zs.second);
+        glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
         break;
     }
-//    case Perspective:
-//    {
-//    }
+    case Perspective:
+    {
+        glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        break;
     }
+    }
+
+    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
+    glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
 #if ENABLE_CAMERA_STATISTICS
@@ -186,17 +204,6 @@ void Camera::debug_render() const
     imgui.end();
 }
 #endif // ENABLE_CAMERA_STATISTICS
-
-void Camera::apply_ortho_projection(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max) const
-{
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glOrtho(x_min, x_max, y_min, y_max, z_min, z_max));
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
-
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-}
 
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
 {
