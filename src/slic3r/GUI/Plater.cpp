@@ -1332,10 +1332,22 @@ struct Plater::priv
             });
         }
         
+        // TODO: use this when we all migrated to VS2019
+        // Job(const Job&) = delete;
+        // Job(Job&&) = default;
+        // Job& operator=(const Job&) = delete;
+        // Job& operator=(Job&&) = default;
         Job(const Job&) = delete;
-        Job(Job&&) = default;
         Job& operator=(const Job&) = delete;
-        Job& operator=(Job&&) = default;
+        Job(Job &&o) :
+            m_range(o.m_range),
+            m_ftr(std::move(o.m_ftr)),
+            m_plater(o.m_plater),
+            m_finalized(o.m_finalized)
+        {
+            m_running.store(o.m_running.load());
+            m_canceled.store(o.m_canceled.load());
+        }
         
         virtual void process() = 0;
         
@@ -1417,26 +1429,37 @@ struct Plater::priv
             }
 
         public:
-            using Job::Job;
+            //using Job::Job;
+            ArrangeJob(priv * pltr): Job(pltr) {}
             int  status_range() const override { return count; }
             void set_count(int c) { count = c; }
             void process() override;
-        } arrange_job{m_plater};
+        } arrange_job/*{m_plater}*/;
 
         class RotoptimizeJob : public Job
         {
         public:
-            using Job::Job;
+            //using Job::Job;
+            RotoptimizeJob(priv * pltr): Job(pltr) {}
             void process() override;
-        } rotoptimize_job{m_plater};
+        } rotoptimize_job/*{m_plater}*/;
 
-        std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
-                                                        rotoptimize_job};
+        // To create a new job, just define a new subclass of Job, implement
+        // the process and the optional prepare() and finalize() methods
+        // Register the instance of the class in the m_jobs container
+        // if it cannot run concurrently with other jobs in this group 
+
+        std::vector<std::reference_wrapper<Job>> m_jobs/*{arrange_job,
+                                                        rotoptimize_job}*/;
 
     public:
-        
-        ExclusiveJobGroup(priv *_plater): m_plater(_plater) {}
-        
+        ExclusiveJobGroup(priv *_plater)
+            : m_plater(_plater)
+            , arrange_job(m_plater)
+            , rotoptimize_job(m_plater)
+            , m_jobs({arrange_job, rotoptimize_job})
+        {}
+
         void start(Jobs jid) {
             m_plater->background_process.stop();
             stop_all();
