@@ -318,7 +318,7 @@ class AutoArranger {};
 // management and spatial index structures for acceleration.
 template<class TBin>
 class _ArrBase {
-protected:
+public:
 
     // Useful type shortcuts...
     using Placer = TPacker<TBin>;
@@ -327,6 +327,8 @@ protected:
     using PConfig = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
     using Pile = TMultiShape<PolygonImpl>;
+    
+protected:
 
     Packer m_pck;
     PConfig m_pconf;            // Placement configuration
@@ -564,7 +566,10 @@ public:
 // 2D shape from top view.
 using ShapeData2D = std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
 
-ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo& wti) {
+ShapeData2D projectModelFromTop(const Slic3r::Model &model,
+                                const WipeTowerInfo &wti,
+                                double               tolerance)
+{
     ShapeData2D ret;
 
     // Count all the items on the bin (all the object's instances)
@@ -586,21 +591,32 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo&
             // Object instances should carry the same scaling and
             // x, y rotation that is why we use the first instance.
             {
-                ModelInstance *finst = objptr->instances.front();
-                Vec3d rotation = finst->get_rotation();
-                rotation.z() = 0.;
-                Transform3d trafo_instance = Geometry::assemble_transform(Vec3d::Zero(), rotation, finst->get_scaling_factor(), finst->get_mirror());
+                ModelInstance *finst       = objptr->instances.front();
+                Vec3d          rotation    = finst->get_rotation();
+                rotation.z()               = 0.;
+                Transform3d trafo_instance = Geometry::assemble_transform(
+                    Vec3d::Zero(),
+                    rotation,
+                    finst->get_scaling_factor(),
+                    finst->get_mirror());
                 Polygon p = objptr->convex_hull_2d(trafo_instance);
-				assert(! p.points.empty());
+                
+                assert(!p.points.empty());
 
-                // this may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
-                if (p.points.empty())
-                    continue;
-
+                // this may happen for malformed models, see:
+                // https://github.com/prusa3d/PrusaSlicer/issues/2209
+                if (p.points.empty()) continue;
+                
+                if(tolerance > EPSILON) {
+                    Polygons pp { p };
+                    pp = p.simplify(double(scaled(tolerance)));
+                    if (!pp.empty()) p = pp.front();
+                }
+                
                 p.reverse();
                 assert(!p.is_counter_clockwise());
-                p.append(p.first_point());
                 clpath = Slic3rMultiPoint_to_ClipperPath(p);
+                auto firstp = clpath.front(); clpath.emplace_back(firstp);
             }
 
             Vec3d rotation0 = objptr->instances.front()->get_rotation();
@@ -780,9 +796,9 @@ bool arrange(Model &model,              // The model with the geometries
              std::function<bool ()> stopcondition)
 {
     bool ret = true;
-
+    
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti);
+    auto shapemap = arr::projectModelFromTop(model, wti, 0.1);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
@@ -807,7 +823,7 @@ bool arrange(Model &model,              // The model with the geometries
                          static_cast<libnest2d::Coord>(bbb.min(0)),
                          static_cast<libnest2d::Coord>(bbb.min(1))
                      },
-    {
+                     {
                          static_cast<libnest2d::Coord>(bbb.max(0)),
                          static_cast<libnest2d::Coord>(bbb.max(1))
                      });
@@ -881,9 +897,9 @@ void find_new_position(const Model &model,
                        coord_t min_obj_distance,
                        const Polyline &bed,
                        WipeTowerInfo& wti)
-{
+{    
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti);
+    auto shapemap = arr::projectModelFromTop(model, wti, 0.1);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
