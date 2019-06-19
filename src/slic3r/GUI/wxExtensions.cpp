@@ -1587,6 +1587,7 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
 
     // slider events
     Bind(wxEVT_PAINT,       &DoubleSlider::OnPaint,    this);
+    Bind(wxEVT_CHAR,        &DoubleSlider::OnChar,     this);
     Bind(wxEVT_LEFT_DOWN,   &DoubleSlider::OnLeftDown, this);
     Bind(wxEVT_MOTION,      &DoubleSlider::OnMotion,   this);
     Bind(wxEVT_LEFT_UP,     &DoubleSlider::OnLeftUp,   this);
@@ -2387,6 +2388,8 @@ void DoubleSlider::OnKeyDown(wxKeyEvent &event)
         else if (key == WXK_UP || key == WXK_DOWN)
             move_current_thumb(key == WXK_UP);
     }
+
+    event.Skip(); // !Needed to have EVT_CHAR generated as well
 }
 
 void DoubleSlider::OnKeyUp(wxKeyEvent &event)
