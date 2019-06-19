@@ -2365,10 +2365,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
-        case 'C':
-        case 'c': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'I':
         case 'i': { set_camera_zoom(1.0); break; }
+        case 'K':
+        case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
         case 'o': { set_camera_zoom(-1.0); break; }
         case 'Z':
