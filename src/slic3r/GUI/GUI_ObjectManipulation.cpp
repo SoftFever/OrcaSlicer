@@ -348,7 +348,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     if (selection.is_single_volume() || selection.is_single_modifier()) {
                         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 
-                        Vec3d diff = m_cache.position - Vec3d(0., 0., get_volume_min_z(volume));
+                        const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
+                        Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
 
                         change_position_value(0, diff.x());
                         change_position_value(1, diff.y());
