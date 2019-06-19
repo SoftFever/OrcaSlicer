@@ -1182,6 +1182,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -2438,6 +2439,20 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
+                // DoubleSlider navigation in Preview
+                else if (keyCode == WXK_LEFT    || 
+                         keyCode == WXK_RIGHT   ||
+                         keyCode == WXK_UP      || 
+                         keyCode == WXK_DOWN    ||
+                         keyCode == '+'         || 
+                         keyCode == WXK_NUMPAD_ADD || 
+                         keyCode == '-'         || 
+                         keyCode == 390         || 
+                         keyCode == WXK_DELETE  || 
+                         keyCode == WXK_BACK    )
+                {
+                    post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                }
             }
         }
     }
@@ -5445,7 +5460,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
-        v.set_convex_hull(new TriangleMesh(std::move(mesh.convex_hull_3d())), true);
+        v.set_convex_hull(mesh.convex_hull_3d());
     };
 
     // adds objects' volumes 

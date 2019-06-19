@@ -11,11 +11,6 @@
 namespace Slic3r {
 namespace sla {
 
-using coord_t = Point::coord_type;
-
-/// get the scaled clipper units for a millimeter value
-inline coord_t mm(double v) { return coord_t(v/SCALING_FACTOR); }
-
 /// Get x and y coordinates (because we are eigenizing...)
 inline coord_t x(const Point& p) { return p(0); }
 inline coord_t y(const Point& p) { return p(1); }

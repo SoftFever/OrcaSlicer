@@ -276,7 +276,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// add sidetext if any
 		if (option.sidetext != "") {
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
-												/*wxSize(sidetext_width*wxGetApp().em_unit(), -1)*/wxDefaultSize, wxALIGN_LEFT);
+												wxSize(sidetext_width != -1 ? sidetext_width*wxGetApp().em_unit() : -1, -1) /*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
             sidetext->SetFont(wxGetApp().normal_font());
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);

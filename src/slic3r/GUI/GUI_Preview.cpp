@@ -414,6 +414,12 @@ void Preview::msw_rescale()
     refresh_print();
 }
 
+void Preview::move_double_slider(wxKeyEvent& evt)
+{
+    if (m_slider) 
+        m_slider->OnKeyDown(evt);
+}
+
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);

@@ -261,7 +261,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     const stl_stats& stats = vol_idx == -1 ?
                             (*m_objects)[obj_idx]->get_object_stl_stats() :
-                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh.stl.stats;
+                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stl.stats;
 
     std::map<std::string, int> error_msg = {
         { L("degenerate facets"),   stats.degenerate_facets },
@@ -1415,12 +1415,17 @@ void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
 
 void ObjectList::load_subobject(ModelVolumeType type)
 {
-    auto item = GetSelection();
-    if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0))
+    wxDataViewItem item = GetSelection();
+    // we can add volumes for Object or Instance
+    if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
         return;
-    int obj_idx = m_objects_model->GetIdByItem(item);
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
     if (obj_idx < 0) return;
+
+    // Get object item, if Instance is selected
+    if (m_objects_model->GetItemType(item)&itInstance)
+        item = m_objects_model->GetItemById(obj_idx);
 
     std::vector<std::pair<wxString, bool>> volumes_info;
     load_part((*m_objects)[obj_idx], volumes_info, type);
@@ -1592,7 +1597,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         // First (any) GLVolume of the selected instance. They all share the same instance matrix.
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
         // Transform the new modifier to be aligned with the print bed.
-		const BoundingBoxf3 mesh_bb = new_volume->mesh.bounding_box();
+		const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
 		new_volume->set_transformation(volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
         // Set the modifier position.
         auto offset = (type_name == "Slab") ?
@@ -2150,9 +2155,11 @@ void ObjectList::update_selections()
     if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
     {
         const auto item = GetSelection();
-        if (selection.is_single_full_object() && 
-            m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
-            return; 
+        if (selection.is_single_full_object()) {
+            if ( m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
+                return;
+            sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
+        }
         if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
