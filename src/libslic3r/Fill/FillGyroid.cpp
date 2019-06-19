@@ -55,43 +55,52 @@ static inline Polyline make_wave(
     return polyline;
 }
 
-static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip)
+static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip, double tolerance)
 {
     std::vector<Vec2d> points;
-    double dx = M_PI_4; // very coarse spacing to begin with
+    double dx = M_PI_2; // exact coordinates on main inflexion lobes
     double limit = std::min(2*M_PI, width);
     for (double x = 0.; x < limit + EPSILON; x += dx) {  // so the last point is there too
         x = std::min(x, limit);
-        points.emplace_back(Vec2d(x,f(x, z_sin,z_cos, vertical, flip)));
+        points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
     }
 
-    // now we will check all internal points and in case some are too far from the line connecting its neighbours,
-    // we will add one more point on each side:
-    const double tolerance = .1;
-    for (unsigned int i=1;i<points.size()-1;++i) {
-        auto& lp = points[i-1]; // left point
-        auto& tp = points[i];   // this point
-        Vec2d lrv = tp - lp;
-        auto& rp = points[i+1]; // right point
-        // calculate distance of the point to the line:
-        double dist_mm = unscale<double>(scaleFactor) * std::abs(cross2(rp, lp) - cross2(rp - lp, tp)) / lrv.norm();
-        if (dist_mm > tolerance) {                               // if the difference from straight line is more than this
-            double x = 0.5f * (points[i-1](0) + points[i](0));
-            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
-            x = 0.5f * (points[i+1](0) + points[i](0));
-            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
-            // we added the points to the end, but need them all in order
-            std::sort(points.begin(), points.end(), [](const Vec2d &lhs, const Vec2d &rhs){ return lhs < rhs; });
-            // decrement i so we also check the first newly added point
-            --i;
+    // piecewise increase in resolution up to requested tolerance
+    for(;;)
+    {
+        size_t size = points.size();
+        for (unsigned int i = 1;i < size; ++i) {
+            auto& lp = points[i-1]; // left point
+            auto& rp = points[i];   // right point
+            double x = lp(0) + (rp(0) - lp(0)) / 2;
+            double y = f(x, z_sin, z_cos, vertical, flip);
+            Vec2d ip = {x, y};
+            if (std::abs(cross2(Vec2d(ip - lp), Vec2d(ip - rp))) > sqr(tolerance)) {
+                points.emplace_back(std::move(ip));
+            }
+        }
+
+        if (size == points.size())
+            break;
+        else
+        {
+            // insert new points in order
+            std::sort(points.begin(), points.end(),
+                      [](const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0); });
         }
     }
+
     return points;
 }
 
 static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
 {
     const double scaleFactor = scale_(line_spacing) / density_adjusted;
+
+    // tolerance (in scaled units)
+    // TODO: should consider layer thickness
+    const double tolerance = line_spacing / 2 / unscale<double>(scaleFactor);
+
  //scale factor for 5% : 8 712 388
  // 1z = 10^-6 mm ?
     const double z     = gridZ / scaleFactor;
@@ -109,9 +118,9 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
         std::swap(width,height);
     }
 
-    std::vector<Vec2d> one_period_odd = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
+    std::vector<Vec2d> one_period_odd = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance); // creates one period of the waves, so it doesn't have to be recalculated all the time
     flip = !flip;                                                                   // even polylines are a bit shifted
-    std::vector<Vec2d> one_period_even = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip);
+    std::vector<Vec2d> one_period_even = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance);
     Polylines result;
 
     for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
