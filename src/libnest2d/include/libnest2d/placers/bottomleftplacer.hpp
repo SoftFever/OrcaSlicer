@@ -7,15 +7,15 @@
 
 namespace libnest2d { namespace placers {
 
-template<class T, class = T> struct Epsilon {};
+template<class T, class = T> struct DefaultEpsilon {};
 
 template<class T>
-struct Epsilon<T, enable_if_t<std::is_integral<T>::value, T> > {
+struct DefaultEpsilon<T, enable_if_t<std::is_integral<T>::value, T> > {
     static const T Value = 1;
 };
 
 template<class T>
-struct Epsilon<T, enable_if_t<std::is_floating_point<T>::value, T> > {
+struct DefaultEpsilon<T, enable_if_t<std::is_floating_point<T>::value, T> > {
     static const T Value = 1e-3;
 };
 
@@ -24,7 +24,7 @@ struct BLConfig {
     DECLARE_MAIN_TYPES(RawShape);
 
     Coord min_obj_distance = 0;
-    Coord epsilon = Epsilon<Coord>::Value;
+    Coord epsilon = DefaultEpsilon<Coord>::Value;
     bool allow_rotations = false;
 };
 
