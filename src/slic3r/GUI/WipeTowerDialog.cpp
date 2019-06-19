@@ -172,7 +172,7 @@ void WipingPanel::format_sizer(wxSizer* sizer, wxPanel* page, wxGridSizer* grid_
     wxSize text_size = GetTextExtent(info);
     auto info_str = new wxStaticText(page, wxID_ANY, info ,wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     info_str->Wrap(int(0.6*text_size.x));
-	sizer->Add( info_str, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND);
+	sizer->Add( info_str, 0, wxEXPAND);
 	auto table_sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(table_sizer, 0, wxALIGN_CENTER | wxCENTER, table_lshift);
 	table_sizer->Add(new wxStaticText(page, wxID_ANY, table_title), 0, wxALIGN_CENTER | wxTOP, 50);
