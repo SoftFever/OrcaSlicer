@@ -35,6 +35,7 @@ set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination direct
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
+option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors." OFF)
 
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
@@ -99,6 +100,7 @@ else()
         dep_gtest
         dep_nlopt
         dep_qhull
+        dep_libigl
     )
 
 endif()
