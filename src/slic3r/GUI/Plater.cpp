@@ -1770,7 +1770,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 void Plater::priv::update(bool force_full_scene_refresh)
 {
-    wxWindowUpdateLocker freeze_guard(q);
+    // the following line, when enabled, causes flickering on NVIDIA graphics cards
+//    wxWindowUpdateLocker freeze_guard(q);
     if (get_config("autocenter") == "1") {
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
         // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
