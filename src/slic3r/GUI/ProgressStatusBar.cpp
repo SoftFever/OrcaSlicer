@@ -168,6 +168,11 @@ void ProgressStatusBar::set_status_text(const char *txt)
     this->set_status_text(wxString::FromUTF8(txt));
 }
 
+wxString ProgressStatusBar::get_status_text() const
+{
+    return self->GetStatusText();
+}
+
 void ProgressStatusBar::show_cancel_button()
 {
     if(m_cancelbutton) m_cancelbutton->Show();

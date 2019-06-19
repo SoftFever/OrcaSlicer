@@ -781,7 +781,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     if (i == 0)
                         suffix[0] = 0;
                     else
-                        sprintf(suffix, "%d", i);
+                        sprintf(suffix, "%d", (int)i);
                     std::string new_name = name + suffix;
                     loaded = &this->filaments.load_preset(this->filaments.path_from_name(new_name),
                         new_name, std::move(cfg), i == 0);
@@ -837,7 +837,7 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
                     return preset_name_dst;
                 // Try to generate another name.
                 char buf[64];
-                sprintf(buf, " (%d)", i);
+                sprintf(buf, " (%d)", (int)i);
                 preset_name_dst = preset_name_src + buf + bundle_name;
             }
         }
@@ -1379,7 +1379,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
     for (size_t i = 0; i < this->filament_presets.size(); ++ i) {
         char suffix[64];
         if (i > 0)
-            sprintf(suffix, "_%d", i);
+            sprintf(suffix, "_%d", (int)i);
         else
             suffix[0] = 0;
         c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;

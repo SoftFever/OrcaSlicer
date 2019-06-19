@@ -44,7 +44,7 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
     // call the status callback in each iteration but the actual value may be
     // the same for subsequent iterations (status goes from 0 to 100 but
     // iterations can be many more)
-    auto objfunc = [&emesh, &status, &statuscb, max_tries]
+    auto objfunc = [&emesh, &status, &statuscb, &stopcond, max_tries]
             (double rx, double ry, double rz)
     {
         EigenMesh3D& m = emesh;
@@ -91,7 +91,7 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
         }
 
         // report status
-        statuscb( unsigned(++status * 100.0/max_tries) );
+        if(!stopcond()) statuscb( unsigned(++status * 100.0/max_tries) );
 
         return score;
     };

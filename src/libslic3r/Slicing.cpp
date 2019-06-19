@@ -227,7 +227,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     as.set_slicing_parameters(slicing_params);
     for (const ModelVolume *volume : volumes)
         if (volume->is_model_part())
-            as.add_mesh(&volume->mesh);
+            as.add_mesh(&volume->mesh());
     as.prepare();
 
     // 2) Generate layers using the algorithm of @platsch 

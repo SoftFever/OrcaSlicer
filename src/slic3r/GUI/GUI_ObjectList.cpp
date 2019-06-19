@@ -261,7 +261,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     const stl_stats& stats = vol_idx == -1 ?
                             (*m_objects)[obj_idx]->get_object_stl_stats() :
-                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh.stl.stats;
+                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stl.stats;
 
     std::map<std::string, int> error_msg = {
         { L("degenerate facets"),   stats.degenerate_facets },
@@ -1597,7 +1597,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         // First (any) GLVolume of the selected instance. They all share the same instance matrix.
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
         // Transform the new modifier to be aligned with the print bed.
-		const BoundingBoxf3 mesh_bb = new_volume->mesh.bounding_box();
+		const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
 		new_volume->set_transformation(volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
         // Set the modifier position.
         auto offset = (type_name == "Slab") ?

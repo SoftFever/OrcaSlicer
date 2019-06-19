@@ -89,7 +89,7 @@ void BackgroundSlicingProcess::process_fff()
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 		    if (copy_file(m_temp_output_path, export_path) != 0)
-	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());

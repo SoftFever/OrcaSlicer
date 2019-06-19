@@ -3,10 +3,42 @@
 
 #include <libnest2d.h>
 #include "printer_parts.h"
-#include <libnest2d/geometry_traits_nfp.hpp>
+//#include <libnest2d/geometry_traits_nfp.hpp>
 #include "../tools/svgtools.hpp"
+#include <libnest2d/utils/rotcalipers.hpp>
+
+#include "boost/multiprecision/integer.hpp"
+#include "boost/rational.hpp"
+
+//#include "../tools/Int128.hpp"
+
+//#include "gte/Mathematics/GteMinimumAreaBox2.h"
+
 //#include "../tools/libnfpglue.hpp"
 //#include "../tools/nfp_svgnest_glue.hpp"
+
+namespace libnest2d {
+#if !defined(_MSC_VER) && defined(__SIZEOF_INT128__) && !defined(__APPLE__)
+using LargeInt = __int128;
+#else
+using LargeInt = boost::multiprecision::int128_t;
+template<> struct _NumTag<LargeInt> { using Type = ScalarTag; };
+#endif
+template<class T> struct _NumTag<boost::rational<T>> { using Type = RationalTag; };
+
+namespace nfp {
+
+template<class S>
+struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
+{
+    NfpResult<S> operator()(const S &sh, const S &other)
+    {
+        return nfpConvexOnly<S, boost::rational<LargeInt>>(sh, other);
+    }
+};
+
+}
+}
 
 std::vector<libnest2d::Item>& prusaParts() {
     static std::vector<libnest2d::Item> ret;
@@ -31,8 +63,8 @@ TEST(BasicFunctionality, Angles)
     ASSERT_DOUBLE_EQ(rad, Pi);
     ASSERT_DOUBLE_EQ(deg, 180);
     ASSERT_DOUBLE_EQ(deg2, 180);
-    ASSERT_DOUBLE_EQ(rad, (Radians) deg);
-    ASSERT_DOUBLE_EQ( (Degrees) rad, deg);
+    ASSERT_DOUBLE_EQ(rad, Radians(deg));
+    ASSERT_DOUBLE_EQ( Degrees(rad), deg);
 
     ASSERT_TRUE(rad == deg);
 
@@ -151,12 +183,12 @@ TEST(GeometryAlgorithms, Distance) {
 
     Segment seg(p1, p3);
 
-    ASSERT_DOUBLE_EQ(pointlike::distance(p2, seg), 7.0710678118654755);
+//    ASSERT_DOUBLE_EQ(pointlike::distance(p2, seg), 7.0710678118654755);
 
     auto result = pointlike::horizontalDistance(p2, seg);
 
-    auto check = [](Coord val, Coord expected) {
-        if(std::is_floating_point<Coord>::value)
+    auto check = [](TCompute<Coord> val, TCompute<Coord> expected) {
+        if(std::is_floating_point<TCompute<Coord>>::value)
             ASSERT_DOUBLE_EQ(static_cast<double>(val),
                              static_cast<double>(expected));
         else
@@ -415,7 +447,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
 namespace {
 using namespace libnest2d;
 
-template<unsigned long SCALE = 1, class Bin>
+template<long long SCALE = 1, class Bin>
 void exportSVG(std::vector<std::reference_wrapper<Item>>& result, const Bin& bin, int idx = 0) {
 
 
@@ -498,6 +530,41 @@ TEST(GeometryAlgorithms, BottomLeftStressTest) {
         it++;
         i++;
     }
+}
+
+TEST(GeometryAlgorithms, convexHull) {
+    using namespace libnest2d;
+
+    ClipperLib::Path poly = PRINTER_PART_POLYGONS[0];
+
+    auto chull = sl::convexHull(poly);
+    
+    ASSERT_EQ(chull.size(), poly.size());
+}
+
+
+TEST(GeometryAlgorithms, NestTest) {
+    std::vector<Item> input = prusaParts();
+
+    PackGroup result = libnest2d::nest(input,
+                                       Box(250000000, 210000000),
+                                       [](unsigned cnt) {
+                                           std::cout
+                                               << "parts left: " << cnt
+                                               << std::endl;
+                                       });
+
+    ASSERT_LE(result.size(), 2);
+
+    int partsum = std::accumulate(result.begin(),
+                                  result.end(),
+                                  0,
+                                  [](int s,
+                                     const decltype(result)::value_type &bin) {
+                                      return s += bin.size();
+                                  });
+    
+    ASSERT_EQ(input.size(), partsum);
 }
 
 namespace {
@@ -713,7 +780,7 @@ void testNfp(const std::vector<ItemPair>& testdata) {
 
     auto& exportfun = exportSVG<SCALE, Box>;
 
-    auto onetest = [&](Item& orbiter, Item& stationary, unsigned testidx){
+    auto onetest = [&](Item& orbiter, Item& stationary, unsigned /*testidx*/){
         testcase++;
 
         orbiter.translate({210*SCALE, 0});
@@ -820,7 +887,7 @@ TEST(GeometryAlgorithms, mergePileWithPolygon) {
     rect2.translate({10, 0});
     rect3.translate({25, 0});
 
-    shapelike::Shapes<PolygonImpl> pile;
+    TMultiShape<PolygonImpl> pile;
     pile.push_back(rect1.transformedShape());
     pile.push_back(rect2.transformedShape());
 
@@ -831,6 +898,126 @@ TEST(GeometryAlgorithms, mergePileWithPolygon) {
     Rectangle ref(45, 15);
 
     ASSERT_EQ(shapelike::area(result.front()), ref.area());
+}
+
+namespace {
+
+long double refMinAreaBox(const PolygonImpl& p) {    
+    
+    auto it = sl::cbegin(p), itx = std::next(it);
+    
+    long double min_area = std::numeric_limits<long double>::max();
+    
+ 
+    auto update_min = [&min_area, &it, &itx, &p]() {
+        Segment s(*it, *itx);
+        
+        PolygonImpl rotated = p;
+        sl::rotate(rotated, -s.angleToXaxis());
+        auto bb = sl::boundingBox(rotated);
+        auto area = cast<long double>(sl::area(bb));
+        if(min_area > area) min_area = area;
+    };
+    
+    while(itx != sl::cend(p)) {
+        update_min();
+        ++it; ++itx;
+    }
+    
+    it = std::prev(sl::cend(p)); itx = sl::cbegin(p);
+    update_min();
+    
+    return min_area;
+}
+
+template<class T> struct BoostGCD { 
+    T operator()(const T &a, const T &b) { return boost::gcd(a, b); }
+};
+
+using Unit = int64_t;
+using Ratio = boost::rational<boost::multiprecision::int128_t>;// Rational<boost::multiprecision::int256_t>;
+
+//double gteMinAreaBox(const PolygonImpl& p) {    
+    
+//    using GteCoord = ClipperLib::cInt;
+//    using GtePoint = gte::Vector2<GteCoord>;
+ 
+//    gte::MinimumAreaBox2<GteCoord, Ratio> mb;
+    
+//    std::vector<GtePoint> points; 
+//    points.reserve(p.Contour.size());
+    
+//    for(auto& pt : p.Contour) points.emplace_back(GtePoint{GteCoord(pt.X), GteCoord(pt.Y)});
+    
+//    mb(int(points.size()), points.data(), 0, nullptr, true);
+    
+//    auto min_area = double(mb.GetArea());
+    
+//    return min_area;
+//}
+
+}
+
+TEST(RotatingCalipers, MinAreaBBCClk) {
+//    PolygonImpl poly({{-50, 30}, {-50, -50}, {50, -50}, {50, 50}, {-40, 50}});
+    
+//    PolygonImpl poly({{-50, 0}, {50, 0}, {0, 100}});
+    
+    auto u = [](ClipperLib::cInt n) { return n*1000000; };
+    PolygonImpl poly({ {u(0), u(0)}, {u(4), u(1)}, {u(2), u(4)}});
+    
+    
+    long double arearef = refMinAreaBox(poly);
+    long double area = minAreaBoundingBox<PolygonImpl, Unit, Ratio>(poly).area();
+//    double gtearea = gteMinAreaBox(poly);
+    
+    ASSERT_LE(std::abs(area - arearef), 500e6 );
+//    ASSERT_LE(std::abs(gtearea - arearef), 500 );
+//    ASSERT_DOUBLE_EQ(gtearea, arearef);
+}
+
+TEST(RotatingCalipers, AllPrusaMinBB) {
+    size_t idx = 0;
+    long double err_epsilon = 500e6l;
+    
+    for(ClipperLib::Path rinput : PRINTER_PART_POLYGONS) {
+//        ClipperLib::Path rinput = PRINTER_PART_POLYGONS[idx];
+//        rinput.pop_back();
+//        std::reverse(rinput.begin(), rinput.end());
+        
+//        PolygonImpl poly(removeCollinearPoints<PathImpl, PointImpl, Unit>(rinput, 1000000));
+        PolygonImpl poly(rinput);
+        
+        long double arearef = refMinAreaBox(poly);
+        auto bb = minAreaBoundingBox<PathImpl, Unit, Ratio>(rinput);
+        long double area = cast<long double>(bb.area());
+//        double area = gteMinAreaBox(poly);
+        
+        bool succ = std::abs(arearef - area) < err_epsilon;
+        std::cout << idx++ << " " << (succ? "ok" : "failed") << " ref: " 
+                  << arearef << " actual: " << area << std::endl;
+        
+        ASSERT_TRUE(succ);
+    }
+    
+    for(ClipperLib::Path rinput : STEGOSAUR_POLYGONS) {
+        rinput.pop_back();
+        std::reverse(rinput.begin(), rinput.end());
+        
+        PolygonImpl poly(removeCollinearPoints<PathImpl, PointImpl, Unit>(rinput, 1000000));
+        
+        
+        long double arearef = refMinAreaBox(poly);
+        auto bb = minAreaBoundingBox<PolygonImpl, Unit, Ratio>(poly);
+        long double area = cast<long double>(bb.area());
+//        double area = gteMinAreaBox(poly);
+        
+        bool succ = std::abs(arearef - area) < err_epsilon;
+        std::cout << idx++ << " " << (succ? "ok" : "failed") << " ref: " 
+                  << arearef << " actual: " << area << std::endl;
+        
+        ASSERT_TRUE(succ);
+    }
 }
 
 int main(int argc, char **argv) {

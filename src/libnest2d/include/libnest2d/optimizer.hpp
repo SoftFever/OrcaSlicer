@@ -4,7 +4,8 @@
 #include <tuple>
 #include <functional>
 #include <limits>
-#include "common.hpp"
+
+#include <libnest2d/common.hpp>
 
 namespace libnest2d { namespace opt {
 
@@ -60,6 +61,7 @@ enum class Method {
     L_SIMPLEX,
     L_SUBPLEX,
     G_GENETIC,
+    G_PARTICLE_SWARM
     //...
 };
 
