@@ -160,6 +160,8 @@ add_library(libslic3r STATIC
     MTUtils.hpp
     Zipper.hpp
     Zipper.cpp
+    MinAreaBoundingBox.hpp
+    MinAreaBoundingBox.cpp
     miniz_extension.hpp
     miniz_extension.cpp
     SLA/SLABoilerPlate.hpp

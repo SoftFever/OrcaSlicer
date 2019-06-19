@@ -37,6 +37,8 @@
 *                                                                              *
 *******************************************************************************/
 
+#ifndef SLIC3R_INT128_HPP
+#define SLIC3R_INT128_HPP
 // #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
@@ -48,6 +50,8 @@
 #endif
 
 #include <cassert>
+#include <cstdint>
+#include <cmath>
 
 #if ! defined(_MSC_VER) && defined(__SIZEOF_INT128__)
 	#define HAS_INTRINSIC_128_TYPE
@@ -293,3 +297,5 @@ public:
 		return sign_determinant_2x2(p1, q1, p2, q2) * invert;
 	}
 };
+
+#endif // SLIC3R_INT128_HPP

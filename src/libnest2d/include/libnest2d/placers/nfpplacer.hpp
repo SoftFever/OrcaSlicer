@@ -103,14 +103,14 @@ Key hash(const _Item<S>& item) {
         while(deg > N) { ms++; deg -= N; }
         ls += int(deg);
         ret.push_back(char(ms)); ret.push_back(char(ls));
-        circ += seg.length();
+        circ += std::sqrt(seg.template sqlength<double>());
     }
 
     it = ctr.begin(); nx = std::next(it);
 
     while(nx != ctr.end()) {
         Segment seg(*it++, *nx++);
-        auto l = int(M * seg.length() / circ);
+        auto l = int(M * std::sqrt(seg.template sqlength<double>()) / circ);
         int ms = 'A', ls = 'A';
         while(l > N) { ms++; l -= N; }
         ls += l;
@@ -249,6 +249,11 @@ template<class RawShape> class EdgeCache {
     std::vector<ContourCache> holes_;
 
     double accuracy_ = 1.0;
+    
+    static double length(const Edge &e) 
+    { 
+        return std::sqrt(e.template sqlength<double>());
+    }
 
     void createCache(const RawShape& sh) {
         {   // For the contour
@@ -260,7 +265,7 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 contour_.emap.emplace_back(*(first++), *(next++));
-                contour_.full_distance += contour_.emap.back().length();
+                contour_.full_distance += length(contour_.emap.back());
                 contour_.distances.emplace_back(contour_.full_distance);
             }
         }
@@ -275,7 +280,7 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
-                hc.full_distance += hc.emap.back().length();
+                hc.full_distance += length(hc.emap.back());
                 hc.distances.emplace_back(hc.full_distance);
             }
 
