@@ -17,6 +17,28 @@ namespace Slic3r
 namespace GUI
 {
 
+
+// Helper function to be used by drop to bed button. Returns lowest point of this
+// volume in world coordinate system.
+static double get_volume_min_z(const GLVolume* volume)
+{
+    const Transform3f& world_matrix = volume->world_matrix().cast<float>();
+
+    // need to get the ModelVolume pointer
+    const ModelObject* mo = wxGetApp().model_objects()->at(volume->composite_id.object_id);
+    const ModelVolume* mv = mo->volumes[volume->composite_id.volume_id];
+    const TriangleMesh& hull = mv->get_convex_hull();
+
+    float min_z = std::numeric_limits<float>::max();
+    for (const stl_facet& facet : hull.stl.facet_start) {
+        for (int i = 0; i < 3; ++ i)
+            min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * facet.vertex[i]));
+    }
+    return min_z;
+}
+
+
+
 static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
 {
     wxSize size(15 * wxGetApp().em_unit(), -1);
@@ -310,6 +332,33 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             };
             line.append_widget(reset_rotation_button);
         }
+        else if (option_name == "Position") {
+            // Add drop to bed button
+            auto drop_to_bed_button = [=](wxWindow* parent) {
+                auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed.png"));
+                btn->SetToolTip(_(L("Drop to bed")));
+                m_drop_to_bed_button = btn;
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(btn, wxBU_EXACTFIT);
+                btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                    // ???
+                    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+                    Selection& selection = canvas->get_selection();
+
+                    if (selection.is_single_volume() || selection.is_single_modifier()) {
+                        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+
+                        Vec3d diff = m_cache.position - Vec3d(0., 0., get_volume_min_z(volume));
+
+                        change_position_value(0, diff.x());
+                        change_position_value(1, diff.y());
+                        change_position_value(2, diff.z());
+                    }
+                });
+            return sizer;
+            };
+            line.append_widget(drop_to_bed_button);
+        }
         // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
@@ -534,11 +583,13 @@ void ObjectManipulation::update_reset_buttons_visibility()
 
     bool show_rotation = false;
     bool show_scale = false;
+    bool show_drop_to_bed = false;
 
     if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         Vec3d rotation;
         Vec3d scale;
+        double min_z = 0.;
 
         if (selection.is_single_full_instance()) {
             rotation = volume->get_instance_rotation();
@@ -547,14 +598,17 @@ void ObjectManipulation::update_reset_buttons_visibility()
         else {
             rotation = volume->get_volume_rotation();
             scale = volume->get_volume_scaling_factor();
+            min_z = get_volume_min_z(volume);
         }
         show_rotation = !rotation.isApprox(Vec3d::Zero());
         show_scale = !scale.isApprox(Vec3d::Ones());
+        show_drop_to_bed = (std::abs(min_z) > EPSILON);
     }
 
-    wxGetApp().CallAfter([this, show_rotation, show_scale]{
+    wxGetApp().CallAfter([this, show_rotation, show_scale, show_drop_to_bed]{
         m_reset_rotation_button->Show(show_rotation);
         m_reset_scale_button->Show(show_scale);
+        m_drop_to_bed_button->Show(show_drop_to_bed);
     });
 }
 
@@ -867,6 +921,7 @@ void ObjectManipulation::msw_rescale()
     m_mirror_bitmap_hidden.msw_rescale();
     m_reset_scale_button->msw_rescale();
     m_reset_rotation_button->msw_rescale();
+    m_drop_to_bed_button->msw_rescale();
 
     get_og()->msw_rescale();
 }
