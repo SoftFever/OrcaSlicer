@@ -55,12 +55,12 @@ endif()
 
 # Clipper backend is not enough on its own, it still needs some functions
 # from Boost geometry
-if(NOT Boost_INCLUDE_DIRS_FOUND)
+if(NOT Boost_FOUND)
     find_package(Boost 1.58 REQUIRED)
     # TODO automatic download of boost geometry headers
 endif()
 
-target_include_directories(clipperBackend SYSTEM INTERFACE ${Boost_INCLUDE_DIRS} )
+target_link_libraries(clipperBackend INTERFACE Boost::boost )
 #target_sources(ClipperBackend INTERFACE
 #    ${CMAKE_CURRENT_SOURCE_DIR}/geometries.hpp
 #    ${CMAKE_CURRENT_SOURCE_DIR}/clipper_polygon.hpp

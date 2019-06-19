@@ -296,6 +296,9 @@ void Selection::clear()
     if (!m_valid)
         return;
 
+    if (m_list.empty())
+        return;
+
     for (unsigned int i : m_list)
     {
         (*m_volumes)[i]->selected = false;

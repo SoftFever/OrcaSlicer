@@ -1,3 +1,16 @@
+From a31ae4781a4afa60e21c70e5b4ae784bcd447c8a Mon Sep 17 00:00:00 2001
+From: tamasmeszaros <meszaros.q@gmail.com>
+Date: Thu, 6 Jun 2019 15:41:43 +0200
+Subject: [PATCH] prusa-slicer changes
+
+---
+ CMakeLists.txt                     | 44 +++++++++++++++++++++++++++++++++++---
+ Config.cmake.in                    |  2 ++
+ src/libqhull_r/qhull_r-exports.def |  2 ++
+ src/libqhull_r/user_r.h            |  2 +-
+ 4 files changed, 46 insertions(+), 4 deletions(-)
+ create mode 100644 Config.cmake.in
+
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 59dff41..20c2ec5 100644
 --- a/CMakeLists.txt
@@ -70,6 +83,26 @@ index 0000000..bc92bfe
 @@ -0,0 +1,2 @@
 +include("${CMAKE_CURRENT_LIST_DIR}/QhullTargets.cmake")
 +
+diff --git a/src/libqhull_r/qhull_r-exports.def b/src/libqhull_r/qhull_r-exports.def
+index 325d57c..72f6ad0 100644
+--- a/src/libqhull_r/qhull_r-exports.def
++++ b/src/libqhull_r/qhull_r-exports.def
+@@ -185,6 +185,7 @@ qh_memsetup
+ qh_memsize
+ qh_memstatistics
+ qh_memtotal
++qh_memcheck
+ qh_merge_degenredundant
+ qh_merge_nonconvex
+ qh_mergecycle
+@@ -372,6 +373,7 @@ qh_settruncate
+ qh_setunique
+ qh_setvoronoi_all
+ qh_setzero
++qh_setendpointer
+ qh_sharpnewfacets
+ qh_skipfacet
+ qh_skipfilename
 diff --git a/src/libqhull_r/user_r.h b/src/libqhull_r/user_r.h
 index fc105b9..7cca65a 100644
 --- a/src/libqhull_r/user_r.h
@@ -83,3 +116,6 @@ index fc105b9..7cca65a 100644
  
  #if (REALfloat == 1)
  #define realT float
+-- 
+2.16.2.windows.1
+
