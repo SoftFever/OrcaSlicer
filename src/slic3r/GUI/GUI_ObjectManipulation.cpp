@@ -185,7 +185,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         unsigned int axis_idx = (axis[0] - 'x'); // 0, 1 or 2
 
         // We will add a button to toggle mirroring to each axis:
-        auto mirror_button = [=](wxWindow* parent) {
+        auto mirror_button = [this, mirror_btn_width, axis_idx, &label](wxWindow* parent) {
             wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
             auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off.png", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
             btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), label));
@@ -195,7 +195,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
 
-            btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+            btn->Bind(wxEVT_BUTTON, [this, axis_idx](wxCommandEvent &e) {
                 Axis axis = (Axis)(axis_idx + X);
                 if (m_mirror_buttons[axis_idx].second == mbHidden)
                     return;
@@ -258,13 +258,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 return btn;
             };
             // Add reset scale button
-            auto reset_scale_button = [=](wxWindow* parent) {
+            auto reset_scale_button = [this](wxWindow* parent) {
                 auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
                 btn->SetToolTip(_(L("Reset scale")));
                 m_reset_scale_button = btn;
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
-                btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
                     change_scale_value(0, 100.);
                     change_scale_value(1, 100.);
                     change_scale_value(2, 100.);
@@ -275,13 +275,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         }
         else if (option_name == "Rotation") {
             // Add reset rotation button
-            auto reset_rotation_button = [=](wxWindow* parent) {
+            auto reset_rotation_button = [this](wxWindow* parent) {
                 auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
                 btn->SetToolTip(_(L("Reset rotation")));
                 m_reset_rotation_button = btn;
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
-                btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+                btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
                     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
                     Selection& selection = canvas->get_selection();
 
