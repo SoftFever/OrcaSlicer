@@ -21,7 +21,6 @@ struct Camera
         Num_types
     };
 
-    float zoom;
     float phi;
     bool requires_zoom_to_bed;
     bool inverted_phi;
@@ -30,6 +29,7 @@ private:
     EType m_type;
     Vec3d m_target;
     float m_theta;
+    double m_zoom;
     // Distance between camera position and camera target measured along the camera Z axis
     double m_distance;
 
@@ -54,8 +54,11 @@ public:
     float get_theta() const { return m_theta; }
     void set_theta(float theta, bool apply_limit);
 
+    double get_zoom() const { return m_zoom; }
+    void set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h);
+
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
-    void set_scene_box(const BoundingBoxf3& box){ m_scene_box = box; }
+    void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }
 
     bool select_view(const std::string& direction);
 
@@ -76,6 +79,8 @@ public:
     void apply_view_matrix() const;
     void apply_projection(const BoundingBoxf3& box) const;
 
+    void zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h);
+
 #if ENABLE_CAMERA_STATISTICS
     void debug_render() const;
 #endif // ENABLE_CAMERA_STATISTICS
@@ -84,6 +89,7 @@ private:
     // returns tight values for nearZ and farZ plane around the given bounding box
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
+    double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const;
 };
 
 } // GUI

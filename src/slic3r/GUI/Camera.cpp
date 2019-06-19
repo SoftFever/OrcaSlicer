@@ -27,13 +27,13 @@ double Camera::FrustrumMinZSize = 50.0;
 double Camera::FrustrumZMargin = 10.0;
 
 Camera::Camera()
-    : zoom(1.0f)
-    , phi(45.0f)
+    : phi(45.0f)
     , requires_zoom_to_bed(false)
     , inverted_phi(false)
     , m_type(Ortho)
     , m_target(Vec3d::Zero())
     , m_theta(45.0f)
+    , m_zoom(1.0)
     , m_distance(DefaultDistance)
     , m_view_matrix(Transform3d::Identity())
     , m_projection_matrix(Transform3d::Identity())
@@ -81,6 +81,22 @@ void Camera::set_theta(float theta, bool apply_limit)
         if (m_theta < 0.0f)
             m_theta += 360.0f;
     }
+}
+
+void Camera::set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h)
+{
+    zoom = std::max(std::min(zoom, 4.0), -4.0) / 10.0;
+    zoom = m_zoom / (1.0 - zoom);
+
+    // Don't allow to zoom too far outside the scene.
+    double zoom_min = calc_zoom_to_bounding_box_factor(max_box, canvas_w, canvas_h);
+    if (zoom_min > 0.0)
+        zoom = std::max(zoom, zoom_min * 0.7);
+
+    // Don't allow to zoom too close to the scene.
+    zoom = std::min(zoom, 100.0);
+
+    m_zoom = zoom;
 }
 
 bool Camera::select_view(const std::string& direction)
@@ -142,7 +158,8 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
 
     double w = (double)m_viewport[2];
     double h = (double)m_viewport[3];
-    double two_zoom = 2.0 * zoom;
+
+    double two_zoom = 2.0 * m_zoom;
     if (two_zoom != 0.0)
     {
         double inv_two_zoom = 1.0 / two_zoom;
@@ -170,6 +187,18 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
 
     glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
     glsafe(::glMatrixMode(GL_MODELVIEW));
+}
+
+void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h)
+{
+    // Calculate the zoom factor needed to adjust the view around the given box.
+    double zoom = calc_zoom_to_bounding_box_factor(box, canvas_w, canvas_h);
+    if (zoom > 0.0)
+    {
+        m_zoom = zoom;
+        // center view around box center
+        m_target = box.center();
+    }
 }
 
 #if ENABLE_CAMERA_STATISTICS
@@ -212,7 +241,7 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     Vec3d bb_min = box.min;
     Vec3d bb_max = box.max;
 
-    // bbox vertices in world space
+    // box vertices in world space
     std::vector<Vec3d> vertices;
     vertices.reserve(8);
     vertices.push_back(bb_min);
@@ -249,6 +278,67 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     assert(ret.first > 0.0);
 
     return ret;
+}
+
+double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const
+{
+    double max_bb_size = box.max_size();
+    if (max_bb_size == 0.0)
+        return -1.0;
+
+    // project the box vertices on a plane perpendicular to the camera forward axis
+    // then calculates the vertices coordinate on this plane along the camera xy axes
+
+    // ensure that the view matrix is updated
+    apply_view_matrix();
+
+    Vec3d right = get_dir_right();
+    Vec3d up = get_dir_up();
+    Vec3d forward = get_dir_forward();
+
+    Vec3d bb_min = box.min;
+    Vec3d bb_max = box.max;
+    Vec3d bb_center = box.center();
+
+    // box vertices in world space
+    std::vector<Vec3d> vertices;
+    vertices.reserve(8);
+    vertices.push_back(bb_min);
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
+    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
+    vertices.push_back(bb_max);
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
+
+    double max_x = 0.0;
+    double max_y = 0.0;
+
+    // margin factor to give some empty space around the box
+    double margin_factor = 1.25;
+
+    for (const Vec3d& v : vertices)
+    {
+        // project vertex on the plane perpendicular to camera forward axis
+        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
+        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
+
+        // calculates vertex coordinate along camera xy axes
+        double x_on_plane = proj_on_plane.dot(right);
+        double y_on_plane = proj_on_plane.dot(up);
+
+        max_x = std::max(max_x, std::abs(x_on_plane));
+        max_y = std::max(max_y, std::abs(y_on_plane));
+    }
+
+    if ((max_x == 0.0) || (max_y == 0.0))
+        return -1.0f;
+
+    max_x *= margin_factor;
+    max_y *= margin_factor;
+
+    return std::min((double)canvas_w / (2.0 * max_x), (double)canvas_h / (2.0 * max_y));
 }
 
 } // GUI

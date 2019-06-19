@@ -357,7 +357,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
@@ -369,7 +369,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
@@ -400,7 +400,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
     float gap = 10.0f * inv_zoom;
 
@@ -867,7 +867,7 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)m_original_width) * inv_zoom;
         float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
@@ -1140,7 +1140,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
         float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
@@ -1523,20 +1523,20 @@ void GLCanvas3D::allow_multisample(bool allow)
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(m_bed.get_bounding_box(false));
+    _zoom_to_box(m_bed.get_bounding_box(false));
 }
 
 void GLCanvas3D::zoom_to_volumes()
 {
     m_apply_zoom_to_volumes_filter = true;
-    _zoom_to_bounding_box(volumes_bounding_box());
+    _zoom_to_box(volumes_bounding_box());
     m_apply_zoom_to_volumes_filter = false;
 }
 
 void GLCanvas3D::zoom_to_selection()
 {
     if (!m_selection.is_empty())
-        _zoom_to_bounding_box(m_selection.get_bounding_box());
+        _zoom_to_box(m_selection.get_bounding_box());
 }
 
 void GLCanvas3D::select_view(const std::string& direction)
@@ -2368,9 +2368,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'C':
         case 'c': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'I':
-        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'i': { set_camera_zoom(1.0); break; }
         case 'O':
-        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'o': { set_camera_zoom(-1.0); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:  { evt.Skip(); break; }
@@ -2507,7 +2507,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
-    set_camera_zoom((float)evt.GetWheelRotation() / (float)evt.GetWheelDelta());
+    set_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -3259,20 +3259,10 @@ void GLCanvas3D::do_mirror()
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLCanvas3D::set_camera_zoom(float zoom)
+void GLCanvas3D::set_camera_zoom(double zoom)
 {
-    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
-    zoom = m_camera.zoom / (1.0f - zoom);
-
-    // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box(false));
-    if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.7f);
-
-    // Don't allow to zoom too close to the scene.
-    zoom = std::min(zoom, 100.0f);
-
-    m_camera.zoom = zoom;
+    const Size& cnv_size = get_canvas_size();
+    m_camera.set_zoom(zoom, _max_bounding_box(false), cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
 
@@ -3600,79 +3590,11 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_bed_model) const
     return bb;
 }
 
-void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
+void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
 {
-    // Calculate the zoom factor needed to adjust viewport to bounding box.
-    float zoom = _get_zoom_to_bounding_box_factor(bbox);
-    if (zoom > 0.0f)
-    {
-        m_camera.zoom = zoom;
-        // center view around bounding box center
-        m_camera.set_target(bbox.center());
-        m_dirty = true;
-    }
-}
-
-float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const
-{
-    float max_bb_size = bbox.max_size();
-    if (max_bb_size == 0.0f)
-        return -1.0f;
-
-    // project the bbox vertices on a plane perpendicular to the camera forward axis
-    // then calculates the vertices coordinate on this plane along the camera xy axes
-
-    // we need the view matrix, we let opengl calculate it (same as done in render())
-    m_camera.apply_view_matrix();
-
-    Vec3d right = m_camera.get_dir_right();
-    Vec3d up = m_camera.get_dir_up();
-    Vec3d forward = m_camera.get_dir_forward();
-
-    Vec3d bb_min = bbox.min;
-    Vec3d bb_max = bbox.max;
-    Vec3d bb_center = bbox.center();
-
-    // bbox vertices in world space
-    std::vector<Vec3d> vertices;
-    vertices.reserve(8);
-    vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
-    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
-    vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
-
-    double max_x = 0.0;
-    double max_y = 0.0;
-
-    // margin factor to give some empty space around the bbox
-    double margin_factor = 1.25;
-
-    for (const Vec3d& v : vertices)
-    {
-        // project vertex on the plane perpendicular to camera forward axis
-        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
-        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
-
-        // calculates vertex coordinate along camera xy axes
-        double x_on_plane = proj_on_plane.dot(right);
-        double y_on_plane = proj_on_plane.dot(up);
-
-        max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
-        max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
-    }
-
-    if ((max_x == 0.0) || (max_y == 0.0))
-        return -1.0f;
-
-    max_x *= 2.0;
-    max_y *= 2.0;
-
     const Size& cnv_size = get_canvas_size();
-    return (float)std::min((double)cnv_size.get_width() / max_x, (double)cnv_size.get_height() / max_y);
+    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
+    m_dirty = true;
 }
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
@@ -4088,7 +4010,7 @@ void GLCanvas3D::_render_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
@@ -4156,7 +4078,7 @@ void GLCanvas3D::_render_view_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     // places the toolbar on the bottom-left corner of the 3d scene

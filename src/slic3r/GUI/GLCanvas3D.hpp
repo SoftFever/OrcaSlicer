@@ -598,7 +598,7 @@ public:
     void do_flatten();
     void do_mirror();
 
-    void set_camera_zoom(float zoom);
+    void set_camera_zoom(double zoom);
 
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
@@ -638,8 +638,7 @@ private:
 
     BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
 
-    void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
-    float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
+    void _zoom_to_box(const BoundingBoxf3& box);
 
     void _refresh_if_shown_on_screen();
 
