@@ -420,6 +420,12 @@ void Preview::move_double_slider(wxKeyEvent& evt)
         m_slider->OnKeyDown(evt);
 }
 
+void Preview::edit_double_slider(wxKeyEvent& evt)
+{
+    if (m_slider) 
+        m_slider->OnChar(evt);
+}
+
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);

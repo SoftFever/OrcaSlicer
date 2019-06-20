@@ -17,6 +17,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
+#include "slic3r/GUI/GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -1209,6 +1210,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -2387,8 +2389,18 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '+': { 
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); 
+                    break; }
+        case '-': {  
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+                    break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
@@ -2472,15 +2484,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (keyCode == WXK_LEFT    || 
                          keyCode == WXK_RIGHT   ||
                          keyCode == WXK_UP      || 
-                         keyCode == WXK_DOWN    ||
-                         keyCode == '+'         || 
-                         keyCode == WXK_NUMPAD_ADD || 
-                         keyCode == '-'         || 
-                         keyCode == 390         || 
-                         keyCode == WXK_DELETE  || 
-                         keyCode == WXK_BACK    )
+                         keyCode == WXK_DOWN    )
                 {
-                    post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
                 }
             }
         }

@@ -146,6 +146,7 @@ public:
     void load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true);
 
     void update();
+    void stop_jobs();
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
 
