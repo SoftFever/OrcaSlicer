@@ -12,6 +12,8 @@
 
 //#include "PrintExport.hpp"
 
+#include <float.h>
+
 #include <algorithm>
 #include <limits>
 #include <unordered_set>
