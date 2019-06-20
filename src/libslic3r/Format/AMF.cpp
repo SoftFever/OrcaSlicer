@@ -192,7 +192,7 @@ struct AMFParserContext
     };
 
     // Version of the amf file
-    unsigned int m_version;
+    unsigned int             m_version;
     // Current Expat XML parser instance.
     XML_Parser               m_parser;
     // Model to receive objects extracted from an AMF file.
@@ -616,7 +616,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     if (end != nullptr)
 	                    *end = 0;
 
-                    point(coord_idx) = atof(p);
+                    point(coord_idx) = float(atof(p));
                     if (++coord_idx == 5) {
                         m_object->sla_support_points.push_back(sla::SupportPoint(point));
                         coord_idx = 0;
@@ -628,8 +628,8 @@ void AMFParserContext::endElement(const char * /* name */)
                 m_object->sla_points_status = sla::PointsStatus::UserModified;
             }
             else if (m_path.size() == 5 && m_path[1] == NODE_TYPE_OBJECT && m_path[3] == NODE_TYPE_RANGE && 
-                     m_object && strcmp(opt_key, "layer_height_ranges") == 0) {
-                // Parse object's layer_height_ranges, a semicolon separated doubles.
+                     m_object && strcmp(opt_key, "layer_height_range") == 0) {
+                // Parse object's layer_height_range, a semicolon separated doubles.
                 char* p = const_cast<char*>(m_value[1].c_str());
                 char* end = strchr(p, ';');
                 *end = 0;
@@ -946,7 +946,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             for (auto range : config_ranges) {
                 stream << "      <range id=\"" << layer_counter << "\">\n";
 
-                stream << "        <metadata type=\"slic3r.layer_height_ranges\">";
+                stream << "        <metadata type=\"slic3r.layer_height_range\">";
                 stream << range.first.first << ";" << range.first.second << "</metadata>\n";
 
                 for (const std::string& key : range.second.keys())
@@ -994,7 +994,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += its.vertices.size();
+            num_vertices += (int)its.vertices.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {

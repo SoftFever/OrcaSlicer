@@ -1129,7 +1129,6 @@ void Selection::copy_to_clipboard()
         dst_object->config               = src_object->config;
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
-//         dst_object->layer_height_ranges  = src_object->layer_height_ranges;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
         dst_object->layer_height_profile = src_object->layer_height_profile;
         dst_object->origin_translation   = src_object->origin_translation;

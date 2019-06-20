@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 2;
 use strict;
 use warnings;
 
@@ -31,6 +31,8 @@ use Slic3r::Test;
     ok abs(unscale($center->[Y]) - $print_center->[Y]) < 0.005, 'print is centered around print_center (Y)';
 }
 
+# This is really testing a path, which is no more used by the slicer, just by the test cases.
+if (0)
 {
     # this represents the aggregate config from presets
     my $config = Slic3r::Config::new_from_defaults;
@@ -40,7 +42,7 @@ use Slic3r::Test;
     
     # user sets a per-region option
     $print->print->objects->[0]->model_object->config->set('fill_density', 100);
-    $print->print->reload_object(0);
+#    $print->print->reload_object(0);
     is $print->print->regions->[0]->config->fill_density, 100, 'region config inherits model object config';
     
     # user exports G-code, thus the default config is reapplied
@@ -51,7 +53,7 @@ use Slic3r::Test;
     # user assigns object extruders
     $print->print->objects->[0]->model_object->config->set('extruder', 3);
     $print->print->objects->[0]->model_object->config->set('perimeter_extruder', 2);
-    $print->print->reload_object(0);
+#    $print->print->reload_object(0);
     
     is $print->print->regions->[0]->config->infill_extruder, 3, 'extruder setting is correctly expanded';
     is $print->print->regions->[0]->config->perimeter_extruder, 2, 'extruder setting does not override explicitely specified extruders';

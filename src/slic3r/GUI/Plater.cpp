@@ -1922,9 +1922,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         }
 
         object->ensure_on_bed();
-
-        // print.auto_assign_extruders(object);
-        // print.add_model_object(object);
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD

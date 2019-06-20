@@ -2031,7 +2031,7 @@ namespace Slic3r {
                 return false;
             }
 
-            vertices_count += its.vertices.size();
+            vertices_count += (int)its.vertices.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
@@ -2061,7 +2061,7 @@ namespace Slic3r {
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += its.indices.size();
+            triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
             for (size_t i = 0; i < its.indices.size(); ++ i)
