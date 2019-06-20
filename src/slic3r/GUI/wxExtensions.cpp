@@ -2472,6 +2472,9 @@ LockButton::LockButton( wxWindow *parent,
 
 void LockButton::OnButton(wxCommandEvent& event)
 {
+    if (m_disabled)
+        return;
+
     m_is_pushed = !m_is_pushed;
     enter_button(true);
 

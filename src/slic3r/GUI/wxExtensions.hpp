@@ -838,8 +838,12 @@ public:
     void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
     void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
-    bool    IsLocked() const { return m_is_pushed; }
+    bool    IsLocked() const                { return m_is_pushed; }
     void    SetLock(bool lock);
+
+    // create its own Enable/Disable functions to not really disabled button because of tooltip enabling
+    void    enable()                        { m_disabled = false; }
+    void    disable()                       { m_disabled = true;  }
 
     void    msw_rescale();
 
@@ -848,6 +852,7 @@ protected:
 
 private:
     bool        m_is_pushed = false;
+    bool        m_disabled = false;
 
     ScalableBitmap    m_bmp_lock_on;
     ScalableBitmap    m_bmp_lock_off;
