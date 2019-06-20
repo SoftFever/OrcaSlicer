@@ -16,8 +16,8 @@ struct Camera
     enum EType : unsigned char
     {
         Unknown,
-        Perspective,
         Ortho,
+        Perspective,
         Num_types
     };
 
@@ -45,7 +45,8 @@ public:
 
     EType get_type() const { return m_type; }
     std::string get_type_as_string() const;
-    void set_type(EType type) { m_type = type; }
+    void set_type(EType type);
+    void set_type(const std::string& type);
     void select_next_type();
 
     const Vec3d& get_target() const { return m_target; }
@@ -56,6 +57,9 @@ public:
 
     double get_zoom() const { return m_zoom; }
     void set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h);
+#if ENABLE_RETINA_GL
+    void set_zoom(double zoom) { m_zoom = zoom; }
+#endif // ENABLE_RETINA_GL
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }

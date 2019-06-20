@@ -2,9 +2,8 @@
 
 #include "Camera.hpp"
 #include "3DScene.hpp"
-#if ENABLE_CAMERA_STATISTICS
 #include "GUI_App.hpp"
-#endif // ENABLE_CAMERA_STATISTICS
+#include "AppConfig.hpp"
 
 #include <GL/glew.h>
 
@@ -44,14 +43,35 @@ std::string Camera::get_type_as_string() const
 {
     switch (m_type)
     {
-    default:
     case Unknown:
         return "unknown";
     case Perspective:
         return "perspective";
+    default:
     case Ortho:
         return "orthographic";
     };
+}
+
+void Camera::set_type(EType type)
+{
+    if (m_type != type)
+    {
+        m_type = type;
+
+        wxGetApp().app_config->set("camera_type", std::to_string(m_type));
+        wxGetApp().app_config->save();
+    }
+}
+
+void Camera::set_type(const std::string& type)
+{
+    if (!type.empty() && (type != "1"))
+    {
+        unsigned char type_id = atoi(type.c_str());
+        if (((unsigned char)Ortho < type_id) && (type_id < (unsigned char)Num_types))
+            set_type((Camera::EType)type_id);
+    }
 }
 
 void Camera::select_next_type()
@@ -60,7 +80,7 @@ void Camera::select_next_type()
     if (next == (unsigned char)Num_types)
         next = 1;
 
-    m_type = (EType)next;
+    set_type((EType)next);
 }
 
 void Camera::set_target(const Vec3d& target)

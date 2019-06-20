@@ -1593,8 +1593,8 @@ void GLCanvas3D::render()
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
-//        const Size& cnv_size = get_canvas_size();
-//        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        const Size& cnv_size = get_canvas_size();
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_camera.requires_zoom_to_bed = false;
     }
 
@@ -3304,8 +3304,7 @@ void GLCanvas3D::update_ui_from_settings()
     if (new_scaling != orig_scaling) {
         BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
 
-        m_camera.zoom /= orig_scaling;
-        m_camera.zoom *= new_scaling;
+        m_camera.set_zoom(m_camera.get_zoom() * new_scaling / orig_scaling);
         _refresh_if_shown_on_screen();
     }
 #endif

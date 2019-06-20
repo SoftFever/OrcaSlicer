@@ -1772,6 +1772,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 
     set_current_panel(view3D);
+
+    // updates camera type from .ini file
+    camera.set_type(get_config("camera_type"));
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
