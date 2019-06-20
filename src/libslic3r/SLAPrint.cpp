@@ -1084,9 +1084,6 @@ void SLAPrint::process()
         using ClipperPolygons = std::vector<ClipperPolygon>;
         namespace sl = libnest2d::shapelike;    // For algorithms
 
-        // If the raster has vertical orientation, we will flip the coordinates
-//        bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
-
         // Set up custom union and diff functions for clipper polygons
         auto polyunion = [] (const ClipperPolygons& subjects)
         {
@@ -1193,11 +1190,6 @@ void SLAPrint::process()
                     sl::rotate(poly, double(instances[i].rotation));
                     sl::translate(poly, ClipperPoint{instances[i].shift(X),
                                                      instances[i].shift(Y)});
-
-//                    if (flpXY) {
-//                        for(auto& p : poly.Contour) std::swap(p.X, p.Y);
-//                        for(auto& h : poly.Holes) for(auto& p : h) std::swap(p.X, p.Y);
-//                    }
 
                     polygons.emplace_back(std::move(poly));
                 }

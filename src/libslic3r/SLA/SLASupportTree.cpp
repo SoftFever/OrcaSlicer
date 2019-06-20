@@ -530,6 +530,7 @@ struct CompactBridge {
                   const Vec3d& ep,
                   const Vec3d& n,
                   double r,
+                  bool endball = true,
                   size_t steps = 45)
     {
         Vec3d startp = sp + r * n;
@@ -543,12 +544,14 @@ struct CompactBridge {
         double fa = 2*PI/steps;
         auto upperball = sphere(r, Portion{PI / 2 - fa, PI}, fa);
         for(auto& p : upperball.points) p += startp;
-
-        auto lowerball = sphere(r, Portion{0, PI/2 + 2*fa}, fa);
-        for(auto& p : lowerball.points) p += endp;
-
+        
+        if(endball) {
+            auto lowerball = sphere(r, Portion{0, PI/2 + 2*fa}, fa);
+            for(auto& p : lowerball.points) p += endp;
+            mesh.merge(lowerball);
+        }
+        
         mesh.merge(upperball);
-        mesh.merge(lowerball);
     }
 };
 
@@ -594,13 +597,17 @@ struct Pad {
             // base silhouette. Create the offsetted version and punch the
             // breaksticks across its perimeter.
             
-            ExPolygons modelbase_sticks = modelbase;
-
+            ExPolygons modelbase_offs = modelbase;
+            
             if (pcfg.embed_object.object_gap_mm > 0.0)
-                modelbase_sticks
-                    = offset_ex(modelbase_sticks,
+                modelbase_offs
+                    = offset_ex(modelbase_offs,
                                 float(scaled(pcfg.embed_object.object_gap_mm)));
             
+            // Create a spatial index of the support silhouette polygons.
+            // This will be used to check for intersections with the model
+            // silhouette polygons. If there is no intersection, then a certain
+            // part of the pad is redundant as it does not host any supports.
             BoxIndex bindex;
             {
                 unsigned idx = 0;
@@ -611,14 +618,27 @@ struct Pad {
                 }
             }
             
+            // Punching the breaksticks across the offsetted polygon perimeters
             ExPolygons pad_stickholes; pad_stickholes.reserve(modelbase.size());
-            for(auto& poly : modelbase_sticks) {
+            for(auto& poly : modelbase_offs) {
                 
-                if (!bindex.query(poly.contour.bounding_box(),
-                                  BoxIndex::qtIntersects).empty()) {
+                std::vector<BoxIndexEl> qres =
+                    bindex.query(poly.contour.bounding_box(),
+                                 BoxIndex::qtIntersects);
+                    
+                if (!qres.empty()) {
+                    
+                    // The model silhouette polygon 'poly' HAS an intersection
+                    // with the support silhouettes. Include this polygon
+                    // in the pad holes with the breaksticks and merge the
+                    // original (offsetted) version with the rest of the pad
+                    // base plate.
                     
                     basep.emplace_back(poly.contour);
                     
+                    // The holes of 'poly' will become positive parts of the
+                    // pad, so they has to be checked for intersections as well
+                    // and erased if there is no intersection with the supports
                     auto it = poly.holes.begin();
                     while(it != poly.holes.end()) {
                         if (bindex.query(it->bounding_box(),
@@ -627,7 +647,8 @@ struct Pad {
                         else
                             ++it;
                     }
-
+                    
+                    // Punch the breaksticks
                     sla::breakstick_holes(
                         poly,
                         pcfg.embed_object.object_gap_mm,   // padding
@@ -638,7 +659,7 @@ struct Pad {
                     pad_stickholes.emplace_back(poly);
                 }
             }
-
+            
             create_base_pool(basep, tmesh, pad_stickholes, cfg);
         } else {
             for (const ExPolygon &bp : modelbase) basep.emplace_back(bp.contour);
@@ -1495,12 +1516,13 @@ class SLASupportTree::Algorithm {
             Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
             can_add_base = result.score > min_dist;
             
+            double gnd_offs = m_mesh.ground_level_offset();
             auto abort_in_shame =
-                [&normal_mode, &can_add_base, &endp, jp, gndlvl]()
+                [gnd_offs, &normal_mode, &can_add_base, &endp, jp, gndlvl]()
             {
                 normal_mode  = true;
                 can_add_base = false;   // Nothing left to do, hope for the best
-                endp         = {jp(X), jp(Y), gndlvl};
+                endp         = {jp(X), jp(Y), gndlvl - gnd_offs };
             };
 
             // We have to check if the bridge is feasible.
@@ -2317,7 +2339,8 @@ public:
             double idist = bridge_mesh_intersect(sph, dir, R, true);
             double dist = ray_mesh_intersect(sj, dir);
             if (std::isinf(dist))
-                dist = sph(Z) - m_result.ground_level - HWIDTH_MM;
+                dist = sph(Z) - m_mesh.ground_level()
+                       + m_mesh.ground_level_offset();
 
             if(std::isnan(idist) || idist < 2*R ||
                std::isnan(dist)  || dist  < 2*R)
@@ -2329,7 +2352,7 @@ public:
             }
 
             Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
-            m_result.add_compact_bridge(sp, ej, n, R);
+            m_result.add_compact_bridge(sp, ej, n, R, !std::isinf(dist));
         }
     }
 };

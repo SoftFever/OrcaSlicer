@@ -239,48 +239,49 @@ void offset(ExPolygon& sh, coord_t distance, bool edgerounding = true) {
     }
 }
 
- void offset(Polygon& sh, coord_t distance, bool edgerounding = true) {
-     using ClipperLib::ClipperOffset;
-     using ClipperLib::jtRound;
-     using ClipperLib::jtMiter;
-     using ClipperLib::etClosedPolygon;
-     using ClipperLib::Paths;
-     using ClipperLib::Path;
+void offset(Polygon &sh, coord_t distance, bool edgerounding = true)
+{
+    using ClipperLib::ClipperOffset;
+    using ClipperLib::jtRound;
+    using ClipperLib::jtMiter;
+    using ClipperLib::etClosedPolygon;
+    using ClipperLib::Paths;
+    using ClipperLib::Path;
 
-     auto&& ctour = Slic3rMultiPoint_to_ClipperPath(sh);
+    auto &&ctour = Slic3rMultiPoint_to_ClipperPath(sh);
 
-     // If the input is not at least a triangle, we can not do this algorithm
-     if(ctour.size() < 3) {
-         BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
-         return;
-     }
+    // If the input is not at least a triangle, we can not do this algorithm
+    if (ctour.size() < 3) {
+        BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
+        return;
+    }
 
-     ClipperOffset offs;
-     offs.ArcTolerance = 0.01*scaled(1.);
-     Paths result;
-     offs.AddPath(ctour, edgerounding ? jtRound : jtMiter, etClosedPolygon);
-     offs.Execute(result, static_cast<double>(distance));
+    ClipperOffset offs;
+    offs.ArcTolerance = 0.01 * scaled(1.);
+    Paths result;
+    offs.AddPath(ctour, edgerounding ? jtRound : jtMiter, etClosedPolygon);
+    offs.Execute(result, static_cast<double>(distance));
 
-     // Offsetting reverts the orientation and also removes the last vertex
-     // so boost will not have a closed polygon.
+    // Offsetting reverts the orientation and also removes the last vertex
+    // so boost will not have a closed polygon.
 
-     bool found_the_contour = false;
-     for(auto& r : result) {
-         if(ClipperLib::Orientation(r)) {
-             // We don't like if the offsetting generates more than one contour
-             // but throwing would be an overkill. Instead, we should warn the
-             // caller about the inability to create correct geometries
-             if(!found_the_contour) {
-                 auto rr = ClipperPath_to_Slic3rPolygon(r);
-                 sh.points.swap(rr.points);
-                 found_the_contour = true;
-             } else {
-                 BOOST_LOG_TRIVIAL(warning)
-                         << "Warning: offsetting result is invalid!";
-             }
-         }
-     }
- }
+    bool found_the_contour = false;
+    for (auto &r : result) {
+        if (ClipperLib::Orientation(r)) {
+            // We don't like if the offsetting generates more than one contour
+            // but throwing would be an overkill. Instead, we should warn the
+            // caller about the inability to create correct geometries
+            if (!found_the_contour) {
+                auto rr = ClipperPath_to_Slic3rPolygon(r);
+                sh.points.swap(rr.points);
+                found_the_contour = true;
+            } else {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Warning: offsetting result is invalid!";
+            }
+        }
+    }
+}
 
 /// Unification of polygons (with clipper) preserving holes as well.
 ExPolygons unify(const ExPolygons& shapes) {

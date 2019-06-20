@@ -73,6 +73,7 @@ public:
 
     inline double ground_level() const { return m_ground_level + m_gnd_offset; }
     inline void ground_level_offset(double o) { m_gnd_offset = o; }
+    inline double ground_level_offset() const { return m_gnd_offset; }
 
     inline const Eigen::MatrixXd& V() const { return m_V; }
     inline const Eigen::MatrixXi& F() const { return m_F; }
