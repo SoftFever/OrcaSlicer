@@ -572,8 +572,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             assert(it == m_ranges.end() || std::abs(it->first.second - range.second) < EPSILON);
             return (it == m_ranges.end()) ? nullptr : it->second;
         }
-        auto begin() const { return m_ranges.cbegin(); }
-        auto end() const { return m_ranges.cend(); }
+        std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>>::const_iterator begin() const { return m_ranges.cbegin(); }
+        std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>>::const_iterator end() const { return m_ranges.cend(); }
     private:
         std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>> m_ranges;
     };
