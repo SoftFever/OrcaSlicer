@@ -57,9 +57,9 @@ public:
 
     double get_zoom() const { return m_zoom; }
     void set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h);
-#if ENABLE_RETINA_GL
+    // this method does not check if the given zoom is valid, use instead the other set_zoom() method
+    // called only by: void GLCanvas3D::update_ui_from_settings()
     void set_zoom(double zoom) { m_zoom = zoom; }
-#endif // ENABLE_RETINA_GL
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }
