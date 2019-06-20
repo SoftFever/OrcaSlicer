@@ -122,6 +122,8 @@ public:
     void refresh_print();
 
     void msw_rescale();
+    void move_double_slider(wxKeyEvent& evt);
+    void edit_double_slider(wxKeyEvent& evt);
 
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);

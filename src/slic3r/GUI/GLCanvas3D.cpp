@@ -17,6 +17,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
+#include "slic3r/GUI/GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -1208,6 +1209,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -2386,8 +2389,18 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '+': { 
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); 
+                    break; }
+        case '-': {  
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+                    break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
@@ -2467,6 +2480,15 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
+                // DoubleSlider navigation in Preview
+                else if (keyCode == WXK_LEFT    || 
+                         keyCode == WXK_RIGHT   ||
+                         keyCode == WXK_UP      || 
+                         keyCode == WXK_DOWN    )
+                {
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                }
             }
         }
     }
@@ -5502,7 +5524,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
-        v.set_convex_hull(new TriangleMesh(std::move(mesh.convex_hull_3d())), true);
+        v.set_convex_hull(mesh.convex_hull_3d());
     };
 
     // adds objects' volumes 

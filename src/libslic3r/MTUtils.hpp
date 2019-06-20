@@ -185,6 +185,14 @@ public:
     inline bool empty() const { return size() == 0; }
 };
 
+template<class C> bool all_of(const C &container) {
+    return std::all_of(container.begin(),
+                       container.end(),
+                       [](const typename C::value_type &v) {
+                           return static_cast<bool>(v);
+                       });
+}
+
 template<class T>
 struct remove_cvref
 {

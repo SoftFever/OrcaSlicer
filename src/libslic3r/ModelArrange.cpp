@@ -9,6 +9,31 @@
 #include <ClipperUtils.hpp>
 
 #include <boost/geometry/index/rtree.hpp>
+#include <boost/multiprecision/integer.hpp>
+#include <boost/rational.hpp>
+
+namespace libnest2d {
+#if !defined(_MSC_VER) && defined(__SIZEOF_INT128__) && !defined(__APPLE__)
+using LargeInt = __int128;
+#else
+using LargeInt = boost::multiprecision::int128_t;
+template<> struct _NumTag<LargeInt> { using Type = ScalarTag; };
+#endif
+template<class T> struct _NumTag<boost::rational<T>> { using Type = RationalTag; };
+
+namespace nfp {
+
+template<class S>
+struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
+{
+    NfpResult<S> operator()(const S &sh, const S &other)
+    {
+        return nfpConvexOnly<S, boost::rational<LargeInt>>(sh, other);
+    }
+};
+
+}
+}
 
 namespace Slic3r {
 
@@ -130,7 +155,7 @@ Box boundingBox(const Box& pilebb, const Box& ibb ) {
 // at the same time, it has to provide reasonable results.
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
-        const shapelike::Shapes<PolygonImpl>& merged_pile,
+        const TMultiShape<PolygonImpl>& merged_pile,
         const Box& pilebb,
         const ItemGroup& items,
         const Item &item,
@@ -293,7 +318,7 @@ class AutoArranger {};
 // management and spatial index structures for acceleration.
 template<class TBin>
 class _ArrBase {
-protected:
+public:
 
     // Useful type shortcuts...
     using Placer = TPacker<TBin>;
@@ -301,7 +326,9 @@ protected:
     using Packer = Nester<Placer, Selector>;
     using PConfig = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
-    using Pile = sl::Shapes<PolygonImpl>;
+    using Pile = TMultiShape<PolygonImpl>;
+    
+protected:
 
     Packer m_pck;
     PConfig m_pconf;            // Placement configuration
@@ -539,7 +566,10 @@ public:
 // 2D shape from top view.
 using ShapeData2D = std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
 
-ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo& wti) {
+ShapeData2D projectModelFromTop(const Slic3r::Model &model,
+                                const WipeTowerInfo &wti,
+                                double               tolerance)
+{
     ShapeData2D ret;
 
     // Count all the items on the bin (all the object's instances)
@@ -561,21 +591,32 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo&
             // Object instances should carry the same scaling and
             // x, y rotation that is why we use the first instance.
             {
-                ModelInstance *finst = objptr->instances.front();
-                Vec3d rotation = finst->get_rotation();
-                rotation.z() = 0.;
-                Transform3d trafo_instance = Geometry::assemble_transform(Vec3d::Zero(), rotation, finst->get_scaling_factor(), finst->get_mirror());
+                ModelInstance *finst       = objptr->instances.front();
+                Vec3d          rotation    = finst->get_rotation();
+                rotation.z()               = 0.;
+                Transform3d trafo_instance = Geometry::assemble_transform(
+                    Vec3d::Zero(),
+                    rotation,
+                    finst->get_scaling_factor(),
+                    finst->get_mirror());
                 Polygon p = objptr->convex_hull_2d(trafo_instance);
-				assert(! p.points.empty());
+                
+                assert(!p.points.empty());
 
-                // this may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
-                if (p.points.empty())
-                    continue;
-
+                // this may happen for malformed models, see:
+                // https://github.com/prusa3d/PrusaSlicer/issues/2209
+                if (p.points.empty()) continue;
+                
+                if(tolerance > EPSILON) {
+                    Polygons pp { p };
+                    pp = p.simplify(double(scaled(tolerance)));
+                    if (!pp.empty()) p = pp.front();
+                }
+                
                 p.reverse();
                 assert(!p.is_counter_clockwise());
-                p.append(p.first_point());
                 clpath = Slic3rMultiPoint_to_ClipperPath(p);
+                auto firstp = clpath.front(); clpath.emplace_back(firstp);
             }
 
             Vec3d rotation0 = objptr->instances.front()->get_rotation();
@@ -589,7 +630,7 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo&
 
                 // Invalid geometries would throw exceptions when arranging
                 if(item.vertexCount() > 3) {
-                    item.rotation(float(Geometry::rotation_diff_z(rotation0, objinst->get_rotation()))),
+                    item.rotation(Geometry::rotation_diff_z(rotation0, objinst->get_rotation()));
                     item.translation({
                     ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
                     ClipperLib::cInt(objinst->get_offset(Y)/SCALING_FACTOR)
@@ -741,6 +782,8 @@ BedShapeHint bedShape(const Polyline &bed) {
     return ret;
 }
 
+static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
+
 // The final client function to arrange the Model. A progress indicator and
 // a stop predicate can be also be passed to control the process.
 bool arrange(Model &model,              // The model with the geometries
@@ -755,9 +798,9 @@ bool arrange(Model &model,              // The model with the geometries
              std::function<bool ()> stopcondition)
 {
     bool ret = true;
-
+    
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti);
+    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
@@ -782,7 +825,7 @@ bool arrange(Model &model,              // The model with the geometries
                          static_cast<libnest2d::Coord>(bbb.min(0)),
                          static_cast<libnest2d::Coord>(bbb.min(1))
                      },
-    {
+                     {
                          static_cast<libnest2d::Coord>(bbb.max(0)),
                          static_cast<libnest2d::Coord>(bbb.max(1))
                      });
@@ -856,9 +899,9 @@ void find_new_position(const Model &model,
                        coord_t min_obj_distance,
                        const Polyline &bed,
                        WipeTowerInfo& wti)
-{
+{    
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model, wti);
+    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon

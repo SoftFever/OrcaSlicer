@@ -586,7 +586,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
-        if (insert_position > 0) insert_position++;
+        if (insert_position >= 0) insert_position++;
 	}
 
     const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
@@ -1587,6 +1587,7 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
 
     // slider events
     Bind(wxEVT_PAINT,       &DoubleSlider::OnPaint,    this);
+    Bind(wxEVT_CHAR,        &DoubleSlider::OnChar,     this);
     Bind(wxEVT_LEFT_DOWN,   &DoubleSlider::OnLeftDown, this);
     Bind(wxEVT_MOTION,      &DoubleSlider::OnMotion,   this);
     Bind(wxEVT_LEFT_UP,     &DoubleSlider::OnLeftUp,   this);
@@ -2366,9 +2367,9 @@ void DoubleSlider::OnWheel(wxMouseEvent& event)
 void DoubleSlider::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' || key == WXK_NUMPAD_ADD)
+    if (key == WXK_NUMPAD_ADD)
         action_tick(taAdd);
-    else if (key == '-' || key == 390 || key == WXK_DELETE || key == WXK_BACK)
+    else if (key == 390 || key == WXK_DELETE || key == WXK_BACK)
         action_tick(taDel);
     else if (is_horizontal())
     {
@@ -2387,6 +2388,8 @@ void DoubleSlider::OnKeyDown(wxKeyEvent &event)
         else if (key == WXK_UP || key == WXK_DOWN)
             move_current_thumb(key == WXK_UP);
     }
+
+    event.Skip(); // !Needed to have EVT_CHAR generated as well
 }
 
 void DoubleSlider::OnKeyUp(wxKeyEvent &event)
@@ -2396,6 +2399,15 @@ void DoubleSlider::OnKeyUp(wxKeyEvent &event)
     Refresh();
     Update();
     event.Skip();
+}
+
+void DoubleSlider::OnChar(wxKeyEvent& event)
+{
+    const int key = event.GetKeyCode();
+    if (key == '+')
+        action_tick(taAdd);
+    else if (key == '-')
+        action_tick(taDel);
 }
 
 void DoubleSlider::OnRightDown(wxMouseEvent& event)

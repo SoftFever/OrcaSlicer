@@ -189,19 +189,10 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     V.resize(3*stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = double(facet->vertex[0](0));
-        V(3*i+0, 1) = double(facet->vertex[0](1));
-        V(3*i+0, 2) = double(facet->vertex[0](2));
-
-        V(3*i+1, 0) = double(facet->vertex[1](0));
-        V(3*i+1, 1) = double(facet->vertex[1](1));
-        V(3*i+1, 2) = double(facet->vertex[1](2));
-
-        V(3*i+2, 0) = double(facet->vertex[2](0));
-        V(3*i+2, 1) = double(facet->vertex[2](1));
-        V(3*i+2, 2) = double(facet->vertex[2](2));
-
+        const stl_facet &facet = stl.facet_start[i];
+		V.block<1, 3>(3 * i + 0, 0) = facet.vertex[0].cast<double>();
+		V.block<1, 3>(3 * i + 1, 0) = facet.vertex[1].cast<double>();
+		V.block<1, 3>(3 * i + 2, 0) = facet.vertex[2].cast<double>();
         F(i, 0) = int(3*i+0);
         F(i, 1) = int(3*i+1);
         F(i, 2) = int(3*i+2);

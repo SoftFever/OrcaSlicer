@@ -2087,6 +2087,10 @@ void TabPrinter::build_sla()
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
     optgroup->append_single_option_line("display_orientation");
+    
+    // FIXME: This should be on one line in the UI
+    optgroup->append_single_option_line("display_mirror_x");
+    optgroup->append_single_option_line("display_mirror_y");
 
     optgroup = page->new_optgroup(_(L("Tilt")));
     line = { _(L("Tilt time")), "" };

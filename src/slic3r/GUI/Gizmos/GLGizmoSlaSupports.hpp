@@ -35,10 +35,11 @@ private:
     const float RenderPointScale = 1.f;
 
     GLUquadricObj* m_quadric;
-    Eigen::MatrixXf m_V; // vertices
-    Eigen::MatrixXi m_F; // facets indices
-    igl::AABB<Eigen::MatrixXf,3> m_AABB;
+    typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
+    typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
+    igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
     const TriangleMesh* m_mesh;
+    const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
     mutable std::vector<Vec2f> m_supports_triangles;
@@ -131,6 +132,11 @@ private:
 
 protected:
     void on_set_state() override;
+    virtual void on_set_hover_id()
+    {
+        if ((int)m_editing_mode_cache.size() <= m_hover_id)
+            m_hover_id = -1;
+    }
     void on_start_dragging(const Selection& selection) override;
     virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
 

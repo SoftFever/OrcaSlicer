@@ -727,6 +727,7 @@ public:
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
     void OnKeyUp(wxKeyEvent &event);
+    void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
     void OnRightUp(wxMouseEvent& event);
 

@@ -2258,6 +2258,20 @@ void PrintConfigDef::init_sla_params()
     def->min = 100;
     def->set_default_value(new ConfigOptionInt(1440));
 
+    def = this->add("display_mirror_x", coBool);
+    def->full_label = L("Display horizontal mirroring");
+    def->label = L("Mirror horizontally");
+    def->tooltip = L("Enable horizontal mirroring of output images");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("display_mirror_y", coBool);
+    def->full_label = L("Display vertical mirroring");
+    def->label = L("Mirror vertically");
+    def->tooltip = L("Enable vertical mirroring of output images");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("display_orientation", coEnum);
     def->label = L("Display orientation");
     def->tooltip = L("Set the actual LCD display orientation inside the SLA printer."
