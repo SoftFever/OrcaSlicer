@@ -294,10 +294,6 @@ public:
 
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
 
-    // The following three methods are used by the Perl tests only. Get rid of them!
-    void                add_model_object_perl_tests_only(ModelObject* model_object, int idx = -1);
-    bool                apply_config_perl_tests_only(DynamicPrintConfig config);
-
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).

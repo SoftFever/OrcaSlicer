@@ -211,6 +211,7 @@ ModelMaterial::attributes()
     void set_origin_translation(Vec3d* point)
         %code%{ THIS->origin_translation = *point; %};
     
+    void ensure_on_bed();
     bool needed_repair() const;
     int materials_count() const;
     int facets_count();

@@ -597,8 +597,8 @@ public:
     Model() {}
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
-    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
-    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
+    // To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision"
+    // (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics).
     Model(const Model &rhs) : ModelBase(-1) { this->assign_copy(rhs); }
     explicit Model(Model &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
     Model& operator=(const Model &rhs) { this->assign_copy(rhs); return *this; }
