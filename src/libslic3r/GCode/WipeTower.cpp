@@ -1230,7 +1230,15 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
 			make_wipe_tower_square();
 
     m_layer_info = m_plan.begin();
-    m_current_tool = (unsigned int)(-2); // we don't know which extruder to start with - we'll set it according to the first toolchange
+
+    // we don't know which extruder to start with - we'll set it according to the first toolchange
+    for (const auto& layer : m_plan) {
+        if (!layer.tool_changes.empty()) {
+            m_current_tool = layer.tool_changes.front().old_tool;
+            break;
+        }
+    }
+
     for (auto& used : m_used_filament_length) // reset used filament stats
         used = 0.f;
 
@@ -1246,11 +1254,8 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
 		if (!m_peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
-		for (const auto &toolchange : layer.tool_changes) {
-            if (m_current_tool == (unsigned int)(-2))
-                m_current_tool = toolchange.old_tool;
+		for (const auto &toolchange : layer.tool_changes)
 			layer_result.emplace_back(tool_change(toolchange.new_tool, false));
-        }
 
 		if (! layer_finished()) {
             auto finish_layer_toolchange = finish_layer();
