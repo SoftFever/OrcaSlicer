@@ -35,6 +35,7 @@ static inline Polyline make_wave(
 {
     std::vector<Vec2d> points = one_period;
     double period = points.back()(0);
+    points.reserve(one_period.size() * floor(width / period));
     points.pop_back();
     int n = points.size();
     do {
@@ -44,6 +45,7 @@ static inline Polyline make_wave(
 
     // and construct the final polyline to return:
     Polyline polyline;
+    polyline.points.reserve(points.size());
     for (auto& point : points) {
         point(1) += offset;
         point(1) = clamp(0., height, double(point(1)));
@@ -60,6 +62,7 @@ static std::vector<Vec2d> make_one_period(double width, double scaleFactor, doub
     std::vector<Vec2d> points;
     double dx = M_PI_2; // exact coordinates on main inflexion lobes
     double limit = std::min(2*M_PI, width);
+    points.reserve(ceil(limit / tolerance / 3));
     for (double x = 0.; x < limit + EPSILON; x += dx) {  // so the last point is there too
         x = std::min(x, limit);
         points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
