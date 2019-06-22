@@ -31,17 +31,22 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
 
 static inline Polyline make_wave(
     const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
-    double z_cos, double z_sin, bool vertical)
+    double z_cos, double z_sin, bool vertical, bool flip)
 {
     std::vector<Vec2d> points = one_period;
     double period = points.back()(0);
-    points.reserve(one_period.size() * floor(width / period));
-    points.pop_back();
-    int n = points.size();
-    do {
-        points.emplace_back(Vec2d(points[points.size()-n](0) + period, points[points.size()-n](1)));
-    } while (points.back()(0) < width);
-    points.back()(0) = width;
+    if (width != period) // do not extend if already truncated
+    {
+        points.reserve(one_period.size() * floor(width / period));
+        points.pop_back();
+
+        int n = points.size();
+        do {
+            points.emplace_back(Vec2d(points[points.size()-n](0) + period, points[points.size()-n](1)));
+        } while (points.back()(0) < width - EPSILON);
+
+        points.emplace_back(Vec2d(width, f(width, z_sin, z_cos, vertical, flip)));
+    }
 
     // and construct the final polyline to return:
     Polyline polyline;
@@ -63,10 +68,11 @@ static std::vector<Vec2d> make_one_period(double width, double scaleFactor, doub
     double dx = M_PI_2; // exact coordinates on main inflexion lobes
     double limit = std::min(2*M_PI, width);
     points.reserve(ceil(limit / tolerance / 3));
-    for (double x = 0.; x < limit + EPSILON; x += dx) {  // so the last point is there too
-        x = std::min(x, limit);
+
+    for (double x = 0.; x < limit - EPSILON; x += dx) {
         points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
     }
+    points.emplace_back(Vec2d(limit, f(limit, z_sin, z_cos, vertical, flip)));
 
     // piecewise increase in resolution up to requested tolerance
     for(;;)
@@ -128,11 +134,11 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 
     for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
         // creates odd polylines
-        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
+        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
         // creates even polylines
         y0 += M_PI;
         if (y0 < upper_bound + EPSILON) {
-            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
+            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
         }
     }
 
