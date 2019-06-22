@@ -178,6 +178,7 @@ void KBShortcutsDialog::fill_shortcuts()
     preview_shortcuts.push_back(Shortcut(L("Arrow Down"),   L("Lower Layer")));
     preview_shortcuts.push_back(Shortcut("U",               L("Upper Layer")));
     preview_shortcuts.push_back(Shortcut("D",               L("Lower Layer")));
+    preview_shortcuts.push_back(Shortcut("L",               L("Show/Hide (L)egend")));
 
     m_full_shortcuts.push_back(std::make_pair(_(L("Preview Shortcuts")), std::make_pair(preview_shortcuts, szLeft)));
 

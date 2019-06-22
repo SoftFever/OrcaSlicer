@@ -718,6 +718,11 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         m_slider->SetHigherValue(new_pos);
 		if (event.ShiftDown() || m_slider->is_one_layer()) m_slider->SetLowerValue(m_slider->GetHigherValue());
     }
+    else if (key == 'L') {
+        m_checkbox_legend->SetValue(!m_checkbox_legend->GetValue());
+        auto evt = wxCommandEvent();
+        on_checkbox_legend(evt);
+    }
     else if (key == 'S')
         m_slider->ChangeOneLayerLock();
     else
