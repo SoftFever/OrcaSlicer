@@ -82,13 +82,14 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
     auto editor = new LayerRangeEditor(m_parent, double_to_string(range.first), etMinZ,
                                        set_focus_fn, [range, set_focus, this](coordf_t min_z, bool enter_pressed)
     {
-        if (fabs(min_z - range.first) < EPSILON || min_z > range.second) {
+        if (fabs(min_z - range.first) < EPSILON) {
             m_selection_type = etUndef;
             return false;
         }
 
         // data for next focusing
-        const t_layer_height_range& new_range = { min_z, range.second };
+        coordf_t max_z = min_z < range.second ? range.second : min_z + 0.5;
+        const t_layer_height_range& new_range = { min_z, max_z/*range.second*/ };
         set_focus(new_range, etMinZ, enter_pressed);
 
         return wxGetApp().obj_list()->edit_layer_range(range, new_range);
