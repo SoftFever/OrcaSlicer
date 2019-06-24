@@ -4627,17 +4627,12 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
-        int                          volume_idx(int extruder, int feature) const
-        {
-            return this->color_by_color_print() ? 0 : this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
-        }
 
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
-        const float*                 color_print_by_layer_idx(const size_t layer_idx) const
-        {
+        const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
-            return color_tool((it - color_print_values->begin()) % number_tools());
+            return (it - color_print_values->begin()) % number_tools();
         }
     } ctxt;
 
@@ -4670,7 +4665,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          grain_size = ctxt.color_by_color_print() ? size_t(1) : std::max(ctxt.layers.size() / 16, size_t(1));
+    size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
@@ -4679,14 +4674,34 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         new_volume_mutex.unlock();
         return volume;
     };
-    const size_t   volumes_cnt_initial = m_volumes.volumes.size();
-    std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size());
+    const size_t    volumes_cnt_initial = m_volumes.volumes.size();
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
-        GLVolumePtrs vols;
-        if (ctxt.color_by_color_print())
-            vols.emplace_back(new_volume(ctxt.color_print_by_layer_idx(range.begin())));
+        GLVolumePtrs 		vols;
+        std::vector<size_t>	color_print_layer_to_glvolume;
+        auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {
+            return *vols[ctxt.color_by_color_print() ?
+            	color_print_layer_to_glvolume[layer_idx - range.begin()] :
+				ctxt.color_by_tool() ? 
+					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
+					feature
+				];
+        };
+        if (ctxt.color_by_color_print()) {
+        	// Create a map from the layer index to a GLVolume, which is initialized with the correct layer span color.
+        	std::vector<int> color_print_tool_to_glvolume(ctxt.number_tools(), -1);
+        	color_print_layer_to_glvolume.reserve(range.end() - range.begin());
+        	vols.reserve(ctxt.number_tools());
+	        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+	        	int idx_tool = (int)ctxt.color_print_color_idx_by_layer_idx(idx_layer);
+	        	if (color_print_tool_to_glvolume[idx_tool] == -1) {
+	        		color_print_tool_to_glvolume[idx_tool] = (int)vols.size();
+	        		vols.emplace_back(new_volume(ctxt.color_tool(idx_tool)));
+	        	}
+	        	color_print_layer_to_glvolume.emplace_back(color_print_tool_to_glvolume[idx_tool]);
+	        }
+        }
         else if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
@@ -4694,33 +4709,31 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         else
             vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
         for (GLVolume *vol : vols)
-            vol->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
+        	vol->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
-            for (size_t i = 0; i < vols.size(); ++i) {
-                GLVolume &vol = *vols[i];
-                if (vol.print_zs.empty() || vol.print_zs.back() != layer->print_z) {
-                    vol.print_zs.push_back(layer->print_z);
-                    vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
-                    vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
+            for (GLVolume *vol : vols)
+                if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
+                    vol->print_zs.push_back(layer->print_z);
+                    vol->offsets.push_back(vol->indexed_vertex_array.quad_indices.size());
+                    vol->offsets.push_back(vol->indexed_vertex_array.triangle_indices.size());
                 }
-            }
             for (const Point &copy : *ctxt.shifted_copies) {
                 for (const LayerRegion *layerm : layer->regions()) {
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
-                        *vols[ctxt.volume_idx(layerm->region()->config().perimeter_extruder.value, 0)]);
+                        	volume(idx_layer, layerm->region()->config().perimeter_extruder.value, 0));
                     if (ctxt.has_infill) {
                         for (const ExtrusionEntity *ee : layerm->fills.entities) {
                             // fill represents infill extrusions of a single island.
                             const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                            if (!fill->entities.empty())
+                            if (! fill->entities.empty())
                                 _3DScene::extrusionentity_to_verts(*fill, float(layer->print_z), copy,
-                                *vols[ctxt.volume_idx(
-                                is_solid_infill(fill->entities.front()->role()) ?
-                                layerm->region()->config().solid_infill_extruder :
-                                layerm->region()->config().infill_extruder,
-                                1)]);
+	                                volume(idx_layer, 
+		                                is_solid_infill(fill->entities.front()->role()) ?
+			                                layerm->region()->config().solid_infill_extruder :
+			                                layerm->region()->config().infill_extruder,
+		                                1));
                         }
                     }
                 }
@@ -4729,36 +4742,35 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     if (support_layer) {
                         for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
-                            *vols[ctxt.volume_idx(
-                            (extrusion_entity->role() == erSupportMaterial) ?
-                            support_layer->object()->config().support_material_extruder :
-                            support_layer->object()->config().support_material_interface_extruder,
-                            2)]);
+	                            volume(idx_layer, 
+		                            (extrusion_entity->role() == erSupportMaterial) ?
+			                            support_layer->object()->config().support_material_extruder :
+			                            support_layer->object()->config().support_material_interface_extruder,
+		                            2));
                     }
                 }
             }
-            for (size_t i = 0; i < vols.size(); ++i) {
-                GLVolume &vol = *vols[i];
-                if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
+            // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
+            for (GLVolume *&vol : vols)
+                if (vol->indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
                     // Store the vertex arrays and restart their containers, 
-                    vols[i] = new_volume(vol.color);
-                    GLVolume &vol_new = *vols[i];
+                    vol = new_volume(vol->color);
+                    GLVolume &vol_new = *vol;
                     // Assign the large pre-allocated buffers to the new GLVolume.
-                    vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+                    vol_new.indexed_vertex_array = std::move(vol->indexed_vertex_array);
                     // Copy the content back to the old GLVolume.
-                    vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+                    vol->indexed_vertex_array = vol_new.indexed_vertex_array;
                     // Finalize a bounding box of the old GLVolume.
-                    vol.bounding_box = vol.indexed_vertex_array.bounding_box();
+                    vol->bounding_box = vol->indexed_vertex_array.bounding_box();
                     // Clear the buffers, but keep them pre-allocated.
                     vol_new.indexed_vertex_array.clear();
                     // Just make sure that clear did not clear the reserved memory.
                     vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
                 }
-            }
         }
         for (GLVolume *vol : vols) {
-            vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-            vol->indexed_vertex_array.shrink_to_fit();
+        	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
+        	vol->indexed_vertex_array.shrink_to_fit();
         }
     });
 
