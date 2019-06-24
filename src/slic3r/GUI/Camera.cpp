@@ -31,7 +31,7 @@ Camera::Camera()
     : phi(45.0f)
     , requires_zoom_to_bed(false)
     , inverted_phi(false)
-    , m_type(Ortho)
+    , m_type(Perspective)
     , m_target(Vec3d::Zero())
     , m_theta(45.0f)
     , m_zoom(1.0)
@@ -61,20 +61,17 @@ void Camera::set_type(EType type)
     if (m_type != type)
     {
         m_type = type;
-
-        wxGetApp().app_config->set("camera_type", std::to_string(m_type));
+        wxGetApp().app_config->set("use_perspective_camera", (m_type == Perspective) ? "1" : "0");
         wxGetApp().app_config->save();
     }
 }
 
 void Camera::set_type(const std::string& type)
 {
-    if (!type.empty() && (type != "1"))
-    {
-        unsigned char type_id = atoi(type.c_str());
-        if (((unsigned char)Ortho < type_id) && (type_id < (unsigned char)Num_types))
-            set_type((Camera::EType)type_id);
-    }
+    if (type == "1")
+        set_type(Perspective);
+    else
+        set_type(Ortho);
 }
 
 void Camera::select_next_type()

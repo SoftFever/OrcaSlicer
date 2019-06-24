@@ -28,7 +28,7 @@ void PreferencesDialog::build()
             m_icon_size_sizer->ShowItems(boost::any_cast<bool>(value));
             this->layout();
         }
-	};
+    };
 
 	// TODO
 //    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
@@ -97,7 +97,7 @@ void PreferencesDialog::build()
 	option = Option (def,"show_incompatible_presets");
 	m_optgroup->append_single_option_line(option);
 
-	// TODO: remove?
+    // TODO: remove?
 	def.label = L("Use legacy OpenGL 1.1 rendering");
 	def.type = coBool;
 	def.tooltip = L("If you have rendering issues caused by a buggy OpenGL 2.0 driver, "
@@ -116,6 +116,13 @@ void PreferencesDialog::build()
 	option = Option (def, "use_retina_opengl");
 	m_optgroup->append_single_option_line(option);
 #endif
+
+    def.label = L("Use perspective camera");
+    def.type = coBool;
+    def.tooltip = L("If enabled, use perspective camera. If not enabled, use orthographic camera.");
+    def.set_default_value(new ConfigOptionBool{ app_config->get("use_perspective_camera") == "1" });
+    option = Option(def, "use_perspective_camera");
+    m_optgroup->append_single_option_line(option);
 
 	def.label = L("Use custom size for toolbar icons");
 	def.type = coBool;

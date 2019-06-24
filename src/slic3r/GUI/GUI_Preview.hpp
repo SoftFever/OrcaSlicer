@@ -110,6 +110,8 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
+    void set_as_dirty();
+
     void set_number_extruders(unsigned int number_extruders);
     void set_canvas_as_dirty();
     void set_enabled(bool enabled);
