@@ -546,7 +546,6 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
     std::string model_path = resources_dir() + "/models/" + key;
 
-#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 #if !ENABLE_COMPRESSED_TEXTURES
     // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
@@ -554,21 +553,6 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
     // use higher resolution images if graphic card and opengl version allow
     GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
-#else
-#if !ENABLE_COMPRESSED_TEXTURES
-    // use anisotropic filter if graphic card allows
-    GLfloat max_anisotropy = 0.0f;
-    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
-        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy));
-#endif // !ENABLE_COMPRESSED_TEXTURES
-
-    // use higher resolution images if graphic card allows
-    GLint max_tex_size;
-    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size));
-
-    // clamp or the texture generation becomes too slow
-    max_tex_size = std::min(max_tex_size, 8192);
-#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
 
     std::string filename = tex_path + ".svg";
 

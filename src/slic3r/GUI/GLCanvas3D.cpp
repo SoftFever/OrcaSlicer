@@ -1756,11 +1756,9 @@ void GLCanvas3D::render()
     ImGui::SameLine();
     imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "supported" : "not supported");
 #endif // ENABLE_COMPRESSED_TEXTURES
-#if ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     imgui.text("Max texture size: ");
     ImGui::SameLine();
     imgui.text(std::to_string(GLCanvas3DManager::get_gl_info().get_max_tex_size()));
-#endif // ENABLE_TEXTURES_MAXSIZE_DEPENDENT_ON_OPENGL_VERSION
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
 
