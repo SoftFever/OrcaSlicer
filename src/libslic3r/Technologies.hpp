@@ -46,7 +46,4 @@
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
 
 
-// Enable saving textures on GPU in compressed format 
-#define ENABLE_COMPRESSED_TEXTURES 1
-
 #endif // _technologies_h_

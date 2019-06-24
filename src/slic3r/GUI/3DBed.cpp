@@ -9,9 +9,7 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#if ENABLE_COMPRESSED_TEXTURES
 #include "GLCanvas3D.hpp"
-#endif // ENABLE_COMPRESSED_TEXTURES
 
 #include <GL/glew.h>
 
@@ -276,9 +274,7 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
-#if ENABLE_COMPRESSED_TEXTURES
     , m_requires_canvas_update(false)
-#endif // ENABLE_COMPRESSED_TEXTURES
 #if ENABLE_TEXTURES_FROM_SVG
     , m_vbo_id(0)
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -334,18 +330,13 @@ Point Bed3D::point_projection(const Point& point) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
-#if ENABLE_COMPRESSED_TEXTURES
 void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
-#else
-void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
-#endif // ENABLE_COMPRESSED_TEXTURES
 {
     m_scale_factor = scale_factor;
 
     EType type = useVBOs ? m_type : Custom;
     switch (type)
     {
-#if ENABLE_COMPRESSED_TEXTURES
     case MK2:
     {
         render_prusa(canvas, "mk2", theta > 90.0f);
@@ -361,23 +352,6 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
         render_prusa(canvas, "sl1", theta > 90.0f);
         break;
     }
-#else
-    case MK2:
-    {
-        render_prusa("mk2", theta > 90.0f);
-        break;
-    }
-    case MK3:
-    {
-        render_prusa("mk3", theta > 90.0f);
-        break;
-    }
-    case SL1:
-    {
-        render_prusa("sl1", theta > 90.0f);
-        break;
-    }
-#endif // ENABLE_COMPRESSED_TEXTURES
     default:
     case Custom:
     {
@@ -387,11 +361,7 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
     }
 }
 #else
-#if ENABLE_COMPRESSED_TEXTURES
 void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
-#else
-void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
-#endif // ENABLE_COMPRESSED_TEXTURES
 {
     m_scale_factor = scale_factor;
 
@@ -400,7 +370,6 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
 
     switch (m_type)
     {
-#if ENABLE_COMPRESSED_TEXTURES
     case MK2:
     {
         render_prusa(canvas, "mk2", theta, useVBOs);
@@ -416,23 +385,6 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
         render_prusa(canvas, "sl1", theta, useVBOs);
         break;
     }
-#else
-    case MK2:
-    {
-        render_prusa("mk2", theta, useVBOs);
-        break;
-    }
-    case MK3:
-    {
-        render_prusa("mk3", theta, useVBOs);
-        break;
-    }
-    case SL1:
-    {
-        render_prusa("sl1", theta, useVBOs);
-        break;
-    } 
-#endif // ENABLE_COMPRESSED_TEXTURES
     default:
     case Custom:
     {
@@ -536,20 +488,11 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
-#if ENABLE_COMPRESSED_TEXTURES
 void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom) const
-#else
-void Bed3D::render_prusa(const std::string &key, bool bottom) const
-#endif // ENABLE_COMPRESSED_TEXTURES
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
 
     std::string model_path = resources_dir() + "/models/" + key;
-
-#if !ENABLE_COMPRESSED_TEXTURES
-    // use anisotropic filter if graphic card allows
-    GLfloat max_anisotropy = GLCanvas3DManager::get_gl_info().get_max_anisotropy();
-#endif // !ENABLE_COMPRESSED_TEXTURES
 
     // use higher resolution images if graphic card and opengl version allow
     GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
@@ -558,7 +501,6 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
-#if ENABLE_COMPRESSED_TEXTURES
         // generate a temporary lower resolution texture to show while no main texture levels have been compressed
         if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
         {
@@ -568,24 +510,11 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
         // starts generating the main texture, compression will run asynchronously
         if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
-#else
-        if (!m_texture.load_from_svg_file(filename, true, max_tex_size))
-#endif // ENABLE_COMPRESSED_TEXTURES
         {
             render_custom();
             return;
         }
-
-#if !ENABLE_COMPRESSED_TEXTURES
-        if (max_anisotropy > 0.0f)
-        {
-            glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.get_id()));
-            glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
-            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-        }
-#endif // !ENABLE_COMPRESSED_TEXTURES
     }
-#if ENABLE_COMPRESSED_TEXTURES
     else if (m_texture.unsent_compressed_data_available())
     {
         // sends to gpu the already available compressed levels of the main texture
@@ -604,7 +533,6 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
         m_requires_canvas_update = false;
     }
-#endif // ENABLE_COMPRESSED_TEXTURES
 
     if (!bottom)
     {
@@ -677,16 +605,12 @@ void Bed3D::render_prusa_shader(bool transparent) const
         GLint position_id = m_shader.get_attrib_location("v_position");
         GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
 
-#if ENABLE_COMPRESSED_TEXTURES
         // show the temporary texture while no compressed data is available
         GLuint tex_id = (GLuint)m_temp_texture.get_id();
         if (tex_id == 0)
             tex_id = (GLuint)m_texture.get_id();
 
         glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-#else
-        glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id()));
-#endif // ENABLE_COMPRESSED_TEXTURES
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
 
         if (position_id != -1)

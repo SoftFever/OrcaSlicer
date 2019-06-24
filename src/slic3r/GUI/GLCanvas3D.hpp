@@ -376,11 +376,7 @@ class GLCanvas3D
         std::vector<Warning> m_warnings;
 
         // Generates the texture with given text.
-#if ENABLE_COMPRESSED_TEXTURES
         bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
-#else
-        bool _generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored = false);
-#endif // ENABLE_COMPRESSED_TEXTURES
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -403,11 +399,7 @@ class GLCanvas3D
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
-#if ENABLE_COMPRESSED_TEXTURES
         bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress);
-#else
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
-#endif // ENABLE_COMPRESSED_TEXTURES
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -451,9 +443,7 @@ private:
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
-#if ENABLE_COMPRESSED_TEXTURES
     bool m_keep_dirty;
-#endif // ENABLE_COMPRESSED_TEXTURES
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -640,10 +630,8 @@ public:
     void set_cursor(ECursorType type);
     void msw_rescale();
 
-#if ENABLE_COMPRESSED_TEXTURES
     void start_keeping_dirty() { m_keep_dirty = true; }
     void stop_keeping_dirty() { m_keep_dirty = false; }
-#endif // ENABLE_COMPRESSED_TEXTURES
 
 private:
     bool _is_shown_on_screen() const;

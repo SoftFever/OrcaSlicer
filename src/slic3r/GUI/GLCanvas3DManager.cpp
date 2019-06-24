@@ -186,9 +186,7 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 }
 
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
-#if ENABLE_COMPRESSED_TEXTURES
 bool GLCanvas3DManager::s_compressed_textures_supported = false;
-#endif // ENABLE_COMPRESSED_TEXTURES
 GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 
 GLCanvas3DManager::GLCanvas3DManager()
@@ -273,12 +271,10 @@ void GLCanvas3DManager::init_gl()
         m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
         m_use_VBOs = !m_use_legacy_opengl && s_gl_info.is_version_greater_or_equal_to(2, 0);
         m_gl_initialized = true;
-#if ENABLE_COMPRESSED_TEXTURES
         if (GLEW_EXT_texture_compression_s3tc)
             s_compressed_textures_supported = true;
         else
             s_compressed_textures_supported = false;
-#endif // ENABLE_COMPRESSED_TEXTURES
     }
 }
 

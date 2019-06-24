@@ -77,11 +77,7 @@ public:
     bool want_any_input() const;
 
 private:
-#if ENABLE_COMPRESSED_TEXTURES
     void init_font(bool compress);
-#else
-    void init_font();
-#endif // ENABLE_COMPRESSED_TEXTURES
     void init_input();
     void init_style();
     void render_draw_data(ImDrawData *draw_data);

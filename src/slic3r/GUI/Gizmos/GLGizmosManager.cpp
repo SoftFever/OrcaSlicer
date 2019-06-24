@@ -65,11 +65,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     if (!m_background_texture.metadata.filename.empty())
     {
-#if ENABLE_COMPRESSED_TEXTURES
         if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false, true))
-#else
-        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false))
-#endif // ENABLE_COMPRESSED_TEXTURES
         {
             reset();
             return false;
@@ -1164,11 +1160,7 @@ bool GLGizmosManager::generate_icons_texture() const
     states.push_back(std::make_pair(0, false));
     states.push_back(std::make_pair(0, true));
 
-#if ENABLE_COMPRESSED_TEXTURES
     bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale), true);
-#else
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
-#endif // ENABLE_COMPRESSED_TEXTURES
     if (res)
         m_icons_texture_dirty = false;
 

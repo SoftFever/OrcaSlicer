@@ -401,11 +401,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-#if ENABLE_COMPRESSED_TEXTURES
         if (!m_tooltip_texture.load_from_file(filename, false, true))
-#else
-        if (!m_tooltip_texture.load_from_file(filename, false))
-#endif // ENABLE_COMPRESSED_TEXTURES
             return;
     }
 
@@ -437,11 +433,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-#if ENABLE_COMPRESSED_TEXTURES
         if (!m_reset_texture.load_from_file(filename, false, true))
-#else
-        if (!m_reset_texture.load_from_file(filename, false))
-#endif // ENABLE_COMPRESSED_TEXTURES
             return;
     }
 
@@ -736,11 +728,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         }
     }
 
-#if ENABLE_COMPRESSED_TEXTURES
     generate(text, canvas, true, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
-#else
-    _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
-#endif // ENABLE_COMPRESSED_TEXTURES
 
     // save information for rescaling
     m_msg_text = text;
@@ -801,11 +789,7 @@ static void msw_disable_cleartype(wxFont &font)
 }
 #endif /* __WXMSW__ */
 
-#if ENABLE_COMPRESSED_TEXTURES
 bool GLCanvas3D::WarningTexture::generate(const std::string& msg_utf8, const GLCanvas3D& canvas, bool compress, bool red_colored/* = false*/)
-#else
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
-#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -879,14 +863,10 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
-#if ENABLE_COMPRESSED_TEXTURES
     if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-#else
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-#endif // ENABLE_COMPRESSED_TEXTURES
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -937,11 +917,7 @@ void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
     if (m_msg_text.empty())
         return;
 
-#if ENABLE_COMPRESSED_TEXTURES
     generate(m_msg_text, canvas, true, m_is_colored_red);
-#else
-    _generate(m_msg_text, canvas, m_is_colored_red);
-#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
@@ -984,11 +960,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
-#if ENABLE_COMPRESSED_TEXTURES
 bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress)
-#else
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
-#endif // ENABLE_COMPRESSED_TEXTURES
 {
     reset();
 
@@ -1177,14 +1149,10 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
-#if ENABLE_COMPRESSED_TEXTURES
     if (compress && GLEW_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-#else
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-#endif // ENABLE_COMPRESSED_TEXTURES
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -1267,9 +1235,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
 #endif // ENABLE_SVG_ICONS
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
-#if ENABLE_COMPRESSED_TEXTURES
     , m_keep_dirty(false)
-#endif // ENABLE_COMPRESSED_TEXTURES
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -1487,10 +1453,8 @@ void GLCanvas3D::bed_shape_changed()
     m_camera.set_scene_box(scene_bounding_box());
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
-#if ENABLE_COMPRESSED_TEXTURES
     if (m_bed.is_prusa())
         start_keeping_dirty();
-#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -1750,12 +1714,10 @@ void GLCanvas3D::render()
     imgui.text(std::to_string(m_render_stats.last_frame));
     ImGui::SameLine();
     imgui.text("  ms");
-#if ENABLE_COMPRESSED_TEXTURES
     ImGui::Separator();
     imgui.text("Compressed textures: ");
     ImGui::SameLine();
     imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "supported" : "not supported");
-#endif // ENABLE_COMPRESSED_TEXTURES
     imgui.text("Max texture size: ");
     ImGui::SameLine();
     imgui.text(std::to_string(GLCanvas3DManager::get_gl_info().get_max_tex_size()));
@@ -2366,10 +2328,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     _refresh_if_shown_on_screen();
 
-#if ENABLE_COMPRESSED_TEXTURES
     if (m_keep_dirty)
         m_dirty = true;
-#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -4002,11 +3962,7 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-#if ENABLE_COMPRESSED_TEXTURES
     m_bed.render(const_cast<GLCanvas3D*>(this), theta, m_use_VBOs, scale_factor);
-#else
-    m_bed.render(theta, m_use_VBOs, scale_factor);
-#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::_render_axes() const
@@ -5762,11 +5718,7 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-#if ENABLE_COMPRESSED_TEXTURES
     m_legend_texture.generate(preview_data, tool_colors, *this, true);
-#else
-    m_legend_texture.generate(preview_data, tool_colors, *this);
-#endif // ENABLE_COMPRESSED_TEXTURES
 }
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)

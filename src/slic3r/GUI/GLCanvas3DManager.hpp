@@ -78,9 +78,7 @@ private:
     bool m_use_legacy_opengl;
     bool m_use_VBOs;
     static EMultisampleState s_multisample;
-#if ENABLE_COMPRESSED_TEXTURES
     static bool s_compressed_textures_supported;
-#endif // ENABLE_COMPRESSED_TEXTURES
 
 public:
     GLCanvas3DManager();
@@ -99,9 +97,7 @@ public:
     GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
     static bool can_multisample() { return s_multisample == MS_Enabled; }
-#if ENABLE_COMPRESSED_TEXTURES
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
-#endif // ENABLE_COMPRESSED_TEXTURES
 
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
 
