@@ -300,22 +300,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
     const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    // The viewport and camera are set to complete view and glOrtho(-$x / 2, $x / 2, -$y / 2, $y / 2, -$depth, $depth),
-    // where x, y is the window size divided by $self->_zoom.
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(reset_rect);
     _render_active_object_annotations(canvas, bar_rect);
     _render_profile(bar_rect);
-
-    // Revert the matrices.
-    glsafe(::glPopMatrix());
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -370,7 +358,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
@@ -382,7 +370,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
@@ -413,7 +401,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
     float gap = 10.0f * inv_zoom;
 
@@ -882,12 +870,8 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)m_original_width) * inv_zoom;
         float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
@@ -906,9 +890,6 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1165,12 +1146,8 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 {
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
         float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
@@ -1189,9 +1166,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1476,7 +1450,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(false));
 
     if (m_config != nullptr)
     {
@@ -1484,6 +1458,7 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
         bb.min(2) = std::min(bb.min(2), -h);
         bb.max(2) = std::max(bb.max(2), h);
     }
+
     return bb;
 }
 
@@ -1559,20 +1534,20 @@ void GLCanvas3D::allow_multisample(bool allow)
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(m_bed.get_bounding_box());
+    _zoom_to_box(m_bed.get_bounding_box(false));
 }
 
 void GLCanvas3D::zoom_to_volumes()
 {
     m_apply_zoom_to_volumes_filter = true;
-    _zoom_to_bounding_box(volumes_bounding_box());
+    _zoom_to_box(volumes_bounding_box());
     m_apply_zoom_to_volumes_filter = false;
 }
 
 void GLCanvas3D::zoom_to_selection()
 {
     if (!m_selection.is_empty())
-        _zoom_to_bounding_box(m_selection.get_bounding_box());
+        _zoom_to_box(m_selection.get_bounding_box());
 }
 
 void GLCanvas3D::select_view(const std::string& direction)
@@ -1633,6 +1608,7 @@ void GLCanvas3D::render()
     }
 
     m_camera.apply_view_matrix();
+    m_camera.apply_projection(_max_bounding_box(true));
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -1694,16 +1670,7 @@ void GLCanvas3D::render()
         m_rectangle_selection.render(*this);
 
     // draw overlays
-    _render_gizmos_overlay();
-    _render_warning_texture();
-    _render_legend_texture();
-#if !ENABLE_SVG_ICONS
-    _resize_toolbars();
-#endif // !ENABLE_SVG_ICONS
-    _render_toolbar();
-    _render_view_toolbar();
-    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
-        m_layers_editing.render_overlay(*this);
+    _render_overlays();
 
 #if ENABLE_RENDER_STATISTICS
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -1723,6 +1690,10 @@ void GLCanvas3D::render()
     imgui.text(std::to_string(GLCanvas3DManager::get_gl_info().get_max_tex_size()));
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
+
+#if ENABLE_CAMERA_STATISTICS
+    m_camera.debug_render();
+#endif // ENABLE_CAMERA_STATISTICS
 
     wxGetApp().imgui()->render();
 
@@ -2426,9 +2397,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
-        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'i': { set_camera_zoom(1.0); break; }
+        case 'K':
+        case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
-        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'o': { set_camera_zoom(-1.0); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:  { evt.Skip(); break; }
@@ -2549,7 +2522,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
                 m_layers_editing.band_width = std::max(std::min(m_layers_editing.band_width * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f);
                 if (m_canvas != nullptr)
                     m_canvas->Refresh();
-                
+
                 return;
             }
         }
@@ -2560,8 +2533,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
-    float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-    set_camera_zoom(zoom);
+    set_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -3313,21 +3285,11 @@ void GLCanvas3D::do_mirror()
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLCanvas3D::set_camera_zoom(float zoom)
+void GLCanvas3D::set_camera_zoom(double zoom)
 {
-    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
-    zoom = m_camera.zoom / (1.0f - zoom);
-
-    // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
-    if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.7f);
-
-    // Don't allow to zoom too close to the scene.
-    zoom = std::min(zoom, 100.0f);
-
-    m_camera.zoom = zoom;
-    _refresh_if_shown_on_screen();
+    const Size& cnv_size = get_canvas_size();
+    m_camera.set_zoom(zoom, _max_bounding_box(false), cnv_size.get_width(), cnv_size.get_height());
+    m_dirty = true;
 }
 
 void GLCanvas3D::update_gizmos_on_off_state()
@@ -3361,8 +3323,7 @@ void GLCanvas3D::update_ui_from_settings()
     if (new_scaling != orig_scaling) {
         BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
 
-        m_camera.zoom /= orig_scaling;
-        m_camera.zoom *= new_scaling;
+        m_camera.set_zoom(m_camera.get_zoom() * new_scaling / orig_scaling);
         _refresh_if_shown_on_screen();
     }
 #endif
@@ -3409,7 +3370,7 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {
-    return factor * m_bed.get_bounding_box().max_size();
+    return factor * m_bed.get_bounding_box(false).max_size();
 }
 
 void GLCanvas3D::set_cursor(ECursorType type)
@@ -3640,143 +3601,25 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
+
+    // updates camera
     m_camera.apply_viewport(0, 0, w, h);
-
-    const BoundingBoxf3& bbox = _max_bounding_box();
-
-    switch (m_camera.type)
-    {
-    case Camera::Ortho:
-    {
-        float w2 = w;
-        float h2 = h;
-        float two_zoom = 2.0f * m_camera.zoom;
-        if (two_zoom != 0.0f)
-        {
-            float inv_two_zoom = 1.0f / two_zoom;
-            w2 *= inv_two_zoom;
-            h2 *= inv_two_zoom;
-        }
-
-        // FIXME: calculate a tighter value for depth will improve z-fighting
-        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
-        float depth = std::max(1.f, 5.0f * (float)bbox.max_size());
-        m_camera.apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
-
-        break;
-    }
-//    case Camera::Perspective:
-//    {
-//        float bbox_r = (float)bbox.radius();
-//        float fov = PI * 45.0f / 180.0f;
-//        float fov_tan = tan(0.5f * fov);
-//        float cam_distance = 0.5f * bbox_r / fov_tan;
-//        m_camera.distance = cam_distance;
-//
-//        float nr = cam_distance - bbox_r * 1.1f;
-//        float fr = cam_distance + bbox_r * 1.1f;
-//        if (nr < 1.0f)
-//            nr = 1.0f;
-//
-//        if (fr < nr + 1.0f)
-//            fr = nr + 1.0f;
-//
-//        float h2 = fov_tan * nr;
-//        float w2 = h2 * w / h;
-//        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
-//
-//        break;
-//    }
-    default:
-    {
-        throw std::runtime_error("Invalid camera type.");
-        break;
-    }
-    }
 
     m_dirty = false;
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_bed_model) const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(include_bed_model));
     return bb;
 }
 
-void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
+void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
 {
-    // Calculate the zoom factor needed to adjust viewport to bounding box.
-    float zoom = _get_zoom_to_bounding_box_factor(bbox);
-    if (zoom > 0.0f)
-    {
-        m_camera.zoom = zoom;
-        // center view around bounding box center
-        m_camera.set_target(bbox.center());
-        m_dirty = true;
-    }
-}
-
-float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const
-{
-    float max_bb_size = bbox.max_size();
-    if (max_bb_size == 0.0f)
-        return -1.0f;
-
-    // project the bbox vertices on a plane perpendicular to the camera forward axis
-    // then calculates the vertices coordinate on this plane along the camera xy axes
-
-    // we need the view matrix, we let opengl calculate it (same as done in render())
-    m_camera.apply_view_matrix();
-
-    Vec3d right = m_camera.get_dir_right();
-    Vec3d up = m_camera.get_dir_up();
-    Vec3d forward = m_camera.get_dir_forward();
-
-    Vec3d bb_min = bbox.min;
-    Vec3d bb_max = bbox.max;
-    Vec3d bb_center = bbox.center();
-
-    // bbox vertices in world space
-    std::vector<Vec3d> vertices;
-    vertices.reserve(8);
-    vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
-    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
-    vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
-
-    double max_x = 0.0;
-    double max_y = 0.0;
-
-    // margin factor to give some empty space around the bbox
-    double margin_factor = 1.25;
-
-    for (const Vec3d& v : vertices)
-    {
-        // project vertex on the plane perpendicular to camera forward axis
-        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
-        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
-
-        // calculates vertex coordinate along camera xy axes
-        double x_on_plane = proj_on_plane.dot(right);
-        double y_on_plane = proj_on_plane.dot(up);
-
-        max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
-        max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
-    }
-
-    if ((max_x == 0.0) || (max_y == 0.0))
-        return -1.0f;
-
-    max_x *= 2.0;
-    max_y *= 2.0;
-
     const Size& cnv_size = get_canvas_size();
-    return (float)std::min((double)cnv_size.get_width() / max_x, (double)cnv_size.get_height() / max_y);
+    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
+    m_dirty = true;
 }
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
@@ -3991,7 +3834,7 @@ void GLCanvas3D::_render_objects() const
 
             if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box(false);
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
@@ -4072,6 +3915,32 @@ void GLCanvas3D::_render_selection_center() const
     m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
+
+void GLCanvas3D::_render_overlays() const
+{
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    // ensure that the textures are renderered inside the frustrum
+    glsafe(::glTranslated(0.0, 0.0, -(m_camera.get_near_z() + 0.5)));
+    // ensure that the overlay fits the frustrum near z plane
+    double gui_scale = m_camera.get_gui_scale();
+    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
+
+    _render_gizmos_overlay();
+    _render_warning_texture();
+    _render_legend_texture();
+#if !ENABLE_SVG_ICONS
+    _resize_toolbars();
+#endif // !ENABLE_SVG_ICONS
+    _render_toolbar();
+    _render_view_toolbar();
+
+    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
+        m_layers_editing.render_overlay(*this);
+
+    glsafe(::glPopMatrix());
+}
 
 void GLCanvas3D::_render_warning_texture() const
 {
@@ -4169,7 +4038,7 @@ void GLCanvas3D::_render_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
@@ -4237,7 +4106,7 @@ void GLCanvas3D::_render_view_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     // places the toolbar on the bottom-left corner of the 3d scene

@@ -68,7 +68,7 @@ namespace GUI {
         if (!is_dragging())
             return;
 
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
         Size cnv_size = canvas.get_canvas_size();

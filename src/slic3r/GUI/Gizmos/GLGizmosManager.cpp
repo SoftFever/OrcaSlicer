@@ -531,17 +531,8 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     do_render_overlay(canvas, selection);
-
-    glsafe(::glPopMatrix());
 }
-
-
 
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
@@ -939,7 +930,7 @@ void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selectio
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();

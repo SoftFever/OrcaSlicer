@@ -212,7 +212,7 @@ const double Bed3D::Axes::ArrowLength = 5.0;
 
 Bed3D::Axes::Axes()
 : origin(Vec3d::Zero())
-, length(Vec3d::Zero())
+, length(25.0 * Vec3d::Ones())
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -292,7 +292,7 @@ bool Bed3D::set_shape(const Pointfs& shape)
     m_shape = shape;
     m_type = new_type;
 
-    calc_bounding_box();
+    calc_bounding_boxes();
 
     ExPolygon poly;
     for (const Vec2d& p : m_shape)
@@ -313,7 +313,7 @@ bool Bed3D::set_shape(const Pointfs& shape)
 
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-    m_axes.length = 0.1 * get_bounding_box().max_size() * Vec3d::Ones();
+    m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
 
     // Let the calee to update the UI.
     return true;
@@ -401,13 +401,22 @@ void Bed3D::render_axes() const
         m_axes.render();
 }
 
-void Bed3D::calc_bounding_box()
+void Bed3D::calc_bounding_boxes() const
 {
     m_bounding_box = BoundingBoxf3();
     for (const Vec2d& p : m_shape)
     {
         m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
     }
+
+    m_extended_bounding_box = m_bounding_box;
+
+    // extend to contain axes
+    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
+
+    // extend to contain model, if any
+    if (!m_model.get_filename().empty())
+        m_extended_bounding_box.merge(m_model.get_transformed_bounding_box());
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
@@ -550,6 +559,9 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
                 offset += Vec3d(0.0, 0.0, -0.03);
 
             m_model.center_around(offset);
+
+            // update extended bounding box
+            calc_bounding_boxes();
         }
 
         if (!m_model.get_filename().empty())

@@ -600,7 +600,7 @@ public:
     void do_flatten();
     void do_mirror();
 
-    void set_camera_zoom(float zoom);
+    void set_camera_zoom(double zoom);
 
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
@@ -641,10 +641,9 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box() const;
+    BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
 
-    void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
-    float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
+    void _zoom_to_box(const BoundingBoxf3& box);
 
     void _refresh_if_shown_on_screen();
 
@@ -658,6 +657,7 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    void _render_overlays() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_volumes_for_picking() const;

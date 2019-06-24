@@ -87,7 +87,8 @@ public:
 private:
     EType m_type;
     Pointfs m_shape;
-    BoundingBoxf3 m_bounding_box;
+    mutable BoundingBoxf3 m_bounding_box;
+    mutable BoundingBoxf3 m_extended_bounding_box;
     Polygon m_polygon;
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
@@ -123,7 +124,7 @@ public:
     // Return true if the bed shape changed, so the calee will update the UI.
     bool set_shape(const Pointfs& shape);
 
-    const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
+    const BoundingBoxf3& get_bounding_box(bool extended) const { return extended ? m_extended_bounding_box : m_bounding_box; }
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
@@ -131,7 +132,7 @@ public:
     void render_axes() const;
 
 private:
-    void calc_bounding_box();
+    void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     EType detect_type(const Pointfs& shape) const;
