@@ -241,8 +241,6 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_transformed_bounding_box_dirty(true)
     , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
-    , m_convex_hull(nullptr)
-    , m_convex_hull_owned(false)
     // geometry_id == 0 -> invalid
     , geometry_id(std::pair<size_t, size_t>(0, 0))
     , extruder_id(0)
@@ -266,12 +264,6 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     color[2] = b;
     color[3] = a;
     set_render_color(r, g, b, a);
-}
-
-GLVolume::~GLVolume()
-{
-    if (m_convex_hull_owned)
-        delete m_convex_hull;
 }
 
 void GLVolume::set_render_color(float r, float g, float b, float a)
@@ -335,12 +327,6 @@ void GLVolume::set_color_from_model_volume(const ModelVolume *model_volume)
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
 }
 
-void GLVolume::set_convex_hull(const TriangleMesh *convex_hull, bool owned)
-{
-    m_convex_hull = convex_hull;
-    m_convex_hull_owned = owned;
-}
-
 Transform3d GLVolume::world_matrix() const
 {
     Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
@@ -377,7 +363,7 @@ const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 
 BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
 {
-	return (m_convex_hull != nullptr && m_convex_hull->stl.stats.number_of_facets > 0) ? 
+	return (m_convex_hull && m_convex_hull->stl.stats.number_of_facets > 0) ? 
 		m_convex_hull->transformed_bounding_box(trafo) :
 		bounding_box.transformed(trafo);
 }
@@ -587,7 +573,7 @@ int GLVolumeCollection::load_object_volume(
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance     = model_object->instances[instance_idx];
-    const TriangleMesh& mesh = model_volume->mesh;
+    const TriangleMesh& mesh = model_volume->mesh();
     float color[4];
     memcpy(color, GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
 /*    if (model_volume->is_support_blocker()) {
@@ -613,7 +599,7 @@ int GLVolumeCollection::load_object_volume(
     if (model_volume->is_model_part())
     {
 		// GLVolume will reference a convex hull from model_volume!
-        v.set_convex_hull(&model_volume->get_convex_hull(), false);
+        v.set_convex_hull(model_volume->get_convex_hull_shared_ptr());
         if (extruder_id != -1)
             v.extruder_id = extruder_id;
     }
@@ -656,7 +642,10 @@ void GLVolumeCollection::load_object_auxiliary(
         v.composite_id = GLVolume::CompositeID(obj_idx, - int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
 		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
-		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
+        if (&instance_idx == &instances.back())
+            v.set_convex_hull(std::move(convex_hull));
+        else
+            v.set_convex_hull(convex_hull);
         v.is_modifier  = false;
         v.shader_outside_printer_detection_enabled = (milestone == slaposSupportTree);
         v.set_instance_transformation(model_instance.get_transformation());

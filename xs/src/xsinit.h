@@ -69,7 +69,10 @@ extern "C" {
     #undef fwrite
     #undef fclose
     #undef sleep
+    #undef snprintf
+    #undef strerror
     #undef test
+    #undef times
     #undef accept
     #undef wait
 

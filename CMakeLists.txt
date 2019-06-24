@@ -60,7 +60,7 @@ if (MSVC)
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm316 /Zi)
+    add_compile_options(-bigobj -Zm520 /Zi)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH
@@ -89,8 +89,6 @@ enable_testing ()
 # Enable C++11 language standard.
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if(NOT WIN32)
     # Add DEBUG flags to debug builds.
@@ -172,7 +170,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
     add_compile_options(-Werror=return-type)
 
     #removes LOTS of extraneous Eigen warnings
-    add_compile_options(-Wno-ignored-attributes)
+    # add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -240,15 +238,34 @@ if(NOT WIN32)
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
-if(Boost_FOUND)
-#    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    if (APPLE)
-        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-        add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)
-    endif()
-    if(NOT SLIC3R_STATIC)
-        add_definitions(-DBOOST_LOG_DYN_LINK)
-    endif()
+
+add_library(boost_libs INTERFACE)
+add_library(boost_headeronly INTERFACE)
+
+if (APPLE)
+    # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
+endif()
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
+endif()
+
+if(TARGET Boost::system)
+    message(STATUS "Boost::boost exists")
+    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+    target_link_libraries(boost_libs INTERFACE 
+        boost_headeronly # includes the custom compile definitions as well
+        Boost::system
+        Boost::filesystem
+        Boost::thread
+        Boost::log
+        Boost::locale
+        Boost::regex
+        )
+else()
+    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
 # Find and configure intel-tbb
@@ -295,7 +312,7 @@ if (NOT Eigen3_FOUND)
     set(Eigen3_FOUND 1)
     set(EIGEN3_INCLUDE_DIR ${LIBDIR}/eigen/)
 endif ()
-include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(BEFORE SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # Find expat or use bundled version
 # Always use the system libexpat on Linux.

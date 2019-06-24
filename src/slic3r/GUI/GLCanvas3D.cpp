@@ -17,6 +17,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
+#include "slic3r/GUI/GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -62,11 +63,6 @@ static const float GROUND_Z = -0.02f;
 
 static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
-
-static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
-                                     0.0f, 1.0f, 0.0f, 0.0f,
-                                     0.0f, 0.0f, 1.0f, 0.0f,
-                                     0.0f, 0.0f, 0.0f, 1.0f };
 
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
@@ -460,8 +456,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 	m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)m_layers_texture.height);
     m_shader.set_uniform("z_cursor", m_object_max_z * this->get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", band_width);
-    // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
-    m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
+    m_shader.set_uniform("object_max_z", m_object_max_z);
 
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
@@ -474,10 +469,10 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 
     ::glBegin(GL_QUADS);
     ::glNormal3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f(l, b, 0.0f);
-    ::glVertex3f(r, b, 0.0f);
-    ::glVertex3f(r, t, m_object_max_z);
-    ::glVertex3f(l, t, m_object_max_z);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(l, b);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(r, b);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(r, t);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(l, t);
     glsafe(::glEnd());
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
@@ -530,6 +525,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     GLint z_cursor_id                       = ::glGetUniformLocation(shader_id, "z_cursor");
     GLint z_cursor_band_width_id            = ::glGetUniformLocation(shader_id, "z_cursor_band_width");
     GLint world_matrix_id                   = ::glGetUniformLocation(shader_id, "volume_world_matrix");
+    GLint object_max_z_id                   = ::glGetUniformLocation(shader_id, "object_max_z");
     glcheck();
 
     if (z_to_texture_row_id != -1 && z_texture_row_to_normalized_id != -1 && z_cursor_id != -1 && z_cursor_band_width_id != -1 && world_matrix_id != -1) 
@@ -556,7 +552,10 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
-            glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (world_matrix_id != -1)
+                glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
+            if (object_max_z_id != -1)
+                glsafe(::glUniform1f(object_max_z_id, GLfloat(0)));
             glvolume->render();
         }
         // Revert back to the previous shader.
@@ -1248,6 +1247,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -1624,7 +1625,13 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 void GLCanvas3D::render()
 {
-    wxCHECK_RET(!m_in_render, "GLCanvas3D::render() called recursively");
+    if (m_in_render)
+    {
+        // if called recursively, return
+        m_dirty = true;
+        return;
+    }
+
     m_in_render = true;
     Slic3r::ScopeGuard in_render_guard([this]() { m_in_render = false; });
     (void)in_render_guard;
@@ -2443,8 +2450,18 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
-        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '+': { 
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); 
+                    break; }
+        case '-': {  
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt)); 
+                    else
+                        post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); 
+                    break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
@@ -2524,6 +2541,15 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
+                // DoubleSlider navigation in Preview
+                else if (keyCode == WXK_LEFT    || 
+                         keyCode == WXK_RIGHT   ||
+                         keyCode == WXK_UP      || 
+                         keyCode == WXK_DOWN    )
+                {
+                    if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
+                        post_event(wxKeyEvent(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, evt));
+                }
             }
         }
     }
@@ -5563,7 +5589,7 @@ void GLCanvas3D::_load_sla_shells()
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
-        v.set_convex_hull(new TriangleMesh(std::move(mesh.convex_hull_3d())), true);
+        v.set_convex_hull(mesh.convex_hull_3d());
     };
 
     // adds objects' volumes 

@@ -12,13 +12,11 @@ add_subdirectory(poly2tri)
 add_subdirectory(qhull)
 add_subdirectory(Shiny)
 add_subdirectory(semver)
+add_subdirectory(libigl)
 
 # Adding libnest2d project for bin packing...
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
 add_subdirectory(libnest2d)
-
-include_directories(${LIBDIR}/qhull/src)
-#message(STATUS ${LIBDIR}/qhull/src)
 
 add_subdirectory(libslic3r)
 
@@ -142,7 +140,7 @@ if (MSVC)
     target_compile_definitions(PrusaSlicer_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
     add_dependencies(PrusaSlicer_app_gui PrusaSlicer)
     set_target_properties(PrusaSlicer_app_gui PROPERTIES OUTPUT_NAME "prusa-slicer")
-    target_include_directories(PrusaSlicer_app_gui SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+    target_link_libraries(PrusaSlicer_app_gui PRIVATE boost_headeronly)
 
     add_executable(PrusaSlicer_app_console PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
     # Generate debug symbols even in release mode.
@@ -150,7 +148,7 @@ if (MSVC)
     target_compile_definitions(PrusaSlicer_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
     add_dependencies(PrusaSlicer_app_console PrusaSlicer)
     set_target_properties(PrusaSlicer_app_console PROPERTIES OUTPUT_NAME "prusa-slicer-console")
-    target_include_directories(PrusaSlicer_app_console SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+    target_link_libraries(PrusaSlicer_app_console PRIVATE boost_headeronly)
 endif ()
 
 # Link the resources dir to where Slic3r GUI expects it

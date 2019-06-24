@@ -130,13 +130,10 @@ add_library(libslic3r STATIC
     Print.hpp
     PrintBase.cpp
     PrintBase.hpp
-    PrintExport.hpp
     PrintConfig.cpp
     PrintConfig.hpp
     PrintObject.cpp
     PrintRegion.cpp
-    Rasterizer/Rasterizer.hpp
-    Rasterizer/Rasterizer.cpp
     SLAPrint.cpp
     SLAPrint.hpp
     SLA/SLAAutoSupports.hpp
@@ -163,6 +160,8 @@ add_library(libslic3r STATIC
     MTUtils.hpp
     Zipper.hpp
     Zipper.cpp
+    MinAreaBoundingBox.hpp
+    MinAreaBoundingBox.cpp
     miniz_extension.hpp
     miniz_extension.cpp
     SLA/SLABoilerPlate.hpp
@@ -175,6 +174,10 @@ add_library(libslic3r STATIC
     SLA/SLARotfinder.cpp
     SLA/SLABoostAdapter.hpp
     SLA/SLASpatIndex.hpp
+    SLA/SLARaster.hpp
+    SLA/SLARaster.cpp
+    SLA/SLARasterWriter.hpp
+    SLA/SLARasterWriter.cpp
 )
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
@@ -182,13 +185,13 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB)
-target_include_directories(libslic3r SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(libslic3r
     libnest2d
     admesh
+    libigl
     miniz
-    ${Boost_LIBRARIES}
+    boost_libs
     clipper
     nowide
     ${EXPAT_LIBRARIES}

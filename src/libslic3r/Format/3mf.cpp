@@ -1489,10 +1489,10 @@ namespace Slic3r {
             }
 
             // splits volume out of imported geometry
-            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-            ModelVolume* volume = object.add_volume(TriangleMesh());
-            stl_file& stl = volume->mesh.stl;
-            stl.stats.type = inmemory;
+			TriangleMesh triangle_mesh;
+            stl_file    &stl             = triangle_mesh.stl;
+			unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
+			stl.stats.type = inmemory;
             stl.stats.number_of_facets = (uint32_t)triangles_count;
             stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
             stl_allocate(&stl);
@@ -1509,9 +1509,11 @@ namespace Slic3r {
                 }
             }
 
-            stl_get_size(&stl);
-            volume->mesh.repair();
-            volume->center_geometry();
+			stl_get_size(&stl);
+			triangle_mesh.repair();
+
+			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+            volume->center_geometry_after_creation();
             volume->calculate_convex_hull();
 
             // apply volume's name and config data
@@ -1879,29 +1881,28 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
+			if (!volume->mesh().repaired)
+				throw std::runtime_error("store_3mf() requires repair()");
+			if (!volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_3mf() requires shared vertices");
+
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
-            if (!volume->mesh.repaired)
-                volume->mesh.repair();
-
-            stl_file& stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
-                stl_generate_shared_vertices(&stl);
-
-            if (stl.stats.shared_vertices == 0)
+            const indexed_triangle_set &its = volume->mesh().its;
+            if (its.vertices.empty())
             {
                 add_error("Found invalid mesh");
                 return false;
             }
 
-            vertices_count += stl.stats.shared_vertices;
+            vertices_count += its.vertices.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
-            for (int i = 0; i < stl.stats.shared_vertices; ++i)
+            for (size_t i = 0; i < its.vertices.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
@@ -1920,19 +1921,19 @@ namespace Slic3r {
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
-            stl_file& stl = volume->mesh.stl;
+            const indexed_triangle_set &its = volume->mesh().its;
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += stl.stats.number_of_facets;
+            triangles_count += its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
-            for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i)
+            for (size_t i = 0; i < its.indices.size(); ++ i)
             {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
+                    stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
                 stream << "/>\n";
             }
