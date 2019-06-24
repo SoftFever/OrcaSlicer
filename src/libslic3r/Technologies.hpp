@@ -14,7 +14,7 @@
 // Shows an imgui dialog with render related data
 #define ENABLE_RENDER_STATISTICS 0
 // Shows an imgui dialog with camera related data
-#define ENABLE_CAMERA_STATISTICS 1
+#define ENABLE_CAMERA_STATISTICS 0
 
 
 //====================
