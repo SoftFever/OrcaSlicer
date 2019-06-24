@@ -72,6 +72,9 @@ public:
 	// if the index is valid.
 	const_iterator				recommended() const;
 
+	// Returns the filesystem path from which this index has originally been loaded
+	const boost::filesystem::path& path() const { return m_path; }
+
 	// Load all vendor specific indices.
 	// Throws Slic3r::file_parser_error and the standard std file access exceptions.
 	static std::vector<Index>	load_db();
@@ -79,6 +82,7 @@ public:
 private:
 	std::string 				m_vendor;
 	std::vector<Version>		m_configs;
+	boost::filesystem::path		m_path;
 };
 
 } // namespace Config
