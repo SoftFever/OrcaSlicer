@@ -202,7 +202,6 @@ public:
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
-    bool can_paste_from_clipboard() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -214,8 +213,8 @@ public:
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
-    bool can_copy() const;
-    bool can_paste() const;
+    bool can_paste_from_clipboard() const;
+    bool can_copy_to_clipboard() const;
 
     void msw_rescale();
 

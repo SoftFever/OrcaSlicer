@@ -9,6 +9,7 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -211,7 +212,7 @@ const double Bed3D::Axes::ArrowLength = 5.0;
 
 Bed3D::Axes::Axes()
 : origin(Vec3d::Zero())
-, length(Vec3d::Zero())
+, length(25.0 * Vec3d::Ones())
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -273,6 +274,7 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
+    , m_requires_canvas_update(false)
 #if ENABLE_TEXTURES_FROM_SVG
     , m_vbo_id(0)
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -290,7 +292,7 @@ bool Bed3D::set_shape(const Pointfs& shape)
     m_shape = shape;
     m_type = new_type;
 
-    calc_bounding_box();
+    calc_bounding_boxes();
 
     ExPolygon poly;
     for (const Vec2d& p : m_shape)
@@ -311,7 +313,7 @@ bool Bed3D::set_shape(const Pointfs& shape)
 
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-    m_axes.length = 0.1 * get_bounding_box().max_size() * Vec3d::Ones();
+    m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
 
     // Let the calee to update the UI.
     return true;
@@ -328,27 +330,26 @@ Point Bed3D::point_projection(const Point& point) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
-void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
+void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
     EType type = useVBOs ? m_type : Custom;
     switch (type)
-
     {
     case MK2:
     {
-        render_prusa("mk2", theta > 90.0f);
+        render_prusa(canvas, "mk2", theta > 90.0f);
         break;
     }
     case MK3:
     {
-        render_prusa("mk3", theta > 90.0f);
+        render_prusa(canvas, "mk3", theta > 90.0f);
         break;
     }
     case SL1:
     {
-        render_prusa("sl1", theta > 90.0f);
+        render_prusa(canvas, "sl1", theta > 90.0f);
         break;
     }
     default:
@@ -360,7 +361,7 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
     }
 }
 #else
-void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
+void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
@@ -371,17 +372,17 @@ void Bed3D::render(float theta, bool useVBOs, float scale_factor) const
     {
     case MK2:
     {
-        render_prusa("mk2", theta, useVBOs);
+        render_prusa(canvas, "mk2", theta, useVBOs);
         break;
     }
     case MK3:
     {
-        render_prusa("mk3", theta, useVBOs);
+        render_prusa(canvas, "mk3", theta, useVBOs);
         break;
     }
     case SL1:
     {
-        render_prusa("sl1", theta, useVBOs);
+        render_prusa(canvas, "sl1", theta, useVBOs);
         break;
     }
     default:
@@ -400,13 +401,22 @@ void Bed3D::render_axes() const
         m_axes.render();
 }
 
-void Bed3D::calc_bounding_box()
+void Bed3D::calc_bounding_boxes() const
 {
     m_bounding_box = BoundingBoxf3();
     for (const Vec2d& p : m_shape)
     {
         m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
     }
+
+    m_extended_bounding_box = m_bounding_box;
+
+    // extend to contain axes
+    m_extended_bounding_box.merge(m_axes.length + Axes::ArrowLength * Vec3d::Ones());
+
+    // extend to contain model, if any
+    if (!m_model.get_filename().empty())
+        m_extended_bounding_box.merge(m_model.get_transformed_bounding_box());
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
@@ -487,40 +497,50 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
-void Bed3D::render_prusa(const std::string &key, bool bottom) const
+void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom) const
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
 
     std::string model_path = resources_dir() + "/models/" + key;
 
-    // use anisotropic filter if graphic card allows
-    GLfloat max_anisotropy = 0.0f;
-    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
-        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy));
-
-    // use higher resolution images if graphic card allows
-    GLint max_tex_size;
-    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size));
-
-    // clamp or the texture generation becomes too slow
-    max_tex_size = std::min(max_tex_size, 8192);
+    // use higher resolution images if graphic card and opengl version allow
+    GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
 
     std::string filename = tex_path + ".svg";
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
-        if (!m_texture.load_from_svg_file(filename, true, max_tex_size))
+        // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+        if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
         {
             render_custom();
             return;
         }
 
-        if (max_anisotropy > 0.0f)
+        // starts generating the main texture, compression will run asynchronously
+        if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
         {
-            glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.get_id()));
-            glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
-            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+            render_custom();
+            return;
         }
+    }
+    else if (m_texture.unsent_compressed_data_available())
+    {
+        // sends to gpu the already available compressed levels of the main texture
+        m_texture.send_compressed_data_to_gpu();
+
+        // the temporary texture is not needed anymore, reset it
+        if (m_temp_texture.get_id() != 0)
+            m_temp_texture.reset();
+
+        m_requires_canvas_update = true;
+    }
+    else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
+    {
+        if (canvas != nullptr)
+            canvas->stop_keeping_dirty();
+
+        m_requires_canvas_update = false;
     }
 
     if (!bottom)
@@ -539,6 +559,9 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
                 offset += Vec3d(0.0, 0.0, -0.03);
 
             m_model.center_around(offset);
+
+            // update extended bounding box
+            calc_bounding_boxes();
         }
 
         if (!m_model.get_filename().empty())
@@ -594,7 +617,12 @@ void Bed3D::render_prusa_shader(bool transparent) const
         GLint position_id = m_shader.get_attrib_location("v_position");
         GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
 
-        glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id()));
+        // show the temporary texture while no compressed data is available
+        GLuint tex_id = (GLuint)m_temp_texture.get_id();
+        if (tex_id == 0)
+            tex_id = (GLuint)m_texture.get_id();
+
+        glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
 
         if (position_id != -1)

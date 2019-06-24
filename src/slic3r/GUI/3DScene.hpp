@@ -555,6 +555,7 @@ public:
 
     const std::string& get_filename() const { return m_filename; }
     const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box; }
+    const BoundingBoxf3& get_transformed_bounding_box() const { return m_volume.transformed_bounding_box(); }
 
     void reset();
 

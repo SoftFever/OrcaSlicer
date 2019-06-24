@@ -766,6 +766,7 @@ protected:
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
+    void    draw_revert_icon(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
@@ -807,6 +808,7 @@ private:
     ScalableBitmap    m_bmp_one_layer_lock_off;
     ScalableBitmap    m_bmp_one_layer_unlock_on;
     ScalableBitmap    m_bmp_one_layer_unlock_off;
+    ScalableBitmap    m_bmp_revert;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
@@ -820,9 +822,11 @@ private:
     wxRect      m_rect_higher_thumb;
     wxRect      m_rect_tick_action;
     wxRect      m_rect_one_layer_icon;
+    wxRect      m_rect_revert_icon;
     wxSize      m_thumb_size;
     int         m_tick_icon_dim;
     int         m_lock_icon_dim;
+    int         m_revert_icon_dim;
     long        m_style;
     float       m_label_koef = 1.0;
 
