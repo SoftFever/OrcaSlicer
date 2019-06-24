@@ -489,21 +489,57 @@ void Model::convert_multipart_object(unsigned int max_extruders)
 
     reset_auto_extruder_id();
 
+    bool is_single_object = (this->objects.size() == 1);
+
     for (const ModelObject* o : this->objects)
+    {
         for (const ModelVolume* v : o->volumes)
         {
-            ModelVolume* new_v = object->add_volume(*v);
-            if (new_v != nullptr)
+            if (is_single_object)
             {
-                new_v->name = o->name;
-                new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
-                new_v->translate(-o->origin_translation);
+                // If there is only one object, just copy the volumes
+                ModelVolume* new_v = object->add_volume(*v);
+                if (new_v != nullptr)
+                {
+                    new_v->name = o->name;
+                    new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
+                    new_v->translate(-o->origin_translation);
+                }
+            }
+            else
+            {
+                // If there are more than one object, put all volumes together 
+                // Each object may contain any number of volumes and instances
+                // The volumes transformations are relative to the object containing them...
+                int counter = 1;
+                for (const ModelInstance* i : o->instances)
+                {
+                    ModelVolume* new_v = object->add_volume(*v);
+                    if (new_v != nullptr)
+                    {
+                        new_v->name = o->name + "_" + std::to_string(counter++);
+                        new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
+                        new_v->translate(-o->origin_translation);
+                        // ...so, transform everything to a common reference system (world)
+                        new_v->set_transformation(i->get_transformation() * v->get_transformation());
+                    }
+                }
             }
         }
+    }
 
-    for (const ModelInstance* i : this->objects.front()->instances)
-        object->add_instance(*i);
-    
+    if (is_single_object)
+    {
+        // If there is only one object, keep its instances
+        for (const ModelInstance* i : this->objects.front()->instances)
+        {
+            object->add_instance(*i);
+        }
+    }
+    else
+        // If there are more than one object, create a single instance
+        object->add_instance();
+
     this->clear_objects();
     this->objects.push_back(object);
 }
