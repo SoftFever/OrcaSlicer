@@ -191,6 +191,15 @@ template<class C> bool all_of(const C &container) {
                        });
 }
 
+template<class X, class Y> inline X ceil_i(X x, Y y)
+{
+    static_assert(std::is_integral<X>::value &&
+                      std::is_integral<Y>::value && sizeof(X) >= sizeof(Y),
+                  "");
+    
+    return (x % y) ? x / y + 1 : x / y;
+}
+
 }
 
 #endif // MTUTILS_HPP
