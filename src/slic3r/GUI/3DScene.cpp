@@ -2015,7 +2015,7 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
 
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
-    return s_canvas_mgr.get_gl_info(format_as_html, extensions);
+    return Slic3r::GUI::GLCanvas3DManager::get_gl_info().to_string(format_as_html, extensions);
 }
 
 bool _3DScene::add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar)

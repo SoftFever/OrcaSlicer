@@ -65,7 +65,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     if (!m_background_texture.metadata.filename.empty())
     {
-        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false))
+        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false, true))
         {
             reset();
             return false;
@@ -531,17 +531,8 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     do_render_overlay(canvas, selection);
-
-    glsafe(::glPopMatrix());
 }
-
-
 
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
@@ -939,7 +930,7 @@ void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selectio
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
@@ -1160,7 +1151,7 @@ bool GLGizmosManager::generate_icons_texture() const
     states.push_back(std::make_pair(0, false));
     states.push_back(std::make_pair(0, true));
 
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale), true);
     if (res)
         m_icons_texture_dirty = false;
 

@@ -376,7 +376,7 @@ class GLCanvas3D
         std::vector<Warning> m_warnings;
 
         // Generates the texture with given text.
-        bool _generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored = false);
+        bool generate(const std::string& msg, const GLCanvas3D& canvas, bool compress, bool red_colored = false);
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -399,7 +399,7 @@ class GLCanvas3D
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -443,6 +443,7 @@ private:
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
+    bool m_keep_dirty;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -599,7 +600,7 @@ public:
     void do_flatten();
     void do_mirror();
 
-    void set_camera_zoom(float zoom);
+    void set_camera_zoom(double zoom);
 
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
@@ -629,6 +630,9 @@ public:
     void set_cursor(ECursorType type);
     void msw_rescale();
 
+    void start_keeping_dirty() { m_keep_dirty = true; }
+    void stop_keeping_dirty() { m_keep_dirty = false; }
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -637,10 +641,9 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box() const;
+    BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
 
-    void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
-    float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
+    void _zoom_to_box(const BoundingBoxf3& box);
 
     void _refresh_if_shown_on_screen();
 
@@ -654,6 +657,7 @@ private:
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    void _render_overlays() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_volumes_for_picking() const;

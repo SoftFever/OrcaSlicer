@@ -189,6 +189,7 @@ target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNE
 target_link_libraries(libslic3r
     libnest2d
     admesh
+    libigl
     miniz
     boost_libs
     clipper

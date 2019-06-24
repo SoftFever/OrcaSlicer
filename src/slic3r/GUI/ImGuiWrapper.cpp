@@ -206,7 +206,7 @@ void ImGuiWrapper::new_frame()
     }
 
     if (m_font_texture == 0) {
-        init_font();
+        init_font(true);
     }
 
     ImGui::NewFrame();
@@ -383,7 +383,7 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_font()
+void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
 
@@ -412,7 +412,10 @@ void ImGuiWrapper::init_font()
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    if (compress && GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
     io.Fonts->TexID = (ImTextureID)(intptr_t)m_font_texture;

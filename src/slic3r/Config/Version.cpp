@@ -192,6 +192,7 @@ size_t Index::load(const boost::filesystem::path &path)
 {
 	m_configs.clear();
 	m_vendor = path.stem().string();
+	m_path = path;
 
     boost::nowide::ifstream ifs(path.string());
     std::string line;
