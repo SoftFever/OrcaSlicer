@@ -4,6 +4,7 @@
 #include <thread>
 #include <unordered_map>
 #include <ostream>
+#include <utility>
 #include <stdexcept>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -45,10 +46,25 @@ static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".download";
 
 
+void copy_file_fix(const fs::path &source, const fs::path &target)
+{
+	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
+
+	BOOST_LOG_TRIVIAL(debug) << boost::format("PresetUpdater: Copying %1% -> %2%") % source % target;
+
+	// Make sure the file has correct permission both before and after we copy over it
+	if (fs::exists(target)) {
+		fs::permissions(target, perms);
+	}
+	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
+	fs::permissions(target, perms);
+}
+
 struct Update
 {
 	fs::path source;
 	fs::path target;
+
 	Version version;
 	std::string vendor;
 	std::string changelog_url;
@@ -61,7 +77,13 @@ struct Update
 		, changelog_url(std::move(changelog_url))
 	{}
 
-	friend std::ostream& operator<<(std::ostream& os , const Update &self) {
+	void install() const
+	{
+		copy_file_fix(source, target);
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Update &self)
+	{
 		os << "Update(" << self.source.string() << " -> " << self.target.string() << ')';
 		return os;
 	}
@@ -115,7 +137,6 @@ struct PresetUpdater::priv
 	bool enabled_version_check;
 	bool enabled_config_update;
 	std::string version_check_url;
-	bool had_config_update;
 
 	fs::path cache_path;
 	fs::path rsrc_path;
@@ -135,13 +156,10 @@ struct PresetUpdater::priv
 	void check_install_indices() const;
 	Updates get_config_updates() const;
 	void perform_updates(Updates &&updates, bool snapshot = true) const;
-
-	static void copy_file(const fs::path &from, const fs::path &to);
 };
 
 PresetUpdater::priv::priv()
 	: ver_slic3r(get_slic3r_version())
-	, had_config_update(false)
 	, cache_path(fs::path(Slic3r::data_dir()) / "cache")
 	, rsrc_path(fs::path(resources_dir()) / "profiles")
 	, vendor_path(fs::path(Slic3r::data_dir()) / "vendor")
@@ -273,7 +291,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 			try {
 				new_index.load(idx_path_temp);
 			} catch (const std::exception & /* err */) {
-				BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading a downloaded index %1% for vendor %2%: invalid index?") % idx_path_temp % vendor.name;
+				BOOST_LOG_TRIVIAL(error) << boost::format("Could not load downloaded index %1% for vendor %2%: invalid index?") % idx_path_temp % vendor.name;
 				continue;
 			}
 			if (new_index.version() < index.version()) {
@@ -323,7 +341,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 			if (! fs::exists(path_in_cache)) {
 				BOOST_LOG_TRIVIAL(info) << "Install index from resources: " << path.filename();
-				copy_file(path, path_in_cache);
+				copy_file_fix(path, path_in_cache);
 			} else {
 				Index idx_rsrc, idx_cache;
 				idx_rsrc.load(path);
@@ -331,7 +349,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 				if (idx_cache.version() < idx_rsrc.version()) {
 					BOOST_LOG_TRIVIAL(info) << "Update index from resources: " << path.filename();
-					copy_file(path, path_in_cache);
+					copy_file_fix(path, path_in_cache);
 				}
 			}
 		}
@@ -346,6 +364,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 	for (const auto idx : index_db) {
 		auto bundle_path = vendor_path / (idx.vendor() + ".ini");
+		auto bundle_path_idx = vendor_path / idx.path().filename();
 
 		if (! fs::exists(bundle_path)) {
 			BOOST_LOG_TRIVIAL(info) << "Bundle not present for index, skipping: " << idx.vendor();
@@ -360,7 +379,30 @@ Updates PresetUpdater::priv::get_config_updates() const
 		const auto recommended = idx.recommended();
 		if (recommended == idx.end()) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % idx.vendor();
+			// XXX: what should be done here?
+			continue;
 		}
+
+		// Load 'installed' idx, if any.
+		// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
+		// for bookkeeping to remember a cancelled update and not offer it again.
+		if (fs::exists(bundle_path_idx)) {
+			Index existing_idx;
+			try {
+				existing_idx.load(bundle_path_idx);
+
+				const auto existing_recommended = existing_idx.recommended();
+				if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
+					// The user has already seen (and presumably rejected) this update
+					BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
+					continue;
+				}
+			} catch (const std::exception & /* err */) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("Could nto load installed index %1%") % bundle_path_idx;
+			}
+		}
+
+		copy_file_fix(idx.path(), bundle_path_idx);
 
 		const auto ver_current = idx.find(vp.config_version);
 		const bool ver_current_found = ver_current != idx.end();
@@ -453,10 +495,10 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 		for (const auto &update : updates.updates) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
-			copy_file(update.source, update.target);
+			update.install();
 
 			PresetBundle bundle;
-			bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+			bundle.load_configbundle(update.source.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
 
 			BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% conflicting presets")
 				% (bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
@@ -490,19 +532,6 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 		}
 	}
 }
-
-void PresetUpdater::priv::copy_file(const fs::path &source, const fs::path &target)
-{
-	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
-
-	// Make sure the file has correct permission both before and after we copy over it
-	if (fs::exists(target)) {
-		fs::permissions(target, perms);
-	}
-	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
-	fs::permissions(target, perms);
-}
-
 
 PresetUpdater::PresetUpdater() :
 	p(new priv())
@@ -541,11 +570,6 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 void PresetUpdater::slic3r_update_notify()
 {
 	if (! p->enabled_version_check) { return; }
-
-	if (p->had_config_update) {
-		BOOST_LOG_TRIVIAL(info) << "New Slic3r version available, but there was a configuration update, notification won't be displayed";
-		return;
-	}
 
 	auto* app_config = GUI::wxGetApp().app_config;
 	const auto ver_online_str = app_config->get("version_online");
@@ -594,8 +618,6 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 			incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
 		}
 
-		p->had_config_update = true;   // This needs to be done before a dialog is shown because of OnIdle() + CallAfter() in Perl
-
 		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
 		const auto res = dlg.ShowModal();
 		if (res == wxID_REPLACE) {
@@ -620,8 +642,6 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 			updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
 		}
 
-		p->had_config_update = true;   // Ditto, see above
-
 		GUI::MsgUpdateConfig dlg(updates_msg);
 
 		const auto res = dlg.ShowModal();
@@ -631,7 +651,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 
 			// Reload global configuration
 			auto *app_config = GUI::wxGetApp().app_config;
-            GUI::wxGetApp().preset_bundle->load_presets(*app_config);
+			GUI::wxGetApp().preset_bundle->load_presets(*app_config);
 			GUI::wxGetApp().load_current_presets();
 			return R_UPDATE_INSTALLED;
 		} else {

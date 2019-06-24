@@ -1758,6 +1758,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -1771,6 +1772,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 
     set_current_panel(view3D);
+
+    // updates camera type from .ini file
+    camera.set_type(get_config("camera_type"));
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -4183,30 +4187,14 @@ void Plater::update_object_menu() { p->update_object_menu(); }
 
 void Plater::copy_selection_to_clipboard()
 {
-    p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
+    if (can_copy_to_clipboard())
+        p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
 }
 
 void Plater::paste_from_clipboard()
 {
-    p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
-}
-
-bool Plater::can_paste_from_clipboard() const
-{
-    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
-    const Selection::Clipboard& clipboard = selection.get_clipboard();
-    Selection::EMode mode = clipboard.get_mode();
-
-    if (clipboard.is_empty())
-        return false;
-
-    if ((mode == Selection::Volume) && !selection.is_from_single_instance())
-        return false;
-
-    if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
-        return false;
-
-    return true;
+    if (can_paste_from_clipboard())
+        p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
 void Plater::msw_rescale()
@@ -4233,7 +4221,37 @@ bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
 bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
-bool Plater::can_copy() const { return !is_selection_empty(); }
-bool Plater::can_paste() const { return can_paste_from_clipboard(); }
+bool Plater::can_paste_from_clipboard() const
+{
+    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    const Selection::Clipboard& clipboard = selection.get_clipboard();
+
+    if (clipboard.is_empty())
+        return false;
+
+    if ((wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) && !clipboard.is_sla_compliant())
+        return false;
+
+    Selection::EMode mode = clipboard.get_mode();
+    if ((mode == Selection::Volume) && !selection.is_from_single_instance())
+        return false;
+
+    if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
+        return false;
+
+    return true;
+}
+
+bool Plater::can_copy_to_clipboard() const
+{
+    if (is_selection_empty())
+        return false;
+
+    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    if ((wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) && !selection.is_sla_compliant())
+        return false;
+
+    return true;
+}
 
 }}    // namespace Slic3r::GUI

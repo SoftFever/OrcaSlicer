@@ -727,6 +727,7 @@ public:
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
     void OnKeyUp(wxKeyEvent &event);
+    void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
     void OnRightUp(wxMouseEvent& event);
 
@@ -741,6 +742,7 @@ protected:
     void    draw_ticks(wxDC& dc);
     void    draw_colored_band(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
+    void    draw_revert_icon(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
@@ -782,6 +784,7 @@ private:
     ScalableBitmap    m_bmp_one_layer_lock_off;
     ScalableBitmap    m_bmp_one_layer_unlock_on;
     ScalableBitmap    m_bmp_one_layer_unlock_off;
+    ScalableBitmap    m_bmp_revert;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
@@ -795,9 +798,11 @@ private:
     wxRect      m_rect_higher_thumb;
     wxRect      m_rect_tick_action;
     wxRect      m_rect_one_layer_icon;
+    wxRect      m_rect_revert_icon;
     wxSize      m_thumb_size;
     int         m_tick_icon_dim;
     int         m_lock_icon_dim;
+    int         m_revert_icon_dim;
     long        m_style;
     float       m_label_koef = 1.0;
 
@@ -837,8 +842,12 @@ public:
     void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
     void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
-    bool    IsLocked() const { return m_is_pushed; }
+    bool    IsLocked() const                { return m_is_pushed; }
     void    SetLock(bool lock);
+
+    // create its own Enable/Disable functions to not really disabled button because of tooltip enabling
+    void    enable()                        { m_disabled = false; }
+    void    disable()                       { m_disabled = true;  }
 
     void    msw_rescale();
 
@@ -847,6 +856,7 @@ protected:
 
 private:
     bool        m_is_pushed = false;
+    bool        m_disabled = false;
 
     ScalableBitmap    m_bmp_lock_on;
     ScalableBitmap    m_bmp_lock_off;
