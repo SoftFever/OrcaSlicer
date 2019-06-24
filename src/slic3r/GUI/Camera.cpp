@@ -24,6 +24,8 @@ namespace GUI {
 const double Camera::DefaultDistance = 1000.0;
 double Camera::FrustrumMinZSize = 50.0;
 double Camera::FrustrumZMargin = 10.0;
+double Camera::FovMinDeg = 5.0;
+double Camera::FovMaxDeg = 75.0;
 
 Camera::Camera()
     : phi(45.0f)
@@ -34,6 +36,7 @@ Camera::Camera()
     , m_theta(45.0f)
     , m_zoom(1.0)
     , m_distance(DefaultDistance)
+    , m_gui_scale(1.0)
     , m_view_matrix(Transform3d::Identity())
     , m_projection_matrix(Transform3d::Identity())
 {
@@ -148,6 +151,18 @@ bool Camera::select_view(const std::string& direction)
         return false;
 }
 
+double Camera::get_fov() const
+{
+    switch (m_type)
+    {
+    case Perspective:
+        return 2.0 * Geometry::rad2deg(std::atan(1.0 / m_projection_matrix.matrix()(1, 1)));
+    default:
+    case Ortho:
+        return 0.0;
+    };
+}
+
 void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h) const
 {
     glsafe(::glViewport(0, 0, w, h));
@@ -174,17 +189,67 @@ void Camera::apply_view_matrix() const
 
 void Camera::apply_projection(const BoundingBoxf3& box) const
 {
-    m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+    m_distance = DefaultDistance;
+    double w = 0.0;
+    double h = 0.0;
 
-    double w = (double)m_viewport[2];
-    double h = (double)m_viewport[3];
-
-    double two_zoom = 2.0 * m_zoom;
-    if (two_zoom != 0.0)
+    while (true)
     {
-        double inv_two_zoom = 1.0 / two_zoom;
-        w *= inv_two_zoom;
-        h *= inv_two_zoom;
+        m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+
+        w = (double)m_viewport[2];
+        h = (double)m_viewport[3];
+
+        double two_zoom = 2.0 * m_zoom;
+        if (two_zoom != 0.0)
+        {
+            double inv_two_zoom = 1.0 / two_zoom;
+            w *= inv_two_zoom;
+            h *= inv_two_zoom;
+        }
+
+        switch (m_type)
+        {
+        default:
+        case Ortho:
+        {
+            m_gui_scale = 1.0;
+            break;
+        }
+        case Perspective:
+        {
+            // scale near plane to keep w and h constant on the plane at z = m_distance
+            double scale = m_frustrum_zs.first / m_distance;
+            w *= scale;
+            h *= scale;
+            m_gui_scale = scale;
+            break;
+        }
+        }
+
+        if (m_type == Perspective)
+        {
+            double fov_rad = 2.0 * std::atan(h / m_frustrum_zs.first);
+            double fov_deg = Geometry::rad2deg(fov_rad);
+
+            // adjust camera distance to keep fov in a limited range
+            if (fov_deg > FovMaxDeg + 0.001)
+            {
+                double new_near_z = h / ::tan(0.5 * Geometry::deg2rad(FovMaxDeg));
+                m_distance += (new_near_z - m_frustrum_zs.first);
+                apply_view_matrix();
+            }
+            else if (fov_deg < FovMinDeg - 0.001)
+            {
+                double new_near_z = h / ::tan(0.5 * Geometry::deg2rad(FovMinDeg));
+                m_distance += (new_near_z - m_frustrum_zs.first);
+                apply_view_matrix();
+            }
+            else
+                break;
+        }
+        else
+            break;
     }
 
     glsafe(::glMatrixMode(GL_PROJECTION));
@@ -231,17 +296,22 @@ void Camera::debug_render() const
     std::string type = get_type_as_string();
     Vec3f position = get_position().cast<float>();
     Vec3f target = m_target.cast<float>();
+    float distance = (float)get_distance();
     Vec3f forward = get_dir_forward().cast<float>();
     Vec3f right = get_dir_right().cast<float>();
     Vec3f up = get_dir_up().cast<float>();
     float nearZ = (float)m_frustrum_zs.first;
     float farZ = (float)m_frustrum_zs.second;
     float deltaZ = farZ - nearZ;
+    float zoom = (float)m_zoom;
+    float fov = (float)get_fov();
+    float gui_scale = (float)get_gui_scale();
 
     ImGui::InputText("Type", const_cast<char*>(type.data()), type.length(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
     ImGui::InputFloat3("Position", position.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Target", target.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat("Distance", &distance, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
     ImGui::InputFloat3("Forward", forward.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Right", right.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
@@ -250,6 +320,11 @@ void Camera::debug_render() const
     ImGui::InputFloat("Near Z", &nearZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat("Far Z", &farZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat("Delta Z", &deltaZ, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
+    ImGui::InputFloat("Zoom", &zoom, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat("Fov", &fov, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::Separator();
+    ImGui::InputFloat("GUI scale", &gui_scale, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
 }
 #endif // ENABLE_CAMERA_STATISTICS
@@ -273,11 +348,10 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     vertices.push_back(bb_max);
     vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
 
-    // set the Z range in eye coordinates (only negative Zs are in front of the camera)
+    // set the Z range in eye coordinates (negative Zs are in front of the camera)
     for (const Vec3d& v : vertices)
     {
-        // ensure non-negative values
-        double z = std::max(-(m_view_matrix * v)(2), 0.0);
+        double z = -(m_view_matrix * v)(2);
         ret.first = std::min(ret.first, z);
         ret.second = std::max(ret.second, z);
     }
@@ -294,8 +368,6 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
         ret.first = mid_z - half_size;
         ret.second = mid_z + half_size;
     }
-
-    assert(ret.first > 0.0);
 
     return ret;
 }

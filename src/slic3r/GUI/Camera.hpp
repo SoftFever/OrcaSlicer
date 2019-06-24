@@ -12,6 +12,8 @@ struct Camera
     static const double DefaultDistance;
     static double FrustrumMinZSize;
     static double FrustrumZMargin;
+    static double FovMinDeg;
+    static double FovMaxDeg;
 
     enum EType : unsigned char
     {
@@ -31,7 +33,8 @@ private:
     float m_theta;
     double m_zoom;
     // Distance between camera position and camera target measured along the camera Z axis
-    double m_distance;
+    mutable double m_distance;
+    mutable double m_gui_scale;
 
     mutable std::array<int, 4> m_viewport;
     mutable Transform3d m_view_matrix;
@@ -52,13 +55,14 @@ public:
     const Vec3d& get_target() const { return m_target; }
     void set_target(const Vec3d& target);
 
+    double get_distance() const { return m_distance; }
+    double get_gui_scale() const { return m_gui_scale; }
+
     float get_theta() const { return m_theta; }
     void set_theta(float theta, bool apply_limit);
 
     double get_zoom() const { return m_zoom; }
     void set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h);
-    // this method does not check if the given zoom is valid, use instead the other set_zoom() method
-    // called only by: void GLCanvas3D::update_ui_from_settings()
     void set_zoom(double zoom) { m_zoom = zoom; }
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
@@ -78,6 +82,8 @@ public:
 
     double get_near_z() const { return m_frustrum_zs.first; }
     double get_far_z() const { return m_frustrum_zs.second; }
+
+    double get_fov() const;
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h) const;
     void apply_view_matrix() const;
