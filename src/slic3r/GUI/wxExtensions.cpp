@@ -2316,8 +2316,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     // Set tooltips with information for each icon
     const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
                              m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
-                             is_revert_icon_focused         ? _(L("Discard all color changes")) :
-                             wxEmptyString;
+                             is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
     this->SetToolTip(tooltip);
 
     if (action)
