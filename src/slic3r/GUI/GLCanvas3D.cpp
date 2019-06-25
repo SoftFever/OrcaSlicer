@@ -3312,6 +3312,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 
 void GLCanvas3D::update_ui_from_settings()
 {
+    m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
+    m_dirty = true;
+
 #if ENABLE_RETINA_GL
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
