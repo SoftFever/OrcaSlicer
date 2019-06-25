@@ -75,7 +75,6 @@ private:
     wxGLContext* m_context;
     static GLInfo s_gl_info;
     bool m_gl_initialized;
-    bool m_use_legacy_opengl;
     bool m_use_VBOs;
     static EMultisampleState s_multisample;
     static bool s_compressed_textures_supported;

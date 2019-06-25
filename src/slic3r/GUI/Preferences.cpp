@@ -97,16 +97,6 @@ void PreferencesDialog::build()
 	option = Option (def,"show_incompatible_presets");
 	m_optgroup->append_single_option_line(option);
 
-    // TODO: remove?
-	def.label = L("Use legacy OpenGL 1.1 rendering");
-	def.type = coBool;
-	def.tooltip = L("If you have rendering issues caused by a buggy OpenGL 2.0 driver, "
-					  "you may try to check this checkbox. This will disable the layer height "
-					  "editing and anti aliasing, so it is likely better to upgrade your graphics driver.");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("use_legacy_opengl") == "1" });
-	option = Option (def,"use_legacy_opengl");
-	m_optgroup->append_single_option_line(option);
-
 #if __APPLE__
 	def.label = L("Use Retina resolution for the 3D scene");
 	def.type = coBool;
@@ -150,8 +140,7 @@ void PreferencesDialog::build()
 
 void PreferencesDialog::accept()
 {
-	if (m_values.find("no_defaults")       != m_values.end() ||
-		m_values.find("use_legacy_opengl") != m_values.end()) {
+    if (m_values.find("no_defaults") != m_values.end()) {
         warning_catcher(this, wxString::Format(_(L("You need to restart %s to make the changes effective.")), SLIC3R_APP_NAME));
 	}
 

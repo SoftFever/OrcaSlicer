@@ -198,8 +198,7 @@ void GLCanvas3D::Shader::_reset()
 #endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_use_legacy_opengl(false)
-    , m_enabled(false)
+    : m_enabled(false)
     , m_z_texture_id(0)
     , m_model_object(nullptr)
     , m_object_max_z(0.f)
@@ -274,12 +273,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return !m_use_legacy_opengl && m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
-}
-
-void GLCanvas3D::LayersEditing::set_use_legacy_opengl(bool use_legacy_opengl)
-{
-    m_use_legacy_opengl = use_legacy_opengl;
+    return m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -1253,7 +1247,7 @@ void GLCanvas3D::post_event(wxEvent &&event)
     wxPostEvent(m_canvas, event);
 }
 
-bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
+bool GLCanvas3D::init(bool useVBOs)
 {
     if (m_initialized)
         return true;
@@ -1311,7 +1305,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         return false;
 
     m_use_VBOs = useVBOs;
-    m_layers_editing.set_use_legacy_opengl(use_legacy_opengl);
 
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
