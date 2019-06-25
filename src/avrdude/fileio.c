@@ -264,7 +264,7 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
   unsigned char cksum;
   int rc;
 
-  len    = strlen(rec);
+  len    = (int)strlen(rec);
   offset = 1;
   cksum  = 0;
 
@@ -274,7 +274,7 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
   for (i=0; i<2; i++)
     buf[i] = rec[offset++];
   buf[i] = 0;
-  ihex->reclen = strtoul(buf, &e, 16);
+  ihex->reclen = (unsigned char)strtoul(buf, &e, 16);
   if (e == buf || *e != 0)
     return -1;
 
@@ -294,7 +294,7 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
   for (i=0; i<2; i++)
     buf[i] = rec[offset++];
   buf[i] = 0;
-  ihex->rectyp = strtoul(buf, &e, 16);
+  ihex->rectyp = (unsigned char)strtoul(buf, &e, 16);
   if (e == buf || *e != 0)
     return -1;
 
@@ -308,7 +308,7 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
     for (i=0; i<2; i++)
       buf[i] = rec[offset++];
     buf[i] = 0;
-    ihex->data[j] = strtoul(buf, &e, 16);
+    ihex->data[j] = (char)strtoul(buf, &e, 16);
     if (e == buf || *e != 0)
       return -1;
     cksum += ihex->data[j];
@@ -320,7 +320,7 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
   for (i=0; i<2; i++)
     buf[i] = rec[offset++];
   buf[i] = 0;
-  ihex->cksum = strtoul(buf, &e, 16);
+  ihex->cksum = (char)strtoul(buf, &e, 16);
   if (e == buf || *e != 0)
     return -1;
 
@@ -361,7 +361,7 @@ static int ihex2b(char * infile, FILE * inf,
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
-    len = strlen(buffer);
+    len = (int)strlen(buffer);
     if (buffer[len-1] == '\n') 
       buffer[--len] = 0;
     if (buffer[0] != ':')
@@ -388,7 +388,7 @@ static int ihex2b(char * infile, FILE * inf,
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        if (nextaddr + ihex.reclen > bufsize) {
+        if (nextaddr + ihex.reclen > (unsigned)bufsize) {
           avrdude_message(MSG_INFO, "%s: ERROR: address 0x%04x out of range at line %d of %s\n",
                           progname, nextaddr+ihex.reclen, lineno, infile);
           return -1;
@@ -502,10 +502,11 @@ static int b2srec(unsigned char * inbuf, int bufsize,
 
       cksum += n + addr_width + 1;
 
-      for (i=addr_width; i>0; i--) 
+      for (i = addr_width; i>0; i--) {
         cksum += (nextaddr >> (i-1) * 8) & 0xff;
+      }
 
-      for (i=nextaddr; i<nextaddr + n; i++) {
+      for (unsigned i = nextaddr; i < nextaddr + n; i++) {
         fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
       }
@@ -562,7 +563,7 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
   unsigned char cksum;
   int rc;
 
-  len = strlen(rec);
+  len = (int)strlen(rec);
   offset = 1;
   cksum = 0;
   addr_width = 2;
@@ -582,7 +583,7 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
   for (i=0; i<2; i++) 
     buf[i] = rec[offset++];
   buf[i] = 0;
-  srec->reclen = strtoul(buf, &e, 16);
+  srec->reclen = (char)strtoul(buf, &e, 16);
   cksum += srec->reclen;
   srec->reclen -= (addr_width+1);
   if (e == buf || *e != 0) 
@@ -594,7 +595,7 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
   for (i=0; i<addr_width*2; i++) 
     buf[i] = rec[offset++];
   buf[i] = 0;
-  srec->loadofs = strtoull(buf, &e, 16);
+  srec->loadofs = strtoul(buf, &e, 16);
   if (e == buf || *e != 0) 
     return -1;
 
@@ -608,7 +609,7 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
     for (i=0; i<2; i++) 
       buf[i] = rec[offset++];
     buf[i] = 0;
-    srec->data[j] = strtoul(buf, &e, 16);
+    srec->data[j] = (char)strtoul(buf, &e, 16);
     if (e == buf || *e != 0) 
       return -1;
     cksum += srec->data[j];
@@ -620,7 +621,7 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
   for (i=0; i<2; i++) 
     buf[i] = rec[offset++];
   buf[i] = 0;
-  srec->cksum = strtoul(buf, &e, 16);
+  srec->cksum = (char)strtoul(buf, &e, 16);
   if (e == buf || *e != 0) 
     return -1;
 
@@ -650,7 +651,7 @@ static int srec2b(char * infile, FILE * inf,
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
-    len = strlen(buffer);
+    len = (int)strlen(buffer);
     if (buffer[len-1] == '\n') 
       buffer[--len] = 0;
     if (buffer[0] != 0x53)
@@ -729,7 +730,7 @@ static int srec2b(char * infile, FILE * inf,
         return -1;
       }
       nextaddr -= fileoffset;
-      if (nextaddr + srec.reclen > bufsize) {
+      if (nextaddr + srec.reclen > (unsigned)bufsize) {
         avrdude_message(MSG_INFO, msg, progname, nextaddr+srec.reclen, "",
                 lineno, infile);
         return -1;
@@ -740,7 +741,7 @@ static int srec2b(char * infile, FILE * inf,
       }
       if (nextaddr+srec.reclen > maxaddr)
         maxaddr = nextaddr+srec.reclen;
-      reccount++;      
+      reccount++;
     }
 
   }
@@ -1143,12 +1144,12 @@ static int fileio_rbin(struct fioparms * fio,
 
   switch (fio->op) {
     case FIO_READ:
-      rc = fread(buf, 1, size, f);
+      rc = (int)fread(buf, 1, size, f);
       if (rc > 0)
         memset(mem->tags, TAG_ALLOCATED, rc);
       break;
     case FIO_WRITE:
-      rc = fwrite(buf, 1, size, f);
+      rc = (int)fwrite(buf, 1, size, f);
       break;
     default:
       avrdude_message(MSG_INFO, "%s: fileio: invalid operation=%d\n",
@@ -1190,7 +1191,7 @@ static int fileio_imm(struct fioparms * fio,
                           progname, p);
           return -1;
         }
-        mem->buf[loc] = b;
+        mem->buf[loc] = (char)b;
         mem->tags[loc++] = TAG_ALLOCATED;
         p = strtok(NULL, " ,");
         rc = loc;
@@ -1452,7 +1453,7 @@ static int fmt_autodetect(char * fname, unsigned section)
     }
 
     buf[MAX_LINE_LEN-1] = 0;
-    len = strlen((char *)buf);
+    len = (int)strlen((char *)buf);
     if (buf[len-1] == '\n')
       buf[--len] = 0;
 

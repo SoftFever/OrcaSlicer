@@ -358,7 +358,7 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
   int matches;
   int l;
 
-  l = strlen(desc);
+  l = (int)strlen(desc);
   matches = 0;
   match = NULL;
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
@@ -662,7 +662,7 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
           prefix);
 
   px = prefix;
-  i = strlen(prefix) + 5;
+  i = (int)strlen(prefix) + 5;
   buf = (char *)malloc(i);
   if (buf == NULL) {
     /* ugh, this is not important enough to bail, just ignore it */

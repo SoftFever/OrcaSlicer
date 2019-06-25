@@ -1493,7 +1493,7 @@ static int parse_cmdbits(OPCODE * op)
         break;
       }
 
-      len = strlen(s);
+      len = (int)strlen(s);
 
       if (len == 0) {
         yyerror("invalid bit specifier \"\"");
