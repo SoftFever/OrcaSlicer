@@ -4646,22 +4646,24 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             }
             // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
-            for (GLVolume *&vol : vols)
-                if (vol->indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
-                    // Store the vertex arrays and restart their containers, 
-                    vol = new_volume(vol->color);
-                    GLVolume &vol_new = *vol;
-                    // Assign the large pre-allocated buffers to the new GLVolume.
-                    vol_new.indexed_vertex_array = std::move(vol->indexed_vertex_array);
-                    // Copy the content back to the old GLVolume.
-                    vol->indexed_vertex_array = vol_new.indexed_vertex_array;
-                    // Finalize a bounding box of the old GLVolume.
-                    vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-                    // Clear the buffers, but keep them pre-allocated.
-                    vol_new.indexed_vertex_array.clear();
-                    // Just make sure that clear did not clear the reserved memory.
-                    vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-                }
+	        for (size_t i = 0; i < vols.size(); ++i) {
+	            GLVolume &vol = *vols[i];
+	            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
+	                // Store the vertex arrays and restart their containers, 
+	                vols[i] = new_volume(vol.color);
+	                GLVolume &vol_new = *vols[i];
+	                // Assign the large pre-allocated buffers to the new GLVolume.
+	                vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+	                // Copy the content back to the old GLVolume.
+	                vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+	                // Finalize a bounding box of the old GLVolume.
+	                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
+	                // Clear the buffers, but keep them pre-allocated.
+	                vol_new.indexed_vertex_array.clear();
+	                // Just make sure that clear did not clear the reserved memory.
+	                vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+	            }
+	        }
         }
         for (GLVolume *vol : vols) {
         	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
