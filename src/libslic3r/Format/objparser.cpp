@@ -176,8 +176,7 @@ static bool obj_parseline(const char *line, ObjData &data)
 		EATWS();
 		if (*line == 0)
 			return false;
-		// number of vertices of this face
-		int n = 0;
+
 		// current vertex to be parsed
 		ObjVertex vertex;
 		char *endptr = 0;
@@ -266,7 +265,6 @@ static bool obj_parseline(const char *line, ObjData &data)
 	{
 		// o [object name]
 		EATWS();
-		const char *name = line;
 		while (*line != ' ' && *line != '\t' && *line != 0)
 			++ line;
 		// copy name to line.

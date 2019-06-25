@@ -201,7 +201,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
         size_t n_groups = 0; 
         for (size_t i = 0; i < bridges.size(); ++ i) {
             // A grup id for this bridge.
-            size_t group_id = (bridge_group[i] == -1) ? (n_groups ++) : bridge_group[i];
+            size_t group_id = (bridge_group[i] == size_t(-1)) ? (n_groups ++) : bridge_group[i];
             bridge_group[i] = group_id;
             // For all possibly overlaping bridges:
             for (size_t j = i + 1; j < bridges.size(); ++ j) {
@@ -210,7 +210,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 if (intersection(bridges_grown[i], bridges_grown[j], false).empty())
                     continue;
                 // The two bridge regions intersect. Give them the same group id.
-                if (bridge_group[j] != -1) {
+                if (bridge_group[j] != size_t(-1)) {
                     // The j'th bridge has been merged with some other bridge before.
                     size_t group_id_new = bridge_group[j];
                     for (size_t k = 0; k < j; ++ k)

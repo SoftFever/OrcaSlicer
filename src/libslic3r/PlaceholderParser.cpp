@@ -521,7 +521,6 @@ namespace client
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
             const std::string *subject  = nullptr;
-            const std::string *mask     = nullptr;
             if (lhs.type == TYPE_STRING) {
                 // One type is string, the other could be converted to string.
                 subject = &lhs.s();
@@ -563,7 +562,6 @@ namespace client
 
         static void ternary_op(expr &lhs, expr &rhs1, expr &rhs2)
         {
-            bool value = false;
             if (lhs.type != TYPE_BOOL)
                 lhs.throw_exception("Not a boolean expression");
             if (lhs.b())
@@ -975,7 +973,7 @@ namespace client
             // depending on the context->just_boolean_expression flag. This way a single static expression parser
             // could serve both purposes.
             start = eps[px::bind(&MyContext::evaluate_full_macro, _r1, _a)] >
-                (       eps(_a==true) > text_block(_r1) [_val=_1]
+                (       (eps(_a==true) > text_block(_r1) [_val=_1])
                     |   conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
 				) > eoi;
             start.name("start");
@@ -1245,7 +1243,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
     std::string::const_iterator end  = templ.end();
     // Accumulator for the processed template.
     std::string                 output;
-    bool res = phrase_parse(iter, end, macro_processor_instance(&context), space, output);
+    phrase_parse(iter, end, macro_processor_instance(&context), space, output);
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';

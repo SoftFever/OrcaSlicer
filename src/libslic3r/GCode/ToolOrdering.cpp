@@ -324,9 +324,8 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
 						m_layer_tools[j].has_wipe_tower = true;
 					} else {
 						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
-                        LayerTools &lt_prev  = m_layer_tools[j - 1];
                         LayerTools &lt_next  = m_layer_tools[j + 1];
-                        assert(! lt_prev.extruders.empty() && ! lt_next.extruders.empty());
+                        assert(! m_layer_tools[j - 1].extruders.empty() && ! lt_next.extruders.empty());
                         // FIXME: Following assert tripped when running combine_infill.t. I decided to comment it out for now.
                         // If it is a bug, it's likely not critical, because this code is unchanged for a long time. It might
                         // still be worth looking into it more and decide if it is a bug or an obsolete assert.
@@ -494,9 +493,6 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
                         if (!is_overriddable(*fill, print.config(), *object, region))
                             continue;
-
-                        // What extruder would this normally be printed with?
-                        unsigned int correct_extruder = Print::get_extruder(*fill, region);
 
                         if (volume_to_wipe<=0)
                             continue;

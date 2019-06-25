@@ -912,7 +912,7 @@ MedialAxis::build(ThickPolylines* polylines)
     }
     */
     
-    typedef const VD::vertex_type vert_t;
+    //typedef const VD::vertex_type vert_t;
     typedef const VD::edge_type   edge_t;
     
     // collect valid edges (i.e. prune those not belonging to MAT)

@@ -18,7 +18,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
-//! macro used to mark string used at localization, 
+//! macro used to mark string used at localization,
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
 
@@ -1116,7 +1116,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     region_id = map_volume_to_region[volume_id];
                 // Assign volume to a region.
 				if (fresh) {
-					if (region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
+					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
 						++ m_regions[region_id]->m_refcnt;
 					print_object.add_region_volume(region_id, volume_id);
 				}
@@ -1259,11 +1259,10 @@ std::string Print::validate() const
             if (has_custom_layering) {
                 const std::vector<coordf_t> &layer_height_profile_tallest = layer_height_profiles[tallest_object_idx];
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
-                    const PrintObject           *object               = m_objects[idx_object];
                     const std::vector<coordf_t> &layer_height_profile = layer_height_profiles[idx_object];
                     bool                         failed               = false;
                     if (layer_height_profile_tallest.size() >= layer_height_profile.size()) {
-                        int i = 0;
+                        size_t i = 0;
                         while (i < layer_height_profile.size() && i < layer_height_profile_tallest.size()) {
                             if (std::abs(layer_height_profile_tallest[i] - layer_height_profile[i])) {
                                 failed = true;
@@ -1628,7 +1627,7 @@ void Print::_make_skirt()
     }
 
     // Number of skirt loops per skirt layer.
-    int n_skirts = m_config.skirts.value;
+    size_t n_skirts = m_config.skirts.value;
     if (this->has_infinite_skirt() && n_skirts == 0)
         n_skirts = 1;
 
@@ -1640,7 +1639,7 @@ void Print::_make_skirt()
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
-    for (int i = n_skirts, extruder_idx = 0; i > 0; -- i) {
+    for (size_t i = n_skirts, extruder_idx = 0; i > 0; -- i) {
         this->throw_if_canceled();
         // Offset the skirt outside.
         distance += coord_t(scale_(spacing));

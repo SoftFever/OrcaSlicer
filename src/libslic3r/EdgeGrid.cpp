@@ -146,10 +146,10 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 		    coord_t iy    = p1(1) / m_resolution;
 		    coord_t ixb   = p2(0) / m_resolution;
 		    coord_t iyb   = p2(1) / m_resolution;
-			assert(ix >= 0 && ix < m_cols);
-			assert(iy >= 0 && iy < m_rows);
-			assert(ixb >= 0 && ixb < m_cols);
-			assert(iyb >= 0 && iyb < m_rows);
+			assert(ix >= 0 && size_t(ix) < m_cols);
+			assert(iy >= 0 && size_t(iy) < m_rows);
+			assert(ixb >= 0 && size_t(ixb) < m_cols);
+			assert(iyb >= 0 && size_t(iyb) < m_rows);
 			// Account for the end points.
 			++ m_cells[iy*m_cols+ix].end;
 			if (ix == ixb && iy == iyb)
@@ -290,10 +290,10 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			coord_t iy = p1(1) / m_resolution;
 			coord_t ixb = p2(0) / m_resolution;
 			coord_t iyb = p2(1) / m_resolution;
-			assert(ix >= 0 && ix < m_cols);
-			assert(iy >= 0 && iy < m_rows);
-			assert(ixb >= 0 && ixb < m_cols);
-			assert(iyb >= 0 && iyb < m_rows);
+			assert(ix >= 0 && size_t(ix) < m_cols);
+			assert(iy >= 0 && size_t(iy) < m_rows);
+			assert(ixb >= 0 && size_t(ixb) < m_cols);
+			assert(iyb >= 0 && size_t(iyb) < m_rows);
 			// Account for the end points.
 			m_cell_data[m_cells[iy*m_cols + ix].end++] = std::pair<size_t, size_t>(i, j);
 			if (ix == ixb && iy == iyb)
@@ -775,11 +775,11 @@ void EdgeGrid::Grid::calculate_sdf()
 				// For each corner of this cell and its 1 ring neighbours:
 				for (int corner_y = -1; corner_y < 3; ++ corner_y) {
 					coord_t corner_r = r + corner_y;
-					if (corner_r < 0 || corner_r >= nrows)
+					if (corner_r < 0 || (size_t)corner_r >= nrows)
 						continue;
 					for (int corner_x = -1; corner_x < 3; ++ corner_x) {
 						coord_t corner_c = c + corner_x;
-						if (corner_c < 0 || corner_c >= ncols)
+						if (corner_c < 0 || (size_t)corner_c >= ncols)
 							continue;
 						float  &d_min = m_signed_distance_field[corner_r * ncols + corner_c];
 						Slic3r::Point pt(m_bbox.min(0) + corner_c * m_resolution, m_bbox.min(1) + corner_r * m_resolution);
@@ -1137,9 +1137,9 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 		return false;
 	bbox.max(0) /= m_resolution;
 	bbox.max(1) /= m_resolution;
-	if (bbox.max(0) >= m_cols)
+	if ((size_t)bbox.max(0) >= m_cols)
 		bbox.max(0) = m_cols - 1;
-	if (bbox.max(1) >= m_rows)
+	if ((size_t)bbox.max(1) >= m_rows)
 		bbox.max(1) = m_rows - 1;
 	// Lower boundary, round to grid and test validity.
 	bbox.min(0) -= search_radius;

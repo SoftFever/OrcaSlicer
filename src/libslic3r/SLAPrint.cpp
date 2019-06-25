@@ -441,12 +441,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         update_apply_status(this->invalidate_all_steps());
         m_objects = print_objects_new;
         // Delete the PrintObjects marked as Unknown or Deleted.
-        bool deleted_objects = false;
         for (auto &pos : print_object_status)
             if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
                 update_apply_status(pos.print_object->invalidate_all_steps());
                 delete pos.print_object;
-                deleted_objects = true;
             }
         if (new_objects)
             update_apply_status(false);

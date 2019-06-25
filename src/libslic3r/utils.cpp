@@ -414,13 +414,13 @@ std::string format_memsize_MB(size_t n)
         scale *= 1000;
     }
     char buf[8];
-    sprintf(buf, "%d", n);
+    sprintf(buf, "%d", (int)n);
     out = buf;
     while (scale != 1) {
         scale /= 1000;
         n = n2 / scale;
         n2 = n2  % scale;
-        sprintf(buf, ",%03d", n);
+        sprintf(buf, ",%03d", (int)n);
         out += buf;
     }
     return out + "MB";
