@@ -313,6 +313,12 @@ Preview::~Preview()
     }
 }
 
+void Preview::set_as_dirty()
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_as_dirty();
+}
+
 void Preview::set_number_extruders(unsigned int number_extruders)
 {
     if (m_number_extruders != number_extruders)

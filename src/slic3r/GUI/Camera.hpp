@@ -49,6 +49,7 @@ public:
     EType get_type() const { return m_type; }
     std::string get_type_as_string() const;
     void set_type(EType type);
+    // valid values for type: "0" -> ortho, "1" -> perspective
     void set_type(const std::string& type);
     void select_next_type();
 

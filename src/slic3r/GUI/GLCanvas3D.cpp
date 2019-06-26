@@ -198,8 +198,7 @@ void GLCanvas3D::Shader::_reset()
 #endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_use_legacy_opengl(false)
-    , m_enabled(false)
+    : m_enabled(false)
     , m_z_texture_id(0)
     , m_model_object(nullptr)
     , m_object_max_z(0.f)
@@ -274,12 +273,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return !m_use_legacy_opengl && m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
-}
-
-void GLCanvas3D::LayersEditing::set_use_legacy_opengl(bool use_legacy_opengl)
-{
-    m_use_legacy_opengl = use_legacy_opengl;
+    return m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -1253,7 +1247,7 @@ void GLCanvas3D::post_event(wxEvent &&event)
     wxPostEvent(m_canvas, event);
 }
 
-bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
+bool GLCanvas3D::init(bool useVBOs)
 {
     if (m_initialized)
         return true;
@@ -1311,7 +1305,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         return false;
 
     m_use_VBOs = useVBOs;
-    m_layers_editing.set_use_legacy_opengl(use_legacy_opengl);
 
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
@@ -3312,6 +3305,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 
 void GLCanvas3D::update_ui_from_settings()
 {
+    m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
+    m_dirty = true;
+
 #if ENABLE_RETINA_GL
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
@@ -4646,22 +4642,24 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             }
             // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
-            for (GLVolume *&vol : vols)
-                if (vol->indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
-                    // Store the vertex arrays and restart their containers, 
-                    vol = new_volume(vol->color);
-                    GLVolume &vol_new = *vol;
-                    // Assign the large pre-allocated buffers to the new GLVolume.
-                    vol_new.indexed_vertex_array = std::move(vol->indexed_vertex_array);
-                    // Copy the content back to the old GLVolume.
-                    vol->indexed_vertex_array = vol_new.indexed_vertex_array;
-                    // Finalize a bounding box of the old GLVolume.
-                    vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-                    // Clear the buffers, but keep them pre-allocated.
-                    vol_new.indexed_vertex_array.clear();
-                    // Just make sure that clear did not clear the reserved memory.
-                    vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-                }
+	        for (size_t i = 0; i < vols.size(); ++i) {
+	            GLVolume &vol = *vols[i];
+	            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
+	                // Store the vertex arrays and restart their containers, 
+	                vols[i] = new_volume(vol.color);
+	                GLVolume &vol_new = *vols[i];
+	                // Assign the large pre-allocated buffers to the new GLVolume.
+	                vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+	                // Copy the content back to the old GLVolume.
+	                vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+	                // Finalize a bounding box of the old GLVolume.
+	                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
+	                // Clear the buffers, but keep them pre-allocated.
+	                vol_new.indexed_vertex_array.clear();
+	                // Just make sure that clear did not clear the reserved memory.
+	                vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+	            }
+	        }
         }
         for (GLVolume *vol : vols) {
         	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
