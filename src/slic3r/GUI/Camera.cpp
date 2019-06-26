@@ -24,7 +24,7 @@ namespace GUI {
 const double Camera::DefaultDistance = 1000.0;
 double Camera::FrustrumMinZSize = 50.0;
 double Camera::FrustrumZMargin = 10.0;
-double Camera::FovMinDeg = 5.0;
+double Camera::FovMinDeg = 0.5;
 double Camera::FovMaxDeg = 75.0;
 
 Camera::Camera()
