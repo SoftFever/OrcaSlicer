@@ -1,7 +1,9 @@
 #ifndef MODELARRANGE_HPP
 #define MODELARRANGE_HPP
 
-#include "Model.hpp"
+//#include "Model.hpp"
+#include "Polygon.hpp"
+#include "BoundingBox.hpp"
 
 namespace Slic3r {
 
@@ -40,12 +42,24 @@ struct BedShapeHint {
 
 BedShapeHint bedShape(const Polyline& bed);
 
-struct WipeTowerInfo {
-    bool is_wipe_tower = false;
-    Vec2d pos;
-    Vec2d bb_size;
-    double rotation;
+class ArrangeItem {
+public:
+    
+    virtual ~ArrangeItem() = default;
+    
+    virtual void transform(Vec2d offset, double rotation_rads) = 0;
+    
+    virtual Polygon silhouette() const = 0;
 };
+
+using ArrangeItems = std::vector<std::reference_wrapper<ArrangeItem>>;
+
+//struct WipeTowerInfo {
+//    bool is_wipe_tower = false;
+//    Vec2d pos;
+//    Vec2d bb_size;
+//    double rotation;
+//};
 
 /**
  * \brief Arranges the model objects on the screen.
@@ -73,22 +87,33 @@ struct WipeTowerInfo {
  * packed. The unsigned argument is the number of items remaining to pack.
  * \param stopcondition A predicate returning true if abort is needed.
  */
-bool arrange(Model &model,
-             WipeTowerInfo& wipe_tower_info,
+//bool arrange(Model &model,
+//             WipeTowerInfo& wipe_tower_info,
+//             coord_t min_obj_distance,
+//             const Slic3r::Polyline& bed,
+//             BedShapeHint bedhint,
+//             bool first_bin_only,
+//             std::function<void(unsigned)> progressind,
+//             std::function<bool(void)> stopcondition);
+
+bool arrange(ArrangeItems &items,
              coord_t min_obj_distance,
-             const Slic3r::Polyline& bed,
              BedShapeHint bedhint,
-             bool first_bin_only,
              std::function<void(unsigned)> progressind,
              std::function<bool(void)> stopcondition);
 
 /// This will find a suitable position for a new object instance and leave the
 /// old items untouched.
-void find_new_position(const Model& model,
-                       ModelInstancePtrs instances_to_add,
+//void find_new_position(const Model& model,
+//                       ModelInstancePtrs instances_to_add,
+//                       coord_t min_obj_distance,
+//                       const Slic3r::Polyline& bed,
+//                       WipeTowerInfo& wti);
+void find_new_position(ArrangeItems &items,
+                       const ArrangeItems &instances_to_add,
                        coord_t min_obj_distance,
-                       const Slic3r::Polyline& bed,
-                       WipeTowerInfo& wti);
+                       BedShapeHint bedhint);
+
 
 }   // arr
 }   // Slic3r
