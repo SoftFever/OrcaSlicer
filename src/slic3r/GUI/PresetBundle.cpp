@@ -1366,7 +1366,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
                 continue;
             c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
             for (const std::string &opt_key : preset.config.keys())
-                c << opt_key << " = " << preset.config.serialize(opt_key) << std::endl;
+                c << opt_key << " = " << preset.config.opt_serialize(opt_key) << std::endl;
         }
     }
 

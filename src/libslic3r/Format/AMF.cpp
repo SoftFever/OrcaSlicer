@@ -873,7 +873,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         std::string str_config = "\n";
         for (const std::string &key : config->keys())
             if (key != "compatible_printers")
-                str_config += "; " + key + " = " + config->serialize(key) + "\n";
+                str_config += "; " + key + " = " + config->opt_serialize(key) + "\n";
         stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(str_config) << "</metadata>\n";
     }
 
@@ -885,7 +885,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         for (const auto &attr : material.second->attributes)
             stream << "    <metadata type=\"" << attr.first << "\">" << attr.second << "</metadata>\n";
         for (const std::string &key : material.second->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.opt_serialize(key) << "</metadata>\n";
         stream << "  </material>\n";
     }
     std::string instances;
@@ -893,7 +893,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         ModelObject *object = model->objects[object_id];
         stream << "  <object id=\"" << object_id << "\">\n";
         for (const std::string &key : object->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.opt_serialize(key) << "</metadata>\n";
         if (!object->name.empty())
             stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
         const std::vector<double> &layer_height_profile = object->layer_height_profile;
@@ -952,7 +952,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             else
                 stream << "      <volume materialid=\"" << volume->material_id() << "\">\n";
             for (const std::string &key : volume->config.keys())
-                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.opt_serialize(key) << "</metadata>\n";
             if (!volume->name.empty())
                 stream << "        <metadata type=\"name\">" << xml_escape(volume->name) << "</metadata>\n";
             if (volume->is_modifier())
