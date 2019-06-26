@@ -667,13 +667,12 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model,
     return ret;
 }
 
-// Apply the calculated translations and rotations (currently disabled) to the
-// Model object instances.
-void applyResult(
-        IndexedPackGroup::value_type& group,
-        Coord batch_offset,
-        ShapeData2D& shapemap,
-        WipeTowerInfo& wti)
+// Apply the calculated translations and rotations (currently disabled) to
+// the Model object instances.
+void applyResult(IndexedPackGroup::value_type &group,
+                 ClipperLib::cInt              batch_offset,
+                 ShapeData2D &                 shapemap,
+                 WipeTowerInfo &               wti)
 {
     for(auto& r : group) {
         auto idx = r.first;     // get the original item index
@@ -686,15 +685,15 @@ void applyResult(
             // appropriately
             auto off = item.translation();
             Radians rot = item.rotation();
-
-            Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
-                       off.Y*SCALING_FACTOR,
+            
+            Vec3d foff(unscaled(off.X + batch_offset) ,
+                       unscaled(off.Y),
                        inst_ptr ? inst_ptr->get_offset()(Z) : 0.);
 
-        if (inst_ptr) {
-            // write the transformation data into the model instance
-            inst_ptr->set_rotation(Z, rot);
-            inst_ptr->set_offset(foff);
+            if (inst_ptr) {
+                // write the transformation data into the model instance
+                inst_ptr->set_rotation(Z, rot);
+                inst_ptr->set_offset(foff);
         }
         else { // this is the wipe tower - we will modify the struct with the info
                // and leave it up to the called to actually move the wipe tower
@@ -785,6 +784,72 @@ BedShapeHint bedShape(const Polyline &bed) {
 
 static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
 
+template<class BinT>
+IndexedPackGroup _arrange(std::vector<std::reference_wrapper<Item>> &shapes,
+                          const BinT &                               bin,
+                          coord_t                       minobjd,
+                          std::function<void(unsigned)> prind,
+                          std::function<bool()>         stopfn)
+{
+    AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
+    return arranger(shapes.begin(), shapes.end());
+}
+
+template<class BinT>
+IndexedPackGroup _arrange(std::vector<std::reference_wrapper<Item>> &shapes,
+                          const PackGroup &             preshapes,
+                          std::vector<ModelInstance *> &minstances,
+                          const BinT &                  bin,
+                          coord_t                       minobjd)
+{
+    
+    auto binbb = sl::boundingBox(bin);
+    
+    AutoArranger<BinT> arranger{bin, minobjd};
+    
+    if(!preshapes.front().empty()) { // If there is something on the plate
+        arranger.preload(preshapes);
+        
+        // Try to put the first item to the center, as the arranger will not
+        // do this for us.
+        auto shptrit = minstances.begin();
+        for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
+        {
+            // Try to place items to the center
+            Item& itm = *shit;
+            auto ibb = itm.boundingBox();
+            auto d = binbb.center() - ibb.center();
+            itm.translate(d);
+            if(!arranger.is_colliding(itm)) {
+                arranger.preload({{itm}});
+                
+                auto offset = itm.translation();
+                Radians rot = itm.rotation();
+                ModelInstance *minst = *shptrit;
+    
+                Vec3d foffset(unscaled(offset.X),
+                              unscaled(offset.Y),
+                              minst->get_offset()(Z));
+    
+                // write the transformation data into the model instance
+                minst->set_rotation(Z, rot);
+                minst->set_offset(foffset);
+                
+                shit = shapes.erase(shit);
+                shptrit = minstances.erase(shptrit);
+                break;
+            }
+        }
+    }
+    
+    return arranger(shapes.begin(), shapes.end());
+}
+
+inline SLIC3R_CONSTEXPR libnest2d::Coord stride_padding(Coord w)
+{
+    return w + w / 5;
+}
+
 // The final client function to arrange the Model. A progress indicator and
 // a stop predicate can be also be passed to control the process.
 bool arrange(Model &model,              // The model with the geometries
@@ -826,44 +891,28 @@ bool arrange(Model &model,              // The model with the geometries
     coord_t md = min_obj_distance - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
 
-    auto binbb = Box({libnest2d::Coord{bbb.min(0)} - md,
-                      libnest2d::Coord{bbb.min(1)} - md},
-                     {libnest2d::Coord{bbb.max(0)} + md,
-                      libnest2d::Coord{bbb.max(1)} + md});
+    auto binbb = Box({ClipperLib::cInt{bbb.min(0)} - md,
+                      ClipperLib::cInt{bbb.min(1)} - md},
+                     {ClipperLib::cInt{bbb.max(0)} + md,
+                      ClipperLib::cInt{bbb.max(1)} + md});
 
     switch(bedhint.type) {
     case BedShapeType::BOX: {
-
         // Create the arranger for the box shaped bed
-        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind, cfn);
-
-        // Arrange and return the items with their respective indices within the
-        // input sequence.
-        result = arrange(shapes.begin(), shapes.end());
+        result = _arrange(shapes, binbb, min_obj_distance, progressind, cfn);
         break;
     }
     case BedShapeType::CIRCLE: {
-
         auto c = bedhint.shape.circ;
         auto cc = to_lnCircle(c);
-
-        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind, cfn);
-        result = arrange(shapes.begin(), shapes.end());
+        result = _arrange(shapes, cc, min_obj_distance, progressind, cfn);
         break;
     }
     case BedShapeType::IRREGULAR:
     case BedShapeType::WHO_KNOWS: {
-
-        using P = libnest2d::PolygonImpl;
-
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
-
-        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind, cfn);
-
-        // Arrange and return the items with their respective indices within the
-        // input sequence.
-        result = arrange(shapes.begin(), shapes.end());
+        ClipperLib::Polygon irrbed = sl::create<PolygonImpl>(std::move(ctour));
+        result = _arrange(shapes, irrbed, min_obj_distance, progressind, cfn);
         break;
     }
     };
@@ -873,12 +922,9 @@ bool arrange(Model &model,              // The model with the geometries
     if(first_bin_only) {
         applyResult(result.front(), 0, shapemap, wti);
     } else {
-
-        const auto STRIDE_PADDING = 1.2;
-
-        Coord stride = static_cast<Coord>(STRIDE_PADDING*
-                                          binbb.width()*SCALING_FACTOR);
-        Coord batch_offset = 0;
+        
+        ClipperLib::cInt stride = stride_padding(binbb.width());
+        ClipperLib::cInt batch_offset = 0;
 
         for(auto& group : result) {
             applyResult(group, batch_offset, shapemap, wti);
@@ -904,7 +950,7 @@ void find_new_position(const Model &model,
     // Get the 2D projected shapes with their 3D model instance pointers
     auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
 
-    // Copy the references for the shapes only as the arranger expects a
+    // Copy the references for the shapes only, as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
     PackGroup preshapes; preshapes.emplace_back();
     ItemGroup shapes;
@@ -922,12 +968,15 @@ void find_new_position(const Model &model,
     coord_t md = min_obj_distance - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
     
-    auto binbb = Box({libnest2d::Coord{bbb.min(0)} - md,
-                      libnest2d::Coord{bbb.min(1)} - md},
-                     {libnest2d::Coord{bbb.max(0)} + md,
-                      libnest2d::Coord{bbb.max(1)} + md});
+    auto binbb = Box({ClipperLib::cInt{bbb.min(0)} - md,
+                      ClipperLib::cInt{bbb.min(1)} - md},
+                     {ClipperLib::cInt{bbb.max(0)} + md,
+                      ClipperLib::cInt{bbb.max(1)} + md});
 
     for(auto it = shapemap.begin(); it != shapemap.end(); ++it) {
+        // `toadd` vector contains the instance pointers which have to be
+        // considered by arrange. If `it` points to an ModelInstance, which
+        // is NOT in `toadd`, add it to preshapes.
         if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end()) {
            if(it->second.isInside(binbb)) // just ignore items which are outside
                preshapes.front().emplace_back(std::ref(it->second));
@@ -938,101 +987,23 @@ void find_new_position(const Model &model,
         }
     }
 
-    auto try_first_to_center = [&shapes, &shapes_ptr, &binbb]
-            (std::function<bool(const Item&)> is_colliding,
-             std::function<void(Item&)> preload)
-    {
-        // Try to put the first item to the center, as the arranger will not
-        // do this for us.
-        auto shptrit = shapes_ptr.begin();
-        for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
-        {
-            // Try to place items to the center
-            Item& itm = *shit;
-            auto ibb = itm.boundingBox();
-            auto d = binbb.center() - ibb.center();
-            itm.translate(d);
-            if(!is_colliding(itm)) {
-                preload(itm);
-
-                auto offset = itm.translation();
-                Radians rot = itm.rotation();
-                ModelInstance *minst = *shptrit;
-                Vec3d foffset(offset.X*SCALING_FACTOR,
-                              offset.Y*SCALING_FACTOR,
-                              minst->get_offset()(Z));
-
-                // write the transformation data into the model instance
-                minst->set_rotation(Z, rot);
-                minst->set_offset(foffset);
-
-                shit = shapes.erase(shit);
-                shptrit = shapes_ptr.erase(shptrit);
-                break;
-            }
-        }
-    };
-
     switch(bedhint.type) {
     case BedShapeType::BOX: {
-
         // Create the arranger for the box shaped bed
-        AutoArranger<Box> arrange(binbb, min_obj_distance);
-
-        if(!preshapes.front().empty()) { // If there is something on the plate
-            arrange.preload(preshapes);
-            try_first_to_center(
-                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
-                [&arrange](Item& itm) { arrange.preload({{itm}}); }
-            );
-        }
-
-        // Arrange and return the items with their respective indices within the
-        // input sequence.
-        result = arrange(shapes.begin(), shapes.end());
+        result = _arrange(shapes, preshapes, shapes_ptr, binbb, min_obj_distance);
         break;
     }
     case BedShapeType::CIRCLE: {
-
         auto c = bedhint.shape.circ;
         auto cc = to_lnCircle(c);
-
-        // Create the arranger for the box shaped bed
-        AutoArranger<lnCircle> arrange(cc, min_obj_distance);
-
-        if(!preshapes.front().empty()) { // If there is something on the plate
-            arrange.preload(preshapes);
-            try_first_to_center(
-                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
-                [&arrange](Item& itm) { arrange.preload({{itm}}); }
-            );
-        }
-
-        // Arrange and return the items with their respective indices within the
-        // input sequence.
-        result = arrange(shapes.begin(), shapes.end());
+        result = _arrange(shapes, preshapes, shapes_ptr, cc, min_obj_distance);
         break;
     }
     case BedShapeType::IRREGULAR:
     case BedShapeType::WHO_KNOWS: {
-        using P = libnest2d::PolygonImpl;
-
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
-
-        AutoArranger<P> arrange(irrbed, min_obj_distance);
-
-        if(!preshapes.front().empty()) { // If there is something on the plate
-            arrange.preload(preshapes);
-            try_first_to_center(
-                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
-                [&arrange](Item& itm) { arrange.preload({{itm}}); }
-            );
-        }
-
-        // Arrange and return the items with their respective indices within the
-        // input sequence.
-        result = arrange(shapes.begin(), shapes.end());
+        ClipperLib::Polygon irrbed = sl::create<PolygonImpl>(std::move(ctour));
+        result = _arrange(shapes, preshapes, shapes_ptr, irrbed, min_obj_distance);
         break;
     }
     };
@@ -1040,9 +1011,8 @@ void find_new_position(const Model &model,
     // Now we go through the result which will contain the fixed and the moving
     // polygons as well. We will have to search for our item.
 
-    const auto STRIDE_PADDING = 1.2;
-    Coord stride = Coord(STRIDE_PADDING*binbb.width()*SCALING_FACTOR);
-    Coord batch_offset = 0;
+    ClipperLib::cInt stride = stride_padding(binbb.width());
+    ClipperLib::cInt batch_offset = 0;
 
     for(auto& group : result) {
         for(auto& r : group) if(r.first < shapes.size()) {
