@@ -1564,8 +1564,10 @@ void ModelVolume::center_geometry_after_creation()
     Vec3d shift = this->mesh().bounding_box().center();
     if (!shift.isApprox(Vec3d::Zero()))
     {
-        m_mesh->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
-        m_convex_hull->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+    	if (m_mesh)
+        	m_mesh->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        if (m_convex_hull)
+        	m_convex_hull->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
 }
