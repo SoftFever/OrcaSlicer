@@ -39,7 +39,7 @@ template<> inline Slic3r::Points& contour(Slic3r::Polygon& sh) { return sh.point
 template<> inline const Slic3r::Points& contour(const Slic3r::Polygon& sh) { return sh.points; }
 
 template<> Slic3r::Points::iterator begin(Slic3r::Points& pts, const PathTag&) { return pts.begin();}
-template<> Slic3r::Points::const_iterator cbegin(const Slic3r::Points& pts, const PathTag&) { return pts.begin(); }
+template<> Slic3r::Points::const_iterator cbegin(const Slic3r::Points& pts, const PathTag&) { return pts.cbegin(); }
 template<> Slic3r::Points::iterator end(Slic3r::Points& pts, const PathTag&) { return pts.end();}
 template<> Slic3r::Points::const_iterator cend(const Slic3r::Points& pts, const PathTag&) { return pts.cend(); }
 
@@ -71,62 +71,67 @@ using Rational = boost::rational<__int128>;
 
 MinAreaBoundigBox::MinAreaBoundigBox(const Polygon &p, PolygonLevel pc)
 {
-    const Polygon& chull = pc == pcConvex ? p : libnest2d::sl::convexHull(p);
-    
-    libnest2d::RotatedBox<Point, Unit> box = 
-            libnest2d::minAreaBoundingBox<Polygon, Unit, Rational>(chull);
-    
-    m_right = box.right_extent();
-    m_bottom = box.bottom_extent();
-    m_axis = box.axis();
+    const Polygon &chull = pc == pcConvex ? p :
+                                            libnest2d::sl::convexHull(p);
+
+    libnest2d::RotatedBox<Point, Unit> box =
+        libnest2d::minAreaBoundingBox<Polygon, Unit, Rational>(chull);
+
+    m_right  = libnest2d::cast<long double>(box.right_extent());
+    m_bottom = libnest2d::cast<long double>(box.bottom_extent());
+    m_axis   = box.axis();
 }
 
 MinAreaBoundigBox::MinAreaBoundigBox(const ExPolygon &p, PolygonLevel pc)
 {
-    const ExPolygon& chull = pc == pcConvex ? p : libnest2d::sl::convexHull(p);
-    
-    libnest2d::RotatedBox<Point, Unit> box = 
-            libnest2d::minAreaBoundingBox<ExPolygon, Unit, Rational>(chull);
-    
-    m_right = box.right_extent();
-    m_bottom = box.bottom_extent();
-    m_axis = box.axis();
+    const ExPolygon &chull = pc == pcConvex ? p :
+                                              libnest2d::sl::convexHull(p);
+
+    libnest2d::RotatedBox<Point, Unit> box =
+        libnest2d::minAreaBoundingBox<ExPolygon, Unit, Rational>(chull);
+
+    m_right  = libnest2d::cast<long double>(box.right_extent());
+    m_bottom = libnest2d::cast<long double>(box.bottom_extent());
+    m_axis   = box.axis();
 }
 
 MinAreaBoundigBox::MinAreaBoundigBox(const Points &pts, PolygonLevel pc)
 {
-    const Points& chull = pc == pcConvex ? pts : libnest2d::sl::convexHull(pts);
-    
-    libnest2d::RotatedBox<Point, Unit> box = 
-            libnest2d::minAreaBoundingBox<Points, Unit, Rational>(chull);
-    
-    m_right = box.right_extent();
-    m_bottom = box.bottom_extent();
-    m_axis = box.axis();
+    const Points &chull = pc == pcConvex ? pts :
+                                           libnest2d::sl::convexHull(pts);
+
+    libnest2d::RotatedBox<Point, Unit> box =
+        libnest2d::minAreaBoundingBox<Points, Unit, Rational>(chull);
+
+    m_right  = libnest2d::cast<long double>(box.right_extent());
+    m_bottom = libnest2d::cast<long double>(box.bottom_extent());
+    m_axis   = box.axis();
 }
 
 double MinAreaBoundigBox::angle_to_X() const
 {
     double ret = std::atan2(m_axis.y(), m_axis.x());
-    auto s = std::signbit(ret);
-    if(s) ret += 2 * PI;
+    auto   s   = std::signbit(ret);
+    if (s) ret += 2 * PI;
     return -ret;
 }
 
 long double MinAreaBoundigBox::width() const
 {
-    return std::abs(m_bottom) / std::sqrt(libnest2d::pl::magnsq<Point, long double>(m_axis));
+    return std::abs(m_bottom) /
+           std::sqrt(libnest2d::pl::magnsq<Point, long double>(m_axis));
 }
 
 long double MinAreaBoundigBox::height() const
 {
-    return std::abs(m_right) / std::sqrt(libnest2d::pl::magnsq<Point, long double>(m_axis));
+    return std::abs(m_right) /
+           std::sqrt(libnest2d::pl::magnsq<Point, long double>(m_axis));
 }
 
 long double MinAreaBoundigBox::area() const
 {
     long double asq = libnest2d::pl::magnsq<Point, long double>(m_axis);
-    return m_bottom * m_right / asq;   
+    return m_bottom * m_right / asq;
 }
 
 void remove_collinear_points(Polygon &p)
@@ -138,5 +143,4 @@ void remove_collinear_points(ExPolygon &p)
 {
     p = libnest2d::removeCollinearPoints<ExPolygon>(p, Unit(0));
 }
-
-}
+} // namespace Slic3r
