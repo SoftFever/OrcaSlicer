@@ -198,7 +198,6 @@ class GLCanvas3D
         static const float THICKNESS_BAR_WIDTH;
         static const float THICKNESS_RESET_BUTTON_HEIGHT;
 
-        bool                        m_use_legacy_opengl;
         bool                        m_enabled;
         Shader                      m_shader;
         unsigned int                m_z_texture_id;
@@ -251,7 +250,6 @@ class GLCanvas3D
         void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
-        void set_use_legacy_opengl(bool use_legacy_opengl);
 
         bool is_enabled() const;
         void set_enabled(bool enabled);
@@ -493,7 +491,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-    bool init(bool useVBOs, bool use_legacy_opengl);
+    bool init(bool useVBOs);
     void post_event(wxEvent &&event);
 
     void set_as_dirty();

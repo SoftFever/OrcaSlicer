@@ -1273,6 +1273,7 @@ struct Plater::priv
     Preview *preview;
 
     BackgroundSlicingProcess    background_process;
+    bool suppressed_backround_processing_update { false };
     
     // A class to handle UI jobs like arranging and optimizing rotation.
     // These are not instant jobs, the user has to be informed about their
@@ -1707,7 +1708,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panels.push_back(preview);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
+    {
+        if (!this->suppressed_backround_processing_update)
+            this->update_restart_background_process(false, false);
+    });
 
     update();
 
@@ -1787,7 +1792,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     set_current_panel(view3D);
 
     // updates camera type from .ini file
-    camera.set_type(get_config("camera_type"));
+    camera.set_type(get_config("use_perspective_camera"));
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -1855,10 +1860,8 @@ void Plater::priv::update_ui_from_settings()
     //     $self->{buttons_sizer}->Layout;
     // }
 
-#if ENABLE_RETINA_GL
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
-#endif
 }
 
 ProgressStatusBar* Plater::priv::statusbar()
@@ -4196,9 +4199,25 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     this->p->schedule_background_process();
 }
 
-void Plater::schedule_background_process()
+void Plater::schedule_background_process(bool schedule/* = true*/)
 {
-    this->p->schedule_background_process();    
+    if (schedule)
+        this->p->schedule_background_process();
+
+    this->p->suppressed_backround_processing_update = false;
+}
+
+bool Plater::is_background_process_running() const 
+{
+    return this->p->background_process_timer.IsRunning();
+}
+
+void Plater::suppress_background_process(const bool stop_background_process)
+{
+    if (stop_background_process)
+        this->p->background_process_timer.Stop();
+
+    this->p->suppressed_backround_processing_update = true;
 }
 
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
@@ -4272,6 +4291,17 @@ bool Plater::can_copy_to_clipboard() const
         return false;
 
     return true;
+}
+
+SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
+    m_was_running(wxGetApp().plater()->is_background_process_running())
+{
+    wxGetApp().plater()->suppress_background_process(m_was_running);
+}
+
+SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
+{
+    wxGetApp().plater()->schedule_background_process(m_was_running);
 }
 
 }}    // namespace Slic3r::GUI

@@ -469,7 +469,7 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     if (!m_config || selection.empty())
         return;
 
-    const int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
+    const int extruder = /*selection.size() > 1 ? 0 : */atoi(selection.c_str());
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
     // update scene

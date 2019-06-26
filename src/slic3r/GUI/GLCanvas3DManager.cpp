@@ -192,7 +192,6 @@ GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
     , m_gl_initialized(false)
-    , m_use_legacy_opengl(false)
     , m_use_VBOs(false)
 {
 }
@@ -268,8 +267,7 @@ void GLCanvas3DManager::init_gl()
     {
         glewInit();
         const AppConfig* config = GUI::get_app_config();
-        m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
-        m_use_VBOs = !m_use_legacy_opengl && s_gl_info.is_version_greater_or_equal_to(2, 0);
+        m_use_VBOs = s_gl_info.is_version_greater_or_equal_to(2, 0);
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)
             s_compressed_textures_supported = true;
@@ -325,16 +323,14 @@ bool GLCanvas3DManager::init(GLCanvas3D& canvas)
     if (!m_gl_initialized)
         init_gl();
 
-    return canvas.init(m_use_VBOs, m_use_legacy_opengl);
+    return canvas.init(m_use_VBOs);
 }
 
 void GLCanvas3DManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     const AppConfig* app_config = GUI::get_app_config();
-    bool enable_multisample = app_config != nullptr
-        && app_config->get("use_legacy_opengl") != "1"
-        && wxVersion >= 30003;
+    bool enable_multisample = wxVersion >= 30003;
 
     s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? MS_Enabled : MS_Disabled;
     // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows

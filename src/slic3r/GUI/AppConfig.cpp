@@ -54,10 +54,9 @@ void AppConfig::set_defaults()
     if (get("preset_update").empty())
         set("preset_update", "1");
 
-    // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
-    // github.com/prusa3d/PrusaSlicer/issues/233
-    if (get("use_legacy_opengl").empty())
-        set("use_legacy_opengl", "0");
+    // remove old 'use_legacy_opengl' parameter from this config, if present
+    if (!get("use_legacy_opengl").empty())
+        erase("", "use_legacy_opengl");
 
 #if __APPLE__
     if (get("use_retina_opengl").empty())
@@ -73,8 +72,8 @@ void AppConfig::set_defaults()
     if (get("custom_toolbar_size").empty())
         set("custom_toolbar_size", "100");
 
-    if (get("camera_type").empty())
-        set("camera_type", "1");
+    if (get("use_perspective_camera").empty())
+        set("use_perspective_camera", "1");
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
