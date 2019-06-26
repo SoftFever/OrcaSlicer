@@ -2821,6 +2821,14 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         // user provided his own toolchange gcode, no need to do anything
     }
 
+    // Set the temperature if the wipe tower didn't (not needed for non-single extruder MM)
+    if (m_config.single_extruder_multi_material && !m_config.wipe_tower) {
+        int temp = (m_layer_index == 0 ? m_config.first_layer_temperature.get_at(extruder_id) :
+                                         m_config.temperature.get_at(extruder_id));
+
+        gcode += m_writer.set_temperature(temp, false);
+    }
+
     m_placeholder_parser.set("current_extruder", extruder_id);
 
     // Append the filament start G-code.
