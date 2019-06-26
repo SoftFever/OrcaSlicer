@@ -40,8 +40,9 @@ typedef std::vector<ModelInstance*> ModelInstancePtrs;
 // Valid IDs are strictly positive (non zero).
 // It is declared as an object, as some compilers (notably msvcc) consider a typedef size_t equivalent to size_t
 // for parameter overload.
-struct ModelID 
+class ModelID 
 {
+public:
 	ModelID(size_t id) : id(id) {}
 
 	bool operator==(const ModelID &rhs) const { return this->id == rhs.id; }
@@ -54,6 +55,12 @@ struct ModelID
     bool valid() const { return id != 0; }
 
 	size_t	id;
+
+private:
+	ModelID() {}
+
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(id); }
 };
 
 // Unique object / instance ID for the wipe tower.
@@ -76,6 +83,8 @@ protected:
     // Constructor with ignored int parameter to assign an invalid ID, to be replaced
     // by an existing ID copied from elsewhere.
     ModelBase(int) : m_id(ModelID(0)) {}
+	// The class tree will have virtual tables and type information.
+	virtual ~ModelBase() {}
 
     // Use with caution!
     void        set_new_unique_id() { m_id = generate_new_id(); }
@@ -94,6 +103,11 @@ private:
 	
 	friend ModelID wipe_tower_object_id();
 	friend ModelID wipe_tower_instance_id();
+
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
+    ModelBase(const ModelID id) : m_id(id) {}
+  	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ModelBase> &construct) { ModelID id; ar(id); construct(id); }
 };
 
 #define MODELBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
@@ -155,10 +169,13 @@ private:
     // Parent, owning this material.
     Model *m_model;
     
-	ModelMaterial() = delete;
 	ModelMaterial(ModelMaterial &&rhs) = delete;
 	ModelMaterial& operator=(const ModelMaterial &rhs) = delete;
     ModelMaterial& operator=(ModelMaterial &&rhs) = delete;
+
+	friend class cereal::access;
+	ModelMaterial() : m_model(nullptr) {}
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ModelBase>(this)); ar(attributes, config); }
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -323,7 +340,15 @@ private:
     mutable BoundingBoxf3 m_raw_bounding_box;
     mutable bool          m_raw_bounding_box_valid;
     mutable BoundingBoxf3 m_raw_mesh_bounding_box;
-    mutable bool          m_raw_mesh_bounding_box_valid;    
+    mutable bool          m_raw_mesh_bounding_box_valid;
+
+	friend class cereal::access;
+	ModelObject() : m_model(nullptr), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
+	template<class Archive> void serialize(Archive &ar) { 
+		ar(cereal::base_class<ModelBase>(this));
+		ar(name, input_file, instances, volumes, config, layer_height_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
+			m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
+	}
 };
 
 // Declared outside of ModelVolume, so it could be forward declared.
@@ -459,7 +484,7 @@ private:
     //     -1   ->   is unknown value (before first cheking)
     //      0   ->   is not splittable
     //      1   ->   is splittable
-    mutable int               m_is_splittable{ -1 };
+    mutable int               		m_is_splittable{ -1 };
 
 	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : m_mesh(new TriangleMesh(mesh)), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
@@ -486,6 +511,13 @@ private:
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
+
+	friend class cereal::access;
+	ModelVolume() : object(nullptr) {}
+	template<class Archive> void serialize(Archive &ar) {
+		ar(cereal::base_class<ModelBase>(this));
+		ar(name, config, m_mesh, m_type, m_material_id, m_convex_hull, m_transformation, m_is_splittable);
+	}
 };
 
 // A single instance of a ModelObject.
@@ -571,10 +603,16 @@ private:
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
 
-    ModelInstance() = delete;
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
     ModelInstance& operator=(ModelInstance &&rhs) = delete;
+
+	friend class cereal::access;
+	ModelInstance() : object(nullptr) {}
+	template<class Archive> void serialize(Archive &ar) {
+		ar(cereal::base_class<ModelBase>(this));
+		ar(m_transformation, print_volume_state);
+	}
 };
 
 // The print bed content.
@@ -633,24 +671,24 @@ public:
     BoundingBoxf3 bounding_box() const;
     // Set the print_volume_state of PrintObject::instances, 
     // return total number of printable objects.
-    unsigned int update_print_volume_state(const BoundingBoxf3 &print_volume);
+    unsigned int  update_print_volume_state(const BoundingBoxf3 &print_volume);
 	// Returns true if any ModelObject was modified.
-    bool center_instances_around_point(const Vec2d &point);
-    void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
-    TriangleMesh mesh() const;
-    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    bool 		  center_instances_around_point(const Vec2d &point);
+    void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
+    TriangleMesh  mesh() const;
+    bool 		  arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
     // Croaks if the duplicated objects do not fit the print bed.
-    void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
-    void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
+    void 		  duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void 	      duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
+    void 		  duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 
-    bool looks_like_multipart_object() const;
-    void convert_multipart_object(unsigned int max_extruders);
+    bool 		  looks_like_multipart_object() const;
+    void 		  convert_multipart_object(unsigned int max_extruders);
 
     // Ensures that the min z of the model is not negative
-    void adjust_min_z();
+    void 		  adjust_min_z();
 
-    void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
+    void 		  print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 
     static unsigned int get_auto_extruder_id(unsigned int max_extruders);
     static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
@@ -663,6 +701,11 @@ public:
 
 private:
     MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
+
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) {
+		ar(cereal::base_class<ModelBase>(this), materials, objects);
+	}
 };
 
 #undef MODELBASE_DERIVED_COPY_MOVE_CLONE

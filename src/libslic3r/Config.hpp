@@ -744,7 +744,7 @@ public:
 
 private:
 	friend class cereal::access;
-	template<class Archive> void serialize(Archive &ar) { ar(this->value.x(), this->value.y()); }
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<Vec2d>>(this)); }
 };
 
 class ConfigOptionPoints : public ConfigOptionVector<Vec2d>
@@ -853,7 +853,7 @@ public:
 
 private:
 	friend class cereal::access;
-	template<class Archive> void serialize(Archive &ar) { ar(this->value.x(), this->value.y(), this->value.z()); }
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<Vec3d>>(this)); }
 };
 
 class ConfigOptionBool : public ConfigOptionSingle<bool>

@@ -7,6 +7,10 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
+// Serialization through the Cereal library
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/archives/binary.hpp>
+
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
 using boost::polygon::voronoi_diagram;
@@ -263,6 +267,25 @@ public:
     // as possible in least squares norm in regard to the 8 corners of bbox.
     // Bounding box is expected to be centered around zero in all axes.
     static Transformation volume_to_bed_transformation(const Transformation& instance_transformation, const BoundingBoxf3& bbox);
+
+private:
+	template<class Archive> void load(Archive& archive, Slic3r::Geometry::Transformation &t) { 
+		archive.loadBinary((char*)m.data(), sizeof(float) * 4);
+	}
+	template<class Archive> void save(Archive& archive, const Slic3r::Geometry::Transformation &t) const {
+		archive.saveBinary((char*)m.data(), sizeof(float) * 4);
+	}
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }
+	explicit Transformation(int) : m_dirty(true) {}
+	template <class Archive> static void load_and_construct(Archive & ar, cereal::construct<Transformation> &construct)
+	{
+		// Calling a private constructor with special "int" parameter to indicate that no construction is necessary.
+		construct(1);
+		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, m_mirror);
+	}
 };
 
 // Rotation when going from the first coordinate system with rotation rot_xyz_from applied

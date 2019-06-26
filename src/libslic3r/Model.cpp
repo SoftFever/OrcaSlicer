@@ -1910,3 +1910,16 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
 #endif /* NDEBUG */
 
 }
+
+#if 0
+CEREAL_REGISTER_TYPE(Slic3r::ModelBase)
+CEREAL_REGISTER_TYPE(Slic3r::ModelObject)
+CEREAL_REGISTER_TYPE(Slic3r::ModelVolume)
+CEREAL_REGISTER_TYPE(Slic3r::ModelInstance)
+CEREAL_REGISTER_TYPE(Slic3r::Model)
+
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelObject)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelVolume)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelInstance)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::Model)
+#endif
