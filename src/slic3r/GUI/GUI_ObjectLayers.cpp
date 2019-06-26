@@ -4,6 +4,7 @@
 #include "OptionsGroup.hpp"
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -62,13 +63,13 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 {
     const bool is_last_edited_range = range == m_selectable_range;
 
-    auto set_focus_fn = [range, this](const EditorType type)
+    auto set_focus_data = [range, this](const EditorType type)
     {
         m_selectable_range = range;
         m_selection_type = type;
     };
 
-    auto set_focus = [range, this](const t_layer_height_range& new_range, EditorType type, bool enter_pressed)
+    auto update_focus_data = [range, this](const t_layer_height_range& new_range, EditorType type, bool enter_pressed)
     {
         // change selectable range for new one, if enter was pressed or if same range was selected
         if (enter_pressed || m_selectable_range == range)
@@ -79,8 +80,8 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
     // Add control for the "Min Z"
 
-    auto editor = new LayerRangeEditor(m_parent, double_to_string(range.first), etMinZ,
-                                       set_focus_fn, [range, set_focus, this](coordf_t min_z, bool enter_pressed)
+    auto editor = new LayerRangeEditor(this, double_to_string(range.first), etMinZ,
+                                       set_focus_data, [range, update_focus_data, this](coordf_t min_z, bool enter_pressed)
     {
         if (fabs(min_z - range.first) < EPSILON) {
             m_selection_type = etUndef;
@@ -89,8 +90,8 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
         // data for next focusing
         coordf_t max_z = min_z < range.second ? range.second : min_z + 0.5;
-        const t_layer_height_range& new_range = { min_z, max_z/*range.second*/ };
-        set_focus(new_range, etMinZ, enter_pressed);
+        const t_layer_height_range& new_range = { min_z, max_z };
+        update_focus_data(new_range, etMinZ, enter_pressed);
 
         return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
@@ -100,8 +101,8 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
     // Add control for the "Max Z"
 
-    editor = new LayerRangeEditor(m_parent, double_to_string(range.second), etMaxZ,
-                                  set_focus_fn, [range, set_focus, this](coordf_t max_z, bool enter_pressed)
+    editor = new LayerRangeEditor(this, double_to_string(range.second), etMaxZ,
+                                  set_focus_data, [range, update_focus_data, this](coordf_t max_z, bool enter_pressed)
     {
         if (fabs(max_z - range.second) < EPSILON || range.first > max_z) {
             m_selection_type = etUndef;
@@ -110,7 +111,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
         // data for next focusing
         const t_layer_height_range& new_range = { range.first, max_z };
-        set_focus(new_range, etMaxZ, enter_pressed);
+        update_focus_data(new_range, etMaxZ, enter_pressed);
 
         return wxGetApp().obj_list()->edit_layer_range(range, new_range);
     });
@@ -120,9 +121,9 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
     // Add control for the "Layer height"
 
-    editor = new LayerRangeEditor(m_parent,
+    editor = new LayerRangeEditor(this,
                                 double_to_string(m_object->layer_config_ranges[range].option("layer_height")->getFloat()),
-                             etLayerHeight, set_focus_fn, [range, this](coordf_t layer_height, bool)
+                             etLayerHeight, set_focus_data, [range, this](coordf_t layer_height, bool)
     {
         return wxGetApp().obj_list()->edit_layer_range(range, layer_height);
     });
@@ -203,6 +204,12 @@ void ObjectLayers::update_layers_list()
     m_parent->Layout();
 }
 
+void ObjectLayers::update_scene_from_editor_selection() const 
+{
+    // needed to show the visual hints in 3D scene
+    wxGetApp().plater()->canvas3D()->handle_layers_data_focus_event(m_selectable_range, m_selection_type);
+}
+
 void ObjectLayers::UpdateAndShow(const bool show)
 {
     if (show)
@@ -217,17 +224,17 @@ void ObjectLayers::msw_rescale()
     m_bmp_add.msw_rescale();
 }
 
-LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
+LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
                                     const wxString& value,
                                     EditorType type,
-                                    std::function<void(EditorType)> set_focus_fn,
+                                    std::function<void(EditorType)> set_focus_data_fn,
                                     std::function<bool(coordf_t, bool enter_pressed)>   edit_fn
                                     ) :
     m_valid_value(value),
     m_type(type),
-    m_set_focus(set_focus_fn),
-    wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, 
-               wxSize(8 * em_unit(parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
+    m_set_focus_data(set_focus_data_fn),
+    wxTextCtrl(parent->m_parent, wxID_ANY, value, wxDefaultPosition, 
+               wxSize(8 * em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
     this->SetFont(wxGetApp().normal_font());
     
@@ -258,7 +265,7 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
              * */
             LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());
             if (new_editor)
-                new_editor->set_focus();
+                new_editor->set_focus_data();
 #endif // not __WXGTK__
             // If LayersList wasn't updated/recreated, we should call e.Skip()
             if (m_type & etLayerHeight) {
@@ -279,10 +286,17 @@ LayerRangeEditor::LayerRangeEditor( wxWindow* parent,
         }
     }, this->GetId());
 
+    this->Bind(wxEVT_SET_FOCUS, [this, parent](wxFocusEvent& e)
+    {
+        set_focus_data();
+        parent->update_scene_from_editor_selection();
+        e.Skip();
+    }, this->GetId());
+
 #ifdef __WXGTK__ // Workaround! To take information about selectable range
     this->Bind(wxEVT_LEFT_DOWN, [this](wxEvent& e)
     {
-        set_focus();
+        set_focus_data();
         e.Skip();
     }, this->GetId());
 #endif //__WXGTK__

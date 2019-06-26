@@ -3310,6 +3310,11 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     }
 }
 
+void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
+{
+    printf("min_z = %.2f, max_z = %.2f, type=%d\n", range.first, range.second, type);
+}
+
 void GLCanvas3D::update_ui_from_settings()
 {
 #if ENABLE_RETINA_GL

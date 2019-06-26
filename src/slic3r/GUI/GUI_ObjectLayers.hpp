@@ -19,6 +19,8 @@ class ConfigOptionsGroup;
 typedef double                          coordf_t;
 typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 
+class ObjectLayers;
+
 enum EditorType
 {
     etUndef         = 0,
@@ -34,19 +36,19 @@ class LayerRangeEditor : public wxTextCtrl
     wxString            m_valid_value;
     EditorType          m_type;
 
-    std::function<void(EditorType)> m_set_focus;
+    std::function<void(EditorType)> m_set_focus_data;
 
 public:
-    LayerRangeEditor(   wxWindow* parent,
+    LayerRangeEditor(   ObjectLayers* parent,
                         const wxString& value = wxEmptyString,
                         EditorType type = etUndef,
-                        std::function<void(EditorType)>     set_focus_fn = [](EditorType)      {;},
-                        std::function<bool(coordf_t, bool)> edit_fn      = [](coordf_t, bool) {return false; }
+                        std::function<void(EditorType)>     set_focus_data_fn   = [](EditorType)      {;},
+                        std::function<bool(coordf_t, bool)> edit_fn             = [](coordf_t, bool) {return false; }
                         );
     ~LayerRangeEditor() {}
 
     EditorType          type() const {return m_type;}
-    void                set_focus() const { m_set_focus(m_type);}
+    void                set_focus_data() const { m_set_focus_data(m_type);}
 
 private:
     coordf_t            get_value();
@@ -71,8 +73,12 @@ public:
     void        create_layers_list();
     void        update_layers_list();
 
+    void        update_scene_from_editor_selection() const;
+
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
+
+    friend class LayerRangeEditor;
 };
 
 }}
