@@ -1526,6 +1526,7 @@ struct Plater::priv
     static const std::regex pattern_prusa;
 
     priv(Plater *q, MainFrame *main_frame);
+    ~priv();
 
     void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
@@ -1793,6 +1794,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
+}
+
+Plater::priv::~priv()
+{
+    if (config != nullptr)
+        delete config;
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
