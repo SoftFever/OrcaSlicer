@@ -720,8 +720,9 @@ void SLAPrint::process()
 
         if(slindex_it == po.m_slice_index.end())
             //TRN To be shown at the status bar on SLA slicing error.
-            throw std::runtime_error(L("Slicing had to be stopped "
-                                       "due to an internal error."));
+            throw std::runtime_error(
+                L("Slicing had to be stopped due to an internal error: "
+                  "Inconsistent slice index."));
 
         po.m_model_height_levels.clear();
         po.m_model_height_levels.reserve(po.m_slice_index.size());
