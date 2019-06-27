@@ -331,6 +331,9 @@ void Selection::clear()
 
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
+
+    // #et_FIXME fake KillFocus from sidebar
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 }
 
 // Update the selection based on the new instance IDs.

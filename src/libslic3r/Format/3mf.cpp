@@ -822,8 +822,10 @@ namespace Slic3r {
 
                 t_layer_config_ranges config_ranges;
 
-                for (const auto& range : object_tree.get_child("ranges"))
+                for (const auto& range : object_tree)
                 {
+                    if (range.first != "range")
+                        continue;
                     pt::ptree range_tree = range.second;
                     double min_z = range_tree.get<double>("<xmlattr>.min_z");
                     double max_z = range_tree.get<double>("<xmlattr>.max_z");
@@ -831,8 +833,10 @@ namespace Slic3r {
                     // get Z range information
                     DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
 
-                    for (const auto& option : range_tree.get_child("config"))
+                    for (const auto& option : range_tree)
                     {
+                        if (option.first != "option")
+                            continue;
                         std::string opt_key = option.second.get<std::string>("<xmlattr>.opt_key");
                         std::string value = option.second.data();
 
@@ -2116,23 +2120,21 @@ namespace Slic3r {
                 pt::ptree& obj_tree = tree.add("objects.object","");
 
                 obj_tree.put("<xmlattr>.id", object_cnt);
-                obj_tree.add("ranges", "");
 
                 // Store the layer config ranges.
                 for (const auto& range : ranges)
                 {
-                    pt::ptree& range_tree = obj_tree.add("ranges.range", "");
+                    pt::ptree& range_tree = obj_tree.add("range", "");
 
                     // store minX and maxZ
                     range_tree.put("<xmlattr>.min_z", range.first.first);
                     range_tree.put("<xmlattr>.max_z", range.first.second);
-                    range_tree.add("config","");
 
                     // store range configuration
                     const DynamicPrintConfig& config = range.second;
                     for (const std::string& opt_key : config.keys())
                     {
-                        pt::ptree& opt_tree = range_tree.add("config.option", config.serialize(opt_key));
+                        pt::ptree& opt_tree = range_tree.add("option", config.serialize(opt_key));
                         opt_tree.put("<xmlattr>.opt_key", opt_key);
                     }
                 }
@@ -2145,19 +2147,14 @@ namespace Slic3r {
             boost::property_tree::write_xml(oss, tree);
             out = oss.str();
 
-            // Post processing of the output string for a better preview
-            // JUST
- //           boost::replace_all(out, "><", ">\n<"); 
-            // OR more "beautification"
+            // Post processing("beautification") of the output string for a better preview
             boost::replace_all(out, "><object",      ">\n <object");
-            boost::replace_all(out, "><ranges",      ">\n  <ranges");
-            boost::replace_all(out, "><range",       ">\n   <range");
-            boost::replace_all(out, "><config",      ">\n    <config");
-            boost::replace_all(out, "><option",      ">\n     <option");
-            boost::replace_all(out, "></config",     ">\n    </config");
-            boost::replace_all(out, "></range>",     ">\n   </range>");
-            boost::replace_all(out, "></ranges",     ">\n  </ranges");
-            boost::replace_all(out, "></object",     ">\n </object");
+            boost::replace_all(out, "><range",       ">\n  <range");
+            boost::replace_all(out, "><option",      ">\n   <option");
+            boost::replace_all(out, "></range>",     ">\n  </range>");
+            boost::replace_all(out, "></object>",    ">\n </object>");
+            // OR just 
+            boost::replace_all(out, "><",            ">\n<"); 
         }
 
         if (!out.empty())
