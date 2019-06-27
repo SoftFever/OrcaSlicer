@@ -457,8 +457,10 @@ void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
 {
     //FIXME show some kind of legend.
 
+    if (!m_slicing_parameters)
+        return;
+
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
-	assert(m_slicing_parameters != nullptr);
     float scale_x = bar_rect.get_width() / (float)(1.12 * m_slicing_parameters->max_layer_height);
     float scale_y = bar_rect.get_height() / m_object_max_z;
     float x = bar_rect.get_left() + (float)m_slicing_parameters->layer_height * scale_x;

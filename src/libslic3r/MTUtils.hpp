@@ -286,7 +286,7 @@ template<class Tout,
          class = FloatingOnly<Tout>>
 inline SLIC3R_CONSTEXPR Tout scaled(const Tin &v) SLIC3R_NOEXCEPT
 {
-    return static_cast<Tout>(v / static_cast<Tout>(SCALING_FACTOR));
+    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
 }
 
 // Conversion definition from unscaled to integer 'scaled coord'.
@@ -297,7 +297,7 @@ template<class Tout = coord_t, class Tin, class = FloatingOnly<Tin>>
 inline SLIC3R_CONSTEXPR ScaledCoordOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCEPT
 {
     //return static_cast<Tout>(std::round(v / SCALING_FACTOR));
-    return static_cast<Tout>(v / static_cast<Tout>(SCALING_FACTOR));
+    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
 }
 
 // Conversion for Eigen vectors (N dimensional points)
