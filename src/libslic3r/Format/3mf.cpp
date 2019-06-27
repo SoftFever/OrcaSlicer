@@ -16,6 +16,12 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/foreach.hpp>
+namespace pt = boost::property_tree;
+
 #include <expat.h>
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
@@ -34,7 +40,7 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
-const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Slic3r_PE_layer_config_ranges.txt";
+const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 
 const char* MODEL_TAG = "model";
@@ -796,43 +802,20 @@ namespace Slic3r {
                 return;
             }
 
-            if (buffer.back() == '|')
-                buffer.pop_back();
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree objects_tree;
+            pt::read_xml(iss, objects_tree);
 
-            std::vector<std::string> objects;
-            boost::split(objects, buffer, boost::is_any_of("|"), boost::token_compress_off);
-
-            for (std::string& object : objects)
+            for (const auto& object : objects_tree.get_child("objects"))
             {
-                // delete all spaces
-                boost::replace_all(object, " ", "");
-
-                std::vector<std::string> object_data;
-                boost::split(object_data, object, boost::is_any_of("*"), boost::token_compress_off);
-                /* there should be at least one layer config range in the object 
-                 * object_data[0]       => object information
-                 * object_data[i>=1]    => range information
-                 */
-                if (object_data.size() < 2) {
-                    add_error("Error while reading object data");
-                    continue;
-                }
-
-                std::vector<std::string> object_data_id;
-                boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
-                if (object_data_id.size() != 2) {
-                    add_error("Error while reading object id");
-                    continue;
-                }
-
-                // get object information
-                int object_id = std::atoi(object_data_id[1].c_str());
-                if (object_id == 0) {
+                pt::ptree object_tree = object.second;
+                int obj_idx = object_tree.get<int>("<xmlattr>.id", -1);
+                if (obj_idx <= 0) {
                     add_error("Found invalid object id");
                     continue;
                 }
 
-                IdToLayerConfigRangesMap::iterator object_item = m_layer_config_ranges.find(object_id);
+                IdToLayerConfigRangesMap::iterator object_item = m_layer_config_ranges.find(obj_idx);
                 if (object_item != m_layer_config_ranges.end()) {
                     add_error("Found duplicated layer config range");
                     continue;
@@ -840,56 +823,26 @@ namespace Slic3r {
 
                 t_layer_config_ranges config_ranges;
 
-                // get ranges information
-                for (size_t i = 1; i < object_data.size(); ++i)
+                for (const auto& range : object_tree.get_child("ranges"))
                 {
-                    if (object_data[i].back() == '\n')
-                        object_data[i].pop_back();
-
-                    std::vector<std::string> range_data;
-                    boost::split(range_data, object_data[i], boost::is_any_of("\n"), boost::token_compress_off);
-                    /* There should be at least two options for layer config range
-                     * range_data[0]       => Z range information
-                     * range_data[i>=1]    => configuration for the range
-                     */
-                    if (range_data.size() < 3) {
-                        add_error("Found invalid layer config range");
-                        continue;
-                    }
-
-                    std::vector<std::string> z_range_str;
-                    boost::split(z_range_str, range_data[0], boost::is_any_of("="), boost::token_compress_off);
-                    if (z_range_str.size() != 2) {
-                        add_error("Error while reading layer config range");
-                        continue;
-                    }
-
-                    std::vector<std::string> z_values;
-                    boost::split(z_values, z_range_str[1], boost::is_any_of(";"), boost::token_compress_off);
-                    if (z_values.size() != 2) {
-                        add_error("Found invalid layer config range");
-                        continue;
-                    }
+                    pt::ptree range_tree = range.second;
+                    double min_z = range_tree.get<double>("<xmlattr>.min_z");
+                    double max_z = range_tree.get<double>("<xmlattr>.max_z");
 
                     // get Z range information
-                    t_layer_height_range z_range = { (coordf_t)std::atof(z_values[0].c_str()) , (coordf_t)std::atof(z_values[1].c_str()) };
-                    DynamicPrintConfig& config = config_ranges[z_range];
+                    DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
 
-                    // get configuration options for the range
-                    for (size_t j = 1; j < range_data.size(); ++j)
+                    for (const auto& option : range_tree.get_child("config"))
                     {
-                        std::vector<std::string> key_val;
-                        boost::split(key_val, range_data[j], boost::is_any_of("="), boost::token_compress_off);
-                        if (key_val.size() != 2) {
-                            add_error("Error while reading config value");
-                            continue;
-                        }
-                        config.set_deserialize(key_val[0], key_val[1]);
+                        std::string opt_key = option.second.get<std::string>("<xmlattr>.opt_key");
+                        std::string value = option.second.data();
+
+                        config.set_deserialize(opt_key, value);
                     }
                 }
 
                 if (!config_ranges.empty())
-                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(object_id, config_ranges));
+                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, config_ranges));
             }
         }
     }
@@ -2152,7 +2105,7 @@ namespace Slic3r {
     bool _3MF_Exporter::_add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         std::string out = "";
-        char buffer[1024];
+        pt::ptree tree;
 
         unsigned int object_cnt = 0;
         for (const ModelObject* object : model.objects)
@@ -2161,24 +2114,51 @@ namespace Slic3r {
             const t_layer_config_ranges& ranges = object->layer_config_ranges;
             if (!ranges.empty())
             {
-                sprintf(buffer, "object_id=%d\n", object_cnt);
-                out += buffer;
+                pt::ptree& obj_tree = tree.add("objects.object","");
+
+                obj_tree.put("<xmlattr>.id", object_cnt);
+                obj_tree.add("ranges", "");
 
                 // Store the layer config ranges.
                 for (const auto& range : ranges)
                 {
+                    pt::ptree& range_tree = obj_tree.add("ranges.range", "");
+
                     // store minX and maxZ
-                    sprintf(buffer, "*z_range = %f;%f\n", range.first.first, range.first.second);
-                    out += buffer;
+                    range_tree.put("<xmlattr>.min_z", range.first.first);
+                    range_tree.put("<xmlattr>.max_z", range.first.second);
+                    range_tree.add("config","");
 
                     // store range configuration
                     const DynamicPrintConfig& config = range.second;
-                    for (const std::string& key : config.keys())
-                        out += " " + key + " = " + config.serialize(key) + "\n";
+                    for (const std::string& opt_key : config.keys())
+                    {
+                        pt::ptree& opt_tree = range_tree.add("config.option", config.serialize(opt_key));
+                        opt_tree.put("<xmlattr>.opt_key", opt_key);
+                    }
                 }
-                
-                out += "|";
             }
+        }
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            boost::property_tree::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing of the output string for a better preview
+            // JUST
+ //           boost::replace_all(out, "><", ">\n<"); 
+            // OR more "beautification"
+            boost::replace_all(out, "><object",      ">\n <object");
+            boost::replace_all(out, "><ranges",      ">\n  <ranges");
+            boost::replace_all(out, "><range",       ">\n   <range");
+            boost::replace_all(out, "><config",      ">\n    <config");
+            boost::replace_all(out, "><option",      ">\n     <option");
+            boost::replace_all(out, "></config",     ">\n    </config");
+            boost::replace_all(out, "></range ",     ">\n   </range ");
+            boost::replace_all(out, "></ranges",     ">\n  </ranges");
+            boost::replace_all(out, "></object",     ">\n </object");
         }
 
         if (!out.empty())
