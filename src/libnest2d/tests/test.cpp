@@ -555,7 +555,7 @@ TEST(GeometryAlgorithms, NestTest) {
     size_t partsum = std::accumulate(result.begin(),
                                      result.end(),
                                      size_t(0),
-                                     [](int s,
+                                     [](size_t s,
                                         const decltype(
                                             result)::value_type &bin) {
                                          return s += bin.size();

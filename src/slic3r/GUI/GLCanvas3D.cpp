@@ -1627,6 +1627,7 @@ void GLCanvas3D::render()
             _picking_pass();
     }
 
+#if !ENABLE_RENDER_PICKING_PASS
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
@@ -1656,6 +1657,7 @@ void GLCanvas3D::render()
 
     _render_current_gizmo();
     _render_selection_sidebar_hints();
+#endif // !ENABLE_RENDER_PICKING_PASS
 
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
