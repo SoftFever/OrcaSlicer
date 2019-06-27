@@ -477,6 +477,10 @@ private:
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
+#if ENABLE_RENDER_PICKING_PASS
+    bool m_show_picking_texture;
+#endif // ENABLE_RENDER_PICKING_PASS
+
 #if ENABLE_RENDER_STATISTICS
     RenderStats m_render_stats;
 #endif // ENABLE_RENDER_STATISTICS
