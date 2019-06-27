@@ -15,6 +15,8 @@
 #define ENABLE_RENDER_STATISTICS 0
 // Shows an imgui dialog with camera related data
 #define ENABLE_CAMERA_STATISTICS 0
+//  Render the picking pass instead of the main scene 
+#define ENABLE_RENDER_PICKING_PASS 0
 
 
 //====================
