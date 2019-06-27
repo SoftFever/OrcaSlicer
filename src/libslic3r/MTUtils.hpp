@@ -276,8 +276,7 @@ using EigenVec = Eigen::Matrix<T, N, 1, Eigen::DontAlign>;
 // Semantics are the following:
 // Upscaling (scaled()): only from floating point types (or Vec) to either
 //                       floating point or integer 'scaled coord' coordinates.
-// Downscaling (unscaled()): from arithmetic types (or Vec) to either
-//                           floating point only
+// Downscaling (unscaled()): from arithmetic (or Vec) to floating point only
 
 // Conversion definition from unscaled to floating point scaled
 template<class Tout,
@@ -286,25 +285,25 @@ template<class Tout,
          class = FloatingOnly<Tout>>
 inline SLIC3R_CONSTEXPR Tout scaled(const Tin &v) SLIC3R_NOEXCEPT
 {
-    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
+    return Tout(v / Tin(SCALING_FACTOR));
 }
 
 // Conversion definition from unscaled to integer 'scaled coord'.
-// TODO: is the rounding necessary ? Here it is to show that it can be different
-// but it does not have to be. Using std::round means loosing noexcept and
-// constexpr modifiers
+// TODO: is the rounding necessary? Here it is commented  out to show that
+// it can be different for integers but it does not have to be. Using
+// std::round means loosing noexcept and constexpr modifiers
 template<class Tout = coord_t, class Tin, class = FloatingOnly<Tin>>
 inline SLIC3R_CONSTEXPR ScaledCoordOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCEPT
 {
     //return static_cast<Tout>(std::round(v / SCALING_FACTOR));
-    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
+    return Tout(v / Tin(SCALING_FACTOR));
 }
 
 // Conversion for Eigen vectors (N dimensional points)
 template<class Tout = coord_t, class Tin, int N, class = FloatingOnly<Tin>>
 inline EigenVec<ArithmeticOnly<Tout>, N> scaled(const EigenVec<Tin, N> &v)
 {
-    return v.template cast<Tout>() / SCALING_FACTOR;
+    return v.template cast<Tout>() /*/ SCALING_FACTOR*/;
 }
 
 // Conversion from arithmetic scaled type to floating point unscaled
@@ -314,7 +313,7 @@ template<class Tout = double,
          class = FloatingOnly<Tout>>
 inline SLIC3R_CONSTEXPR Tout unscaled(const Tin &v) SLIC3R_NOEXCEPT
 {
-    return static_cast<Tout>(v * static_cast<Tout>(SCALING_FACTOR));
+    return Tout(v * Tout(SCALING_FACTOR));
 }
 
 // Unscaling for Eigen vectors. Input base type can be arithmetic, output base

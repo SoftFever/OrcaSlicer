@@ -7,6 +7,7 @@
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "Slicing.hpp"
+#include "ModelArrange.hpp"
 
 #include <map>
 #include <memory>
@@ -490,7 +491,7 @@ private:
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance : public ModelBase
+class ModelInstance : public ModelBase, public arr::Arrangeable
 {
 public:
     enum EPrintVolumeState : unsigned char
@@ -552,6 +553,16 @@ public:
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
+    
+    virtual void set_arrange_result(Vec2d offs, double rot_rads) final
+    {
+        // write the transformation data into the model instance
+        set_rotation(Z, get_rotation(Z) + rot_rads);
+        set_offset(X, get_offset(X) + offs(X));
+        set_offset(Y, get_offset(Y) + offs(Y));
+    }
+    
+    virtual Polygon get_arrange_polygon() const final;
 
 protected:
     friend class Print;

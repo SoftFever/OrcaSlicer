@@ -32,8 +32,8 @@ enum class BedShapeType {
 };
 
 struct BedShapeHint {
-    BedShapeType type;
-    /*union*/ struct {  // I know but who cares...
+    BedShapeType type = BedShapeType::WHO_KNOWS;
+    /*union*/ struct {  // I know but who cares... TODO: use variant from cpp17?
         Circle circ;
         BoundingBox box;
         Polyline polygon;
@@ -42,24 +42,17 @@ struct BedShapeHint {
 
 BedShapeHint bedShape(const Polyline& bed);
 
-class ArrangeItem {
+class Arrangeable {
 public:
     
-    virtual ~ArrangeItem() = default;
+    virtual ~Arrangeable() = default;
     
-    virtual void transform(Vec2d offset, double rotation_rads) = 0;
+    virtual void set_arrange_result(Vec2d offset, double rotation_rads) = 0;
     
-    virtual Polygon silhouette() const = 0;
+    virtual Polygon get_arrange_polygon() const = 0;
 };
 
-using ArrangeItems = std::vector<std::reference_wrapper<ArrangeItem>>;
-
-//struct WipeTowerInfo {
-//    bool is_wipe_tower = false;
-//    Vec2d pos;
-//    Vec2d bb_size;
-//    double rotation;
-//};
+using ArrangeableRefs = std::vector<std::reference_wrapper<Arrangeable>>;
 
 /**
  * \brief Arranges the model objects on the screen.
@@ -96,7 +89,7 @@ using ArrangeItems = std::vector<std::reference_wrapper<ArrangeItem>>;
 //             std::function<void(unsigned)> progressind,
 //             std::function<bool(void)> stopcondition);
 
-bool arrange(ArrangeItems &items,
+bool arrange(ArrangeableRefs &items,
              coord_t min_obj_distance,
              BedShapeHint bedhint,
              std::function<void(unsigned)> progressind,
@@ -109,8 +102,8 @@ bool arrange(ArrangeItems &items,
 //                       coord_t min_obj_distance,
 //                       const Slic3r::Polyline& bed,
 //                       WipeTowerInfo& wti);
-void find_new_position(ArrangeItems &items,
-                       const ArrangeItems &instances_to_add,
+void find_new_position(ArrangeableRefs &items,
+                       const ArrangeableRefs &instances_to_add,
                        coord_t min_obj_distance,
                        BedShapeHint bedhint);
 

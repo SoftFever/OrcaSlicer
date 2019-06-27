@@ -1424,22 +1424,25 @@ struct Plater::priv
         priv * m_plater;
 
         class ArrangeJob : public Job
-        {
-            int count = 0;
-
+        {   
+            int m_count = 0;
+            GLCanvas3D::WipeTowerInfo m_wti;
         protected:
+
             void prepare() override
             {
-                count = 0;
+                m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
+                m_count = bool(m_wti);
+                
                 for (auto obj : plater().model.objects)
-                    count += int(obj->instances.size());
+                    m_count += int(obj->instances.size());
             }
 
         public:
             //using Job::Job;
             ArrangeJob(priv * pltr): Job(pltr) {}
-            int  status_range() const override { return count; }
-            void set_count(int c) { count = c; }
+            int  status_range() const override { return m_count; }
+            void set_count(int c) { m_count = c; }
             void process() override;
         } arrange_job/*{m_plater}*/;
 
@@ -1525,6 +1528,7 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
+    arr::BedShapeHint get_bed_shape_hint() const;
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
@@ -2171,9 +2175,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     auto& bedpoints = bed_shape_opt->values;
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
-
-    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
-
+    
+    std::pair<bool, GLCanvas3D::WipeTowerInfo> wti = view3D->get_canvas3d()->get_wipe_tower_info();
+    
     arr::find_new_position(model, new_instances, min_obj_distance, bed, wti);
 
     // it remains to move the wipe tower:
@@ -2400,61 +2404,60 @@ void Plater::priv::sla_optimize_rotation() {
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
-    static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
+arr::BedShapeHint Plater::priv::get_bed_shape_hint() const {
+    arr::BedShapeHint bedshape;
     
-    class ArrItemModelInstance: public arr::ArrangeItem {
-        ModelInstance *m_inst = nullptr;
-    public:
-        
-        ArrItemModelInstance() = default;
-        ArrItemModelInstance(ModelInstance *inst) : m_inst(inst) {}
-        
-        virtual void transform(Vec2d offs, double rot_rads) override {
-            assert(m_inst);
-            
-            // write the transformation data into the model instance
-            m_inst->set_rotation(Z, rot_rads);
-            m_inst->set_offset(offs);
-        }
-        
-        virtual Polygon silhouette() const override {
-            assert(m_inst);
-            
-            Vec3d          rotation    = m_inst->get_rotation();
-            rotation.z()               = 0.;
-            Transform3d trafo_instance = Geometry::assemble_transform(
-                Vec3d::Zero(),
-                rotation,
-                m_inst->get_scaling_factor(),
-                m_inst->get_mirror());
-            
-            Polygon p = m_inst->get_object()->convex_hull_2d(trafo_instance);
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    assert(bed_shape_opt);
+    
+    if (bed_shape_opt) {
+        auto &bedpoints = bed_shape_opt->values;
+        Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
+        for (auto &v : bedpoints) bedpoly.append(scaled(v));
+        bedshape = arr::bedShape(bedpoly);
+    }
+    
+    return bedshape;
+}
 
-            assert(!p.points.empty());
+void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {    
+    static const auto arrangestr = _(L("Arranging"));
+   
+    arr::ArrangeableRefs arrangeinput; arrangeinput.reserve(m_count);
+    for(ModelObject *mo : plater().model.objects)
+        for(ModelInstance *minst : mo->instances)
+            arrangeinput.emplace_back(std::ref(*minst));
+    
+    // FIXME: I don't know how to obtain the minimum distance, it depends
+    // on printer technology. I guess the following should work but it crashes.
+    double dist = 6; // PrintConfig::min_object_distance(config);
+    if (plater().printer_technology == ptFFF) {
+        dist = PrintConfig::min_object_distance(plater().config);
+    }
+    
+    coord_t min_obj_distance = scaled(dist);
+    
+    arr::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    
+    try {
+        arr::arrange(arrangeinput,
+                     min_obj_distance,
+                     bedshape,
+                     [this](unsigned st) {
+                         if (st > 0)
+                             update_status(m_count - int(st), arrangestr);
+                     },
+                     [this]() { return was_canceled(); });
+    } catch (std::exception & /*e*/) {
+        GUI::show_error(plater().q,
+                        _(L("Could not arrange model objects! "
+                            "Some geometries may be invalid.")));
+    }
+    
+    update_status(m_count,
+                  was_canceled() ? _(L("Arranging canceled."))
+                                 : _(L("Arranging done.")));
 
-            // this may happen for malformed models, see:
-            // https://github.com/prusa3d/PrusaSlicer/issues/2209
-            if (p.points.empty()) return {};
-
-            Polygons pp { p };
-            pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-            if (!pp.empty()) p = pp.front();
-            
-            return p;
-        }
-    };
-    
-    // Count all the items on the bin (all the object's instances)
-    auto count = std::accumulate(plater().model.objects.begin(),
-                             plater().model.objects.end(),
-                             size_t(0), [](size_t s, ModelObject* o)
-    {
-        return s + o->instances.size();
-    });
-    
-//    std::vector<ArrItemInstance> items(size_t);
-    
     // TODO: we should decide whether to allow arrange when the search is
     // running we should probably disable explicit slicing and background
     // processing

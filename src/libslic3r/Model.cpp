@@ -1,5 +1,6 @@
 #include "Model.hpp"
 #include "Geometry.hpp"
+#include "MTUtils.hpp"
 
 #include "Format/AMF.hpp"
 #include "Format/OBJ.hpp"
@@ -1798,6 +1799,35 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->rotate(get_rotation(Z)); // rotate around polygon origin
     // CHECK_ME -> Is the following correct ?
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
+}
+
+Polygon ModelInstance::get_arrange_polygon() const
+{
+    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
+    
+    assert(m_inst);
+    
+    Vec3d rotation             = get_rotation();
+    rotation.z()               = 0.;
+    Transform3d trafo_instance = Geometry::
+            assemble_transform(Vec3d::Zero(),
+                               rotation,
+                               get_scaling_factor(),
+                               get_mirror());
+    
+    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    
+    assert(!p.points.empty());
+    
+    // this may happen for malformed models, see:
+    // https://github.com/prusa3d/PrusaSlicer/issues/2209
+    if (p.points.empty()) return {};
+    
+    Polygons pp{p};
+    pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+    if (!pp.empty()) p = pp.front();
+    
+    return p;
 }
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
