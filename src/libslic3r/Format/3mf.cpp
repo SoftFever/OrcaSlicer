@@ -17,7 +17,6 @@
 #include <boost/nowide/cstdio.hpp>
 
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
 namespace pt = boost::property_tree;
@@ -2156,7 +2155,7 @@ namespace Slic3r {
             boost::replace_all(out, "><config",      ">\n    <config");
             boost::replace_all(out, "><option",      ">\n     <option");
             boost::replace_all(out, "></config",     ">\n    </config");
-            boost::replace_all(out, "></range ",     ">\n   </range ");
+            boost::replace_all(out, "></range>",     ">\n   </range>");
             boost::replace_all(out, "></ranges",     ">\n  </ranges");
             boost::replace_all(out, "></object",     ">\n </object");
         }
