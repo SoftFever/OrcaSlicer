@@ -257,6 +257,8 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
 
     this->Bind(wxEVT_KILL_FOCUS, [this, edit_fn](wxFocusEvent& e)
     {
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+
         if (!m_enter_pressed) {
 #ifndef __WXGTK__
             /* Update data for next editor selection.
