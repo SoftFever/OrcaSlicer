@@ -246,7 +246,7 @@ public:
     struct TaskParams {
 		TaskParams() : single_model_object(0), single_model_instance_only(false), to_object_step(-1), to_print_step(-1) {}
         // If non-empty, limit the processing to this ModelObject.
-        ModelID                 single_model_object;
+        ObjectID                single_model_object;
 		// If set, only process single_model_object. Otherwise process everything, but single_model_object first.
 		bool					single_model_instance_only;
         // If non-negative, stop processing at the successive object step.

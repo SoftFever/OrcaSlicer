@@ -114,6 +114,8 @@ add_library(libslic3r STATIC
     MultiPoint.cpp
     MultiPoint.hpp
     MutablePriorityQueue.hpp
+    ObjectID.cpp
+    ObjectID.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp

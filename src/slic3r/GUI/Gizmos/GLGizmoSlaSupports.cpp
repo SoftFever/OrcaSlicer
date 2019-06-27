@@ -380,7 +380,7 @@ bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_current_mesh_model_id) || m_its == nullptr);
+        && ((m_model_object->id() != m_current_mesh_object_id) || m_its == nullptr);
 }
 
 void GLGizmoSlaSupports::update_mesh()
@@ -390,7 +390,7 @@ void GLGizmoSlaSupports::update_mesh()
     // This mesh does not account for the possible Z up SLA offset.
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
-    m_current_mesh_model_id = m_model_object->id();
+    m_current_mesh_object_id = m_model_object->id();
     m_editing_mode = false;
 
 	m_AABB.deinit();

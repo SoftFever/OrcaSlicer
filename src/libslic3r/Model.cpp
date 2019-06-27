@@ -22,18 +22,16 @@ namespace Slic3r {
 
 unsigned int Model::s_auto_extruder_id = 1;
 
-size_t ModelBase::s_last_id = 0;
-
 // Unique object / instance ID for the wipe tower.
-ModelID wipe_tower_object_id()
+ObjectID wipe_tower_object_id()
 {
-    static ModelBase mine;
+    static ObjectBase mine;
     return mine.id();
 }
 
-ModelID wipe_tower_instance_id()
+ObjectID wipe_tower_instance_id()
 {
-    static ModelBase mine;
+    static ObjectBase mine;
     return mine.id();
 }
 
@@ -221,7 +219,7 @@ bool Model::delete_object(ModelObject* object)
     return false;
 }
 
-bool Model::delete_object(ModelID id)
+bool Model::delete_object(ObjectID id)
 {
     if (id.id != 0) {
         size_t idx = 0;
@@ -1865,8 +1863,8 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
 void check_model_ids_validity(const Model &model)
 {
-    std::set<ModelID> ids;
-    auto check = [&ids](ModelID id) { 
+    std::set<ObjectID> ids;
+    auto check = [&ids](ObjectID id) { 
         assert(id.id > 0);
         assert(ids.find(id) == ids.end());
         ids.insert(id);
@@ -1912,14 +1910,13 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
 }
 
 #if 0
-CEREAL_REGISTER_TYPE(Slic3r::ModelBase)
 CEREAL_REGISTER_TYPE(Slic3r::ModelObject)
 CEREAL_REGISTER_TYPE(Slic3r::ModelVolume)
 CEREAL_REGISTER_TYPE(Slic3r::ModelInstance)
 CEREAL_REGISTER_TYPE(Slic3r::Model)
 
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelObject)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelVolume)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::ModelInstance)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ModelBase, Slic3r::Model)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ObjectBase, Slic3r::ModelObject)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ObjectBase, Slic3r::ModelVolume)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ObjectBase, Slic3r::ModelInstance)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ObjectBase, Slic3r::Model)
 #endif

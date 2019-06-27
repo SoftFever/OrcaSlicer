@@ -171,7 +171,7 @@ private:
         Vec3d dragging_center;
         // Map from indices of ModelObject instances in Model::objects
         // to a set of indices of ModelVolume instances in ModelObject::instances
-        // Here the index means a position inside the respective std::vector, not ModelID.
+        // Here the index means a position inside the respective std::vector, not ObjectID.
         ObjectIdxsToInstanceIdxsMap content;
     };
 

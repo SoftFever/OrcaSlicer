@@ -2,19 +2,20 @@
 #define slic3r_Model_hpp_
 
 #include "libslic3r.h"
-#include "PrintConfig.hpp"
+#include "Geometry.hpp"
 #include "Layer.hpp"
+#include "ObjectID.hpp"
 #include "Point.hpp"
-#include "TriangleMesh.hpp"
+#include "PrintConfig.hpp"
 #include "Slicing.hpp"
+#include "SLA/SLACommon.hpp"
+#include "TriangleMesh.hpp"
 
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-#include "Geometry.hpp"
-#include <libslic3r/SLA/SLACommon.hpp>
 
 namespace Slic3r {
 
@@ -35,82 +36,11 @@ typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
 
-// Unique identifier of a Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial.
-// Used to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject)
-// Valid IDs are strictly positive (non zero).
-// It is declared as an object, as some compilers (notably msvcc) consider a typedef size_t equivalent to size_t
-// for parameter overload.
-class ModelID 
-{
-public:
-	ModelID(size_t id) : id(id) {}
-
-	bool operator==(const ModelID &rhs) const { return this->id == rhs.id; }
-	bool operator!=(const ModelID &rhs) const { return this->id != rhs.id; }
-	bool operator< (const ModelID &rhs) const { return this->id <  rhs.id; }
-	bool operator> (const ModelID &rhs) const { return this->id >  rhs.id; }
-	bool operator<=(const ModelID &rhs) const { return this->id <= rhs.id; }
-	bool operator>=(const ModelID &rhs) const { return this->id >= rhs.id; }
-
-    bool valid() const { return id != 0; }
-
-	size_t	id;
-
-private:
-	ModelID() {}
-
-	friend class cereal::access;
-	template<class Archive> void serialize(Archive &ar) { ar(id); }
-};
-
 // Unique object / instance ID for the wipe tower.
-extern ModelID wipe_tower_object_id();
-extern ModelID wipe_tower_instance_id();
+extern ObjectID wipe_tower_object_id();
+extern ObjectID wipe_tower_instance_id();
 
-// Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
-// to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
-// Achtung! The s_last_id counter is not thread safe, so it is expected, that the ModelBase derived instances
-// are only instantiated from the main thread.
-class ModelBase
-{
-public:
-    ModelID     id() const { return m_id; }
-
-protected:
-    // Constructors to be only called by derived classes.
-    // Default constructor to assign a unique ID.
-    ModelBase() : m_id(generate_new_id()) {}
-    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
-    // by an existing ID copied from elsewhere.
-    ModelBase(int) : m_id(ModelID(0)) {}
-	// The class tree will have virtual tables and type information.
-	virtual ~ModelBase() {}
-
-    // Use with caution!
-    void        set_new_unique_id() { m_id = generate_new_id(); }
-    void        set_invalid_id()    { m_id = 0; }
-    // Use with caution!
-    void        copy_id(const ModelBase &rhs) { m_id = rhs.id(); }
-
-    // Override this method if a ModelBase derived class owns other ModelBase derived instances.
-    void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
-
-private:
-    ModelID                 m_id;
-
-	static inline ModelID   generate_new_id() { return ModelID(++ s_last_id); }
-    static size_t           s_last_id;
-	
-	friend ModelID wipe_tower_object_id();
-	friend ModelID wipe_tower_instance_id();
-
-	friend class cereal::access;
-	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
-    ModelBase(const ModelID id) : m_id(id) {}
-  	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ModelBase> &construct) { ModelID id; ar(id); construct(id); }
-};
-
-#define MODELBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
+#define OBJECTBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
     /* Copy a model, copy the IDs. The Print::apply() will call the TYPE::copy() method */ \
     /* to make a private copy for background processing. */ \
     static TYPE* new_copy(const TYPE &rhs)  { return new TYPE(rhs); } \
@@ -138,14 +68,14 @@ private:
 		return *this; \
     }
 
-#define MODELBASE_DERIVED_PRIVATE_COPY_MOVE(TYPE) \
+#define OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(TYPE) \
 private: \
     /* Private constructor with an unused int parameter will create a TYPE instance with an invalid ID. */ \
-    explicit TYPE(int) : ModelBase(-1) {}; \
+    explicit TYPE(int) : ObjectBase(-1) {}; \
     void assign_new_unique_ids_recursive();
 
 // Material, which may be shared across multiple ModelObjects of a single Model.
-class ModelMaterial : public ModelBase
+class ModelMaterial : public ObjectBase
 {
 public:
     // Attributes are defined by the AMF file format, but they don't seem to be used by Slic3r for any purpose.
@@ -175,14 +105,14 @@ private:
 
 	friend class cereal::access;
 	ModelMaterial() : m_model(nullptr) {}
-	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ModelBase>(this)); ar(attributes, config); }
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ObjectBase>(this)); ar(attributes, config); }
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
 // different rotation and different uniform scaling.
-class ModelObject : public ModelBase
+class ModelObject : public ObjectBase
 {
     friend class Model;
 public:
@@ -323,13 +253,13 @@ private:
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
     /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
-    ModelObject(const ModelObject &rhs) : ModelBase(-1), m_model(rhs.m_model) { this->assign_copy(rhs); }
-    explicit ModelObject(ModelObject &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
+    ModelObject(const ModelObject &rhs) : ObjectBase(-1), m_model(rhs.m_model) { this->assign_copy(rhs); }
+    explicit ModelObject(ModelObject &&rhs) : ObjectBase(-1) { this->assign_copy(std::move(rhs)); }
     ModelObject& operator=(const ModelObject &rhs) { this->assign_copy(rhs); m_model = rhs.m_model; return *this; }
     ModelObject& operator=(ModelObject &&rhs) { this->assign_copy(std::move(rhs)); m_model = rhs.m_model; return *this; }
 
-    MODELBASE_DERIVED_COPY_MOVE_CLONE(ModelObject)
-	MODELBASE_DERIVED_PRIVATE_COPY_MOVE(ModelObject)
+    OBJECTBASE_DERIVED_COPY_MOVE_CLONE(ModelObject)
+	OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(ModelObject)
 
     // Parent object, owning this ModelObject. Set to nullptr here, so the macros above will have it initialized.
     Model                *m_model = nullptr;
@@ -345,7 +275,7 @@ private:
 	friend class cereal::access;
 	ModelObject() : m_model(nullptr), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
 	template<class Archive> void serialize(Archive &ar) { 
-		ar(cereal::base_class<ModelBase>(this));
+		ar(cereal::base_class<ObjectBase>(this));
 		ar(name, input_file, instances, volumes, config, layer_height_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
 			m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
@@ -362,7 +292,7 @@ enum class ModelVolumeType : int {
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
-class ModelVolume : public ModelBase
+class ModelVolume : public ObjectBase
 {
 public:
     std::string         name;
@@ -456,7 +386,7 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
-    using ModelBase::set_new_unique_id;
+    using ObjectBase::set_new_unique_id;
 
 protected:
 	friend class Print;
@@ -496,7 +426,7 @@ private:
 
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
-        ModelBase(other), // copy the ID
+        ObjectBase(other), // copy the ID
         name(other.name), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
@@ -515,14 +445,14 @@ private:
 	friend class cereal::access;
 	ModelVolume() : object(nullptr) {}
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ModelBase>(this));
+		ar(cereal::base_class<ObjectBase>(this));
 		ar(name, config, m_mesh, m_type, m_material_id, m_convex_hull, m_transformation, m_is_splittable);
 	}
 };
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance : public ModelBase
+class ModelInstance : public ObjectBase
 {
 public:
     enum EPrintVolumeState : unsigned char
@@ -610,7 +540,7 @@ private:
 	friend class cereal::access;
 	ModelInstance() : object(nullptr) {}
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ModelBase>(this));
+		ar(cereal::base_class<ObjectBase>(this));
 		ar(m_transformation, print_volume_state);
 	}
 };
@@ -620,7 +550,7 @@ private:
 // and with multiple modifier meshes.
 // A model groups multiple objects, each object having possibly multiple instances,
 // all objects may share mutliple materials.
-class Model : public ModelBase
+class Model : public ObjectBase
 {
     static unsigned int s_auto_extruder_id;
 
@@ -637,12 +567,12 @@ public:
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
     /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
-    Model(const Model &rhs) : ModelBase(-1) { this->assign_copy(rhs); }
-    explicit Model(Model &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
+    Model(const Model &rhs) : ObjectBase(-1) { this->assign_copy(rhs); }
+    explicit Model(Model &&rhs) : ObjectBase(-1) { this->assign_copy(std::move(rhs)); }
     Model& operator=(const Model &rhs) { this->assign_copy(rhs); return *this; }
     Model& operator=(Model &&rhs) { this->assign_copy(std::move(rhs)); return *this; }
 
-    MODELBASE_DERIVED_COPY_MOVE_CLONE(Model)
+    OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
     static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
@@ -653,7 +583,7 @@ public:
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other);
     void         delete_object(size_t idx);
-    bool         delete_object(ModelID id);
+    bool         delete_object(ObjectID id);
     bool         delete_object(ModelObject* object);
     void         clear_objects();
 
@@ -700,16 +630,16 @@ public:
     std::string         propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
-    MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
+    OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
 
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ModelBase>(this), materials, objects);
+		ar(cereal::base_class<ObjectBase>(this), materials, objects);
 	}
 };
 
-#undef MODELBASE_DERIVED_COPY_MOVE_CLONE
-#undef MODELBASE_DERIVED_PRIVATE_COPY_MOVE
+#undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
+#undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
 // ordered in the same order. In that case it is not necessary to kill the background processing.
@@ -729,6 +659,6 @@ void check_model_ids_validity(const Model &model);
 void check_model_ids_equal(const Model &model1, const Model &model2);
 #endif /* NDEBUG */
 
-}
+} // namespace Slic3r
 
-#endif
+#endif /* slic3r_Model_hpp_ */
