@@ -444,7 +444,7 @@ lcreat ( void * liststruct, int elements )
     l->poolsize = DEFAULT_POOLSIZE;
   }
   else {
-    l->poolsize = elements*sizeof(LISTNODE)+sizeof(NODEPOOL);
+    l->poolsize = (short)(elements*sizeof(LISTNODE)+sizeof(NODEPOOL));
   }
 
   l->n_ln_pool = (l->poolsize-sizeof(NODEPOOL))/sizeof(LISTNODE);
@@ -803,7 +803,7 @@ lget_n ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>lsize(l))) {
+  if ((n < 1) || (n > (unsigned)lsize(l))) {
     return NULL;
   }
 
@@ -844,7 +844,7 @@ lget_ln ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>lsize(l))) {
+  if ((n < 1) || (n > (unsigned)lsize(l))) {
     return NULL;
   }
 
@@ -941,7 +941,7 @@ insert_ln ( LIST * l, LISTNODE * ln, void * data_ptr )
 |
 |  Insert data before the nth item in the list.
  -----------------------------------------------------------------*/
-int 
+int
 lins_n ( LISTID lid, void * data_ptr, unsigned int n )
 {
   int i;
@@ -952,7 +952,7 @@ lins_n ( LISTID lid, void * data_ptr, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>(l->num+1))) {
+  if ((n < 1) || (n > (unsigned)(l->num+1))) {
     return -1;
   }
 
@@ -1193,7 +1193,7 @@ lrmv_n ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>l->num)) {
+  if ((n < 1) || (n > (unsigned)l->num)) {
     return NULL;
   }
 

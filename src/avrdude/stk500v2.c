@@ -130,58 +130,58 @@ struct jtagispentry
 #define SZ_SPI_MULTI     (USHRT_MAX - 1)
 };
 
-static const struct jtagispentry jtagispcmds[] = {
-  /* generic */
-  { CMD_SET_PARAMETER, 2 },
-  { CMD_GET_PARAMETER, 3 },
-  { CMD_OSCCAL, 2 },
-  { CMD_LOAD_ADDRESS, 2 },
-  /* ISP mode */
-  { CMD_ENTER_PROGMODE_ISP, 2 },
-  { CMD_LEAVE_PROGMODE_ISP, 2 },
-  { CMD_CHIP_ERASE_ISP, 2 },
-  { CMD_PROGRAM_FLASH_ISP, 2 },
-  { CMD_READ_FLASH_ISP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_EEPROM_ISP, 2 },
-  { CMD_READ_EEPROM_ISP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_FUSE_ISP, 3 },
-  { CMD_READ_FUSE_ISP, 4 },
-  { CMD_PROGRAM_LOCK_ISP, 3 },
-  { CMD_READ_LOCK_ISP, 4 },
-  { CMD_READ_SIGNATURE_ISP, 4 },
-  { CMD_READ_OSCCAL_ISP, 4 },
-  { CMD_SPI_MULTI, SZ_SPI_MULTI },
-  /* all HV modes */
-  { CMD_SET_CONTROL_STACK, 2 },
-  /* HVSP mode */
-  { CMD_ENTER_PROGMODE_HVSP, 2 },
-  { CMD_LEAVE_PROGMODE_HVSP, 2 },
-  { CMD_CHIP_ERASE_HVSP, 2 },
-  { CMD_PROGRAM_FLASH_HVSP, 2 },
-  { CMD_READ_FLASH_HVSP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_EEPROM_HVSP, 2 },
-  { CMD_READ_EEPROM_HVSP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_FUSE_HVSP, 2 },
-  { CMD_READ_FUSE_HVSP, 3 },
-  { CMD_PROGRAM_LOCK_HVSP, 2 },
-  { CMD_READ_LOCK_HVSP, 3 },
-  { CMD_READ_SIGNATURE_HVSP, 3 },
-  { CMD_READ_OSCCAL_HVSP, 3 },
-  /* PP mode */
-  { CMD_ENTER_PROGMODE_PP, 2 },
-  { CMD_LEAVE_PROGMODE_PP, 2 },
-  { CMD_CHIP_ERASE_PP, 2 },
-  { CMD_PROGRAM_FLASH_PP, 2 },
-  { CMD_READ_FLASH_PP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_EEPROM_PP, 2 },
-  { CMD_READ_EEPROM_PP, SZ_READ_FLASH_EE },
-  { CMD_PROGRAM_FUSE_PP, 2 },
-  { CMD_READ_FUSE_PP, 3 },
-  { CMD_PROGRAM_LOCK_PP, 2 },
-  { CMD_READ_LOCK_PP, 3 },
-  { CMD_READ_SIGNATURE_PP, 3 },
-  { CMD_READ_OSCCAL_PP, 3 },
-};
+// static const struct jtagispentry jtagispcmds[] = {
+//   /* generic */
+//   { CMD_SET_PARAMETER, 2 },
+//   { CMD_GET_PARAMETER, 3 },
+//   { CMD_OSCCAL, 2 },
+//   { CMD_LOAD_ADDRESS, 2 },
+//   /* ISP mode */
+//   { CMD_ENTER_PROGMODE_ISP, 2 },
+//   { CMD_LEAVE_PROGMODE_ISP, 2 },
+//   { CMD_CHIP_ERASE_ISP, 2 },
+//   { CMD_PROGRAM_FLASH_ISP, 2 },
+//   { CMD_READ_FLASH_ISP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_EEPROM_ISP, 2 },
+//   { CMD_READ_EEPROM_ISP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_FUSE_ISP, 3 },
+//   { CMD_READ_FUSE_ISP, 4 },
+//   { CMD_PROGRAM_LOCK_ISP, 3 },
+//   { CMD_READ_LOCK_ISP, 4 },
+//   { CMD_READ_SIGNATURE_ISP, 4 },
+//   { CMD_READ_OSCCAL_ISP, 4 },
+//   { CMD_SPI_MULTI, SZ_SPI_MULTI },
+//   /* all HV modes */
+//   { CMD_SET_CONTROL_STACK, 2 },
+//   /* HVSP mode */
+//   { CMD_ENTER_PROGMODE_HVSP, 2 },
+//   { CMD_LEAVE_PROGMODE_HVSP, 2 },
+//   { CMD_CHIP_ERASE_HVSP, 2 },
+//   { CMD_PROGRAM_FLASH_HVSP, 2 },
+//   { CMD_READ_FLASH_HVSP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_EEPROM_HVSP, 2 },
+//   { CMD_READ_EEPROM_HVSP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_FUSE_HVSP, 2 },
+//   { CMD_READ_FUSE_HVSP, 3 },
+//   { CMD_PROGRAM_LOCK_HVSP, 2 },
+//   { CMD_READ_LOCK_HVSP, 3 },
+//   { CMD_READ_SIGNATURE_HVSP, 3 },
+//   { CMD_READ_OSCCAL_HVSP, 3 },
+//   /* PP mode */
+//   { CMD_ENTER_PROGMODE_PP, 2 },
+//   { CMD_LEAVE_PROGMODE_PP, 2 },
+//   { CMD_CHIP_ERASE_PP, 2 },
+//   { CMD_PROGRAM_FLASH_PP, 2 },
+//   { CMD_READ_FLASH_PP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_EEPROM_PP, 2 },
+//   { CMD_READ_EEPROM_PP, SZ_READ_FLASH_EE },
+//   { CMD_PROGRAM_FUSE_PP, 2 },
+//   { CMD_READ_FUSE_PP, 3 },
+//   { CMD_PROGRAM_LOCK_PP, 2 },
+//   { CMD_READ_LOCK_PP, 3 },
+//   { CMD_READ_SIGNATURE_PP, 3 },
+//   { CMD_READ_OSCCAL_PP, 3 },
+// };
 
 /*
  * From XML file:
@@ -379,15 +379,15 @@ static void stk500v2_jtag3_teardown(PROGRAMMER * pgm)
 }
 
 
-static unsigned short
-b2_to_u16(unsigned char *b)
-{
-  unsigned short l;
-  l = b[0];
-  l += (unsigned)b[1] << 8;
+// static unsigned short
+// b2_to_u16(unsigned char *b)
+// {
+//   unsigned short l;
+//   l = b[0];
+//   l += (unsigned)b[1] << 8;
 
-  return l;
-}
+//   return l;
+// }
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
@@ -399,16 +399,16 @@ static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
   return 0;
 }
 
-static unsigned short get_jtagisp_return_size(unsigned char cmd)
-{
-  int i;
+// static unsigned short get_jtagisp_return_size(unsigned char cmd)
+// {
+//   int i;
 
-  for (i = 0; i < sizeof jtagispcmds / sizeof jtagispcmds[0]; i++)
-    if (jtagispcmds[i].cmd == cmd)
-      return jtagispcmds[i].size;
+//   for (i = 0; i < sizeof jtagispcmds / sizeof jtagispcmds[0]; i++)
+//     if (jtagispcmds[i].cmd == cmd)
+//       return jtagispcmds[i].size;
 
-  return 0;
-}
+//   return 0;
+// }
 
 /*
  * Send the data as a JTAG ICE mkII encapsulated ISP packet.
@@ -504,7 +504,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   buf[0] = MESSAGE_START;
   buf[1] = PDATA(pgm)->command_sequence;
-  buf[2] = len / 256;
+  buf[2] = (char)(len / 256);
   buf[3] = len % 256;
   buf[4] = TOKEN;
   memcpy(buf+5, data, len);
@@ -1128,7 +1128,8 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
   char msg[100];             /* see remarks above about size needed */
-  int rv, tries;
+  int rv;
+  // int tries;
 
   PDATA(pgm)->lastpart = p;
 
@@ -1143,7 +1144,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
       /* Activate AVR-style (low active) RESET */
       stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
 
-  tries = 0;
+  // tries = 0;
 // retry:
   buf[0] = CMD_ENTER_PROGMODE_ISP;
   buf[1] = p->timeout;
@@ -1882,7 +1883,7 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
         return -1;
   } else {
-    buf[1] = addr;
+    buf[1] = (char)addr;
   }
 
   avrdude_message(MSG_NOTICE2, "%s: stk500hv_read_byte(): Sending read memory command: ",
@@ -2137,7 +2138,7 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
         return -1;
   } else {
-    buf[1] = addr;
+    buf[1] = (char)addr;
     buf[2] = data;
     if (mode == PPMODE) {
       buf[3] = pulsewidth;
@@ -2298,7 +2299,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes)
 {
-static int page = 0;
+// static int page = 0;
   unsigned int block_size, last_addr, addrshift, use_ext_addr;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char commandbuf[10];
@@ -2833,10 +2834,10 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
                       progname, v, unit, STK500V2_XTAL / 2e6);
       fosc = STK500V2_XTAL / 2;
     } else
-      fosc = (unsigned)v;
+      fosc = (int)v;
 
     for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
-      if (fosc >= STK500V2_XTAL / (256 * ps[idx] * 2)) {
+      if (fosc >= (int)(STK500V2_XTAL / (256 * ps[idx] * 2))) {
         /* this prescaler value can handle our frequency */
         prescale = idx + 1;
         cmatch = (unsigned)(STK500V2_XTAL / (2 * fosc * ps[idx])) - 1;
@@ -3065,8 +3066,8 @@ static int stk600_set_fosc(PROGRAMMER * pgm, double v)
 {
   unsigned int oct, dac;
 
-  oct = 1.443 * log(v / 1039.0);
-  dac = 2048 - (2078.0 * pow(2, (double)(10 + oct))) / v;
+  oct = (unsigned)(1.443 * log(v / 1039.0));
+  dac = (unsigned)(2048.0 - (2078.0 * pow(2, (double)(10 + oct))) / v);
 
   return stk500v2_setparm2(pgm, PARAM2_CLOCK_CONF, (oct << 12) | (dac << 2));
 }
@@ -3075,7 +3076,7 @@ static int stk600_set_sck_period(PROGRAMMER * pgm, double v)
 {
   unsigned int sck;
 
-  sck = ceil((16e6 / (2 * 1.0 / v)) - 1);
+  sck = (unsigned)ceil((16e6 / (2 * 1.0 / v)) - 1);
 
   if (sck >= 4096)
     sck = 4095;
@@ -3093,7 +3094,7 @@ static int stk500v2_jtag3_set_sck_period(PROGRAMMER * pgm, double v)
   else if (v > 1E-3)
     sck = 1;
   else
-    sck = 1.0 / (1000.0 * v);
+    sck = (unsigned)(1.0 / (1000.0 * v));
 
   value[0] = CMD_SET_SCK;
   value[1] = sck & 0xff;
@@ -3143,7 +3144,7 @@ static int stk500v2_setparm_real(PROGRAMMER * pgm, unsigned char parm, unsigned 
 
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value)
 {
-  unsigned char current_value;
+  unsigned char current_value = 0;
   int res;
 
   res = stk500v2_getparm(pgm, parm, &current_value);
@@ -3214,8 +3215,15 @@ static const char *stk600_get_cardname(const struct carddata *table,
 
 static void stk500v2_display(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char maj, min, hdw, topcard, maj_s1, min_s1, maj_s2, min_s2;
-  unsigned int rev;
+  unsigned char maj = 0;
+  unsigned char min = 0;
+  unsigned char hdw = 0;
+  unsigned char topcard = 0;
+  unsigned char maj_s1 = 0;
+  unsigned char min_s1 = 0;
+  unsigned char maj_s2 = 0;
+  unsigned char min_s2 = 0;
+  unsigned int rev = 0;
   const char *topcard_name, *pgmname;
 
   switch (PDATA(pgm)->pgmtype) {
@@ -3294,13 +3302,20 @@ f_to_kHz_MHz(double f, const char **unit)
 
 static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration =0; //XXX 0 is not correct, check caller
-  unsigned int sck_stk600, clock_conf, dac, oct, varef;
-  unsigned char vtarget_jtag[4];
+  unsigned char vtarget = 0;
+  unsigned char vadjust = 0;
+  unsigned char sck_duration = 0;
+  unsigned char osc_pscale = 0;
+  unsigned char osc_cmatch = 0;
+  unsigned varef = 0;
+  unsigned sck_stk600 = 0;
+  unsigned clock_conf = 0;
+  unsigned dac, oct;
+  // unsigned char vtarget_jtag[4];
   int prescale;
   double f;
   const char *unit;
-  void *mycookie;
+  // void *mycookie;
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
     return;
@@ -3963,10 +3978,10 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     b[0] = XPRG_CMD_WRITE_MEM;
     b[1] = memcode;
     b[2] = 0;			/* pagemode: non-paged write */
-    b[3] = addr >> 24;
-    b[4] = addr >> 16;
-    b[5] = addr >> 8;
-    b[6] = addr;
+    b[3] = (char)(addr >> 24);
+    b[4] = (char)(addr >> 16);
+    b[5] = (char)(addr >> 8);
+    b[6] = (char)addr;
     b[7] = 0;
     b[8] = write_size;
     b[9] = data;
@@ -4011,10 +4026,10 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     addr += mem->offset;
 
     b[0] = XPRG_CMD_READ_MEM;
-    b[2] = addr >> 24;
-    b[3] = addr >> 16;
-    b[4] = addr >> 8;
-    b[5] = addr;
+    b[2] = (char)(addr >> 24);
+    b[3] = (char)(addr >> 16);
+    b[4] = (char)(addr >> 8);
+    b[5] = (char)addr;
     b[6] = 0;
     b[7] = 1;
     if (stk600_xprog_command(pgm, b, 8, 3) < 0) {

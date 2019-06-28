@@ -41,6 +41,7 @@
 static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
   unsigned char buf[32];
+  (void)p;
 
   /* Signature byte reads are always 3 bytes. */
 
@@ -83,9 +84,9 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 static int prusa_init_external_flash(PROGRAMMER * pgm)
 {
   // Note: send/receive as in _the firmare_ send & receives
-  const char entry_magic_send   [] = "start\n";
-  const char entry_magic_receive[] = "w25x20cl_enter\n";
-  const char entry_magic_cfm    [] = "w25x20cl_cfm\n";
+  const char entry_magic_send[]             = "start\n";
+  const unsigned char entry_magic_receive[] = "w25x20cl_enter\n";
+  const char entry_magic_cfm[]              = "w25x20cl_cfm\n";
   const size_t buffer_len = 32;     // Should be large enough for the above messages
 
   int res;
@@ -94,7 +95,7 @@ static int prusa_init_external_flash(PROGRAMMER * pgm)
 
   // 1. receive the "start" command
   recv_size = sizeof(entry_magic_send) - 1;
-  res = serial_recv(&pgm->fd, buffer, recv_size);
+  res = serial_recv(&pgm->fd, (unsigned char *)buffer, recv_size);
   if (res < 0) {
     avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
     return -1;
@@ -111,7 +112,7 @@ static int prusa_init_external_flash(PROGRAMMER * pgm)
 
   // 3. Receive the entry confirmation command
   recv_size = sizeof(entry_magic_cfm) - 1;
-  res = serial_recv(&pgm->fd, buffer, recv_size);
+  res = serial_recv(&pgm->fd, (unsigned char *)buffer, recv_size);
   if (res < 0) {
     avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
     return -1;
@@ -142,7 +143,7 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
 
   // Sometimes there may be line noise generating input on the printer's USB-to-serial IC
   // Here we try to clean its input buffer with a sequence of newlines (a minimum of 9 is needed):
-  const char cleanup_newlines[] = "\n\n\n\n\n\n\n\n\n\n";
+  const unsigned char cleanup_newlines[] = "\n\n\n\n\n\n\n\n\n\n";
   if (serial_send(&pgm->fd, cleanup_newlines, sizeof(cleanup_newlines) - 1) < 0) {
     return -1;
   }
