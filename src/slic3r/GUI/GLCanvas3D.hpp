@@ -613,7 +613,7 @@ public:
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
     
     class WipeTowerInfo: public arr::Arrangeable {
-        Vec2d  m_pos = {std::nan(""), std::nan("")};
+        Vec2d m_pos = {std::nan(""), std::nan("")};
         Vec2d m_bb_size;
         double m_rotation;
         friend class GLCanvas3D;
@@ -621,12 +621,12 @@ public:
         
         inline operator bool() const
         {
-            return std::isnan(m_pos.x()) || std::isnan(m_pos.y());
+            return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
         }
 
-        virtual void set_arrange_result(Vec2d offset, double rotation_rads) final;
+        virtual void apply_arrange_result(Vec2d offset, double rotation_rads) final;
 
-        virtual Polygon get_arrange_polygon() const final
+        virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const final
         {
             Polygon p({
                 {coord_t(0), coord_t(0)},
@@ -636,9 +636,7 @@ public:
                 {coord_t(0), coord_t(0)},
             });
 
-            p.rotate(m_rotation);
-            p.translate(scaled(m_pos));
-            return p;
+            return std::make_tuple(p, scaled(m_pos), m_rotation);
         }
     };
     

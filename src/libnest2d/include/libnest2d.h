@@ -30,9 +30,7 @@ using Circle = _Circle<PointImpl>;
 
 using Item = _Item<PolygonImpl>;
 using Rectangle = _Rectangle<PolygonImpl>;
-
 using PackGroup = _PackGroup<PolygonImpl>;
-using IndexedPackGroup = _IndexedPackGroup<PolygonImpl>;
 
 using FillerSelection = selections::_FillerSelection<PolygonImpl>;
 using FirstFitSelection = selections::_FirstFitSelection<PolygonImpl>;

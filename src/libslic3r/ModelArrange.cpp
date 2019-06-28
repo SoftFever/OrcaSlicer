@@ -4,7 +4,10 @@
 #include "SVG.hpp"
 #include "MTUtils.hpp"
 
-#include <libnest2d.h>
+#include <libnest2d/backends/clipper/geometries.hpp>
+#include <libnest2d/optimizers/nlopt/subplex.hpp>
+#include <libnest2d/placers/nfpplacer.hpp>
+#include <libnest2d/selections/firstfit.hpp>
 
 #include <numeric>
 #include <ClipperUtils.hpp>
@@ -18,14 +21,20 @@ namespace libnest2d {
 using LargeInt = __int128;
 #else
 using LargeInt = boost::multiprecision::int128_t;
-template<> struct _NumTag<LargeInt> { using Type = ScalarTag; };
+template<> struct _NumTag<LargeInt>
+{
+    using Type = ScalarTag;
+};
 #endif
-template<class T> struct _NumTag<boost::rational<T>> { using Type = RationalTag; };
+
+template<class T> struct _NumTag<boost::rational<T>>
+{
+    using Type = RationalTag;
+};
 
 namespace nfp {
 
-template<class S>
-struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
+template<class S> struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
 {
     NfpResult<S> operator()(const S &sh, const S &other)
     {
@@ -33,16 +42,22 @@ struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
     }
 };
 
-}
-}
+} // namespace nfp
+} // namespace libnest2d
 
 namespace Slic3r {
 
 namespace arr {
 
 using namespace libnest2d;
+namespace clppr = ClipperLib;
 
-using Shape = ClipperLib::Polygon;
+using Item         = _Item<clppr::Polygon>;
+using Box          = _Box<clppr::IntPoint>;
+using Circle       = _Circle<clppr::IntPoint>;
+using Segment      = _Segment<clppr::IntPoint>;
+using MultiPolygon = TMultiShape<clppr::Polygon>;
+using PackGroup    = _PackGroup<clppr::Polygon>;
 
 // Only for debugging. Prints the model object vertices on stdout.
 //std::string toString(const Model& model, bool holes = true) {
@@ -131,7 +146,7 @@ namespace bgi = boost::geometry::index;
 
 using SpatElement = std::pair<Box, unsigned>;
 using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
-using ItemGroup = std::vector<std::reference_wrapper<_Item<Shape>>>;
+using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 
 const double BIG_ITEM_TRESHOLD = 0.02;
 
@@ -156,10 +171,10 @@ Box boundingBox(const Box& pilebb, const Box& ibb ) {
 // at the same time, it has to provide reasonable results.
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
-        const TMultiShape<Shape>& merged_pile,
+        const MultiPolygon& merged_pile,
         const Box& pilebb,
         const ItemGroup& items,
-        const _Item<Shape> &item,
+        const Item &item,
         double bin_area,
         double norm,            // A norming factor for physical dimensions
         // a spatial index to quickly get neighbors of the candidate item
@@ -224,8 +239,8 @@ objfunc(const PointImpl& bincenter,
             auto mp = merged_pile;
             mp.emplace_back(item.transformedShape());
             auto chull = sl::convexHull(mp);
-
-            placers::EdgeCache<Shape> ec(chull);
+            
+            placers::EdgeCache<clppr::Polygon> ec(chull);
 
             double circ = ec.circumference() / norm;
             double bcirc = 2.0*(fullbb.width() + fullbb.height()) / norm;
@@ -256,7 +271,7 @@ objfunc(const PointImpl& bincenter,
 
             for(auto& e : result) { // now get the score for the best alignment
                 auto idx = e.second;
-                _Item<Shape>& p = items[idx];
+                Item& p = items[idx];
                 auto parea = p.area();
                 if(std::abs(1.0 - parea/item.area()) < 1e-6) {
                     auto bb = boundingBox(p.boundingBox(), ibb);
@@ -322,12 +337,11 @@ class _ArrBase {
 public:
 
     // Useful type shortcuts...
-    using Placer = typename placers::_NofitPolyPlacer<Shape, TBin>;
-    using Selector = selections::_FirstFitSelection<Shape>;
+    using Placer = typename placers::_NofitPolyPlacer<clppr::Polygon, TBin>;
+    using Selector = selections::_FirstFitSelection<clppr::Polygon>;
     using Packer = Nester<Placer, Selector>;
     using PConfig = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
-    using Pile = TMultiShape<Shape>;
     
 protected:
 
@@ -337,7 +351,7 @@ protected:
     SpatIndex m_rtree;          // spatial index for the normal (bigger) objects
     SpatIndex m_smallsrtree;    // spatial index for only the smaller items
     double m_norm;              // A coefficient to scale distances
-    Pile m_merged_pile;         // The already merged pile (vector of items)
+    MultiPolygon m_merged_pile; // The already merged pile (vector of items)
     Box m_pilebb;               // The bounding box of the merged pile.
     ItemGroup m_remaining;      // Remaining items (m_items at the beginning)
     ItemGroup m_items;          // The items to be packed
@@ -354,7 +368,7 @@ public:
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
         m_pconf.before_packing =
-        [this](const Pile& merged_pile,            // merged pile
+        [this](const MultiPolygon& merged_pile,            // merged pile
                const ItemGroup& items,             // packed items
                const ItemGroup& remaining)         // future items to be packed
         {
@@ -373,7 +387,7 @@ public:
             };
 
             for(unsigned idx = 0; idx < items.size(); ++idx) {
-                _Item<Shape>& itm = items[idx];
+                Item& itm = items[idx];
                 if(isBig(itm.area())) m_rtree.insert({itm.boundingBox(), idx});
                 m_smallsrtree.insert({itm.boundingBox(), idx});
             }
@@ -383,12 +397,12 @@ public:
         m_pck.stopCondition(stopcond);
     }
     
-    template<class...Args> inline _PackGroup<Shape> operator()(Args&&...args) {
+    template<class...Args> inline PackGroup operator()(Args&&...args) {
         m_rtree.clear();
         return m_pck.execute(std::forward<Args>(args)...);
     }
     
-    inline void preload(const _PackGroup<Shape>& pg) {
+    inline void preload(const PackGroup& pg) {
         m_pconf.alignment = PConfig::Alignment::DONT_ALIGN;
         m_pconf.object_function = nullptr; // drop the special objectfunction
         m_pck.preload(pg);
@@ -396,14 +410,14 @@ public:
         // Build the rtree for queries to work
         for(const ItemGroup& grp : pg)
         for(unsigned idx = 0; idx < grp.size(); ++idx) {
-            _Item<Shape>& itm = grp[idx];
+            Item& itm = grp[idx];
             m_rtree.insert({itm.boundingBox(), idx});
         }
 
         m_pck.configure(m_pconf);
     }
 
-    bool is_colliding(const _Item<Shape>& item) {
+    bool is_colliding(const Item& item) {
         if(m_rtree.empty()) return false;
         std::vector<SpatElement> result;
         m_rtree.query(bgi::intersects(item.boundingBox()),
@@ -425,7 +439,7 @@ public:
         // Here we set up the actual object function that calls the common
         // object function for all bin shapes than does an additional inside
         // check for the arranged pile.
-        m_pconf.object_function = [this, bin] (const _Item<Shape> &item) {
+        m_pconf.object_function = [this, bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
                                   m_merged_pile,
@@ -452,23 +466,21 @@ public:
     }
 };
 
-using lnCircle = libnest2d::_Circle<libnest2d::PointImpl>;
-
-inline lnCircle to_lnCircle(const Circle& circ) {
-    return lnCircle({circ.center()(0), circ.center()(1)}, circ.radius());
+inline Circle to_lnCircle(const CircleBed& circ) {
+    return Circle({circ.center()(0), circ.center()(1)}, circ.radius());
 }
 
 // Arranger specialization for circle shaped bin.
-template<> class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
+template<> class AutoArranger<Circle>: public _ArrBase<Circle> {
 public:
 
-    AutoArranger(const lnCircle& bin, Distance dist,
+    AutoArranger(const Circle& bin, Distance dist,
                  std::function<void(unsigned)> progressind = [](unsigned){},
                  std::function<bool(void)> stopcond = [](){return false;}):
-        _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
+        _ArrBase<Circle>(bin, dist, progressind, stopcond) {
 
         // As with the box, only the inside check is different.
-        m_pconf.object_function = [this, &bin] (const _Item<Shape> &item) {
+        m_pconf.object_function = [this, &bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
                                   m_merged_pile,
@@ -483,7 +495,7 @@ public:
 
             double score = std::get<0>(result);
 
-            auto isBig = [this](const _Item<Shape>& itm) {
+            auto isBig = [this](const Item& itm) {
                 return itm.area()/m_bin_area > BIG_ITEM_TRESHOLD ;
             };
 
@@ -512,7 +524,7 @@ public:
                  std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
-        m_pconf.object_function = [this, &bin] (const _Item<Shape> &item) {
+        m_pconf.object_function = [this, &bin] (const Item &item) {
 
             auto binbb = sl::boundingBox(bin);
             auto result = objfunc(binbb.center(),
@@ -544,7 +556,7 @@ public:
                  std::function<bool(void)> stopcond):
         _ArrBase<Box>(Box(0, 0), dist, progressind, stopcond)
     {
-        this->m_pconf.object_function = [this] (const _Item<Shape> &item) {
+        this->m_pconf.object_function = [this] (const Item &item) {
 
             auto result = objfunc({0, 0},
                                   m_merged_pile,
@@ -563,152 +575,12 @@ public:
     }
 };
 
-// A container which stores a pointer to the 3D object and its projected
-// 2D shape from top view.
-//using ShapeData2D = std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
-
-//ShapeData2D projectModelFromTop(const Slic3r::Model &model,
-//                                const WipeTowerInfo &wti,
-//                                double               tolerance)
-//{
-//    ShapeData2D ret;
-
-//    // Count all the items on the bin (all the object's instances)
-//    auto s = std::accumulate(model.objects.begin(), model.objects.end(),
-//                             size_t(0), [](size_t s, ModelObject* o)
-//    {
-//        return s + o->instances.size();
-//    });
-
-//    ret.reserve(s);
-    
-//    for(ModelObject* objptr : model.objects) {
-//        if (! objptr->instances.empty()) {
-
-//            // TODO export the exact 2D projection. Cannot do it as libnest2d
-//            // does not support concave shapes (yet).
-//            ClipperLib::Path clpath;
-
-//            // Object instances should carry the same scaling and
-//            // x, y rotation that is why we use the first instance.
-//            {
-//                ModelInstance *finst       = objptr->instances.front();
-//                Vec3d          rotation    = finst->get_rotation();
-//                rotation.z()               = 0.;
-//                Transform3d trafo_instance = Geometry::assemble_transform(
-//                    Vec3d::Zero(),
-//                    rotation,
-//                    finst->get_scaling_factor(),
-//                    finst->get_mirror());
-//                Polygon p = objptr->convex_hull_2d(trafo_instance);
-                
-//                assert(!p.points.empty());
-
-//                // this may happen for malformed models, see:
-//                // https://github.com/prusa3d/PrusaSlicer/issues/2209
-//                if (p.points.empty()) continue;
-                
-//                if(tolerance > EPSILON) {
-//                    Polygons pp { p };
-//                    pp = p.simplify(scaled<double>(tolerance));
-//                    if (!pp.empty()) p = pp.front();
-//                }
-                
-//                p.reverse();
-//                assert(!p.is_counter_clockwise());
-//                clpath = Slic3rMultiPoint_to_ClipperPath(p);
-//                auto firstp = clpath.front(); clpath.emplace_back(firstp);
-//            }
-
-//            Vec3d rotation0 = objptr->instances.front()->get_rotation();
-//            rotation0(2) = 0.;
-//            for(ModelInstance* objinst : objptr->instances) {
-//                ClipperLib::Polygon pn;
-//                pn.Contour = clpath;
-
-//                // Efficient conversion to item.
-//                Item item(std::move(pn));
-
-//                // Invalid geometries would throw exceptions when arranging
-//                if(item.vertexCount() > 3) {
-//                    item.rotation(Geometry::rotation_diff_z(rotation0, objinst->get_rotation()));
-//                    item.translation({
-//                        scaled<ClipperLib::cInt>(objinst->get_offset(X)),
-//                        scaled<ClipperLib::cInt>(objinst->get_offset(Y))
-//                    });
-//                    ret.emplace_back(objinst, item);
-//                }
-//            }
-//        }
-//    }
-
-//    // The wipe tower is a separate case (in case there is one), let's duplicate the code
-//    if (wti.is_wipe_tower) {
-//        Points pts;
-//        pts.emplace_back(coord_t(scale_(0.)), coord_t(scale_(0.)));
-//        pts.emplace_back(coord_t(scale_(wti.bb_size(0))), coord_t(scale_(0.)));
-//        pts.emplace_back(coord_t(scale_(wti.bb_size(0))), coord_t(scale_(wti.bb_size(1))));
-//        pts.emplace_back(coord_t(scale_(-0.)), coord_t(scale_(wti.bb_size(1))));
-//        pts.emplace_back(coord_t(scale_(-0.)), coord_t(scale_(0.)));
-//        Polygon p(std::move(pts));
-//        ClipperLib::Path clpath = Slic3rMultiPoint_to_ClipperPath(p);
-//        ClipperLib::Polygon pn;
-//        pn.Contour = clpath;
-//        // Efficient conversion to item.
-//        Item item(std::move(pn));
-//        item.rotation(wti.rotation),
-//        item.translation({
-//            scaled<ClipperLib::cInt>(wti.pos(0)),
-//            scaled<ClipperLib::cInt>(wti.pos(1))
-//        });
-//        ret.emplace_back(nullptr, item);
-//    }
-
-//    return ret;
-//}
-
-// Apply the calculated translations and rotations (currently disabled) to
-// the Model object instances.
-//void applyResult(IndexedPackGroup::value_type &group,
-//                 ClipperLib::cInt              batch_offset,
-//                 ShapeData2D &                 shapemap,
-//                 WipeTowerInfo &               wti)
-//{
-//    for(auto& r : group) {
-//        auto idx = r.first;     // get the original item index
-//        Item& item = r.second;  // get the item itself
-
-//        // Get the model instance from the shapemap using the index
-//        ModelInstance *inst_ptr = shapemap[idx].first;
-
-//            // Get the transformation data from the item object and scale it
-//            // appropriately
-//            auto off = item.translation();
-//            Radians rot = item.rotation();
-            
-//            Vec3d foff(unscaled(off.X + batch_offset),
-//                       unscaled(off.Y),
-//                       inst_ptr ? inst_ptr->get_offset()(Z) : 0.);
-
-//            if (inst_ptr) {
-//                // write the transformation data into the model instance
-//                inst_ptr->set_rotation(Z, rot);
-//                inst_ptr->set_offset(foff);
-//        }
-//        else { // this is the wipe tower - we will modify the struct with the info
-//               // and leave it up to the called to actually move the wipe tower
-//            wti.pos = Vec2d(foff(0), foff(1));
-//            wti.rotation = rot;
-//        }
-//    }
-//}
-
 // Get the type of bed geometry from a simple vector of points.
 BedShapeHint bedShape(const Polyline &bed) {
     BedShapeHint ret;
 
-    auto x = [](const Point& p) { return p(0); };
-    auto y = [](const Point& p) { return p(1); };
+    auto x = [](const Point& p) { return p(X); };
+    auto y = [](const Point& p) { return p(Y); };
 
     auto width = [x](const BoundingBox& box) {
         return x(box.max) - x(box.min);
@@ -721,7 +593,7 @@ BedShapeHint bedShape(const Polyline &bed) {
     auto area = [&width, &height](const BoundingBox& box) {
         double w = width(box);
         double h = height(box);
-        return w*h;
+        return w * h;
     };
 
     auto poly_area = [](Polyline p) {
@@ -752,11 +624,11 @@ BedShapeHint bedShape(const Polyline &bed) {
 
         avg_dist /= vertex_distances.size();
 
-        Circle ret(center, avg_dist);
+        CircleBed ret(center, avg_dist);
         for(auto el : vertex_distances)
         {
             if (std::abs(el - avg_dist) > 10 * SCALED_EPSILON) {
-                ret = Circle();
+                ret = CircleBed();
                 break;
             }
         }
@@ -785,14 +657,14 @@ BedShapeHint bedShape(const Polyline &bed) {
 //static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
 
 template<class BinT>
-_PackGroup<Shape> _arrange(std::vector<Shape> &shapes,
-                   const BinT &                            bin,
-                   coord_t                                 minobjd,
-                   std::function<void(unsigned)>           prind,
-                   std::function<bool()>                   stopfn)
+PackGroup _arrange(std::vector<Item> &           items,
+                   const BinT &                  bin,
+                   coord_t                       minobjd,
+                   std::function<void(unsigned)> prind,
+                   std::function<bool()>         stopfn)
 {
     AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
-    return arranger(shapes.begin(), shapes.end());
+    return arranger(items.begin(), items.end());
 }
 
 //template<class BinT>
@@ -850,184 +722,93 @@ inline SLIC3R_CONSTEXPR coord_t stride_padding(coord_t w)
     return w + w / 5;
 }
 
-bool arrange(ArrangeableRefs &             arrangables,
+//// The final client function to arrange the Model. A progress indicator and
+//// a stop predicate can be also be passed to control the process.
+bool arrange(Arrangeables &                arrangables,
              coord_t                       min_obj_distance,
              BedShapeHint                  bedhint,
              std::function<void(unsigned)> progressind,
              std::function<bool()>         stopcondition)
 {
     bool ret = true;
+    namespace clppr = ClipperLib;
     
-    std::vector<Shape> shapes;
-    shapes.reserve(arrangables.size());
-    size_t id = 0;
-    for (Arrangeable &iref : arrangables) {
-        Polygon p = iref.get_arrange_polygon();
+    std::vector<Item> items;
+    items.reserve(arrangables.size());
+    coord_t binwidth = 0;
+    
+    for (Arrangeable *arrangeable : arrangables) {
+        assert(arrangeable);
         
-        p.reverse();
-        assert(!p.is_counter_clockwise());
+        auto arrangeitem = arrangeable->get_arrange_polygon();
         
-        Shape clpath(/*id++,*/ Slic3rMultiPoint_to_ClipperPath(p));
+        Polygon& p = std::get<0>(arrangeitem);
+        const Vec2crd& offs = std::get<1>(arrangeitem);
+        double rotation     = std::get<2>(arrangeitem);
         
-        auto firstp = clpath.Contour.front(); clpath.Contour.emplace_back(firstp);
-        shapes.emplace_back(std::move(clpath));
+        if (p.is_counter_clockwise()) p.reverse();
+        
+        clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
+        
+        auto firstp = clpath.Contour.front();
+        clpath.Contour.emplace_back(firstp);
+
+        items.emplace_back(
+            // callback called by arrange to apply the result on the arrangeable
+            [arrangeable, &binwidth](const Item &itm, unsigned binidx) {
+                clppr::cInt stride = binidx * stride_padding(binwidth);
+
+                clppr::IntPoint offs = itm.translation();
+                arrangeable->apply_arrange_result({unscaled(offs.X + stride),
+                                                   unscaled(offs.Y)},
+                                                  itm.rotation());
+            },
+            std::move(clpath));
+        items.front().rotation(rotation);
+        items.front().translation({offs.x(), offs.y()});
     }
     
-    _PackGroup<Shape> result;
-    
-    auto& cfn = stopcondition;
-
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = min_obj_distance - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
-    coord_t binwidth = 0;
 
     switch (bedhint.type) {
     case BedShapeType::BOX: {
         // Create the arranger for the box shaped bed
         BoundingBox bbb = bedhint.shape.box;
-
-        auto binbb = Box({ClipperLib::cInt{bbb.min(0)} - md,
-                          ClipperLib::cInt{bbb.min(1)} - md},
-                         {ClipperLib::cInt{bbb.max(0)} + md,
-                          ClipperLib::cInt{bbb.max(1)} + md});
-
-        result = _arrange(shapes, binbb, min_obj_distance, progressind, cfn);
+        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
+        
+        Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
         binwidth = coord_t(binbb.width());
+        
+        _arrange(items, binbb, min_obj_distance, progressind, stopcondition);
         break;
     }
     case BedShapeType::CIRCLE: {
         auto c  = bedhint.shape.circ;
         auto cc = to_lnCircle(c);
-        result  = _arrange(shapes, cc, min_obj_distance, progressind, cfn);
         binwidth = scaled(c.radius());
+        _arrange(items, cc, min_obj_distance, progressind, stopcondition);
         break;
     }
     case BedShapeType::IRREGULAR: {
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
-        ClipperLib::Polygon irrbed = sl::create<PolygonImpl>(std::move(ctour));
-        result = _arrange(shapes, irrbed, min_obj_distance, progressind, cfn);
+        auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
         BoundingBox polybb(bedhint.shape.polygon);
         binwidth = (polybb.max(X) - polybb.min(X));
+        _arrange(items, irrbed, min_obj_distance, progressind, stopcondition);
         break;
     }
     case BedShapeType::WHO_KNOWS: {
-        result = _arrange(shapes, false, min_obj_distance, progressind, cfn);
+        _arrange(items, false, min_obj_distance, progressind, stopcondition);
         break;
     }
     };
     
-    if(result.empty() || stopcondition()) return false;
-    
-    ClipperLib::cInt stride = stride_padding(binwidth);
-    ClipperLib::cInt batch_offset = 0;
-
-    for (const auto &group : result) {
-        for (_Item<Shape> &itm : group) {
-            ClipperLib::IntPoint offs = itm.translation();
-//            arrangables[itm.id()].get().set_arrange_result({offs.X, offs.Y},
-//                                                           itm.rotation());
-        }
-
-        // Only the first pack group can be placed onto the print bed. The
-        // other objects which could not fit will be placed next to the
-        // print bed
-        batch_offset += stride;
-    }
+    if(stopcondition()) return false;
 
     return ret;
 }
-
-//// The final client function to arrange the Model. A progress indicator and
-//// a stop predicate can be also be passed to control the process.
-//bool arrange(Model &model,              // The model with the geometries
-//             WipeTowerInfo& wti,        // Wipe tower info
-//             coord_t min_obj_distance,  // Has to be in scaled (clipper) measure
-//             const Polyline &bed,       // The bed geometry.
-//             BedShapeHint bedhint,      // Hint about the bed geometry type.
-//             bool first_bin_only,       // What to do is not all items fit.
-
-//             // Controlling callbacks.
-//             std::function<void (unsigned)> progressind,
-//             std::function<bool ()> stopcondition)
-//{
-//    bool ret = true;
-    
-//    // Get the 2D projected shapes with their 3D model instance pointers
-//    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
-
-//    // Copy the references for the shapes only as the arranger expects a
-//    // sequence of objects convertible to Item or ClipperPolygon
-//    std::vector<std::reference_wrapper<Item>> shapes;
-//    shapes.reserve(shapemap.size());
-//    std::for_each(shapemap.begin(), shapemap.end(),
-//                  [&shapes] (ShapeData2D::value_type& it)
-//    {
-//        shapes.push_back(std::ref(it.second));
-//    });
-
-//    IndexedPackGroup result;
-
-//    // If there is no hint about the shape, we will try to guess
-//    if(bedhint.type == BedShapeType::WHO_KNOWS) bedhint = bedShape(bed);
-
-//    BoundingBox bbb(bed);
-
-//    auto& cfn = stopcondition;
-    
-//    // Integer ceiling the min distance from the bed perimeters
-//    coord_t md = min_obj_distance - SCALED_EPSILON;
-//    md = (md % 2) ? md / 2 + 1 : md / 2;
-
-//    auto binbb = Box({ClipperLib::cInt{bbb.min(0)} - md,
-//                      ClipperLib::cInt{bbb.min(1)} - md},
-//                     {ClipperLib::cInt{bbb.max(0)} + md,
-//                      ClipperLib::cInt{bbb.max(1)} + md});
-
-//    switch(bedhint.type) {
-//    case BedShapeType::BOX: {
-//        // Create the arranger for the box shaped bed
-//        result = _arrange(shapes, binbb, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::CIRCLE: {
-//        auto c = bedhint.shape.circ;
-//        auto cc = to_lnCircle(c);
-//        result = _arrange(shapes, cc, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::IRREGULAR:
-//    case BedShapeType::WHO_KNOWS: {
-//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-//        ClipperLib::Polygon irrbed = sl::create<PolygonImpl>(std::move(ctour));
-//        result = _arrange(shapes, irrbed, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    };
-
-//    if(result.empty() || stopcondition()) return false;
-
-//    if(first_bin_only) {
-//        applyResult(result.front(), 0, shapemap, wti);
-//    } else {
-        
-//        ClipperLib::cInt stride = stride_padding(binbb.width());
-//        ClipperLib::cInt batch_offset = 0;
-
-//        for(auto& group : result) {
-//            applyResult(group, batch_offset, shapemap, wti);
-
-//            // Only the first pack group can be placed onto the print bed. The
-//            // other objects which could not fit will be placed next to the
-//            // print bed
-//            batch_offset += stride;
-//        }
-//    }
-
-//    for(auto objptr : model.objects) objptr->invalidate_bounding_box();
-
-//    return ret && result.size() == 1;
-//}
 
 //void find_new_position(const Model &model,
 //                       ModelInstancePtrs toadd,

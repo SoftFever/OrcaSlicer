@@ -303,7 +303,7 @@ inline SLIC3R_CONSTEXPR ScaledCoordOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCE
 template<class Tout = coord_t, class Tin, int N, class = FloatingOnly<Tin>>
 inline EigenVec<ArithmeticOnly<Tout>, N> scaled(const EigenVec<Tin, N> &v)
 {
-    return v.template cast<Tout>() /*/ SCALING_FACTOR*/;
+    return (v / SCALING_FACTOR).template cast<Tout>();
 }
 
 // Conversion from arithmetic scaled type to floating point unscaled

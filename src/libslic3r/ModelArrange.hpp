@@ -11,13 +11,13 @@ class Model;
 
 namespace arr {
 
-class Circle {
+class CircleBed {
     Point center_;
     double radius_;
 public:
 
-    inline Circle(): center_(0, 0), radius_(std::nan("")) {}
-    inline Circle(const Point& c, double r): center_(c), radius_(r) {}
+    inline CircleBed(): center_(0, 0), radius_(std::nan("")) {}
+    inline CircleBed(const Point& c, double r): center_(c), radius_(r) {}
 
     inline double radius() const { return radius_; }
     inline const Point& center() const { return center_; }
@@ -34,7 +34,7 @@ enum class BedShapeType {
 struct BedShapeHint {
     BedShapeType type = BedShapeType::WHO_KNOWS;
     /*union*/ struct {  // I know but who cares... TODO: use variant from cpp17?
-        Circle circ;
+        CircleBed circ;
         BoundingBox box;
         Polyline polygon;
     } shape;
@@ -47,12 +47,13 @@ public:
     
     virtual ~Arrangeable() = default;
     
-    virtual void set_arrange_result(Vec2d offset, double rotation_rads) = 0;
+    virtual void apply_arrange_result(Vec2d offset, double rotation_rads) = 0;
     
-    virtual Polygon get_arrange_polygon() const = 0;
+    /// Get the 2D silhouette to arrange and an initial offset and rotation
+    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const = 0;
 };
 
-using ArrangeableRefs = std::vector<std::reference_wrapper<Arrangeable>>;
+using Arrangeables = std::vector<Arrangeable*>;
 
 /**
  * \brief Arranges the model objects on the screen.
@@ -89,7 +90,7 @@ using ArrangeableRefs = std::vector<std::reference_wrapper<Arrangeable>>;
 //             std::function<void(unsigned)> progressind,
 //             std::function<bool(void)> stopcondition);
 
-bool arrange(ArrangeableRefs &items,
+bool arrange(Arrangeables &items,
              coord_t min_obj_distance,
              BedShapeHint bedhint,
              std::function<void(unsigned)> progressind,
@@ -102,8 +103,8 @@ bool arrange(ArrangeableRefs &items,
 //                       coord_t min_obj_distance,
 //                       const Slic3r::Polyline& bed,
 //                       WipeTowerInfo& wti);
-void find_new_position(ArrangeableRefs &items,
-                       const ArrangeableRefs &instances_to_add,
+void find_new_position(Arrangeables &items,
+                       const Arrangeables &instances_to_add,
                        coord_t min_obj_distance,
                        BedShapeHint bedhint);
 

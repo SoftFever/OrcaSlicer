@@ -554,15 +554,21 @@ public:
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
     
-    virtual void set_arrange_result(Vec2d offs, double rot_rads) final
+    // /////////////////////////////////////////////////////////////////////////
+    // Implement arr::Arrangeable interface
+    // /////////////////////////////////////////////////////////////////////////
+    
+    // Getting the input polygon for arrange
+    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const final;
+    
+    // Apply the arrange result on the ModelInstance
+    virtual void apply_arrange_result(Vec2d offs, double rot_rads) final
     {
         // write the transformation data into the model instance
-        set_rotation(Z, get_rotation(Z) + rot_rads);
-        set_offset(X, get_offset(X) + offs(X));
-        set_offset(Y, get_offset(Y) + offs(Y));
+        set_rotation(Z, rot_rads);
+        set_offset(X, offs(X));
+        set_offset(Y, offs(Y));
     }
-    
-    virtual Polygon get_arrange_polygon() const final;
 
 protected:
     friend class Print;

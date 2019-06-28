@@ -366,7 +366,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
     
     Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250));
     
-    auto groups = arrange(rects.begin(), rects.end());
+    auto groups = arrange.execute(rects.begin(), rects.end());
     
     ASSERT_EQ(groups.size(), 1u);
     ASSERT_EQ(groups[0].size(), rects.size());
@@ -420,7 +420,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
     Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250),
                                                    min_obj_distance);
     
-    auto groups = arrange(rects.begin(), rects.end());
+    auto groups = arrange.execute(rects.begin(), rects.end());
     
     ASSERT_EQ(groups.size(), 1u);
     ASSERT_EQ(groups[0].size(), rects.size());

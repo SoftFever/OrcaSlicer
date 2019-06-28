@@ -65,6 +65,8 @@ class _Item {
         Box bb; bool valid;
         BBCache(): valid(false) {}
     } bb_cache_;
+    
+    std::function<void(const _Item&, unsigned)> applyfn_;
 
 public:
 
@@ -121,8 +123,26 @@ public:
 
     inline _Item(TContour<RawShape>&& contour,
                  THolesContainer<RawShape>&& holes):
-        sh_(sl::create<RawShape>(std::move(contour),
-                                        std::move(holes))) {}
+        sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
+
+    template<class... Args>
+    _Item(std::function<void(const _Item&, unsigned)> applyfn, Args &&... args):
+        _Item(std::forward<Args>(args)...)
+    {
+        applyfn_ = std::move(applyfn);
+    }
+
+    // Call the apply callback set in constructor. Within the callback, the
+    // original caller can apply the stored transformation to the original
+    // objects inteded for nesting. It might not be the shape handed over
+    // to _Item (e.g. arranging 3D shapes based on 2D silhouette or the
+    // client uses a simplified or processed polygon for nesting)
+    // This callback, if present, will be called for each item after the nesting
+    // is finished.
+    inline void callApplyFunction(unsigned binidx) const
+    {
+        if (applyfn_) applyfn_(*this, binidx);
+    }
 
     /**
      * @brief Convert the polygon to string representation. The format depends
@@ -492,24 +512,6 @@ template<class RawShape> using _ItemGroup = std::vector<_ItemRef<RawShape>>;
 template<class RawShape>
 using _PackGroup = std::vector<std::vector<_ItemRef<RawShape>>>;
 
-/**
- * \brief A list of packed (index, item) pair vectors. Each vector represents a
- * bin.
- *
- * The index is points to the position of the item in the original input
- * sequence. This way the caller can use the items as a transformation data
- * carrier and transform the original objects manually.
- */
-template<class RawShape>
-using _IndexedPackGroup = std::vector<
-                               std::vector<
-                                   std::pair<
-                                       unsigned,
-                                       _ItemRef<RawShape>
-                                   >
-                               >
-                          >;
-
 template<class Iterator>
 struct ConstItemRange {
     Iterator from;
@@ -768,13 +770,9 @@ public:
     using BinType = typename TPlacer::BinType;
     using PlacementConfig = typename TPlacer::Config;
     using SelectionConfig = typename TSel::Config;
-
     using Unit = TCoord<TPoint<typename Item::ShapeType>>;
-
-    using IndexedPackGroup = _IndexedPackGroup<typename Item::ShapeType>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
     using ResultType = PackGroup;
-    using ResultTypeIndexed = IndexedPackGroup;
 
 private:
     BinType bin_;
@@ -786,6 +784,7 @@ private:
     using TSItem = remove_cvref_t<SItem>;
 
     std::vector<TPItem> item_cache_;
+    StopCondition stopfn_;
 
 public:
 
@@ -814,11 +813,13 @@ public:
 
     void configure(const PlacementConfig& pconf) { pconfig_ = pconf; }
     void configure(const SelectionConfig& sconf) { selector_.configure(sconf); }
-    void configure(const PlacementConfig& pconf, const SelectionConfig& sconf) {
+    void configure(const PlacementConfig& pconf, const SelectionConfig& sconf)
+    {
         pconfig_ = pconf;
         selector_.configure(sconf);
     }
-    void configure(const SelectionConfig& sconf, const PlacementConfig& pconf) {
+    void configure(const SelectionConfig& sconf, const PlacementConfig& pconf)
+    {
         pconfig_ = pconf;
         selector_.configure(sconf);
     }
@@ -836,26 +837,6 @@ public:
         return _execute(from, to);
     }
 
-    /**
-     * A version of the arrange method returning an IndexedPackGroup with
-     * the item indexes into the original input sequence.
-     *
-     * Takes a little longer to collect the indices. Scales linearly with the
-     * input sequence size.
-     */
-    template<class TIterator>
-    inline IndexedPackGroup executeIndexed(TIterator from, TIterator to)
-    {
-        return _executeIndexed(from, to);
-    }
-
-    /// Shorthand to normal arrange method.
-    template<class TIterator>
-    inline PackGroup operator() (TIterator from, TIterator to)
-    {
-        return _execute(from, to);
-    }
-
     /// Set a progress indicator function object for the selector.
     inline Nester& progressIndicator(ProgressFunction func)
     {
@@ -865,7 +846,7 @@ public:
     /// Set a predicate to tell when to abort nesting.
     inline Nester& stopCondition(StopCondition fn)
     {
-        selector_.stopCondition(fn); return *this;
+        stopfn_ = fn; selector_.stopCondition(fn); return *this;
     }
 
     inline const PackGroup& lastResult() const
@@ -876,16 +857,6 @@ public:
     inline void preload(const PackGroup& pgrp)
     {
         selector_.preload(pgrp);
-    }
-
-    inline void preload(const IndexedPackGroup& ipgrp)
-    {
-        PackGroup pgrp; pgrp.reserve(ipgrp.size());
-        for(auto& ig : ipgrp) {
-            pgrp.emplace_back(); pgrp.back().reserve(ig.size());
-            for(auto& r : ig) pgrp.back().emplace_back(r.second);
-        }
-        preload(pgrp);
     }
 
 private:
@@ -917,66 +888,6 @@ private:
         return lastResult();
     }
 
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-
-             // This function will be used only if the iterators are pointing to
-             // a type compatible with the libnest2d::_Item template.
-             // This way we can use references to input elements as they will
-             // have to exist for the lifetime of this call.
-             class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline IndexedPackGroup _executeIndexed(TIterator from,
-                                            TIterator to,
-                                            bool = false)
-    {
-        __execute(from, to);
-        return createIndexedPackGroup(from, to, selector_);
-    }
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-             class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline IndexedPackGroup _executeIndexed(TIterator from,
-                                            TIterator to,
-                                            int = false)
-    {
-        item_cache_ = {from, to};
-        __execute(item_cache_.begin(), item_cache_.end());
-        return createIndexedPackGroup(from, to, selector_);
-    }
-
-    template<class TIterator>
-    static IndexedPackGroup createIndexedPackGroup(TIterator from,
-                                                   TIterator to,
-                                                   TSel& selector)
-    {
-        IndexedPackGroup pg;
-        pg.reserve(selector.getResult().size());
-
-        const PackGroup& pckgrp = selector.getResult();
-
-        for(size_t i = 0; i < pckgrp.size(); i++) {
-            auto items = pckgrp[i];
-            pg.emplace_back();
-            pg[i].reserve(items.size());
-
-            for(Item& itemA : items) {
-                auto it = from;
-                unsigned idx = 0;
-                while(it != to) {
-                    Item& itemB = *it;
-                    if(&itemB == &itemA) break;
-                    it++; idx++;
-                }
-                pg[i].emplace_back(idx, itemA);
-            }
-        }
-
-        return pg;
-    }
-
     template<class TIter> inline void __execute(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
@@ -985,10 +896,19 @@ private:
 
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);
-
-        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
+        
+        if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
             item.removeOffset();
         });
+        
+        if(stopfn_ && !stopfn_()) { // Ignore results if nesting was stopped.
+            const PackGroup& bins = lastResult();
+            unsigned binidx = 0;
+            for(auto& bin : bins) {
+                for(const Item& itm : bin) itm.callApplyFunction(binidx);
+                ++binidx;
+            }
+        }
     }
 };
 

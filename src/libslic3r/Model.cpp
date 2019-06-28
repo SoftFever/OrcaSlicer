@@ -1801,7 +1801,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
 }
 
-Polygon ModelInstance::get_arrange_polygon() const
+std::tuple<Polygon, Vec2crd, double> ModelInstance::get_arrange_polygon() const
 {
     static const double SIMPLIFY_TOLERANCE_MM = 0.1;
     
@@ -1827,7 +1827,9 @@ Polygon ModelInstance::get_arrange_polygon() const
     pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
     if (!pp.empty()) p = pp.front();
     
-    return p;
+    return std::make_tuple(p, Vec2crd{scaled(get_offset(X)),
+                                      scaled(get_offset(Y))},
+                           get_rotation(Z));
 }
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs

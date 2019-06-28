@@ -2357,7 +2357,7 @@ void Plater::priv::remove(size_t obj_idx)
 
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
-{
+{   
     model.delete_object(obj_idx);
     update();
     object_list_changed();
@@ -2422,11 +2422,15 @@ arr::BedShapeHint Plater::priv::get_bed_shape_hint() const {
 
 void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {    
     static const auto arrangestr = _(L("Arranging"));
-   
-    arr::ArrangeableRefs arrangeinput; arrangeinput.reserve(m_count);
+    
+    // Collect the model instances and place them into the input vector
+    arr::Arrangeables arrangeinput; arrangeinput.reserve(m_count);
     for(ModelObject *mo : plater().model.objects)
         for(ModelInstance *minst : mo->instances)
-            arrangeinput.emplace_back(std::ref(*minst));
+            arrangeinput.emplace_back(minst);
+    
+    // Place back the wipe tower if that's available.
+    if (m_wti) arrangeinput.emplace_back(&m_wti);
     
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
@@ -3456,7 +3460,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
 
 bool Plater::priv::can_delete() const
 {
-    return !get_selection().is_empty() && !get_selection().is_wipe_tower();
+    return !get_selection().is_empty() && !get_selection().is_wipe_tower() && !m_ui_jobs.is_any_running();
 }
 
 bool Plater::priv::can_delete_all() const
