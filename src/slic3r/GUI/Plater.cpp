@@ -2461,132 +2461,68 @@ void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
     update_status(m_count,
                   was_canceled() ? _(L("Arranging canceled."))
                                  : _(L("Arranging done.")));
+}
 
-    // TODO: we should decide whether to allow arrange when the search is
-    // running we should probably disable explicit slicing and background
-    // processing
-
-//    static const auto arrangestr = _(L("Arranging"));
-
-//    auto &config = plater().config;
-//    auto &view3D = plater().view3D;
-//    auto &model  = plater().model;
-
-//    // FIXME: I don't know how to obtain the minimum distance, it depends
-//    // on printer technology. I guess the following should work but it crashes.
-//    double dist = 6; // PrintConfig::min_object_distance(config);
-//    if (plater().printer_technology == ptFFF) {
-//        dist = PrintConfig::min_object_distance(config);
-//    }
-
-//    auto min_obj_distance = coord_t(dist / SCALING_FACTOR);
-
-//    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>(
-//        "bed_shape");
-
-//    assert(bed_shape_opt);
-//    auto &   bedpoints = bed_shape_opt->values;
-//    Polyline bed;
-//    bed.points.reserve(bedpoints.size());
-//    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
-
-//    update_status(0, arrangestr);
-
-//    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
-
-//    try {
-//        arr::BedShapeHint hint;
-
-//        // TODO: from Sasha from GUI or
-//        hint.type = arr::BedShapeType::WHO_KNOWS;
-
-//        arr::arrange(model,
-//                     wti,
-//                     min_obj_distance,
-//                     bed,
-//                     hint,
-//                     false, // create many piles not just one pile
-//                     [this](unsigned st) {
-//                         if (st > 0)
-//                             update_status(count - int(st), arrangestr);
-//                     },
-//                     [this]() { return was_canceled(); });
-//    } catch (std::exception & /*e*/) {
-//        GUI::show_error(plater().q,
-//                        L("Could not arrange model objects! "
-//                          "Some geometries may be invalid."));
-//    }
-
-//    update_status(count,
-//                  was_canceled() ? _(L("Arranging canceled."))
-//                                 : _(L("Arranging done.")));
-
-//    // it remains to move the wipe tower:
-//    view3D->get_canvas3d()->arrange_wipe_tower(wti);
+void find_new_position(const Model &            model,
+                       ModelInstancePtrs        instances,
+                       coord_t                  min_d,
+                       const arr::BedShapeHint &bedhint)
+{
+    
+    // TODO
 }
 
 void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
 {
-//    int obj_idx = plater().get_selected_object_idx();
-//    if (obj_idx < 0) { return; }
+    int obj_idx = plater().get_selected_object_idx();
+    if (obj_idx < 0) { return; }
 
-//    ModelObject *o = plater().model.objects[size_t(obj_idx)];
+    ModelObject *o = plater().model.objects[size_t(obj_idx)];
 
-//    auto r = sla::find_best_rotation(
-//        *o,
-//        .005f,
-//        [this](unsigned s) {
-//            if (s < 100)
-//                update_status(int(s),
-//                              _(L("Searching for optimal orientation")));
-//        },
-//        [this]() { return was_canceled(); });
+    auto r = sla::find_best_rotation(
+        *o,
+        .005f,
+        [this](unsigned s) {
+            if (s < 100)
+                update_status(int(s),
+                              _(L("Searching for optimal orientation")));
+        },
+        [this]() { return was_canceled(); });
 
-//    const auto *bed_shape_opt =
-//        plater().config->opt<ConfigOptionPoints>("bed_shape");
+
+    double mindist = 6.0; // FIXME
     
-//    assert(bed_shape_opt);
-
-//    auto &   bedpoints = bed_shape_opt->values;
-//    Polyline bed;
-//    bed.points.reserve(bedpoints.size());
-//    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
-
-//    double mindist = 6.0; // FIXME
+    if (!was_canceled()) {
+        for(ModelInstance * oi : o->instances) {
+            oi->set_rotation({r[X], r[Y], r[Z]});
     
-//    if (!was_canceled()) {
-//        for(ModelInstance * oi : o->instances) {
-//            oi->set_rotation({r[X], r[Y], r[Z]});
-    
-//            auto    trmatrix = oi->get_transformation().get_matrix();
-//            Polygon trchull  = o->convex_hull_2d(trmatrix);
+            auto    trmatrix = oi->get_transformation().get_matrix();
+            Polygon trchull  = o->convex_hull_2d(trmatrix);
             
-//            MinAreaBoundigBox rotbb(trchull, MinAreaBoundigBox::pcConvex);
-//            double            r = rotbb.angle_to_X();
+            MinAreaBoundigBox rotbb(trchull, MinAreaBoundigBox::pcConvex);
+            double            r = rotbb.angle_to_X();
     
-//            // The box should be landscape
-//            if(rotbb.width() < rotbb.height()) r += PI / 2;
+            // The box should be landscape
+            if(rotbb.width() < rotbb.height()) r += PI / 2;
             
-//            Vec3d rt = oi->get_rotation(); rt(Z) += r;
+            Vec3d rt = oi->get_rotation(); rt(Z) += r;
             
-//            oi->set_rotation(rt);
-//        }
+            oi->set_rotation(rt);
+        }
     
-//        arr::WipeTowerInfo wti; // useless in SLA context
-//        arr::find_new_position(plater().model,
-//                               o->instances,
-//                               coord_t(mindist / SCALING_FACTOR),
-//                               bed,
-//                               wti);
-    
-//        // Correct the z offset of the object which was corrupted be
-//        // the rotation
-//        o->ensure_on_bed();
-//    }
+        find_new_position(plater().model,
+                          o->instances,
+                          scaled(mindist),
+                          plater().get_bed_shape_hint());
 
-//    update_status(100,
-//                  was_canceled() ? _(L("Orientation search canceled."))
-//                                 : _(L("Orientation found.")));
+        // Correct the z offset of the object which was corrupted be
+        // the rotation
+        o->ensure_on_bed();
+    }
+
+    update_status(100,
+                  was_canceled() ? _(L("Orientation search canceled."))
+                                 : _(L("Orientation found.")));
 }
 
 void Plater::priv::split_object()

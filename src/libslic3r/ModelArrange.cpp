@@ -1,5 +1,4 @@
 #include "ModelArrange.hpp"
-//#include "Model.hpp"
 #include "Geometry.hpp"
 #include "SVG.hpp"
 #include "MTUtils.hpp"
@@ -656,34 +655,35 @@ BedShapeHint bedShape(const Polyline &bed) {
 
 //static const SLIC3R_CONSTEXPR double SIMPLIFY_TOLERANCE_MM = 0.1;
 
+//template<class BinT>
+//PackGroup _arrange(std::vector<Item> &           items,
+//                   const BinT &                  bin,
+//                   coord_t                       minobjd,
+//                   std::function<void(unsigned)> prind,
+//                   std::function<bool()>         stopfn)
+//{
+//    AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
+//    return arranger(items.begin(), items.end());
+//}
+
 template<class BinT>
-PackGroup _arrange(std::vector<Item> &           items,
+PackGroup _arrange(std::vector<Item> &           shapes,
+                   const PackGroup &             preshapes,
                    const BinT &                  bin,
                    coord_t                       minobjd,
                    std::function<void(unsigned)> prind,
                    std::function<bool()>         stopfn)
 {
-    AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
-    return arranger(items.begin(), items.end());
-}
-
-//template<class BinT>
-//IndexedPackGroup _arrange(std::vector<std::reference_wrapper<Item>> &shapes,
-//                          const PackGroup &             preshapes,
-//                          std::vector<ModelInstance *> &minstances,
-//                          const BinT &                  bin,
-//                          coord_t                       minobjd)
-//{
     
 //    auto binbb = sl::boundingBox(bin);
     
-//    AutoArranger<BinT> arranger{bin, minobjd};
+    AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
     
-//    if(!preshapes.front().empty()) { // If there is something on the plate
-//        arranger.preload(preshapes);
+    if(!preshapes.front().empty()) { // If there is something on the plate
+        arranger.preload(preshapes);
         
-//        // Try to put the first item to the center, as the arranger will not
-//        // do this for us.
+        // Try to put the first item to the center, as the arranger will not
+        // do this for us.
 //        auto shptrit = minstances.begin();
 //        for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
 //        {
@@ -712,10 +712,10 @@ PackGroup _arrange(std::vector<Item> &           items,
 //                break;
 //            }
 //        }
-//    }
+    }
     
-//    return arranger(shapes.begin(), shapes.end());
-//}
+    return arranger(shapes.begin(), shapes.end());
+}
 
 inline SLIC3R_CONSTEXPR coord_t stride_padding(coord_t w)
 {
@@ -725,53 +725,73 @@ inline SLIC3R_CONSTEXPR coord_t stride_padding(coord_t w)
 //// The final client function to arrange the Model. A progress indicator and
 //// a stop predicate can be also be passed to control the process.
 bool arrange(Arrangeables &                arrangables,
+             const Arrangeables &          excludes,
              coord_t                       min_obj_distance,
-             BedShapeHint                  bedhint,
+             const BedShapeHint &          bedhint,
              std::function<void(unsigned)> progressind,
              std::function<bool()>         stopcondition)
 {
     bool ret = true;
     namespace clppr = ClipperLib;
     
-    std::vector<Item> items;
+    std::vector<Item> items, excluded_items;
     items.reserve(arrangables.size());
     coord_t binwidth = 0;
     
-    for (Arrangeable *arrangeable : arrangables) {
-        assert(arrangeable);
-        
-        auto arrangeitem = arrangeable->get_arrange_polygon();
-        
-        Polygon& p = std::get<0>(arrangeitem);
-        const Vec2crd& offs = std::get<1>(arrangeitem);
-        double rotation     = std::get<2>(arrangeitem);
-        
-        if (p.is_counter_clockwise()) p.reverse();
-        
-        clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
-        
-        auto firstp = clpath.Contour.front();
-        clpath.Contour.emplace_back(firstp);
+    PackGroup preshapes{ {} }; // pack group with one initial bin for preloading
 
-        items.emplace_back(
+    auto process_arrangeable =
+        [](const Arrangeable *                          arrangeable,
+           std::vector<Item> &                          outp,
+           std::function<void(const Item &, unsigned)>  applyfn)
+    {
+            assert(arrangeable);
+
+            auto arrangeitem = arrangeable->get_arrange_polygon();
+
+            Polygon &      p        = std::get<0>(arrangeitem);
+            const Vec2crd &offs     = std::get<1>(arrangeitem);
+            double         rotation = std::get<2>(arrangeitem);
+
+            if (p.is_counter_clockwise()) p.reverse();
+
+            clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
+
+            auto firstp = clpath.Contour.front();
+            clpath.Contour.emplace_back(firstp);
+
+            outp.emplace_back(applyfn, std::move(clpath));
+            outp.front().rotation(rotation);
+            outp.front().translation({offs.x(), offs.y()});
+        };
+
+    for (Arrangeable *arrangeable : arrangables) {
+        process_arrangeable(
+            arrangeable,
+            items,
             // callback called by arrange to apply the result on the arrangeable
             [arrangeable, &binwidth](const Item &itm, unsigned binidx) {
                 clppr::cInt stride = binidx * stride_padding(binwidth);
 
                 clppr::IntPoint offs = itm.translation();
-                arrangeable->apply_arrange_result({unscaled(offs.X + stride),
+                arrangeable->apply_arrange_result({unscaled(offs.X +
+                                                            stride),
                                                    unscaled(offs.Y)},
                                                   itm.rotation());
-            },
-            std::move(clpath));
-        items.front().rotation(rotation);
-        items.front().translation({offs.x(), offs.y()});
+            });
     }
+    
+    for (const Arrangeable * fixed: excludes)
+        process_arrangeable(fixed, excluded_items, nullptr);
+    
+    for(Item& excl : excluded_items) preshapes.front().emplace_back(excl);
     
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = min_obj_distance - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
-
+    
+    auto& cfn = stopcondition;
+    
     switch (bedhint.type) {
     case BedShapeType::BOX: {
         // Create the arranger for the box shaped bed
@@ -781,14 +801,14 @@ bool arrange(Arrangeables &                arrangables,
         Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
         binwidth = coord_t(binbb.width());
         
-        _arrange(items, binbb, min_obj_distance, progressind, stopcondition);
+        _arrange(items, preshapes, binbb, min_obj_distance, progressind, cfn);
         break;
     }
     case BedShapeType::CIRCLE: {
         auto c  = bedhint.shape.circ;
         auto cc = to_lnCircle(c);
         binwidth = scaled(c.radius());
-        _arrange(items, cc, min_obj_distance, progressind, stopcondition);
+        _arrange(items, preshapes, cc, min_obj_distance, progressind, cfn);
         break;
     }
     case BedShapeType::IRREGULAR: {
@@ -796,11 +816,11 @@ bool arrange(Arrangeables &                arrangables,
         auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
         BoundingBox polybb(bedhint.shape.polygon);
         binwidth = (polybb.max(X) - polybb.min(X));
-        _arrange(items, irrbed, min_obj_distance, progressind, stopcondition);
+        _arrange(items, preshapes, irrbed, min_obj_distance, progressind, cfn);
         break;
     }
     case BedShapeType::WHO_KNOWS: {
-        _arrange(items, false, min_obj_distance, progressind, stopcondition);
+        _arrange(items, preshapes, false, min_obj_distance, progressind, cfn);
         break;
     }
     };
@@ -810,99 +830,15 @@ bool arrange(Arrangeables &                arrangables,
     return ret;
 }
 
-//void find_new_position(const Model &model,
-//                       ModelInstancePtrs toadd,
-//                       coord_t min_obj_distance,
-//                       const Polyline &bed,
-//                       WipeTowerInfo& wti)
-//{    
-//    // Get the 2D projected shapes with their 3D model instance pointers
-//    auto shapemap = arr::projectModelFromTop(model, wti, SIMPLIFY_TOLERANCE_MM);
-
-//    // Copy the references for the shapes only, as the arranger expects a
-//    // sequence of objects convertible to Item or ClipperPolygon
-//    PackGroup preshapes; preshapes.emplace_back();
-//    ItemGroup shapes;
-//    preshapes.front().reserve(shapemap.size());
-
-//    std::vector<ModelInstance*> shapes_ptr; shapes_ptr.reserve(toadd.size());
-//    IndexedPackGroup result;
-
-//    // If there is no hint about the shape, we will try to guess
-//    BedShapeHint bedhint = bedShape(bed);
-
-//    BoundingBox bbb(bed);
-    
-//    // Integer ceiling the min distance from the bed perimeters
-//    coord_t md = min_obj_distance - SCALED_EPSILON;
-//    md = (md % 2) ? md / 2 + 1 : md / 2;
-    
-//    auto binbb = Box({ClipperLib::cInt{bbb.min(0)} - md,
-//                      ClipperLib::cInt{bbb.min(1)} - md},
-//                     {ClipperLib::cInt{bbb.max(0)} + md,
-//                      ClipperLib::cInt{bbb.max(1)} + md});
-
-//    for(auto it = shapemap.begin(); it != shapemap.end(); ++it) {
-//        // `toadd` vector contains the instance pointers which have to be
-//        // considered by arrange. If `it` points to an ModelInstance, which
-//        // is NOT in `toadd`, add it to preshapes.
-//        if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end()) {
-//           if(it->second.isInside(binbb)) // just ignore items which are outside
-//               preshapes.front().emplace_back(std::ref(it->second));
-//        }
-//        else {
-//            shapes_ptr.emplace_back(it->first);
-//            shapes.emplace_back(std::ref(it->second));
-//        }
-//    }
-
-//    switch(bedhint.type) {
-//    case BedShapeType::BOX: {
-//        // Create the arranger for the box shaped bed
-//        result = _arrange(shapes, preshapes, shapes_ptr, binbb, min_obj_distance);
-//        break;
-//    }
-//    case BedShapeType::CIRCLE: {
-//        auto c = bedhint.shape.circ;
-//        auto cc = to_lnCircle(c);
-//        result = _arrange(shapes, preshapes, shapes_ptr, cc, min_obj_distance);
-//        break;
-//    }
-//    case BedShapeType::IRREGULAR:
-//    case BedShapeType::WHO_KNOWS: {
-//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-//        ClipperLib::Polygon irrbed = sl::create<PolygonImpl>(std::move(ctour));
-//        result = _arrange(shapes, preshapes, shapes_ptr, irrbed, min_obj_distance);
-//        break;
-//    }
-//    };
-
-//    // Now we go through the result which will contain the fixed and the moving
-//    // polygons as well. We will have to search for our item.
-
-//    ClipperLib::cInt stride = stride_padding(binbb.width());
-//    ClipperLib::cInt batch_offset = 0;
-
-//    for(auto& group : result) {
-//        for(auto& r : group) if(r.first < shapes.size()) {
-//            Item& resultitem = r.second;
-//            unsigned idx = r.first;
-//            auto offset = resultitem.translation();
-//            Radians rot = resultitem.rotation();
-//            ModelInstance *minst = shapes_ptr[idx];
-//            Vec3d foffset(unscaled(offset.X + batch_offset),
-//                          unscaled(offset.Y),
-//                          minst->get_offset()(Z));
-
-//            // write the transformation data into the model instance
-//            minst->set_rotation(Z, rot);
-//            minst->set_offset(foffset);
-//        }
-//        batch_offset += stride;
-//    }
-//}
-
+/// Arrange, without the fixed items (excludes)
+bool arrange(Arrangeables &                inp,
+             coord_t                       min_d,
+             const BedShapeHint &          bedhint,
+             std::function<void(unsigned)> prfn,
+             std::function<bool()>         stopfn)
+{
+    return arrange(inp, {}, min_d, bedhint, prfn, stopfn);
 }
 
-
-}
+} // namespace arr
+} // namespace Slic3r

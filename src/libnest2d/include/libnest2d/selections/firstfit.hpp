@@ -39,6 +39,15 @@ public:
 
         std::vector<Placer> placers;
         placers.reserve(last-first);
+        
+        std::for_each(first, last, [this](Item& itm) {
+            if(itm.isFixed()) {
+                if(packed_bins_.empty()) packed_bins_.emplace_back();
+                packed_bins_.front().emplace_back(itm);
+            } else {
+                store_.emplace_back(itm);
+            }
+        });
 
         // If the packed_items array is not empty we have to create as many
         // placers as there are elements in packed bins and preload each item
@@ -48,8 +57,6 @@ public:
             placers.back().configure(pconfig);
             placers.back().preload(ig);
         }
-
-        std::copy(first, last, std::back_inserter(store_));
 
         auto sortfunc = [](Item& i1, Item& i2) {
             return i1.area() > i2.area();
@@ -75,7 +82,6 @@ public:
                 } else it++;
             }
         }
-
 
         auto it = store_.begin();
 

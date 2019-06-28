@@ -67,6 +67,7 @@ class _Item {
     } bb_cache_;
     
     std::function<void(const _Item&, unsigned)> applyfn_;
+    bool fixed_{false};
 
 public:
 
@@ -143,6 +144,9 @@ public:
     {
         if (applyfn_) applyfn_(*this, binidx);
     }
+    
+    inline bool isFixed() const noexcept { return fixed_; }
+    inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
 
     /**
      * @brief Convert the polygon to string representation. The format depends
