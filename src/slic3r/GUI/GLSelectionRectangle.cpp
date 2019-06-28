@@ -68,7 +68,8 @@ namespace GUI {
         if (!is_dragging())
             return;
 
-        float zoom = canvas.get_camera().zoom;
+        const Camera& camera = canvas.get_camera();
+        float zoom = (float)camera.get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
         Size cnv_size = canvas.get_canvas_size();
@@ -96,6 +97,11 @@ namespace GUI {
 
         glsafe(::glPushMatrix());
         glsafe(::glLoadIdentity());
+        // ensure that the rectangle is renderered inside the frustrum
+        glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
+        // ensure that the overlay fits the frustrum near z plane
+        double gui_scale = camera.get_gui_scale();
+        glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
         glsafe(::glPushAttrib(GL_ENABLE_BIT));
         glsafe(::glLineStipple(4, 0xAAAA));

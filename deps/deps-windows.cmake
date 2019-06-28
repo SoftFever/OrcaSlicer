@@ -252,6 +252,51 @@ else ()
     set(DEP_WXWIDGETS_LIBDIR "vc_x64_lib")
 endif ()
 
+find_package(Git REQUIRED)
+
+ExternalProject_Add(dep_libigl
+    EXCLUDE_FROM_ALL 1
+    URL "https://github.com/libigl/libigl/archive/v2.0.0.tar.gz"
+    URL_HASH SHA256=42518e6b106c7209c73435fd260ed5d34edeb254852495b4c95dce2d95401328
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DLIBIGL_BUILD_PYTHON=OFF
+        -DLIBIGL_BUILD_TESTS=OFF
+        -DLIBIGL_BUILD_TUTORIALS=OFF
+        -DLIBIGL_USE_STATIC_LIBRARY=OFF #${DEP_BUILD_IGL_STATIC}
+        -DLIBIGL_WITHOUT_COPYLEFT=OFF
+        -DLIBIGL_WITH_CGAL=OFF
+        -DLIBIGL_WITH_COMISO=OFF
+        -DLIBIGL_WITH_CORK=OFF
+        -DLIBIGL_WITH_EMBREE=OFF
+        -DLIBIGL_WITH_MATLAB=OFF
+        -DLIBIGL_WITH_MOSEK=OFF
+        -DLIBIGL_WITH_OPENGL=OFF
+        -DLIBIGL_WITH_OPENGL_GLFW=OFF
+        -DLIBIGL_WITH_OPENGL_GLFW_IMGUI=OFF
+        -DLIBIGL_WITH_PNG=OFF
+        -DLIBIGL_WITH_PYTHON=OFF
+        -DLIBIGL_WITH_TETGEN=OFF
+        -DLIBIGL_WITH_TRIANGLE=OFF
+        -DLIBIGL_WITH_XML=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-fixes.patch
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    INSTALL_COMMAND ""
+)
+
+if (${DEP_DEBUG})
+    ExternalProject_Get_Property(dep_libigl BINARY_DIR)
+    ExternalProject_Add_Step(dep_libigl build_debug
+        DEPENDEES build
+        DEPENDERS install
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
+        WORKING_DIRECTORY "${BINARY_DIR}"
+    )
+endif ()
+
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"

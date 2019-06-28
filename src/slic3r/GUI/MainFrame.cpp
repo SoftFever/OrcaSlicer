@@ -505,10 +505,10 @@ void MainFrame::init_menubar()
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
             _(L("Copy selection to clipboard")), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
-            menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy(); }, this);
+            menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V",
             _(L("Paste clipboard")), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
-            menu_icon("paste_menu"), nullptr, [this](){return m_plater->can_paste(); }, this);
+            menu_icon("paste_menu"), nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
     }
 
     // Window menu

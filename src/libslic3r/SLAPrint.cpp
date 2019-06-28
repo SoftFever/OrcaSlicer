@@ -704,7 +704,7 @@ void SLAPrint::process()
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
 
-    auto ilhs = scaled(ilhd);
+    coord_t      ilhs     = scaled(ilhd);
     const size_t objcount = m_objects.size();
 
     static const unsigned min_objstatus = 0;   // where the per object operations start
@@ -730,17 +730,15 @@ void SLAPrint::process()
 
         // We need to prepare the slice index...
 
-        double lhd  = m_objects.front()->m_config.layer_height.getFloat();
-        float  lh   = float(lhd);
-        auto   lhs  = scaled(lhd);
-
-        auto &&bb3d  = mesh.bounding_box();
-        double minZ  = bb3d.min(Z) - po.get_elevation();
-        double maxZ  = bb3d.max(Z);
-        auto   minZf = float(minZ);
-
-        auto minZs = scaled(minZ);
-        auto maxZs = scaled(maxZ);
+        double  lhd  = m_objects.front()->m_config.layer_height.getFloat();
+        float   lh   = float(lhd);
+        coord_t lhs  = scaled(lhd);
+        auto && bb3d = mesh.bounding_box();
+        double  minZ = bb3d.min(Z) - po.get_elevation();
+        double  maxZ = bb3d.max(Z);
+        auto    minZf = float(minZ);
+        coord_t minZs = scaled(minZ);
+        coord_t maxZs = scaled(maxZ);
 
         po.m_slice_index.clear();
         
@@ -758,8 +756,9 @@ void SLAPrint::process()
 
         if(slindex_it == po.m_slice_index.end())
             //TRN To be shown at the status bar on SLA slicing error.
-            throw std::runtime_error(L("Slicing had to be stopped "
-                                       "due to an internal error."));
+            throw std::runtime_error(
+                L("Slicing had to be stopped due to an internal error: "
+                  "Inconsistent slice index."));
 
         po.m_model_height_levels.clear();
         po.m_model_height_levels.reserve(po.m_slice_index.size());
@@ -1134,8 +1133,8 @@ void SLAPrint::process()
 
         const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
 
-        const double width              = scaled(m_printer_config.display_width.getFloat());
-        const double height             = scaled(m_printer_config.display_height.getFloat());
+        const auto width                = scaled<double>(m_printer_config.display_width.getFloat());
+        const auto height               = scaled<double>(m_printer_config.display_height.getFloat());
         const double display_area       = width*height;
 
         // get polygons for all instances in the object

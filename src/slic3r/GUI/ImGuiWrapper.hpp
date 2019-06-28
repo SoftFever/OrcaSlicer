@@ -77,7 +77,7 @@ public:
     bool want_any_input() const;
 
 private:
-    void init_font();
+    void init_font(bool compress);
     void init_input();
     void init_style();
     void render_draw_data(ImDrawData *draw_data);

@@ -141,6 +141,18 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
 {}
 
+GUI_App::~GUI_App()
+{
+    if (app_config != nullptr)
+        delete app_config;
+
+    if (preset_bundle != nullptr)
+        delete preset_bundle;
+
+    if (preset_updater != nullptr)
+        delete preset_updater;
+}
+
 bool GUI_App::OnInit()
 {
     try {
@@ -265,10 +277,8 @@ bool GUI_App::on_init_inner()
             }
 
             CallAfter([this] {
-                if (!config_wizard_startup(app_conf_exists)) {
-                    // Only notify if there was no wizard so as not to bother too much ...
-                    preset_updater->slic3r_update_notify();
-                }
+                config_wizard_startup(app_conf_exists);
+                preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
         }

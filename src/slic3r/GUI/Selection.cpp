@@ -47,6 +47,26 @@ Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_trans
 {
 }
 
+bool Selection::Clipboard::is_sla_compliant() const
+{
+    if (m_mode == Selection::Volume)
+        return false;
+
+    for (const ModelObject* o : m_model.objects)
+    {
+        if (o->is_multiparts())
+            return false;
+
+        for (const ModelVolume* v : o->volumes)
+        {
+            if (v->is_modifier())
+                return false;
+        }
+    }
+
+    return true;
+}
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -383,6 +403,20 @@ bool Selection::is_from_single_object() const
 {
     int idx = get_object_idx();
     return (0 <= idx) && (idx < 1000);
+}
+
+bool Selection::is_sla_compliant() const
+{
+    if (m_mode == Volume)
+        return false;
+
+    for (unsigned int i : m_list)
+    {
+        if ((*m_volumes)[i]->is_modifier)
+            return false;
+    }
+
+    return true;
 }
 
 bool Selection::requires_uniform_scale() const
@@ -1893,25 +1927,59 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
 void Selection::paste_volumes_from_clipboard()
 {
-    int obj_idx = get_object_idx();
-    if ((obj_idx < 0) || ((int)m_model->objects.size() <= obj_idx))
+    int dst_obj_idx = get_object_idx();
+    if ((dst_obj_idx < 0) || ((int)m_model->objects.size() <= dst_obj_idx))
+        return;
+
+    ModelObject* dst_object = m_model->objects[dst_obj_idx];
+
+    int dst_inst_idx = get_instance_idx();
+    if ((dst_inst_idx < 0) || ((int)dst_object->instances.size() <= dst_inst_idx))
         return;
 
     ModelObject* src_object = m_clipboard.get_object(0);
     if (src_object != nullptr)
     {
-        ModelObject* dst_object = m_model->objects[obj_idx];
+        ModelInstance* dst_instance = dst_object->instances[dst_inst_idx];
+        BoundingBoxf3 dst_instance_bb = dst_object->instance_bounding_box(dst_inst_idx);
+        Transform3d src_matrix = src_object->instances[0]->get_transformation().get_matrix(true);
+        Transform3d dst_matrix = dst_instance->get_transformation().get_matrix(true);
+        bool from_same_object = (src_object->input_file == dst_object->input_file) && src_matrix.isApprox(dst_matrix);
+
+        // used to keep relative position of multivolume selections when pasting from another object
+        BoundingBoxf3 total_bb;
 
         ModelVolumePtrs volumes;
         for (ModelVolume* src_volume : src_object->volumes)
         {
             ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
             dst_volume->set_new_unique_id();
-            double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-            dst_volume->translate(offset, offset, 0.0);
+            if (from_same_object)
+            {
+//                // if the volume comes from the same object, apply the offset in world system
+//                double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+//                dst_volume->translate(dst_matrix.inverse() * Vec3d(offset, offset, 0.0));
+            }
+            else
+            {
+                // if the volume comes from another object, apply the offset as done when adding modifiers
+                // see ObjectList::load_generic_subobject()
+                total_bb.merge(dst_volume->mesh().bounding_box().transformed(src_volume->get_matrix()));
+            }
+
             volumes.push_back(dst_volume);
         }
-        wxGetApp().obj_list()->paste_volumes_into_list(obj_idx, volumes);
+
+        // keeps relative position of multivolume selections
+        if (!from_same_object)
+        {
+            for (ModelVolume* v : volumes)
+            {
+                v->set_offset((v->get_offset() - total_bb.center()) + dst_matrix.inverse() * (Vec3d(dst_instance_bb.max(0), dst_instance_bb.min(1), dst_instance_bb.min(2)) + 0.5 * total_bb.size() - dst_instance->get_transformation().get_offset()));
+            }
+        }
+
+        wxGetApp().obj_list()->paste_volumes_into_list(dst_obj_idx, volumes);
     }
 }
 

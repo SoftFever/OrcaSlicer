@@ -95,6 +95,7 @@ public:
     bool            initialized() const { return m_initialized; }
 
     GUI_App();
+    ~GUI_App();
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();

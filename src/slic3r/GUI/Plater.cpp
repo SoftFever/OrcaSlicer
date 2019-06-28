@@ -614,10 +614,10 @@ struct Sidebar::priv
     PresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
-    FreqChangedParams   *frequently_changed_parameters;
-    ObjectList          *object_list;
-    ObjectManipulation  *object_manipulation;
-    ObjectSettings      *object_settings;
+    FreqChangedParams   *frequently_changed_parameters{ nullptr };
+    ObjectList          *object_list{ nullptr };
+    ObjectManipulation  *object_manipulation{ nullptr };
+    ObjectSettings      *object_settings{ nullptr };
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -626,9 +626,22 @@ struct Sidebar::priv
     wxButton *btn_send_gcode;
 
     priv(Plater *plater) : plater(plater) {}
+    ~priv();
 
     void show_preset_comboboxes();
 };
+
+Sidebar::priv::~priv()
+{
+    if (object_manipulation != nullptr)
+        delete object_manipulation;
+
+    if (object_settings != nullptr)
+        delete object_settings;
+
+    if (frequently_changed_parameters != nullptr)
+        delete frequently_changed_parameters;
+}
 
 void Sidebar::priv::show_preset_comboboxes()
 {
@@ -1260,6 +1273,7 @@ struct Plater::priv
     Preview *preview;
 
     BackgroundSlicingProcess    background_process;
+    bool suppressed_backround_processing_update { false };
     
     // A class to handle UI jobs like arranging and optimizing rotation.
     // These are not instant jobs, the user has to be informed about their
@@ -1512,6 +1526,7 @@ struct Plater::priv
     static const std::regex pattern_prusa;
 
     priv(Plater *q, MainFrame *main_frame);
+    ~priv();
 
     void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
@@ -1694,7 +1709,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panels.push_back(preview);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
+    {
+        if (!this->suppressed_backround_processing_update)
+            this->update_restart_background_process(false, false);
+    });
 
     update();
 
@@ -1772,6 +1791,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 
     set_current_panel(view3D);
+
+    // updates camera type from .ini file
+    camera.set_type(get_config("use_perspective_camera"));
+}
+
+Plater::priv::~priv()
+{
+    if (config != nullptr)
+        delete config;
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -1839,10 +1867,8 @@ void Plater::priv::update_ui_from_settings()
     //     $self->{buttons_sizer}->Layout;
     // }
 
-#if ENABLE_RETINA_GL
     view3D->get_canvas3d()->update_ui_from_settings();
     preview->get_canvas3d()->update_ui_from_settings();
-#endif
 }
 
 ProgressStatusBar* Plater::priv::statusbar()
@@ -4173,9 +4199,25 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     this->p->schedule_background_process();
 }
 
-void Plater::schedule_background_process()
+void Plater::schedule_background_process(bool schedule/* = true*/)
 {
-    this->p->schedule_background_process();    
+    if (schedule)
+        this->p->schedule_background_process();
+
+    this->p->suppressed_backround_processing_update = false;
+}
+
+bool Plater::is_background_process_running() const 
+{
+    return this->p->background_process_timer.IsRunning();
+}
+
+void Plater::suppress_background_process(const bool stop_background_process)
+{
+    if (stop_background_process)
+        this->p->background_process_timer.Stop();
+
+    this->p->suppressed_backround_processing_update = true;
 }
 
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
@@ -4184,30 +4226,14 @@ void Plater::update_object_menu() { p->update_object_menu(); }
 
 void Plater::copy_selection_to_clipboard()
 {
-    p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
+    if (can_copy_to_clipboard())
+        p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
 }
 
 void Plater::paste_from_clipboard()
 {
-    p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
-}
-
-bool Plater::can_paste_from_clipboard() const
-{
-    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
-    const Selection::Clipboard& clipboard = selection.get_clipboard();
-    Selection::EMode mode = clipboard.get_mode();
-
-    if (clipboard.is_empty())
-        return false;
-
-    if ((mode == Selection::Volume) && !selection.is_from_single_instance())
-        return false;
-
-    if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
-        return false;
-
-    return true;
+    if (can_paste_from_clipboard())
+        p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
 void Plater::msw_rescale()
@@ -4234,7 +4260,48 @@ bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
 bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
-bool Plater::can_copy() const { return !is_selection_empty(); }
-bool Plater::can_paste() const { return can_paste_from_clipboard(); }
+bool Plater::can_paste_from_clipboard() const
+{
+    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    const Selection::Clipboard& clipboard = selection.get_clipboard();
+
+    if (clipboard.is_empty())
+        return false;
+
+    if ((wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) && !clipboard.is_sla_compliant())
+        return false;
+
+    Selection::EMode mode = clipboard.get_mode();
+    if ((mode == Selection::Volume) && !selection.is_from_single_instance())
+        return false;
+
+    if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
+        return false;
+
+    return true;
+}
+
+bool Plater::can_copy_to_clipboard() const
+{
+    if (is_selection_empty())
+        return false;
+
+    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    if ((wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA) && !selection.is_sla_compliant())
+        return false;
+
+    return true;
+}
+
+SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
+    m_was_running(wxGetApp().plater()->is_background_process_running())
+{
+    wxGetApp().plater()->suppress_background_process(m_was_running);
+}
+
+SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
+{
+    wxGetApp().plater()->schedule_background_process(m_was_running);
+}
 
 }}    // namespace Slic3r::GUI

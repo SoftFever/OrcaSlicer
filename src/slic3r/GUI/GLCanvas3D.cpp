@@ -198,8 +198,7 @@ void GLCanvas3D::Shader::_reset()
 #endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_use_legacy_opengl(false)
-    , m_enabled(false)
+    : m_enabled(false)
     , m_z_texture_id(0)
     , m_model_object(nullptr)
     , m_object_max_z(0.f)
@@ -274,12 +273,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return !m_use_legacy_opengl && m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
-}
-
-void GLCanvas3D::LayersEditing::set_use_legacy_opengl(bool use_legacy_opengl)
-{
-    m_use_legacy_opengl = use_legacy_opengl;
+    return m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -300,22 +294,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
     const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    // The viewport and camera are set to complete view and glOrtho(-$x / 2, $x / 2, -$y / 2, $y / 2, -$depth, $depth),
-    // where x, y is the window size divided by $self->_zoom.
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(reset_rect);
     _render_active_object_annotations(canvas, bar_rect);
     _render_profile(bar_rect);
-
-    // Revert the matrices.
-    glsafe(::glPopMatrix());
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -370,7 +352,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
@@ -382,7 +364,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
@@ -401,7 +383,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename, false))
+        if (!m_tooltip_texture.load_from_file(filename, false, true))
             return;
     }
 
@@ -413,7 +395,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
 
-    float zoom = canvas.get_camera().zoom;
+    float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
     float gap = 10.0f * inv_zoom;
 
@@ -433,7 +415,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename, false))
+        if (!m_reset_texture.load_from_file(filename, false, true))
             return;
     }
 
@@ -475,8 +457,10 @@ void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
 {
     //FIXME show some kind of legend.
 
+    if (!m_slicing_parameters)
+        return;
+
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
-	assert(m_slicing_parameters != nullptr);
     float scale_x = bar_rect.get_width() / (float)(1.12 * m_slicing_parameters->max_layer_height);
     float scale_y = bar_rect.get_height() / m_object_max_z;
     float x = bar_rect.get_left() + (float)m_slicing_parameters->layer_height * scale_x;
@@ -728,7 +712,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         }
     }
 
-    _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+    generate(text, canvas, true, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
 
     // save information for rescaling
     m_msg_text = text;
@@ -789,7 +773,7 @@ static void msw_disable_cleartype(wxFont &font)
 }
 #endif /* __WXMSW__ */
 
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
+bool GLCanvas3D::WarningTexture::generate(const std::string& msg_utf8, const GLCanvas3D& canvas, bool compress, bool red_colored/* = false*/)
 {
     reset();
 
@@ -863,7 +847,10 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    if (compress && GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -879,12 +866,8 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)m_original_width) * inv_zoom;
         float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
@@ -903,9 +886,6 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -914,7 +894,7 @@ void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
     if (m_msg_text.empty())
         return;
 
-    _generate(m_msg_text, canvas, m_is_colored_red);
+    generate(m_msg_text, canvas, true, m_is_colored_red);
 }
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
@@ -957,7 +937,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress)
 {
     reset();
 
@@ -1146,7 +1126,10 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    if (compress && GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -1159,12 +1142,8 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 {
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera().zoom;
+        float zoom = (float)canvas.get_camera().get_zoom();
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
         float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
@@ -1183,9 +1162,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         uvs.right_top = { uv_right, uv_top };
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
-
-        glsafe(::glPopMatrix());
-        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1229,6 +1205,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
 #endif // ENABLE_SVG_ICONS
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
+    , m_keep_dirty(false)
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -1247,6 +1224,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_cursor_type(Standard)
     , m_color_by("volume")
     , m_reload_delayed(false)
+#if ENABLE_RENDER_PICKING_PASS
+    , m_show_picking_texture(false)
+#endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
 {
     if (m_canvas != nullptr) {
@@ -1272,7 +1252,7 @@ void GLCanvas3D::post_event(wxEvent &&event)
     wxPostEvent(m_canvas, event);
 }
 
-bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
+bool GLCanvas3D::init(bool useVBOs)
 {
     if (m_initialized)
         return true;
@@ -1330,7 +1310,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         return false;
 
     m_use_VBOs = useVBOs;
-    m_layers_editing.set_use_legacy_opengl(use_legacy_opengl);
 
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
@@ -1446,6 +1425,8 @@ void GLCanvas3D::bed_shape_changed()
     m_camera.set_scene_box(scene_bounding_box());
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
+    if (m_bed.is_prusa())
+        start_keeping_dirty();
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -1467,7 +1448,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(false));
 
     if (m_config != nullptr)
     {
@@ -1475,6 +1456,7 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
         bb.min(2) = std::min(bb.min(2), -h);
         bb.max(2) = std::max(bb.max(2), h);
     }
+
     return bb;
 }
 
@@ -1550,20 +1532,20 @@ void GLCanvas3D::allow_multisample(bool allow)
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(m_bed.get_bounding_box());
+    _zoom_to_box(m_bed.get_bounding_box(false));
 }
 
 void GLCanvas3D::zoom_to_volumes()
 {
     m_apply_zoom_to_volumes_filter = true;
-    _zoom_to_bounding_box(volumes_bounding_box());
+    _zoom_to_box(volumes_bounding_box());
     m_apply_zoom_to_volumes_filter = false;
 }
 
 void GLCanvas3D::zoom_to_selection()
 {
     if (!m_selection.is_empty())
-        _zoom_to_bounding_box(m_selection.get_bounding_box());
+        _zoom_to_box(m_selection.get_bounding_box());
 }
 
 void GLCanvas3D::select_view(const std::string& direction)
@@ -1624,6 +1606,7 @@ void GLCanvas3D::render()
     }
 
     m_camera.apply_view_matrix();
+    m_camera.apply_projection(_max_bounding_box(true));
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -1647,6 +1630,10 @@ void GLCanvas3D::render()
             _picking_pass();
     }
 
+#if ENABLE_RENDER_PICKING_PASS
+    if (!m_picking_enabled || !m_show_picking_texture)
+    {
+#endif // ENABLE_RENDER_PICKING_PASS
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
@@ -1676,6 +1663,9 @@ void GLCanvas3D::render()
 
     _render_current_gizmo();
     _render_selection_sidebar_hints();
+#if ENABLE_RENDER_PICKING_PASS
+    }
+#endif // ENABLE_RENDER_PICKING_PASS
 
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
@@ -1685,28 +1675,30 @@ void GLCanvas3D::render()
         m_rectangle_selection.render(*this);
 
     // draw overlays
-    _render_gizmos_overlay();
-    _render_warning_texture();
-    _render_legend_texture();
-#if !ENABLE_SVG_ICONS
-    _resize_toolbars();
-#endif // !ENABLE_SVG_ICONS
-    _render_toolbar();
-    _render_view_toolbar();
-    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
-        m_layers_editing.render_overlay(*this);
+    _render_overlays();
 
 #if ENABLE_RENDER_STATISTICS
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    imgui.text(_(L("Last frame")) +": ");
+    imgui.text("Last frame: ");
     ImGui::SameLine();
     imgui.text(std::to_string(m_render_stats.last_frame));
     ImGui::SameLine();
-    imgui.text(" "+_(L("ms")));
+    imgui.text("  ms");
+    ImGui::Separator();
+    imgui.text("Compressed textures: ");
+    ImGui::SameLine();
+    imgui.text(GLCanvas3DManager::are_compressed_textures_supported() ? "supported" : "not supported");
+    imgui.text("Max texture size: ");
+    ImGui::SameLine();
+    imgui.text(std::to_string(GLCanvas3DManager::get_gl_info().get_max_tex_size()));
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
+
+#if ENABLE_CAMERA_STATISTICS
+    m_camera.debug_render();
+#endif // ENABLE_CAMERA_STATISTICS
 
     wxGetApp().imgui()->render();
 
@@ -2311,6 +2303,9 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         return;
 
     _refresh_if_shown_on_screen();
+
+    if (m_keep_dirty)
+        m_dirty = true;
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -2407,9 +2402,19 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
-        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'i': { set_camera_zoom(1.0); break; }
+        case 'K':
+        case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
-        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'o': { set_camera_zoom(-1.0); break; }
+#if ENABLE_RENDER_PICKING_PASS
+        case 'T':
+        case 't': {
+            m_show_picking_texture = !m_show_picking_texture;
+            m_dirty = true; 
+            break;
+        }
+#endif // ENABLE_RENDER_PICKING_PASS
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:  { evt.Skip(); break; }
@@ -2530,7 +2535,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
                 m_layers_editing.band_width = std::max(std::min(m_layers_editing.band_width * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f);
                 if (m_canvas != nullptr)
                     m_canvas->Refresh();
-                
+
                 return;
             }
         }
@@ -2541,8 +2546,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
-    float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-    set_camera_zoom(zoom);
+    set_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -3294,21 +3298,11 @@ void GLCanvas3D::do_mirror()
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLCanvas3D::set_camera_zoom(float zoom)
+void GLCanvas3D::set_camera_zoom(double zoom)
 {
-    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
-    zoom = m_camera.zoom / (1.0f - zoom);
-
-    // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
-    if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.7f);
-
-    // Don't allow to zoom too close to the scene.
-    zoom = std::min(zoom, 100.0f);
-
-    m_camera.zoom = zoom;
-    _refresh_if_shown_on_screen();
+    const Size& cnv_size = get_canvas_size();
+    m_camera.set_zoom(zoom, _max_bounding_box(false), cnv_size.get_width(), cnv_size.get_height());
+    m_dirty = true;
 }
 
 void GLCanvas3D::update_gizmos_on_off_state()
@@ -3331,6 +3325,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 
 void GLCanvas3D::update_ui_from_settings()
 {
+    m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
+    m_dirty = true;
+
 #if ENABLE_RETINA_GL
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
@@ -3342,8 +3339,7 @@ void GLCanvas3D::update_ui_from_settings()
     if (new_scaling != orig_scaling) {
         BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
 
-        m_camera.zoom /= orig_scaling;
-        m_camera.zoom *= new_scaling;
+        m_camera.set_zoom(m_camera.get_zoom() * new_scaling / orig_scaling);
         _refresh_if_shown_on_screen();
     }
 #endif
@@ -3390,7 +3386,7 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {
-    return factor * m_bed.get_bounding_box().max_size();
+    return factor * m_bed.get_bounding_box(false).max_size();
 }
 
 void GLCanvas3D::set_cursor(ECursorType type)
@@ -3508,7 +3504,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = _utf8(L("Copy")) + " [" + GUI::shortkey_ctrl_prefix() + "C]";
     item.sprite_id = 4;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy(); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy_to_clipboard(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3519,7 +3515,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = _utf8(L("Paste")) + " [" + GUI::shortkey_ctrl_prefix() + "V]";
     item.sprite_id = 5;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste(); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste_from_clipboard(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3621,143 +3617,25 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
+
+    // updates camera
     m_camera.apply_viewport(0, 0, w, h);
-
-    const BoundingBoxf3& bbox = _max_bounding_box();
-
-    switch (m_camera.type)
-    {
-    case Camera::Ortho:
-    {
-        float w2 = w;
-        float h2 = h;
-        float two_zoom = 2.0f * m_camera.zoom;
-        if (two_zoom != 0.0f)
-        {
-            float inv_two_zoom = 1.0f / two_zoom;
-            w2 *= inv_two_zoom;
-            h2 *= inv_two_zoom;
-        }
-
-        // FIXME: calculate a tighter value for depth will improve z-fighting
-        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
-        float depth = std::max(1.f, 5.0f * (float)bbox.max_size());
-        m_camera.apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
-
-        break;
-    }
-//    case Camera::Perspective:
-//    {
-//        float bbox_r = (float)bbox.radius();
-//        float fov = PI * 45.0f / 180.0f;
-//        float fov_tan = tan(0.5f * fov);
-//        float cam_distance = 0.5f * bbox_r / fov_tan;
-//        m_camera.distance = cam_distance;
-//
-//        float nr = cam_distance - bbox_r * 1.1f;
-//        float fr = cam_distance + bbox_r * 1.1f;
-//        if (nr < 1.0f)
-//            nr = 1.0f;
-//
-//        if (fr < nr + 1.0f)
-//            fr = nr + 1.0f;
-//
-//        float h2 = fov_tan * nr;
-//        float w2 = h2 * w / h;
-//        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
-//
-//        break;
-//    }
-    default:
-    {
-        throw std::runtime_error("Invalid camera type.");
-        break;
-    }
-    }
 
     m_dirty = false;
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_bed_model) const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    bb.merge(m_bed.get_bounding_box(include_bed_model));
     return bb;
 }
 
-void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
+void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
 {
-    // Calculate the zoom factor needed to adjust viewport to bounding box.
-    float zoom = _get_zoom_to_bounding_box_factor(bbox);
-    if (zoom > 0.0f)
-    {
-        m_camera.zoom = zoom;
-        // center view around bounding box center
-        m_camera.set_target(bbox.center());
-        m_dirty = true;
-    }
-}
-
-float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const
-{
-    float max_bb_size = bbox.max_size();
-    if (max_bb_size == 0.0f)
-        return -1.0f;
-
-    // project the bbox vertices on a plane perpendicular to the camera forward axis
-    // then calculates the vertices coordinate on this plane along the camera xy axes
-
-    // we need the view matrix, we let opengl calculate it (same as done in render())
-    m_camera.apply_view_matrix();
-
-    Vec3d right = m_camera.get_dir_right();
-    Vec3d up = m_camera.get_dir_up();
-    Vec3d forward = m_camera.get_dir_forward();
-
-    Vec3d bb_min = bbox.min;
-    Vec3d bb_max = bbox.max;
-    Vec3d bb_center = bbox.center();
-
-    // bbox vertices in world space
-    std::vector<Vec3d> vertices;
-    vertices.reserve(8);
-    vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
-    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
-    vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
-
-    double max_x = 0.0;
-    double max_y = 0.0;
-
-    // margin factor to give some empty space around the bbox
-    double margin_factor = 1.25;
-
-    for (const Vec3d& v : vertices)
-    {
-        // project vertex on the plane perpendicular to camera forward axis
-        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
-        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
-
-        // calculates vertex coordinate along camera xy axes
-        double x_on_plane = proj_on_plane.dot(right);
-        double y_on_plane = proj_on_plane.dot(up);
-
-        max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
-        max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
-    }
-
-    if ((max_x == 0.0) || (max_y == 0.0))
-        return -1.0f;
-
-    max_x *= 2.0;
-    max_y *= 2.0;
-
     const Size& cnv_size = get_canvas_size();
-    return (float)std::min((double)cnv_size.get_width() / max_x, (double)cnv_size.get_height() / max_y);
+    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
+    m_dirty = true;
 }
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
@@ -3943,7 +3821,7 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-    m_bed.render(theta, m_use_VBOs, scale_factor);
+    m_bed.render(const_cast<GLCanvas3D*>(this), theta, m_use_VBOs, scale_factor);
 }
 
 void GLCanvas3D::_render_axes() const
@@ -3972,7 +3850,7 @@ void GLCanvas3D::_render_objects() const
 
             if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box(false);
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
@@ -4053,6 +3931,32 @@ void GLCanvas3D::_render_selection_center() const
     m_selection.render_center(m_gizmos.is_dragging());
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
+
+void GLCanvas3D::_render_overlays() const
+{
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    // ensure that the textures are renderered inside the frustrum
+    glsafe(::glTranslated(0.0, 0.0, -(m_camera.get_near_z() + 0.5)));
+    // ensure that the overlay fits the frustrum near z plane
+    double gui_scale = m_camera.get_gui_scale();
+    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
+
+    _render_gizmos_overlay();
+    _render_warning_texture();
+    _render_legend_texture();
+#if !ENABLE_SVG_ICONS
+    _resize_toolbars();
+#endif // !ENABLE_SVG_ICONS
+    _render_toolbar();
+    _render_view_toolbar();
+
+    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
+        m_layers_editing.render_overlay(*this);
+
+    glsafe(::glPopMatrix());
+}
 
 void GLCanvas3D::_render_warning_texture() const
 {
@@ -4150,7 +4054,7 @@ void GLCanvas3D::_render_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
@@ -4218,7 +4122,7 @@ void GLCanvas3D::_render_view_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = m_camera.zoom;
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     // places the toolbar on the bottom-left corner of the 3d scene
@@ -4634,17 +4538,12 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools()  const { return this->color_by_tool() ? tool_colors->size() / 4 : 0; }
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
-        int                          volume_idx(int extruder, int feature) const
-        {
-            return this->color_by_color_print() ? 0 : this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
-        }
 
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
-        const float*                 color_print_by_layer_idx(const size_t layer_idx) const
-        {
+        const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
-            return color_tool((it - color_print_values->begin()) % number_tools());
+            return (it - color_print_values->begin()) % number_tools();
         }
     } ctxt;
 
@@ -4677,7 +4576,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          grain_size = ctxt.color_by_color_print() ? size_t(1) : std::max(ctxt.layers.size() / 16, size_t(1));
+    size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
@@ -4686,14 +4585,34 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         new_volume_mutex.unlock();
         return volume;
     };
-    const size_t   volumes_cnt_initial = m_volumes.volumes.size();
-    std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size());
+    const size_t    volumes_cnt_initial = m_volumes.volumes.size();
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
-        GLVolumePtrs vols;
-        if (ctxt.color_by_color_print())
-            vols.emplace_back(new_volume(ctxt.color_print_by_layer_idx(range.begin())));
+        GLVolumePtrs 		vols;
+        std::vector<size_t>	color_print_layer_to_glvolume;
+        auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {
+            return *vols[ctxt.color_by_color_print() ?
+            	color_print_layer_to_glvolume[layer_idx - range.begin()] :
+				ctxt.color_by_tool() ? 
+					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
+					feature
+				];
+        };
+        if (ctxt.color_by_color_print()) {
+        	// Create a map from the layer index to a GLVolume, which is initialized with the correct layer span color.
+        	std::vector<int> color_print_tool_to_glvolume(ctxt.number_tools(), -1);
+        	color_print_layer_to_glvolume.reserve(range.end() - range.begin());
+        	vols.reserve(ctxt.number_tools());
+	        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
+	        	int idx_tool = (int)ctxt.color_print_color_idx_by_layer_idx(idx_layer);
+	        	if (color_print_tool_to_glvolume[idx_tool] == -1) {
+	        		color_print_tool_to_glvolume[idx_tool] = (int)vols.size();
+	        		vols.emplace_back(new_volume(ctxt.color_tool(idx_tool)));
+	        	}
+	        	color_print_layer_to_glvolume.emplace_back(color_print_tool_to_glvolume[idx_tool]);
+	        }
+        }
         else if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
@@ -4701,33 +4620,31 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         else
             vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
         for (GLVolume *vol : vols)
-            vol->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
+        	vol->indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
-            for (size_t i = 0; i < vols.size(); ++i) {
-                GLVolume &vol = *vols[i];
-                if (vol.print_zs.empty() || vol.print_zs.back() != layer->print_z) {
-                    vol.print_zs.push_back(layer->print_z);
-                    vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
-                    vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
+            for (GLVolume *vol : vols)
+                if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
+                    vol->print_zs.push_back(layer->print_z);
+                    vol->offsets.push_back(vol->indexed_vertex_array.quad_indices.size());
+                    vol->offsets.push_back(vol->indexed_vertex_array.triangle_indices.size());
                 }
-            }
             for (const Point &copy : *ctxt.shifted_copies) {
                 for (const LayerRegion *layerm : layer->regions()) {
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
-                        *vols[ctxt.volume_idx(layerm->region()->config().perimeter_extruder.value, 0)]);
+                        	volume(idx_layer, layerm->region()->config().perimeter_extruder.value, 0));
                     if (ctxt.has_infill) {
                         for (const ExtrusionEntity *ee : layerm->fills.entities) {
                             // fill represents infill extrusions of a single island.
                             const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                            if (!fill->entities.empty())
+                            if (! fill->entities.empty())
                                 _3DScene::extrusionentity_to_verts(*fill, float(layer->print_z), copy,
-                                *vols[ctxt.volume_idx(
-                                is_solid_infill(fill->entities.front()->role()) ?
-                                layerm->region()->config().solid_infill_extruder :
-                                layerm->region()->config().infill_extruder,
-                                1)]);
+	                                volume(idx_layer, 
+		                                is_solid_infill(fill->entities.front()->role()) ?
+			                                layerm->region()->config().solid_infill_extruder :
+			                                layerm->region()->config().infill_extruder,
+		                                1));
                         }
                     }
                 }
@@ -4736,36 +4653,37 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     if (support_layer) {
                         for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
-                            *vols[ctxt.volume_idx(
-                            (extrusion_entity->role() == erSupportMaterial) ?
-                            support_layer->object()->config().support_material_extruder :
-                            support_layer->object()->config().support_material_interface_extruder,
-                            2)]);
+	                            volume(idx_layer, 
+		                            (extrusion_entity->role() == erSupportMaterial) ?
+			                            support_layer->object()->config().support_material_extruder :
+			                            support_layer->object()->config().support_material_interface_extruder,
+		                            2));
                     }
                 }
             }
-            for (size_t i = 0; i < vols.size(); ++i) {
-                GLVolume &vol = *vols[i];
-                if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
-                    // Store the vertex arrays and restart their containers, 
-                    vols[i] = new_volume(vol.color);
-                    GLVolume &vol_new = *vols[i];
-                    // Assign the large pre-allocated buffers to the new GLVolume.
-                    vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
-                    // Copy the content back to the old GLVolume.
-                    vol.indexed_vertex_array = vol_new.indexed_vertex_array;
-                    // Finalize a bounding box of the old GLVolume.
-                    vol.bounding_box = vol.indexed_vertex_array.bounding_box();
-                    // Clear the buffers, but keep them pre-allocated.
-                    vol_new.indexed_vertex_array.clear();
-                    // Just make sure that clear did not clear the reserved memory.
-                    vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
-                }
-            }
+            // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
+	        for (size_t i = 0; i < vols.size(); ++i) {
+	            GLVolume &vol = *vols[i];
+	            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() / 6 > ctxt.alloc_size_max()) {
+	                // Store the vertex arrays and restart their containers, 
+	                vols[i] = new_volume(vol.color);
+	                GLVolume &vol_new = *vols[i];
+	                // Assign the large pre-allocated buffers to the new GLVolume.
+	                vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
+	                // Copy the content back to the old GLVolume.
+	                vol.indexed_vertex_array = vol_new.indexed_vertex_array;
+	                // Finalize a bounding box of the old GLVolume.
+	                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
+	                // Clear the buffers, but keep them pre-allocated.
+	                vol_new.indexed_vertex_array.clear();
+	                // Just make sure that clear did not clear the reserved memory.
+	                vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
+	            }
+	        }
         }
         for (GLVolume *vol : vols) {
-            vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-            vol->indexed_vertex_array.shrink_to_fit();
+        	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
+        	vol->indexed_vertex_array.shrink_to_fit();
         }
     });
 
@@ -5699,7 +5617,7 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-    m_legend_texture.generate(preview_data, tool_colors, *this);
+    m_legend_texture.generate(preview_data, tool_colors, *this, true);
 }
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)

@@ -5,6 +5,7 @@
 #include "SLABoostAdapter.hpp"
 #include "ClipperUtils.hpp"
 #include "Tesselate.hpp"
+#include "MTUtils.hpp"
 
 // For debugging:
 // #include <fstream>
@@ -206,7 +207,7 @@ void offset(ExPolygon& sh, coord_t distance, bool edgerounding = true) {
     auto jointype = edgerounding? jtRound : jtMiter;
     
     ClipperOffset offs;
-    offs.ArcTolerance = 0.01*scaled(1.);
+    offs.ArcTolerance = scaled<double>(0.01);
     Paths result;
     offs.AddPath(ctour, jointype, etClosedPolygon);
     offs.AddPaths(holes, jointype, etClosedPolygon);
@@ -508,7 +509,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
         double x2 = xx*xx;
         double stepy = std::sqrt(r2 - x2);
 
-        offset(ob, s*scaled(xx));
+        offset(ob, s * scaled(xx));
         wh = ceilheight_mm - radius_mm + stepy;
 
         Contour3D pwalls;
@@ -532,7 +533,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
             double xx = radius_mm - i*stepx;
             double x2 = xx*xx;
             double stepy = std::sqrt(r2 - x2);
-            offset(ob, s*scaled(xx));
+            offset(ob, s * scaled(xx));
             wh = ceilheight_mm - radius_mm - stepy;
 
             Contour3D pwalls;
@@ -653,7 +654,7 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
         ctour.reserve(3);
         ctour.emplace_back(cc);
 
-        Point d(coord_t(scaled(1.)*nx), coord_t(scaled(1.)*ny));
+        Point d(scaled(nx), scaled(ny));
         ctour.emplace_back(c + Point( -y(d),  x(d) ));
         ctour.emplace_back(c + Point(  y(d), -x(d) ));
         offset(r, scaled(1.));
@@ -685,14 +686,14 @@ void base_plate(const TriangleMesh &      mesh,
     ExPolygons tmp; tmp.reserve(count);
     for(ExPolygons& o : out)
         for(ExPolygon& e : o) {
-            auto&& exss = e.simplify(scaled(0.1));
+            auto&& exss = e.simplify(scaled<double>(0.1));
             for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
         }
     
     ExPolygons utmp = unify(tmp);
     
     for(auto& o : utmp) {
-        auto&& smp = o.simplify(scaled(0.1));
+        auto&& smp = o.simplify(scaled<double>(0.1));
         output.insert(output.end(), smp.begin(), smp.end());
     }
 }

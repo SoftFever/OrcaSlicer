@@ -1583,6 +1583,9 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     m_bmp_one_layer_unlock_off = ScalableBitmap(this, "one_layer_unlock_off.png");
     m_lock_icon_dim = m_bmp_one_layer_lock_on.bmp().GetSize().x;
 
+    m_bmp_revert               = ScalableBitmap(this, "undo");
+    m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
+
     m_selection = ssUndef;
 
     // slider events
@@ -1637,6 +1640,9 @@ void DoubleSlider::msw_rescale()
     m_bmp_one_layer_unlock_on .msw_rescale();
     m_bmp_one_layer_unlock_off.msw_rescale();
     m_lock_icon_dim = m_bmp_one_layer_lock_on.bmp().GetSize().x;
+
+    m_bmp_revert.msw_rescale();
+    m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
 
     SLIDER_MARGIN = 4 + Slic3r::GUI::wxGetApp().em_unit();
 
@@ -1874,8 +1880,11 @@ void DoubleSlider::render()
     //draw color print ticks
     draw_ticks(dc);
 
-    //draw color print ticks
+    //draw lock/unlock
     draw_one_layer_icon(dc);
+
+    //draw revert bitmap (if it's shown)
+    draw_revert_icon(dc);
 }
 
 void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
@@ -2102,6 +2111,24 @@ void DoubleSlider::draw_one_layer_icon(wxDC& dc)
     m_rect_one_layer_icon = wxRect(x_draw, y_draw, m_lock_icon_dim, m_lock_icon_dim);
 }
 
+void DoubleSlider::draw_revert_icon(wxDC& dc)
+{
+    if (m_ticks.empty())
+        return;
+
+    int width, height;
+    get_size(&width, &height);
+
+    wxCoord x_draw, y_draw;
+    is_horizontal() ? x_draw = width-2 : x_draw = 0.25*SLIDER_MARGIN;
+    is_horizontal() ? y_draw = 0.25*SLIDER_MARGIN: y_draw = height-2;
+
+    dc.DrawBitmap(m_bmp_revert.bmp(), x_draw, y_draw);
+
+    //update rect of the lock/unlock icon
+    m_rect_revert_icon = wxRect(x_draw, y_draw, m_revert_icon_dim, m_revert_icon_dim);
+}
+
 void DoubleSlider::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
 {
     const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, m_thumb_size.y);
@@ -2118,8 +2145,8 @@ int DoubleSlider::get_value_from_position(const wxCoord x, const wxCoord y)
     
     if (is_horizontal()) 
         return int(double(x - SLIDER_MARGIN) / step + 0.5);
-    else 
-        return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
+
+    return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
 }
 
 void DoubleSlider::detect_selected_slider(const wxPoint& pt)
@@ -2169,7 +2196,10 @@ void DoubleSlider::ChangeOneLayerLock()
 
 void DoubleSlider::OnLeftDown(wxMouseEvent& event)
 {
+    if (HasCapture())
+        return;
     this->CaptureMouse();
+
     wxClientDC dc(this);
     wxPoint pos = event.GetLogicalPosition(dc);
     if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation) {
@@ -2179,6 +2209,7 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
 
     m_is_left_down = true;
     if (is_point_in_rect(pos, m_rect_one_layer_icon)) {
+        // switch on/off one layer mode
         m_is_one_layer = !m_is_one_layer;
         if (!m_is_one_layer) {
             SetLowerValue(m_min_value);
@@ -2187,20 +2218,36 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
     }
+    else if (is_point_in_rect(pos, m_rect_revert_icon)) {
+        // discard all color changes
+        SetLowerValue(m_min_value);
+        SetHigherValue(m_max_value);
+
+        m_selection == ssLower ? correct_lower_value() : correct_higher_value();
+        if (!m_selection) m_selection = ssHigher;
+
+        m_ticks.clear();
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+    }
     else
         detect_selected_slider(pos);
 
-    if (!m_selection && m_is_enabled_tick_manipulation) {
-        const auto tick = is_point_near_tick(pos);
-        if (tick >= 0)
+    if (!m_selection) {
+        const int tick_val  = is_point_near_tick(pos);
+        /* Set current thumb position to the nearest tick (if it is)
+         * OR to a value corresponding to the mouse click
+         * */ 
+        const int mouse_val = tick_val >= 0 && m_is_enabled_tick_manipulation ? tick_val : 
+                              get_value_from_position(pos.x, pos.y);
+        if (mouse_val >= 0)
         {
-            if (abs(tick - m_lower_value) < abs(tick - m_higher_value)) {
-                SetLowerValue(tick);
+            if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
+                SetLowerValue(mouse_val);
                 correct_lower_value();
                 m_selection = ssLower;
             }
             else {
-                SetHigherValue(tick);
+                SetHigherValue(mouse_val);
                 correct_higher_value();
                 m_selection = ssHigher;
             }
@@ -2240,9 +2287,13 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
 
     const wxClientDC dc(this);
     const wxPoint pos = event.GetLogicalPosition(dc);
+
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
+    bool is_revert_icon_focused = false;
+
     if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
+        is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
@@ -2261,6 +2312,12 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     Refresh();
     Update();
     event.Skip();
+
+    // Set tooltips with information for each icon
+    const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
+                             m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
+                             is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
+    this->SetToolTip(tooltip);
 
     if (action)
     {
@@ -2412,7 +2469,9 @@ void DoubleSlider::OnChar(wxKeyEvent& event)
 
 void DoubleSlider::OnRightDown(wxMouseEvent& event)
 {
+    if (HasCapture()) return;
     this->CaptureMouse();
+
     const wxClientDC dc(this);
     detect_selected_slider(event.GetLogicalPosition(dc));
     if (!m_selection)
@@ -2472,6 +2531,9 @@ LockButton::LockButton( wxWindow *parent,
 
 void LockButton::OnButton(wxCommandEvent& event)
 {
+    if (m_disabled)
+        return;
+
     m_is_pushed = !m_is_pushed;
     enter_button(true);
 

@@ -175,7 +175,9 @@ public:
     void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
-    void schedule_background_process();
+    void schedule_background_process(bool schedule = true);
+    bool is_background_process_running() const;
+    void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 
@@ -200,7 +202,6 @@ public:
 
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
-    bool can_paste_from_clipboard() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -212,16 +213,26 @@ public:
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
-    bool can_copy() const;
-    bool can_paste() const;
+    bool can_paste_from_clipboard() const;
+    bool can_copy_to_clipboard() const;
 
     void msw_rescale();
 
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    friend class SuppressBackgroundProcessingUpdate;
 };
 
+class SuppressBackgroundProcessingUpdate
+{
+public:
+    SuppressBackgroundProcessingUpdate();
+    ~SuppressBackgroundProcessingUpdate();
+private:
+    bool m_was_running;
+};
 
 }}
 

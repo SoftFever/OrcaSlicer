@@ -2,6 +2,7 @@
 #define PROGRESSSTATUSBAR_HPP
 
 #include <memory>
+#include <string>
 #include <functional>
 #include <string>
 

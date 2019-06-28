@@ -17,6 +17,9 @@ struct SerialPortInfo {
 	std::string friendly_name;
 	bool        is_printer = false;
 
+	SerialPortInfo() {}
+	SerialPortInfo(std::string port) : port(port), friendly_name(std::move(port)) {}
+
 	bool id_match(unsigned id_vendor, unsigned id_product) const { return id_vendor == this->id_vendor && id_product == this->id_product; }
 };
 

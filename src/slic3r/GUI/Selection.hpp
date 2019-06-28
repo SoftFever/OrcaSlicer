@@ -152,6 +152,8 @@ public:
         void reset() { m_model.clear_objects(); }
         bool is_empty() const { return m_model.objects.empty(); }
 
+        bool is_sla_compliant() const;
+
         ModelObject* add_object() { return m_model.add_object(); }
         ModelObject* get_object(unsigned int id) { return (id < (unsigned int)m_model.objects.size()) ? m_model.objects[id] : nullptr; }
         const ModelObjectPtrs& get_objects() const { return m_model.objects; }
@@ -257,6 +259,7 @@ public:
     bool is_mixed() const { return m_type == Mixed; }
     bool is_from_single_instance() const { return get_instance_idx() != -1; }
     bool is_from_single_object() const;
+    bool is_sla_compliant() const;
 
     bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     bool requires_uniform_scale() const;
