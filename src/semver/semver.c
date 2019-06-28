@@ -22,6 +22,10 @@
 static const size_t MAX_SIZE     = sizeof(char) * 255;
 static const int MAX_SAFE_INT = (unsigned int) -1 >> 1;
 
+#ifdef _WIN32
+  #define strdup _strdup
+#endif
+
 /**
  * Define comparison operators, storing the
  * ASCII code per each symbol in hexadecimal notation.
@@ -50,8 +54,8 @@ strcut (char *str, int begin, int len) {
 
   if((int)l < 0 || (int)l > MAX_SAFE_INT) return -1;
 
-  if (len < 0) len = l - begin + 1;
-  if (begin + len > (int)l) len = l - begin;
+  if (len < 0) len = (int)l - begin + 1;
+  if (begin + len > (int)l) len = (int)l - begin;
   memmove(str + begin, str + begin + len, l - len + 1 - begin);
 
   return len;
@@ -104,7 +108,7 @@ parse_int (const char *s) {
 static char *
 parse_slice (char *buf, char sep) {
   char *pr, *part;
-  int plen;
+  size_t plen;
 
   /* Find separator in buf */
   pr = strchr(buf, sep);
@@ -210,8 +214,9 @@ semver_parse_version (const char *str, semver_t *ver) {
 static int
 compare_prerelease (char *x, char *y) {
   char *lastx, *lasty, *xptr, *yptr, *endptr;
-  int xlen, ylen, xisnum, yisnum, xnum, ynum;
-  int xn, yn, min, res;
+  size_t xlen, ylen, xn, yn, min;
+  int xisnum, yisnum, xnum, ynum;
+  int res;
   if (x == NULL && y == NULL) return 0;
   if (y == NULL && x) return -1;
   if (x == NULL && y) return 1;
@@ -572,7 +577,7 @@ semver_clean (char *s) {
 
   for (i = 0; i < len; i++) {
     if (contains(s[i], VALID_CHARS, mlen) == 0) {
-      res = strcut(s, i, 1);
+      res = strcut(s, (int)i, 1);
       if(res == -1) return -1;
       --len; --i;
     }

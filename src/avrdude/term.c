@@ -281,7 +281,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
   maxsize = mem->size;
 
-  if (addr >= maxsize) {
+  if (addr >= (unsigned long)maxsize) {
     if (argc == 2) {
       /* wrap around */
       addr = 0;
@@ -294,7 +294,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   /* trim len if nessary to not read past the end of memory */
-  if ((addr + len) > maxsize)
+  if ((addr + len) > (unsigned long)maxsize)
     len = maxsize - addr;
 
   buf = malloc(len);
@@ -303,7 +303,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  for (i=0; i<len; i++) {
+  for (i = 0; i < (unsigned long)len; i++) {
     rc = pgm->read_byte(pgm, p, mem, addr+i, &buf[i]);
     if (rc != 0) {
       avrdude_message(MSG_INFO, "error reading %s address 0x%05lx of part %s\n",
@@ -364,7 +364,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  if (addr > maxsize) {
+  if (addr > (unsigned long)maxsize) {
     avrdude_message(MSG_INFO, "%s (write): address 0x%05lx is out of range for %s memory\n",
                     progname, addr, memtype);
     return -1;
@@ -373,7 +373,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   /* number of bytes to write at the specified address */
   len = argc - 3;
 
-  if ((addr + len) > maxsize) {
+  if ((addr + len) > (unsigned long)maxsize) {
     avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
                     "range for %s memory\n",
                     progname, memtype);
@@ -386,8 +386,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  for (i=3; i<argc; i++) {
-    buf[i-3] = strtoul(argv[i], &e, 0);
+  for (i = 3; i < (unsigned long)argc; i++) {
+    buf[i-3] = (char)strtoul(argv[i], &e, 0);
     if (*e || (e == argv[i])) {
       avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
               progname, argv[i]);
@@ -397,7 +397,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   pgm->err_led(pgm, OFF);
-  for (werror=0, i=0; i<len; i++) {
+  for (werror = 0, i = 0; i < (unsigned long)len; i++) {
 
     rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
@@ -462,7 +462,7 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
 
   /* load command bytes */
   for (i=1; i<argc; i++) {
-    cmd[i-1] = strtoul(argv[i], &e, 0);
+    cmd[i-1] = (char)strtoul(argv[i], &e, 0);
     if (*e || (e == argv[i])) {
       avrdude_message(MSG_INFO, "%s (send): can't parse byte \"%s\"\n",
               progname, argv[i]);
@@ -789,7 +789,7 @@ static int tokenize(char * s, char *** argv)
   char  * nbuf;
   char ** av;
 
-  slen = strlen(s);
+  slen = (int)strlen(s);
 
   /* 
    * initialize allow for 20 arguments, use realloc to grow this if
@@ -812,7 +812,7 @@ static int tokenize(char * s, char *** argv)
     nexttok(r, &q, &r);
     strcpy(nbuf, q);
     bufv[n]  = nbuf;
-    len      = strlen(q);
+    len      = (int)strlen(q);
     l       += len + 1;
     nbuf    += len + 1;
     nbuf[0]  = 0;
@@ -841,7 +841,7 @@ static int tokenize(char * s, char *** argv)
   q  = (char *)&av[n+1];
   memcpy(q, buf, l);
   for (i=0; i<n; i++) {
-    offset = bufv[i] - buf;
+    offset = (int)(bufv[i] - buf);
     av[i] = q + offset;
   }
   av[i] = NULL;
@@ -862,7 +862,7 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
   int hold;
   int len;
 
-  len = strlen(argv[0]);
+  len = (int)strlen(argv[0]);
   hold = -1;
   for (i=0; i<NCMDS; i++) {
     if (strcasecmp(argv[0], cmd[i].name) == 0) {

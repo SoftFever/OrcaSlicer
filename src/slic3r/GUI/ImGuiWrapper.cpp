@@ -326,9 +326,9 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     int selection_out = -1;
     bool res = false;
 
-    const char *selection_str = selection < options.size() ? options[selection].c_str() : "";
+    const char *selection_str = selection < (int)options.size() ? options[selection].c_str() : "";
     if (ImGui::BeginCombo("", selection_str)) {
-        for (int i = 0; i < options.size(); i++) {
+        for (int i = 0; i < (int)options.size(); i++) {
             if (ImGui::Selectable(options[i].c_str(), i == selection)) {
                 selection_out = i;
             }

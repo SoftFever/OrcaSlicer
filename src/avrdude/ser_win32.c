@@ -292,7 +292,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	if (hComPort == INVALID_HANDLE_VALUE) {
 		const char *error = last_error_string(0);
 		avrdude_message(MSG_INFO, "%s: ser_open(): can't open device \"%s\": %s\n", progname, port, error);
-		free(error);
+		free((char *)error);
 		return -1;
 	}
 
@@ -460,10 +460,10 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 
 	serial_w32SetTimeOut(hComPort,500);
 
-	if (!WriteFile(hComPort, buf, buflen, &written, NULL)) {
+	if (!WriteFile(hComPort, buf, (DWORD)buflen, &written, NULL)) {
 		const char *error = last_error_string(0);
 		avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n", progname, error);
-		free(error);
+		free((char *)error);
 		return -1;
 	}
 
@@ -576,10 +576,10 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
 	serial_w32SetTimeOut(hComPort, serial_recv_timeout);
 
-	if (!ReadFile(hComPort, buf, buflen, &read, NULL)) {
+	if (!ReadFile(hComPort, buf, (DWORD)buflen, &read, NULL)) {
 		const char *error = last_error_string(0);
 		avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n", progname, error);
-		free(error);
+		free((char *)error);
 		return -1;
 	}
 
@@ -642,7 +642,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 		if (!readres) {
 			const char *error = last_error_string(0);
 			avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n", progname, error);
-			free(error);
+			free((char *)error);
 			return -1;
 		}
 
