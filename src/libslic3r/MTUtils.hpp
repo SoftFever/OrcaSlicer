@@ -244,21 +244,21 @@ template<class C> bool all_of(const C &container)
                        });
 }
 
-template<class T>
-struct remove_cvref
+template<class T> struct remove_cvref
 {
     using type =
         typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 };
 
-template<class T>
-using remove_cvref_t = typename remove_cvref<T>::type;
+template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
 template<template<class> class C, class T>
-class Container: public C<remove_cvref_t<T>> {
+class Container : public C<remove_cvref_t<T>>
+{
 public:
-    explicit Container(size_t count, T&& initval):
-        C<remove_cvref_t<T>>(count, initval) {}
+    explicit Container(size_t count, T &&initval)
+        : C<remove_cvref_t<T>>(count, initval)
+    {}
 };
 
 template<class T> using DefaultContainer = std::vector<T>;
@@ -268,13 +268,13 @@ template<class T, class I, template<class> class C = DefaultContainer>
 inline C<remove_cvref_t<T>> linspace(const T &start, const T &stop, const I &n)
 {
     Container<C, T> vals(n, T());
-    T stride = (stop - start) / n;
-    
-    size_t i = 0;
+
+    T      stride = (stop - start) / n;
+    size_t i      = 0;
     std::generate(vals.begin(), vals.end(), [&i, start, stride] {
-        return start + i++ * stride; 
+        return start + i++ * stride;
     });
-    
+
     return vals;
 }
 
