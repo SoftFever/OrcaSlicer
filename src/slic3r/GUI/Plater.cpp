@@ -615,11 +615,11 @@ struct Sidebar::priv
     PresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
-    FreqChangedParams   *frequently_changed_parameters;
-    ObjectList          *object_list;
-    ObjectManipulation  *object_manipulation;
-    ObjectSettings      *object_settings;
-    ObjectLayers        *object_layers;
+    FreqChangedParams   *frequently_changed_parameters{ nullptr };
+    ObjectList          *object_list{ nullptr };
+    ObjectManipulation  *object_manipulation{ nullptr };
+    ObjectSettings      *object_settings{ nullptr };
+    ObjectLayers        *object_layers{ nullptr };
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -628,9 +628,25 @@ struct Sidebar::priv
     wxButton *btn_send_gcode;
 
     priv(Plater *plater) : plater(plater) {}
+    ~priv();
 
     void show_preset_comboboxes();
 };
+
+Sidebar::priv::~priv()
+{
+    if (object_manipulation != nullptr)
+        delete object_manipulation;
+
+    if (object_settings != nullptr)
+        delete object_settings;
+
+    if (frequently_changed_parameters != nullptr)
+        delete frequently_changed_parameters;
+
+    if (object_layers != nullptr)
+        delete object_layers;
+}
 
 void Sidebar::priv::show_preset_comboboxes()
 {
@@ -1526,6 +1542,7 @@ struct Plater::priv
     static const std::regex pattern_prusa;
 
     priv(Plater *q, MainFrame *main_frame);
+    ~priv();
 
     void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
@@ -1793,6 +1810,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
+}
+
+Plater::priv::~priv()
+{
+    if (config != nullptr)
+        delete config;
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
