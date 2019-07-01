@@ -375,31 +375,46 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 {
     // get the (transformed) size of each instance so that we take
     // into account their different transformations when packing
-    Pointfs instance_sizes;
-    Pointfs instance_centers;
-    for (const ModelObject *o : this->objects)
-        for (size_t i = 0; i < o->instances.size(); ++ i) {
-            // an accurate snug bounding box around the transformed mesh.
-            BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
-            instance_sizes.emplace_back(to_2d(bbox.size()));
-            instance_centers.emplace_back(to_2d(bbox.center()));
-        }
+//    Pointfs instance_sizes;
+//    Pointfs instance_centers;
+//    for (const ModelObject *o : this->objects)
+//        for (size_t i = 0; i < o->instances.size(); ++ i) {
+//            // an accurate snug bounding box around the transformed mesh.
+//            BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
+//            instance_sizes.emplace_back(to_2d(bbox.size()));
+//            instance_centers.emplace_back(to_2d(bbox.center()));
+//        }
 
-    Pointfs positions;
-    if (! _arrange(instance_sizes, dist, bb, positions))
-        return false;
+//    Pointfs positions;
+//    if (! _arrange(instance_sizes, dist, bb, positions))
+//        return false;
 
-    size_t idx = 0;
-    for (ModelObject *o : this->objects) {
-        for (ModelInstance *i : o->instances) {
-            Vec2d offset_xy = positions[idx] - instance_centers[idx];
-            i->set_offset(Vec3d(offset_xy(0), offset_xy(1), i->get_offset(Z)));
-            ++idx;
-        }
-        o->invalidate_bounding_box();
+//    size_t idx = 0;
+//    for (ModelObject *o : this->objects) {
+//        for (ModelInstance *i : o->instances) {
+//            Vec2d offset_xy = positions[idx] - instance_centers[idx];
+//            i->set_offset(Vec3d(offset_xy(0), offset_xy(1), i->get_offset(Z)));
+//            ++idx;
+//        }
+//        o->invalidate_bounding_box();
+//    }
+    size_t count = 0;
+    for (auto obj : objects) count += obj->instances.size();
+    
+    arrangement::ArrangeablePtrs input;
+    input.reserve(count);
+    for (ModelObject *mo : objects)
+        for (ModelInstance *minst : mo->instances)
+            input.emplace_back(minst);
+    
+    arrangement::BedShapeHint bedhint;
+    
+    if (bb) {
+        bedhint.type = arrangement::BedShapeType::BOX;
+        bedhint.shape.box = BoundingBox(scaled(bb->min), scaled(bb->max));
     }
-
-    return true;
+    
+    return arrangement::arrange(input, scaled(dist), bedhint);
 }
 
 // Duplicate the entire model preserving instance relative positions.
@@ -1804,31 +1819,27 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 std::tuple<Polygon, Vec2crd, double> ModelInstance::get_arrange_polygon() const
 {
     static const double SIMPLIFY_TOLERANCE_MM = 0.1;
-    
-    assert(m_inst);
-    
-    Vec3d rotation             = get_rotation();
-    rotation.z()               = 0.;
-    Transform3d trafo_instance = Geometry::
-            assemble_transform(Vec3d::Zero(),
-                               rotation,
-                               get_scaling_factor(),
-                               get_mirror());
-    
+
+    Vec3d rotation = get_rotation();
+    rotation.z()   = 0.;
+    Transform3d trafo_instance =
+        Geometry::assemble_transform(Vec3d::Zero(), rotation,
+                                     get_scaling_factor(), get_mirror());
+
     Polygon p = get_object()->convex_hull_2d(trafo_instance);
-    
+
     assert(!p.points.empty());
-    
+
     // this may happen for malformed models, see:
     // https://github.com/prusa3d/PrusaSlicer/issues/2209
     if (p.points.empty()) return {};
-    
+
     Polygons pp{p};
     pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
     if (!pp.empty()) p = pp.front();
-    
-    return std::make_tuple(p, Vec2crd{scaled(get_offset(X)),
-                                      scaled(get_offset(Y))},
+
+    return std::make_tuple(p,
+                           Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))},
                            get_rotation(Z));
 }
 

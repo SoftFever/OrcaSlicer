@@ -901,7 +901,7 @@ private:
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);
         
-        if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
+        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
             item.removeOffset();
         });
         

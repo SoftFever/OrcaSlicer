@@ -107,8 +107,8 @@ add_library(libslic3r STATIC
     Line.hpp
     Model.cpp
     Model.hpp
-    ModelArrange.hpp
-    ModelArrange.cpp
+    Arrange.hpp
+    Arrange.cpp
     MotionPlanner.cpp
     MotionPlanner.hpp
     MultiPoint.cpp

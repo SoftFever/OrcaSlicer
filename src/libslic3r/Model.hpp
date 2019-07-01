@@ -7,7 +7,7 @@
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "Slicing.hpp"
-#include "ModelArrange.hpp"
+#include "Arrange.hpp"
 
 #include <map>
 #include <memory>
@@ -491,7 +491,7 @@ private:
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance : public ModelBase, public arr::Arrangeable
+class ModelInstance : public ModelBase, public arrangement::Arrangeable
 {
 public:
     enum EPrintVolumeState : unsigned char

@@ -6,7 +6,7 @@
 
 namespace Slic3r {
 
-namespace arr {
+namespace arrangement {
 
 /// A geometry abstraction for a circular print bed. Similarly to BoundingBox.
 class CircleBed {
@@ -22,21 +22,26 @@ public:
     inline operator bool() { return !std::isnan(radius_); }
 };
 
+/// Representing an unbounded bin
+struct InfiniteBed { Point center; };
+
 /// Types of print bed shapes.
 enum class BedShapeType {
     BOX,
     CIRCLE,
     IRREGULAR,
-    WHO_KNOWS
+    INFINITE,
+    UNKNOWN
 };
 
 /// Info about the print bed for the arrange() function.
 struct BedShapeHint {
-    BedShapeType type = BedShapeType::WHO_KNOWS;
+    BedShapeType type = BedShapeType::INFINITE;
     /*union*/ struct {  // I know but who cares... TODO: use variant from cpp17?
-        CircleBed circ;
+        CircleBed   circ;
         BoundingBox box;
-        Polyline polygon;
+        Polyline    polygon;
+        InfiniteBed infinite;
     } shape;
 };
 
@@ -59,7 +64,7 @@ public:
     virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const = 0;
 };
 
-using Arrangeables = std::vector<Arrangeable*>;
+using ArrangeablePtrs = std::vector<Arrangeable*>;
 
 /**
  * \brief Arranges the model objects on the screen.
@@ -92,20 +97,20 @@ using Arrangeables = std::vector<Arrangeable*>;
  *
  * \param stopcondition A predicate returning true if abort is needed.
  */
-bool arrange(Arrangeables &items,
+bool arrange(ArrangeablePtrs &items,
              coord_t min_obj_distance,
              const BedShapeHint& bedhint,
-             std::function<void(unsigned)> progressind,
-             std::function<bool(void)> stopcondition);
+             std::function<void(unsigned)> progressind = nullptr,
+             std::function<bool(void)> stopcondition = nullptr);
 
 /// Same as the previous, only that it takes unmovable items as an
 /// additional argument.
-bool arrange(Arrangeables &items,
-             const Arrangeables &excludes,
+bool arrange(ArrangeablePtrs &items,
+             const ArrangeablePtrs &excludes,
              coord_t min_obj_distance,
              const BedShapeHint& bedhint,
-             std::function<void(unsigned)> progressind,
-             std::function<bool(void)> stopcondition);
+             std::function<void(unsigned)> progressind = nullptr,
+             std::function<bool(void)> stopcondition = nullptr);
 
 }   // arr
 }   // Slic3r

@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <memory>
 
-#include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/Arrange.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -612,7 +612,7 @@ public:
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
     
-    class WipeTowerInfo: public arr::Arrangeable {
+    class WipeTowerInfo: public arrangement::Arrangeable {
         Vec2d m_pos = {std::nan(""), std::nan("")};
         Vec2d m_bb_size;
         double m_rotation;

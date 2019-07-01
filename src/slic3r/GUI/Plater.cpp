@@ -32,7 +32,6 @@
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Model.hpp"
-#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -1218,6 +1217,28 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     return true;
 }
 
+namespace {
+arrangement::ArrangeablePtrs get_arrange_input(Model &model, const Selection &sel) {
+    auto selmap = sel.get_content();
+    
+    size_t count = 0;
+    for (auto obj : model.objects) count += obj->instances.size();
+    
+    arrangement::ArrangeablePtrs ret; ret.reserve(count);
+
+    if (selmap.empty())
+        for (ModelObject *mo : model.objects)
+            for (ModelInstance *minst : mo->instances)
+                ret.emplace_back(minst);
+    else
+        for (auto &s : selmap)
+            for (auto &instid : s.second)
+                ret.emplace_back(model.objects[s.first]->instances[instid]);
+    
+    return ret;
+}
+}
+
 // Plater / private
 struct Plater::priv
 {
@@ -1425,50 +1446,91 @@ struct Plater::priv
 
         class ArrangeJob : public Job
         {   
-            int m_count = 0;
             GLCanvas3D::WipeTowerInfo m_wti;
+            arrangement::ArrangeablePtrs m_selected, m_unselected;
+
+            static std::array<arrangement::ArrangeablePtrs, 2> collect(
+                Model &model, const Selection &sel)
+            {
+                auto selmap = sel.get_content();
+
+                size_t count = 0;
+                for (auto obj : model.objects) count += obj->instances.size();
+                
+                arrangement::ArrangeablePtrs selected, unselected;
+                selected.reserve(count + 1 /* for optional wti */);
+                unselected.reserve(count + 1 /* for optional wti */);
+                
+                for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                    auto oit = selmap.find(int(oidx));
+
+                    if (oit != selmap.end()) {
+                        auto &iids = oit->second;
+
+                        for (size_t iidx = 0;
+                             iidx < model.objects[oidx]->instances.size();
+                             ++iidx)
+                        {
+                            auto           instit = iids.find(iidx);
+                            ModelInstance *inst   = model.objects[oidx]
+                                                      ->instances[iidx];
+                            instit == iids.end() ?
+                                unselected.emplace_back(inst) :
+                                selected.emplace_back(inst);
+                        }
+                    } else // object not selected, all instances are unselected
+                        for (auto inst : model.objects[oidx]->instances)
+                            unselected.emplace_back(inst);
+                }
+                
+                if (selected.empty()) selected.swap(unselected);
+                
+                return {selected, unselected};
+            }
+
         protected:
 
             void prepare() override
             {
                 m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
-                m_count = bool(m_wti);
                 
-                for (auto obj : plater().model.objects)
-                    m_count += int(obj->instances.size());
+                const Selection& sel = plater().get_selection();
+                auto arrinput = collect(plater().model, sel);
+                m_selected.swap(arrinput[0]);
+                m_unselected.swap(arrinput[1]);
+
+                if (m_wti)
+                    sel.is_wipe_tower() ?
+                        m_selected.emplace_back(&m_wti) :
+                        m_unselected.emplace_back(&m_wti);
             }
 
         public:
-            //using Job::Job;
-            ArrangeJob(priv * pltr): Job(pltr) {}
-            int  status_range() const override { return m_count; }
-            void set_count(int c) { m_count = c; }
+            using Job::Job;
+            int status_range() const override
+            {
+                return int(m_selected.size());
+            }
             void process() override;
-        } arrange_job/*{m_plater}*/;
+        } arrange_job{m_plater};
 
         class RotoptimizeJob : public Job
         {
         public:
-            //using Job::Job;
-            RotoptimizeJob(priv * pltr): Job(pltr) {}
+            using Job::Job;
             void process() override;
-        } rotoptimize_job/*{m_plater}*/;
+        } rotoptimize_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
         // Register the instance of the class in the m_jobs container
         // if it cannot run concurrently with other jobs in this group 
 
-        std::vector<std::reference_wrapper<Job>> m_jobs/*{arrange_job,
-                                                        rotoptimize_job}*/;
+        std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
+                                                        rotoptimize_job};
 
     public:
-        ExclusiveJobGroup(priv *_plater)
-            : m_plater(_plater)
-            , arrange_job(m_plater)
-            , rotoptimize_job(m_plater)
-            , m_jobs({arrange_job, rotoptimize_job})
-        {}
+        ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
 
         void start(Jobs jid) {
             m_plater->background_process.stop();
@@ -1528,7 +1590,7 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
-    arr::BedShapeHint get_bed_shape_hint() const;
+    arrangement::BedShapeHint get_bed_shape_hint() const;
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
@@ -2404,8 +2466,8 @@ void Plater::priv::sla_optimize_rotation() {
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-arr::BedShapeHint Plater::priv::get_bed_shape_hint() const {
-    arr::BedShapeHint bedshape;
+arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
+    arrangement::BedShapeHint bedshape;
     
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
     assert(bed_shape_opt);
@@ -2414,7 +2476,7 @@ arr::BedShapeHint Plater::priv::get_bed_shape_hint() const {
         auto &bedpoints = bed_shape_opt->values;
         Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
         for (auto &v : bedpoints) bedpoly.append(scaled(v));
-        bedshape = arr::bedShape(bedpoly);
+        bedshape = arrangement::bedShape(bedpoly);
     }
     
     return bedshape;
@@ -2422,15 +2484,6 @@ arr::BedShapeHint Plater::priv::get_bed_shape_hint() const {
 
 void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {    
     static const auto arrangestr = _(L("Arranging"));
-    
-    // Collect the model instances and place them into the input vector
-    arr::Arrangeables arrangeinput; arrangeinput.reserve(m_count);
-    for(ModelObject *mo : plater().model.objects)
-        for(ModelInstance *minst : mo->instances)
-            arrangeinput.emplace_back(minst);
-    
-    // Place back the wipe tower if that's available.
-    if (m_wti) arrangeinput.emplace_back(&m_wti);
     
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
@@ -2440,25 +2493,25 @@ void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
     }
     
     coord_t min_obj_distance = scaled(dist);
-    
-    arr::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    auto count = unsigned(m_selected.size());
+    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
     
     try {
-        arr::arrange(arrangeinput,
-                     min_obj_distance,
-                     bedshape,
-                     [this](unsigned st) {
-                         if (st > 0)
-                             update_status(m_count - int(st), arrangestr);
-                     },
-                     [this]() { return was_canceled(); });
+        arrangement::arrange(m_selected, m_unselected, min_obj_distance,
+                             bedshape,
+                             [this, count](unsigned st) {
+                                 if (st > 0) // will not finalize after last one
+                                     update_status(count - st, arrangestr);
+                             },
+                             [this]() { return was_canceled(); });
     } catch (std::exception & /*e*/) {
         GUI::show_error(plater().q,
                         _(L("Could not arrange model objects! "
                             "Some geometries may be invalid.")));
     }
     
-    update_status(m_count,
+    // finalize just here.
+    update_status(int(count),
                   was_canceled() ? _(L("Arranging canceled."))
                                  : _(L("Arranging done.")));
 }
@@ -2466,7 +2519,7 @@ void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
 void find_new_position(const Model &            model,
                        ModelInstancePtrs        instances,
                        coord_t                  min_d,
-                       const arr::BedShapeHint &bedhint)
+                       const arrangement::BedShapeHint &bedhint)
 {
     
     // TODO
