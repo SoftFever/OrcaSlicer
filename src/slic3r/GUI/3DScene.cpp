@@ -328,11 +328,12 @@ bool GLVolume::is_left_handed() const
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
-	assert(bounding_box.defined || bounding_box.min(0) >= bounding_box.max(0) || bounding_box.min(1) >= bounding_box.max(1) || bounding_box.min(2) >= bounding_box.max(2));
+    const BoundingBoxf3& box = bounding_box();
+    assert(box.defined || box.min(0) >= box.max(0) || box.min(1) >= box.max(1) || box.min(2) >= box.max(2));
 
     if (m_transformed_bounding_box_dirty)
     {
-        m_transformed_bounding_box = bounding_box.transformed(world_matrix());
+        m_transformed_bounding_box = box.transformed(world_matrix());
         m_transformed_bounding_box_dirty = false;
     }
 
@@ -350,8 +351,9 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
 {
 	return (m_convex_hull && m_convex_hull->stl.stats.number_of_facets > 0) ? 
 		m_convex_hull->transformed_bounding_box(trafo) :
-		bounding_box.transformed(trafo);
+        bounding_box().transformed(trafo);
 }
+
 
 void GLVolume::set_range(double min_z, double max_z)
 {
@@ -530,8 +532,6 @@ int GLVolumeCollection::load_object_volume(
     v.set_color_from_model_volume(model_volume);
     v.indexed_vertex_array.load_mesh(mesh);
 
-    // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
-    v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry();
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
@@ -573,8 +573,6 @@ void GLVolumeCollection::load_object_auxiliary(
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
         v.indexed_vertex_array.load_mesh(mesh);
-        // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
-        v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry();
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
@@ -648,8 +646,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
 
-    // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
-    v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry();
     v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
     v.geometry_id.first = 0;
@@ -679,7 +675,7 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     {
         for (GLVolumeWithIdAndZ& volume : list)
         {
-            volume.second.second = volume.first->bounding_box.transformed(view_matrix * volume.first->world_matrix()).max(2);
+            volume.second.second = volume.first->bounding_box().transformed(view_matrix * volume.first->world_matrix()).max(2);
         }
 
         std::sort(list.begin(), list.end(),
@@ -1777,7 +1773,6 @@ bool GLCurvedArrow::on_init()
     triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
     m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
-    m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
     m_volume.finalize_geometry();
     return true;
 }
@@ -1815,7 +1810,6 @@ bool GLBed::on_init_from_file(const std::string& filename)
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);
 
-    m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
     m_volume.finalize_geometry();
 
     return true;

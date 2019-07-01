@@ -136,7 +136,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
-            m_box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
+            m_box.merge(vol->bounding_box().transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
@@ -151,7 +151,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_box = v->bounding_box;
+        m_box = v->bounding_box();
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets

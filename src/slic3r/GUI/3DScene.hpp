@@ -82,6 +82,7 @@ public:
         this->vertices_and_normals_interleaved = rhs.vertices_and_normals_interleaved;
         this->triangle_indices                 = rhs.triangle_indices;
         this->quad_indices                     = rhs.quad_indices;
+        this->m_bounding_box                   = rhs.m_bounding_box;
         this->setup_sizes();
         return *this;
     }
@@ -94,6 +95,7 @@ public:
         this->vertices_and_normals_interleaved = std::move(rhs.vertices_and_normals_interleaved);
         this->triangle_indices                 = std::move(rhs.triangle_indices);
         this->quad_indices                     = std::move(rhs.quad_indices);
+        this->m_bounding_box                   = std::move(rhs.m_bounding_box);
         this->setup_sizes();
         return *this;
     }
@@ -110,7 +112,7 @@ public:
     size_t             quad_indices_size;
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
-    // Zero if the VBOs are not used.
+    // Zero if the VBOs are not sent to GPU yet.
     unsigned int       vertices_and_normals_interleaved_VBO_id;
     unsigned int       triangle_indices_VBO_id;
     unsigned int       quad_indices_VBO_id;
@@ -135,6 +137,8 @@ public:
         this->vertices_and_normals_interleaved.push_back(x);
         this->vertices_and_normals_interleaved.push_back(y);
         this->vertices_and_normals_interleaved.push_back(z);
+
+        m_bounding_box.merge(Vec3f(x, y, z).cast<double>());
     };
 
     inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
@@ -168,7 +172,7 @@ public:
     void finalize_geometry();
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
-    // Render either using an immediate mode, or the VBOs.
+
     void render() const;
     void render(const std::pair<size_t, size_t> &tverts_range, const std::pair<size_t, size_t> &qverts_range) const;
 
@@ -182,6 +186,7 @@ public:
         this->vertices_and_normals_interleaved.clear();
         this->triangle_indices.clear();
         this->quad_indices.clear();
+        this->m_bounding_box.reset();
         this->setup_sizes();
     }
 
@@ -194,27 +199,11 @@ public:
         this->quad_indices.shrink_to_fit();
     }
 
-    BoundingBoxf3 bounding_box() const {
-        BoundingBoxf3 bbox;
-        if (! this->vertices_and_normals_interleaved.empty()) {
-            bbox.defined = true;
-            bbox.min(0) = bbox.max(0) = this->vertices_and_normals_interleaved[3];
-            bbox.min(1) = bbox.max(1) = this->vertices_and_normals_interleaved[4];
-            bbox.min(2) = bbox.max(2) = this->vertices_and_normals_interleaved[5];
-            for (size_t i = 9; i < this->vertices_and_normals_interleaved.size(); i += 6) {
-                const float *verts = this->vertices_and_normals_interleaved.data() + i;
-                bbox.min(0) = std::min<coordf_t>(bbox.min(0), verts[0]);
-                bbox.min(1) = std::min<coordf_t>(bbox.min(1), verts[1]);
-                bbox.min(2) = std::min<coordf_t>(bbox.min(2), verts[2]);
-                bbox.max(0) = std::max<coordf_t>(bbox.max(0), verts[0]);
-                bbox.max(1) = std::max<coordf_t>(bbox.max(1), verts[1]);
-                bbox.max(2) = std::max<coordf_t>(bbox.max(2), verts[2]);
-            }
-        }
-        return bbox;
-    }
+    const BoundingBoxf3& bounding_box() const { return m_bounding_box; }
 
 private:
+    BoundingBoxf3 m_bounding_box;
+
     inline void setup_sizes() {
         vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
         triangle_indices_size                 = this->triangle_indices.size();
@@ -262,8 +251,6 @@ private:
     mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
-    // Bounding box of this volume, in unscaled coordinates.
-    BoundingBoxf3       bounding_box;
     // Color of the triangles / quads held by this volume.
     float               color[4];
     // Color used to render this volume.
@@ -327,6 +314,9 @@ public:
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
+
+    // Bounding box of this volume, in unscaled coordinates.
+    const BoundingBoxf3& bounding_box() const { return this->indexed_vertex_array.bounding_box(); }
 
     void set_render_color(float r, float g, float b, float a);
     void set_render_color(const float* rgba, unsigned int size);
@@ -536,7 +526,7 @@ public:
     bool init() { return on_init(); }
     bool init_from_file(const std::string& filename) { return on_init_from_file(filename); }
 
-    void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box.center()); }
+    void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box().center()); }
     void set_color(const float* color, unsigned int size);
 
     const Vec3d& get_offset() const;
@@ -547,7 +537,7 @@ public:
     void set_scale(const Vec3d& scale);
 
     const std::string& get_filename() const { return m_filename; }
-    const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box; }
+    const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box(); }
     const BoundingBoxf3& get_transformed_bounding_box() const { return m_volume.transformed_bounding_box(); }
 
     void reset();

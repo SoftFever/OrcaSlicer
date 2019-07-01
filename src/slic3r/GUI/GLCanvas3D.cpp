@@ -3355,7 +3355,7 @@ arr::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
             wti.pos = Vec2d(m_config->opt_float("wipe_tower_x"),
                             m_config->opt_float("wipe_tower_y"));
             wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
-            const BoundingBoxf3& bb = vol->bounding_box;
+            const BoundingBoxf3& bb = vol->bounding_box();
             wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
             break;
         }
@@ -4474,7 +4474,6 @@ void GLCanvas3D::_load_print_toolpaths()
 
         _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
-    volume.bounding_box = volume.indexed_vertex_array.bounding_box();
     volume.indexed_vertex_array.finalize_geometry();
 }
 
@@ -4640,9 +4639,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	                vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
 	                // Copy the content back to the old GLVolume.
 	                vol.indexed_vertex_array = vol_new.indexed_vertex_array;
-	                // Finalize a bounding box of the old GLVolume.
-	                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
-	                // Clear the buffers, but keep them pre-allocated.
+                     // Clear the buffers, but keep them pre-allocated.
 	                vol_new.indexed_vertex_array.clear();
 	                // Just make sure that clear did not clear the reserved memory.
 	                vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
@@ -4650,8 +4647,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	        }
         }
         for (GLVolume *vol : vols) {
-        	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-        	vol->indexed_vertex_array.shrink_to_fit();
+            vol->indexed_vertex_array.shrink_to_fit();
         }
     });
 
@@ -4812,8 +4808,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                 vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
                 // Copy the content back to the old GLVolume.
                 vol.indexed_vertex_array = vol_new.indexed_vertex_array;
-                // Finalize a bounding box of the old GLVolume.
-                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
                 // Clear the buffers, but keep them pre-allocated.
                 vol_new.indexed_vertex_array.clear();
                 // Just make sure that clear did not clear the reserved memory.
@@ -4821,7 +4815,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
             }
         }
         for (GLVolume *vol : vols) {
-            vol->bounding_box = vol->indexed_vertex_array.bounding_box();
             vol->indexed_vertex_array.shrink_to_fit();
         }
     });
@@ -5017,7 +5010,6 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
         for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
         {
             GLVolume* volume = m_volumes.volumes[i];
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
             volume->indexed_vertex_array.finalize_geometry();
         }
     }
@@ -5072,7 +5064,6 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
         for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
         {
             GLVolume* volume = m_volumes.volumes[i];
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
             volume->indexed_vertex_array.finalize_geometry();
         }
     }
@@ -5306,7 +5297,6 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
         }
 
         // finalize volumes and sends geometry to gpu
-        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
         volume->indexed_vertex_array.finalize_geometry();
     }
 }
@@ -5337,7 +5327,6 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
         }
 
         // finalize volumes and sends geometry to gpu
-        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
         volume->indexed_vertex_array.finalize_geometry();
     }
 }
@@ -5431,7 +5420,6 @@ void GLCanvas3D::_load_sla_shells()
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
                 GLVolume& v = *m_volumes.volumes[i];
                 // finalize volumes and sends geometry to gpu
-                v.bounding_box = v.indexed_vertex_array.bounding_box();
                 v.indexed_vertex_array.finalize_geometry();
                 // apply shift z
                 v.set_sla_shift_z(shift_z);
@@ -5523,7 +5511,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box()) : false;
     }
 }
 

@@ -441,7 +441,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
         m_new_scale    = volume->get_volume_scaling_factor() * 100.;
-        m_new_size = volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box.size());
+        m_new_size = volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size());
         m_new_enabled = true;
     }
     else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))
@@ -721,8 +721,8 @@ void ObjectManipulation::change_size_value(int axis, double value)
 
     Vec3d ref_size = m_cache.size;
 	if (selection.is_single_volume() || selection.is_single_modifier())
-		ref_size = selection.get_volume(*selection.get_volume_idxs().begin())->bounding_box.size();
-	else if (selection.is_single_full_instance())
+        ref_size = selection.get_volume(*selection.get_volume_idxs().begin())->bounding_box().size();
+    else if (selection.is_single_full_instance())
 		ref_size = m_world_coordinates ? 
             selection.get_unscaled_instance_bounding_box().size() :
             (*wxGetApp().model_objects())[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
