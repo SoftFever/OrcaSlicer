@@ -192,7 +192,6 @@ GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
     , m_gl_initialized(false)
-    , m_use_VBOs(false)
 {
 }
 
@@ -266,8 +265,6 @@ void GLCanvas3DManager::init_gl()
     if (!m_gl_initialized)
     {
         glewInit();
-        const AppConfig* config = GUI::get_app_config();
-        m_use_VBOs = s_gl_info.is_version_greater_or_equal_to(2, 0);
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)
             s_compressed_textures_supported = true;
@@ -323,7 +320,7 @@ bool GLCanvas3DManager::init(GLCanvas3D& canvas)
     if (!m_gl_initialized)
         init_gl();
 
-    return canvas.init(m_use_VBOs);
+    return canvas.init();
 }
 
 void GLCanvas3DManager::detect_multisample(int* attribList)

@@ -55,21 +55,6 @@ void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char
 
 namespace Slic3r {
 
-void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
-{
-    assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
-    assert(quad_indices.empty() && triangle_indices_size == 0);
-    assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
-
-    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
-    
-    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
-        const stl_facet &facet = mesh.stl.facet_start[i];
-        for (int j = 0; j < 3; ++ j)
-            this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
-    }
-}
-
 void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
 {
     assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
@@ -89,7 +74,7 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     }
 }
 
-void GLIndexedVertexArray::finalize_geometry(bool use_VBOs)
+void GLIndexedVertexArray::finalize_geometry()
 {
     assert(this->vertices_and_normals_interleaved_VBO_id == 0);
     assert(this->triangle_indices_VBO_id == 0);
@@ -97,28 +82,28 @@ void GLIndexedVertexArray::finalize_geometry(bool use_VBOs)
 
     this->setup_sizes();
 
-    if (use_VBOs) {
-        if (! empty()) {
-            glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-            glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved.size() * 4, this->vertices_and_normals_interleaved.data(), GL_STATIC_DRAW));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-            this->vertices_and_normals_interleaved.clear();
-        }
-        if (! this->triangle_indices.empty()) {
-            glsafe(::glGenBuffers(1, &this->triangle_indices_VBO_id));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices.size() * 4, this->triangle_indices.data(), GL_STATIC_DRAW));
-            this->triangle_indices.clear();
-        }
-        if (! this->quad_indices.empty()) {
-            glsafe(::glGenBuffers(1, &this->quad_indices_VBO_id));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-            glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices.size() * 4, this->quad_indices.data(), GL_STATIC_DRAW));
-            this->quad_indices.clear();
-        }
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    if (! empty()) {
+        glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
+        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved.size() * 4, this->vertices_and_normals_interleaved.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        this->vertices_and_normals_interleaved.clear();
     }
+    if (! this->triangle_indices.empty()) {
+        glsafe(::glGenBuffers(1, &this->triangle_indices_VBO_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices.size() * 4, this->triangle_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        this->triangle_indices.clear();
+    }
+    if (! this->quad_indices.empty()) {
+        glsafe(::glGenBuffers(1, &this->quad_indices_VBO_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices.size() * 4, this->quad_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        this->quad_indices.clear();
+    }
+
     this->shrink_to_fit();
 }
 
@@ -423,16 +408,13 @@ void GLVolume::render() const
         glFrontFace(GL_CCW);
 }
 
-void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) const
+void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 {
     if (!is_active)
         return;
 
     if (!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
         return;
-
-    if (this->is_left_handed())
-        glFrontFace(GL_CW);
 
     GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
     GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
@@ -463,6 +445,9 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
 
         return;
     }
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
 
     if (color_id >= 0)
         glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)render_color));
@@ -500,162 +485,114 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
         glFrontFace(GL_CCW);
 }
 
-void GLVolume::render_legacy() const
-{
-    assert(!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
-    if (!is_active)
-        return;
-
-    if (this->is_left_handed())
-        glFrontFace(GL_CW);
-
-    GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
-    GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
-    if (n_triangles + n_quads == 0)
-    {
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-        glsafe(::glColor4fv(render_color));
-        render();
-
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-        return;
-    }
-
-    glsafe(::glColor4fv(render_color));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data() + 3));
-    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data()));
-
-    glsafe(::glPushMatrix());
-
-    glsafe(::glMultMatrixd(world_matrix().data()));
-
-    if (n_triangles > 0)
-        glsafe(::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, indexed_vertex_array.triangle_indices.data() + tverts_range.first));
-
-    if (n_quads > 0)
-        glsafe(::glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, indexed_vertex_array.quad_indices.data() + qverts_range.first));
-
-    glsafe(::glPopMatrix());
-
-    if (this->is_left_handed())
-        glFrontFace(GL_CCW);
-}
-
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
 bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposBasePool); }
 
 std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject       *model_object,
+    const ModelObject* model_object,
     int                      obj_idx,
-    const std::vector<int>  &instance_idxs,
-    const std::string       &color_by,
-    bool                     use_VBOs)
+    const std::vector<int>& instance_idxs,
+    const std::string& color_by)
 {
     std::vector<int> volumes_idx;
-    for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++ volume_idx)
+    for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-			volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, use_VBOs));
-    return volumes_idx; 
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by));
+    return volumes_idx;
 }
 
 int GLVolumeCollection::load_object_volume(
-	const ModelObject              *model_object,
+    const ModelObject* model_object,
     int                             obj_idx,
     int                             volume_idx,
     int                             instance_idx,
-    const std::string              &color_by,
-    bool                            use_VBOs)
+    const std::string& color_by)
 {
-    const ModelVolume   *model_volume = model_object->volumes[volume_idx];
-    const int            extruder_id  = model_volume->extruder_id();
-    const ModelInstance *instance     = model_object->instances[instance_idx];
+    const ModelVolume* model_volume = model_object->volumes[volume_idx];
+    const int            extruder_id = model_volume->extruder_id();
+    const ModelInstance* instance = model_object->instances[instance_idx];
     const TriangleMesh& mesh = model_volume->mesh();
     float color[4];
     memcpy(color, GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
-/*    if (model_volume->is_support_blocker()) {
-        color[0] = 1.0f;
-        color[1] = 0.2f;
-        color[2] = 0.2f;
-    } else if (model_volume->is_support_enforcer()) {
-        color[0] = 0.2f;
-        color[1] = 0.2f;
-        color[2] = 1.0f;
-    }
-    color[3] = model_volume->is_model_part() ? 1.f : 0.5f; */
+    /*    if (model_volume->is_support_blocker()) {
+            color[0] = 1.0f;
+            color[1] = 0.2f;
+            color[2] = 0.2f;
+        } else if (model_volume->is_support_enforcer()) {
+            color[0] = 0.2f;
+            color[1] = 0.2f;
+            color[2] = 1.0f;
+        }
+        color[3] = model_volume->is_model_part() ? 1.f : 0.5f; */
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
     this->volumes.emplace_back(new GLVolume(color));
-    GLVolume &v = *this->volumes.back();
+    GLVolume& v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
-    v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
+    v.indexed_vertex_array.load_mesh(mesh);
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
-    v.indexed_vertex_array.finalize_geometry(use_VBOs);
-	v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
+    v.indexed_vertex_array.finalize_geometry();
+    v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
-		// GLVolume will reference a convex hull from model_volume!
+        // GLVolume will reference a convex hull from model_volume!
         v.set_convex_hull(model_volume->get_convex_hull_shared_ptr());
         if (extruder_id != -1)
             v.extruder_id = extruder_id;
     }
-    v.is_modifier = ! model_volume->is_model_part();
+    v.is_modifier = !model_volume->is_model_part();
     v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
     v.set_instance_transformation(instance->get_transformation());
     v.set_volume_transformation(model_volume->get_transformation());
 
-    return int(this->volumes.size() - 1); 
+    return int(this->volumes.size() - 1);
 }
 
 // Load SLA auxiliary GLVolumes (for support trees or pad).
 // This function produces volumes for multiple instances in a single shot,
 // as some object specific mesh conversions may be expensive.
 void GLVolumeCollection::load_object_auxiliary(
-    const SLAPrintObject           *print_object,
+    const SLAPrintObject* print_object,
     int                             obj_idx,
     // pairs of <instance_idx, print_instance_idx>
-    const std::vector<std::pair<size_t, size_t>> &instances,
+    const std::vector<std::pair<size_t, size_t>>& instances,
     SLAPrintObjectStep              milestone,
     // Timestamp of the last change of the milestone
-    size_t                          timestamp,
-    bool                            use_VBOs)
+    size_t                          timestamp)
 {
     assert(print_object->is_step_done(milestone));
     Transform3d  mesh_trafo_inv = print_object->trafo().inverse();
     // Get the support mesh.
     TriangleMesh mesh = print_object->get_mesh(milestone);
     mesh.transform(mesh_trafo_inv);
-	// Convex hull is required for out of print bed detection.
-	TriangleMesh convex_hull = mesh.convex_hull_3d();
-    for (const std::pair<size_t, size_t> &instance_idx : instances) {
-        const ModelInstance &model_instance = *print_object->model_object()->instances[instance_idx.first];
+    // Convex hull is required for out of print bed detection.
+    TriangleMesh convex_hull = mesh.convex_hull_3d();
+    for (const std::pair<size_t, size_t>& instance_idx : instances) {
+        const ModelInstance& model_instance = *print_object->model_object()->instances[instance_idx.first];
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
-        GLVolume &v = *this->volumes.back();
-        v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
+        GLVolume& v = *this->volumes.back();
+        v.indexed_vertex_array.load_mesh(mesh);
         // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
         v.bounding_box = v.indexed_vertex_array.bounding_box();
-        v.indexed_vertex_array.finalize_geometry(use_VBOs);
-        v.composite_id = GLVolume::CompositeID(obj_idx, - int(milestone), (int)instance_idx.first);
+        v.indexed_vertex_array.finalize_geometry();
+        v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
-		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
+        // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
         if (&instance_idx == &instances.back())
             v.set_convex_hull(std::move(convex_hull));
         else
             v.set_convex_hull(convex_hull);
-        v.is_modifier  = false;
+        v.is_modifier = false;
         v.shader_outside_printer_detection_enabled = (milestone == slaposSupportTree);
         v.set_instance_transformation(model_instance.get_transformation());
-		// Leave the volume transformation at identity.
+        // Leave the volume transformation at identity.
         // v.set_volume_transformation(model_volume->get_transformation());
     }
 }
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width)
 {
     if (depth < 0.01f)
         return int(this->volumes.size() - 1);
@@ -680,45 +617,45 @@ int GLVolumeCollection::load_wipe_tower_preview(
         { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
         int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
-                                   {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11}};
-        for (int i=0;i<16;++i)
-            points.push_back(Vec3d(out_points_idx[i][0] / (100.f/min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
-        for (int i=0;i<28;++i)
+                                   {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11} };
+        for (int i = 0; i < 16; ++i)
+            points.push_back(Vec3d(out_points_idx[i][0] / (100.f / min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
+        for (int i = 0; i < 28; ++i)
             facets.push_back(Vec3crd(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
         TriangleMesh tooth_mesh(points, facets);
 
         // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
         // the required width of the block. Than we can scale it precisely.
-        size_t n = std::max(1, int(width/min_width)); // How many shall be merged?
-        for (size_t i=0;i<n;++i) {
+        size_t n = std::max(1, int(width / min_width)); // How many shall be merged?
+        for (size_t i = 0; i < n; ++i) {
             mesh.merge(tooth_mesh);
             tooth_mesh.translate(min_width, 0.f, 0.f);
         }
 
-        mesh.scale(Vec3d(width/(n*min_width), 1.f, height)); // Scaling to proper width
+        mesh.scale(Vec3d(width / (n * min_width), 1.f, height)); // Scaling to proper width
     }
     else
         mesh = make_cube(width, depth, height);
 
     // We'll make another mesh to show the brim (fixed layer height):
-    TriangleMesh brim_mesh = make_cube(width+2.f*brim_width, depth+2.f*brim_width, 0.2f);
+    TriangleMesh brim_mesh = make_cube(width + 2.f * brim_width, depth + 2.f * brim_width, 0.2f);
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
 
     this->volumes.emplace_back(new GLVolume(color));
-    GLVolume &v = *this->volumes.back();
-    v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
+    GLVolume& v = *this->volumes.back();
+    v.indexed_vertex_array.load_mesh(mesh);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
-    v.set_volume_rotation(Vec3d(0., 0., (M_PI/180.) * rotation_angle));
+    v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
-    v.indexed_vertex_array.finalize_geometry(use_VBOs);
-	v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
+    v.indexed_vertex_array.finalize_geometry();
+    v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
     v.geometry_id.first = 0;
     v.geometry_id.second = wipe_tower_instance_id().id;
     v.is_wipe_tower = true;
-    v.shader_outside_printer_detection_enabled = ! size_unknown;
+    v.shader_outside_printer_detection_enabled = !size_unknown;
     return int(this->volumes.size() - 1);
 }
 
@@ -759,7 +696,7 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     return list;
 }
 
-void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -797,39 +734,11 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
-        volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
+        volume.first->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
     }
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-    if (disable_cullface)
-        glsafe(::glEnable(GL_CULL_FACE));
-
-    glsafe(::glDisable(GL_BLEND));
-}
-
-void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
-{
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    glsafe(::glCullFace(GL_BACK));
-    if (disable_cullface)
-        glsafe(::glDisable(GL_CULL_FACE));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
- 
-    GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
-    for (GLVolumeWithIdAndZ& volume : to_render)
-    {
-        volume.first->set_render_color();
-        volume.first->render_legacy();
-    }
 
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
@@ -1623,8 +1532,7 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
 GLModel::GLModel()
-    : m_useVBOs(false)
-    , m_filename("")
+    : m_filename("")
 {
     m_volume.shader_outside_printer_detection_enabled = false;
 }
@@ -1678,14 +1586,6 @@ void GLModel::reset()
 
 void GLModel::render() const
 {
-    if (m_useVBOs)
-        render_VBOs();
-    else
-        render_legacy();
-}
-
-void GLModel::render_VBOs() const
-{
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -1697,7 +1597,8 @@ void GLModel::render_VBOs() const
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     glcheck();
-    m_volume.render_VBOs(color_id, -1, -1);
+
+    m_volume.render(color_id, -1, -1);
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -1708,26 +1609,7 @@ void GLModel::render_VBOs() const
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLModel::render_legacy() const
-{
-    glsafe(::glEnable(GL_LIGHTING));
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    glsafe(::glCullFace(GL_BACK));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-    m_volume.render_legacy();
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-    glsafe(::glDisable(GL_BLEND));
-    glsafe(::glDisable(GL_LIGHTING));
-}
-
-bool GLArrow::on_init(bool useVBOs)
+bool GLArrow::on_init()
 {
     Pointf3s vertices;
     std::vector<Vec3crd> triangles;
@@ -1780,9 +1662,8 @@ bool GLArrow::on_init(bool useVBOs)
     triangles.emplace_back(6, 0, 7);
     triangles.emplace_back(7, 13, 6);
 
-    m_useVBOs = useVBOs;
-	m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles), useVBOs);
-    m_volume.finalize_geometry(m_useVBOs);
+    m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
+    m_volume.finalize_geometry();
     return true;
 }
 
@@ -1794,7 +1675,7 @@ GLCurvedArrow::GLCurvedArrow(unsigned int resolution)
         m_resolution = 1;
 }
 
-bool GLCurvedArrow::on_init(bool useVBOs)
+bool GLCurvedArrow::on_init()
 {
     Pointf3s vertices;
     std::vector<Vec3crd> triangles;
@@ -1895,14 +1776,13 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     triangles.emplace_back(vertices_per_level, vertices_per_level + 1, 0);
     triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
-    m_useVBOs = useVBOs;
-	m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles), useVBOs);
+    m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
     m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
-    m_volume.finalize_geometry(m_useVBOs);
+    m_volume.finalize_geometry();
     return true;
 }
 
-bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
+bool GLBed::on_init_from_file(const std::string& filename)
 {
     reset();
 
@@ -1923,7 +1803,6 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
     }
 
     m_filename = filename;
-    m_useVBOs = useVBOs;
 
     ModelObject* model_object = model.objects.front();
     model_object->center_around_origin();
@@ -1931,13 +1810,13 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
     TriangleMesh mesh = model.mesh();
     mesh.repair();
 
-	m_volume.indexed_vertex_array.load_mesh(mesh, useVBOs);
+    m_volume.indexed_vertex_array.load_mesh(mesh);
 
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);
 
     m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
-    m_volume.finalize_geometry(m_useVBOs);
+    m_volume.finalize_geometry();
 
     return true;
 }

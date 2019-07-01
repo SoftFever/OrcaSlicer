@@ -452,7 +452,6 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
-    bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
     bool m_warning_texture_enabled;
@@ -494,7 +493,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-    bool init(bool useVBOs);
+    bool init();
     void post_event(wxEvent &&event);
 
     void set_as_dirty();

@@ -99,14 +99,14 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
     update_valid();
 }
 
-bool Selection::init(bool useVBOs)
+bool Selection::init()
 {
-    if (!m_arrow.init(useVBOs))
+    if (!m_arrow.init())
         return false;
 
     m_arrow.set_scale(5.0 * Vec3d::Ones());
 
-    if (!m_curved_arrow.init(useVBOs))
+    if (!m_curved_arrow.init())
         return false;
 
     m_curved_arrow.set_scale(5.0 * Vec3d::Ones());

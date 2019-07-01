@@ -212,7 +212,7 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
     void set_volumes(GLVolumePtrs* volumes);
-    bool init(bool useVBOs);
+    bool init();
 
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }

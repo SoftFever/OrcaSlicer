@@ -49,7 +49,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     if (!m_icons_texture.metadata.filename.empty())
     {
-        if (!m_icons_texture.texture.load_from_file(resources_dir() + "/icons/" + m_icons_texture.metadata.filename, false))
+        if (!m_icons_texture.texture.load_from_file(resources_dir() + "/icons/" + m_icons_texture.metadata.filename, false, true))
         {
             reset();
             return false;
@@ -1072,7 +1072,7 @@ void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selectio
 #if ENABLE_SVG_ICONS
             it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
-            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(2.0f * m_overlay_border + scaled_icons_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
         }
 #if ENABLE_SVG_ICONS

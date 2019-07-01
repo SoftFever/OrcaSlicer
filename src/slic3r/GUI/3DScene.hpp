@@ -115,9 +115,8 @@ public:
     unsigned int       triangle_indices_VBO_id;
     unsigned int       quad_indices_VBO_id;
 
-    void load_mesh_flat_shading(const TriangleMesh &mesh);
     void load_mesh_full_shading(const TriangleMesh &mesh);
-	void load_mesh(const TriangleMesh &mesh, bool use_VBOs) { use_VBOs ? this->load_mesh_full_shading(mesh) : this->load_mesh_flat_shading(mesh); }
+    void load_mesh(const TriangleMesh& mesh) { this->load_mesh_full_shading(mesh); }
 
     inline bool has_VBOs() const { return vertices_and_normals_interleaved_VBO_id != 0; }
 
@@ -166,7 +165,7 @@ public:
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
-    void finalize_geometry(bool use_VBOs);
+    void finalize_geometry();
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
     // Render either using an immediate mode, or the VBOs.
@@ -415,10 +414,9 @@ public:
 
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
-    void                render_VBOs(int color_id, int detection_id, int worldmatrix_id) const;
-    void                render_legacy() const;
+    void                render(int color_id, int detection_id, int worldmatrix_id) const;
 
-    void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
+    void                finalize_geometry() { this->indexed_vertex_array.finalize_geometry(); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
@@ -459,42 +457,38 @@ public:
     ~GLVolumeCollection() { clear(); };
 
     std::vector<int> load_object(
-        const ModelObject       *model_object,
+        const ModelObject* model_object,
         int                      obj_idx,
-        const std::vector<int>  &instance_idxs,
-        const std::string       &color_by,
-        bool                     use_VBOs);
+        const std::vector<int>& instance_idxs,
+        const std::string& color_by);
 
     int load_object_volume(
-        const ModelObject       *model_object,
+        const ModelObject* model_object,
         int                      obj_idx,
         int                      volume_idx,
         int                      instance_idx,
-        const std::string       &color_by,
-        bool                     use_VBOs);
+        const std::string& color_by);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(
-        const SLAPrintObject           *print_object,
+        const SLAPrintObject* print_object,
         int                             obj_idx,
         // pairs of <instance_idx, print_instance_idx>
-        const std::vector<std::pair<size_t, size_t>> &instances,
+        const std::vector<std::pair<size_t, size_t>>& instances,
         SLAPrintObjectStep              milestone,
         // Timestamp of the last change of the milestone
-        size_t                          timestamp,
-        bool                            use_VBOs);
+        size_t                          timestamp);
 
     int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width);
 
     // Render the volumes by OpenGL.
-    void render_VBOs(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
-    void render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
-    void finalize_geometry(bool use_VBOs) { for (auto *v : volumes) v->finalize_geometry(use_VBOs); }
+    void finalize_geometry() { for (auto* v : volumes) v->finalize_geometry(); }
     // Release the geometry data assigned to the volumes.
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }
@@ -533,15 +527,14 @@ class GLModel
 {
 protected:
     GLVolume m_volume;
-    bool m_useVBOs;
     std::string m_filename;
 
 public:
     GLModel();
     virtual ~GLModel();
 
-    bool init(bool useVBOs) { return on_init(useVBOs); }
-    bool init_from_file(const std::string& filename, bool useVBOs) { return on_init_from_file(filename, useVBOs); }
+    bool init() { return on_init(); }
+    bool init_from_file(const std::string& filename) { return on_init_from_file(filename); }
 
     void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box.center()); }
     void set_color(const float* color, unsigned int size);
@@ -562,18 +555,14 @@ public:
     void render() const; 
 
 protected:
-    virtual bool on_init(bool useVBOs) { return false; }
-    virtual bool on_init_from_file(const std::string& filename, bool useVBOs) { return false; }
-
-private:
-    void render_VBOs() const;
-    void render_legacy() const;
+    virtual bool on_init() { return false; }
+    virtual bool on_init_from_file(const std::string& filename) { return false; }
 };
 
 class GLArrow : public GLModel
 {
 protected:
-    virtual bool on_init(bool useVBOs);
+    virtual bool on_init();
 };
 
 class GLCurvedArrow : public GLModel
@@ -584,13 +573,13 @@ public:
     explicit GLCurvedArrow(unsigned int resolution);
 
 protected:
-    virtual bool on_init(bool useVBOs);
+    virtual bool on_init();
 };
 
 class GLBed : public GLModel
 {
 protected:
-    virtual bool on_init_from_file(const std::string& filename, bool useVBOs);
+    virtual bool on_init_from_file(const std::string& filename);
 };
 
 class _3DScene

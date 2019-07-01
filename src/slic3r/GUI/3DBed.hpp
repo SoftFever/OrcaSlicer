@@ -128,7 +128,11 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const;
+#if ENABLE_TEXTURES_FROM_SVG
+    void render(GLCanvas3D* canvas, float theta, float scale_factor) const;
+#else
+    void render(float theta, float scale_factor) const;
+#endif // ENABLE_TEXTURES_FROM_SVG
     void render_axes() const;
 
 private:
@@ -140,7 +144,7 @@ private:
     void render_prusa(GLCanvas3D* canvas, const std::string& key, bool bottom) const;
     void render_prusa_shader(bool transparent) const;
 #else
-    void render_prusa(const std::string &key, float theta, bool useVBOs) const;
+    void render_prusa(const std::string& key, float theta) const;
 #endif // ENABLE_TEXTURES_FROM_SVG
     void render_custom() const;
 #if ENABLE_TEXTURES_FROM_SVG

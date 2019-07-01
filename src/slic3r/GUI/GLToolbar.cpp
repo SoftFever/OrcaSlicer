@@ -188,7 +188,7 @@ bool GLToolbar::init(const ItemsIconsTexture::Metadata& icons_texture, const Bac
         return true;
 
     std::string path = resources_dir() + "/icons/";
-    bool res = !icons_texture.filename.empty() && m_icons_texture.texture.load_from_file(path + icons_texture.filename, false);
+    bool res = !icons_texture.filename.empty() && m_icons_texture.texture.load_from_file(path + icons_texture.filename, false, true);
     if (res)
         m_icons_texture.metadata = icons_texture;
 #endif // ENABLE_SVG_ICONS
