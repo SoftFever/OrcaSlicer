@@ -1020,8 +1020,8 @@ static void thick_lines_to_indexed_vertex_array(
     // right, left, top, bottom
     int     idx_prev[4]      = { -1, -1, -1, -1 };
     double  bottom_z_prev    = 0.;
-    Vec2d  b1_prev(Vec2d::Zero());
-    Vec2d v_prev(Vec2d::Zero());
+    Vec2d   b1_prev(Vec2d::Zero());
+    Vec2d   v_prev(Vec2d::Zero());
     int     idx_initial[4]   = { -1, -1, -1, -1 };
     double  width_initial    = 0.;
     double  bottom_z_initial = 0.0;
@@ -1031,8 +1031,6 @@ static void thick_lines_to_indexed_vertex_array(
     for (size_t ii = 0; ii < lines_end; ++ ii) {
         size_t i = (ii == lines.size()) ? 0 : ii;
         const Line &line = lines[i];
-        double len = unscale<double>(line.length());
-        double inv_len = 1.0 / len;
         double bottom_z = top_z - heights[i];
         double middle_z = 0.5 * (top_z + bottom_z);
         double width = widths[i];
@@ -1041,8 +1039,7 @@ static void thick_lines_to_indexed_vertex_array(
         bool is_last = (ii == lines_end - 1);
         bool is_closing = closed && is_last;
 
-        Vec2d v = unscale(line.vector());
-        v *= inv_len;
+        Vec2d v = unscale(line.vector()).normalized();
 
         Vec2d a = unscale(line.a);
         Vec2d b = unscale(line.b);
@@ -1061,9 +1058,7 @@ static void thick_lines_to_indexed_vertex_array(
         }
 
         // calculate new XY normals
-        Vector n = line.normal();
-        Vec3d xy_right_normal = unscale(n(0), n(1), 0);
-        xy_right_normal *= inv_len;
+        Vec2d xy_right_normal = unscale(line.normal()).normalized();
 
         int idx_a[4];
         int idx_b[4];
@@ -1091,9 +1086,9 @@ static void thick_lines_to_indexed_vertex_array(
             idx_a[BOTTOM] = idx_last ++;
             volume.push_geometry(a(0), a(1), bottom_z, 0., 0., -1.);
             idx_a[LEFT ] = idx_last ++;
-            volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), -xy_right_normal(2));
+            volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
             idx_a[RIGHT] = idx_last ++;
-            volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), xy_right_normal(2));
+            volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
         }
         else {
             idx_a[BOTTOM] = idx_prev[BOTTOM];
@@ -1108,63 +1103,35 @@ static void thick_lines_to_indexed_vertex_array(
             // Continuing a previous segment.
             // Share left / right vertices if possible.
 			double v_dot    = v_prev.dot(v);
-            bool   sharp    = v_dot < 0.707; // sin(45 degrees)
+            bool   sharp = v_dot < 0.9999; // v_dot < 0.9999; // cos(1 degree)
             if (sharp) {
                 if (!bottom_z_different)
                 {
                     // Allocate new left / right points for the start of this segment as these points will receive their own normals to indicate a sharp turn.
                     idx_a[RIGHT] = idx_last++;
-                    volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), xy_right_normal(2));
+                    volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
                     idx_a[LEFT] = idx_last++;
-                    volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), -xy_right_normal(2));
+                    volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
+                    if (cross2(v_prev, v) > 0.) {
+                        // Right turn. Fill in the right turn wedge.
+                        volume.push_triangle(idx_prev[RIGHT], idx_a[RIGHT], idx_prev[TOP]);
+                        volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a[RIGHT]);
+                    }
+                    else {
+                        // Left turn. Fill in the left turn wedge.
+                        volume.push_triangle(idx_prev[LEFT], idx_prev[TOP], idx_a[LEFT]);
+                        volume.push_triangle(idx_prev[LEFT], idx_a[LEFT], idx_prev[BOTTOM]);
+                    }
                 }
             }
-            if (v_dot > 0.9) {
+            else
+            {
                 if (!bottom_z_different)
                 {
                     // The two successive segments are nearly collinear.
                     idx_a[LEFT ] = idx_prev[LEFT];
                     idx_a[RIGHT] = idx_prev[RIGHT];
                 }
-            }
-            else if (!sharp) {
-                if (!bottom_z_different)
-                {
-                    // Create a sharp corner with an overshot and average the left / right normals.
-                    // At the crease angle of 45 degrees, the overshot at the corner will be less than (1-1/cos(PI/8)) = 8.2% over an arc.
-                    Vec2d intersection(Vec2d::Zero());
-                    Geometry::ray_ray_intersection(b1_prev, v_prev, a1, v, intersection);
-                    a1 = intersection;
-                    a2 = 2. * a - intersection;
-                    assert((a - a1).norm() < width);
-                    assert((a - a2).norm() < width);
-                    float *n_left_prev  = volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT ] * 6;
-                    float *p_left_prev  = n_left_prev  + 3;
-                    float *n_right_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6;
-                    float *p_right_prev = n_right_prev + 3;
-                    p_left_prev [0] = float(a2(0));
-                    p_left_prev [1] = float(a2(1));
-                    p_right_prev[0] = float(a1(0));
-                    p_right_prev[1] = float(a1(1));
-                    xy_right_normal(0) += n_right_prev[0];
-                    xy_right_normal(1) += n_right_prev[1];
-                    xy_right_normal *= 1. / xy_right_normal.norm();
-                    n_left_prev [0] = float(-xy_right_normal(0));
-                    n_left_prev [1] = float(-xy_right_normal(1));
-                    n_right_prev[0] = float( xy_right_normal(0));
-                    n_right_prev[1] = float( xy_right_normal(1));
-                    idx_a[LEFT ] = idx_prev[LEFT ];
-                    idx_a[RIGHT] = idx_prev[RIGHT];
-                }
-            }
-            else if (cross2(v_prev, v) > 0.) {
-                // Right turn. Fill in the right turn wedge.
-                volume.push_triangle(idx_prev[RIGHT], idx_a   [RIGHT],  idx_prev[TOP]   );
-                volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a   [RIGHT] );
-            } else {
-                // Left turn. Fill in the left turn wedge.
-                volume.push_triangle(idx_prev[LEFT],  idx_prev[TOP],    idx_a   [LEFT]  );
-                volume.push_triangle(idx_prev[LEFT],  idx_a   [LEFT],   idx_prev[BOTTOM]);
             }
             if (is_closing) {
                 if (!sharp) {
@@ -1204,9 +1171,9 @@ static void thick_lines_to_indexed_vertex_array(
         }
         // Generate new vertices for the end of this line segment.
         idx_b[LEFT  ] = idx_last ++;
-        volume.push_geometry(b2(0), b2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), -xy_right_normal(2));
+        volume.push_geometry(b2(0), b2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
         idx_b[RIGHT ] = idx_last ++;
-        volume.push_geometry(b1(0), b1(1), middle_z, xy_right_normal(0), xy_right_normal(1), xy_right_normal(2));
+        volume.push_geometry(b1(0), b1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
 
         memcpy(idx_prev, idx_b, 4 * sizeof(int));
         bottom_z_prev = bottom_z;
@@ -1265,9 +1232,9 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
     int      idx_initial[4] = { -1, -1, -1, -1 };
     int      idx_prev[4] = { -1, -1, -1, -1 };
     double   z_prev = 0.0;
-    Vec3d n_right_prev = Vec3d::Zero();
-    Vec3d n_top_prev = Vec3d::Zero();
-    Vec3d unit_v_prev = Vec3d::Zero();
+    Vec3d    n_right_prev = Vec3d::Zero();
+    Vec3d    n_top_prev = Vec3d::Zero();
+    Vec3d    unit_v_prev = Vec3d::Zero();
     double   width_initial = 0.0;
 
     // new vertices around the line endpoints
@@ -1289,18 +1256,19 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
 
         Vec3d n_top = Vec3d::Zero();
         Vec3d n_right = Vec3d::Zero();
-        Vec3d unit_positive_z(0.0, 0.0, 1.0);
-
+        
         if ((line.a(0) == line.b(0)) && (line.a(1) == line.b(1)))
         {
             // vertical segment
-            n_right = (line.a(2) < line.b(2)) ? Vec3d(-1.0, 0.0, 0.0) : Vec3d(1.0, 0.0, 0.0);
-            n_top = Vec3d(0.0, 1.0, 0.0);
+            n_top = Vec3d::UnitY();
+            n_right = Vec3d::UnitX();
+            if (line.a(2) < line.b(2))
+                n_right = -n_right;
         }
         else
         {
-            // generic segment
-            n_right = unit_v.cross(unit_positive_z).normalized();
+            // horizontal segment
+            n_right = unit_v.cross(Vec3d::UnitZ()).normalized();
             n_top = n_right.cross(unit_v).normalized();
         }
 
@@ -1361,7 +1329,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
             // Continuing a previous segment.
             // Share left / right vertices if possible.
             double v_dot = unit_v_prev.dot(unit_v);
-            bool is_sharp = v_dot < 0.707; // sin(45 degrees)
+            bool is_sharp = v_dot < 0.9999; // v_dot < 0.9999; // cos(1 degree)
             bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
 
             if (is_sharp)
@@ -1371,64 +1339,25 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
                 volume.push_geometry(a[RIGHT], n_right);
                 idx_a[LEFT] = idx_last++;
                 volume.push_geometry(a[LEFT], n_left);
-            }
 
-            if (v_dot > 0.9)
+                if (is_right_turn)
+                {
+                    // Right turn. Fill in the right turn wedge.
+                    volume.push_triangle(idx_prev[RIGHT], idx_a[RIGHT], idx_prev[TOP]);
+                    volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a[RIGHT]);
+                }
+                else
+                {
+                    // Left turn. Fill in the left turn wedge.
+                    volume.push_triangle(idx_prev[LEFT], idx_prev[TOP], idx_a[LEFT]);
+                    volume.push_triangle(idx_prev[LEFT], idx_a[LEFT], idx_prev[BOTTOM]);
+                }
+            }
+            else
             {
                 // The two successive segments are nearly collinear.
                 idx_a[LEFT] = idx_prev[LEFT];
                 idx_a[RIGHT] = idx_prev[RIGHT];
-            }
-            else if (!is_sharp)
-            {
-                // Create a sharp corner with an overshot and average the left / right normals.
-                // At the crease angle of 45 degrees, the overshot at the corner will be less than (1-1/cos(PI/8)) = 8.2% over an arc.
-
-                // averages normals
-                Vec3d average_n_right = 0.5 * (n_right + n_right_prev).normalized();
-                Vec3d average_n_left = -average_n_right;
-                Vec3d average_rl_displacement = 0.5 * width * average_n_right;
-
-                // updates vertices around a
-                a[RIGHT] = l_a + average_rl_displacement;
-                a[LEFT] = l_a - average_rl_displacement;
-
-                // updates previous line normals
-                float* normal_left_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT] * 6;
-                normal_left_prev[0] = float(average_n_left(0));
-                normal_left_prev[1] = float(average_n_left(1));
-                normal_left_prev[2] = float(average_n_left(2));
-
-                float* normal_right_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6;
-                normal_right_prev[0] = float(average_n_right(0));
-                normal_right_prev[1] = float(average_n_right(1));
-                normal_right_prev[2] = float(average_n_right(2));
-
-                // updates previous line's vertices around b
-                float* b_left_prev = normal_left_prev + 3;
-                b_left_prev[0] = float(a[LEFT](0));
-                b_left_prev[1] = float(a[LEFT](1));
-                b_left_prev[2] = float(a[LEFT](2));
-
-                float* b_right_prev = normal_right_prev + 3;
-                b_right_prev[0] = float(a[RIGHT](0));
-                b_right_prev[1] = float(a[RIGHT](1));
-                b_right_prev[2] = float(a[RIGHT](2));
-
-                idx_a[LEFT] = idx_prev[LEFT];
-                idx_a[RIGHT] = idx_prev[RIGHT];
-            }
-            else if (is_right_turn)
-            {
-                // Right turn. Fill in the right turn wedge.
-                volume.push_triangle(idx_prev[RIGHT], idx_a[RIGHT], idx_prev[TOP]);
-                volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a[RIGHT]);
-            }
-            else
-            {
-                // Left turn. Fill in the left turn wedge.
-                volume.push_triangle(idx_prev[LEFT], idx_prev[TOP], idx_a[LEFT]);
-                volume.push_triangle(idx_prev[LEFT], idx_a[LEFT], idx_prev[BOTTOM]);
             }
 
             if (ii == lines.size())
