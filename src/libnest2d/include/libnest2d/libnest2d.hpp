@@ -895,7 +895,10 @@ private:
     template<class TIter> inline void __execute(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
-            item.addOffset(static_cast<Coord>(std::ceil(min_obj_distance_/2.0)));
+            auto offs = min_obj_distance_;
+            if (item.isFixed()) offs *= 0.99;
+            
+            item.addOffset(static_cast<Coord>(std::ceil(offs/2.0)));
         });
 
         selector_.template packItems<PlacementStrategy>(

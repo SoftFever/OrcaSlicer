@@ -801,7 +801,6 @@ private:
             // optimize
             config_.object_function = prev_func;
         }
-
     }
 
     struct Optimum {
@@ -816,28 +815,13 @@ private:
 
     class Optimizer: public opt::TOptimizer<opt::Method::L_SUBPLEX> {
     public:
-        Optimizer() {
+        Optimizer(float accuracy = 1.f) {
             opt::StopCriteria stopcr;
-            stopcr.max_iterations = 200;
+            stopcr.max_iterations = unsigned(std::floor(1000 * accuracy));
             stopcr.relative_score_difference = 1e-20;
             this->stopcr_ = stopcr;
         }
     };
-
-    static Box boundingBox(const Box& pilebb, const Box& ibb ) {
-        auto& pminc = pilebb.minCorner();
-        auto& pmaxc = pilebb.maxCorner();
-        auto& iminc = ibb.minCorner();
-        auto& imaxc = ibb.maxCorner();
-        Vertex minc, maxc;
-
-        setX(minc, std::min(getX(pminc), getX(iminc)));
-        setY(minc, std::min(getY(pminc), getY(iminc)));
-
-        setX(maxc, std::max(getX(pmaxc), getX(imaxc)));
-        setY(maxc, std::max(getY(pmaxc), getY(imaxc)));
-        return Box(minc, maxc);
-    }
 
     using Edges = EdgeCache<RawShape>;
 
@@ -935,7 +919,7 @@ private:
                     _objfunc = [norm, binbb, pbb, ins_check](const Item& item)
                     {
                         auto ibb = item.boundingBox();
-                        auto fullbb = boundingBox(pbb, ibb);
+                        auto fullbb = sl::boundingBox(pbb, ibb);
 
                         double score = pl::distance(ibb.center(),
                                                     binbb.center());
@@ -1005,14 +989,15 @@ private:
 
                     auto& rofn = rawobjfunc;
                     auto& nfpoint = getNfpPoint;
+                    float accuracy = config_.accuracy;
 
                     __parallel::enumerate(
                                 cache.corners().begin(),
                                 cache.corners().end(),
-                                [&results, &item, &rofn, &nfpoint, ch]
+                                [&results, &item, &rofn, &nfpoint, ch, accuracy]
                                 (double pos, size_t n)
                     {
-                        Optimizer solver;
+                        Optimizer solver(accuracy);
 
                         Item itemcpy = item;
                         auto contour_ofn = [&rofn, &nfpoint, ch, &itemcpy]
@@ -1059,10 +1044,10 @@ private:
                         __parallel::enumerate(cache.corners(hidx).begin(),
                                       cache.corners(hidx).end(),
                                       [&results, &item, &nfpoint,
-                                       &rofn, ch, hidx]
+                                       &rofn, ch, hidx, accuracy]
                                       (double pos, size_t n)
                         {
-                            Optimizer solver;
+                            Optimizer solver(accuracy);
 
                             Item itmcpy = item;
                             auto hole_ofn =

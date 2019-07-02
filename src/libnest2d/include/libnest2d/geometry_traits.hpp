@@ -875,6 +875,28 @@ inline _Box<TPoint<S>> boundingBox(const S& sh)
     return boundingBox(sh, Tag<S>() );
 }
 
+template<class P> _Box<P> boundingBox(const _Box<P>& bb1, const _Box<P>& bb2 )
+{
+    auto& pminc = bb1.minCorner();
+    auto& pmaxc = bb1.maxCorner();
+    auto& iminc = bb2.minCorner();
+    auto& imaxc = bb2.maxCorner();
+    P minc, maxc;
+    
+    setX(minc, std::min(getX(pminc), getX(iminc)));
+    setY(minc, std::min(getY(pminc), getY(iminc)));
+    
+    setX(maxc, std::max(getX(pmaxc), getX(imaxc)));
+    setY(maxc, std::max(getY(pmaxc), getY(imaxc)));
+    return _Box<P>(minc, maxc);
+}
+
+template<class S1, class S2>
+_Box<TPoint<S1>> boundingBox(const S1 &s1, const S2 &s2)
+{
+    return boundingBox(boundingBox(s1), boundingBox(s2));
+}
+
 template<class Box>
 inline double area(const Box& box, const BoxTag& )
 {
@@ -1060,8 +1082,8 @@ template<class TB, class TC>
 inline bool isInside(const TB& box, const TC& circ,
                      const BoxTag&, const CircleTag&)
 {
-    return isInside(box.minCorner(), circ, BoxTag(), CircleTag()) &&
-           isInside(box.maxCorner(), circ, BoxTag(), CircleTag());
+    return isInside(box.minCorner(), circ, PointTag(), CircleTag()) &&
+           isInside(box.maxCorner(), circ, PointTag(), CircleTag());
 }
 
 template<class TBGuest, class TBHost>
