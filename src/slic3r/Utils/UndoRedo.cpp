@@ -52,6 +52,10 @@ class ObjectHistoryBase
 public:
 	virtual ~ObjectHistoryBase() {}
 
+	// Is the object captured by this history mutable or immutable?
+	virtual bool is_mutable() const = 0;
+	virtual bool is_immutable() const = 0;
+
 	// If the history is empty, the ObjectHistory object could be released.
 	virtual bool empty() = 0;
 
@@ -108,6 +112,9 @@ class ImmutableObjectHistory : public ObjectHistory<Interval>
 public:
 	ImmutableObjectHistory(std::shared_ptr<const T>	shared_object) : m_shared_object(shared_object) {}
 	~ImmutableObjectHistory() override {}
+
+	bool is_mutable() const override { return false; }
+	bool is_immutable() const override { return true; }
 
 	void save(size_t active_snapshot_time, size_t current_time) {
 		assert(m_history.empty() || m_history.back().end() <= active_snapshot_time);
@@ -229,6 +236,9 @@ class MutableObjectHistory : public ObjectHistory<MutableHistoryInterval>
 public:
 	~MutableObjectHistory() override {}
 
+	bool is_mutable() const override { return true; }
+	bool is_immutable() const override { return false; }
+
 	void save(size_t active_snapshot_time, size_t current_time, const std::string &data) {
 		assert(m_history.empty() || m_history.back().end() <= active_snapshot_time);
 		if (m_history.empty() || m_history.back().end() < active_snapshot_time) {
@@ -344,6 +354,7 @@ private:
 		}
 		return it->second;
 	}
+	void 							collect_garbage();
 
 	// Each individual object (Model, ModelObject, ModelInstance, ModelVolume, Selection, TriangleMesh)
 	// is stored with its own history, referenced by the ObjectID. Immutable objects do not provide
@@ -368,6 +379,7 @@ class ModelObject;
 class ModelVolume;
 class ModelInstance;
 class ModelMaterial;
+class TriangleMesh;
 
 } // namespace Slic3r
 
@@ -380,6 +392,7 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 
 	// Store ObjectBase derived class onto the Undo / Redo stack as a separate object,
 	// store just the ObjectID to this stream.
@@ -400,19 +413,19 @@ namespace cereal
 
 	// Store ObjectBase derived class onto the Undo / Redo stack as a separate object,
 	// store just the ObjectID to this stream.
-	template <class T> void save(BinaryOutputArchive& ar, std::shared_ptr<const T>& ptr)
+	template <class T> void save(BinaryOutputArchive &ar, const std::shared_ptr<const T> &ptr)
 	{
-		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_immutable_object<T>(ptr));
+		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_immutable_object<T>(const_cast<std::shared_ptr<const T>&>(ptr)));
 	}
 
 	// Load ObjectBase derived class from the Undo / Redo stack as a separate object
 	// based on the ObjectID loaded from this stream.
-	template <class T> void load(BinaryInputArchive& ar, std::shared_ptr<T>& ptr)
+	template <class T> void load(BinaryInputArchive &ar, std::shared_ptr<const T> &ptr)
 	{
-		Slic3r::UndoRedo::StackImpl& stack = cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar);
+		Slic3r::UndoRedo::StackImpl &stack = cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar);
 		size_t id;
 		ar(id);
-		ptr = std::const_pointer_cast<T>(stack.load_immutable_object<T>(Slic3r::ObjectID(id)));
+		ptr = stack.load_immutable_object<T>(Slic3r::ObjectID(id));
 	}
 
 #if 0
@@ -469,10 +482,9 @@ template<typename T> ObjectID StackImpl::save_immutable_object(std::shared_ptr<c
 	// and find or allocate a history stack for the ObjectID associated to this shared_ptr.
 	auto it_object_history = m_objects.find(object_id);
 	if (it_object_history == m_objects.end())
-		it_object_history = m_objects.insert(it_object_history, ObjectID, std::unique_ptr<ImmutableObjectHistory<T>>(new ImmutableObjectHistory(object)));
-	auto *object_history = ;
+		it_object_history = m_objects.emplace_hint(it_object_history, object_id, std::unique_ptr<ImmutableObjectHistory<T>>(new ImmutableObjectHistory<T>(object)));
 	// Then save the interval.
-	static_cast<const ImmutableObjectHistory<T>*>(it_object_history->second.get())->save(m_active_snapshot_time, m_current_time);
+	static_cast<ImmutableObjectHistory<T>*>(it_object_history->second.get())->save(m_active_snapshot_time, m_current_time);
 	return object_id;
 }
 
@@ -533,6 +545,8 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 //	this->save_mutable_object(selection);
 	// Save the snapshot info
 	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id);
+	// Release empty objects from the history.
+	this->collect_garbage();
 }
 
 void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection)
@@ -545,6 +559,20 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GU
 	this->load_mutable_object(ObjectID(it_snapshot->model_object_id), model);
 	this->load_mutable_object(selection.id(), selection);
 	this->m_active_snapshot_time = timestamp;
+}
+
+void StackImpl::collect_garbage()
+{
+	// Purge objects with empty histories.
+	for (auto it = m_objects.begin(); it != m_objects.end();) {
+		if (it->second->empty()) {
+			if (it->second->is_immutable())
+				// Release the immutable object from the ptr to ObjectID map.
+				this->m_objects.erase(it->first);
+			it = m_objects.erase(it);
+		} else
+			++ it;
+	}
 }
 
 // Wrappers of the private implementation.
