@@ -541,6 +541,26 @@ void Preview::on_checkbox_shells(wxCommandEvent& evt)
     refresh_print();
 }
 
+void Preview::update_view_type()
+{
+    const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
+
+    const wxString& choice = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty() && 
+                             wxGetApp().extruders_edited_cnt()==1 ? 
+                                _(L("Color Print")) :
+                                config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
+                                    _(L("Tool")) : 
+                                    _(L("Feature type"));
+
+    int type = m_choice_view_type->FindString(choice);
+    if (m_choice_view_type->GetSelection() != type) {
+        m_choice_view_type->SetSelection(type);
+        if (0 <= type && type < (int)GCodePreviewData::Extrusion::Num_View_Types)
+            m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+        m_preferred_color_mode = "feature";
+    }
+}
+
 void Preview::create_double_slider()
 {
     m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
@@ -553,23 +573,13 @@ void Preview::create_double_slider()
 
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
-            auto& config = wxGetApp().preset_bundle->project_config;
-            ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
-            m_schedule_background_process();
+        wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights")->values = m_slider->GetTicksValues();
+        m_schedule_background_process();
 
-            const wxString& choise = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty() ? _(L("Color Print")) :
-                                      config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1  ? 
-                                      _(L("Tool")) : _(L("Feature type"));
+        update_view_type();
 
-            int type = m_choice_view_type->FindString(choise);
-            if (m_choice_view_type->GetSelection() != type) {
-                m_choice_view_type->SetSelection(type);
-                if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
-                    m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
-                m_preferred_color_mode = "feature";
-            }
-            reload_print();
-        });
+        reload_print();
+    });
 }
 
 // Find an index of a value in a sorted vector, which is in <z-eps, z+eps>.
@@ -787,9 +797,14 @@ void Preview::load_print_as_fff(bool keep_z_range)
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
             m_loaded = true;
-        } else
+        } else {
+            // disable color change information for multi-material presets
+            if (wxGetApp().extruders_edited_cnt() > 1)
+                color_print_values.clear();
+
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
+        }
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         // recalculates zs and update sliders accordingly
         std::vector<double> zs = m_canvas->get_current_print_zs(true);

@@ -2027,6 +2027,9 @@ void DoubleSlider::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord
 
 void DoubleSlider::draw_ticks(wxDC& dc)
 {
+    if (!m_is_enabled_tick_manipulation)
+        return;
+
     dc.SetPen(m_is_enabled_tick_manipulation ? DARK_GREY_PEN : LIGHT_GREY_PEN );
     int height, width;
     get_size(&width, &height);
@@ -2044,6 +2047,9 @@ void DoubleSlider::draw_ticks(wxDC& dc)
 
 void DoubleSlider::draw_colored_band(wxDC& dc)
 {
+    if (!m_is_enabled_tick_manipulation)
+        return;
+
     int height, width;
     get_size(&width, &height);
 
@@ -2113,7 +2119,7 @@ void DoubleSlider::draw_one_layer_icon(wxDC& dc)
 
 void DoubleSlider::draw_revert_icon(wxDC& dc)
 {
-    if (m_ticks.empty())
+    if (m_ticks.empty() || !m_is_enabled_tick_manipulation)
         return;
 
     int width, height;
@@ -2218,7 +2224,7 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
     }
-    else if (is_point_in_rect(pos, m_rect_revert_icon)) {
+    else if (is_point_in_rect(pos, m_rect_revert_icon) && m_is_enabled_tick_manipulation) {
         // discard all color changes
         SetLowerValue(m_min_value);
         SetHigherValue(m_max_value);

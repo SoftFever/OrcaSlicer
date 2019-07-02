@@ -127,6 +127,8 @@ public:
     void move_double_slider(wxKeyEvent& evt);
     void edit_double_slider(wxKeyEvent& evt);
 
+    void update_view_type();
+
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
 

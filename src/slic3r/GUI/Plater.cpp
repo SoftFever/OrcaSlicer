@@ -3947,6 +3947,9 @@ void Plater::reslice()
     }
     else if (!p->background_process.empty() && !p->background_process.idle())
         p->show_action_buttons(true);
+
+    // update type of preview
+    p->preview->update_view_type();
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object)
