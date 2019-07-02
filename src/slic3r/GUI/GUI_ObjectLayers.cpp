@@ -197,17 +197,25 @@ void ObjectLayers::update_layers_list()
     // Add new control according to the selected item  
 
     if (type & itLayerRoot)
+    {
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+        m_selectable_range = { 0.0, 0.0 };
         create_layers_list();
+    }
     else
-        create_layer(objects_ctrl->GetModel()->GetLayerRangeByItem(item));
-    
+    {
+        t_layer_height_range range = objects_ctrl->GetModel()->GetLayerRangeByItem(item);
+        create_layer(range);
+        update_scene_from_editor_selection(range, etLayerHeight);
+    }
+
     m_parent->Layout();
 }
 
-void ObjectLayers::update_scene_from_editor_selection() const 
+void ObjectLayers::update_scene_from_editor_selection(const t_layer_height_range& range, EditorType type) const
 {
     // needed to show the visual hints in 3D scene
-    wxGetApp().plater()->canvas3D()->handle_layers_data_focus_event(m_selectable_range, m_selection_type);
+    wxGetApp().plater()->canvas3D()->handle_layers_data_focus_event(range, type);
 }
 
 void ObjectLayers::UpdateAndShow(const bool show)
@@ -257,8 +265,6 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
 
     this->Bind(wxEVT_KILL_FOCUS, [this, edit_fn](wxFocusEvent& e)
     {
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
-
         if (!m_enter_pressed) {
 #ifndef __WXGTK__
             /* Update data for next editor selection.
@@ -291,7 +297,7 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
     this->Bind(wxEVT_SET_FOCUS, [this, parent](wxFocusEvent& e)
     {
         set_focus_data();
-        parent->update_scene_from_editor_selection();
+        parent->update_scene_from_editor_selection(parent->get_selectable_range(), parent->get_selection_type());
         e.Skip();
     }, this->GetId());
 

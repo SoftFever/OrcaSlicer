@@ -73,10 +73,13 @@ public:
     void        create_layers_list();
     void        update_layers_list();
 
-    void        update_scene_from_editor_selection() const;
+    void        update_scene_from_editor_selection(const t_layer_height_range& range, EditorType type) const;
 
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
+
+    const t_layer_height_range& get_selectable_range() const { return m_selectable_range; }
+    EditorType get_selection_type() const { return m_selection_type; }
 
     friend class LayerRangeEditor;
 };
