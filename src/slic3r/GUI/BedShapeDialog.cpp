@@ -234,8 +234,8 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 	// This is a custom bed shape, use the polygon provided.
 	m_shape_options_book->SetSelection(SHAPE_CUSTOM);
 	// Copy the polygon to the canvas, make a copy of the array.
-	m_canvas->m_bed_shape = points->values;
-	update_shape();
+    m_loaded_bed_shape = points->values;
+    update_shape();
 }
 
 void BedShapePanel::update_preview()
