@@ -6,7 +6,8 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#include "slic3r/GUI/3DScene.hpp"
+#include "3DScene.hpp"
+#include "Camera.hpp"
 
 #include <GL/glew.h>
 
@@ -1761,33 +1762,36 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     const float min_y = box.min(1) - Margin;
     const float max_y = box.max(1) + Margin;
 
+    // view dependend order of rendering to keep correct transparency
+    bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
+    float z1 = camera_on_top ? min_z : max_z;
+    float z2 = camera_on_top ? max_z : min_z;
+
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    // Draw the min_z plane
     ::glBegin(GL_QUADS);
-    if (type == 1)
+    if ((camera_on_top && (type == 1)) || (!camera_on_top && (type == 2)))
         ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, min_z);
-    ::glVertex3f(max_x, min_y, min_z);
-    ::glVertex3f(max_x, max_y, min_z);
-    ::glVertex3f(min_x, max_y, min_z);
+    ::glVertex3f(min_x, min_y, z1);
+    ::glVertex3f(max_x, min_y, z1);
+    ::glVertex3f(max_x, max_y, z1);
+    ::glVertex3f(min_x, max_y, z1);
     glsafe(::glEnd());
 
-    // Draw the max_z plane
     ::glBegin(GL_QUADS);
-    if (type == 2)
+    if ((camera_on_top && (type == 2)) || (!camera_on_top && (type == 1)))
         ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, max_z);
-    ::glVertex3f(max_x, min_y, max_z);
-    ::glVertex3f(max_x, max_y, max_z);
-    ::glVertex3f(min_x, max_y, max_z);
+    ::glVertex3f(min_x, min_y, z2);
+    ::glVertex3f(max_x, min_y, z2);
+    ::glVertex3f(max_x, max_y, z2);
+    ::glVertex3f(min_x, max_y, z2);
     glsafe(::glEnd());
 
     glsafe(::glEnable(GL_CULL_FACE));

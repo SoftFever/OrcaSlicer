@@ -220,6 +220,8 @@ public:
 
     void msw_rescale();
 
+    const Camera& get_camera() const;
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

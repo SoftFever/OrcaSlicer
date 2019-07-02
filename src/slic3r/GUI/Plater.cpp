@@ -4273,6 +4273,11 @@ void Plater::msw_rescale()
     GetParent()->Layout();
 }
 
+const Camera& Plater::get_camera() const
+{
+    return p->camera;
+}
+
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_increase_instances() const { return p->can_increase_instances(); }
