@@ -578,6 +578,22 @@ void ObjectList::selection_changed()
         wxPostEvent(this, event);
     }
 
+    if (const wxDataViewItem item = GetSelection())
+    {
+        const ItemType type = m_objects_model->GetItemType(item);
+        // to correct visual hints for layers editing on the Scene
+        if (type & (itLayer|itLayerRoot)) {
+            wxGetApp().obj_layers()->reset_selection();
+            
+            if (type & itLayerRoot)
+                wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+            else {
+                wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
+                wxGetApp().obj_layers()->update_scene_from_editor_selection();
+            }
+        }
+    }
+
     part_selection_changed();
 }
 
@@ -1864,7 +1880,7 @@ void ObjectList::layers_editing()
 
         // set some default value
         if (ranges.empty())
-            ranges[{ 0.0f, 0.6f }] = get_default_layer_config(obj_idx);
+            ranges[{ 0.0f, 2.0f }] = get_default_layer_config(obj_idx);
 
         // create layer root item
         layers_item = add_layer_root_item(obj_item);
@@ -2330,7 +2346,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
     
     if (current_range == last_range)
     {
-        const t_layer_height_range& new_range = { last_range.second, last_range.second + 0.5f };
+        const t_layer_height_range& new_range = { last_range.second, last_range.second + 2.0f };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
