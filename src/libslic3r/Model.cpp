@@ -22,19 +22,6 @@ namespace Slic3r {
 
 unsigned int Model::s_auto_extruder_id = 1;
 
-// Unique object / instance ID for the wipe tower.
-ObjectID wipe_tower_object_id()
-{
-    static ObjectBase mine;
-    return mine.id();
-}
-
-ObjectID wipe_tower_instance_id()
-{
-    static ObjectBase mine;
-    return mine.id();
-}
-
 Model& Model::assign_copy(const Model &rhs)
 {
     this->copy_id(rhs);
@@ -1068,11 +1055,11 @@ void ModelObject::mirror(Axis axis)
 }
 
 // This method could only be called before the meshes of this ModelVolumes are not shared!
-void ModelObject::scale_mesh(const Vec3d &versor)
+void ModelObject::scale_mesh_after_creation(const Vec3d &versor)
 {
     for (ModelVolume *v : this->volumes)
     {
-        v->scale_geometry(versor);
+        v->scale_geometry_after_creation(versor);
         v->set_offset(versor.cwiseProduct(v->get_offset()));
     }
     this->invalidate_bounding_box();
@@ -1562,8 +1549,8 @@ void ModelVolume::center_geometry_after_creation()
     Vec3d shift = this->mesh().bounding_box().center();
     if (!shift.isApprox(Vec3d::Zero()))
     {
-        m_mesh->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
-        m_convex_hull->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        const_cast<TriangleMesh*>(m_mesh.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+		const_cast<TriangleMesh*>(m_convex_hull.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
 }
@@ -1716,10 +1703,10 @@ void ModelVolume::mirror(Axis axis)
 }
 
 // This method could only be called before the meshes of this ModelVolumes are not shared!
-void ModelVolume::scale_geometry(const Vec3d& versor)
+void ModelVolume::scale_geometry_after_creation(const Vec3d& versor)
 {
-    m_mesh->scale(versor);
-    m_convex_hull->scale(versor);
+	const_cast<TriangleMesh*>(m_mesh.get())->scale(versor);
+	const_cast<TriangleMesh*>(m_convex_hull.get())->scale(versor);
 }
 
 void ModelVolume::transform_this_mesh(const Transform3d &mesh_trafo, bool fix_left_handed)

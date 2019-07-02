@@ -69,6 +69,7 @@
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
+#include "../Utils/UndoRedo.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -1182,6 +1183,8 @@ const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", 
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
+	plater->take_snapshot(_(L("Load Files")));
+
     std::vector<fs::path> paths;
 
     for (const auto &filename : filenames) {
@@ -1247,6 +1250,7 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
+    Slic3r::UndoRedo::Stack 	undo_redo_stack;
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1545,6 +1549,10 @@ struct Plater::priv
     void split_object();
     void split_volume();
     void scale_selection_to_fit_print_volume();
+
+	void take_snapshot(const std::string& snapshot_name) { this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection()); }
+	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
+
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
     void schedule_background_process();
@@ -1775,6 +1783,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
+
+	this->undo_redo_stack.initialize(model, view3D->get_canvas3d()->get_selection());
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -2139,7 +2149,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
             // so scale down the mesh
 			double inv = 1. / max_ratio;
-            object->scale_mesh(Vec3d(inv, inv, inv));
+            object->scale_mesh_after_creation(Vec3d(inv, inv, inv));
             object->origin_translation = Vec3d::Zero();
             object->center_around_origin();
             scaled_down = true;
@@ -2355,6 +2365,8 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
+	this->take_snapshot(_(L("Reset Project")));
+
     set_project_filename(wxEmptyString);
 
     // Prevent toolpaths preview from rendering while we modify the Print object
@@ -3515,6 +3527,8 @@ void Plater::new_project()
 
 void Plater::load_project()
 {
+	this->take_snapshot(_(L("Load Project")));
+
     wxString input_file;
     wxGetApp().load_project(this, input_file);
 
@@ -3593,12 +3607,15 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 
 void Plater::remove_selected()
 {
+	this->take_snapshot(_(L("Delete Selected Objects")));
     this->p->view3D->delete_selected();
 }
 
 void Plater::increase_instances(size_t num)
 {
     if (! can_increase_instances()) { return; }
+
+	this->take_snapshot(_(L("Increase Instances")));
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -3633,6 +3650,8 @@ void Plater::increase_instances(size_t num)
 void Plater::decrease_instances(size_t num)
 {
     if (! can_decrease_instances()) { return; }
+
+	this->take_snapshot(_(L("Decrease Instances")));
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -3980,6 +3999,16 @@ void Plater::send_gcode()
 
         p->export_gcode(fs::path(), std::move(upload_job));
     }
+}
+
+void Plater::take_snapshot(const std::string &snapshot_name)
+{
+	p->take_snapshot(snapshot_name);
+}
+
+void Plater::take_snapshot(const wxString &snapshot_name)
+{
+	p->take_snapshot(snapshot_name);
 }
 
 void Plater::on_extruders_change(int num_extruders)

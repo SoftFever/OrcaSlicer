@@ -3,6 +3,7 @@
 
 #include <set>
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/ObjectID.hpp"
 #include "3DScene.hpp"
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -66,7 +67,7 @@ private:
     Enum    m_value;
 };
 
-class Selection
+class Selection : public Slic3r::ObjectBase
 {
 public:
     typedef std::set<unsigned int> IndicesList;

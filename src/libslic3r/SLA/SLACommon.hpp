@@ -43,6 +43,8 @@ struct SupportPoint {
 
     bool operator==(const SupportPoint& sp) const { return (pos==sp.pos) && head_front_radius==sp.head_front_radius && is_new_island==sp.is_new_island; }
     bool operator!=(const SupportPoint& sp) const { return !(sp == (*this)); }
+
+	template<class Archive> void serialize(Archive &ar) { ar(pos, head_front_radius, is_new_island); }
 };
 
 /// An index-triangle structure for libIGL functions. Also serves as an

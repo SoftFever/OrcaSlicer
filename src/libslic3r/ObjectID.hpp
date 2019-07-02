@@ -9,6 +9,10 @@
 
 namespace Slic3r {
 
+namespace UndoRedo {
+	class StackImpl;
+};
+
 // Unique identifier of a mutable object accross the application.
 // Used to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject)
 // (for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial classes)
@@ -75,12 +79,17 @@ private:
 	
 	friend ObjectID wipe_tower_object_id();
 	friend ObjectID wipe_tower_instance_id();
+	friend class Slic3r::UndoRedo::StackImpl;
 
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
     ObjectBase(const ObjectID id) : m_id(id) {}
   	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ObjectBase> &construct) { ObjectID id; ar(id); construct(id); }
 };
+
+// Unique object / instance ID for the wipe tower.
+extern ObjectID wipe_tower_object_id();
+extern ObjectID wipe_tower_instance_id();
 
 } // namespace Slic3r
 

@@ -146,6 +146,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/PresetUpdater.hpp
     Utils/Time.cpp
     Utils/Time.hpp
+    Utils/UndoRedo.cpp
+    Utils/UndoRedo.hpp
     Utils/HexFile.cpp
     Utils/HexFile.hpp
 )

@@ -27,6 +27,10 @@ class ModelVolume;
 class Print;
 class SLAPrint;
 
+namespace UndoRedo {
+	class StackImpl;
+}
+
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
 typedef std::map<t_model_material_attribute, std::string> t_model_material_attributes;
@@ -35,10 +39,6 @@ typedef std::map<t_model_material_id, ModelMaterial*> ModelMaterialMap;
 typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
-
-// Unique object / instance ID for the wipe tower.
-extern ObjectID wipe_tower_object_id();
-extern ObjectID wipe_tower_instance_id();
 
 #define OBJECTBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
     /* Copy a model, copy the IDs. The Print::apply() will call the TYPE::copy() method */ \
@@ -75,7 +75,7 @@ private: \
     void assign_new_unique_ids_recursive();
 
 // Material, which may be shared across multiple ModelObjects of a single Model.
-class ModelMaterial : public ObjectBase
+class ModelMaterial final : public ObjectBase
 {
 public:
     // Attributes are defined by the AMF file format, but they don't seem to be used by Slic3r for any purpose.
@@ -104,6 +104,7 @@ private:
     ModelMaterial& operator=(ModelMaterial &&rhs) = delete;
 
 	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
 	ModelMaterial() : m_model(nullptr) {}
 	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ObjectBase>(this)); ar(attributes, config); }
 };
@@ -112,7 +113,7 @@ private:
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
 // different rotation and different uniform scaling.
-class ModelObject : public ObjectBase
+class ModelObject final : public ObjectBase
 {
     friend class Model;
 public:
@@ -211,7 +212,7 @@ public:
     void mirror(Axis axis);
 
     // This method could only be called before the meshes of this ModelVolumes are not shared!
-    void scale_mesh(const Vec3d& versor);
+    void scale_mesh_after_creation(const Vec3d& versor);
 
     size_t materials_count() const;
     size_t facets_count() const;
@@ -240,12 +241,6 @@ public:
     // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined) 
     int         get_mesh_errors_count(const int vol_idx = -1) const;
 
-protected:
-    friend class Print;
-    friend class SLAPrint;
-    // Called by Print::apply() to set the model pointer after making a copy.
-    void        set_model(Model *model) { m_model = model; }
-
 private:
     ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()), 
         m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
@@ -272,7 +267,14 @@ private:
     mutable BoundingBoxf3 m_raw_mesh_bounding_box;
     mutable bool          m_raw_mesh_bounding_box_valid;
 
+    // Called by Print::apply() to set the model pointer after making a copy.
+    friend class Print;
+    friend class SLAPrint;
+    void        set_model(Model *model) { m_model = model; }
+
+    // Undo / Redo through the cereal serialization library
 	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
 	ModelObject() : m_model(nullptr), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
 	template<class Archive> void serialize(Archive &ar) { 
 		ar(cereal::base_class<ObjectBase>(this));
@@ -292,17 +294,17 @@ enum class ModelVolumeType : int {
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
-class ModelVolume : public ObjectBase
+class ModelVolume final : public ObjectBase
 {
 public:
     std::string         name;
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
-    void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<TriangleMesh>(mesh); }
-    void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<TriangleMesh>(std::move(mesh)); }
-    void                set_mesh(std::shared_ptr<TriangleMesh> &mesh) { m_mesh = mesh; }
-    void                set_mesh(std::unique_ptr<TriangleMesh> &&mesh) { m_mesh = std::move(mesh); }
-	void				reset_mesh() { m_mesh = std::make_shared<TriangleMesh>(); }
+    void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
+    void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<const TriangleMesh>(std::move(mesh)); }
+    void                set_mesh(std::shared_ptr<const TriangleMesh> &mesh) { m_mesh = mesh; }
+    void                set_mesh(std::unique_ptr<const TriangleMesh> &&mesh) { m_mesh = std::move(mesh); }
+	void				reset_mesh() { m_mesh = std::make_shared<const TriangleMesh>(); }
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
     DynamicPrintConfig  config;
@@ -340,7 +342,7 @@ public:
     void                mirror(Axis axis);
 
     // This method could only be called before the meshes of this ModelVolumes are not shared!
-    void                scale_geometry(const Vec3d& versor);
+    void                scale_geometry_after_creation(const Vec3d& versor);
 
     // Translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box.
     // Attention! This method may only be called just after ModelVolume creation! It must not be called once the TriangleMesh of this ModelVolume is shared!
@@ -400,15 +402,15 @@ protected:
 
 private:
     // Parent object owning this ModelVolume.
-    ModelObject*                    object;
+    ModelObject*                    	object;
     // The triangular model.
-    std::shared_ptr<TriangleMesh>   m_mesh;
+    std::shared_ptr<const TriangleMesh> m_mesh;
     // Is it an object to be printed, or a modifier volume?
-    ModelVolumeType                 m_type;
-    t_model_material_id             m_material_id;
+    ModelVolumeType                 	m_type;
+    t_model_material_id             	m_material_id;
     // The convex hull of this model's mesh.
-    std::shared_ptr<TriangleMesh>   m_convex_hull;
-    Geometry::Transformation        m_transformation;
+    std::shared_ptr<const TriangleMesh> m_convex_hull;
+    Geometry::Transformation        	m_transformation;
 
     // flag to optimize the checking if the volume is splittable
     //     -1   ->   is unknown value (before first cheking)
@@ -443,16 +445,16 @@ private:
     ModelVolume& operator=(ModelVolume &rhs) = delete;
 
 	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
 	ModelVolume() : object(nullptr) {}
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ObjectBase>(this));
 		ar(name, config, m_mesh, m_type, m_material_id, m_convex_hull, m_transformation, m_is_splittable);
 	}
 };
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance : public ObjectBase
+class ModelInstance final : public ObjectBase
 {
 public:
     enum EPrintVolumeState : unsigned char
@@ -538,6 +540,7 @@ private:
     ModelInstance& operator=(ModelInstance &&rhs) = delete;
 
 	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
 	ModelInstance() : object(nullptr) {}
 	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this));
@@ -550,7 +553,7 @@ private:
 // and with multiple modifier meshes.
 // A model groups multiple objects, each object having possibly multiple instances,
 // all objects may share mutliple materials.
-class Model : public ObjectBase
+class Model final : public ObjectBase
 {
     static unsigned int s_auto_extruder_id;
 
@@ -633,6 +636,7 @@ private:
     OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
 
 	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this), materials, objects);
 	}
