@@ -56,7 +56,7 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        {}
     GLIndexedVertexArray(const GLIndexedVertexArray &rhs) :
         vertices_and_normals_interleaved(rhs.vertices_and_normals_interleaved),
         triangle_indices(rhs.triangle_indices),
@@ -64,7 +64,7 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        {}
     GLIndexedVertexArray(GLIndexedVertexArray &&rhs) :
         vertices_and_normals_interleaved(std::move(rhs.vertices_and_normals_interleaved)),
         triangle_indices(std::move(rhs.triangle_indices)),
@@ -72,7 +72,11 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        {}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    ~GLIndexedVertexArray() { release_geometry(); }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     GLIndexedVertexArray& operator=(const GLIndexedVertexArray &rhs)
     {
@@ -83,7 +87,9 @@ public:
         this->triangle_indices                 = rhs.triangle_indices;
         this->quad_indices                     = rhs.quad_indices;
         this->m_bounding_box                   = rhs.m_bounding_box;
-        this->setup_sizes();
+        vertices_and_normals_interleaved_size  = rhs.vertices_and_normals_interleaved_size;
+        triangle_indices_size                  = rhs.triangle_indices_size;
+        quad_indices_size                      = rhs.quad_indices_size;
         return *this;
     }
 
@@ -96,26 +102,28 @@ public:
         this->triangle_indices                 = std::move(rhs.triangle_indices);
         this->quad_indices                     = std::move(rhs.quad_indices);
         this->m_bounding_box                   = std::move(rhs.m_bounding_box);
-        this->setup_sizes();
+        vertices_and_normals_interleaved_size  = rhs.vertices_and_normals_interleaved_size;
+        triangle_indices_size                  = rhs.triangle_indices_size;
+        quad_indices_size                      = rhs.quad_indices_size;
         return *this;
     }
 
     // Vertices and their normals, interleaved to be used by void glInterleavedArrays(GL_N3F_V3F, 0, x)
-    std::vector<float> vertices_and_normals_interleaved;
-    std::vector<int>   triangle_indices;
-    std::vector<int>   quad_indices;
+    mutable std::vector<float> vertices_and_normals_interleaved;
+    mutable std::vector<int>   triangle_indices;
+    mutable std::vector<int>   quad_indices;
 
     // When the geometry data is loaded into the graphics card as Vertex Buffer Objects,
     // the above mentioned std::vectors are cleared and the following variables keep their original length.
-    size_t             vertices_and_normals_interleaved_size;
-    size_t             triangle_indices_size;
-    size_t             quad_indices_size;
+    size_t vertices_and_normals_interleaved_size{ 0 };
+    size_t triangle_indices_size{ 0 };
+    size_t quad_indices_size{ 0 };
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
     // Zero if the VBOs are not sent to GPU yet.
-    unsigned int       vertices_and_normals_interleaved_VBO_id;
-    unsigned int       triangle_indices_VBO_id;
-    unsigned int       quad_indices_VBO_id;
+    mutable unsigned int       vertices_and_normals_interleaved_VBO_id{ 0 };
+    mutable unsigned int       triangle_indices_VBO_id{ 0 };
+    mutable unsigned int       quad_indices_VBO_id{ 0 };
 
     void load_mesh_full_shading(const TriangleMesh &mesh);
     void load_mesh(const TriangleMesh& mesh) { this->load_mesh_full_shading(mesh); }
@@ -129,6 +137,10 @@ public:
     }
 
     inline void push_geometry(float x, float y, float z, float nx, float ny, float nz) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->vertices_and_normals_interleaved.size() + 6 > this->vertices_and_normals_interleaved.capacity())
             this->vertices_and_normals_interleaved.reserve(next_highest_power_of_2(this->vertices_and_normals_interleaved.size() + 6));
         this->vertices_and_normals_interleaved.push_back(nx);
@@ -138,6 +150,7 @@ public:
         this->vertices_and_normals_interleaved.push_back(y);
         this->vertices_and_normals_interleaved.push_back(z);
 
+        this->vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
         m_bounding_box.merge(Vec3f(x, y, z).cast<double>());
     };
 
@@ -150,50 +163,57 @@ public:
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->triangle_indices.size() + 3 > this->vertices_and_normals_interleaved.capacity())
             this->triangle_indices.reserve(next_highest_power_of_2(this->triangle_indices.size() + 3));
         this->triangle_indices.push_back(idx1);
         this->triangle_indices.push_back(idx2);
         this->triangle_indices.push_back(idx3);
+        this->triangle_indices_size = this->triangle_indices.size();
     };
 
     inline void push_quad(int idx1, int idx2, int idx3, int idx4) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->quad_indices.size() + 4 > this->vertices_and_normals_interleaved.capacity())
             this->quad_indices.reserve(next_highest_power_of_2(this->quad_indices.size() + 4));
         this->quad_indices.push_back(idx1);
         this->quad_indices.push_back(idx2);
         this->quad_indices.push_back(idx3);
         this->quad_indices.push_back(idx4);
+        this->quad_indices_size = this->quad_indices.size();
     };
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
-    void finalize_geometry();
+    void finalize_geometry() const;
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
 
     void render() const;
-    void render(const std::pair<size_t, size_t> &tverts_range, const std::pair<size_t, size_t> &qverts_range) const;
+    void render(const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
 
     // Is there any geometry data stored?
     bool empty() const { return vertices_and_normals_interleaved_size == 0; }
-
-    // Is this object indexed, or is it just a set of triangles?
-    bool indexed() const { return ! this->empty() && this->triangle_indices_size + this->quad_indices_size > 0; }
 
     void clear() {
         this->vertices_and_normals_interleaved.clear();
         this->triangle_indices.clear();
         this->quad_indices.clear();
         this->m_bounding_box.reset();
-        this->setup_sizes();
+        vertices_and_normals_interleaved_size = 0;
+        triangle_indices_size = 0;
+        quad_indices_size = 0;
     }
 
     // Shrink the internal storage to tighly fit the data stored.
-    void shrink_to_fit() { 
-        if (! this->has_VBOs())
-            this->setup_sizes();
+    void shrink_to_fit() const {
         this->vertices_and_normals_interleaved.shrink_to_fit();
         this->triangle_indices.shrink_to_fit();
         this->quad_indices.shrink_to_fit();
@@ -203,12 +223,6 @@ public:
 
 private:
     BoundingBoxf3 m_bounding_box;
-
-    inline void setup_sizes() {
-        vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
-        triangle_indices_size                 = this->triangle_indices.size();
-        quad_indices_size                     = this->quad_indices.size();
-    }
 };
 
 class GLVolume {
@@ -400,9 +414,9 @@ public:
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
-    bool                indexed() const { return this->indexed_vertex_array.indexed(); }
 
     void                set_range(coordf_t low, coordf_t high);
+
     void                render() const;
     void                render(int color_id, int detection_id, int worldmatrix_id) const;
 

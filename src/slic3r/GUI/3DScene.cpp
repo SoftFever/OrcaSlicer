@@ -74,13 +74,13 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     }
 }
 
-void GLIndexedVertexArray::finalize_geometry()
+void GLIndexedVertexArray::finalize_geometry() const
 {
     assert(this->vertices_and_normals_interleaved_VBO_id == 0);
     assert(this->triangle_indices_VBO_id == 0);
     assert(this->quad_indices_VBO_id == 0);
 
-    this->setup_sizes();
+    this->shrink_to_fit();
 
     if (! empty()) {
         glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
@@ -103,8 +103,6 @@ void GLIndexedVertexArray::finalize_geometry()
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         this->quad_indices.clear();
     }
-
-    this->shrink_to_fit();
 }
 
 void GLIndexedVertexArray::release_geometry()
@@ -122,89 +120,78 @@ void GLIndexedVertexArray::release_geometry()
         this->quad_indices_VBO_id = 0;
     }
     this->clear();
-    this->shrink_to_fit();
 }
 
 void GLIndexedVertexArray::render() const
 {
-    if (this->vertices_and_normals_interleaved_VBO_id) {
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-        glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-        glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
-    } else {
-        glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data() + 3));
-        glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data()));
+    if (this->vertices_and_normals_interleaved_VBO_id == 0)
+    {
+        // sends data to gpu, if not done yet
+        finalize_geometry();
+        if (this->vertices_and_normals_interleaved_VBO_id == 0)
+            return;
     }
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
+    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
+
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-    if (this->indexed()) {
-        if (this->vertices_and_normals_interleaved_VBO_id) {
-            // Render using the Vertex Buffer Objects.
-            if (this->triangle_indices_size > 0) {
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-                glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, nullptr));
-            }
-            if (this->quad_indices_size > 0) {
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-                glsafe(::glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, nullptr));
-            }
-            glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-        } else {
-            // Render in an immediate mode.
-            if (! this->triangle_indices.empty())
-                glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, this->triangle_indices.data()));
-            if (! this->quad_indices.empty())
-                glsafe(::glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, this->quad_indices.data()));
-        }
-    } else
-        glsafe(::glDrawArrays(GL_TRIANGLES, 0, GLsizei(this->vertices_and_normals_interleaved_size / 6)));
-
-    if (this->vertices_and_normals_interleaved_VBO_id)
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-}
-
-void GLIndexedVertexArray::render(
-    const std::pair<size_t, size_t> &tverts_range,
-    const std::pair<size_t, size_t> &qverts_range) const 
-{
-    assert(this->indexed());
-    if (! this->indexed())
-        return;
-
-    if (this->vertices_and_normals_interleaved_VBO_id) {
-        // Render using the Vertex Buffer Objects.
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-        glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-        glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-        if (this->triangle_indices_size > 0) {
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-            glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4)));
-        }
-        if (this->quad_indices_size > 0) {
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-            glsafe(::glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(qverts_range.first * 4)));
-        }
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    } else {
-        // Render in an immediate mode.
-        glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data() + 3));
-        glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), this->vertices_and_normals_interleaved.data()));
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-        if (! this->triangle_indices.empty())
-            glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->triangle_indices.data() + tverts_range.first)));
-        if (! this->quad_indices.empty())
-            glsafe(::glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(this->quad_indices.data() + qverts_range.first)));
+    // Render using the Vertex Buffer Objects.
+    if (this->triangle_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
+        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, nullptr));
+        glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+    if (this->quad_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
+        glsafe(::glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, nullptr));
+        glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
 
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void GLIndexedVertexArray::render(
+    const std::pair<size_t, size_t>& tverts_range,
+    const std::pair<size_t, size_t>& qverts_range) const
+{
+    if (this->vertices_and_normals_interleaved_VBO_id == 0)
+    {
+        // sends data to gpu, if not done yet
+        finalize_geometry();
+        if (this->vertices_and_normals_interleaved_VBO_id == 0)
+            return;
+    }
+
+    // Render using the Vertex Buffer Objects.
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
+    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
+    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
+
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+
+    if (this->triangle_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
+        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4)));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+    if (this->quad_indices_size > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
+        glsafe(::glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(qverts_range.first * 4)));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+    
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 const float GLVolume::SELECTED_COLOR[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -357,9 +344,9 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
 
 void GLVolume::set_range(double min_z, double max_z)
 {
-    this->qverts_range.first  = 0;
+    this->qverts_range.first = 0;
     this->qverts_range.second = this->indexed_vertex_array.quad_indices_size;
-    this->tverts_range.first  = 0;
+    this->tverts_range.first = 0;
     this->tverts_range.second = this->indexed_vertex_array.triangle_indices_size;
     if (! this->print_zs.empty()) {
         // The Z layer range is specified.
@@ -399,12 +386,10 @@ void GLVolume::render() const
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glPushMatrix());
-
     glsafe(::glMultMatrixd(world_matrix().data()));
-    if (this->indexed_vertex_array.indexed())
-        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
-    else
-        this->indexed_vertex_array.render();
+
+    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
@@ -412,45 +397,6 @@ void GLVolume::render() const
 
 void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 {
-    if (!is_active)
-        return;
-
-    if (!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
-        return;
-
-    GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
-    GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
-    if (n_triangles + n_quads == 0)
-    {
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-        if (color_id >= 0)
-        {
-            float color[4];
-            ::memcpy((void*)color, (const void*)render_color, 4 * sizeof(float));
-            glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)color));
-        }
-        else
-            glsafe(::glColor4fv(render_color));
-
-        if (detection_id != -1)
-            glsafe(::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0));
-
-        if (worldmatrix_id != -1)
-            glsafe(::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data()));
-
-        render();
-
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-        return;
-    }
-
-    if (this->is_left_handed())
-        glFrontFace(GL_CW);
-
     if (color_id >= 0)
         glsafe(::glUniform4fv(color_id, 1, (const GLfloat*)render_color));
     else
@@ -462,29 +408,7 @@ void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
     if (worldmatrix_id != -1)
         glsafe(::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data()));
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, indexed_vertex_array.vertices_and_normals_interleaved_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
-
-    glsafe(::glPushMatrix());
-
-    glsafe(::glMultMatrixd(world_matrix().data()));
-
-    if (n_triangles > 0)
-    {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexed_vertex_array.triangle_indices_VBO_id));
-        glsafe(::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4)));
-    }
-    if (n_quads > 0)
-    {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexed_vertex_array.quad_indices_VBO_id));
-        glsafe(::glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, (const void*)(qverts_range.first * 4)));
-    }
-
-    glsafe(::glPopMatrix());
-
-    if (this->is_left_handed())
-        glFrontFace(GL_CCW);
+    render();
 }
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
@@ -531,8 +455,6 @@ int GLVolumeCollection::load_object_volume(
     GLVolume& v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
     v.indexed_vertex_array.load_mesh(mesh);
-
-    v.indexed_vertex_array.finalize_geometry();
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
@@ -573,7 +495,6 @@ void GLVolumeCollection::load_object_auxiliary(
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
         v.indexed_vertex_array.load_mesh(mesh);
-        v.indexed_vertex_array.finalize_geometry();
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -645,8 +566,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.indexed_vertex_array.load_mesh(mesh);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
-
-    v.indexed_vertex_array.finalize_geometry();
     v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
     v.geometry_id.first = 0;
     v.geometry_id.second = wipe_tower_instance_id().id;
@@ -1576,7 +1495,9 @@ void GLModel::set_scale(const Vec3d& scale)
 
 void GLModel::reset()
 {
-    m_volume.release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    m_volume.release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     m_filename = "";
 }
 
@@ -1659,7 +1580,6 @@ bool GLArrow::on_init()
     triangles.emplace_back(7, 13, 6);
 
     m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
-    m_volume.finalize_geometry();
     return true;
 }
 
@@ -1773,7 +1693,6 @@ bool GLCurvedArrow::on_init()
     triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
     m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
-    m_volume.finalize_geometry();
     return true;
 }
 
@@ -1809,8 +1728,6 @@ bool GLBed::on_init_from_file(const std::string& filename)
 
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);
-
-    m_volume.finalize_geometry();
 
     return true;
 }

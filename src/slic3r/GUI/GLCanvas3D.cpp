@@ -524,7 +524,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
         glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data()));
         glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data() + m_layers_texture.width * m_layers_texture.height * 4));
-        for (const GLVolume *glvolume : volumes.volumes) {
+        for (const GLVolume* glvolume : volumes.volumes) {
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
@@ -543,8 +543,8 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     {
         // Something went wrong. Just render the object.
         assert(false);
-		for (const GLVolume *glvolume : volumes.volumes) {
-			// Render the object using the layer editing shader and texture.
+        for (const GLVolume* glvolume : volumes.volumes) {
+            // Render the object using the layer editing shader and texture.
 			if (!glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
 				continue;
             glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
@@ -1314,10 +1314,10 @@ bool GLCanvas3D::init()
         return false;
     }
 
-    // on linux the gl context is not valid until the canvas is not shown on screen
-    // we defer the geometry finalization of volumes until the first call to render()
-    if (!m_volumes.empty())
-        m_volumes.finalize_geometry();
+//    // on linux the gl context is not valid until the canvas is not shown on screen
+//    // we defer the geometry finalization of volumes until the first call to render()
+//    if (!m_volumes.empty())
+//        m_volumes.finalize_geometry();
 
     if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
@@ -1355,7 +1355,9 @@ void GLCanvas3D::reset_volumes()
     if (!m_volumes.empty())
     {
         m_selection.clear();
-        m_volumes.release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//        m_volumes.release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_volumes.clear();
         m_dirty = true;
     }
@@ -1917,7 +1919,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     assert(volume_idx_wipe_tower_old == -1);
                     volume_idx_wipe_tower_old = (int)volume_id;
                 }
-                volume->release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//                volume->release_geometry();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 if (! m_reload_delayed)
                     delete volume;
             } else {
@@ -4474,7 +4478,6 @@ void GLCanvas3D::_load_print_toolpaths()
 
         _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
-    volume.indexed_vertex_array.finalize_geometry();
 }
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
@@ -4646,9 +4649,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	            }
 	        }
         }
-        for (GLVolume *vol : vols) {
-            vol->indexed_vertex_array.shrink_to_fit();
-        }
     });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results";
@@ -4657,8 +4657,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
-        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end";
 }
@@ -4814,9 +4812,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                 vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
         }
-        for (GLVolume *vol : vols) {
-            vol->indexed_vertex_array.shrink_to_fit();
-        }
     });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results";
@@ -4825,8 +4820,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
-        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end";
 }
@@ -5003,16 +4996,6 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
         }
     }
-
-    // finalize volumes and sends geometry to gpu
-    if (m_volumes.volumes.size() > initial_volumes_count)
-    {
-        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
-        {
-            GLVolume* volume = m_volumes.volumes[i];
-            volume->indexed_vertex_array.finalize_geometry();
-        }
-    }
 }
 
 void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
@@ -5056,16 +5039,6 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
         }
 
         return;
-    }
-
-    // finalize volumes and sends geometry to gpu
-    if (m_volumes.volumes.size() > initial_volumes_count)
-    {
-        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
-        {
-            GLVolume* volume = m_volumes.volumes[i];
-            volume->indexed_vertex_array.finalize_geometry();
-        }
     }
 }
 
@@ -5295,9 +5268,6 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
-
-        // finalize volumes and sends geometry to gpu
-        volume->indexed_vertex_array.finalize_geometry();
     }
 }
 
@@ -5325,9 +5295,6 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
-
-        // finalize volumes and sends geometry to gpu
-        volume->indexed_vertex_array.finalize_geometry();
     }
 }
 
@@ -5419,8 +5386,6 @@ void GLCanvas3D::_load_sla_shells()
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
                 GLVolume& v = *m_volumes.volumes[i];
-                // finalize volumes and sends geometry to gpu
-                v.indexed_vertex_array.finalize_geometry();
                 // apply shift z
                 v.set_sla_shift_z(shift_z);
             }
