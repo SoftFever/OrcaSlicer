@@ -340,28 +340,26 @@ class AutoArranger {};
 template<class TBin>
 class _ArrBase {
 public:
-
     // Useful type shortcuts...
     using Placer = typename placers::_NofitPolyPlacer<clppr::Polygon, TBin>;
     using Selector = selections::_FirstFitSelection<clppr::Polygon>;
-    using Packer = Nester<Placer, Selector>;
-    using PConfig = typename Packer::PlacementConfig;
+    using Packer   = Nester<Placer, Selector>;
+    using PConfig  = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
-    
+
 protected:
-
-    Packer m_pck;
-    PConfig m_pconf;            // Placement configuration
-    double m_bin_area;
-    SpatIndex m_rtree;          // spatial index for the normal (bigger) objects
+    Packer    m_pck;
+    PConfig   m_pconf; // Placement configuration
+    double    m_bin_area;
+    SpatIndex m_rtree; // spatial index for the normal (bigger) objects
     SpatIndex m_smallsrtree;    // spatial index for only the smaller items
-    double m_norm;              // A coefficient to scale distances
+    double    m_norm;           // A coefficient to scale distances
     MultiPolygon m_merged_pile; // The already merged pile (vector of items)
-    Box m_pilebb;               // The bounding box of the merged pile.
-    ItemGroup m_remaining;      // Remaining items (m_items at the beginning)
-    ItemGroup m_items;          // The items to be packed
+    Box          m_pilebb;      // The bounding box of the merged pile.
+    ItemGroup m_remaining; // Remaining items (m_items at the beginning)
+    ItemGroup m_items;     // The items to be packed
+    
 public:
-
     _ArrBase(const TBin& bin, Distance dist,
              std::function<void(unsigned)> progressind,
              std::function<bool(void)> stopcond):
@@ -715,8 +713,8 @@ bool arrange(ArrangeablePtrs &                arrangables,
         clpath.Contour.emplace_back(firstp);
 
         outp.emplace_back(applyfn, std::move(clpath));
-        outp.front().rotation(rotation);
-        outp.front().translation({offs.x(), offs.y()});
+        outp.back().rotation(rotation);
+        outp.back().translation({offs.x(), offs.y()});
     };
 
     for (Arrangeable *arrangeable : arrangables) {
