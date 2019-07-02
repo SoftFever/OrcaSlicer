@@ -774,14 +774,14 @@ public:
     using BinType = typename TPlacer::BinType;
     using PlacementConfig = typename TPlacer::Config;
     using SelectionConfig = typename TSel::Config;
-    using Unit = TCoord<TPoint<typename Item::ShapeType>>;
+    using Coord = TCoord<TPoint<typename Item::ShapeType>>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
     using ResultType = PackGroup;
 
 private:
     BinType bin_;
     PlacementConfig pconfig_;
-    Unit min_obj_distance_;
+    Coord min_obj_distance_;
 
     using SItem =  typename SelectionStrategy::Item;
     using TPItem = remove_cvref_t<Item>;
@@ -802,7 +802,7 @@ public:
              class PConf = PlacementConfig,
              class SConf = SelectionConfig>
     Nester( TBinType&& bin,
-              Unit min_obj_distance = 0,
+              Coord min_obj_distance = 0,
               const PConf& pconfig = PConf(),
               const SConf& sconfig = SConf()):
         bin_(std::forward<TBinType>(bin)),
@@ -895,7 +895,7 @@ private:
     template<class TIter> inline void __execute(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
-            item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
+            item.addOffset(static_cast<Coord>(std::ceil(min_obj_distance_/2.0)));
         });
 
         selector_.template packItems<PlacementStrategy>(
