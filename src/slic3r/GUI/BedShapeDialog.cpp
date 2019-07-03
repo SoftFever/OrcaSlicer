@@ -92,13 +92,15 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 		Line line{ "", "" };
 		line.full_width = 1;
 		line.widget = [this](wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")), wxDefaultPosition, wxDefaultSize);
-			
-			auto sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(btn);
+            auto shape_btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")));
+            wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
+            shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
-			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-			{
+            wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+            sizer->Add(shape_sizer, 1, wxEXPAND);
+
+            shape_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+            {
 				load_stl();
 			}));
 
