@@ -607,11 +607,15 @@ ModelObject::~ModelObject()
 // maintains the m_model pointer
 ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
 {
-    this->copy_id(rhs);
+	assert(this->id().invalid() || this->id() == rhs.id());
+	assert(this->config.id().invalid() || this->config.id() == rhs.config.id());
+	this->copy_id(rhs);
 
     this->name                        = rhs.name;
     this->input_file                  = rhs.input_file;
+    // Copies the config's ID
     this->config                      = rhs.config;
+    assert(this->config.id() == rhs.config.id());
     this->sla_support_points          = rhs.sla_support_points;
     this->sla_points_status           = rhs.sla_points_status;
     this->layer_height_ranges         = rhs.layer_height_ranges;
@@ -643,11 +647,14 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
 // maintains the m_model pointer
 ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
 {
+	assert(this->id().invalid());
     this->copy_id(rhs);
 
     this->name                        = std::move(rhs.name);
     this->input_file                  = std::move(rhs.input_file);
+    // Moves the config's ID
     this->config                      = std::move(rhs.config);
+    assert(this->config.id() == rhs.config.id());
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->sla_points_status           = std::move(rhs.sla_points_status);
     this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
@@ -1176,13 +1183,19 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             if (keep_upper && upper_mesh.facets_count() > 0) {
                 ModelVolume* vol = upper->add_volume(upper_mesh);
                 vol->name	= volume->name;
-                vol->config = volume->config;
+                // Don't copy the config's ID.
+				static_cast<DynamicPrintConfig&>(vol->config) = static_cast<const DynamicPrintConfig&>(volume->config);
+    			assert(vol->config.id().valid());
+	    		assert(vol->config.id() != volume->config.id());
                 vol->set_material(volume->material_id(), *volume->material());
             }
             if (keep_lower && lower_mesh.facets_count() > 0) {
                 ModelVolume* vol = lower->add_volume(lower_mesh);
                 vol->name	= volume->name;
-                vol->config = volume->config;
+                // Don't copy the config's ID.
+				static_cast<DynamicPrintConfig&>(vol->config) = static_cast<const DynamicPrintConfig&>(volume->config);
+    			assert(vol->config.id().valid());
+	    		assert(vol->config.id() != volume->config.id());
                 vol->set_material(volume->material_id(), *volume->material());
 
                 // Compute the lower part instances' bounding boxes to figure out where to place
@@ -1257,7 +1270,10 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
         ModelObject* new_object = m_model->add_object();    
         new_object->name   = this->name;
-        new_object->config = this->config;
+        // Don't copy the config's ID.
+		static_cast<DynamicPrintConfig&>(new_object->config) = static_cast<const DynamicPrintConfig&>(this->config);
+		assert(new_object->config.id().valid());
+		assert(new_object->config.id() != this->config.id());
         new_object->instances.reserve(this->instances.size());
         for (const ModelInstance *model_instance : this->instances)
             new_object->add_instance(*model_instance);
@@ -1852,19 +1868,24 @@ void check_model_ids_validity(const Model &model)
 {
     std::set<ObjectID> ids;
     auto check = [&ids](ObjectID id) { 
-        assert(id.id > 0);
+        assert(id.valid());
         assert(ids.find(id) == ids.end());
         ids.insert(id);
     };
     for (const ModelObject *model_object : model.objects) {
         check(model_object->id());
-        for (const ModelVolume *model_volume : model_object->volumes)
+        check(model_object->config.id());
+        for (const ModelVolume *model_volume : model_object->volumes) {
             check(model_volume->id());
+	        check(model_volume->config.id());
+        }
         for (const ModelInstance *model_instance : model_object->instances)
             check(model_instance->id());
     }
-    for (const auto mm : model.materials)
+    for (const auto mm : model.materials) {
         check(mm.second->id());
+        check(mm.second->config.id());
+    }
 }
 
 void check_model_ids_equal(const Model &model1, const Model &model2)
@@ -1875,10 +1896,13 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
         const ModelObject &model_object1 = *model1.objects[idx_model];
         const ModelObject &model_object2 = *  model2.objects[idx_model];
         assert(model_object1.id() == model_object2.id());
+        assert(model_object1.config.id() == model_object2.config.id());
         assert(model_object1.volumes.size() == model_object2.volumes.size());
         assert(model_object1.instances.size() == model_object2.instances.size());
-        for (size_t i = 0; i < model_object1.volumes.size(); ++ i)
+        for (size_t i = 0; i < model_object1.volumes.size(); ++ i) {
             assert(model_object1.volumes[i]->id() == model_object2.volumes[i]->id());
+        	assert(model_object1.volumes[i]->config.id() == model_object2.volumes[i]->config.id());
+        }
         for (size_t i = 0; i < model_object1.instances.size(); ++ i)
             assert(model_object1.instances[i]->id() == model_object2.instances[i]->id());
     }
@@ -1889,6 +1913,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
         for (; it1 != model1.materials.end(); ++ it1, ++ it2) {
             assert(it1->first == it2->first); // compare keys
             assert(it1->second->id() == it2->second->id());
+        	assert(it1->second->config.id() == it2->second->config.id());
         }
     }
 }

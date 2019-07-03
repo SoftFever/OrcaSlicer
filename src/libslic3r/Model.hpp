@@ -31,6 +31,34 @@ namespace UndoRedo {
 	class StackImpl;
 }
 
+class ModelConfig : public ObjectBase, public DynamicPrintConfig
+{
+private:
+	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
+	friend class ModelObject;
+	friend class ModelVolume;
+	friend class ModelMaterial;
+
+    // Constructors to be only called by derived classes.
+    // Default constructor to assign a unique ID.
+    explicit ModelConfig() {}
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    explicit ModelConfig(int) : ObjectBase(-1) {}
+    // Copy constructor copies the ID.
+	explicit ModelConfig(const ModelConfig &cfg) : ObjectBase(-1), DynamicPrintConfig(cfg) { this->copy_id(cfg); }
+    // Move constructor copies the ID.
+	explicit ModelConfig(ModelConfig &&cfg) : ObjectBase(-1), DynamicPrintConfig(std::move(cfg)) { this->copy_id(cfg); }
+
+	ModelConfig& operator=(const ModelConfig &rhs) = default;
+    ModelConfig& operator=(ModelConfig &&rhs) = default;
+
+	template<class Archive> void serialize(Archive &ar) {
+		ar(cereal::base_class<DynamicPrintConfig>(this));
+	}
+};
+
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
 typedef std::map<t_model_material_attribute, std::string> t_model_material_attributes;
@@ -43,10 +71,10 @@ typedef std::vector<ModelInstance*> ModelInstancePtrs;
 #define OBJECTBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
     /* Copy a model, copy the IDs. The Print::apply() will call the TYPE::copy() method */ \
     /* to make a private copy for background processing. */ \
-    static TYPE* new_copy(const TYPE &rhs)  { return new TYPE(rhs); } \
-    static TYPE* new_copy(TYPE &&rhs)       { return new TYPE(std::move(rhs)); } \
-    static TYPE  make_copy(const TYPE &rhs) { return TYPE(rhs); } \
-    static TYPE  make_copy(TYPE &&rhs)      { return TYPE(std::move(rhs)); } \
+    static TYPE* new_copy(const TYPE &rhs)  { auto *ret = new TYPE(rhs); assert(ret->id() == rhs.id()); return ret; } \
+    static TYPE* new_copy(TYPE &&rhs)       { auto *ret = new TYPE(std::move(rhs)); assert(ret->id() == rhs.id()); return ret; } \
+    static TYPE  make_copy(const TYPE &rhs) { TYPE ret(rhs); assert(ret.id() == rhs.id()); return ret; } \
+    static TYPE  make_copy(TYPE &&rhs)      { TYPE ret(std::move(rhs)); assert(ret.id() == rhs.id()); return ret; } \
     TYPE&        assign_copy(const TYPE &rhs); \
     TYPE&        assign_copy(TYPE &&rhs); \
     /* Copy a TYPE, generate new IDs. The front end will use this call. */ \
@@ -54,25 +82,23 @@ typedef std::vector<ModelInstance*> ModelInstancePtrs;
         /* Default constructor assigning an invalid ID. */ \
         auto obj = new TYPE(-1); \
         obj->assign_clone(rhs); \
+        assert(obj->id().valid() && obj->id() != rhs.id()); \
         return obj; \
 	} \
     TYPE         make_clone(const TYPE &rhs) { \
         /* Default constructor assigning an invalid ID. */ \
         TYPE obj(-1); \
         obj.assign_clone(rhs); \
+        assert(obj.id().valid() && obj.id() != rhs.id()); \
         return obj; \
     } \
     TYPE&        assign_clone(const TYPE &rhs) { \
         this->assign_copy(rhs); \
+        assert(this->id().valid() && this->id() == rhs.id()); \
         this->assign_new_unique_ids_recursive(); \
+        assert(this->id().valid() && this->id() != rhs.id()); \
 		return *this; \
     }
-
-#define OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(TYPE) \
-private: \
-    /* Private constructor with an unused int parameter will create a TYPE instance with an invalid ID. */ \
-    explicit TYPE(int) : ObjectBase(-1) {}; \
-    void assign_new_unique_ids_recursive();
 
 // Material, which may be shared across multiple ModelObjects of a single Model.
 class ModelMaterial final : public ObjectBase
@@ -81,32 +107,40 @@ public:
     // Attributes are defined by the AMF file format, but they don't seem to be used by Slic3r for any purpose.
     t_model_material_attributes attributes;
     // Dynamic configuration storage for the object specific configuration values, overriding the global configuration.
-    DynamicPrintConfig config;
+    ModelConfig config;
 
     Model* get_model() const { return m_model; }
     void apply(const t_model_material_attributes &attributes)
         { this->attributes.insert(attributes.begin(), attributes.end()); }
 
-protected:
-    friend class Model;
-	// Constructor, which assigns a new unique ID.
-	ModelMaterial(Model *model) : m_model(model) {}
-	// Copy constructor copies the ID and m_model!
-	ModelMaterial(const ModelMaterial &rhs) = default;
-	void set_model(Model *model) { m_model = model; }
-
 private:
     // Parent, owning this material.
     Model *m_model;
-    
+
+    // To be accessed by the Model.
+    friend class Model;
+	// Constructor, which assigns a new unique ID to the material and to its config.
+	ModelMaterial(Model *model) : m_model(model) { assert(this->id().valid()); }
+	// Copy constructor copies the IDs of the ModelMaterial and its config, and m_model!
+	ModelMaterial(const ModelMaterial &rhs) = default;
+	void set_model(Model *model) { m_model = model; }
+	void set_new_unique_id() { ObjectBase::set_new_unique_id(); this->config.set_new_unique_id(); }
+
+	// To be accessed by the serialization and Undo/Redo code.
+	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
+	// Create an object for deserialization, don't allocate IDs for ModelMaterial and its config.
+	ModelMaterial() : ObjectBase(-1), config(-1), m_model(nullptr) { assert(this->id().invalid()); assert(this->config.id().invalid()); }
+	template<class Archive> void serialize(Archive &ar) { 
+		assert(this->id().invalid()); assert(this->config.id().invalid());
+		ar(attributes, config);
+		// assert(this->id().valid()); assert(this->config.id().valid());
+	}
+
+	// Disabled methods.
 	ModelMaterial(ModelMaterial &&rhs) = delete;
 	ModelMaterial& operator=(const ModelMaterial &rhs) = delete;
     ModelMaterial& operator=(ModelMaterial &&rhs) = delete;
-
-	friend class cereal::access;
-	friend class UndoRedo::StackImpl;
-	ModelMaterial() : m_model(nullptr) {}
-	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ObjectBase>(this)); ar(attributes, config); }
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -115,7 +149,6 @@ private:
 // different rotation and different uniform scaling.
 class ModelObject final : public ObjectBase
 {
-    friend class Model;
 public:
     std::string             name;
     std::string             input_file;    // XXX: consider fs::path
@@ -126,7 +159,7 @@ public:
     // ModelVolumes are owned by this ModelObject.
     ModelVolumePtrs         volumes;
     // Configuration parameters specific to a single ModelObject, overriding the global Slic3r settings.
-    DynamicPrintConfig      config;
+    ModelConfig      		config;
     // Variation of a layer thickness for spans of Z coordinates.
     t_layer_height_ranges   layer_height_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
@@ -236,25 +269,53 @@ public:
 
     std::string get_export_filename() const;
 
-    // Get full stl statistics for all object's meshes 
+    // Get full stl statistics for all object's meshes
     stl_stats   get_object_stl_stats() const;
-    // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined) 
+    // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined)
     int         get_mesh_errors_count(const int vol_idx = -1) const;
 
 private:
-    ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()), 
-        m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
-    ~ModelObject();
+    friend class Model;
+    // This constructor assigns new ID to this ModelObject and its config.
+	explicit ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()),
+        m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false)
+        { assert(this->id().valid()); }
+	explicit ModelObject(int) : ObjectBase(-1), config(-1), m_model(nullptr), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false)
+		{ assert(this->id().invalid()); assert(this->config.id().invalid()); }
+	~ModelObject();
+	void assign_new_unique_ids_recursive();
 
-    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
-    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
-    ModelObject(const ModelObject &rhs) : ObjectBase(-1), m_model(rhs.m_model) { this->assign_copy(rhs); }
-    explicit ModelObject(ModelObject &&rhs) : ObjectBase(-1) { this->assign_copy(std::move(rhs)); }
-    ModelObject& operator=(const ModelObject &rhs) { this->assign_copy(rhs); m_model = rhs.m_model; return *this; }
-    ModelObject& operator=(ModelObject &&rhs) { this->assign_copy(std::move(rhs)); m_model = rhs.m_model; return *this; }
+    // To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision"
+    // (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics).
+    ModelObject(const ModelObject &rhs) : ObjectBase(-1), config(-1), m_model(rhs.m_model) { 
+    	assert(this->id().invalid()); assert(this->config.id().invalid()); assert(rhs.id() != rhs.config.id());
+    	this->assign_copy(rhs);
+    	assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+    	assert(this->id() == rhs.id()); assert(this->config.id() == rhs.config.id());
+    }
+    explicit ModelObject(ModelObject &&rhs) : ObjectBase(-1), config(-1) { 
+    	assert(this->id().invalid()); assert(this->config.id().invalid()); assert(rhs.id() != rhs.config.id());
+    	this->assign_copy(std::move(rhs));
+    	assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+    	assert(this->id() == rhs.id()); assert(this->config.id() == rhs.config.id());
+    }
+    ModelObject& operator=(const ModelObject &rhs) { 
+    	this->assign_copy(rhs); 
+    	m_model = rhs.m_model;
+    	assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+    	assert(this->id() == rhs.id()); assert(this->config.id() == rhs.config.id());
+    	return *this;
+    }
+    ModelObject& operator=(ModelObject &&rhs) { 
+    	this->assign_copy(std::move(rhs)); 
+    	m_model = rhs.m_model;
+    	assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+    	assert(this->id() == rhs.id()); assert(this->config.id() == rhs.config.id());
+    	return *this;
+    }
+	void set_new_unique_id() { ObjectBase::set_new_unique_id(); this->config.set_new_unique_id(); }
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(ModelObject)
-	OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(ModelObject)
 
     // Parent object, owning this ModelObject. Set to nullptr here, so the macros above will have it initialized.
     Model                *m_model = nullptr;
@@ -275,8 +336,11 @@ private:
     // Undo / Redo through the cereal serialization library
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
-	ModelObject() : m_model(nullptr), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
-	template<class Archive> void serialize(Archive &ar) { 
+	// Used for deserialization -> Don't allocate any IDs for the ModelObject or its config.
+	ModelObject() : ObjectBase(-1), config(-1), m_model(nullptr), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {
+		assert(this->id().invalid()); assert(this->config.id().invalid());
+	}
+	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this));
 		ar(name, input_file, instances, volumes, config, layer_height_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
 			m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
@@ -307,7 +371,7 @@ public:
 	void				reset_mesh() { m_mesh = std::make_shared<const TriangleMesh>(); }
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
-    DynamicPrintConfig  config;
+    ModelConfig  		config;
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
@@ -388,13 +452,14 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
-    using ObjectBase::set_new_unique_id;
+	void set_new_unique_id() { ObjectBase::set_new_unique_id(); this->config.set_new_unique_id(); }
 
 protected:
 	friend class Print;
     friend class SLAPrint;
 	friend class ModelObject;
 
+	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
     void     transform_this_mesh(const Transform3d& t, bool fix_left_handed);
@@ -420,33 +485,46 @@ private:
 
 	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : m_mesh(new TriangleMesh(mesh)), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
-		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(ModelVolumeType::MODEL_PART), object(object) {}
+		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(ModelVolumeType::MODEL_PART), object(object) {
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+	}
 
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
-        ObjectBase(other), // copy the ID
+        ObjectBase(other),
         name(other.name), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+		assert(this->id() == other.id() && this->config.id() == other.config.id());
         this->set_material_id(other.material_id());
     }
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+		assert(this->id() == other.id() && this->config.id() == other.config.id());
         this->set_material_id(other.material_id());
+        this->config.set_new_unique_id();
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+		assert(this->id() != other.id() && this->config.id() != other.config.id());
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
 
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
-	ModelVolume() : object(nullptr) {}
+	// Used for deserialization, therefore no IDs are allocated.
+	ModelVolume() : ObjectBase(-1), config(-1), object(nullptr) {
+		assert(this->id().invalid()); assert(this->config.id().invalid());
+	}
 	template<class Archive> void serialize(Archive &ar) {
 		ar(name, config, m_mesh, m_type, m_material_id, m_convex_hull, m_transformation, m_is_splittable);
 	}
@@ -530,10 +608,10 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
+    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) { assert(this->id().valid()); }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
+        m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) { assert(this->id().valid() && this->id() != other.id()); }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
@@ -541,9 +619,9 @@ private:
 
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
-	ModelInstance() : object(nullptr) {}
+	// Used for deserialization, therefore no IDs are allocated.
+	ModelInstance() : ObjectBase(-1), object(nullptr) { assert(this->id().invalid()); }
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ObjectBase>(this));
 		ar(m_transformation, print_volume_state);
 	}
 };
@@ -565,15 +643,15 @@ public:
     ModelObjectPtrs     objects;
     
     // Default constructor assigns a new ID to the model.
-    Model() {}
+    Model() { assert(this->id().valid()); }
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
     /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
-    Model(const Model &rhs) : ObjectBase(-1) { this->assign_copy(rhs); }
-    explicit Model(Model &&rhs) : ObjectBase(-1) { this->assign_copy(std::move(rhs)); }
-    Model& operator=(const Model &rhs) { this->assign_copy(rhs); return *this; }
-    Model& operator=(Model &&rhs) { this->assign_copy(std::move(rhs)); return *this; }
+    Model(const Model &rhs) : ObjectBase(-1) { assert(this->id().invalid()); this->assign_copy(rhs); assert(this->id().valid()); assert(this->id() == rhs.id()); }
+    explicit Model(Model &&rhs) : ObjectBase(-1) { assert(this->id().invalid()); this->assign_copy(std::move(rhs)); assert(this->id().valid()); assert(this->id() == rhs.id()); }
+    Model& operator=(const Model &rhs) { this->assign_copy(rhs); assert(this->id().valid()); assert(this->id() == rhs.id()); return *this; }
+    Model& operator=(Model &&rhs) { this->assign_copy(std::move(rhs)); assert(this->id().valid()); assert(this->id() == rhs.id()); return *this; }
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
@@ -633,12 +711,13 @@ public:
     std::string         propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
-    OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
+	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
+	void assign_new_unique_ids_recursive();
 
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ObjectBase>(this), materials, objects);
+		ar(materials, objects);
 	}
 };
 

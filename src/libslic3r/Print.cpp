@@ -612,7 +612,7 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         assert(mv_src.id() == mv_dst.id());
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
-        mv_dst.config = mv_src.config;
+		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -899,7 +899,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             // Synchronize Object's config.
             bool object_config_changed = model_object.config != model_object_new.config;
 			if (object_config_changed)
-                model_object.config = model_object_new.config;
+				static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
             if (! object_diff.empty() || object_config_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));

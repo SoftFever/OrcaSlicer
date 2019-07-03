@@ -368,7 +368,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
                 // Synchronize Object's config.
                 bool object_config_changed = model_object.config != model_object_new.config;
                 if (object_config_changed)
-                    model_object.config = model_object_new.config;
+					static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
                 if (! object_diff.empty() || object_config_changed) {
                     SLAPrintObjectConfig new_config = m_default_object_config;
                     normalize_and_apply_config(new_config, model_object.config);

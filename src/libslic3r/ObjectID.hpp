@@ -33,6 +33,7 @@ public:
 	bool operator>=(const ObjectID &rhs) const { return this->id >= rhs.id; }
 
     bool valid() const { return id != 0; }
+    bool invalid() const { return id == 0; }
 
 	size_t	id;
 
@@ -72,6 +73,7 @@ protected:
     void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
 
 private:
+	friend class UndoRedo::StackImpl;
     ObjectID                m_id;
 
 	static inline ObjectID  generate_new_id() { return ObjectID(++ s_last_id); }
