@@ -18,7 +18,6 @@ public:
     using Segment = _Segment<Vertex>;
     using BinType = TBin;
     using Coord = TCoord<Vertex>;
-    using Unit = Coord;
     using Config = Cfg;
     using ItemGroup = _ItemGroup<RawShape>;
     using DefaultIter = typename ItemGroup::const_iterator;
@@ -131,7 +130,6 @@ using typename Base::Vertex;      \
 using typename Base::Segment;     \
 using typename Base::PackResult;  \
 using typename Base::Coord;       \
-using typename Base::Unit;        \
 private:
 
 }

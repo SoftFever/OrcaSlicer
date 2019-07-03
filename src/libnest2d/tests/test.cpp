@@ -363,8 +363,14 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
         {5, 5},
         {20, 20} };
     
+    Box bin(210, 250, {105, 125});
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250));
+    ASSERT_EQ(bin.width(), 210);
+    ASSERT_EQ(bin.height(), 250);
+    ASSERT_EQ(getX(bin.center()), 105);
+    ASSERT_EQ(getY(bin.center()), 125);
+    
+    Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin);
     
     auto groups = arrange.execute(rects.begin(), rects.end());
     
@@ -416,10 +422,16 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
         {5, 5},
         {20, 20} };
     
+    Box bin(210, 250, {105, 125});
+    
+    ASSERT_EQ(bin.width(), 210);
+    ASSERT_EQ(bin.height(), 250);
+    ASSERT_EQ(getX(bin.center()), 105);
+    ASSERT_EQ(getY(bin.center()), 125);
+    
     Coord min_obj_distance = 5;
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250),
-                                                   min_obj_distance);
+    Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin, min_obj_distance);
     
     auto groups = arrange.execute(rects.begin(), rects.end());
     
