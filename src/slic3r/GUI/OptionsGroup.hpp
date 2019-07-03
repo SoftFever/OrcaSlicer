@@ -244,6 +244,9 @@ public:
 		Option option = get_option(title, idx);
 		return OptionsGroup::create_single_option_line(option);
 	}
+	Line		create_single_option_line(const Option& option) const {
+		return OptionsGroup::create_single_option_line(option);
+	}
 	void		append_single_option_line(const Option& option)	{
 		OptionsGroup::append_single_option_line(option);
 	}

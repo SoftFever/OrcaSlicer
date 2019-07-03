@@ -1492,6 +1492,91 @@ void TabPrint::OnActivate()
 	Tab::OnActivate();
 }
 
+void TabFilament::add_overrides_page()
+{
+    PageShp page = add_options_page(_(L("Overrides")), "wrench");
+
+    const DynamicPrintConfig& printer_cfg = wxGetApp().preset_bundle->printers.default_preset().config;
+
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(_(L("Retraction"/*Overrides"*/)));
+
+    auto append_single_option_line = [printer_cfg, optgroup, this](const std::string& opt_key, int opt_index)
+    {
+        const std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
+        const Option& option = Option(*printer_cfg.def()->get(opt_key), opt_id);
+
+        Line line = optgroup->create_single_option_line(option);
+
+        line.near_label_widget = [optgroup, opt_id](wxWindow* parent) {
+            wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
+
+            check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_id](wxCommandEvent& evt)
+                {
+                    Field* field = optgroup->get_field(opt_id);
+                    if (field != nullptr)
+                        field->toggle(evt.IsChecked());
+                }, check_box->GetId());
+            return check_box;
+        };
+
+        optgroup->append_line(line);
+
+        Field* field = optgroup->get_field(opt_id);
+        if (field != nullptr)
+            field->toggle(false);
+    };
+
+    int extruder_idx = 0; // #ys_FIXME
+
+    append_single_option_line("retract_length", extruder_idx);
+    append_single_option_line("retract_lift", extruder_idx);
+
+    Line line = { _(L("Only lift Z")), "" };
+
+    std::vector<std::string> opt_ids;
+    opt_ids.reserve(2);
+    for (const std::string& opt_key : { "retract_lift_above", "retract_lift_below" })
+    {
+        const std::string opt_id = extruder_idx == -1 ? opt_key : opt_key + "#" + std::to_string(extruder_idx);
+        opt_ids.push_back(opt_id);
+        const Option& option = Option(*printer_cfg.def()->get(opt_key), opt_id);
+
+        line.append_option(option);
+    }
+
+    line.near_label_widget = [optgroup, opt_ids](wxWindow* parent) {
+        wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
+
+        check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_ids](wxCommandEvent& evt)
+            {
+                Field* field = nullptr;
+                for (const std::string& opt_id : opt_ids) {
+                    field = optgroup->get_field(opt_id);
+                    if (field != nullptr)
+                        field->toggle(evt.IsChecked());
+                }
+            }, check_box->GetId());
+        return check_box;
+    };
+
+    optgroup->append_line(line);
+
+    Field* field = nullptr;
+    for (const std::string& opt_id : opt_ids) {
+        field = optgroup->get_field(opt_id);
+        if (field != nullptr)
+            field->toggle(false);
+    }
+
+    append_single_option_line("retract_speed", extruder_idx);
+    append_single_option_line("deretract_speed", extruder_idx);
+    append_single_option_line("retract_restart_extra", extruder_idx);
+    append_single_option_line("retract_before_travel", extruder_idx);
+    append_single_option_line("retract_layer_change", extruder_idx);
+    append_single_option_line("wipe", extruder_idx);
+    append_single_option_line("retract_before_wipe", extruder_idx);
+}
+
 void TabFilament::build()
 {
 	m_presets = &m_preset_bundle->filaments;
@@ -1587,10 +1672,14 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
+
+    add_overrides_page();
+
+
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 
-        page = add_options_page(_(L("Custom G-code")), "cog");
+    page = add_options_page(_(L("Custom G-code")), "cog");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;

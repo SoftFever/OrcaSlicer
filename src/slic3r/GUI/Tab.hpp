@@ -331,6 +331,8 @@ class TabFilament : public Tab
 {
 	ogStaticText*	m_volumetric_speed_description_line;
 	ogStaticText*	m_cooling_description_line;
+
+    void            add_overrides_page();
 public:
 	TabFilament(wxNotebook* parent) : 
 // 		Tab(parent, _(L("Filament Settings")), L("filament")) {}

@@ -202,7 +202,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
                 // so we need a horizontal sizer to arrange these things
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT, 7);
+                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
                 sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
             }
         }
