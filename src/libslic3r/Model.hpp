@@ -559,10 +559,10 @@ public:
     // /////////////////////////////////////////////////////////////////////////
     
     // Getting the input polygon for arrange
-    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const final;
+    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const override;
     
     // Apply the arrange result on the ModelInstance
-    virtual void apply_arrange_result(Vec2d offs, double rot_rads) final
+    virtual void apply_arrange_result(Vec2d offs, double rot_rads, unsigned /*bed_num*/) override
     {
         // write the transformation data into the model instance
         set_rotation(Z, rot_rads);

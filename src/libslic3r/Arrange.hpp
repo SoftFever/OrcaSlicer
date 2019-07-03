@@ -58,7 +58,7 @@ public:
     virtual ~Arrangeable() = default;
     
     /// Apply the result transformation calculated by the arrangement.
-    virtual void apply_arrange_result(Vec2d offset, double rotation_rads) = 0;
+    virtual void apply_arrange_result(Vec2d offset, double rotation_rads, unsigned bed_num) = 0;
     
     /// Get the 2D silhouette to arrange and an initial offset and rotation
     virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const = 0;

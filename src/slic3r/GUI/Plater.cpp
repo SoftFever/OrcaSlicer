@@ -2482,33 +2482,35 @@ arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
     return bedshape;
 }
 
-void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {    
-    static const auto arrangestr = _(L("Arranging"));
-    
-    // FIXME: I don't know how to obtain the minimum distance, it depends
-    // on printer technology. I guess the following should work but it crashes.
-    double dist = 6; // PrintConfig::min_object_distance(config);
-    if (plater().printer_technology == ptFFF) {
-        dist = PrintConfig::min_object_distance(plater().config);
-    }
-    
-    coord_t min_obj_distance = scaled(dist);
+void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
     auto count = unsigned(m_selected.size());
-    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    plater().model.arrange_objects(6.f, nullptr);
+//    static const auto arrangestr = _(L("Arranging"));
     
-    try {
-        arrangement::arrange(m_selected, m_unselected, min_obj_distance,
-                             bedshape,
-                             [this, count](unsigned st) {
-                                 if (st > 0) // will not finalize after last one
-                                     update_status(count - st, arrangestr);
-                             },
-                             [this]() { return was_canceled(); });
-    } catch (std::exception & /*e*/) {
-        GUI::show_error(plater().q,
-                        _(L("Could not arrange model objects! "
-                            "Some geometries may be invalid.")));
-    }
+//    // FIXME: I don't know how to obtain the minimum distance, it depends
+//    // on printer technology. I guess the following should work but it crashes.
+//    double dist = 6; // PrintConfig::min_object_distance(config);
+//    if (plater().printer_technology == ptFFF) {
+//        dist = PrintConfig::min_object_distance(plater().config);
+//    }
+    
+//    coord_t min_obj_distance = scaled(dist);
+//    auto count = unsigned(m_selected.size());
+//    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    
+//    try {
+//        arrangement::arrange(m_selected, m_unselected, min_obj_distance,
+//                             bedshape,
+//                             [this, count](unsigned st) {
+//                                 if (st > 0) // will not finalize after last one
+//                                     update_status(count - st, arrangestr);
+//                             },
+//                             [this]() { return was_canceled(); });
+//    } catch (std::exception & /*e*/) {
+//        GUI::show_error(plater().q,
+//                        _(L("Could not arrange model objects! "
+//                            "Some geometries may be invalid.")));
+//    }
     
     // finalize just here.
     update_status(int(count),

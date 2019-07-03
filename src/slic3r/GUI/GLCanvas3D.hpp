@@ -624,9 +624,9 @@ public:
             return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
         }
 
-        virtual void apply_arrange_result(Vec2d offset, double rotation_rads) final;
+        virtual void apply_arrange_result(Vec2d offset, double rotation_rads, unsigned /*bed_num*/) override;
 
-        virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const final
+        virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const override
         {
             Polygon p({
                 {coord_t(0), coord_t(0)},

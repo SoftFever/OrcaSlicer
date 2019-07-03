@@ -573,7 +573,7 @@ inline SLIC3R_CONSTEXPR coord_t stride_padding(coord_t w)
 // a stop predicate can be also be passed to control the process.
 bool arrange(ArrangeablePtrs &             arrangables,
              const ArrangeablePtrs &       excludes,
-             coord_t                       min_obj_distance,
+             coord_t                       min_obj_dist,
              const BedShapeHint &          bedhint,
              std::function<void(unsigned)> progressind,
              std::function<bool()>         stopcondition)
@@ -615,13 +615,14 @@ bool arrange(ArrangeablePtrs &             arrangables,
             arrangeable,
             items,
             // callback called by arrange to apply the result on the arrangeable
-            [arrangeable, &binwidth](const Item &itm, unsigned binidx) {
+            [arrangeable, &binwidth, &ret](const Item &itm, unsigned binidx) {
+                ret = !binidx;  // Return value false more bed is required
                 clppr::cInt stride = binidx * stride_padding(binwidth);
 
                 clppr::IntPoint offs = itm.translation();
                 arrangeable->apply_arrange_result({unscaled(offs.X + stride),
                                                    unscaled(offs.Y)},
-                                                  itm.rotation());
+                                                  itm.rotation(), binidx);
             });
     }
     
@@ -629,66 +630,61 @@ bool arrange(ArrangeablePtrs &             arrangables,
         process_arrangeable(fixed, fixeditems, nullptr);
     
     // Integer ceiling the min distance from the bed perimeters
-    coord_t md = min_obj_distance - SCALED_EPSILON;
+    coord_t md = min_obj_dist - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
     
-    auto& cfn = stopcondition;
+    auto &cfn = stopcondition;
+    auto &pri = progressind;
     
     switch (bedhint.type) {
-//    case BedShapeType::BOX: {
-//        // Create the arranger for the box shaped bed
-//        BoundingBox bbb = bedhint.shape.box;
-//        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
-//        Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
-//        binwidth = coord_t(binbb.width());
+    case BedShapeType::BOX: {
+        // Create the arranger for the box shaped bed
+        BoundingBox bbb = bedhint.shape.box;
+        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
+        Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
+        binwidth = coord_t(binbb.width());
         
-//        _arrange(items, fixeditems, binbb, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::CIRCLE: {
-//        auto c  = bedhint.shape.circ;
-//        auto cc = to_lnCircle(c);
-//        binwidth = scaled(c.radius());
+        _arrange(items, fixeditems, binbb, min_obj_dist, pri, cfn);
+        break;
+    }
+    case BedShapeType::CIRCLE: {
+        auto c  = bedhint.shape.circ;
+        auto cc = to_lnCircle(c);
+        binwidth = scaled(c.radius());
         
-//        _arrange(items, fixeditems, cc, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::IRREGULAR: {
-//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
-//        auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
-//        BoundingBox polybb(bedhint.shape.polygon);
-//        binwidth = (polybb.max(X) - polybb.min(X));
+        _arrange(items, fixeditems, cc, min_obj_dist, pri, cfn);
+        break;
+    }
+    case BedShapeType::IRREGULAR: {
+        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
+        auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
+        BoundingBox polybb(bedhint.shape.polygon);
+        binwidth = (polybb.max(X) - polybb.min(X));
         
-//        _arrange(items, fixeditems, irrbed, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::INFINITE: {
-//        const InfiniteBed& nobin = bedhint.shape.infinite;
-//        Box infbb{{nobin.center.x(), nobin.center.y()}};
+        _arrange(items, fixeditems, irrbed, min_obj_dist, pri, cfn);
+        break;
+    }
+    case BedShapeType::INFINITE: {
+        const InfiniteBed& nobin = bedhint.shape.infinite;
+        auto infbb = Box::infinite({nobin.center.x(), nobin.center.y()});
         
-//        _arrange(items, fixeditems, infbb, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-//    case BedShapeType::UNKNOWN: {
-//        // We know nothing about the bed, let it be infinite and zero centered 
-//        _arrange(items, fixeditems, Box{}, min_obj_distance, progressind, cfn);
-//        break;
-//    }
-    default: {
-        Box infbb = Box::infinite({bedhint.shape.box.center().x(), bedhint.shape.box.center().y()});
-
-        _arrange(items, fixeditems, infbb, min_obj_distance, progressind, cfn);
+        _arrange(items, fixeditems, infbb, min_obj_dist, pri, cfn);
+        break;
+    }
+    case BedShapeType::UNKNOWN: {
+        // We know nothing about the bed, let it be infinite and zero centered
+        _arrange(items, fixeditems, Box::infinite(), min_obj_dist, pri, cfn);
         break;
     }
     };
     
-    if(stopcondition()) return false;
+    if(stopcondition && stopcondition()) return false;
 
     return ret;
 }
 
 // Arrange, without the fixed items (excludes)
-bool arrange(ArrangeablePtrs &                inp,
+bool arrange(ArrangeablePtrs &             inp,
              coord_t                       min_d,
              const BedShapeHint &          bedhint,
              std::function<void(unsigned)> prfn,

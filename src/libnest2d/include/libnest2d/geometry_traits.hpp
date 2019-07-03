@@ -192,7 +192,7 @@ public:
         return Unit(width())*height();
     }
     
-    static inline _Box infinite(const P &center);
+    static inline _Box infinite(const P &center = {TCoord<P>(0), TCoord<P>(0)});
 };
 
 template<class S> struct PointType<_Box<S>> { 

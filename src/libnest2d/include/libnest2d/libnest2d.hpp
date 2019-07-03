@@ -908,7 +908,8 @@ private:
             item.removeOffset();
         });
         
-        if(stopfn_ && !stopfn_()) { // Ignore results if nesting was stopped.
+        if(!stopfn_ || (stopfn_ && !stopfn_())) {
+            // Ignore results if nesting was stopped.
             const PackGroup& bins = lastResult();
             unsigned binidx = 0;
             for(auto& bin : bins) {
