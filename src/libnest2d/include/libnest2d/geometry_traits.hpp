@@ -166,7 +166,9 @@ public:
     using Tag = BoxTag;
     using PointType = P;
 
-    inline _Box(const P& p = {TCoord<P>(0), TCoord<P>(0)});
+    inline _Box(const P& center = {TCoord<P>(0), TCoord<P>(0)}):
+        _Box(TCoord<P>(0), TCoord<P>(0), center) {}
+    
     inline _Box(const P& p, const P& pp):
         PointPair<P>({p, pp}) {}
     
@@ -189,6 +191,8 @@ public:
     inline Unit area() const BP2D_NOEXCEPT {
         return Unit(width())*height();
     }
+    
+    static inline _Box infinite(const P &center);
 };
 
 template<class S> struct PointType<_Box<S>> { 
@@ -463,12 +467,19 @@ inline _Box<P>::_Box(TCoord<P> width, TCoord<P> height, const P & center) :
                         modulo(height, TCoord<P>(2))}}) {}
 
 template<class P>
-inline _Box<P>::_Box(const P& center) {
+inline _Box<P> _Box<P>::infinite(const P& center) {
     using C = TCoord<P>;
-    TCoord<P> M = std::max(getX(center), getY(center)) -
-                  std::numeric_limits<C>::lowest();
-    maxCorner() = center + P{M, M};
-    minCorner() = center - P{M, M}; 
+    _Box<P> ret;
+    
+    // It is important for Mx and My to be strictly less than half of the
+    // range of type C. width(), height() and area() will not overflow this way.
+    C Mx = C((std::numeric_limits<C>::lowest() + 2 * getX(center)) / 2.01);
+    C My = C((std::numeric_limits<C>::lowest() + 2 * getY(center)) / 2.01);
+    
+    ret.maxCorner() = center - P{Mx, My};
+    ret.minCorner() = center + P{Mx, My};
+    
+    return ret;
 }
 
 template<class P>
@@ -478,7 +489,7 @@ inline P _Box<P>::center() const BP2D_NOEXCEPT {
 
     using Coord = TCoord<P>;
 
-    P ret =  { // No rounding here, we dont know if these are int coords
+    P ret = { // No rounding here, we dont know if these are int coords
         Coord( (getX(minc) + getX(maxc)) / Coord(2) ),
         Coord( (getY(minc) + getY(maxc)) / Coord(2) )
     };

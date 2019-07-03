@@ -398,6 +398,9 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 //        }
 //        o->invalidate_bounding_box();
 //    }
+    
+//    return true;
+    
     size_t count = 0;
     for (auto obj : objects) count += obj->instances.size();
     

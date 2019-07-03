@@ -41,25 +41,25 @@ template<> struct HolesContainer<PolygonImpl> { using Type = ClipperLib::Paths; 
 namespace pointlike {
 
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
-template<> inline TCoord<PointImpl> x(const PointImpl& p)
+template<> inline ClipperLib::cInt x(const PointImpl& p)
 {
     return p.X;
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
-template<> inline TCoord<PointImpl> y(const PointImpl& p)
+template<> inline ClipperLib::cInt y(const PointImpl& p)
 {
     return p.Y;
 }
 
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
-template<> inline TCoord<PointImpl>& x(PointImpl& p)
+template<> inline ClipperLib::cInt& x(PointImpl& p)
 {
     return p.X;
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
-template<> inline TCoord<PointImpl>& y(PointImpl& p)
+template<> inline ClipperLib::cInt& y(PointImpl& p)
 {
     return p.Y;
 }

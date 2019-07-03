@@ -58,19 +58,24 @@ namespace arrangement {
 using namespace libnest2d;
 namespace clppr = ClipperLib;
 
+// Get the libnest2d types for clipper backend
 using Item         = _Item<clppr::Polygon>;
 using Box          = _Box<clppr::IntPoint>;
 using Circle       = _Circle<clppr::IntPoint>;
 using Segment      = _Segment<clppr::IntPoint>;
 using MultiPolygon = TMultiShape<clppr::Polygon>;
+
+// The return value of nesting, a vector (for each logical bed) of Item
+// reference vectors. 
 using PackGroup    = _PackGroup<clppr::Polygon>;
 
+// Summon the spatial indexing facilities from boost
 namespace bgi = boost::geometry::index;
-
 using SpatElement = std::pair<Box, unsigned>;
 using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
 using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 
+// A coefficient used in separating bigger items and smaller items.
 const double BIG_ITEM_TRESHOLD = 0.02;
 
 // Fill in the placer algorithm configuration with values carefully chosen for
@@ -85,14 +90,14 @@ void fillConfig(PConf& pcfg) {
     pcfg.starting_point = PConf::Alignment::CENTER;
 
     // TODO cannot use rotations until multiple objects of same geometry can
-    // handle different rotations
-    // arranger.useMinimumBoundigBoxRotation();
+    // handle different rotations.
     pcfg.rotations = { 0.0 };
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
     pcfg.accuracy = 0.65f;
-
+    
+    // Allow parallel execution.
     pcfg.parallel = true;
 }
 
@@ -153,7 +158,7 @@ protected:
         };
         
         // Candidate item bounding box
-        auto ibb = sl::boundingBox(item.transformedShape());
+        auto ibb = item.boundingBox();
         
         // Calculate the full bounding box of the pile with the candidate item
         auto fullbb = sl::boundingBox(m_pilebb, ibb);
@@ -170,16 +175,39 @@ protected:
         // Will hold the resulting score
         double score = 0;
         
-        if(isBig(item.area()) || spatindex.empty()) {
-            // This branch is for the bigger items..
+        // Density is the pack density: how big is the arranged pile
+        double density = 0;
+        
+        const double N = m_norm;
+        auto norm = [N](double val) { return val / N; };
+        
+        // Distinction of cases for the arrangement scene
+        enum e_cases {
+            // This branch is for big items in a mixed (big and small) scene
+            // OR for all items in a small-only scene.
+            BIG_ITEM,
             
-            auto minc = ibb.minCorner(); // bottom left corner
-            auto maxc = ibb.maxCorner(); // top right corner
+            // This branch is for the last big item in a mixed scene
+            LAST_BIG_ITEM,
             
+            // For small items in a mixed scene.
+            SMALL_ITEM
+        } compute_case;
+        
+        bool bigitems = isBig(item.area()) || spatindex.empty();
+        if(bigitems && !remaining.empty()) compute_case = BIG_ITEM;
+        else if (bigitems && remaining.empty()) compute_case = LAST_BIG_ITEM;
+        else compute_case = SMALL_ITEM;
+        
+        switch (compute_case) {
+        case BIG_ITEM: {
+            const clppr::IntPoint& minc = ibb.minCorner(); // bottom left corner
+            const clppr::IntPoint& maxc = ibb.maxCorner(); // top right corner
+
             // top left and bottom right corners
-            auto top_left = PointImpl{getX(minc), getY(maxc)};
-            auto bottom_right = PointImpl{getX(maxc), getY(minc)};
-            
+            clppr::IntPoint top_left{getX(minc), getY(maxc)};
+            clppr::IntPoint bottom_right{getX(maxc), getY(minc)};
+
             // Now the distance of the gravity center will be calculated to the
             // five anchor points and the smallest will be chosen.
             std::array<double, 5> dists;
@@ -189,79 +217,75 @@ protected:
             dists[2] = pl::distance(ibb.center(), cc);
             dists[3] = pl::distance(top_left, cc);
             dists[4] = pl::distance(bottom_right, cc);
-            
-            // The smalles distance from the arranged pile center:
-            double dist = *(std::min_element(dists.begin(), dists.end())) / m_norm;
-            double bindist = pl::distance(ibb.center(), bincenter) / m_norm;
-            dist = 0.8*dist + 0.2*bindist;
-            
-            // Density is the pack density: how big is the arranged pile
-            double density = 0;
-            
-            if(remaining.empty()) {
-                
-                auto mp = m_merged_pile;
-                mp.emplace_back(item.transformedShape());
-                auto chull = sl::convexHull(mp);
-                
-                placers::EdgeCache<clppr::Polygon> ec(chull);
-                
-                double circ = ec.circumference() / m_norm;
-                double bcirc = 2.0*(fullbb.width() + fullbb.height()) / m_norm;
-                score = 0.5*circ + 0.5*bcirc;
-                
-            } else {
-                // Prepare a variable for the alignment score.
-                // This will indicate: how well is the candidate item
-                // aligned with its neighbors. We will check the alignment
-                // with all neighbors and return the score for the best
-                // alignment. So it is enough for the candidate to be
-                // aligned with only one item.
-                auto alignment_score = 1.0;
-                
-                auto querybb = item.boundingBox();
-                density = std::sqrt((fullbb.width() / m_norm )*
-                                    (fullbb.height() / m_norm));
-                
-                // Query the spatial index for the neighbors
-                std::vector<SpatElement> result;
-                result.reserve(spatindex.size());
-                if(isBig(item.area())) {
-                    spatindex.query(bgi::intersects(querybb),
-                                    std::back_inserter(result));
-                } else {
-                    smalls_spatindex.query(bgi::intersects(querybb),
-                                           std::back_inserter(result));
-                }
-                
-                // now get the score for the best alignment
-                for(auto& e : result) { 
-                    auto idx = e.second;
-                    Item& p = m_items[idx];
-                    auto parea = p.area();
-                    if(std::abs(1.0 - parea/item.area()) < 1e-6) {
-                        auto bb = sl::boundingBox(p.boundingBox(), ibb);
-                        auto bbarea = bb.area();
-                        auto ascore = 1.0 - (item.area() + parea)/bbarea;
-                        
-                        if(ascore < alignment_score) alignment_score = ascore;
-                    }
-                }
 
-                // The final mix of the score is the balance between the
-                // distance from the full pile center, the pack density and
-                // the alignment with the neighbors
-                if (result.empty())
-                    score = 0.5 * dist + 0.5 * density;
-                else
-                    score = 0.40 * dist + 0.40 * density + 0.2 * alignment_score;
+            // The smalles distance from the arranged pile center:
+            double dist = norm(*(std::min_element(dists.begin(), dists.end())));
+            double bindist = norm(pl::distance(ibb.center(), bincenter));
+            dist = 0.8 * dist + 0.2*bindist;
+
+            // Prepare a variable for the alignment score.
+            // This will indicate: how well is the candidate item
+            // aligned with its neighbors. We will check the alignment
+            // with all neighbors and return the score for the best
+            // alignment. So it is enough for the candidate to be
+            // aligned with only one item.
+            auto alignment_score = 1.0;
+
+            auto query = bgi::intersects(ibb);
+            auto& index = isBig(item.area()) ? spatindex : smalls_spatindex;
+
+            // Query the spatial index for the neighbors
+            std::vector<SpatElement> result;
+            result.reserve(index.size());
+
+            index.query(query, std::back_inserter(result));
+
+            // now get the score for the best alignment
+            for(auto& e : result) { 
+                auto idx = e.second;
+                Item& p = m_items[idx];
+                auto parea = p.area();
+                if(std::abs(1.0 - parea/item.area()) < 1e-6) {
+                    auto bb = sl::boundingBox(p.boundingBox(), ibb);
+                    auto bbarea = bb.area();
+                    auto ascore = 1.0 - (item.area() + parea)/bbarea;
+
+                    if(ascore < alignment_score) alignment_score = ascore;
+                }
             }
-        } else {
+
+            density = std::sqrt(norm(fullbb.width()) * norm(fullbb.height()));
+
+            // The final mix of the score is the balance between the
+            // distance from the full pile center, the pack density and
+            // the alignment with the neighbors
+            if (result.empty())
+                score = 0.5 * dist + 0.5 * density;
+            else
+                score = 0.40 * dist + 0.40 * density + 0.2 * alignment_score;
+            
+            break;
+        }
+        case LAST_BIG_ITEM: {
+            auto mp = m_merged_pile;
+            mp.emplace_back(item.transformedShape());
+            auto chull = sl::convexHull(mp);
+    
+            placers::EdgeCache<clppr::Polygon> ec(chull);
+            
+            double circ  = norm(ec.circumference());
+            double bcirc = 2.0 * norm(fullbb.width() + fullbb.height());
+            score = 0.5 * circ + 0.5 * bcirc;
+            break;
+        }
+        case SMALL_ITEM: {
             // Here there are the small items that should be placed around the
             // already processed bigger items.
             // No need to play around with the anchor points, the center will be
             // just fine for small items
-            score = pl::distance(ibb.center(), bigbb.center()) / m_norm;
+            score = norm(pl::distance(ibb.center(), bigbb.center()));
+            break;
+        }            
         }
         
         return std::make_tuple(score, fullbb);
@@ -276,7 +300,8 @@ public:
                  std::function<bool(void)>     stopcond)
         : m_pck(bin, dist)
         , m_bin(bin)
-        , m_norm(std::sqrt(sl::area(bin)))
+        , m_bin_area(sl::area(bin))
+        , m_norm(std::sqrt(m_bin_area))
     {
         fillConfig(m_pconf);
 
@@ -348,8 +373,6 @@ public:
         return !result.empty();
     }
 };
-
-
 
 template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
 {
@@ -612,44 +635,49 @@ bool arrange(ArrangeablePtrs &             arrangables,
     auto& cfn = stopcondition;
     
     switch (bedhint.type) {
-    case BedShapeType::BOX: {
-        // Create the arranger for the box shaped bed
-        BoundingBox bbb = bedhint.shape.box;
-        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
-        Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
-        binwidth = coord_t(binbb.width());
+//    case BedShapeType::BOX: {
+//        // Create the arranger for the box shaped bed
+//        BoundingBox bbb = bedhint.shape.box;
+//        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
+//        Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
+//        binwidth = coord_t(binbb.width());
         
-        _arrange(items, fixeditems, binbb, min_obj_distance, progressind, cfn);
-        break;
-    }
-    case BedShapeType::CIRCLE: {
-        auto c  = bedhint.shape.circ;
-        auto cc = to_lnCircle(c);
-        binwidth = scaled(c.radius());
+//        _arrange(items, fixeditems, binbb, min_obj_distance, progressind, cfn);
+//        break;
+//    }
+//    case BedShapeType::CIRCLE: {
+//        auto c  = bedhint.shape.circ;
+//        auto cc = to_lnCircle(c);
+//        binwidth = scaled(c.radius());
         
-        _arrange(items, fixeditems, cc, min_obj_distance, progressind, cfn);
-        break;
-    }
-    case BedShapeType::IRREGULAR: {
-        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
-        auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
-        BoundingBox polybb(bedhint.shape.polygon);
-        binwidth = (polybb.max(X) - polybb.min(X));
+//        _arrange(items, fixeditems, cc, min_obj_distance, progressind, cfn);
+//        break;
+//    }
+//    case BedShapeType::IRREGULAR: {
+//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
+//        auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
+//        BoundingBox polybb(bedhint.shape.polygon);
+//        binwidth = (polybb.max(X) - polybb.min(X));
         
-        _arrange(items, fixeditems, irrbed, min_obj_distance, progressind, cfn);
-        break;
-    }
-    case BedShapeType::INFINITE: {
-        // const InfiniteBed& nobin = bedhint.shape.infinite;
-        //Box infbb{{nobin.center.x(), nobin.center.y()}};
-        Box infbb;
+//        _arrange(items, fixeditems, irrbed, min_obj_distance, progressind, cfn);
+//        break;
+//    }
+//    case BedShapeType::INFINITE: {
+//        const InfiniteBed& nobin = bedhint.shape.infinite;
+//        Box infbb{{nobin.center.x(), nobin.center.y()}};
         
+//        _arrange(items, fixeditems, infbb, min_obj_distance, progressind, cfn);
+//        break;
+//    }
+//    case BedShapeType::UNKNOWN: {
+//        // We know nothing about the bed, let it be infinite and zero centered 
+//        _arrange(items, fixeditems, Box{}, min_obj_distance, progressind, cfn);
+//        break;
+//    }
+    default: {
+        Box infbb = Box::infinite({bedhint.shape.box.center().x(), bedhint.shape.box.center().y()});
+
         _arrange(items, fixeditems, infbb, min_obj_distance, progressind, cfn);
-        break;
-    }
-    case BedShapeType::UNKNOWN: {
-        // We know nothing about the bed, let it be infinite and zero centered 
-        _arrange(items, fixeditems, Box{}, min_obj_distance, progressind, cfn);
         break;
     }
     };

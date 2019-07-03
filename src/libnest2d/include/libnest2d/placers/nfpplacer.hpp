@@ -581,8 +581,12 @@ public:
 
     static inline double overfit(const Box& bb, const Box& bin)
     {
-        auto wdiff = double(bb.width() - bin.width());
-        auto hdiff = double(bb.height() - bin.height());
+        auto Bw = bin.width();
+        auto Bh = bin.height();
+        auto mBw = -Bw;
+        auto mBh = -Bh;
+        auto wdiff = double(bb.width()) + mBw;
+        auto hdiff = double(bb.height()) + mBh;
         double diff = 0;
         if(wdiff > 0) diff += wdiff;
         if(hdiff > 0) diff += hdiff;

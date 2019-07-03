@@ -379,6 +379,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
             for(Item& r2 : result) {
                 if(&r1 != &r2 ) {
                     valid = !Item::intersects(r1, r2) || Item::touches(r1, r2);
+                    ASSERT_TRUE(valid);
                     valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
                     ASSERT_TRUE(valid);
                 }
