@@ -53,15 +53,12 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
-//  on_change(nullptr);
-
-	auto box = new wxStaticBox(this, wxID_ANY, _(L("Shape")));
-	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
+    auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
 
 	// shape options
     m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, 
                            wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
-	sbsizer->Add(m_shape_options_book);
+    sbsizer->Add(m_shape_options_book);
 
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));
 		ConfigOptionDef def;
@@ -108,8 +105,8 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 		};
 		optgroup->append_line(line);
 
-	Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent e)
-	{
+    Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e)
+    {
 		update_shape();
 	}));
 
@@ -119,8 +116,8 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 
 	// main sizer
 	auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
-	top_sizer->Add(sbsizer, 0, wxEXPAND | wxLeft | wxTOP | wxBOTTOM, 10);
-	if (m_canvas)
+    top_sizer->Add(sbsizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
+    if (m_canvas)
 		top_sizer->Add(m_canvas, 1, wxEXPAND | wxALL, 10) ;
 
 	SetSizerAndFit(top_sizer);
@@ -137,8 +134,7 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 // Create a panel for a rectangular / circular / custom bed shape.
 ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& title)
 {
-
-	auto panel = new wxPanel(m_shape_options_book);
+    auto panel = new wxPanel(m_shape_options_book);
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
