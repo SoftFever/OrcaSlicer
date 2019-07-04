@@ -674,7 +674,7 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
         // Let the parent decide what to do if the opt_key is not defined by this->def().
         return nullptr;
     ConfigOption *opt = optdef->create_default_option();
-    this->options.insert(it, std::make_pair(opt_key, opt));
+    this->options.emplace_hint(it, opt_key, std::unique_ptr<ConfigOption>(opt));
     return opt;
 }
 
