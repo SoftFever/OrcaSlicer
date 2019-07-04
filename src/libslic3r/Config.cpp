@@ -822,6 +822,7 @@ t_config_option_keys StaticConfig::keys() const
 
 }
 
+#include <cereal/types/polymorphic.hpp>
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOption)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionSingle<double>)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionSingle<int>)

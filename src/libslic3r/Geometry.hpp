@@ -8,8 +8,7 @@
 #include "Polyline.hpp"
 
 // Serialization through the Cereal library
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/archives/binary.hpp>
+#include <cereal/access.hpp>
 
 #include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;

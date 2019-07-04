@@ -18,11 +18,8 @@
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/types/map.hpp> 
-#include <cereal/types/string.hpp> 
-#include <cereal/types/vector.hpp> 
-#include <cereal/archives/binary.hpp>
+#include <cereal/access.hpp>
+#include <cereal/types/base_class.hpp>
 
 namespace Slic3r {
 

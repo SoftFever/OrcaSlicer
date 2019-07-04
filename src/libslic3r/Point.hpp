@@ -291,9 +291,6 @@ namespace boost { namespace polygon {
 } }
 // end Boost
 
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/archives/binary.hpp>
-
 // Serialization through the Cereal library
 namespace cereal {
 //	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2crd &v) { archive(v.x(), v.y()); }

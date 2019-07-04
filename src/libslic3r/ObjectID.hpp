@@ -1,11 +1,7 @@
 #ifndef slic3r_ObjectID_hpp_
 #define slic3r_ObjectID_hpp_
 
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/types/map.hpp> 
-#include <cereal/types/string.hpp> 
-#include <cereal/types/vector.hpp> 
-#include <cereal/archives/binary.hpp>
+#include <cereal/access.hpp>
 
 namespace Slic3r {
 
