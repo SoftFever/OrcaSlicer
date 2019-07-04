@@ -276,7 +276,7 @@ private:
 	{
 		// Calling a private constructor with special "int" parameter to indicate that no construction is necessary.
 		construct(1);
-		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, m_mirror);
+		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, construct.ptr()->m_mirror);
 	}
 };
 
