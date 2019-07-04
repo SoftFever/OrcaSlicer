@@ -1645,6 +1645,7 @@ private:
 
     void update_fff_scene();
     void update_sla_scene();
+    void update_after_undo_redo();
 
     // path to project file stored with no extension
     wxString m_project_filename;
@@ -3497,22 +3498,26 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 
 void Plater::priv::undo()
 {
-	if (this->undo_redo_stack.undo(model, const_cast<GUI::Selection&>(view3D->get_canvas3d()->get_selection()))) {
-		this->update(false);
-		//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?)
-//	    wxGetApp().obj_list()->update_selections();
-//	    selection_changed();
-	}
+	if (this->undo_redo_stack.undo(model))
+		this->update_after_undo_redo();
 }
 
 void Plater::priv::redo()
 { 
-	if (this->undo_redo_stack.redo(model, const_cast<GUI::Selection&>(view3D->get_canvas3d()->get_selection()))) {
-		this->update(false);
-		//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?)
+	if (this->undo_redo_stack.redo(model))
+		this->update_after_undo_redo();
+}
+
+void Plater::priv::update_after_undo_redo()
+{
+	this->view3D->get_canvas3d()->get_selection().clear();
+	this->update(false); // update volumes from the deserializd model
+	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
+    this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
 //	    wxGetApp().obj_list()->update_selections();
 //	    selection_changed();
-	}
+	//FIXME what about the state of the manipulators?
+	//FIXME what about the focus? Cursor in the side panel?
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const

@@ -8,6 +8,7 @@
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/map.hpp> 
 #include <cereal/types/string.hpp> 
+#include <cereal/types/utility.hpp> 
 #include <cereal/types/vector.hpp> 
 #include <cereal/archives/binary.hpp>
 #define CEREAL_FUTURE_EXPERIMENTAL
@@ -326,20 +327,17 @@ public:
 
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
-	void load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+	void load_snapshot(size_t timestamp, Slic3r::Model &model);
 
-	bool undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
-	bool redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+	bool undo(Slic3r::Model &model);
+	bool redo(Slic3r::Model &model);
 
 	// Snapshot history (names with timestamps).
 	const std::vector<Snapshot>& snapshots() const { return m_snapshots; }
 
-//protected:
-	void save_model(const Slic3r::Model &model, size_t snapshot_time);
-	void save_selection(const Slic3r::Model& model, const Slic3r::GUI::Selection &selection, size_t snapshot_time);
-	void load_model(const Slic3r::Model &model, size_t snapshot_time);
-	void load_selection(const Slic3r::GUI::Selection &selection, size_t snapshot_time);
+	const Selection& selection_deserialized() const { return m_selection; }
 
+//protected:
 	template<typename T, typename T_AS> ObjectID save_mutable_object(const T &object);
 	template<typename T> ObjectID save_immutable_object(std::shared_ptr<const T> &object);
 	template<typename T> T* load_mutable_object(const Slic3r::ObjectID id);
@@ -372,6 +370,8 @@ private:
 	size_t 													m_active_snapshot_time;
 	// Logical time counter. m_current_time is being incremented with each snapshot taken.
 	size_t 													m_current_time;
+	// Last selection serialized or deserialized.
+	Selection 												m_selection;
 };
 
 using InputArchive  = cereal::UserDataAdapter<StackImpl, cereal::BinaryInputArchive>;
@@ -469,28 +469,6 @@ namespace cereal
 		ar(id);
 		ptr = stack.load_immutable_object<T>(Slic3r::ObjectID(id));
 	}
-
-#if 0
-	void save(BinaryOutputArchive &ar, const Slic3r::GUI::Selection &selection)
-	{
-		size_t num = selection.get_volume_idxs().size();
-		ar(num);
-		for (unsigned int volume_idx : selection.get_volume_idxs()) {
-			const Slic3r::GLVolume::CompositeID &id = selection.get_volume(volume_idx)->composite_id;
-			ar(id.object_id, id.volume_id, id.instance_id);
-		}
-	}
-
-	template <class T> void load(BinaryInputArchive &ar, Slic3r::GUI::Selection &selection)
-	{
-		size_t num;
-		ar(num);
-		for (size_t i = 0; i < num; ++ i) {
-			Slic3r::GLVolume::CompositeID id;
-			ar(id.object_id, id.volume_id, id.instance_id);
-		}
-	}
-#endif
 }
 
 #include <libslic3r/Model.hpp>
@@ -585,15 +563,22 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 	}
 	// Take new snapshots.
 	this->save_mutable_object<Slic3r::Model, Slic3r::Model>(model);
-//	this->save_mutable_object(selection);
-	// Save the snapshot info
+	m_selection.volumes_and_instances.clear();
+	m_selection.volumes_and_instances.reserve(selection.get_volume_idxs().size());
+	m_selection.mode = selection.get_mode();
+	for (unsigned int volume_idx : selection.get_volume_idxs()) {
+		const Slic3r::GLVolume::CompositeID &id = selection.get_volume(volume_idx)->composite_id;
+		m_selection.volumes_and_instances.emplace_back(id.volume_id, id.instance_id);
+	}
+	this->save_mutable_object<Selection, Selection>(m_selection);
+	// Save the snapshot info.
 	m_active_snapshot_time = m_current_time ++;
 	m_snapshots.emplace_back(snapshot_name, m_active_snapshot_time, model.id().id);
 	// Release empty objects from the history.
 	this->collect_garbage();
 }
 
-void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection)
+void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model)
 {
 	// Find the snapshot by time. It must exist.
 	const auto it_snapshot = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(timestamp));
@@ -605,27 +590,30 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GU
 	model.clear_materials();
 	this->load_mutable_object<Slic3r::Model, Slic3r::Model>(ObjectID(it_snapshot->model_object_id), model);
 	model.update_links_bottom_up_recursive();
-//	this->load_mutable_object<Slic3r::GUI::Selection, Slic3r::GUI::Selection>(selection.id(), selection);
+	m_selection.volumes_and_instances.clear();
+	this->load_mutable_object<Selection, Selection>(m_selection.id(), m_selection);
+	// Sort the volumes so that we may use binary search.
+	std::sort(m_selection.volumes_and_instances.begin(), m_selection.volumes_and_instances.end());
 	this->m_active_snapshot_time = timestamp;
 }
 
-bool StackImpl::undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection)
+bool StackImpl::undo(Slic3r::Model &model)
 { 
 	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
 	if (-- it_current == m_snapshots.begin())
 		return false;
-	this->load_snapshot(it_current->timestamp, model, selection);
+	this->load_snapshot(it_current->timestamp, model);
 	return true;
 }
 
-bool StackImpl::redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection)
+bool StackImpl::redo(Slic3r::Model &model)
 { 
 	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
 	if (++ it_current == m_snapshots.end())
 		return false;
-	this->load_snapshot(it_current->timestamp, model, selection); 
+	this->load_snapshot(it_current->timestamp, model); 
 	return true;
 }
 
@@ -648,9 +636,10 @@ Stack::Stack() : pimpl(new StackImpl()) {}
 Stack::~Stack() {}
 void Stack::initialize(const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->initialize(model, selection); }
 void Stack::take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->take_snapshot(snapshot_name, model, selection); }
-void Stack::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection) { pimpl->load_snapshot(timestamp, model, selection); }
-bool Stack::undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection) { return pimpl->undo(model, selection); }
-bool Stack::redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection) { return pimpl->redo(model, selection); }
+void Stack::load_snapshot(size_t timestamp, Slic3r::Model &model) { pimpl->load_snapshot(timestamp, model); }
+bool Stack::undo(Slic3r::Model &model) { return pimpl->undo(model); }
+bool Stack::redo(Slic3r::Model &model) { return pimpl->redo(model); }
+const Selection& Stack::selection_deserialized() const { return pimpl->selection_deserialized(); }
 
 const std::vector<Snapshot>& Stack::snapshots() const { return pimpl->snapshots(); }
 

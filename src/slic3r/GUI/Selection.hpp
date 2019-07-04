@@ -3,7 +3,6 @@
 
 #include <set>
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/ObjectID.hpp"
 #include "3DScene.hpp"
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -67,7 +66,7 @@ private:
     Enum    m_value;
 };
 
-class Selection : public Slic3r::ObjectBase
+class Selection
 {
 public:
     typedef std::set<unsigned int> IndicesList;
@@ -237,6 +236,9 @@ public:
     void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
     void add_all();
+
+    // To be called after Undo or Redo once the volumes are updated.
+    void set_deserialized(EMode mode, const std::vector<std::pair<ObjectID, ObjectID>> &volumes_and_instances);
 
     // Update the selection based on the new instance IDs.
 	void instances_changed(const std::vector<size_t> &instance_ids_selected);

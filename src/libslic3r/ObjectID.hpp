@@ -24,6 +24,8 @@ class ObjectID
 {
 public:
 	ObjectID(size_t id) : id(id) {}
+	// Default constructor constructs an invalid ObjectID.
+	ObjectID() : id(0) {}
 
 	bool operator==(const ObjectID &rhs) const { return this->id == rhs.id; }
 	bool operator!=(const ObjectID &rhs) const { return this->id != rhs.id; }
@@ -38,8 +40,6 @@ public:
 	size_t	id;
 
 private:
-	ObjectID() {}
-
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) { ar(id); }
 };
