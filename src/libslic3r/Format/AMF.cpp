@@ -933,10 +933,8 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << ";" << layer_height_profile[i];
                 stream << "\n    </metadata>\n";
         }
-        //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
 
-
-        // #ys_FIXME_experiment : Try to export layer config range
+        // Export layer height ranges including the layer range specific config overrides.
         const t_layer_config_ranges& config_ranges = object->layer_config_ranges;
         if (!config_ranges.empty())
         {
@@ -950,7 +948,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << range.first.first << ";" << range.first.second << "</metadata>\n";
 
                 for (const std::string& key : range.second.keys())
-                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.serialize(key) << "</metadata>\n";
+                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.opt_serialize(key) << "</metadata>\n";
 
                 stream << "      </range>\n";
                 layer_counter++;

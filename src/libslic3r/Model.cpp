@@ -1579,9 +1579,9 @@ void ModelVolume::center_geometry_after_creation()
     if (!shift.isApprox(Vec3d::Zero()))
     {
     	if (m_mesh)
-        	m_mesh->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        	const_cast<TriangleMesh*>(m_mesh.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         if (m_convex_hull)
-        	m_convex_hull->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+			const_cast<TriangleMesh*>(m_convex_hull.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
 }

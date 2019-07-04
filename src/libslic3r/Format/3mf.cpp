@@ -2134,7 +2134,7 @@ namespace Slic3r {
                     const DynamicPrintConfig& config = range.second;
                     for (const std::string& opt_key : config.keys())
                     {
-                        pt::ptree& opt_tree = range_tree.add("option", config.serialize(opt_key));
+                        pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
                         opt_tree.put("<xmlattr>.opt_key", opt_key);
                     }
                 }

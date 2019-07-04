@@ -587,10 +587,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             Moved,
             Deleted,
         };
-        ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
-        ModelID     id;
-        Status      status;
-        LayerRanges layer_ranges;
+        ModelObjectStatus(ObjectID id, Status status = Unknown) : id(id), status(status) {}
+		ObjectID     id;
+        Status       status;
+        LayerRanges  layer_ranges;
         // Search by id.
         bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
     };

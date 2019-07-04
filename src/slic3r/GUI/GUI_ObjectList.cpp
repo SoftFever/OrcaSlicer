@@ -3400,5 +3400,13 @@ void ObjectList::recreate_object_list()
     m_prevent_list_events = false;
 }
 
+ModelObject* ObjectList::object(const int obj_idx) const
+{
+    if (obj_idx < 0)
+        return nullptr;
+
+    return (*m_objects)[obj_idx];
+}
+
 } //namespace GUI
 } //namespace Slic3r 

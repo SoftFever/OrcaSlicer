@@ -342,7 +342,7 @@ private:
 	}
 	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this));
-		ar(name, input_file, instances, volumes, config, layer_height_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
+		ar(name, input_file, instances, volumes, config, layer_config_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
 			m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
 };
