@@ -508,8 +508,8 @@ private:
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
-		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
-		assert(this->id() == other.id() && this->config.id() == other.config.id());
+//		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+//		assert(this->id() == other.id() && this->config.id() == other.config.id());
         this->set_material_id(other.material_id());
         this->config.set_new_unique_id();
         if (mesh.stl.stats.number_of_facets > 1)

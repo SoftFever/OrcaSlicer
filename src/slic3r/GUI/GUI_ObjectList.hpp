@@ -300,6 +300,8 @@ public:
 
     void msw_rescale();
 
+    void recreate_object_list();
+
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);

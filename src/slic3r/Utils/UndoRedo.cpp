@@ -652,10 +652,8 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 	m_selection.volumes_and_instances.clear();
 	m_selection.volumes_and_instances.reserve(selection.get_volume_idxs().size());
 	m_selection.mode = selection.get_mode();
-	for (unsigned int volume_idx : selection.get_volume_idxs()) {
-		const Slic3r::GLVolume::CompositeID &id = selection.get_volume(volume_idx)->composite_id;
-		m_selection.volumes_and_instances.emplace_back(id.volume_id, id.instance_id);
-	}
+	for (unsigned int volume_idx : selection.get_volume_idxs())
+		m_selection.volumes_and_instances.emplace_back(selection.get_volume(volume_idx)->geometry_id);
 	this->save_mutable_object<Selection, Selection>(m_selection);
 	// Save the snapshot info.
 	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id);

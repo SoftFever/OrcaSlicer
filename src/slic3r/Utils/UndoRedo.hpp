@@ -31,8 +31,8 @@ struct Snapshot
 
 // Excerpt of Slic3r::GUI::Selection for serialization onto the Undo / Redo stack.
 struct Selection : public Slic3r::ObjectBase {
-	unsigned char								mode;
-	std::vector<std::pair<ObjectID, ObjectID>>	volumes_and_instances;
+	unsigned char							mode;
+	std::vector<std::pair<size_t, size_t>>	volumes_and_instances;
 	template<class Archive> void serialize(Archive &ar) { ar(mode, volumes_and_instances); }
 };
 
