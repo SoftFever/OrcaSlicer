@@ -270,17 +270,17 @@ public:
 
 private:
 	template<class Archive> void load(Archive& archive, Slic3r::Geometry::Transformation &t) { 
-		archive.loadBinary((char*)m.data(), sizeof(float) * 4);
+		archive.loadBinary((char*)t.data(), sizeof(float) * 4);
 	}
 	template<class Archive> void save(Archive& archive, const Slic3r::Geometry::Transformation &t) const {
-		archive.saveBinary((char*)m.data(), sizeof(float) * 4);
+		archive.saveBinary((char*)t.data(), sizeof(float) * 4);
 	}
 
 private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }
 	explicit Transformation(int) : m_dirty(true) {}
-	template <class Archive> static void load_and_construct(Archive & ar, cereal::construct<Transformation> &construct)
+	template <class Archive> static void load_and_construct(Archive &ar, cereal::construct<Transformation> &construct)
 	{
 		// Calling a private constructor with special "int" parameter to indicate that no construction is necessary.
 		construct(1);
