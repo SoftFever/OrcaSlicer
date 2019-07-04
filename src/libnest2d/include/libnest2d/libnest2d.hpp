@@ -36,20 +36,20 @@ class _Item {
     // Transformation data
     Vertex translation_;
     Radians rotation_;
-    Coord offset_distance_;
+    Coord inflation_;
 
     // Info about whether the transformations will have to take place
     // This is needed because if floating point is used, it is hard to say
     // that a zero angle is not a rotation because of testing for equality.
-    bool has_rotation_ = false, has_translation_ = false, has_offset_ = false;
+    bool has_rotation_ = false, has_translation_ = false, has_inflation_ = false;
 
     // For caching the calculations as they can get pretty expensive.
     mutable RawShape tr_cache_;
     mutable bool tr_cache_valid_ = false;
     mutable double area_cache_ = 0;
     mutable bool area_cache_valid_ = false;
-    mutable RawShape offset_cache_;
-    mutable bool offset_cache_valid_ = false;
+    mutable RawShape inflate_cache_;
+    mutable bool inflate_cache_valid_ = false;
 
     enum class Convexity: char {
         UNCHECKED,
@@ -66,7 +66,9 @@ class _Item {
         BBCache(): valid(false) {}
     } bb_cache_;
     
-    std::function<void(const _Item&, unsigned)> applyfn_;
+    static const size_t ID_UNSET = size_t(-1);
+    
+    size_t id_{ID_UNSET};
     bool fixed_{false};
 
 public:
@@ -126,12 +128,12 @@ public:
                  THolesContainer<RawShape>&& holes):
         sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
 
-    template<class... Args>
-    _Item(std::function<void(const _Item&, unsigned)> applyfn, Args &&... args):
-        _Item(std::forward<Args>(args)...)
-    {
-        applyfn_ = std::move(applyfn);
-    }
+//    template<class... Args>
+//    _Item(std::function<void(const _Item&, unsigned)> applyfn, Args &&... args):
+//        _Item(std::forward<Args>(args)...)
+//    {
+//        applyfn_ = std::move(applyfn);
+//    }
 
     // Call the apply callback set in constructor. Within the callback, the
     // original caller can apply the stored transformation to the original
@@ -140,13 +142,15 @@ public:
     // client uses a simplified or processed polygon for nesting)
     // This callback, if present, will be called for each item after the nesting
     // is finished.
-    inline void callApplyFunction(unsigned binidx) const
-    {
-        if (applyfn_) applyfn_(*this, binidx);
-    }
+//    inline void callApplyFunction(unsigned binidx) const
+//    {
+//        if (applyfn_) applyfn_(*this, binidx);
+//    }
     
     inline bool isFixed() const noexcept { return fixed_; }
     inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
+    inline void id(size_t idx) { id_ = idx; }
+    inline long id() const noexcept { return id_; }
 
     /**
      * @brief Convert the polygon to string representation. The format depends
@@ -224,7 +228,7 @@ public:
         double ret ;
         if(area_cache_valid_) ret = area_cache_;
         else {
-            ret = sl::area(offsettedShape());
+            ret = sl::area(infaltedShape());
             area_cache_ = ret;
             area_cache_valid_ = true;
         }
@@ -295,17 +299,21 @@ public:
     {
         rotation(rotation() + rads);
     }
-
-    inline void addOffset(Coord distance) BP2D_NOEXCEPT
+    
+    inline void inflation(Coord distance) BP2D_NOEXCEPT
     {
-        offset_distance_ = distance;
-        has_offset_ = true;
+        inflation_ = distance;
+        has_inflation_ = true;
         invalidateCache();
     }
-
-    inline void removeOffset() BP2D_NOEXCEPT {
-        has_offset_ = false;
-        invalidateCache();
+    
+    inline Coord inflation() const BP2D_NOEXCEPT {
+        return inflation_;
+    }
+    
+    inline void inflate(Coord distance) BP2D_NOEXCEPT
+    {
+        inflation(inflation() + distance);
     }
 
     inline Radians rotation() const BP2D_NOEXCEPT
@@ -339,7 +347,7 @@ public:
     {
         if(tr_cache_valid_) return tr_cache_;
 
-        RawShape cpy = offsettedShape();
+        RawShape cpy = infaltedShape();
         if(has_rotation_) sl::rotate(cpy, rotation_);
         if(has_translation_) sl::translate(cpy, translation_);
         tr_cache_ = cpy; tr_cache_valid_ = true;
@@ -360,17 +368,17 @@ public:
 
     inline void resetTransformation() BP2D_NOEXCEPT
     {
-        has_translation_ = false; has_rotation_ = false; has_offset_ = false;
+        has_translation_ = false; has_rotation_ = false; has_inflation_ = false;
         invalidateCache();
     }
 
     inline Box boundingBox() const {
         if(!bb_cache_.valid) {
             if(!has_rotation_)
-                bb_cache_.bb = sl::boundingBox(offsettedShape());
+                bb_cache_.bb = sl::boundingBox(infaltedShape());
             else {
                 // TODO make sure this works
-                auto rotsh = offsettedShape();
+                auto rotsh = infaltedShape();
                 sl::rotate(rotsh, rotation_);
                 bb_cache_.bb = sl::boundingBox(rotsh);
             }
@@ -419,14 +427,14 @@ public:
 
 private:
 
-    inline const RawShape& offsettedShape() const {
-        if(has_offset_ ) {
-            if(offset_cache_valid_) return offset_cache_;
+    inline const RawShape& infaltedShape() const {
+        if(has_inflation_ ) {
+            if(inflate_cache_valid_) return inflate_cache_;
 
-            offset_cache_ = sh_;
-            sl::offset(offset_cache_, offset_distance_);
-            offset_cache_valid_ = true;
-            return offset_cache_;
+            inflate_cache_ = sh_;
+            sl::offset(inflate_cache_, inflation_);
+            inflate_cache_valid_ = true;
+            return inflate_cache_;
         }
         return sh_;
     }
@@ -436,7 +444,7 @@ private:
         tr_cache_valid_ = false;
         lmb_valid_ = false; rmt_valid_ = false;
         area_cache_valid_ = false;
-        offset_cache_valid_ = false;
+        inflate_cache_valid_ = false;
         bb_cache_.valid = false;
         convexity_ = Convexity::UNCHECKED;
     }
@@ -758,6 +766,25 @@ public:
     void clear() { impl_.clear(); }
 };
 
+using BinIdx = unsigned;
+template<class S, class Key = size_t> using _NestResult =
+    std::vector<
+        std::tuple<Key,          // Identifier of the original shape
+                   TPoint<S>,    // Translation calculated by nesting
+                   Radians,      // Rotation calculated by nesting
+                   BinIdx>       // Logical bin index, first is zero
+        >;
+
+template<class T> struct Indexed {
+    using ShapeType = T;
+    static T& get(T& obj) { return obj; }
+};
+
+template<class K, class S> struct Indexed<std::pair<K, S>> {
+    using ShapeType = S;
+    static S& get(std::pair<K, S>& obj) { return obj.second; }
+};
+
 /**
  * The Arranger is the front-end class for the libnest2d library. It takes the
  * input items and outputs the items with the proper transformations to be
@@ -769,6 +796,7 @@ class Nester {
     TSel selector_;
 public:
     using Item = typename PlacementStrategy::Item;
+    using ShapeType = typename Item::ShapeType;
     using ItemRef = std::reference_wrapper<Item>;
     using TPlacer = PlacementStrategyLike<PlacementStrategy>;
     using BinType = typename TPlacer::BinType;
@@ -777,6 +805,7 @@ public:
     using Coord = TCoord<TPoint<typename Item::ShapeType>>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
     using ResultType = PackGroup;
+    template<class K> using NestResult = _NestResult<ShapeType, K>;
 
 private:
     BinType bin_;
@@ -835,10 +864,12 @@ public:
      * The number of groups in the pack group is the number of bins opened by
      * the selection algorithm.
      */
-    template<class TIterator>
-    inline PackGroup execute(TIterator from, TIterator to)
+    template<class It, class Key = size_t>
+    inline const NestResult<Key> execute(It from, It to,
+                                         std::function<Key(It)> keyfn = nullptr)
     {
-        return _execute(from, to);
+        if (!keyfn) keyfn = [to](It it) { return to - it; };
+        return _execute(from, to, keyfn);
     }
 
     /// Set a progress indicator function object for the selector.
@@ -858,65 +889,74 @@ public:
         return selector_.getResult();
     }
 
-    inline void preload(const PackGroup& pgrp)
-    {
-        selector_.preload(pgrp);
-    }
-
 private:
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-
-             // This function will be used only if the iterators are pointing to
-             // a type compatible with the libnets2d::_Item template.
-             // This way we can use references to input elements as they will
-             // have to exist for the lifetime of this call.
-             class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline const PackGroup& _execute(TIterator from, TIterator to, bool = false)
+    
+    template<class It> using TVal = remove_cvref_t<typename It::value_type>;
+    
+    template<class It, class Out>
+    using ConvertibleOnly =
+        enable_if_t< std::is_convertible<TVal<It>, TPItem>::value, void>;
+    
+    template<class It, class Out>
+    using NotConvertibleOnly =
+        enable_if_t< ! std::is_convertible<TVal<It>, TPItem>::value, void>;
+    
+    // This function will be used only if the iterators are pointing to
+    // a type compatible with the libnets2d::_Item template.
+    // This way we can use references to input elements as they will
+    // have to exist for the lifetime of this call.
+    template<class It, class Key>
+    inline ConvertibleOnly<It, const NestResult<Key>> _execute(
+        It from, It to, std::function<Key(It)> keyfn)
     {
-        __execute(from, to);
-        return lastResult();
-    }
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-             class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline const PackGroup& _execute(TIterator from, TIterator to, int = false)
-    {
-        item_cache_ = {from, to};
-
-        __execute(item_cache_.begin(), item_cache_.end());
-        return lastResult();
-    }
-
-    template<class TIter> inline void __execute(TIter from, TIter to)
-    {
-        if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
-            auto offs = min_obj_distance_;
-            if (item.isFixed()) offs *= 0.99;
+        {
+            auto it = from; size_t id = 0;
+            while(it != to) 
+                if (it->id() == Item::ID_UNSET) (it++)->id(id++);
+                else { id = it->id() + 1; ++it; }
+        }
+        
+        NestResult<Key> result(to - from);
+        
+        __execute(from, to, keyfn);
+        
+        BinIdx binidx = 0;
+        for(auto &itmgrp : lastResult()) {
+            for(const Item& itm : itmgrp) 
+                result[itm.id()] =
+                    std::make_tuple(keyfn(from + itm.id()), itm.translation(),
+                                    itm.rotation(), binidx);
             
-            item.addOffset(static_cast<Coord>(std::ceil(offs/2.0)));
+            ++binidx;
+        }
+        
+        return result;
+    }
+    
+    template<class It, class Key = size_t>
+    inline NotConvertibleOnly<It, const NestResult<Key>> _execute(
+        It from, It to, std::function<Key(It)> keyfn)
+    {
+        item_cache_.reserve(to - from);
+        for(auto it = from; it != to; ++it)
+            item_cache_.emplace_back(Indexed<typename It::value_type>::get(*it));
+
+        return _execute(item_cache_.begin(), item_cache_.end(), keyfn);
+    }
+
+    template<class It> inline void __execute(It from, It to)
+    {
+        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
+        if(infl > 0) std::for_each(from, to, [this](Item& item) {
+            item.inflate(infl);
         });
 
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);
         
         if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
-            item.removeOffset();
+            item.inflate(-infl);
         });
-        
-        if(!stopfn_ || (stopfn_ && !stopfn_())) {
-            // Ignore results if nesting was stopped.
-            const PackGroup& bins = lastResult();
-            unsigned binidx = 0;
-            for(auto& bin : bins) {
-                for(const Item& itm : bin) itm.callApplyFunction(binidx);
-                ++binidx;
-            }
-        }
     }
 };
 

@@ -513,12 +513,13 @@ BedShapeHint bedShape(const Polyline &bed) {
 }
 
 template<class BinT> // Arrange for arbitrary bin type
-PackGroup _arrange(std::vector<Item> &           shapes,
-                   std::vector<Item> &           excludes,
-                   const BinT &                  bin,
-                   coord_t                       minobjd,
-                   std::function<void(unsigned)> prind,
-                   std::function<bool()>         stopfn)
+_NestResult<clppr::Polygon> _arrange(
+    std::vector<Item> &           shapes,
+    std::vector<Item> &           excludes,
+    const BinT &                  bin,
+    coord_t                       minobjd,
+    std::function<void(unsigned)> prind,
+    std::function<bool()>         stopfn)
 {   
     AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
     
@@ -535,22 +536,13 @@ PackGroup _arrange(std::vector<Item> &           shapes,
 
             // Try to put the first item to the center, as the arranger
             // will not do this for us.
-            for (auto it = shapes.begin(); it != shapes.end(); ++it) {
-                Item &itm = *it;
+            for (Item &itm : shapes) {
                 auto  ibb = itm.boundingBox();
                 auto  d   = binbb.center() - ibb.center();
                 itm.translate(d);
 
                 if (!arranger.is_colliding(itm)) {
                     itm.markAsFixed();
-
-                    // Write the transformation data into the item. The
-                    // callback was set on the instantiation of Item and
-                    // calls the Arrangeable interface.
-                    it->callApplyFunction(0);
-
-                    // Remove this item, as it is arranged now
-                    it = shapes.erase(it);
                     break;
                 }
             }
@@ -586,9 +578,7 @@ bool arrange(ArrangeablePtrs &             arrangables,
     coord_t binwidth = 0;
 
     auto process_arrangeable =
-        [](const Arrangeable *                         arrangeable,
-           std::vector<Item> &                         outp,
-           std::function<void(const Item &, unsigned)> applyfn)
+        [](const Arrangeable *arrangeable, std::vector<Item> &outp)
     {
         assert(arrangeable);
 
@@ -605,29 +595,16 @@ bool arrange(ArrangeablePtrs &             arrangables,
         auto firstp = clpath.Contour.front();
         clpath.Contour.emplace_back(firstp);
 
-        outp.emplace_back(applyfn, std::move(clpath));
+        outp.emplace_back(std::move(clpath));
         outp.back().rotation(rotation);
         outp.back().translation({offs.x(), offs.y()});
     };
 
-    for (Arrangeable *arrangeable : arrangables) {
-        process_arrangeable(
-            arrangeable,
-            items,
-            // callback called by arrange to apply the result on the arrangeable
-            [arrangeable, &binwidth, &ret](const Item &itm, unsigned binidx) {
-                ret = !binidx;  // Return value false more bed is required
-                clppr::cInt stride = binidx * stride_padding(binwidth);
-
-                clppr::IntPoint offs = itm.translation();
-                arrangeable->apply_arrange_result({unscaled(offs.X + stride),
-                                                   unscaled(offs.Y)},
-                                                  itm.rotation(), binidx);
-            });
-    }
+    for (Arrangeable *arrangeable : arrangables)
+        process_arrangeable(arrangeable, items);
     
     for (const Arrangeable * fixed: excludes)
-        process_arrangeable(fixed, fixeditems, nullptr);
+        process_arrangeable(fixed, fixeditems);
     
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = min_obj_dist - SCALED_EPSILON;
