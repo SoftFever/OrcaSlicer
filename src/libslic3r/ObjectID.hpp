@@ -69,7 +69,6 @@ protected:
     void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
 
 private:
-	friend class UndoRedo::StackImpl;
     ObjectID                m_id;
 
 	static inline ObjectID  generate_new_id() { return ObjectID(++ s_last_id); }
@@ -77,9 +76,9 @@ private:
 	
 	friend ObjectID wipe_tower_object_id();
 	friend ObjectID wipe_tower_instance_id();
-	friend class Slic3r::UndoRedo::StackImpl;
 
 	friend class cereal::access;
+	friend class Slic3r::UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
     ObjectBase(const ObjectID id) : m_id(id) {}
   	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ObjectBase> &construct) { ObjectID id; ar(id); construct(id); }

@@ -153,19 +153,7 @@ public:
 
 	bool 						is_serialized() const { return m_shared_object.get() == nullptr; }
 	const std::string&			serialized_data() const { return m_serialized; }
-	std::shared_ptr<const T>& 	shared_ptr(StackImpl &stack) {
-		if (m_shared_object.get() == nullptr && ! this->m_serialized.empty()) {
-			// Deserialize the object.
-			std::istringstream iss(m_serialized);
-			{
-				Slic3r::UndoRedo::InputArchive archive(stack, iss);
-				std::unique_ptr<std::remove_const<T>::type> mesh(new std::remove_const<T>::type());
-				archive(*mesh.get());
-				m_shared_object = std::move(mesh);
-			}
-		}
-		return m_shared_object;
-	}
+	std::shared_ptr<const T>& 	shared_ptr(StackImpl &stack);
 
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	std::string 				format() override {
@@ -559,6 +547,21 @@ namespace cereal
 
 namespace Slic3r {
 namespace UndoRedo {
+
+template<typename T> std::shared_ptr<const T>& 	ImmutableObjectHistory<T>::shared_ptr(StackImpl &stack)
+{
+	if (m_shared_object.get() == nullptr && ! this->m_serialized.empty()) {
+		// Deserialize the object.
+		std::istringstream iss(m_serialized);
+		{
+			Slic3r::UndoRedo::InputArchive archive(stack, iss);
+			std::unique_ptr<std::remove_const<T>::type> mesh(new std::remove_const<T>::type());
+			archive(*mesh.get());
+			m_shared_object = std::move(mesh);
+		}
+	}
+	return m_shared_object;
+}
 
 template<typename T, typename T_AS> ObjectID StackImpl::save_mutable_object(const T &object)
 {
