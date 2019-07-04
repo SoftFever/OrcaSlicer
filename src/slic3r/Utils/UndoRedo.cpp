@@ -760,3 +760,43 @@ const std::vector<Snapshot>& Stack::snapshots() const { return pimpl->snapshots(
 
 } // namespace UndoRedo
 } // namespace Slic3r
+
+
+//FIXME we should have unit tests for testing serialization of basic types as DynamicPrintConfig.
+#if 0
+#include "libslic3r/Config.hpp"
+#include "libslic3r/PrintConfig.hpp"
+namespace Slic3r {
+	bool test_dynamic_print_config_serialization() {
+		FullPrintConfig full_print_config;
+		DynamicPrintConfig cfg;
+		cfg.apply(full_print_config, false);
+
+		std::string serialized;
+	   	try {
+			std::ostringstream ss;
+			cereal::BinaryOutputArchive oarchive(ss);
+	        oarchive(cfg);
+			serialized = ss.str();
+	    } catch (std::runtime_error e) {
+	        e.what();
+	    }
+
+	    DynamicPrintConfig cfg2;
+	   	try {
+			std::stringstream ss(serialized);
+			cereal::BinaryInputArchive iarchive(ss);
+	        iarchive(cfg2);
+	    } catch (std::runtime_error e) {
+	        e.what();
+	    }
+
+	    if (cfg == cfg2) {
+	    	printf("Yes!\n");
+			return true;
+	    }
+	    printf("No!\n");
+		return false;
+	}
+} // namespace Slic3r
+#endif
