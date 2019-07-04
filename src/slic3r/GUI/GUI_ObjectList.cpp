@@ -1888,6 +1888,10 @@ void ObjectList::layers_editing()
     if (!layers_item.IsOk())
         return;
 
+    // to correct visual hints for layers editing on the Scene, reset previous selection
+    wxGetApp().obj_layers()->reset_selection();
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+
     // select LayerRoor item and expand
     select_item(layers_item);
     Expand(layers_item);
