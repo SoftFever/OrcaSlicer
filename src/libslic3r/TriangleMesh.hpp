@@ -196,6 +196,7 @@ TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 }
 
 // Serialization through the Cereal library
+#include <cereal/access.hpp>
 namespace cereal {
 	template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
 	template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {

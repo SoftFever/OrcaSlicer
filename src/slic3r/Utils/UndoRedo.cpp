@@ -555,7 +555,8 @@ template<typename T> std::shared_ptr<const T>& 	ImmutableObjectHistory<T>::share
 		std::istringstream iss(m_serialized);
 		{
 			Slic3r::UndoRedo::InputArchive archive(stack, iss);
-			std::unique_ptr<std::remove_const<T>::type> mesh(new std::remove_const<T>::type());
+			typedef typename std::remove_const<T>::type Type;
+			std::unique_ptr<Type> mesh(new Type());
 			archive(*mesh.get());
 			m_shared_object = std::move(mesh);
 		}
