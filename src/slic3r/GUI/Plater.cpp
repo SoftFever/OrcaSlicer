@@ -1738,7 +1738,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) {
+        this->take_snapshot(_(L("Instance Moved"))); 
+        update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
@@ -2337,17 +2339,21 @@ void Plater::priv::object_list_changed()
 
 void Plater::priv::select_all()
 {
+//    this->take_snapshot(_(L("Select All")));
+
     view3D->select_all();
     this->sidebar->obj_list()->update_selections();
 }
 
 void Plater::priv::deselect_all()
 {
+//    this->take_snapshot(_(L("Deselect All")));
     view3D->deselect_all();
 }
 
 void Plater::priv::remove(size_t obj_idx)
 {
+    this->take_snapshot(_(L("Remove Object")));
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
@@ -2364,6 +2370,7 @@ void Plater::priv::remove(size_t obj_idx)
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
+//    this->take_snapshot(_(L("Delete Object"))); // ys_FIXME What is the difference with "Remove Object"? 
     model.delete_object(obj_idx);
     update();
     object_list_changed();
@@ -2398,17 +2405,20 @@ void Plater::priv::reset()
 
 void Plater::priv::mirror(Axis axis)
 {
+    this->take_snapshot(_(L("Mirror")));
     view3D->mirror_selection(axis);
 }
 
 void Plater::priv::arrange()
 {
+    this->take_snapshot(_(L("Arrange")));
     m_ui_jobs.start(Jobs::Arrange);
 }
 
 // This method will find an optimal orientation for the currently selected item
 // Very similar in nature to the arrange method above...
 void Plater::priv::sla_optimize_rotation() {
+    this->take_snapshot(_(L("Optimize Rotation")));
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
@@ -2564,6 +2574,8 @@ void Plater::priv::split_object()
         Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
     else
     {
+        this->take_snapshot(_(L("Split to Objects")));
+
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
             m->name = current_model_object->name + "_" + std::to_string(counter++);
@@ -2835,6 +2847,9 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 {
     if (obj_idx < 0)
         return;
+
+    this->take_snapshot(_(L("Fix Throught NetFabb")));
+
     fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
     this->update();
     this->object_list_changed();
@@ -3074,6 +3089,8 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
 {
+//    this->take_snapshot(_(L("Object Selection")));
+
     wxGetApp().obj_list()->update_selections();
     selection_changed();
 }
@@ -3135,6 +3152,8 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 {
+    this->take_snapshot(_(L("Wipe Tower Moved")));
+
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
@@ -3143,6 +3162,8 @@ void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 
 void Plater::priv::on_wipetower_rotated(Vec3dEvent& evt)
 {
+    this->take_snapshot(_(L("Wipe Tower Rotated")));
+
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
@@ -3514,7 +3535,9 @@ void Plater::priv::update_after_undo_redo()
 	this->update(false); // update volumes from the deserializd model
 	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
     this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
-//	    wxGetApp().obj_list()->update_selections();
+
+    wxGetApp().obj_list()->recreate_object_list();
+    wxGetApp().obj_list()->update_selections();
 //	    selection_changed();
 	//FIXME what about the state of the manipulators?
 	//FIXME what about the focus? Cursor in the side panel?
@@ -3579,6 +3602,8 @@ void Plater::add_model()
     wxGetApp().import_model(this, input_files);
     if (input_files.empty())
         return;
+
+    this->take_snapshot(_(L("Add object(s)")));
 
     std::vector<fs::path> input_paths;
     for (const auto &file : input_files) {
@@ -3717,6 +3742,8 @@ void Plater::set_number_of_copies(/*size_t num*/)
     if (num < 0)
         return;
 
+    this->take_snapshot(wxString::Format(_(L("Set numbers of copies to %d")), num));
+
     int diff = (int)num - (int)model_object->instances.size();
     if (diff > 0)
         increase_instances(diff);
@@ -3744,6 +3771,8 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
     if (!keep_upper && !keep_lower) {
         return;
     }
+
+    this->take_snapshot(_(L("Cut")));
 
     wxBusyCursor wait;
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
@@ -4245,8 +4274,11 @@ void Plater::copy_selection_to_clipboard()
 
 void Plater::paste_from_clipboard()
 {
-    if (can_paste_from_clipboard())
-        p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+    if (!can_paste_from_clipboard())
+        return;
+
+    this->take_snapshot(_(L("Paste From Clipboard")));
+    p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
 void Plater::msw_rescale()

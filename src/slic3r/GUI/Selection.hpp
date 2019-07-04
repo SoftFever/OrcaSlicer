@@ -238,7 +238,7 @@ public:
     void add_all();
 
     // To be called after Undo or Redo once the volumes are updated.
-    void set_deserialized(EMode mode, const std::vector<std::pair<ObjectID, ObjectID>> &volumes_and_instances);
+    void set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances);
 
     // Update the selection based on the new instance IDs.
 	void instances_changed(const std::vector<size_t> &instance_ids_selected);

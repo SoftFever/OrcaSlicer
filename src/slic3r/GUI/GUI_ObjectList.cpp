@@ -65,6 +65,11 @@ static int extruders_count()
     return wxGetApp().extruders_cnt();
 }
 
+static void take_snapshot(const wxString& snapshot_name)
+{
+    wxGetApp().plater()->take_snapshot(snapshot_name);
+}
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -580,7 +585,6 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     if (volumes.empty())
         return;
 
-    ModelObject& model_object = *(*m_objects)[obj_idx];
     const auto object_item = m_objects_model->GetItemById(obj_idx);
 
     wxDataViewItemArray items;
@@ -816,6 +820,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
     if (m_dragged_data.type() == itInstance)
     {
+        take_snapshot(_(L("Instances to Separated Objects")));
         instances_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.inst_idxs());
         m_dragged_data.clear();
         return;
@@ -832,6 +837,8 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 //     **/
 //     if (to_volume_id > from_volume_id) to_volume_id--;
 // #endif // __WXGTK__
+
+    take_snapshot(_(L("Remov Volume(s)")));
 
     auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
@@ -1427,6 +1434,8 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (m_objects_model->GetItemType(item)&itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
+    take_snapshot(_(L("Load Part")));
+
     std::vector<std::pair<wxString, bool>> volumes_info;
     load_part((*m_objects)[obj_idx], volumes_info, type);
 
@@ -1501,6 +1510,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     assert(instance_idx != -1);
     if (instance_idx == -1)
         return;
+
+    take_snapshot(_(L("Add Generic Subobject")));
 
     // Selected object
     ModelObject  &model_object = *(*m_objects)[obj_idx];
@@ -1616,6 +1627,8 @@ void ObjectList::del_instances_from_object(const int obj_idx)
     if (instances.size() <= 1)
         return;
 
+    take_snapshot(_(L("Delete All Instances from Object")));
+
     while ( instances.size()> 1)
         instances.pop_back();
 
@@ -1645,6 +1658,8 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             return false;
         }
 
+        take_snapshot(_(L("Delete Subobject")));
+
         object->delete_volume(idx);
 
         if (object->volumes.size() == 1)
@@ -1661,6 +1676,8 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last intance from object.")));
             return false;
         }
+
+        take_snapshot(_(L("Delete Instance")));
         object->delete_instance(idx);
     }
     else
@@ -1687,6 +1704,8 @@ void ObjectList::split()
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
     }
+
+    take_snapshot(_(L("Split to Parts")));
 
     wxBusyCursor wait;
 
@@ -1944,6 +1963,8 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
 {
     if ( !(type&(itObject|itVolume|itInstance)) )
         return;
+
+    take_snapshot(_(L("Delete Selected Item")));
 
     if (type&itObject) {
         del_object(obj_idx);
@@ -2502,6 +2523,8 @@ void ObjectList::change_part_type()
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
 
+    take_snapshot(_(L("Paste from Clipboard")));
+
     const auto item = GetSelection();
     volume->set_type(new_type);
     m_objects_model->SetVolumeType(item, new_type);
@@ -2860,6 +2883,23 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     // update scene
     wxGetApp().plater()->update();
+}
+
+void ObjectList::recreate_object_list()
+{
+    m_prevent_list_events = true;
+    m_prevent_canvas_selection_update = true;
+
+    m_objects_model->DeleteAll();
+
+    size_t obj_idx = 0;
+    while (obj_idx < m_objects->size()) {
+        add_object_to_list(obj_idx);
+        ++obj_idx;
+    }
+
+    m_prevent_canvas_selection_update = false;
+    m_prevent_list_events = false;
 }
 
 } //namespace GUI

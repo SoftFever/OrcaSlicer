@@ -311,7 +311,7 @@ void Selection::add_all()
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::set_deserialized(EMode mode, const std::vector<std::pair<ObjectID, ObjectID>> &volumes_and_instances)
+void Selection::set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances)
 {
     if (! m_valid)
         return;
@@ -320,11 +320,9 @@ void Selection::set_deserialized(EMode mode, const std::vector<std::pair<ObjectI
     for (unsigned int i : m_list)
         (*m_volumes)[i]->selected = false;
     m_list.clear();
-    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++ i) {
-    	const GLVolume::CompositeID &id = (*m_volumes)[i]->composite_id;
-		if (std::binary_search(volumes_and_instances.begin(), volumes_and_instances.end(), std::make_pair<ObjectID, ObjectID>(id.volume_id, id.instance_id)))
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++ i)
+		if (std::binary_search(volumes_and_instances.begin(), volumes_and_instances.end(), (*m_volumes)[i]->geometry_id))
 			this->do_add_volume(i);
-    }
     update_type();
     this->set_bounding_boxes_dirty();
 }
