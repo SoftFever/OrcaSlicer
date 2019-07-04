@@ -269,14 +269,6 @@ public:
     static Transformation volume_to_bed_transformation(const Transformation& instance_transformation, const BoundingBoxf3& bbox);
 
 private:
-	template<class Archive> void load(Archive& archive, Slic3r::Geometry::Transformation &t) { 
-		archive.loadBinary((char*)t.data(), sizeof(float) * 4);
-	}
-	template<class Archive> void save(Archive& archive, const Slic3r::Geometry::Transformation &t) const {
-		archive.saveBinary((char*)t.data(), sizeof(float) * 4);
-	}
-
-private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }
 	explicit Transformation(int) : m_dirty(true) {}
