@@ -171,7 +171,7 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 	// Filter replies based on selected technology
 	const auto model = e.reply.txt_data.find("model");
 	const bool sl1 = model != e.reply.txt_data.end() && model->second == "SL1";
-	if (tech == ptFFF && sl1 || tech == ptSLA && !sl1) {
+	if ((tech == ptFFF && sl1) || (tech == ptSLA && !sl1)) {
 		return;
 	}
 

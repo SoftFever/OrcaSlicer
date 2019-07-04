@@ -751,18 +751,18 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
         }
         // Store the option value.
         const bool               existing   = this->has(opt_key);
-        if (keys != nullptr && !existing) {
+        if (keys != nullptr && ! existing) {
             // Save the order of detected keys.
             keys->push_back(opt_key);
         }
         ConfigOption            *opt_base   = this->option(opt_key, true);
         ConfigOptionVectorBase  *opt_vector = opt_base->is_vector() ? static_cast<ConfigOptionVectorBase*>(opt_base) : nullptr;
         if (opt_vector) {
+			if (! existing)
+				// remove the default values
+				opt_vector->clear();
             // Vector values will be chained. Repeated use of a parameter will append the parameter or parameters
             // to the end of the value.
-			if (!existing)
-				// remove the default values
-				opt_vector->deserialize("", true);
             if (opt_base->type() == coBools)
                 static_cast<ConfigOptionBools*>(opt_base)->values.push_back(!no);
             else

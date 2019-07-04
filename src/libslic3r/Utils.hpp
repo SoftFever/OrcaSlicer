@@ -167,7 +167,7 @@ template<class T> size_t next_highest_power_of_2(T v,
 extern std::string xml_escape(std::string text);
 
 
-#if defined __GNUC__ & __GNUC__ < 5
+#if defined __GNUC__ && __GNUC__ < 5 && !defined __clang__
 // Older GCCs don't have std::is_trivially_copyable
 // cf. https://gcc.gnu.org/onlinedocs/gcc-4.9.4/libstdc++/manual/manual/status.html#status.iso.2011
 #warning "GCC version < 5, faking std::is_trivially_copyable"

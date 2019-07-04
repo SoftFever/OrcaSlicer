@@ -504,7 +504,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   else {
     buf[9]  = 0xff;
-    buf[10]  = 0xff;
+    buf[10] = 0xff;
     buf[13] = 0;
     buf[14] = 0;
     buf[17] = 0;
@@ -821,7 +821,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         break;
       }
 
-    for (prusa3d_semicolon_workaround_round = 0; prusa3d_semicolon_workaround_round < (has_semicolon ? 2 : 1); ++ prusa3d_semicolon_workaround_round) {
+    for (prusa3d_semicolon_workaround_round = 0; prusa3d_semicolon_workaround_round < (has_semicolon ? 2u : 1u); prusa3d_semicolon_workaround_round++) {
       /* build command block and avoid multiple send commands as it leads to a crash
           of the silabs usb serial driver on mac os x */
       i = 0;
@@ -834,7 +834,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       buf[i++] = block_size & 0x0f;
       buf[i++] = memtype;
       if (has_semicolon) {
-        for (j = 0; j < block_size; ++i, ++ j) {
+        for (j = 0; j < (unsigned)block_size; ++i, ++ j) {
           buf[i] = m->buf[addr + j];
           if (buf[i] == ';')
             buf[i] |= (prusa3d_semicolon_workaround_round ? 0xf0 : 0x0f);
@@ -1088,8 +1088,8 @@ static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
 
   min = 8.0 / STK500_XTAL;
   max = 255 * min;
-  dur = v / min + 0.5;
-  
+  dur = (int)(v / min + 0.5);
+
   if (v < min) {
       dur = 1;
       avrdude_message(MSG_INFO, "%s: stk500_set_sck_period(): p = %.1f us too small, using %.1f us\n",
@@ -1099,7 +1099,7 @@ static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
       avrdude_message(MSG_INFO, "%s: stk500_set_sck_period(): p = %.1f us too large, using %.1f us\n",
                       progname, v / 1e-6, dur * min / 1e-6);
   }
-  
+
   return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
 }
 

@@ -631,7 +631,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     assert(this->config.id() == rhs.config.id());
     this->sla_support_points          = rhs.sla_support_points;
     this->sla_points_status           = rhs.sla_points_status;
-    this->layer_height_ranges         = rhs.layer_height_ranges;
+    this->layer_config_ranges         = rhs.layer_config_ranges;    // #ys_FIXME_experiment
     this->layer_height_profile        = rhs.layer_height_profile;
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
@@ -670,7 +670,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     assert(this->config.id() == rhs.config.id());
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->sla_points_status           = std::move(rhs.sla_points_status);
-    this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
+    this->layer_config_ranges         = std::move(rhs.layer_config_ranges); // #ys_FIXME_experiment
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
@@ -1578,8 +1578,10 @@ void ModelVolume::center_geometry_after_creation()
     Vec3d shift = this->mesh().bounding_box().center();
     if (!shift.isApprox(Vec3d::Zero()))
     {
-        const_cast<TriangleMesh*>(m_mesh.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
-		const_cast<TriangleMesh*>(m_convex_hull.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+    	if (m_mesh)
+        	m_mesh->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        if (m_convex_hull)
+        	m_convex_hull->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
 }
@@ -1857,7 +1859,7 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
         if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
             return true;
 
-        ++i_old;
+        ++ i_old;
         ++ i_new;
     }
     for (; i_old < model_object_old.volumes.size(); ++ i_old) {

@@ -442,8 +442,7 @@ void FirmwareDialog::priv::avr109_lookup_port(Avr109Pid usb_pid)
 	auto ports = Utils::scan_serial_ports_extended();
 	ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
 		return port.id_vendor != USB_VID_PRUSA ||
-			port.id_product != usb_pid.boot &&
-			port.id_product != usb_pid.app;
+			(port.id_product != usb_pid.boot && port.id_product != usb_pid.app);
 	}), ports.end());
 
 	if (ports.size() == 0) {

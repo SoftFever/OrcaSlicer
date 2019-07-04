@@ -160,8 +160,8 @@ public:
     ModelVolumePtrs         volumes;
     // Configuration parameters specific to a single ModelObject, overriding the global Slic3r settings.
     ModelConfig      		config;
-    // Variation of a layer thickness for spans of Z coordinates.
-    t_layer_height_ranges   layer_height_ranges;
+    // Variation of a layer thickness for spans of Z coordinates + optional parameter overrides.
+    t_layer_config_ranges   layer_config_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array.
     std::vector<coordf_t>   layer_height_profile;

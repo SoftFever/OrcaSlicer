@@ -308,8 +308,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
                         progname, port);
                 return -1;
 	}
-        avrdude_message(MSG_DEBUG, "%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
-                        progname, port, (int)hComPort);
+        avrdude_message(MSG_DEBUG, "%s: ser_open(): opened comm port \"%s\", handle %p\n",
+                        progname, port, (void *)hComPort);
 
         pgm->fd.pfd = (void *)hComPort;
 
@@ -326,8 +326,8 @@ static void serbb_close(PROGRAMMER *pgm)
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        avrdude_message(MSG_DEBUG, "%s: ser_close(): closed comm port handle 0x%x\n",
-                                progname, (int)hComPort);
+        avrdude_message(MSG_DEBUG, "%s: ser_close(): closed comm port handle %p\n",
+                                progname, (void *)hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
 }

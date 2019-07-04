@@ -12,6 +12,7 @@
 #include "Camera.hpp"
 #include "Selection.hpp"
 #include "Gizmos/GLGizmosManager.hpp"
+#include "GUI_ObjectLayers.hpp"
 
 #include <float.h>
 
@@ -199,7 +200,6 @@ class GLCanvas3D
         static const float THICKNESS_BAR_WIDTH;
         static const float THICKNESS_RESET_BUTTON_HEIGHT;
 
-        bool                        m_use_legacy_opengl;
         bool                        m_enabled;
         Shader                      m_shader;
         unsigned int                m_z_texture_id;
@@ -252,7 +252,6 @@ class GLCanvas3D
         void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
-        void set_use_legacy_opengl(bool use_legacy_opengl);
 
         bool is_enabled() const;
         void set_enabled(bool enabled);
@@ -481,6 +480,10 @@ private:
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
+#if ENABLE_RENDER_PICKING_PASS
+    bool m_show_picking_texture;
+#endif // ENABLE_RENDER_PICKING_PASS
+
 #if ENABLE_RENDER_STATISTICS
     RenderStats m_render_stats;
 #endif // ENABLE_RENDER_STATISTICS
@@ -494,7 +497,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-    bool init(bool useVBOs, bool use_legacy_opengl);
+    bool init(bool useVBOs);
     void post_event(wxEvent &&event);
 
     void set_as_dirty();
@@ -608,6 +611,7 @@ public:
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
+    void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
 

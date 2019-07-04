@@ -11,8 +11,8 @@ typedef class GLUquadric GLUquadricObj;
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 namespace Slic3r {
+class Shader;
 namespace GUI {
-
 class TransformationType
 {
 public:
@@ -305,7 +305,7 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    void render_sidebar_hints(const std::string& sidebar_field) const;
+    void render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const;
 
     bool requires_local_axes() const;
 
@@ -335,6 +335,7 @@ private:
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     void render_sidebar_scale_hints(const std::string& sidebar_field) const;
     void render_sidebar_size_hints(const std::string& sidebar_field) const;
+    void render_sidebar_layers_hints(const std::string& sidebar_field) const;
     void render_sidebar_position_hint(Axis axis) const;
     void render_sidebar_rotation_hint(Axis axis) const;
     void render_sidebar_scale_hint(Axis axis) const;

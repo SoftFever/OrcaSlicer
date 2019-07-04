@@ -6,7 +6,8 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#include "slic3r/GUI/3DScene.hpp"
+#include "3DScene.hpp"
+#include "Camera.hpp"
 
 #include <GL/glew.h>
 
@@ -347,6 +348,9 @@ void Selection::clear()
 
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
+
+    // #et_FIXME fake KillFocus from sidebar
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 }
 
 // Update the selection based on the new instance IDs.
@@ -1086,61 +1090,68 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
 {
     if (sidebar_field.empty())
         return;
 
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (!boost::starts_with(sidebar_field, "layer"))
+    {
+        shader.start_using();
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+        glsafe(::glEnable(GL_LIGHTING));
+    }
 
-    glsafe(::glEnable(GL_LIGHTING));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
 
-    const Vec3d& center = get_bounding_box().center();
-
-    if (is_single_full_instance() && ! wxGetApp().obj_manipul()->get_world_coordinates())
+    if (!boost::starts_with(sidebar_field, "layer"))
     {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        if (!boost::starts_with(sidebar_field, "position"))
+        const Vec3d& center = get_bounding_box().center();
+
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates())
         {
-            Transform3d orient_matrix = Transform3d::Identity();
-            if (boost::starts_with(sidebar_field, "scale"))
-                orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-            else if (boost::starts_with(sidebar_field, "rotation"))
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            if (!boost::starts_with(sidebar_field, "position"))
             {
-                if (boost::ends_with(sidebar_field, "x"))
+                Transform3d orient_matrix = Transform3d::Identity();
+                if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                else if (boost::ends_with(sidebar_field, "y"))
+                else if (boost::starts_with(sidebar_field, "rotation"))
                 {
-                    const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
-                    if (rotation(0) == 0.0)
+                    if (boost::ends_with(sidebar_field, "x"))
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                    else
-                        orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                    else if (boost::ends_with(sidebar_field, "y"))
+                    {
+                        const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
+                        if (rotation(0) == 0.0)
+                            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                        else
+                            orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                    }
                 }
+
+                glsafe(::glMultMatrixd(orient_matrix.data()));
             }
+        }
+        else if (is_single_volume() || is_single_modifier())
+        {
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            if (!boost::starts_with(sidebar_field, "position"))
+                orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
             glsafe(::glMultMatrixd(orient_matrix.data()));
         }
-    }
-    else if (is_single_volume() || is_single_modifier())
-    {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-        if (!boost::starts_with(sidebar_field, "position"))
-            orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
-
-        glsafe(::glMultMatrixd(orient_matrix.data()));
-    }
-    else
-    {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        if (requires_local_axes())
+        else
         {
-            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-            glsafe(::glMultMatrixd(orient_matrix.data()));
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            if (requires_local_axes())
+            {
+                Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                glsafe(::glMultMatrixd(orient_matrix.data()));
+            }
         }
     }
 
@@ -1152,10 +1163,16 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
         render_sidebar_scale_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "size"))
         render_sidebar_size_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "layer"))
+        render_sidebar_layers_hints(sidebar_field);
 
     glsafe(::glPopMatrix());
 
-    glsafe(::glDisable(GL_LIGHTING));
+    if (!boost::starts_with(sidebar_field, "layer"))
+    {
+        glsafe(::glDisable(GL_LIGHTING));
+        shader.stop_using();
+    }
 }
 
 bool Selection::requires_local_axes() const
@@ -1179,7 +1196,7 @@ void Selection::copy_to_clipboard()
 		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
-        dst_object->layer_height_ranges  = src_object->layer_height_ranges;
+        dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
         dst_object->layer_height_profile = src_object->layer_height_profile;
         dst_object->origin_translation   = src_object->origin_translation;
 
@@ -1723,6 +1740,78 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) con
 void Selection::render_sidebar_size_hints(const std::string& sidebar_field) const
 {
     render_sidebar_scale_hints(sidebar_field);
+}
+
+void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+{
+    static const double Margin = 10.0;
+
+    std::string field = sidebar_field;
+
+    // extract max_z
+    std::string::size_type pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    double max_z = std::stod(field.substr(pos + 1));
+
+    // extract min_z
+    field = field.substr(0, pos);
+    pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    double min_z = std::stod(field.substr(pos + 1));
+
+    // extract type
+    field = field.substr(0, pos);
+    pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    int type = std::stoi(field.substr(pos + 1));
+
+    const BoundingBoxf3& box = get_bounding_box();
+
+    const float min_x = box.min(0) - Margin;
+    const float max_x = box.max(0) + Margin;
+    const float min_y = box.min(1) - Margin;
+    const float max_y = box.max(1) + Margin;
+
+    // view dependend order of rendering to keep correct transparency
+    bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
+    float z1 = camera_on_top ? min_z : max_z;
+    float z2 = camera_on_top ? max_z : min_z;
+
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+    ::glBegin(GL_QUADS);
+    if ((camera_on_top && (type == 1)) || (!camera_on_top && (type == 2)))
+        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+    else
+        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glVertex3f(min_x, min_y, z1);
+    ::glVertex3f(max_x, min_y, z1);
+    ::glVertex3f(max_x, max_y, z1);
+    ::glVertex3f(min_x, max_y, z1);
+    glsafe(::glEnd());
+
+    ::glBegin(GL_QUADS);
+    if ((camera_on_top && (type == 2)) || (!camera_on_top && (type == 1)))
+        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+    else
+        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glVertex3f(min_x, min_y, z2);
+    ::glVertex3f(max_x, min_y, z2);
+    ::glVertex3f(max_x, max_y, z2);
+    ::glVertex3f(min_x, max_y, z2);
+    glsafe(::glEnd());
+
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_BLEND));
 }
 
 void Selection::render_sidebar_position_hint(Axis axis) const

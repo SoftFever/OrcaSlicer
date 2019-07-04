@@ -91,6 +91,8 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config::new_from_defaults;
+    # Define 4 extruders.
+    $config->set('nozzle_diameter', [0.4, 0.4, 0.4, 0.4]);
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', 0.4);
     $config->set('skirts', 1);
@@ -106,7 +108,7 @@ use Slic3r::Test;
     
     # we enable support material after skirt has been generated
     $config->set('support_material', 1);
-    $print->apply_config_perl_tests_only($config);
+    $print->apply($print->print->model->clone, $config);
     
     my $skirt_length = 0;
     my @extrusion_points = ();

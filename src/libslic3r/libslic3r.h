@@ -61,20 +61,6 @@ typedef double  coordf_t;
 #define SLIC3R_NOEXCEPT  noexcept
 #endif
 
-template<class Tf> inline SLIC3R_CONSTEXPR coord_t scaled(Tf val)
-{
-    static_assert (std::is_floating_point<Tf>::value, "Floating point only");
-    return coord_t(val / Tf(SCALING_FACTOR));
-}
-
-template<class Tf = double> inline SLIC3R_CONSTEXPR Tf unscaled(coord_t val)
-{
-    static_assert (std::is_floating_point<Tf>::value, "Floating point only");
-    return Tf(val * Tf(SCALING_FACTOR));
-}
-
-inline SLIC3R_CONSTEXPR float unscaledf(coord_t val) { return unscaled<float>(val); }
-
 inline std::string debug_out_path(const char *name, ...)
 {
 	char buffer[2048];

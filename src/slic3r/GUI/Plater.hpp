@@ -33,6 +33,7 @@ class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
 class ObjectSettings;
+class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 
@@ -93,6 +94,7 @@ public:
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
+    ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
     wxPanel*                presets_panel();
 
@@ -175,7 +177,9 @@ public:
     void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
-    void schedule_background_process();
+    void schedule_background_process(bool schedule = true);
+    bool is_background_process_running() const;
+    void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 
@@ -221,11 +225,23 @@ public:
 
     void msw_rescale();
 
+    const Camera& get_camera() const;
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    friend class SuppressBackgroundProcessingUpdate;
 };
 
+class SuppressBackgroundProcessingUpdate
+{
+public:
+    SuppressBackgroundProcessingUpdate();
+    ~SuppressBackgroundProcessingUpdate();
+private:
+    bool m_was_running;
+};
 
 }}
 

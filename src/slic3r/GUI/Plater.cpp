@@ -50,6 +50,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_ObjectLayers.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
@@ -615,10 +616,11 @@ struct Sidebar::priv
     PresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
-    FreqChangedParams   *frequently_changed_parameters;
-    ObjectList          *object_list;
-    ObjectManipulation  *object_manipulation;
-    ObjectSettings      *object_settings;
+    FreqChangedParams   *frequently_changed_parameters{ nullptr };
+    ObjectList          *object_list{ nullptr };
+    ObjectManipulation  *object_manipulation{ nullptr };
+    ObjectSettings      *object_settings{ nullptr };
+    ObjectLayers        *object_layers{ nullptr };
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -627,9 +629,25 @@ struct Sidebar::priv
     wxButton *btn_send_gcode;
 
     priv(Plater *plater) : plater(plater) {}
+    ~priv();
 
     void show_preset_comboboxes();
 };
+
+Sidebar::priv::~priv()
+{
+    if (object_manipulation != nullptr)
+        delete object_manipulation;
+
+    if (object_settings != nullptr)
+        delete object_settings;
+
+    if (frequently_changed_parameters != nullptr)
+        delete frequently_changed_parameters;
+
+    if (object_layers != nullptr)
+        delete object_layers;
+}
 
 void Sidebar::priv::show_preset_comboboxes()
 {
@@ -737,6 +755,11 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings = new ObjectSettings(p->scrolled);
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
+ 
+    // Object Layers
+    p->object_layers = new ObjectLayers(p->scrolled);
+    p->object_layers->Hide();
+    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
@@ -930,6 +953,7 @@ void Sidebar::msw_rescale()
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
+    p->object_layers->msw_rescale();
 
     p->object_info->msw_rescale();
 
@@ -949,6 +973,11 @@ ObjectList* Sidebar::obj_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
+}
+
+ObjectLayers* Sidebar::obj_layers()
+{
+    return p->object_layers;
 }
 
 wxScrolledWindow* Sidebar::scrolled_panel()
@@ -1264,6 +1293,7 @@ struct Plater::priv
     Preview *preview;
 
     BackgroundSlicingProcess    background_process;
+    bool suppressed_backround_processing_update { false };
     
     // A class to handle UI jobs like arranging and optimizing rotation.
     // These are not instant jobs, the user has to be informed about their
@@ -1516,6 +1546,7 @@ struct Plater::priv
     static const std::regex pattern_prusa;
 
     priv(Plater *q, MainFrame *main_frame);
+    ~priv();
 
     void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
@@ -1705,7 +1736,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panels.push_back(preview);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
+    {
+        if (!this->suppressed_backround_processing_update)
+            this->update_restart_background_process(false, false);
+    });
 
     update();
 
@@ -1793,6 +1828,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 	this->undo_redo_stack.initialize(model, view3D->get_canvas3d()->get_selection());
 	this->take_snapshot(_(L("New Project")));
+}
+
+Plater::priv::~priv()
+{
+    if (config != nullptr)
+        delete config;
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -2170,9 +2211,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         }
 
         object->ensure_on_bed();
-
-        // print.auto_assign_extruders(object);
-        // print.add_model_object(object);
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -2957,8 +2995,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    /* Settings list can be changed after printer preset changing, so
+     * update all settings items for all item had it.
+     * Furthermore, Layers editing is implemented only for FFF printers 
+     * and for SLA presets they should be deleted
+     */
     if (preset_type == Preset::TYPE_PRINTER)
-        wxGetApp().obj_list()->update_settings_items();
+//        wxGetApp().obj_list()->update_settings_items();
+        wxGetApp().obj_list()->update_object_list_by_printer_technology();
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
@@ -3307,6 +3351,10 @@ bool Plater::priv::complit_init_object_menu()
 
     append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "", 
         [this]() { return can_split() && wxGetApp().get_mode() > comSimple; }, q);
+    object_menu.AppendSeparator();
+
+    // Layers Editing for object
+    sidebar->obj_list()->append_menu_item_layers_editing(&object_menu);
     object_menu.AppendSeparator();
 
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
@@ -4000,6 +4048,9 @@ void Plater::reslice()
     }
     else if (!p->background_process.empty() && !p->background_process.idle())
         p->show_action_buttons(true);
+
+    // update type of preview
+    p->preview->update_view_type();
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object)
@@ -4257,9 +4308,25 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     this->p->schedule_background_process();
 }
 
-void Plater::schedule_background_process()
+void Plater::schedule_background_process(bool schedule/* = true*/)
 {
-    this->p->schedule_background_process();    
+    if (schedule)
+        this->p->schedule_background_process();
+
+    this->p->suppressed_backround_processing_update = false;
+}
+
+bool Plater::is_background_process_running() const 
+{
+    return this->p->background_process_timer.IsRunning();
+}
+
+void Plater::suppress_background_process(const bool stop_background_process)
+{
+    if (stop_background_process)
+        this->p->background_process_timer.Stop();
+
+    this->p->suppressed_backround_processing_update = true;
 }
 
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
@@ -4293,6 +4360,11 @@ void Plater::msw_rescale()
 
     Layout();
     GetParent()->Layout();
+}
+
+const Camera& Plater::get_camera() const
+{
+    return p->camera;
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }
@@ -4336,6 +4408,17 @@ bool Plater::can_copy_to_clipboard() const
         return false;
 
     return true;
+}
+
+SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
+    m_was_running(wxGetApp().plater()->is_background_process_running())
+{
+    wxGetApp().plater()->suppress_background_process(m_was_running);
+}
+
+SuppressBackgroundProcessingUpdate::~SuppressBackgroundProcessingUpdate()
+{
+    wxGetApp().plater()->schedule_background_process(m_was_running);
 }
 
 }}    // namespace Slic3r::GUI

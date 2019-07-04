@@ -177,8 +177,10 @@ public:
     // Set a single vector item from either a scalar option or the first value of a vector option.vector of ConfigOptions. 
     // This function is useful to split values from multiple extrder / filament settings into separate configurations.
     virtual void set_at(const ConfigOption *rhs, size_t i, size_t j) = 0;
-
+    // Resize the vector of values, copy the newly added values from opt_default if provided.
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
+    // Clear the values vector.
+    virtual void clear() = 0;
 
     // Get size of this vector.
     virtual size_t size()  const = 0;
@@ -287,6 +289,8 @@ public:
         }
     }
 
+    // Clear the values vector.
+    void   clear() override { this->values.clear(); }
     size_t size()  const override { return this->values.size(); }
     bool   empty() const override { return this->values.empty(); }
 

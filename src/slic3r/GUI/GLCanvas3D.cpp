@@ -198,8 +198,7 @@ void GLCanvas3D::Shader::_reset()
 #endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_use_legacy_opengl(false)
-    , m_enabled(false)
+    : m_enabled(false)
     , m_z_texture_id(0)
     , m_model_object(nullptr)
     , m_object_max_z(0.f)
@@ -274,12 +273,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return !m_use_legacy_opengl && m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
-}
-
-void GLCanvas3D::LayersEditing::set_use_legacy_opengl(bool use_legacy_opengl)
-{
-    m_use_legacy_opengl = use_legacy_opengl;
+    return m_shader.is_initialized() && m_shader.get_shader()->shader_program_id > 0 && m_z_texture_id > 0;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -463,8 +457,10 @@ void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
 {
     //FIXME show some kind of legend.
 
+    if (!m_slicing_parameters)
+        return;
+
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
-	assert(m_slicing_parameters != nullptr);
     float scale_x = bar_rect.get_width() / (float)(1.12 * m_slicing_parameters->max_layer_height);
     float scale_y = bar_rect.get_height() / m_object_max_z;
     float x = bar_rect.get_left() + (float)m_slicing_parameters->layer_height * scale_x;
@@ -916,7 +912,8 @@ GLCanvas3D::LegendTexture::LegendTexture()
 void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
                                                                std::vector<std::pair<double, double>>& cp_legend_values)
 {
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
+        wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
     {
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
@@ -1230,6 +1227,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_cursor_type(Standard)
     , m_color_by("volume")
     , m_reload_delayed(false)
+#if ENABLE_RENDER_PICKING_PASS
+    , m_show_picking_texture(false)
+#endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
 {
     if (m_canvas != nullptr) {
@@ -1255,7 +1255,7 @@ void GLCanvas3D::post_event(wxEvent &&event)
     wxPostEvent(m_canvas, event);
 }
 
-bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
+bool GLCanvas3D::init(bool useVBOs)
 {
     if (m_initialized)
         return true;
@@ -1313,7 +1313,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         return false;
 
     m_use_VBOs = useVBOs;
-    m_layers_editing.set_use_legacy_opengl(use_legacy_opengl);
 
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
@@ -1634,6 +1633,10 @@ void GLCanvas3D::render()
             _picking_pass();
     }
 
+#if ENABLE_RENDER_PICKING_PASS
+    if (!m_picking_enabled || !m_show_picking_texture)
+    {
+#endif // ENABLE_RENDER_PICKING_PASS
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
@@ -1663,6 +1666,9 @@ void GLCanvas3D::render()
 
     _render_current_gizmo();
     _render_selection_sidebar_hints();
+#if ENABLE_RENDER_PICKING_PASS
+    }
+#endif // ENABLE_RENDER_PICKING_PASS
 
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
@@ -2423,6 +2429,14 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
         case 'o': { set_camera_zoom(-1.0); break; }
+#if ENABLE_RENDER_PICKING_PASS
+        case 'T':
+        case 't': {
+            m_show_picking_texture = !m_show_picking_texture;
+            m_dirty = true; 
+            break;
+        }
+#endif // ENABLE_RENDER_PICKING_PASS
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:  { evt.Skip(); break; }
@@ -3329,6 +3343,12 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
         m_gizmos.reset_all_states();
         m_dirty = true;
     }
+}
+
+void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
+{
+    std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
+    handle_sidebar_focus_event(field, true);
 }
 
 void GLCanvas3D::update_ui_from_settings()
@@ -4296,13 +4316,7 @@ void GLCanvas3D::_render_sla_slices() const
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    if (m_use_VBOs)
-        m_shader.start_using();
-
-    m_selection.render_sidebar_hints(m_sidebar_field);
-
-    if (m_use_VBOs)
-        m_shader.stop_using();
+    m_selection.render_sidebar_hints(m_sidebar_field, m_shader);
 }
 
 
