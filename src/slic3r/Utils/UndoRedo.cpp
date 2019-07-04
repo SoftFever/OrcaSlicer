@@ -1,7 +1,10 @@
 #include "UndoRedo.hpp"
 
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 #include <memory>
+#include <typeinfo> 
 #include <cassert>
 #include <cstddef>
 
@@ -17,6 +20,10 @@
 #include <libslic3r/ObjectID.hpp>
 
 #include <boost/foreach.hpp>
+
+#ifndef NDEBUG
+// #define SLIC3R_UNDOREDO_DEBUG
+#endif /* NDEBUG */
 
 namespace Slic3r {
 namespace UndoRedo {
@@ -63,8 +70,13 @@ public:
 	// Release all data after the given timestamp. For the ImmutableObjectHistory, the shared pointer is NOT released.
 	virtual void relese_after_timestamp(size_t timestamp) = 0;
 
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	// Human readable debug information.
+	virtual std::string	format() = 0;
+#endif /* SLIC3R_UNDOREDO_DEBUG */
+
 #ifndef NDEBUG
-	virtual bool validate() = 0;
+	virtual bool valid() = 0;
 #endif /* NDEBUG */
 };
 
@@ -79,7 +91,7 @@ public:
 	// Release all data after the given timestamp. The shared pointer is NOT released.
 	void relese_after_timestamp(size_t timestamp) override {
 		assert(! m_history.empty());
-		assert(this->validate());
+		assert(this->valid());
 		// it points to an interval which either starts with timestamp, or follows the timestamp.
 		auto it = std::lower_bound(m_history.begin(), m_history.end(), T(timestamp, timestamp));
 		if (it == m_history.end()) {
@@ -90,7 +102,7 @@ public:
 			it_prev->trim_end(timestamp);
 		}
 		m_history.erase(it, m_history.end());
-		assert(this->validate());
+		assert(this->valid());
 	}
 
 protected:
@@ -155,8 +167,20 @@ public:
 		return m_shared_object;
 	}
 
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::string 				format() override {
+		std::string out = typeid(T).name();
+		out += this->is_serialized() ? 
+			std::string(" len:") + std::to_string(m_serialized.size()) : 
+			std::string(" ptr:") + ptr_to_string(m_shared_object.get());
+		for (const Interval &interval : m_history)
+			out += std::string(",<") + std::to_string(interval.begin()) + "," + std::to_string(interval.end()) + ")";
+		return out;
+	}
+#endif /* SLIC3R_UNDOREDO_DEBUG */
+
 #ifndef NDEBUG
-	bool 						validate() override;
+	bool 						valid() override;
 #endif /* NDEBUG */
 
 private:
@@ -225,6 +249,13 @@ private:
 	MutableHistoryInterval& operator=(const MutableHistoryInterval &rhs);
 };
 
+static inline std::string ptr_to_string(const void* ptr)
+{
+	char buf[64];
+	sprintf(buf, "%p", ptr);
+	return buf;
+}
+
 // Smaller objects (Model, ModelObject, ModelInstance, ModelVolume, DynamicPrintConfig)
 // are mutable and there is not tracking of the changes, therefore a snapshot needs to be
 // taken every time and compared to the previous data at the Undo / Redo stack.
@@ -274,14 +305,28 @@ public:
 		return std::string(it->data(), it->data() + it->size());
 	}
 
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::string format() override {
+		std::string out = typeid(T).name();
+		bool first = true;
+		for (const MutableHistoryInterval &interval : m_history) {
+			if (! first)
+				out += ",";
+			out += std::string("ptr:") + ptr_to_string(interval.data()) + " len:" + std::to_string(interval.size()) + " <" + std::to_string(interval.begin()) + "," + std::to_string(interval.end()) + ")";
+			first = false;
+		}
+		return out;
+	}
+#endif /* SLIC3R_UNDOREDO_DEBUG */
+
 #ifndef NDEBUG
-	bool validate() override;
+	bool valid() override;
 #endif /* NDEBUG */
 };
 
 #ifndef NDEBUG
 template<typename T>
-bool ImmutableObjectHistory<T>::validate()
+bool ImmutableObjectHistory<T>::valid()
 {
 	// The immutable object content is captured either by a shared object, or by its serialization, but not both.
 	assert(! m_shared_object == ! m_serialized.empty());
@@ -295,7 +340,7 @@ bool ImmutableObjectHistory<T>::validate()
 
 #ifndef NDEBUG
 template<typename T>
-bool MutableObjectHistory<T>::validate()
+bool MutableObjectHistory<T>::valid()
 {
 	// Verify that the history intervals are sorted and do not overlap, and that the data reference counters are correct.
 	if (! m_history.empty()) {
@@ -329,7 +374,9 @@ public:
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	void load_snapshot(size_t timestamp, Slic3r::Model &model);
 
-	bool undo(Slic3r::Model &model);
+	bool has_undo_snapshot() const;
+	bool has_redo_snapshot() const;
+	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	bool redo(Slic3r::Model &model);
 
 	// Snapshot history (names with timestamps).
@@ -343,6 +390,41 @@ public:
 	template<typename T> T* load_mutable_object(const Slic3r::ObjectID id);
 	template<typename T> std::shared_ptr<const T> load_immutable_object(const Slic3r::ObjectID id);
 	template<typename T, typename T_AS> void load_mutable_object(const Slic3r::ObjectID id, T &target);
+
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::string format() const {
+		std::string out = "Objects\n";
+		for (const std::pair<const ObjectID, std::unique_ptr<ObjectHistoryBase>> &kvp : m_objects)
+			out += std::string("ObjectID:") + std::to_string(kvp.first.id) + " " + kvp.second->format() + "\n";
+		out += "Snapshots\n";
+		for (const Snapshot &snapshot : m_snapshots) {
+			if (snapshot.timestamp == m_active_snapshot_time)
+				out += ">>> ";
+			out += std::string("Name:") + snapshot.name + ", timestamp: " + std::to_string(snapshot.timestamp) + ", Model ID:" + std::to_string(snapshot.model_id) + "\n";
+		}
+		if (m_active_snapshot_time > m_snapshots.back().timestamp)
+			out += ">>>\n";
+		out += "Current time: " + std::to_string(m_current_time) + "\n";
+		return out;
+	}
+	void print() const {
+		std::cout << "Undo / Redo stack" << std::endl;
+		std::cout << this->format() << std::endl;
+	}
+#endif /* SLIC3R_UNDOREDO_DEBUG */
+
+
+#ifndef NDEBUG
+	bool valid() const {
+		assert(! m_snapshots.empty());
+		auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
+		assert(it == m_snapshots.end() || (it != m_snapshots.begin() && it->timestamp == m_active_snapshot_time));
+		assert(it != m_snapshots.end() || m_active_snapshot_time > m_snapshots.back().timestamp);
+		for (auto it = m_objects.begin(); it != m_objects.end(); ++ it) 
+			assert(it->second->valid());
+		return true;
+	}
+#endif /* NDEBUG */
 
 private:
 	template<typename T> ObjectID 	immutable_object_id(const std::shared_ptr<const T> &ptr) { 
@@ -554,7 +636,11 @@ void StackImpl::initialize(const Slic3r::Model &model, const Slic3r::GUI::Select
 void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection)
 {
 	// Release old snapshot data.
-	++ m_active_snapshot_time;
+	// The active snapshot may be above the last snapshot if there is no redo data available.
+	if (! m_snapshots.empty() && m_active_snapshot_time > m_snapshots.back().timestamp)
+		m_active_snapshot_time = m_snapshots.back().timestamp + 1;
+	else
+		++ m_active_snapshot_time;
 	for (auto &kvp : m_objects)
 		kvp.second->relese_after_timestamp(m_active_snapshot_time);
 	{
@@ -572,10 +658,15 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 	}
 	this->save_mutable_object<Selection, Selection>(m_selection);
 	// Save the snapshot info.
-	m_active_snapshot_time = m_current_time ++;
-	m_snapshots.emplace_back(snapshot_name, m_active_snapshot_time, model.id().id);
+	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id);
+	m_active_snapshot_time = m_current_time;
 	// Release empty objects from the history.
 	this->collect_garbage();
+	assert(this->valid());
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::cout << "After snapshot" << std::endl;
+	this->print();
+#endif /* SLIC3R_UNDOREDO_DEBUG */
 }
 
 void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model)
@@ -588,32 +679,54 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model)
 	m_active_snapshot_time = timestamp;
 	model.clear_objects();
 	model.clear_materials();
-	this->load_mutable_object<Slic3r::Model, Slic3r::Model>(ObjectID(it_snapshot->model_object_id), model);
+	this->load_mutable_object<Slic3r::Model, Slic3r::Model>(ObjectID(it_snapshot->model_id), model);
 	model.update_links_bottom_up_recursive();
 	m_selection.volumes_and_instances.clear();
 	this->load_mutable_object<Selection, Selection>(m_selection.id(), m_selection);
 	// Sort the volumes so that we may use binary search.
 	std::sort(m_selection.volumes_and_instances.begin(), m_selection.volumes_and_instances.end());
 	this->m_active_snapshot_time = timestamp;
+	assert(this->valid());
 }
 
-bool StackImpl::undo(Slic3r::Model &model)
+bool StackImpl::has_undo_snapshot() const
 { 
+	assert(this->valid());
+	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
+	return -- it != m_snapshots.begin();
+}
+
+bool StackImpl::has_redo_snapshot() const
+{ 
+	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
+	return it != m_snapshots.end() && ++ it != m_snapshots.end();
+}
+
+bool StackImpl::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection)
+{ 
+	assert(this->valid());
 	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
-	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
 	if (-- it_current == m_snapshots.begin())
 		return false;
 	this->load_snapshot(it_current->timestamp, model);
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::cout << "After undo" << std::endl;
+ 	this->print();
+#endif /* SLIC3R_UNDOREDO_DEBUG */
 	return true;
 }
 
 bool StackImpl::redo(Slic3r::Model &model)
 { 
+	assert(this->valid());
 	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
-	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
-	if (++ it_current == m_snapshots.end())
+	if (it_current == m_snapshots.end() || ++ it_current == m_snapshots.end())
 		return false;
-	this->load_snapshot(it_current->timestamp, model); 
+	this->load_snapshot(it_current->timestamp, model);
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::cout << "After redo" << std::endl;
+ 	this->print();
+#endif /* SLIC3R_UNDOREDO_DEBUG */
 	return true;
 }
 
@@ -637,7 +750,9 @@ Stack::~Stack() {}
 void Stack::initialize(const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->initialize(model, selection); }
 void Stack::take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->take_snapshot(snapshot_name, model, selection); }
 void Stack::load_snapshot(size_t timestamp, Slic3r::Model &model) { pimpl->load_snapshot(timestamp, model); }
-bool Stack::undo(Slic3r::Model &model) { return pimpl->undo(model); }
+bool Stack::has_undo_snapshot() const { return pimpl->has_undo_snapshot(); }
+bool Stack::has_redo_snapshot() const { return pimpl->has_redo_snapshot(); }
+bool Stack::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { return pimpl->undo(model, selection); }
 bool Stack::redo(Slic3r::Model &model) { return pimpl->redo(model); }
 const Selection& Stack::selection_deserialized() const { return pimpl->selection_deserialized(); }
 

@@ -19,11 +19,11 @@ namespace UndoRedo {
 struct Snapshot
 {
 	Snapshot(size_t timestamp) : timestamp(timestamp) {}
-	Snapshot(const std::string &name, size_t timestamp, size_t model_object_id) : name(name), timestamp(timestamp), model_object_id(model_object_id) {}
+	Snapshot(const std::string &name, size_t timestamp, size_t model_id) : name(name), timestamp(timestamp), model_id(model_id) {}
 	
 	std::string name;
 	size_t 		timestamp;
-	size_t 		model_object_id;
+	size_t 		model_id;
 
 	bool		operator< (const Snapshot &rhs) const { return this->timestamp < rhs.timestamp; }
 	bool		operator==(const Snapshot &rhs) const { return this->timestamp == rhs.timestamp; }
@@ -53,7 +53,10 @@ public:
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	void load_snapshot(size_t timestamp, Slic3r::Model &model);
 
-	bool undo(Slic3r::Model &model);
+	bool has_undo_snapshot() const;
+	bool has_redo_snapshot() const;
+	// Undoing an action may need to take a snapshot of the current application state.
+	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	bool redo(Slic3r::Model &model);
 
 	// Snapshot history (names with timestamps).

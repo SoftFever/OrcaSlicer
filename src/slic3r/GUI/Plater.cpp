@@ -3498,7 +3498,7 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 
 void Plater::priv::undo()
 {
-	if (this->undo_redo_stack.undo(model))
+	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection()))
 		this->update_after_undo_redo();
 }
 
