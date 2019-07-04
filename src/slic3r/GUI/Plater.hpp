@@ -181,6 +181,8 @@ public:
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
+    void undo();
+    void redo();
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);

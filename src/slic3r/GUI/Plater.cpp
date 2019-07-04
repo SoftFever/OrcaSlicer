@@ -1552,6 +1552,8 @@ struct Plater::priv
 
 	void take_snapshot(const std::string& snapshot_name) { this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection()); }
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
+    void undo();
+    void redo();
 
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
@@ -1745,6 +1747,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
     view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
 
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
@@ -1785,6 +1789,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     camera.set_type(get_config("use_perspective_camera"));
 
 	this->undo_redo_stack.initialize(model, view3D->get_canvas3d()->get_selection());
+	this->take_snapshot(_(L("New Project")));
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
@@ -3490,6 +3495,26 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 	}
 }
 
+void Plater::priv::undo()
+{
+	if (this->undo_redo_stack.undo(model, const_cast<GUI::Selection&>(view3D->get_canvas3d()->get_selection()))) {
+		this->update(false);
+		//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?)
+//	    wxGetApp().obj_list()->update_selections();
+//	    selection_changed();
+	}
+}
+
+void Plater::priv::redo()
+{ 
+	if (this->undo_redo_stack.redo(model, const_cast<GUI::Selection&>(view3D->get_canvas3d()->get_selection()))) {
+		this->update(false);
+		//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?)
+//	    wxGetApp().obj_list()->update_selections();
+//	    selection_changed();
+	}
+}
+
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -4001,15 +4026,10 @@ void Plater::send_gcode()
     }
 }
 
-void Plater::take_snapshot(const std::string &snapshot_name)
-{
-	p->take_snapshot(snapshot_name);
-}
-
-void Plater::take_snapshot(const wxString &snapshot_name)
-{
-	p->take_snapshot(snapshot_name);
-}
+void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
+void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
+void Plater::undo() { p->undo(); }
+void Plater::redo() { p->redo(); }
 
 void Plater::on_extruders_change(int num_extruders)
 {

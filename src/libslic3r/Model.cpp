@@ -72,6 +72,19 @@ void Model::assign_new_unique_ids_recursive()
         model_object->assign_new_unique_ids_recursive();
 }
 
+void Model::update_links_bottom_up_recursive()
+{
+	for (std::pair<const t_model_material_id, ModelMaterial*> &kvp : this->materials)
+		kvp.second->set_model(this);
+	for (ModelObject *model_object : this->objects) {
+		model_object->set_model(this);
+		for (ModelInstance *model_instance : model_object->instances)
+			model_instance->set_model_object(model_object);
+		for (ModelVolume *model_volume : model_object->volumes)
+			model_volume->set_model_object(model_object);
+	}
+}
+
 Model Model::read_from_file(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances)
 {
     Model model;

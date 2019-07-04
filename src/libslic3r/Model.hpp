@@ -457,6 +457,7 @@ public:
 protected:
 	friend class Print;
     friend class SLAPrint;
+    friend class Model;
 	friend class ModelObject;
 
 	// Copies IDs of both the ModelVolume and its config.
@@ -598,6 +599,7 @@ public:
 protected:
     friend class Print;
     friend class SLAPrint;
+    friend class Model;
     friend class ModelObject;
 
     explicit ModelInstance(const ModelInstance &rhs) = default;
@@ -713,6 +715,7 @@ public:
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
 	void assign_new_unique_ids_recursive();
+	void update_links_bottom_up_recursive();
 
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;

@@ -130,7 +130,7 @@ public:
 		if (m_history.empty())
 			return false;
 		auto it = std::lower_bound(m_history.begin(), m_history.end(), Interval(timestamp, timestamp));
-		if (it == m_history.end() || it->begin() >= timestamp) {
+		if (it == m_history.end() || it->begin() > timestamp) {
 			if (it == m_history.begin())
 				return false;
 			-- it;
@@ -265,7 +265,7 @@ public:
 	std::string load(size_t timestamp) const {
 		assert(! m_history.empty());
 		auto it = std::lower_bound(m_history.begin(), m_history.end(), MutableHistoryInterval(timestamp, timestamp));
-		if (it == m_history.end() || it->begin() >= timestamp) {
+		if (it == m_history.end() || it->begin() > timestamp) {
 			assert(it != m_history.begin());
 			-- it;
 		}
@@ -327,6 +327,9 @@ public:
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	void load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+
+	bool undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+	bool redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
 
 	// Snapshot history (names with timestamps).
 	const std::vector<Snapshot>& snapshots() const { return m_snapshots; }
@@ -566,7 +569,7 @@ void StackImpl::initialize(const Slic3r::Model &model, const Slic3r::GUI::Select
 	// The initial time interval will be <0, 1)
 	m_active_snapshot_time = SIZE_MAX; // let it overflow to zero in take_snapshot
 	m_current_time = 0;
- 	this->take_snapshot("New Project", model, selection);
+ 	this->take_snapshot("Internal - Initialized", model, selection);
 }
 
 // Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
@@ -584,7 +587,8 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 	this->save_mutable_object<Slic3r::Model, Slic3r::Model>(model);
 //	this->save_mutable_object(selection);
 	// Save the snapshot info
-	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id);
+	m_active_snapshot_time = m_current_time ++;
+	m_snapshots.emplace_back(snapshot_name, m_active_snapshot_time, model.id().id);
 	// Release empty objects from the history.
 	this->collect_garbage();
 }
@@ -593,14 +597,36 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GU
 {
 	// Find the snapshot by time. It must exist.
 	const auto it_snapshot = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(timestamp));
-	if (it_snapshot == m_snapshots.end() || it_snapshot->timestamp != timestamp)
+	if (it_snapshot == m_snapshots.begin() || it_snapshot == m_snapshots.end() || it_snapshot->timestamp != timestamp)
 		throw std::runtime_error((boost::format("Snapshot with timestamp %1% does not exist") % timestamp).str());
 
+	m_active_snapshot_time = timestamp;
 	model.clear_objects();
 	model.clear_materials();
 	this->load_mutable_object<Slic3r::Model, Slic3r::Model>(ObjectID(it_snapshot->model_object_id), model);
-	this->load_mutable_object<Slic3r::GUI::Selection, Slic3r::GUI::Selection>(selection.id(), selection);
+	model.update_links_bottom_up_recursive();
+//	this->load_mutable_object<Slic3r::GUI::Selection, Slic3r::GUI::Selection>(selection.id(), selection);
 	this->m_active_snapshot_time = timestamp;
+}
+
+bool StackImpl::undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection)
+{ 
+	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
+	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
+	if (-- it_current == m_snapshots.begin())
+		return false;
+	this->load_snapshot(it_current->timestamp, model, selection);
+	return true;
+}
+
+bool StackImpl::redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection)
+{ 
+	auto it_current = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
+	assert(it_current != m_snapshots.end() && it_current != m_snapshots.begin() && it_current->timestamp == m_active_snapshot_time);
+	if (++ it_current == m_snapshots.end())
+		return false;
+	this->load_snapshot(it_current->timestamp, model, selection); 
+	return true;
 }
 
 void StackImpl::collect_garbage()
@@ -623,6 +649,9 @@ Stack::~Stack() {}
 void Stack::initialize(const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->initialize(model, selection); }
 void Stack::take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->take_snapshot(snapshot_name, model, selection); }
 void Stack::load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection) { pimpl->load_snapshot(timestamp, model, selection); }
+bool Stack::undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection) { return pimpl->undo(model, selection); }
+bool Stack::redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection) { return pimpl->redo(model, selection); }
+
 const std::vector<Snapshot>& Stack::snapshots() const { return pimpl->snapshots(); }
 
 } // namespace UndoRedo

@@ -44,6 +44,9 @@ public:
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 	void load_snapshot(size_t timestamp, Slic3r::Model &model, Slic3r::GUI::Selection &selection);
 
+	bool undo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+	bool redo(Slic3r::Model &model, Slic3r::GUI::Selection &selection);
+
 	// Snapshot history (names with timestamps).
 	const std::vector<Snapshot>& snapshots() const;
 
