@@ -87,6 +87,7 @@ extern "C" {
 #endif /* _MSC_VER */
 #undef Zero
 #undef Packet
+#undef ST
 #undef _
 }
 #endif
