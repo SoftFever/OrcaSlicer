@@ -673,6 +673,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             {
             case Move:
             {
+			    wxGetApp().plater()->take_snapshot(_(L("Move Object")));
                 canvas.disable_regenerate_volumes();
                 canvas.do_move();
                 break;

@@ -655,6 +655,7 @@ void ObjectManipulation::change_position_value(int axis, double value)
     Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
+    wxGetApp().plater()->take_snapshot(_(L("Set Position")));
     canvas->do_move();
 
     m_cache.position = position;

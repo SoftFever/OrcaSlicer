@@ -806,6 +806,8 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0)
             {
+			    wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
+
                 TransformationType type;
                 type.set_world();
                 type.set_relative();
@@ -2032,6 +2034,10 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
 void Selection::paste_volumes_from_clipboard()
 {
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
     int dst_obj_idx = get_object_idx();
     if ((dst_obj_idx < 0) || ((int)m_model->objects.size() <= dst_obj_idx))
         return;
@@ -2073,6 +2079,9 @@ void Selection::paste_volumes_from_clipboard()
             }
 
             volumes.push_back(dst_volume);
+#ifdef _DEBUG
+		    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
         }
 
         // keeps relative position of multivolume selections
@@ -2086,10 +2095,18 @@ void Selection::paste_volumes_from_clipboard()
 
         wxGetApp().obj_list()->paste_volumes_into_list(dst_obj_idx, volumes);
     }
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 void Selection::paste_objects_from_clipboard()
 {
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
     std::vector<size_t> object_idxs;
     const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
     for (const ModelObject* src_object : src_objects)
@@ -2103,9 +2120,16 @@ void Selection::paste_objects_from_clipboard()
         }
 
         object_idxs.push_back(m_model->objects.size() - 1);
+#ifdef _DEBUG
+	    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
     }
 
     wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 } // namespace GUI

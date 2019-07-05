@@ -261,7 +261,7 @@ public:
     void                part_selection_changed();
 
     // Add object to the list
-    void add_object_to_list(size_t obj_idx);
+    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true);
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);

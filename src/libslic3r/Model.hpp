@@ -283,7 +283,7 @@ private:
 	explicit ModelObject(int) : ObjectBase(-1), config(-1), m_model(nullptr), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false)
 		{ assert(this->id().invalid()); assert(this->config.id().invalid()); }
 	~ModelObject();
-	void assign_new_unique_ids_recursive();
+	void assign_new_unique_ids_recursive() override;
 
     // To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision"
     // (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics).
@@ -463,6 +463,7 @@ protected:
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
+	void 	 assign_new_unique_ids_recursive() override { ObjectBase::set_new_unique_id(); config.set_new_unique_id(); }
     void     transform_this_mesh(const Transform3d& t, bool fix_left_handed);
     void     transform_this_mesh(const Matrix3d& m, bool fix_left_handed);
 
@@ -508,14 +509,13 @@ private:
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
-//		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
-//		assert(this->id() == other.id() && this->config.id() == other.config.id());
+		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
+		assert(this->id() != other.id() && this->config.id() == other.config.id());
         this->set_material_id(other.material_id());
         this->config.set_new_unique_id();
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
-		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
-		assert(this->id() != other.id() && this->config.id() != other.config.id());
+		assert(this->config.id().valid()); assert(this->config.id() != other.config.id()); assert(this->id() != this->config.id());
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;

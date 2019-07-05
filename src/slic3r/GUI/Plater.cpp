@@ -1773,9 +1773,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) {
-        this->take_snapshot(_(L("Instance Moved"))); 
-        update(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
@@ -1826,7 +1824,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
 
-	this->undo_redo_stack.initialize(model, view3D->get_canvas3d()->get_selection());
+    // Initialize the Undo / Redo stack with a first snapshot.
 	this->take_snapshot(_(L("New Project")));
 }
 
@@ -3196,8 +3194,6 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 {
-    this->take_snapshot(_(L("Wipe Tower Moved")));
-
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
@@ -3206,8 +3202,6 @@ void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 
 void Plater::priv::on_wipetower_rotated(Vec3dEvent& evt)
 {
-    this->take_snapshot(_(L("Wipe Tower Rotated")));
-
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);

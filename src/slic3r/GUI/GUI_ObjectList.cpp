@@ -2116,7 +2116,7 @@ void ObjectList::part_selection_changed()
     panel.Thaw();
 }
 
-void ObjectList::add_object_to_list(size_t obj_idx)
+void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
 {
     auto model_object = (*m_objects)[obj_idx];
     const wxString& item_name = from_u8(model_object->name);
@@ -2137,7 +2137,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
                 false);
             auto opt_keys = volume->config.keys();
             if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
-                select_item(m_objects_model->AddSettingsChild(vol_item));
+            	const wxDataViewItem &settings_item = m_objects_model->AddSettingsChild(vol_item);
+            	if (call_selection_changed)
+	                select_item(settings_item);
                 Expand(vol_item);
             }
         }
@@ -2151,7 +2153,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     // add settings to the object, if it has those
     auto opt_keys = model_object->config.keys();
     if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
-        select_item(m_objects_model->AddSettingsChild(item));
+    	const wxDataViewItem &settings_item = m_objects_model->AddSettingsChild(item);
+    	if (call_selection_changed)
+            select_item(settings_item);
         Expand(item);
     }
 
@@ -2159,7 +2163,8 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     add_layer_root_item(item);
 
 #ifndef __WXOSX__ 
-    selection_changed();
+    if (call_selection_changed)
+	    selection_changed();
 #endif //__WXMSW__
 }
 
@@ -2963,11 +2968,10 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || m_objects->empty() ||
-        obj_idx <= m_objects->size() ||
-        (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || obj_idx >= m_objects->size() || (*m_objects)[obj_idx]->volumes.empty())
         return;
-    auto volume = (*m_objects)[obj_idx]->volumes[0];
+
+    auto volume = (*m_objects)[obj_idx]->volumes.front();
 
     // clear volume's config values
     volume->config.clear();
@@ -3388,13 +3392,19 @@ void ObjectList::recreate_object_list()
     m_prevent_list_events = true;
     m_prevent_canvas_selection_update = true;
 
+    // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
+    this->UnselectAll();
     m_objects_model->DeleteAll();
 
     size_t obj_idx = 0;
     while (obj_idx < m_objects->size()) {
-        add_object_to_list(obj_idx);
+        add_object_to_list(obj_idx, false);
         ++obj_idx;
     }
+
+#ifndef __WXOSX__ 
+    selection_changed();
+#endif /* __WXOSX__ */
 
     m_prevent_canvas_selection_update = false;
     m_prevent_list_events = false;

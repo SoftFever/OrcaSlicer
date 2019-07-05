@@ -66,7 +66,7 @@ protected:
     void        copy_id(const ObjectBase &rhs) { m_id = rhs.id(); }
 
     // Override this method if a ObjectBase derived class owns other ObjectBase derived instances.
-    void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
+    virtual void assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
 
 private:
     ObjectID                m_id;

@@ -29,6 +29,12 @@ struct Snapshot
 
 	bool		operator< (const Snapshot &rhs) const { return this->timestamp < rhs.timestamp; }
 	bool		operator==(const Snapshot &rhs) const { return this->timestamp == rhs.timestamp; }
+
+	// The topmost snapshot represents the current state when going forward.
+	bool 		is_topmost() const;
+	// The topmost snapshot is not being serialized to the Undo / Redo stack until going back in time, 
+	// when the top most state is being serialized, so we can redo back to the top most state.
+	bool 		is_topmost_captured() const { assert(this->is_topmost()); return model_id > 0; }
 };
 
 // Excerpt of Slic3r::GUI::Selection for serialization onto the Undo / Redo stack.
@@ -44,25 +50,33 @@ class Stack
 {
 public:
 	// Stack needs to be initialized. An empty stack is not valid, there must be a "New Project" status stored at the beginning.
+	// The first "New Project" snapshot shall not be removed.
 	Stack();
 	~Stack();
 
-	// The Undo / Redo stack is being initialized with an empty model and an empty selection.
-	// The first snapshot cannot be removed.
-	void initialize(const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
-
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
-	void load_snapshot(size_t timestamp, Slic3r::Model &model);
 
+	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
 	bool has_redo_snapshot() const;
-	// Undoing an action may need to take a snapshot of the current application state.
-	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
-	bool redo(Slic3r::Model &model);
+
+	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
+	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
+	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, size_t time_to_load = SIZE_MAX);
+
+	// Jump forward in time. If time_to_load is SIZE_MAX, the next snapshot is activated.
+	bool redo(Slic3r::Model &model, size_t time_to_load = SIZE_MAX);
 
 	// Snapshot history (names with timestamps).
+	// Each snapshot indicates start of an interval in which this operation is performed.
+	// There is one additional snapshot taken at the very end, which indicates the current unnamed state.
+
 	const std::vector<Snapshot>& snapshots() const;
+	// Timestamp of the active snapshot. One of the snapshots of this->snapshots() shall have Snapshot::timestamp equal to this->active_snapshot_time().
+	// The snapshot time indicates start of an operation, which is finished at the time of the following snapshot, therefore
+	// the active snapshot is the successive snapshot. The same logic applies to the time_to_load parameter of undo() and redo() operations.
+	size_t active_snapshot_time() const;
 
 	// After load_snapshot() / undo() / redo() the selection is deserialized into a list of ObjectIDs, which needs to be converted
 	// into the list of GLVolume pointers once the 3D scene is updated.
