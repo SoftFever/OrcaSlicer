@@ -600,6 +600,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 if (m_current == Flatten)
                 {
                     // Rotate the object so the normal points downward:
+				    wxGetApp().plater()->take_snapshot(_(L("Place on Face")));
                     selection.flattening_rotate(get_flattening_normal());
                     canvas.do_flatten();
                     wxGetApp().obj_manipul()->set_dirty();
@@ -685,6 +686,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             }
             case Rotate:
             {
+			    wxGetApp().plater()->take_snapshot(_(L("Rotate Object")));
                 canvas.do_rotate();
                 break;
             }

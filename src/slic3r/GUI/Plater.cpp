@@ -2389,7 +2389,6 @@ void Plater::priv::deselect_all()
 
 void Plater::priv::remove(size_t obj_idx)
 {
-    this->take_snapshot(_(L("Remove Object")));
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
@@ -2406,7 +2405,7 @@ void Plater::priv::remove(size_t obj_idx)
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
-//    this->take_snapshot(_(L("Delete Object"))); // ys_FIXME What is the difference with "Remove Object"? 
+    this->take_snapshot(_(L("Delete Object")));
     model.delete_object(obj_idx);
     update();
     object_list_changed();
@@ -2850,6 +2849,8 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::reload_from_disk()
 {
+    this->take_snapshot(_(L("Reload from Disk")));
+
     const auto &selection = get_selection();
     const auto obj_orig_idx = selection.get_object_idx();
     if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }

@@ -302,6 +302,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                     selection.synchronize_unselected_volumes();
                     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
+				    wxGetApp().plater()->take_snapshot(_(L("Set Rotation")));
                     canvas->do_rotate();
 
                     UpdateAndShow(true);
@@ -687,6 +688,7 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
 		transformation_type);
+    wxGetApp().plater()->take_snapshot(_(L("Set Orientation")));
     canvas->do_rotate();
 
     m_cache.rotation = rotation;
