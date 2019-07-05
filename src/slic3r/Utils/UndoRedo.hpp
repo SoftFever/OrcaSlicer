@@ -1,8 +1,10 @@
 #ifndef slic3r_Utils_UndoRedo_hpp_
 #define slic3r_Utils_UndoRedo_hpp_
 
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <libslic3r/ObjectID.hpp>
 
