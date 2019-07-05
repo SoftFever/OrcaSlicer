@@ -143,20 +143,24 @@ ObjectList::ObjectList(wxWindow* parent) :
 //    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
     {
         // Accelerators
-        wxAcceleratorEntry entries[6];
+        wxAcceleratorEntry entries[8];
         entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
         entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
         entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
         entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
-        entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
-        entries[5].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
-        wxAcceleratorTable accel(6, entries);
+        entries[4].Set(wxACCEL_CTRL, (int) 'Z',    wxID_UNDO);
+        entries[5].Set(wxACCEL_CTRL, (int) 'Y',    wxID_REDO);
+        entries[6].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
+        entries[7].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
+        wxAcceleratorTable accel(8, entries);
         SetAcceleratorTable(accel);
 
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->copy();                      }, wxID_COPY);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->paste();                     }, wxID_PASTE);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->select_item_all_children();  }, wxID_SELECTALL);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove();                    }, wxID_DELETE);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->undo();  					}, wxID_UNDO);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->redo();                    	}, wxID_REDO);
     }
 #else __WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
@@ -809,6 +813,16 @@ void ObjectList::paste()
         wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
 }
 
+void ObjectList::undo()
+{
+	wxGetApp().plater()->undo();
+}
+
+void ObjectList::redo()
+{
+	wxGetApp().plater()->redo();	
+}
+
 #ifndef __WXOSX__
 void ObjectList::key_event(wxKeyEvent& event)
 {
@@ -827,6 +841,10 @@ void ObjectList::key_event(wxKeyEvent& event)
         copy();
     else if (wxGetKeyState(wxKeyCode('V')) && wxGetKeyState(WXK_CONTROL))
         paste();
+    else if (wxGetKeyState(wxKeyCode('Y')) && wxGetKeyState(WXK_CONTROL))
+        redo();
+    else if (wxGetKeyState(wxKeyCode('Z')) && wxGetKeyState(WXK_CONTROL))
+        undo();
     else
         event.Skip();
 }

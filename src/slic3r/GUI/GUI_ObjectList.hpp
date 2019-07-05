@@ -204,6 +204,8 @@ public:
 
     void                copy();
     void                paste();
+    void                undo();
+    void                redo();
 
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
