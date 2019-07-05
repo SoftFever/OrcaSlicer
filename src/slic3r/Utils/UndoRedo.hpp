@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cassert>
 
 #include <libslic3r/ObjectID.hpp>
 
