@@ -849,6 +849,7 @@ static void thick_lines_to_indexed_vertex_array(
     int     idx_initial[4]   = { -1, -1, -1, -1 };
     double  width_initial    = 0.;
     double  bottom_z_initial = 0.0;
+    double  len_prev = 0.0;
 
     // loop once more in case of closed loops
     size_t lines_end = closed ? (lines.size() + 1) : lines.size();
@@ -864,6 +865,7 @@ static void thick_lines_to_indexed_vertex_array(
         bool is_closing = closed && is_last;
 
         Vec2d v = unscale(line.vector()).normalized();
+        double len = unscale<double>(line.length());
 
         Vec2d a = unscale(line.a);
         Vec2d b = unscale(line.b);
@@ -927,7 +929,14 @@ static void thick_lines_to_indexed_vertex_array(
             // Continuing a previous segment.
             // Share left / right vertices if possible.
 			double v_dot    = v_prev.dot(v);
-            bool   sharp = v_dot < 0.9999; // v_dot < 0.9999; // cos(1 degree)
+            // To reduce gpu memory usage, we try to reuse vertices
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
+            // is longer than a fixed threshold.
+            // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
+            double len_threshold = 2.5;
+
+            // Generate new vertices if the angle between adjacent edges is greater than 45 degrees or thresholds conditions are met
+            bool sharp = (v_dot < 0.707) || (len_prev > len_threshold) || (len > len_threshold);
             if (sharp) {
                 if (!bottom_z_different)
                 {
@@ -1003,6 +1012,7 @@ static void thick_lines_to_indexed_vertex_array(
         bottom_z_prev = bottom_z;
         b1_prev = b1;
         v_prev = v;
+        len_prev = len;
 
         if (bottom_z_different && (closed || (!is_first && !is_last)))
         {
@@ -1056,6 +1066,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
     int      idx_initial[4] = { -1, -1, -1, -1 };
     int      idx_prev[4] = { -1, -1, -1, -1 };
     double   z_prev = 0.0;
+    double   len_prev = 0.0;
     Vec3d    n_right_prev = Vec3d::Zero();
     Vec3d    n_top_prev = Vec3d::Zero();
     Vec3d    unit_v_prev = Vec3d::Zero();
@@ -1077,6 +1088,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         double width = widths[i];
 
         Vec3d unit_v = unscale(line.vector()).normalized();
+        double len = unscale<double>(line.length());
 
         Vec3d n_top = Vec3d::Zero();
         Vec3d n_right = Vec3d::Zero();
@@ -1153,9 +1165,16 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
             // Continuing a previous segment.
             // Share left / right vertices if possible.
             double v_dot = unit_v_prev.dot(unit_v);
-            bool is_sharp = v_dot < 0.9999; // v_dot < 0.9999; // cos(1 degree)
             bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
 
+            // To reduce gpu memory usage, we try to reuse vertices
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
+            // is longer than a fixed threshold.
+            // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
+            double len_threshold = 2.5;
+
+            // Generate new vertices if the angle between adjacent edges is greater than 45 degrees or thresholds conditions are met
+            bool is_sharp = (v_dot < 0.707) || (len_prev > len_threshold) || (len > len_threshold);
             if (is_sharp)
             {
                 // Allocate new left / right points for the start of this segment as these points will receive their own normals to indicate a sharp turn.
@@ -1234,6 +1253,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         n_right_prev = n_right;
         n_top_prev = n_top;
         unit_v_prev = unit_v;
+        len_prev = len;
 
         if (!closed)
         {
@@ -1495,9 +1515,6 @@ void GLModel::set_scale(const Vec3d& scale)
 
 void GLModel::reset()
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    m_volume.release_geometry();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     m_filename = "";
 }
 
