@@ -50,6 +50,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_ObjectLayers.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "MainFrame.hpp"
@@ -618,6 +619,7 @@ struct Sidebar::priv
     ObjectList          *object_list{ nullptr };
     ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
+    ObjectLayers        *object_layers{ nullptr };
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -641,6 +643,9 @@ Sidebar::priv::~priv()
 
     if (frequently_changed_parameters != nullptr)
         delete frequently_changed_parameters;
+
+    if (object_layers != nullptr)
+        delete object_layers;
 }
 
 void Sidebar::priv::show_preset_comboboxes()
@@ -749,6 +754,11 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings = new ObjectSettings(p->scrolled);
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
+ 
+    // Object Layers
+    p->object_layers = new ObjectLayers(p->scrolled);
+    p->object_layers->Hide();
+    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
@@ -942,6 +952,7 @@ void Sidebar::msw_rescale()
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
+    p->object_layers->msw_rescale();
 
     p->object_info->msw_rescale();
 
@@ -961,6 +972,11 @@ ObjectList* Sidebar::obj_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
+}
+
+ObjectLayers* Sidebar::obj_layers()
+{
+    return p->object_layers;
 }
 
 wxScrolledWindow* Sidebar::scrolled_panel()
@@ -2177,9 +2193,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         }
 
         object->ensure_on_bed();
-
-        // print.auto_assign_extruders(object);
-        // print.add_model_object(object);
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -2949,8 +2962,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    /* Settings list can be changed after printer preset changing, so
+     * update all settings items for all item had it.
+     * Furthermore, Layers editing is implemented only for FFF printers 
+     * and for SLA presets they should be deleted
+     */
     if (preset_type == Preset::TYPE_PRINTER)
-        wxGetApp().obj_list()->update_settings_items();
+//        wxGetApp().obj_list()->update_settings_items();
+        wxGetApp().obj_list()->update_object_list_by_printer_technology();
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
@@ -3293,6 +3312,10 @@ bool Plater::priv::complit_init_object_menu()
 
     append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "", 
         [this]() { return can_split() && wxGetApp().get_mode() > comSimple; }, q);
+    object_menu.AppendSeparator();
+
+    // Layers Editing for object
+    sidebar->obj_list()->append_menu_item_layers_editing(&object_menu);
     object_menu.AppendSeparator();
 
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
@@ -3947,6 +3970,9 @@ void Plater::reslice()
     }
     else if (!p->background_process.empty() && !p->background_process.idle())
         p->show_action_buttons(true);
+
+    // update type of preview
+    p->preview->update_view_type();
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object)
@@ -4248,6 +4274,11 @@ void Plater::msw_rescale()
 
     Layout();
     GetParent()->Layout();
+}
+
+const Camera& Plater::get_camera() const
+{
+    return p->camera;
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }

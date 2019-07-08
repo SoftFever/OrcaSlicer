@@ -627,12 +627,12 @@ void Bed3D::render_prusa_shader(bool transparent) const
         if (position_id != -1)
         {
             glsafe(::glEnableVertexAttribArray(position_id));
-            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_position_offset()));
         }
         if (tex_coords_id != -1)
         {
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
-            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_tex_coords_offset()));
         }
 
         glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));

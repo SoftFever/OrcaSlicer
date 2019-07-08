@@ -912,7 +912,8 @@ GLCanvas3D::LegendTexture::LegendTexture()
 void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
                                                                std::vector<std::pair<double, double>>& cp_legend_values)
 {
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
+        wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
     {
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
@@ -3326,6 +3327,12 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     }
 }
 
+void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
+{
+    std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
+    handle_sidebar_focus_event(field, true);
+}
+
 void GLCanvas3D::update_ui_from_settings()
 {
     m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
@@ -4264,11 +4271,8 @@ void GLCanvas3D::_render_sla_slices() const
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    m_shader.start_using();
-    m_selection.render_sidebar_hints(m_sidebar_field);
-    m_shader.stop_using();
+    m_selection.render_sidebar_hints(m_sidebar_field, m_shader);
 }
-
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {

@@ -153,24 +153,33 @@ SlicingParameters SlicingParameters::create_from_config(
     return params;
 }
 
-// Convert layer_height_ranges to layer_height_profile. Both are referenced to z=0, meaning the raft layers are not accounted for
+std::vector<std::pair<t_layer_height_range, coordf_t>> layer_height_ranges(const t_layer_config_ranges &config_ranges)
+{
+	std::vector<std::pair<t_layer_height_range, coordf_t>> out;
+	out.reserve(config_ranges.size());
+	for (const auto &kvp : config_ranges)
+		out.emplace_back(kvp.first, kvp.second.option("layer_height")->getFloat());
+	return out;
+}
+
+// Convert layer_config_ranges to layer_height_profile. Both are referenced to z=0, meaning the raft layers are not accounted for
 // in the height profile and the printed object may be lifted by the raft thickness at the time of the G-code generation.
 std::vector<coordf_t> layer_height_profile_from_ranges(
 	const SlicingParameters 	&slicing_params,
-	const t_layer_height_ranges &layer_height_ranges)
+	const t_layer_config_ranges &layer_config_ranges)                           // #ys_FIXME_experiment
 {
     // 1) If there are any height ranges, trim one by the other to make them non-overlapping. Insert the 1st layer if fixed.
     std::vector<std::pair<t_layer_height_range,coordf_t>> ranges_non_overlapping;
-    ranges_non_overlapping.reserve(layer_height_ranges.size() * 4);
+    ranges_non_overlapping.reserve(layer_config_ranges.size() * 4);             // #ys_FIXME_experiment
     if (slicing_params.first_object_layer_height_fixed())
         ranges_non_overlapping.push_back(std::pair<t_layer_height_range,coordf_t>(
             t_layer_height_range(0., slicing_params.first_object_layer_height), 
             slicing_params.first_object_layer_height));
     // The height ranges are sorted lexicographically by low / high layer boundaries.
-    for (t_layer_height_ranges::const_iterator it_range = layer_height_ranges.begin(); it_range != layer_height_ranges.end(); ++ it_range) {
+    for (t_layer_config_ranges::const_iterator it_range = layer_config_ranges.begin(); it_range != layer_config_ranges.end(); ++ it_range) {
         coordf_t lo = it_range->first.first;
         coordf_t hi = std::min(it_range->first.second, slicing_params.object_print_z_height());
-        coordf_t height = it_range->second;
+        coordf_t height = it_range->second.option("layer_height")->getFloat();
         if (! ranges_non_overlapping.empty())
             // Trim current low with the last high.
             lo = std::max(lo, ranges_non_overlapping.back().first.second);
@@ -219,7 +228,7 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
 // Fill layer_height_profile by heights ensuring a prescribed maximum cusp height.
 std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
-    const t_layer_height_ranges &layer_height_ranges,
+    const t_layer_config_ranges & /* layer_config_ranges */,
     const ModelVolumePtrs		&volumes)
 {
     // 1) Initialize the SlicingAdaptive class with the object meshes.

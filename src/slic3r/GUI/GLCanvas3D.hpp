@@ -12,6 +12,7 @@
 #include "Camera.hpp"
 #include "Selection.hpp"
 #include "Gizmos/GLGizmosManager.hpp"
+#include "GUI_ObjectLayers.hpp"
 
 #include <float.h>
 
@@ -607,6 +608,7 @@ public:
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
+    void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
 

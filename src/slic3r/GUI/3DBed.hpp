@@ -44,8 +44,8 @@ public:
     const float* get_vertices_data() const;
     unsigned int get_vertices_data_size() const { return (unsigned int)m_vertices.size() * get_vertex_data_size(); }
     unsigned int get_vertex_data_size() const { return (unsigned int)(5 * sizeof(float)); }
-    unsigned int get_position_offset() const { return 0; }
-    unsigned int get_tex_coords_offset() const { return (unsigned int)(3 * sizeof(float)); }
+    size_t get_position_offset() const { return 0; }
+    size_t get_tex_coords_offset() const { return (size_t)(3 * sizeof(float)); }
     unsigned int get_vertices_count() const { return (unsigned int)m_vertices.size(); }
 #else
     const float* get_vertices() const { return m_vertices.data(); }

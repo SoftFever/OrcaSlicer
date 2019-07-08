@@ -156,6 +156,7 @@ public:
     ObjectManipulation* obj_manipul();
     ObjectSettings*     obj_settings();
     ObjectList*         obj_list();
+    ObjectLayers*       obj_layers();
     Plater*             plater();
     std::vector<ModelObject*> *model_objects();
 

@@ -1405,7 +1405,9 @@ void GCode::process_layer(
         m_colorprint_heights.erase(m_colorprint_heights.begin());
         colorprint_change = true;
     }
-    if (colorprint_change && print.extruders().size()==1)
+
+    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
+    if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
         gcode += "M600\n";
 
 

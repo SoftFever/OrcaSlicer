@@ -49,7 +49,7 @@
     void erase(t_config_option_key opt_key);
     void normalize();
     %name{setenv} void setenv_();
-    double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
+    double min_object_distance() %code{% PrintConfig cfg; cfg.apply(*THIS, true); RETVAL = cfg.min_object_distance(); %};
     static DynamicPrintConfig* load(char *path)
         %code%{
             auto config = new DynamicPrintConfig();
