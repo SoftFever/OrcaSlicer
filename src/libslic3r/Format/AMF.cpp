@@ -106,6 +106,9 @@ struct AMFParserContext
                                         // amf/material/metadata
         NODE_TYPE_OBJECT,               // amf/object
                                         // amf/object/metadata
+        NODE_TYPE_LAYER_CONFIG,         // amf/object/layer_config_ranges
+        NODE_TYPE_RANGE,                // amf/object/layer_config_ranges/range
+                                        // amf/object/layer_config_ranges/range/metadata
         NODE_TYPE_MESH,                 // amf/object/mesh
         NODE_TYPE_VERTICES,             // amf/object/mesh/vertices
         NODE_TYPE_VERTEX,               // amf/object/mesh/vertices/vertex
@@ -189,7 +192,7 @@ struct AMFParserContext
     };
 
     // Version of the amf file
-    unsigned int m_version;
+    unsigned int             m_version;
     // Current Expat XML parser instance.
     XML_Parser               m_parser;
     // Model to receive objects extracted from an AMF file.
@@ -260,7 +263,9 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 m_value[0] = get_attribute(atts, "type");
                 node_type_new = NODE_TYPE_METADATA;
             }
-        } else if (strcmp(name, "mesh") == 0) {
+        } else if (strcmp(name, "layer_config_ranges") == 0 && m_path[1] == NODE_TYPE_OBJECT)
+                node_type_new = NODE_TYPE_LAYER_CONFIG;
+        else if (strcmp(name, "mesh") == 0) {
             if (m_path[1] == NODE_TYPE_OBJECT)
                 node_type_new = NODE_TYPE_MESH;
         } else if (strcmp(name, "instance") == 0) {
@@ -317,6 +322,10 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             else if (strcmp(name, "mirrorz") == 0)
                 node_type_new = NODE_TYPE_MIRRORZ;
         }
+        else if (m_path[2] == NODE_TYPE_LAYER_CONFIG && strcmp(name, "range") == 0) {
+            assert(m_object);
+            node_type_new = NODE_TYPE_RANGE;
+        }
         break;
     case 4:
         if (m_path[3] == NODE_TYPE_VERTICES) {
@@ -333,6 +342,10 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 }
             } else if (strcmp(name, "triangle") == 0)
                 node_type_new = NODE_TYPE_TRIANGLE;
+        }
+        else if (m_path[3] == NODE_TYPE_RANGE && strcmp(name, "metadata") == 0) {
+            m_value[0] = get_attribute(atts, "type");
+            node_type_new = NODE_TYPE_METADATA;
         }
         break;
     case 5:
@@ -571,8 +584,13 @@ void AMFParserContext::endElement(const char * /* name */)
                         config = &m_material->config;
                     else if (m_path[1] == NODE_TYPE_OBJECT && m_object)
                         config = &m_object->config;
-                } else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume)
+                }
+                else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume)
                     config = &m_volume->config;
+                else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_RANGE && m_object && !m_object->layer_config_ranges.empty()) {
+                    auto it  = --m_object->layer_config_ranges.end();
+                    config = &it->second;
+                }
                 if (config)
                     config->set_deserialize(opt_key, m_value[1]);
             } else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "layer_height_profile") == 0) {
@@ -598,7 +616,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     if (end != nullptr)
 	                    *end = 0;
 
-                    point(coord_idx) = atof(p);
+                    point(coord_idx) = float(atof(p));
                     if (++coord_idx == 5) {
                         m_object->sla_support_points.push_back(sla::SupportPoint(point));
                         coord_idx = 0;
@@ -608,6 +626,16 @@ void AMFParserContext::endElement(const char * /* name */)
 					p = end + 1;
                 }
                 m_object->sla_points_status = sla::PointsStatus::UserModified;
+            }
+            else if (m_path.size() == 5 && m_path[1] == NODE_TYPE_OBJECT && m_path[3] == NODE_TYPE_RANGE && 
+                     m_object && strcmp(opt_key, "layer_height_range") == 0) {
+                // Parse object's layer_height_range, a semicolon separated doubles.
+                char* p = const_cast<char*>(m_value[1].c_str());
+                char* end = strchr(p, ';');
+                *end = 0;
+
+                const t_layer_height_range range = {double(atof(p)), double(atof(end + 1))};
+                m_object->layer_config_ranges[range];
             }
             else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
                 if (strcmp(opt_key, "modifier") == 0) {
@@ -907,6 +935,31 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         }
         //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
 
+
+        // #ys_FIXME_experiment : Try to export layer config range
+        const t_layer_config_ranges& config_ranges = object->layer_config_ranges;
+        if (!config_ranges.empty())
+        {
+            // Store the layer config range as a single semicolon separated list.
+            stream << "    <layer_config_ranges>\n";
+            size_t layer_counter = 0;
+            for (auto range : config_ranges) {
+                stream << "      <range id=\"" << layer_counter << "\">\n";
+
+                stream << "        <metadata type=\"slic3r.layer_height_range\">";
+                stream << range.first.first << ";" << range.first.second << "</metadata>\n";
+
+                for (const std::string& key : range.second.keys())
+                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.serialize(key) << "</metadata>\n";
+
+                stream << "      </range>\n";
+                layer_counter++;
+            }
+
+            stream << "    </layer_config_ranges>\n";
+        }
+
+
         const std::vector<sla::SupportPoint>& sla_support_points = object->sla_support_points;
         if (!sla_support_points.empty()) {
             // Store the SLA supports as a single semicolon separated list.
@@ -941,7 +994,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += its.vertices.size();
+            num_vertices += (int)its.vertices.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {

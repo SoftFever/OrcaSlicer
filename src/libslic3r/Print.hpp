@@ -80,8 +80,8 @@ private: // Prevents erroneous use by other classes.
     typedef PrintObjectBaseWithState<Print, PrintObjectStep, posCount> Inherited;
 
 public:
-    // vector of (vectors of volume ids), indexed by region_id
-    std::vector<std::vector<int>> region_volumes;
+    // vector of (layer height ranges and vectors of volume ids), indexed by region_id
+    std::vector<std::vector<std::pair<t_layer_height_range, int>>> region_volumes;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
@@ -99,10 +99,10 @@ public:
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
 
     // adds region_id, too, if necessary
-    void add_region_volume(unsigned int region_id, int volume_id) {
+    void add_region_volume(unsigned int region_id, int volume_id, const t_layer_height_range &layer_range) {
         if (region_id >= region_volumes.size())
 			region_volumes.resize(region_id + 1);
-        region_volumes[region_id].emplace_back(volume_id);
+        region_volumes[region_id].emplace_back(layer_range, volume_id);
     }
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
@@ -141,8 +141,9 @@ public:
     void slice();
 
     // Helpers to slice support enforcer / blocker meshes by the support generator.
-    std::vector<ExPolygons>     slice_support_enforcers() const;
-    std::vector<ExPolygons>     slice_support_blockers() const;
+    std::vector<ExPolygons>     slice_support_volumes(const ModelVolumeType &model_volume_type) const;
+    std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
+    std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
 protected:
     // to be called from Print only.
@@ -165,7 +166,7 @@ protected:
     void                    update_slicing_parameters();
 
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders);
-    static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders);
+    static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders);
 
 private:
     void make_perimeters();
@@ -201,9 +202,11 @@ private:
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
 
-    std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
-    std::vector<ExPolygons> _slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
-    std::vector<ExPolygons> _slice_volume(const std::vector<float> &z, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_region(size_t region_id, const std::vector<float> &z) const;
+    std::vector<ExPolygons> slice_modifiers(size_t region_id, const std::vector<float> &z) const;
+    std::vector<ExPolygons> slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const ModelVolume &volume) const;
+    std::vector<ExPolygons> slice_volume(const std::vector<float> &z, const std::vector<t_layer_height_range> &ranges, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData
@@ -294,11 +297,6 @@ public:
     bool                empty() const override { return m_objects.empty(); }
 
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
-
-    // The following three methods are used by the Perl tests only. Get rid of them!
-    void                reload_object(size_t idx);
-    void                add_model_object(ModelObject* model_object, int idx = -1);
-    bool                apply_config_perl_tests_only(DynamicPrintConfig config);
 
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.

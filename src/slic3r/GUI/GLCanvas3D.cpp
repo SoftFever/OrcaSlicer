@@ -3324,6 +3324,12 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     }
 }
 
+void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
+{
+    std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
+    handle_sidebar_focus_event(field, true);
+}
+
 void GLCanvas3D::update_ui_from_settings()
 {
     m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
@@ -4289,13 +4295,7 @@ void GLCanvas3D::_render_sla_slices() const
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    if (m_use_VBOs)
-        m_shader.start_using();
-
-    m_selection.render_sidebar_hints(m_sidebar_field);
-
-    if (m_use_VBOs)
-        m_shader.stop_using();
+    m_selection.render_sidebar_hints(m_sidebar_field, m_shader);
 }
 
 

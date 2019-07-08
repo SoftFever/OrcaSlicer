@@ -179,8 +179,8 @@ public:
     ModelVolumePtrs         volumes;
     // Configuration parameters specific to a single ModelObject, overriding the global Slic3r settings.
     DynamicPrintConfig      config;
-    // Variation of a layer thickness for spans of Z coordinates.
-    t_layer_height_ranges   layer_height_ranges;
+    // Variation of a layer thickness for spans of Z coordinates + optional parameter overrides.
+    t_layer_config_ranges   layer_config_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array.
     std::vector<coordf_t>   layer_height_profile;
@@ -597,8 +597,8 @@ public:
     Model() {}
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
-    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
-    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
+    // To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision"
+    // (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics).
     Model(const Model &rhs) : ModelBase(-1) { this->assign_copy(rhs); }
     explicit Model(Model &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
     Model& operator=(const Model &rhs) { this->assign_copy(rhs); return *this; }

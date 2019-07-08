@@ -320,6 +320,17 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
     return retval;
 }
 
+void OptionsGroup::clear_fields_except_of(const std::vector<std::string> left_fields)
+{
+    auto it = m_fields.begin();
+    while (it != m_fields.end()) {
+        if (std::find(left_fields.begin(), left_fields.end(), it->first) == left_fields.end())
+            it = m_fields.erase(it);
+        else 
+            it++;
+    }
+}
+
 void OptionsGroup::on_set_focus(const std::string& opt_key)
 {
     if (m_set_focus != nullptr)
