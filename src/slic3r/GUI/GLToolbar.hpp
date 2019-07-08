@@ -37,6 +37,7 @@ public:
     typedef std::function<void()> ActionCallback;
     typedef std::function<bool()> VisibilityCallback;
     typedef std::function<bool()> EnabledStateCallback;
+    typedef std::function<void()> RenderCallback;
 
     enum EType : unsigned char
     {
@@ -68,6 +69,7 @@ public:
         ActionCallback action_callback;
         VisibilityCallback visibility_callback;
         EnabledStateCallback enabled_state_callback;
+        RenderCallback render_callback;
 
         Data();
     };
@@ -75,6 +77,7 @@ public:
     static const ActionCallback Default_Action_Callback;
     static const VisibilityCallback Default_Visibility_Callback;
     static const EnabledStateCallback Default_Enabled_State_Callback;
+    static const RenderCallback Default_Render_Callback;
 
 private:
     EType m_type;
@@ -249,6 +252,7 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
+    bool m_imgui_visible {false};
 
 public:
 #if ENABLE_SVG_ICONS
@@ -304,6 +308,9 @@ public:
     void render(const GLCanvas3D& parent) const;    
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
+
+    void set_imgui_visible(bool visible = true) { m_imgui_visible = visible; }
+    bool get_imgui_visible() { return m_imgui_visible; }
 
 private:
     void calc_layout() const;

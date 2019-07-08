@@ -67,6 +67,7 @@ public:
     void text(const std::string &label);
     void text(const wxString &label);
     bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
+    bool multi_sel_list(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
 
     void disabled_begin(bool disabled);
     void disabled_end();

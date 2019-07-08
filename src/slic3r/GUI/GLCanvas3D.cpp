@@ -3618,6 +3618,64 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_item(item))
         return false;
 
+    if (!m_toolbar.add_separator())
+        return false;
+
+    item.name = "undo";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "undo_toolbar.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
+    item.sprite_id = 11;
+    item.action_callback = [this]()
+    {
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLCANVAS_UNDO));
+            m_toolbar.set_imgui_visible();
+        }
+    };
+    item.visibility_callback = []()->bool { return true; };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_undo(); };
+    item.render_callback = [this]()
+    {
+        if (m_canvas != nullptr && m_toolbar.get_imgui_visible()) {
+            ImGuiWrapper* imgui = wxGetApp().imgui();
+
+            const float approx_height = m_toolbar.get_height();
+            imgui->set_next_window_pos(600, approx_height, ImGuiCond_Always);
+
+            imgui->set_next_window_bg_alpha(0.5f);
+            imgui->begin(_(L("Undo Stack")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+            std::vector <std::string> undo_stack = {"A", "B", "C", "D","A", "B", "C", "D","A", "B", "C", "D",};
+            int sel = 4;
+            imgui->multi_sel_list("", undo_stack, sel);
+
+            const bool undo_clicked = imgui->button(_(L("Undo N Action")));
+
+            imgui->end();
+            if (undo_clicked)
+                m_toolbar.set_imgui_visible(false);
+        }
+    };
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "redo";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "redo_toolbar.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
+    item.sprite_id = 12;
+    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLCANVAS_REDO)); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_redo(); };
+    item.render_callback = []() {};
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
     return true;
 }
 

@@ -35,6 +35,7 @@ wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
 const GLToolbarItem::ActionCallback GLToolbarItem::Default_Action_Callback = [](){};
 const GLToolbarItem::VisibilityCallback GLToolbarItem::Default_Visibility_Callback = []()->bool { return true; };
 const GLToolbarItem::EnabledStateCallback GLToolbarItem::Default_Enabled_State_Callback = []()->bool { return true; };
+const GLToolbarItem::RenderCallback GLToolbarItem::Default_Render_Callback = [](){};
 
 GLToolbarItem::Data::Data()
     : name("")
@@ -48,6 +49,7 @@ GLToolbarItem::Data::Data()
     , action_callback(Default_Action_Callback)
     , visibility_callback(Default_Visibility_Callback)
     , enabled_state_callback(Default_Enabled_State_Callback)
+    , render_callback(Default_Render_Callback)
 {
 }
 
@@ -81,6 +83,8 @@ bool GLToolbarItem::update_enabled_state()
 void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
 {
     GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(tex_width, tex_height, icon_size));
+
+    m_data.render_callback();
 }
 
 GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const

@@ -342,6 +342,27 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
+// Getter for the const char*[]
+static bool StringGetter(void* data, int i, const char** out_text)
+{
+    const std::vector<std::string>* v = (std::vector<std::string>*)data;
+    if (out_text)
+        *out_text = (*v)[i].c_str();
+    return true;
+}
+
+bool ImGuiWrapper::multi_sel_list(const wxString& label, const std::vector<std::string>& options, int& selection)
+{
+    // this is to force the label to the left of the widget:
+    if (!label.IsEmpty())
+        text(label);
+
+    bool res = false;
+    ImGui::ListBox("", &selection, StringGetter, (void*)&options, (int)options.size());
+
+    return res;
+}
+
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
