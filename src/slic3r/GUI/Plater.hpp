@@ -222,6 +222,8 @@ public:
     bool can_layers_editing() const;
     bool can_paste_from_clipboard() const;
     bool can_copy_to_clipboard() const;
+    bool can_undo() const;
+    bool can_redo() const;
 
     void msw_rescale();
 
