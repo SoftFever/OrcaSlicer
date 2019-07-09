@@ -3515,6 +3515,7 @@ void TabSLAPrint::build()
     // optgroup->append_single_option_line("support_pillar_widening_factor");
     optgroup->append_single_option_line("support_base_diameter");
     optgroup->append_single_option_line("support_base_height");
+    optgroup->append_single_option_line("support_base_safety_distance");
     optgroup->append_single_option_line("support_object_elevation");
 
     optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
@@ -3535,7 +3536,12 @@ void TabSLAPrint::build()
     // TODO: Disabling this parameter for the beta release
 //    optgroup->append_single_option_line("pad_edge_radius");
     optgroup->append_single_option_line("pad_wall_slope");
-
+    
+    optgroup->append_single_option_line("pad_object_gap");
+    optgroup->append_single_option_line("pad_object_connector_stride");
+    optgroup->append_single_option_line("pad_object_connector_width");
+    optgroup->append_single_option_line("pad_object_connector_penetration");
+    
 	page = add_options_page(_(L("Advanced")), "wrench");
 	optgroup = page->new_optgroup(_(L("Slicing")));
 	optgroup->append_single_option_line("slice_closing_radius");
@@ -3580,36 +3586,57 @@ void TabSLAPrint::update()
 
      m_update_cnt++;
 
-     double head_penetration = m_config->opt_float("support_head_penetration");
-     double head_width = m_config->opt_float("support_head_width");
-     if(head_penetration > head_width) {
-         wxString msg_text = _(L("Head penetration should not be greater than the head width."));
-         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
-         DynamicPrintConfig new_conf = *m_config;
-         if (dialog->ShowModal() == wxID_OK) {
-             new_conf.set_key_value("support_head_penetration", new ConfigOptionFloat(head_width));
-         }
+    double head_penetration = m_config->opt_float("support_head_penetration");
+    double head_width       = m_config->opt_float("support_head_width");
+    if (head_penetration > head_width) {
+        wxString msg_text = _(
+            L("Head penetration should not be greater than the head width."));
 
-         load_config(new_conf);
-     }
+        auto dialog = new wxMessageDialog(parent(),
+                                          msg_text,
+                                          _(L("Invalid Head penetration")),
+                                          wxICON_WARNING | wxOK);
 
-     double pinhead_d = m_config->opt_float("support_head_front_diameter");
-     double pillar_d     = m_config->opt_float("support_pillar_diameter");
-     if(pinhead_d > pillar_d) {
-         wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
-         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
-         DynamicPrintConfig new_conf = *m_config;
-         if (dialog->ShowModal() == wxID_OK) {
-             new_conf.set_key_value("support_head_front_diameter", new ConfigOptionFloat(pillar_d / 2.0));
-         }
+        DynamicPrintConfig new_conf = *m_config;
+        if (dialog->ShowModal() == wxID_OK) {
+            new_conf.set_key_value("support_head_penetration",
+                                   new ConfigOptionFloat(head_width));
+        }
 
-         load_config(new_conf);
-     }
+        load_config(new_conf);
+    }
 
-     m_update_cnt--;
+    double pinhead_d = m_config->opt_float("support_head_front_diameter");
+    double pillar_d  = m_config->opt_float("support_pillar_diameter");
+    if (pinhead_d > pillar_d) {
+        wxString msg_text = _(L(
+            "Pinhead diameter should be smaller than the pillar diameter."));
 
-     if (m_update_cnt == 0)
-    wxGetApp().mainframe->on_config_changed(m_config);
+        auto dialog = new wxMessageDialog(parent(),
+                                          msg_text,
+                                          _(L("Invalid pinhead diameter")),
+                                          wxICON_WARNING | wxOK);
+
+        DynamicPrintConfig new_conf = *m_config;
+        if (dialog->ShowModal() == wxID_OK) {
+            new_conf.set_key_value("support_head_front_diameter",
+                                   new ConfigOptionFloat(pillar_d / 2.0));
+        }
+
+        load_config(new_conf);
+    }
+    
+    // if(m_config->opt_float("support_object_elevation") < EPSILON &&
+    //    m_config->opt_bool("pad_enable")) {
+    //     // TODO: disable editding of:
+    //     // pad_object_connector_stride
+    //     // pad_object_connector_width
+    //     // pad_object_connector_penetration
+    // }
+
+    m_update_cnt--;
+
+    if (m_update_cnt == 0) wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 } // GUI
