@@ -25,18 +25,20 @@ public:
 
 	void		build_panel(ConfigOptionPoints* default_pt);
 	
+    // Returns the resulting bed shape polygon. This value will be stored to the ini file.
+    std::vector<Vec2d>	GetValue() { return m_canvas->m_bed_shape; }
+
+private:
     ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
     void		set_shape(ConfigOptionPoints* points);
 	void		update_preview();
 	void		update_shape();
 	void		load_stl();
 	
-	// Returns the resulting bed shape polygon. This value will be stored to the ini file.
-	std::vector<Vec2d>	GetValue() { return m_canvas->m_bed_shape; }
-
 	wxChoicebook*	m_shape_options_book;
 	std::vector <ConfigOptionsGroupShp>	m_optgroups;
 
+    friend class BedShapeDialog;
 };
 
 class BedShapeDialog : public DPIDialog

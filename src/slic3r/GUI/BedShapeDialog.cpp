@@ -54,6 +54,7 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 {
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
+    sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
 
 	// shape options
     m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, 
@@ -61,49 +62,49 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
     sbsizer->Add(m_shape_options_book);
 
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));
-		ConfigOptionDef def;
-		def.type = coPoints;
-		def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
-		def.label = L("Size");
-		def.tooltip = L("Size in X and Y of the rectangular plate.");
-		Option option(def, "rect_size");
-		optgroup->append_single_option_line(option);
+	ConfigOptionDef def;
+	def.type = coPoints;
+	def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
+	def.label = L("Size");
+	def.tooltip = L("Size in X and Y of the rectangular plate.");
+	Option option(def, "rect_size");
+	optgroup->append_single_option_line(option);
 
-		def.type = coPoints;
-		def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
-		def.label = L("Origin");
-		def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
-		option = Option(def, "rect_origin");
-		optgroup->append_single_option_line(option);
+	def.type = coPoints;
+	def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
+	def.label = L("Origin");
+	def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+	option = Option(def, "rect_origin");
+	optgroup->append_single_option_line(option);
 
-		optgroup = init_shape_options_page(_(L("Circular")));
-		def.type = coFloat;
-		def.set_default_value(new ConfigOptionFloat(200));
-		def.sidetext = L("mm");
-		def.label = L("Diameter");
-		def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
-		option = Option(def, "diameter");
-		optgroup->append_single_option_line(option);
+	optgroup = init_shape_options_page(_(L("Circular")));
+	def.type = coFloat;
+	def.set_default_value(new ConfigOptionFloat(200));
+	def.sidetext = L("mm");
+	def.label = L("Diameter");
+	def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+	option = Option(def, "diameter");
+	optgroup->append_single_option_line(option);
 
-		optgroup = init_shape_options_page(_(L("Custom")));
-		Line line{ "", "" };
-		line.full_width = 1;
-		line.widget = [this](wxWindow* parent) {
-            auto shape_btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")));
-            wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
-            shape_sizer->Add(shape_btn, 1, wxEXPAND);
+	optgroup = init_shape_options_page(_(L("Custom")));
+	Line line{ "", "" };
+	line.full_width = 1;
+	line.widget = [this](wxWindow* parent) {
+        wxButton* shape_btn = new wxButton(parent, wxID_ANY, _(L("Load shape from STL...")));
+        wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
+        shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
-            wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-            sizer->Add(shape_sizer, 1, wxEXPAND);
+        wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+        sizer->Add(shape_sizer, 1, wxEXPAND);
 
-            shape_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
-            {
-				load_stl();
-			}));
+        shape_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+        {
+			load_stl();
+		}));
 
-			return sizer;
-		};
-		optgroup->append_line(line);
+		return sizer;
+	};
+	optgroup->append_line(line);
 
     Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e)
     {
@@ -134,20 +135,19 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 // Create a panel for a rectangular / circular / custom bed shape.
 ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& title)
 {
-    auto panel = new wxPanel(m_shape_options_book);
-	ConfigOptionsGroupShp optgroup;
-	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
+    wxPanel* panel = new wxPanel(m_shape_options_book);
+    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
     optgroup->label_width = 10;
-	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-		update_shape();
-	};
-		
-	m_optgroups.push_back(optgroup);
-	panel->SetSizerAndFit(optgroup->sizer);
-	m_shape_options_book->AddPage(panel, title);
+    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        update_shape();
+    };
+	
+    m_optgroups.push_back(optgroup);
+    panel->SetSizerAndFit(optgroup->sizer);
+    m_shape_options_book->AddPage(panel, title);
 
-	return optgroup;
+    return optgroup;
 }
 
 // Called from the constructor.
@@ -310,15 +310,13 @@ void BedShapePanel::update_shape()
 // Loads an stl file, projects it to the XY plane and calculates a polygon.
 void BedShapePanel::load_stl()
 {
-	auto dialog = new wxFileDialog(this, _(L("Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):")), "", "",
-		file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-	if (dialog->ShowModal() != wxID_OK) {
-		dialog->Destroy();
-		return;
-	}
-	wxArrayString input_file;
-	dialog->GetPaths(input_file);
-	dialog->Destroy();
+    wxFileDialog dialog(this, _(L("Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):")), "", "",
+        file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    wxArrayString input_file;
+    dialog.GetPaths(input_file);
 
 	std::string file_name = input_file[0].ToUTF8().data();
 
@@ -327,10 +325,9 @@ void BedShapePanel::load_stl()
 		model = Model::read_from_file(file_name);
 	}
 	catch (std::exception &e) {
-		auto msg = _(L("Error!")) + " " + file_name + " : " + e.what() + ".";
-		show_error(this, msg);
-		exit(1);
-	}
+        show_error(this, _(L("Error! Invalid model")));
+        return;
+    }
 
 	auto mesh = model.mesh();
 	auto expolygons = mesh.horizontal_projection();
