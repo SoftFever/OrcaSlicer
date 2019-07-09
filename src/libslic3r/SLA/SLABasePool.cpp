@@ -510,9 +510,9 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50,
 void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
                 float layerh, ThrowOnCancel thrfn)
 {
-    TriangleMesh m = mesh;
-    m.require_shared_vertices(); // TriangleMeshSlicer needs this
-    TriangleMeshSlicer slicer(&m);
+    if (mesh.empty()) return;
+
+    TriangleMeshSlicer slicer(&mesh);
 
     auto bb = mesh.bounding_box();
     float gnd = float(bb.min(Z));

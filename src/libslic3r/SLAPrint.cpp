@@ -751,17 +751,26 @@ void SLAPrint::process()
             
             mit->set_model_slice_idx(po, id); ++mit;
         }
+
+        if(po.m_config.supports_enable.getBool() ||
+           po.m_config.pad_enable.getBool())
+        {
+            po.m_supportdata.reset(
+                new SLAPrintObject::SupportData(po.transformed_mesh()) );
+        }
     };
 
     // In this step we check the slices, identify island and cover them with
     // support points. Then we sprinkle the rest of the mesh.
     auto support_points = [this, ostepd](SLAPrintObject& po) {
-        const ModelObject& mo = *po.m_model_object;
-        po.m_supportdata.reset(
-                    new SLAPrintObject::SupportData(po.transformed_mesh()) );
-
         // If supports are disabled, we can skip the model scan.
         if(!po.m_config.supports_enable.getBool()) return;
+
+        if (!po.m_supportdata)
+            po.m_supportdata.reset(
+                new SLAPrintObject::SupportData(po.transformed_mesh()));
+
+        const ModelObject& mo = *po.m_model_object;
 
         BOOST_LOG_TRIVIAL(debug) << "Support point count "
                                  << mo.sla_support_points.size();
@@ -771,7 +780,7 @@ void SLAPrint::process()
         // into the backend cache.
         if (mo.sla_points_status != sla::PointsStatus::UserModified) {
 
-            // Hypotetical use of the slice index:
+            // Hypothetical use of the slice index:
             // auto bb = po.transformed_mesh().bounding_box();
             // auto range = po.get_slice_records(bb.min(Z));
             // std::vector<float> heights; heights.reserve(range.size());
@@ -888,12 +897,6 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-        if(!po.m_supportdata || !po.m_supportdata->support_tree_ptr) {
-            BOOST_LOG_TRIVIAL(error) << "Uninitialized support data at "
-                                     << "pad creation.";
-            return;
-        }
-
         if(po.m_config.pad_enable.getBool())
         {
             double wt = po.m_config.pad_wall_thickness.getFloat();
@@ -921,7 +924,7 @@ void SLAPrint::process()
 
             pcfg.throw_on_cancel = thrfn;
             po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
-        } else {
+        } else if(po.m_supportdata && po.m_supportdata->support_tree_ptr) {
             po.m_supportdata->support_tree_ptr->remove_pad();
         }
 
@@ -937,6 +940,11 @@ void SLAPrint::process()
         auto& sd = po.m_supportdata;
 
         if(sd) sd->support_slices.clear();
+
+        // Don't bother if no supports and no pad is present.
+        if (!po.m_config.supports_enable.getBool() &&
+            !po.m_config.pad_enable.getBool())
+            return;
 
         if(sd && sd->support_tree_ptr) {
 
@@ -964,7 +972,8 @@ void SLAPrint::process()
             po.m_slice_index[i].set_support_slice_idx(po, i);
         }
 
-        // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
+        // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update
+        // status to the 3D preview to load the SLA slices.
         m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
@@ -1536,14 +1545,17 @@ bool SLAPrint::is_step_done(SLAPrintObjectStep step) const
     return true;
 }
 
-SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
-    Inherited(print, model_object),
-    m_stepmask(slaposCount, true),
-    m_transformed_rmesh( [this](TriangleMesh& obj){
-            obj = m_model_object->raw_mesh(); obj.transform(m_trafo); obj.require_shared_vertices();
-        })
-{
-}
+SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object)
+    : Inherited(print, model_object)
+    , m_stepmask(slaposCount, true)
+    , m_transformed_rmesh([this](TriangleMesh &obj) {
+        obj = m_model_object->raw_mesh();
+        if (!obj.empty()) {
+            obj.transform(m_trafo);
+            obj.require_shared_vertices();
+        }
+    })
+{}
 
 SLAPrintObject::~SLAPrintObject() {}
 
@@ -1682,13 +1694,14 @@ namespace { // dummy empty static containers for return values in some methods
 const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
 const ExPolygons EMPTY_SLICE;
+const std::vector<sla::SupportPoint> EMPTY_SUPPORT_POINTS;
 }
 
 const SliceRecord SliceRecord::EMPTY(0, std::nanf(""), 0.f);
 
 const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
 {
-    return m_supportdata->support_points;
+    return m_supportdata? m_supportdata->support_points : EMPTY_SUPPORT_POINTS;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
