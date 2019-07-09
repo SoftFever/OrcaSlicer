@@ -806,7 +806,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0)
             {
-			    wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
+                wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
 
                 TransformationType type;
                 type.set_world();
@@ -816,12 +816,12 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
                 // apply scale
                 start_dragging();
                 scale(s * Vec3d::Ones(), type);
-                wxGetApp().plater()->canvas3D()->do_scale();
+                wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
 
                 // center selection on print bed
                 start_dragging();
                 translate(print_volume.center() - get_bounding_box().center());
-                wxGetApp().plater()->canvas3D()->do_move();
+                wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
                 wxGetApp().obj_manipul()->set_dirty();
             }

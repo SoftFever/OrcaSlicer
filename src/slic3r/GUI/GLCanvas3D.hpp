@@ -599,11 +599,12 @@ public:
 
     void set_tooltip(const std::string& tooltip) const;
 
-    void do_move();
-    void do_rotate();
-    void do_scale();
-    void do_flatten();
-    void do_mirror();
+    // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
+    void do_move(const std::string& snapshot_type);
+    void do_rotate(const std::string& snapshot_type);
+    void do_scale(const std::string& snapshot_type);
+    void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
+    void do_mirror(const std::string& snapshot_type);
 
     void set_camera_zoom(double zoom);
 
