@@ -342,25 +342,30 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
-// Getter for the const char*[]
-static bool StringGetter(void* data, int i, const char** out_text)
+bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected)
 {
-    const std::vector<std::string>* v = (std::vector<std::string>*)data;
-    if (out_text)
-        *out_text = (*v)[i].c_str();
-    return true;
-}
+    bool is_hovered = false;
+    ImGui::ListBoxHeader("", size);
 
-bool ImGuiWrapper::multi_sel_list(const wxString& label, const std::vector<std::string>& options, int& selection)
-{
-    // this is to force the label to the left of the widget:
-    if (!label.IsEmpty())
-        text(label);
+    int i=0;
+    const char* item_text;
+    while (items_getter(is_undo, i, &item_text))
+    {
+        ImGui::Selectable(item_text, i < hovered);
 
-    bool res = false;
-    ImGui::ListBox("", &selection, StringGetter, (void*)&options, (int)options.size());
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(item_text);
+            hovered = i;
+            is_hovered = true;
+        }
 
-    return res;
+        if (ImGui::IsItemClicked())
+            selected = i;
+        i++;
+    }
+
+    ImGui::ListBoxFooter();
+    return is_hovered;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

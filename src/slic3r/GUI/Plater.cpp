@@ -4110,6 +4110,21 @@ void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(
 void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::undo() { p->undo(); }
 void Plater::redo() { p->redo(); }
+bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** out_text)
+{
+    const size_t& active_snapshot_time = p->undo_redo_stack.active_snapshot_time();
+    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
+    const auto it = std::lower_bound(ss_stack.begin(), ss_stack.end(), UndoRedo::Snapshot(active_snapshot_time));
+
+    const int idx_in_ss_stack = it - ss_stack.begin() + (is_undo ? -(++idx) : idx);
+
+    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+        *out_text = ss_stack[idx_in_ss_stack].name.c_str();
+        return true;
+    }
+
+    return false;
+}
 
 void Plater::on_extruders_change(int num_extruders)
 {

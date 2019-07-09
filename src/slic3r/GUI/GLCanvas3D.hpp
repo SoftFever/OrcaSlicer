@@ -676,6 +676,7 @@ private:
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
+    void _render_undo_redo_stack(const bool is_undo, float pos_x);
 
     void _update_volumes_hover_state() const;
 

@@ -187,6 +187,7 @@ public:
     void take_snapshot(const wxString &snapshot_name);
     void undo();
     void redo();
+    bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
