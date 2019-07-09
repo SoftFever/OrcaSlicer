@@ -547,9 +547,9 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 #if REALfloat
 	    	qhull.runQhull("", 3, (int)this->its.vertices.size(), (const realT*)(this->its.vertices.front().data()), "Qt");
 #else
-	    	src_vertices.reserve(this->its.vertices() * 3);
+	    	src_vertices.reserve(this->its.vertices.size() * 3);
 	    	// We will now fill the vector with input points for computation:
-			for (const stl_vertex &v : ths->its.vertices.size())
+			for (const stl_vertex &v : this->its.vertices)
 				for (int i = 0; i < 3; ++ i)
 		        	src_vertices.emplace_back(v(i));
 	        qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");

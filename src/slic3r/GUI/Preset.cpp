@@ -829,11 +829,25 @@ const Preset* PresetCollection::get_selected_preset_parent() const
     if (this->get_selected_idx() == -1)
         // This preset collection has no preset activated yet. Only the get_edited_preset() is valid.
         return nullptr;
-    const std::string &inherits = this->get_edited_preset().inherits();
+//    const std::string &inherits = this->get_edited_preset().inherits();
+//    if (inherits.empty())
+//		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+
+    std::string inherits = this->get_edited_preset().inherits();
     if (inherits.empty())
-		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+    {
+		if (this->get_selected_preset().is_system || this->get_selected_preset().is_default) 
+            return &this->get_selected_preset();
+        if (this->get_selected_preset().is_external)
+            return nullptr;
+        
+        inherits = m_type != Preset::Type::TYPE_PRINTER ? "- default -" :
+                   this->get_edited_preset().printer_technology() == ptFFF ? 
+                   "- default FFF -" : "- default SLA -" ;
+    }
+
     const Preset* preset = this->find_preset(inherits, false);
-    return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
+    return (preset == nullptr/* || preset->is_default*/ || preset->is_external) ? nullptr : preset;
 }
 
 const Preset* PresetCollection::get_preset_parent(const Preset& child) const

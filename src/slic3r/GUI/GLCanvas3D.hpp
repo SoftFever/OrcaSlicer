@@ -12,6 +12,7 @@
 #include "Camera.hpp"
 #include "Selection.hpp"
 #include "Gizmos/GLGizmosManager.hpp"
+#include "GUI_ObjectLayers.hpp"
 
 #include <float.h>
 
@@ -452,7 +453,6 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
-    bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
     bool m_warning_texture_enabled;
@@ -494,7 +494,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-    bool init(bool useVBOs);
+    bool init();
     void post_event(wxEvent &&event);
 
     void set_as_dirty();
@@ -608,6 +608,7 @@ public:
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
+    void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
 

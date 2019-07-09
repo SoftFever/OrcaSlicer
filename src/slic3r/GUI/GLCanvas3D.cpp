@@ -524,7 +524,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
         glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data()));
         glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data() + m_layers_texture.width * m_layers_texture.height * 4));
-        for (const GLVolume *glvolume : volumes.volumes) {
+        for (const GLVolume* glvolume : volumes.volumes) {
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
@@ -543,8 +543,8 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     {
         // Something went wrong. Just render the object.
         assert(false);
-		for (const GLVolume *glvolume : volumes.volumes) {
-			// Render the object using the layer editing shader and texture.
+        for (const GLVolume* glvolume : volumes.volumes) {
+            // Render the object using the layer editing shader and texture.
 			if (!glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
 				continue;
             glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
@@ -912,7 +912,8 @@ GLCanvas3D::LegendTexture::LegendTexture()
 void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
                                                                std::vector<std::pair<double, double>>& cp_legend_values)
 {
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
+        wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
     {
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
@@ -1211,7 +1212,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_model(nullptr)
     , m_dirty(true)
     , m_initialized(false)
-    , m_use_VBOs(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
@@ -1252,7 +1252,7 @@ void GLCanvas3D::post_event(wxEvent &&event)
     wxPostEvent(m_canvas, event);
 }
 
-bool GLCanvas3D::init(bool useVBOs)
+bool GLCanvas3D::init()
 {
     if (m_initialized)
         return true;
@@ -1303,30 +1303,30 @@ bool GLCanvas3D::init(bool useVBOs)
     if (m_multisample_allowed)
         glsafe(::glEnable(GL_MULTISAMPLE));
 
-    if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
+    if (!m_shader.init("gouraud.vs", "gouraud.fs"))
+    {
+        std::cout << "Unable to initialize gouraud shader: please, check that the files gouraud.vs and gouraud.fs are available" << std::endl;
         return false;
-
-    if (m_toolbar.is_enabled() && useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
-        return false;
-
-    m_use_VBOs = useVBOs;
-
-    // on linux the gl context is not valid until the canvas is not shown on screen
-    // we defer the geometry finalization of volumes until the first call to render()
-    if (!m_volumes.empty())
-        m_volumes.finalize_geometry(m_use_VBOs);
-
-    if (m_gizmos.is_enabled()) {
-        if (! m_gizmos.init(*this)) { 
-            std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
-            return false;
-        }
     }
+
+    if (m_toolbar.is_enabled() && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+    {
+        std::cout << "Unable to initialize variable_layer_height shader: please, check that the files variable_layer_height.vs and variable_layer_height.fs are available" << std::endl;
+        return false;
+    }
+
+//    // on linux the gl context is not valid until the canvas is not shown on screen
+//    // we defer the geometry finalization of volumes until the first call to render()
+//    if (!m_volumes.empty())
+//        m_volumes.finalize_geometry();
+
+    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
+        std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
     if (!_init_toolbar())
         return false;
 
-    if (m_selection.is_enabled() && !m_selection.init(m_use_VBOs))
+    if (m_selection.is_enabled() && !m_selection.init())
         return false;
 
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
@@ -1356,7 +1356,6 @@ void GLCanvas3D::reset_volumes()
     if (!m_volumes.empty())
     {
         m_selection.clear();
-        m_volumes.release_geometry();
         m_volumes.clear();
         m_dirty = true;
     }
@@ -1778,7 +1777,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.push_back(i);
         }
     }
-    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_use_VBOs && m_initialized);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by);
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -1918,7 +1917,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     assert(volume_idx_wipe_tower_old == -1);
                     volume_idx_wipe_tower_old = (int)volume_id;
                 }
-                volume->release_geometry();
                 if (! m_reload_delayed)
                     delete volume;
             } else {
@@ -1966,8 +1964,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 					assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
                     if (it->new_geometry()) {
                         // New volume.
-                        m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_use_VBOs && m_initialized);
-						m_volumes.volumes.back()->geometry_id = key.geometry_id;
+                        m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by);
+                        m_volumes.volumes.back()->geometry_id = key.geometry_id;
 						update_object_list = true;
                     } else {
 						// Recycling an old GLVolume.
@@ -2031,7 +2029,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                     if (!instances[istep].empty())
-                        m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
+                        m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp);
             }
 
 			// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
@@ -2068,9 +2066,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
 
                 if (!print->is_step_done(psWipeTower))
-                    depth = (900.f/w) * (float)(extruders_count - 1) ;
+                    depth = (900.f/w) * (float)(extruders_count - 1);
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
-                    1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
+                    1000, x, y, w, depth, (float)height, a, !print->is_step_done(psWipeTower),
                     brim_spacing * 4.5f);
                 if (volume_idx_wipe_tower_old != -1)
                     map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
@@ -3323,6 +3321,12 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     }
 }
 
+void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
+{
+    std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
+    handle_sidebar_focus_event(field, true);
+}
+
 void GLCanvas3D::update_ui_from_settings()
 {
     m_camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
@@ -3356,7 +3360,7 @@ arr::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
             wti.pos = Vec2d(m_config->opt_float("wipe_tower_x"),
                             m_config->opt_float("wipe_tower_y"));
             wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
-            const BoundingBoxf3& bb = vol->bounding_box;
+            const BoundingBoxf3& bb = vol->bounding_box();
             wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
             break;
         }
@@ -3821,15 +3825,17 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-    m_bed.render(const_cast<GLCanvas3D*>(this), theta, m_use_VBOs, scale_factor);
+#if ENABLE_TEXTURES_FROM_SVG
+    m_bed.render(const_cast<GLCanvas3D*>(this), theta, scale_factor);
+#else
+    m_bed.render(theta, scale_factor);
+#endif // ENABLE_TEXTURES_FROM_SVG
 }
 
 void GLCanvas3D::_render_axes() const
 {
     m_bed.render_axes();
 }
-
-
 
 void GLCanvas3D::_render_objects() const
 {
@@ -3841,75 +3847,44 @@ void GLCanvas3D::_render_objects() const
 
     m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
 
-    if (m_use_VBOs)
+    if (m_picking_enabled)
     {
-        if (m_picking_enabled)
+        // Update the layer editing selection to the first object selected, update the current object maximum Z.
+        const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
+
+        if (m_config != nullptr)
         {
-            // Update the layer editing selection to the first object selected, update the current object maximum Z.
-            const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
-
-            if (m_config != nullptr)
-            {
-                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box(false);
-                m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
-                m_volumes.check_outside_state(m_config, nullptr);
-            }
+            const BoundingBoxf3& bed_bb = m_bed.get_bounding_box(false);
+            m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
+            m_volumes.check_outside_state(m_config, nullptr);
         }
-
-        if (m_use_clipping_planes)
-            m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
-        else
-            m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
-
-        m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
-
-        m_shader.start_using();
-        if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
-            int object_id = m_layers_editing.last_object_id;
-            m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume &volume) {
-                // Which volume to paint without the layer height profile shader?
-                return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
-            });
-            // Let LayersEditing handle rendering of the active object using the layer height profile shader.
-            m_layers_editing.render_volumes(*this, this->m_volumes);
-        } else {
-            // do not cull backfaces to show broken geometry, if any
-            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
-                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
-            });
-        }
-        m_volumes.render_VBOs(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
-        m_shader.stop_using();
     }
+
+    if (m_use_clipping_planes)
+        m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
     else
-    {
-        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
-        ::glEnable(GL_CLIP_PLANE0);
+        m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
-        if (m_use_clipping_planes)
-        {
-            glsafe(::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[0].get_data()));
-            glsafe(::glEnable(GL_CLIP_PLANE1));
-            glsafe(::glClipPlane(GL_CLIP_PLANE2, (GLdouble*)m_clipping_planes[1].get_data()));
-            glsafe(::glEnable(GL_CLIP_PLANE2));
-        }
-        
+    m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
 
+    m_shader.start_using();
+    if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+        int object_id = m_layers_editing.last_object_id;
+        m_volumes.render(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume& volume) {
+            // Which volume to paint without the layer height profile shader?
+            return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+        });
+        // Let LayersEditing handle rendering of the active object using the layer height profile shader.
+        m_layers_editing.render_volumes(*this, this->m_volumes);
+    } else {
         // do not cull backfaces to show broken geometry, if any
-        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
+        m_volumes.render(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
         });
-        m_volumes.render_legacy(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
-
-        ::glDisable(GL_CLIP_PLANE0);
-
-        if (m_use_clipping_planes)
-        {
-            glsafe(::glDisable(GL_CLIP_PLANE1));
-            glsafe(::glDisable(GL_CLIP_PLANE2));
-        }
     }
-    
+    m_volumes.render(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
+    m_shader.stop_using();
+
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
     glsafe(::glDisable(GL_LIGHTING));
 }
@@ -4025,6 +4000,7 @@ void GLCanvas3D::_render_current_gizmo() const
 
 void GLCanvas3D::_render_gizmos_overlay() const
 {
+#if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
 //     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
@@ -4035,6 +4011,7 @@ void GLCanvas3D::_render_gizmos_overlay() const
     const float size = int(GLGizmosManager::Default_Icons_Size*wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
+#endif // ENABLE_SVG_ICONS
 
     m_gizmos.render_overlay(*this, m_selection);
 }
@@ -4288,15 +4265,8 @@ void GLCanvas3D::_render_sla_slices() const
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    if (m_use_VBOs)
-        m_shader.start_using();
-
-    m_selection.render_sidebar_hints(m_sidebar_field);
-
-    if (m_use_VBOs)
-        m_shader.stop_using();
+    m_selection.render_sidebar_hints(m_sidebar_field, m_shader);
 }
-
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {
@@ -4506,8 +4476,6 @@ void GLCanvas3D::_load_print_toolpaths()
 
         _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
-    volume.bounding_box = volume.indexed_vertex_array.bounding_box();
-    volume.indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 }
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
@@ -4672,18 +4640,12 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	                vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
 	                // Copy the content back to the old GLVolume.
 	                vol.indexed_vertex_array = vol_new.indexed_vertex_array;
-	                // Finalize a bounding box of the old GLVolume.
-	                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
-	                // Clear the buffers, but keep them pre-allocated.
+                     // Clear the buffers, but keep them pre-allocated.
 	                vol_new.indexed_vertex_array.clear();
 	                // Just make sure that clear did not clear the reserved memory.
 	                vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
 	            }
 	        }
-        }
-        for (GLVolume *vol : vols) {
-        	vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-        	vol->indexed_vertex_array.shrink_to_fit();
         }
     });
 
@@ -4693,8 +4655,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
-        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end";
 }
@@ -4844,17 +4804,11 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                 vol_new.indexed_vertex_array = std::move(vol.indexed_vertex_array);
                 // Copy the content back to the old GLVolume.
                 vol.indexed_vertex_array = vol_new.indexed_vertex_array;
-                // Finalize a bounding box of the old GLVolume.
-                vol.bounding_box = vol.indexed_vertex_array.bounding_box();
                 // Clear the buffers, but keep them pre-allocated.
                 vol_new.indexed_vertex_array.clear();
                 // Just make sure that clear did not clear the reserved memory.
                 vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
-        }
-        for (GLVolume *vol : vols) {
-            vol->bounding_box = vol->indexed_vertex_array.bounding_box();
-            vol->indexed_vertex_array.shrink_to_fit();
         }
     });
 
@@ -4864,8 +4818,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
-        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end";
 }
@@ -5042,17 +4994,6 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
         }
     }
-
-    // finalize volumes and sends geometry to gpu
-    if (m_volumes.volumes.size() > initial_volumes_count)
-    {
-        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
-        {
-            GLVolume* volume = m_volumes.volumes[i];
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
-        }
-    }
 }
 
 void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
@@ -5096,17 +5037,6 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
         }
 
         return;
-    }
-
-    // finalize volumes and sends geometry to gpu
-    if (m_volumes.volumes.size() > initial_volumes_count)
-    {
-        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
-        {
-            GLVolume* volume = m_volumes.volumes[i];
-            volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
-        }
     }
 }
 
@@ -5336,10 +5266,6 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
-
-        // finalize volumes and sends geometry to gpu
-        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
     }
 }
 
@@ -5367,10 +5293,6 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
-
-        // finalize volumes and sends geometry to gpu
-        volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
     }
 }
 
@@ -5396,7 +5318,7 @@ void GLCanvas3D::_load_fff_shells()
             instance_ids[i] = i;
         }
 
-        m_volumes.load_object(model_obj, object_id, instance_ids, "object", m_use_VBOs && m_initialized);
+        m_volumes.load_object(model_obj, object_id, instance_ids, "object");
 
         ++object_id;
     }
@@ -5416,9 +5338,9 @@ void GLCanvas3D::_load_fff_shells()
             float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
 
             if (!print->is_step_done(psWipeTower))
-                depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
+                depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1);
             m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                                              m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower), brim_spacing * 4.5f);
+                !print->is_step_done(psWipeTower), brim_spacing * 4.5f);
         }
     }
 }
@@ -5436,8 +5358,8 @@ void GLCanvas3D::_load_sla_shells()
         const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
-        v.indexed_vertex_array.load_mesh(mesh, m_use_VBOs);
-		v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
+        v.indexed_vertex_array.load_mesh(mesh);
+        v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
@@ -5462,9 +5384,6 @@ void GLCanvas3D::_load_sla_shells()
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
                 GLVolume& v = *m_volumes.volumes[i];
-                // finalize volumes and sends geometry to gpu
-                v.bounding_box = v.indexed_vertex_array.bounding_box();
-                v.indexed_vertex_array.finalize_geometry(m_use_VBOs);
                 // apply shift z
                 v.set_sla_shift_z(shift_z);
             }
@@ -5555,7 +5474,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box()) : false;
     }
 }
 
@@ -5640,7 +5559,7 @@ bool GLCanvas3D::_is_any_volume_outside() const
 void GLCanvas3D::_resize_toolbars() const
 {
     Size cnv_size = get_canvas_size();
-    float zoom = get_camera_zoom();
+    float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
 #if ENABLE_RETINA_GL
@@ -5690,19 +5609,16 @@ void GLCanvas3D::_resize_toolbars() const
     }
     }
 
-    if (m_view_toolbar != nullptr)
-    {
 #if ENABLE_RETINA_GL
-        m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
+    m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
 
-        // places the toolbar on the bottom-left corner of the 3d scene
-        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
-        float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-        m_view_toolbar.set_position(top, left);
-    }
+    // places the toolbar on the bottom-left corner of the 3d scene
+    float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
+    float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
+    m_view_toolbar.set_position(top, left);
 }
 #endif // !ENABLE_SVG_ICONS
 

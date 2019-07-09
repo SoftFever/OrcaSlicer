@@ -673,6 +673,7 @@ void base_plate(const TriangleMesh &      mesh,
                 const std::vector<float> &heights,
                 ThrowOnCancel             thrfn)
 {
+    if (mesh.empty()) return;
     //    m.require_shared_vertices(); // TriangleMeshSlicer needs this    
     TriangleMeshSlicer slicer(&mesh);
     

@@ -68,10 +68,12 @@ void ObjectSettings::update_settings_list()
     m_settings_list_sizer->Clear(true);
 
     auto objects_ctrl   = wxGetApp().obj_list();
-    auto objects_model  = wxGetApp().obj_list()->m_objects_model;
-    auto config         = wxGetApp().obj_list()->m_config;
+    auto objects_model  = wxGetApp().obj_list()->GetModel();
+    auto config         = wxGetApp().obj_list()->config();
 
     const auto item = objects_ctrl->GetSelection();
+    const bool is_layers_range_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itLayer;
+
     if (item && !objects_ctrl->multiple_selection() && 
         config && objects_model->IsSettingsItem(item))
 	{
@@ -119,7 +121,8 @@ void ObjectSettings::update_settings_list()
             }
 
             for (auto& cat : cat_options) {
-                if (cat.second.size() == 1 && cat.second[0] == "extruder")
+                if (cat.second.size() == 1 && 
+                    (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
                     continue;
 
                 auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), config, false, extra_column);
@@ -129,14 +132,14 @@ void ObjectSettings::update_settings_list()
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
                                         wxGetApp().obj_list()->changed_object(); };
 
-                const bool is_extriders_cat = cat.first == "Extruders";
+                const bool is_extruders_cat = cat.first == "Extruders";
                 for (auto& opt : cat.second)
                 {
-                    if (opt == "extruder")
+                    if (opt == "extruder" || is_layers_range_settings && opt == "layer_height")
                         continue;
                     Option option = optgroup->get_option(opt);
                     option.opt.width = 12;
-                    if (is_extriders_cat)
+                    if (is_extruders_cat)
                         option.opt.max = wxGetApp().extruders_cnt();
                     optgroup->append_single_option_line(option);
                 }

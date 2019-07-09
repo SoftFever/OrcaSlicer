@@ -274,8 +274,8 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
-    , m_requires_canvas_update(false)
 #if ENABLE_TEXTURES_FROM_SVG
+    , m_requires_canvas_update(false)
     , m_vbo_id(0)
 #endif // ENABLE_TEXTURES_FROM_SVG
     , m_scale_factor(1.0f)
@@ -330,12 +330,11 @@ Point Bed3D::point_projection(const Point& point) const
 }
 
 #if ENABLE_TEXTURES_FROM_SVG
-void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
+void Bed3D::render(GLCanvas3D* canvas, float theta, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
-    EType type = useVBOs ? m_type : Custom;
-    switch (type)
+    switch (m_type)
     {
     case MK2:
     {
@@ -361,7 +360,7 @@ void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_fa
     }
 }
 #else
-void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_factor) const
+void Bed3D::render(float theta, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
@@ -372,17 +371,17 @@ void Bed3D::render(GLCanvas3D* canvas, float theta, bool useVBOs, float scale_fa
     {
     case MK2:
     {
-        render_prusa(canvas, "mk2", theta, useVBOs);
+        render_prusa("mk2", theta);
         break;
     }
     case MK3:
     {
-        render_prusa(canvas, "mk3", theta, useVBOs);
+        render_prusa("mk3", theta);
         break;
     }
     case SL1:
     {
-        render_prusa(canvas, "sl1", theta, useVBOs);
+        render_prusa("sl1", theta);
         break;
     }
     default:
@@ -546,7 +545,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
     if (!bottom)
     {
         filename = model_path + "_bed.stl";
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, true)) {
+        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename)) {
             Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
             if (key == "mk2")
                 // hardcoded value to match the stl model
@@ -628,12 +627,12 @@ void Bed3D::render_prusa_shader(bool transparent) const
         if (position_id != -1)
         {
             glsafe(::glEnableVertexAttribArray(position_id));
-            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_position_offset()));
         }
         if (tex_coords_id != -1)
         {
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
-            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_tex_coords_offset()));
         }
 
         glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));
@@ -651,7 +650,7 @@ void Bed3D::render_prusa_shader(bool transparent) const
     }
 }
 #else
-void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) const
+void Bed3D::render_prusa(const std::string& key, float theta) const
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
 
@@ -677,7 +676,7 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
     std::string filename = tex_path + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
-        if (!m_top_texture.load_from_file(filename, true))
+        if (!m_top_texture.load_from_file(filename, true, true))
         {
             render_custom();
             return;
@@ -694,7 +693,7 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
     filename = tex_path + "_bottom.png";
     if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
     {
-        if (!m_bottom_texture.load_from_file(filename, true))
+        if (!m_bottom_texture.load_from_file(filename, true, true))
         {
             render_custom();
             return;
@@ -711,7 +710,7 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
     if (theta <= 90.0f)
     {
         filename = model_path + "_bed.stl";
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs)) {
+        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename)) {
             Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
             if (key == "mk2")
                 // hardcoded value to match the stl model

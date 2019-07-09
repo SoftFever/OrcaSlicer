@@ -896,7 +896,6 @@ public:
             merged.merge(bs.mesh);
         }
 
-
         if(m_ctl.stopcondition()) {
             // In case of failure we have to return an empty mesh
             meshcache = TriangleMesh();
@@ -907,7 +906,7 @@ public:
 
         // The mesh will be passed by const-pointer to TriangleMeshSlicer,
         // which will need this.
-        meshcache.require_shared_vertices();
+        if (!meshcache.empty()) meshcache.require_shared_vertices();
 
         // TODO: Is this necessary?
         //meshcache.repair();
@@ -2514,7 +2513,7 @@ std::vector<ExPolygons> SLASupportTree::slice(float layerh, float init_layerh) c
 
     TriangleMesh fullmesh = m_impl->merged_mesh();
     fullmesh.merge(get_pad());
-    fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
+    if (!fullmesh.empty()) fullmesh.require_shared_vertices();
     TriangleMeshSlicer slicer(&fullmesh);
     std::vector<ExPolygons> ret;
     slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
@@ -2527,7 +2526,7 @@ std::vector<ExPolygons> SLASupportTree::slice(const std::vector<float> &heights,
 {
     TriangleMesh fullmesh = m_impl->merged_mesh();
     fullmesh.merge(get_pad());
-    fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
+    if (!fullmesh.empty()) fullmesh.require_shared_vertices();
     TriangleMeshSlicer slicer(&fullmesh);
     std::vector<ExPolygons> ret;
     slicer.slice(heights, cr, &ret, get().ctl().cancelfn);

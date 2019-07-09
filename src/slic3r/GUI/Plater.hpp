@@ -33,6 +33,7 @@ class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
 class ObjectSettings;
+class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 
@@ -93,6 +94,7 @@ public:
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
+    ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
     wxPanel*                presets_panel();
 
@@ -217,6 +219,8 @@ public:
     bool can_copy_to_clipboard() const;
 
     void msw_rescale();
+
+    const Camera& get_camera() const;
 
 private:
     struct priv;
