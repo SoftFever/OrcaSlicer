@@ -1583,8 +1583,11 @@ struct Plater::priv
 
 	void take_snapshot(const std::string& snapshot_name) { this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection()); }
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
+    int  get_active_snapshot_index();
     void undo();
     void redo();
+    void undo_to(size_t time_to_load);
+    void redo_to(size_t time_to_load);
 
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
@@ -3560,6 +3563,14 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 	}
 }
 
+int Plater::priv::get_active_snapshot_index()
+{
+    const size_t& active_snapshot_time = this->undo_redo_stack.active_snapshot_time();
+    const std::vector<UndoRedo::Snapshot>& ss_stack = this->undo_redo_stack.snapshots();
+    const auto it = std::lower_bound(ss_stack.begin(), ss_stack.end(), UndoRedo::Snapshot(active_snapshot_time));
+    return it - ss_stack.begin();
+}
+
 void Plater::priv::undo()
 {
 	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection()))
@@ -3569,6 +3580,18 @@ void Plater::priv::undo()
 void Plater::priv::redo()
 { 
 	if (this->undo_redo_stack.redo(model))
+		this->update_after_undo_redo();
+}
+
+void Plater::priv::undo_to(size_t time_to_load)
+{
+	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), time_to_load))
+		this->update_after_undo_redo();
+}
+
+void Plater::priv::redo_to(size_t time_to_load)
+{ 
+	if (this->undo_redo_stack.redo(model, time_to_load))
 		this->update_after_undo_redo();
 }
 
@@ -4110,13 +4133,30 @@ void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(
 void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::undo() { p->undo(); }
 void Plater::redo() { p->redo(); }
+void Plater::undo_to(int selection)
+{
+    if (selection == 0) {
+        p->undo();
+        return;
+    }
+    
+    const int idx = p->get_active_snapshot_index() - selection - 1;
+    p->undo_to(p->undo_redo_stack.snapshots()[idx].timestamp);
+}
+void Plater::redo_to(int selection)
+{
+    if (selection == 0) {
+        p->redo();
+        return;
+    }
+    
+    const int idx = selection + p->get_active_snapshot_index();
+    p->redo_to(p->undo_redo_stack.snapshots()[idx].timestamp);
+}
 bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** out_text)
 {
-    const size_t& active_snapshot_time = p->undo_redo_stack.active_snapshot_time();
     const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
-    const auto it = std::lower_bound(ss_stack.begin(), ss_stack.end(), UndoRedo::Snapshot(active_snapshot_time));
-
-    const int idx_in_ss_stack = it - ss_stack.begin() + (is_undo ? -(++idx) : idx);
+    const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -(++idx) : idx);
 
     if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
         *out_text = ss_stack[idx_in_ss_stack].name.c_str();

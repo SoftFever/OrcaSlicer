@@ -3492,7 +3492,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
         if (imgui->undo_redo_list(ImVec2(12 * em, 20 * em), is_undo, &string_getter, hovered, selected))
             m_toolbar.set_imgui_hovered_pos(hovered);
         if (selected >= 0)
-            m_toolbar.hide_imgui(is_undo);
+            is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
 
         imgui->text(wxString::Format(_(L("%s %d Action")), stack_name, hovered + 1));
 
