@@ -105,7 +105,7 @@ else()
         dep_gtest
         dep_nlopt
         dep_qhull
-        dep_libigl
+        # dep_libigl # Not working, static build has different Eigen
     )
 
 endif()
