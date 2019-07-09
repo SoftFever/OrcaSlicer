@@ -1515,6 +1515,7 @@ void GLModel::set_scale(const Vec3d& scale)
 
 void GLModel::reset()
 {
+    m_volume.indexed_vertex_array.release_geometry();
     m_filename = "";
 }
 
