@@ -253,6 +253,7 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     int  m_imgui_hovered_pos  { -1 };
+    unsigned int m_pressed_toggable_id;
 
 public:
 #if ENABLE_SVG_ICONS
@@ -298,6 +299,8 @@ public:
     bool is_item_pressed(const std::string& name) const;
     bool is_item_disabled(const std::string& name) const;
     bool is_item_visible(const std::string& name) const;
+
+    bool is_any_item_pressed() const;
 
     const std::string& get_tooltip() const { return m_tooltip; }
 

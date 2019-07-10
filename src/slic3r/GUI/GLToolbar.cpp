@@ -84,7 +84,7 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
 {
     GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(tex_width, tex_height, icon_size));
 
-    if (is_pressed())
+    if (is_toggable() && is_pressed())
         m_data.render_callback(left, right, bottom, top);
 }
 
@@ -165,6 +165,7 @@ GLToolbar::GLToolbar(GLToolbar::EType type)
     , m_icons_texture_dirty(true)
 #endif // ENABLE_SVG_ICONS
     , m_tooltip("")
+    , m_pressed_toggable_id(-1)
 {
 }
 
@@ -346,7 +347,7 @@ void GLToolbar::select_item(const std::string& name)
 
 bool GLToolbar::is_item_pressed(const std::string& name) const
 {
-    for (GLToolbarItem* item : m_items)
+    for (const GLToolbarItem* item : m_items)
     {
         if (item->get_name() == name)
             return item->is_pressed();
@@ -357,7 +358,7 @@ bool GLToolbar::is_item_pressed(const std::string& name) const
 
 bool GLToolbar::is_item_disabled(const std::string& name) const
 {
-    for (GLToolbarItem* item : m_items)
+    for (const GLToolbarItem* item : m_items)
     {
         if (item->get_name() == name)
             return item->is_disabled();
@@ -368,10 +369,21 @@ bool GLToolbar::is_item_disabled(const std::string& name) const
 
 bool GLToolbar::is_item_visible(const std::string& name) const
 {
-    for (GLToolbarItem* item : m_items)
+    for (const GLToolbarItem* item : m_items)
     {
         if (item->get_name() == name)
             return item->is_visible();
+    }
+
+    return false;
+}
+
+bool GLToolbar::is_any_item_pressed() const
+{
+    for (const GLToolbarItem* item : m_items)
+    {
+        if (item->is_pressed())
+            return true;
     }
 
     return false;
@@ -382,6 +394,9 @@ bool GLToolbar::update_items_state()
     bool ret = false;
     ret |= update_items_visibility();
     ret |= update_items_enabled_state();
+    if (!is_any_item_pressed())
+        m_pressed_toggable_id = -1;
+
     return ret;
 }
 
@@ -559,36 +574,41 @@ float GLToolbar::get_main_size() const
 
 void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
 {
-    if (item_id < (unsigned int)m_items.size())
+    if ((m_pressed_toggable_id == -1) || (m_pressed_toggable_id == item_id))
     {
-        GLToolbarItem* item = m_items[item_id];
-        if ((item != nullptr) && !item->is_separator() && item->is_hovered())
+        if (item_id < (unsigned int)m_items.size())
         {
-            if (item->is_toggable())
+            GLToolbarItem* item = m_items[item_id];
+            if ((item != nullptr) && !item->is_separator() && item->is_hovered())
             {
-                GLToolbarItem::EState state = item->get_state();
-                if (state == GLToolbarItem::Hover)
-                    item->set_state(GLToolbarItem::HoverPressed);
-                else if (state == GLToolbarItem::HoverPressed)
-                    item->set_state(GLToolbarItem::Hover);
-
-                parent.render();
-                item->do_action();
-            }
-            else
-            {
-                if (m_type == Radio)
-                    select_item(item->get_name());
-                else
-                    item->set_state(GLToolbarItem::HoverPressed);
-
-                parent.render();
-                item->do_action();
-                if ((m_type == Normal) && (item->get_state() != GLToolbarItem::Disabled))
+                if (item->is_toggable())
                 {
-                    // the item may get disabled during the action, if not, set it back to hover state
-                    item->set_state(GLToolbarItem::Hover);
+                    GLToolbarItem::EState state = item->get_state();
+                    if (state == GLToolbarItem::Hover)
+                        item->set_state(GLToolbarItem::HoverPressed);
+                    else if (state == GLToolbarItem::HoverPressed)
+                        item->set_state(GLToolbarItem::Hover);
+
+                    m_pressed_toggable_id = item->is_pressed() ? item_id : -1;
+
                     parent.render();
+                    item->do_action();
+                }
+                else
+                {
+                    if (m_type == Radio)
+                        select_item(item->get_name());
+                    else
+                        item->set_state(GLToolbarItem::HoverPressed);
+
+                    parent.render();
+                    item->do_action();
+                    if ((m_type == Normal) && (item->get_state() != GLToolbarItem::Disabled))
+                    {
+                        // the item may get disabled during the action, if not, set it back to hover state
+                        item->set_state(GLToolbarItem::Hover);
+                        parent.render();
+                    }
                 }
             }
         }
