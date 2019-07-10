@@ -3482,14 +3482,14 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    int hovered = m_toolbar.get_imgui_hovered_pos();
+    int hovered = m_imgui_undo_redo_hovered_pos;
     int selected = -1;
     const float em = static_cast<float>(wxGetApp().em_unit());
 
     if (imgui->undo_redo_list(ImVec2(12 * em, 20 * em), is_undo, &string_getter, hovered, selected))
-        m_toolbar.set_imgui_hovered_pos(hovered);
+        m_imgui_undo_redo_hovered_pos = hovered;
     else
-        m_toolbar.set_imgui_hovered_pos(-1);
+        m_imgui_undo_redo_hovered_pos = -1;
 
     if (selected >= 0)
         is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
@@ -3684,7 +3684,7 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
     item.sprite_id = 11;
-    item.action_callback = [this]() { if (m_canvas != nullptr) m_toolbar.set_imgui_hovered_pos(-1); };
+    item.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
     item.visibility_callback = []()->bool { return true; };
     item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); } ;
     item.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };

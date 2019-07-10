@@ -252,7 +252,6 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
-    int  m_imgui_hovered_pos  { -1 };
     unsigned int m_pressed_toggable_id;
 
 public:
@@ -311,9 +310,6 @@ public:
     void render(const GLCanvas3D& parent) const;    
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
-
-    void set_imgui_hovered_pos(int pos = -1)    { m_imgui_hovered_pos = pos;   }
-    int  get_imgui_hovered_pos() const          { return m_imgui_hovered_pos;  }
 
 private:
     void calc_layout() const;
