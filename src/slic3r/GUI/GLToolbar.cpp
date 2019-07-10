@@ -84,7 +84,8 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
 {
     GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(tex_width, tex_height, icon_size));
 
-    m_data.render_callback(left, right, bottom, top);
+    if (is_pressed())
+        m_data.render_callback(left, right, bottom, top);
 }
 
 GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const

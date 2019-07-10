@@ -3473,31 +3473,31 @@ static bool string_getter(const bool is_undo, int idx, const char** out_text)
 
 void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 {
-    if (m_canvas != nullptr && m_toolbar.get_imgui_visible(is_undo))
-    {
-        const wxString& stack_name = _(is_undo ? L("Undo") : L("Redo"));
-        ImGuiWrapper* imgui = wxGetApp().imgui();
+    const wxString& stack_name = _(is_undo ? L("Undo") : L("Redo"));
+    ImGuiWrapper* imgui = wxGetApp().imgui();
 
-        const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
-        imgui->set_next_window_pos(x, m_toolbar.get_height(), ImGuiCond_Always);
+    const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
+    imgui->set_next_window_pos(x, m_toolbar.get_height(), ImGuiCond_Always);
 
-        imgui->set_next_window_bg_alpha(0.5f);
-        imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
-                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    imgui->set_next_window_bg_alpha(0.5f);
+    imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-        int hovered = m_toolbar.get_imgui_hovered_pos();
-        int selected = -1;
-        const float em = static_cast<float>(wxGetApp().em_unit());
+    int hovered = m_toolbar.get_imgui_hovered_pos();
+    int selected = -1;
+    const float em = static_cast<float>(wxGetApp().em_unit());
 
-        if (imgui->undo_redo_list(ImVec2(12 * em, 20 * em), is_undo, &string_getter, hovered, selected))
-            m_toolbar.set_imgui_hovered_pos(hovered);
-        if (selected >= 0)
-            is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
+    if (imgui->undo_redo_list(ImVec2(12 * em, 20 * em), is_undo, &string_getter, hovered, selected))
+        m_toolbar.set_imgui_hovered_pos(hovered);
+    else
+        m_toolbar.set_imgui_hovered_pos(-1);
 
-        imgui->text(wxString::Format(_(L("%s %d Action")), stack_name, hovered + 1));
+    if (selected >= 0)
+        is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
 
-        imgui->end();
-    }
+    imgui->text(wxString::Format(_(L("%s %d Action")), stack_name, hovered + 1));
+
+    imgui->end();
 }
 
 bool GLCanvas3D::_init_toolbar()
@@ -3685,19 +3685,10 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
     item.sprite_id = 11;
-    item.is_toggable = false;
-    item.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLCANVAS_UNDO));
-            m_toolbar.activate_imgui(true);
-        }
-    };
+    item.action_callback = [this]() { if (m_canvas != nullptr) m_toolbar.set_imgui_hovered_pos(-1); };
     item.visibility_callback = []()->bool { return true; };
-    item.enabled_state_callback = [this]()->bool {
-        if (!wxGetApp().plater()->can_undo()) { m_toolbar.hide_imgui(true); return false; }
-        return true;
-    };
-    item.render_callback = [this](float pos_x, float, float, float) { _render_undo_redo_stack(true, pos_x); };
+    item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); } ;
+    item.render_callback = [this](float pos_x, float, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, pos_x); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3707,17 +3698,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
     item.sprite_id = 12;
-    item.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLCANVAS_REDO));
-            m_toolbar.activate_imgui(false);
-        }
-    };
-    item.enabled_state_callback = [this]()->bool {
-        if (!wxGetApp().plater()->can_redo()) { m_toolbar.hide_imgui(false); return false; }
-        return true;
-    };
-    item.render_callback = [this](float pos_x, float, float, float) { _render_undo_redo_stack(false, pos_x); };
+    item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
+    item.render_callback = [this](float pos_x, float, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, pos_x); };
     if (!m_toolbar.add_item(item))
         return false;
 

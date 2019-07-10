@@ -4150,7 +4150,7 @@ void Plater::redo_to(int selection)
         return;
     }
     
-    const int idx = selection + p->get_active_snapshot_index();
+    const int idx = p->get_active_snapshot_index() + selection + 1;
     p->redo_to(p->undo_redo_stack.snapshots()[idx].timestamp);
 }
 bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** out_text)
