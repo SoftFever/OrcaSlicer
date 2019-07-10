@@ -1396,9 +1396,15 @@ bool GLToolbar::update_items_enabled_state()
 {
     bool ret = false;
 
-    for (GLToolbarItem* item : m_items)
+    for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
     {
+        GLToolbarItem* item = m_items[i];
         ret |= item->update_enabled_state();
+        if (item->is_enabled() && (m_pressed_toggable_id != -1) && (m_pressed_toggable_id != i))
+        {
+            ret = true;
+            item->set_state(GLToolbarItem::Disabled);
+        }
     }
 
     if (ret)
