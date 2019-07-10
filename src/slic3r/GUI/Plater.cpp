@@ -373,6 +373,7 @@ class FreqChangedParams : public OG_Settings
     wxSizer*        m_sizer {nullptr};
 
     std::shared_ptr<ConfigOptionsGroup> m_og_sla;
+    std::vector<ScalableButton*>        m_empty_buttons;
 public:
     FreqChangedParams(wxWindow* parent);
     ~FreqChangedParams() {}
@@ -381,7 +382,18 @@ public:
     wxSizer*        get_sizer() override;
     ConfigOptionsGroup* get_og(const bool is_fff);
     void            Show(const bool is_fff);
+
+    void            msw_rescale();
 };
+
+void FreqChangedParams::msw_rescale()
+{
+    m_og->msw_rescale();
+    m_og_sla->msw_rescale();
+
+    for (auto btn: m_empty_buttons)
+        btn->msw_rescale();
+}
 
 FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     OG_Settings(parent, false)
@@ -462,6 +474,20 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     Option option = Option(support_def, "support");
     option.opt.full_width = true;
     line.append_option(option);
+
+    /* Not a best solution, but
+     * Temporary workaround for right border alignment
+     */
+    auto empty_widget = [this] (wxWindow* parent) {
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_transparent.png", wxEmptyString,
+            wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+        sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, int(0.3 * wxGetApp().em_unit()));
+        m_empty_buttons.push_back(btn);
+        return sizer;
+    };
+    line.append_widget(empty_widget);
+
     m_og->append_line(line);
 
     
@@ -488,7 +514,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
         m_wiping_dialog_button->SetFont(wxGetApp().normal_font());
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(m_wiping_dialog_button);
+        sizer->Add(m_wiping_dialog_button, 0, wxALIGN_CENTER_VERTICAL);
         m_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto &config = wxGetApp().preset_bundle->project_config;
@@ -505,6 +531,13 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
+
+        auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_transparent.png", wxEmptyString, 
+                                      wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+        sizer->Add(btn , 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+            int(0.3 * wxGetApp().em_unit()));
+        m_empty_buttons.push_back(btn);
+
         return sizer;
     };
     line.append_widget(wiping_dialog_btn);
@@ -554,7 +587,8 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     support_def_sla.enum_labels.erase(support_def_sla.enum_labels.begin() + 2);
     option = Option(support_def_sla, "support");
     option.opt.full_width = true;
-    line.append_option(option);
+    line.append_option(option); 
+    line.append_widget(empty_widget);
     m_og_sla->append_line(line);
 
     line = Line{ "", "" };
@@ -947,9 +981,7 @@ void Sidebar::msw_rescale()
     // ... then refill them and set min size to correct layout of the sidebar
     update_all_preset_comboboxes();
 
-    p->frequently_changed_parameters->get_og(true)->msw_rescale();
-    p->frequently_changed_parameters->get_og(false)->msw_rescale();
-
+    p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
