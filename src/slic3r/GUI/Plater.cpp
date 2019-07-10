@@ -245,6 +245,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     last_selected(wxNOT_FOUND),
     m_em_unit(wxGetApp().em_unit())
 {
+    SetFont(wxGetApp().normal_font());
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
 
@@ -373,7 +374,7 @@ class FreqChangedParams : public OG_Settings
 
     std::shared_ptr<ConfigOptionsGroup> m_og_sla;
 public:
-    FreqChangedParams(wxWindow* parent, const int label_width);
+    FreqChangedParams(wxWindow* parent);
     ~FreqChangedParams() {}
 
     wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
@@ -382,14 +383,14 @@ public:
     void            Show(const bool is_fff);
 };
 
-FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
+FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     OG_Settings(parent, false)
 {
     DynamicPrintConfig*	config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
     // Frequently changed parameters for FFF_technology
     m_og->set_config(config);
-    m_og->label_width = label_width == 0 ? 1 : label_width;
+    m_og->hide_labels();
 
     m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
@@ -485,6 +486,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     auto wiping_dialog_btn = [config, this](wxWindow* parent) {
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        m_wiping_dialog_button->SetFont(wxGetApp().normal_font());
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_wiping_dialog_button);
         m_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
@@ -512,9 +514,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
+    m_og_sla->hide_labels();
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     m_og_sla->set_config(config_sla);
-    m_og_sla->label_width = label_width == 0 ? 1 : label_width;
 
     m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
@@ -733,13 +735,12 @@ Sidebar::Sidebar(Plater *parent)
     init_combo(&p->combo_printer,       _(L("Printer")),            Preset::TYPE_PRINTER,       false);
 
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
-    const int margin_10 = 10;//int(1.5*wxGetApp().em_unit());// 15;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
     // Frequently changed parameters
-    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled, 0/*label_width*/);
-    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_10);
+    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
+    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
     
     // Object List
     p->object_list = new ObjectList(p->scrolled);

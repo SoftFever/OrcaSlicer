@@ -162,6 +162,12 @@ public:
 
     void            clear_fields_except_of(const std::vector<std::string> left_fields);
 
+    void            hide_labels() {
+        label_width = 0;
+        m_grid_sizer->SetCols(m_grid_sizer->GetEffectiveColsCount()-1);
+        static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(!extra_column ? 0 : 1);
+    }
+
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
 					column_t extra_clmn = nullptr) :
 					m_parent(_parent), title(title), 
