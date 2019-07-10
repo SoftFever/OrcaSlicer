@@ -1115,6 +1115,8 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     }
 #endif
 
+    take_snapshot(wxString::Format(_(L("Add Settings for %s")), is_part ? _(L("Sub-object")) : _(L("Object"))));
+
     std::vector <std::string> selected_options;
     selected_options.reserve(selection_cnt);
     for (auto sel : selections)
@@ -1164,6 +1166,8 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 
     assert(m_config);
     auto opt_keys = m_config->keys();
+
+    take_snapshot(wxString::Format(_(L("Add Settings Bundle for %s")), m_objects_model->GetItemType(GetSelection()) & itObject ? _(L("Object")) : _(L("Sub-object"))));
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     for (auto& opt_key : options)
