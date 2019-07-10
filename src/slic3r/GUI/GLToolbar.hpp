@@ -252,10 +252,7 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
-    bool m_undo_imgui_visible {false};
-    bool m_redo_imgui_visible {false};
-    int  m_imgui_hovered_pos  { -1 };
-    int  m_imgui_selected_pos { -1 };
+    unsigned int m_pressed_toggable_id;
 
 public:
 #if ENABLE_SVG_ICONS
@@ -302,6 +299,8 @@ public:
     bool is_item_disabled(const std::string& name) const;
     bool is_item_visible(const std::string& name) const;
 
+    bool is_any_item_pressed() const;
+
     const std::string& get_tooltip() const { return m_tooltip; }
 
 
@@ -311,22 +310,6 @@ public:
     void render(const GLCanvas3D& parent) const;    
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
-
-    // undo == true  => "undo" imgui is activated
-    // undo == false => "redo" imgui is activated
-    bool get_imgui_visible(const bool undo) const   { return undo ? m_undo_imgui_visible : m_redo_imgui_visible; }
-    void hide_imgui(const bool undo)                { undo ? m_undo_imgui_visible = false : m_redo_imgui_visible = false; }
-    void activate_imgui(const bool undo)            {
-        m_undo_imgui_visible = undo;
-        m_redo_imgui_visible = !undo;
-        m_imgui_hovered_pos = m_imgui_selected_pos = -1;
-    }
-
-    void set_imgui_hovered_pos(int pos = -1)    { m_imgui_hovered_pos = pos;   }
-    int  get_imgui_hovered_pos() const          { return m_imgui_hovered_pos;  }
-
-    void set_imgui_selected_pos(int pos = -1)   { m_imgui_selected_pos = pos;  }
-    int  get_imgui_selected_pos() const         { return m_imgui_selected_pos; }
 
 private:
     void calc_layout() const;
