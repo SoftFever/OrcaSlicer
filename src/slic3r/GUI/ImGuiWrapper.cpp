@@ -233,9 +233,9 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
     return size;
 }
 
-void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
+void ImGuiWrapper::set_next_window_pos(float x, float y, int flag, float pivot_x, float pivot_y)
 {
-    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag);
+    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag, ImVec2(pivot_x, pivot_y));
     ImGui::SetNextWindowSize(ImVec2(0.0, 0.0));
 }
 

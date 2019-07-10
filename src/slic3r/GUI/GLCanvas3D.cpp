@@ -3477,8 +3477,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
     const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
-    imgui->set_next_window_pos(x, m_toolbar.get_height(), ImGuiCond_Always);
-
+    imgui->set_next_window_pos(x, m_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     imgui->set_next_window_bg_alpha(0.5f);
     imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -3688,7 +3687,7 @@ bool GLCanvas3D::_init_toolbar()
     item.action_callback = [this]() { if (m_canvas != nullptr) m_toolbar.set_imgui_hovered_pos(-1); };
     item.visibility_callback = []()->bool { return true; };
     item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); } ;
-    item.render_callback = [this](float pos_x, float, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, pos_x); };
+    item.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3699,7 +3698,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
     item.sprite_id = 12;
     item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
-    item.render_callback = [this](float pos_x, float, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, pos_x); };
+    item.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
     if (!m_toolbar.add_item(item))
         return false;
 
