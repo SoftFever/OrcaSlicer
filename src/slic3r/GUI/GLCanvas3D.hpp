@@ -742,6 +742,8 @@ private:
     // updates the selection from the content of m_hover_volume_idxs
     void _update_selection_from_hover();
 
+    bool _deactivate_undo_redo_toolbar_items();
+
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
 public:

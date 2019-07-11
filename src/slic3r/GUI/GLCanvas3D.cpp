@@ -2397,7 +2397,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
-
         case WXK_ESCAPE: { deselect_all(); break; }
         case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
@@ -2744,12 +2743,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Leaving())
     {
+        _deactivate_undo_redo_toolbar_items();
+
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
-    else if (evt.LeftDown() || evt.RightDown())
+    else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown())
     {
+        if (_deactivate_undo_redo_toolbar_items())
+            return;
+
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
@@ -5864,6 +5868,22 @@ void GLCanvas3D::_update_selection_from_hover()
     m_gizmos.update_data(*this);
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     m_dirty = true;
+}
+
+bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
+{
+    if (m_toolbar.is_item_pressed("undo"))
+    {
+        m_toolbar.force_action(m_toolbar.get_item_id("undo"), *this);
+        return true;
+    }
+    else if (m_toolbar.is_item_pressed("redo"))
+    {
+        m_toolbar.force_action(m_toolbar.get_item_id("redo"), *this);
+        return true;
+    }
+
+    return false;
 }
 
 const Print* GLCanvas3D::fff_print() const

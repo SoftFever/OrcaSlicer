@@ -301,8 +301,11 @@ public:
 
     bool is_any_item_pressed() const;
 
-    const std::string& get_tooltip() const { return m_tooltip; }
+    unsigned int get_item_id(const std::string& name) const;
 
+    void force_action(unsigned int item_id, GLCanvas3D& parent);
+
+    const std::string& get_tooltip() const { return m_tooltip; }
 
     // returns true if any item changed its state
     bool update_items_state();
@@ -318,7 +321,7 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
-    void do_action(unsigned int item_id, GLCanvas3D& parent);
+    void do_action(unsigned int item_id, GLCanvas3D& parent, bool check_hover);
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);

@@ -389,6 +389,22 @@ bool GLToolbar::is_any_item_pressed() const
     return false;
 }
 
+unsigned int GLToolbar::get_item_id(const std::string& name) const
+{
+    for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
+    {
+        if (m_items[i]->get_name() == name)
+            return i;
+    }
+
+    return -1;
+}
+
+void GLToolbar::force_action(unsigned int item_id, GLCanvas3D& parent)
+{
+    do_action(item_id, parent, false);
+}
+
 bool GLToolbar::update_items_state()
 {
     bool ret = false;
@@ -461,10 +477,8 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.parent = &parent;
             processed = true;
             if ((item_id != -2) && !m_items[item_id]->is_separator())
-            {
                 // mouse is inside an icon
-                do_action((unsigned int)item_id, parent);
-            }
+                do_action((unsigned int)item_id, parent, true);
         }
         else if (evt.MiddleDown())
         {
@@ -572,14 +586,14 @@ float GLToolbar::get_main_size() const
     return size;
 }
 
-void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
+void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent, bool check_hover)
 {
     if ((m_pressed_toggable_id == -1) || (m_pressed_toggable_id == item_id))
     {
         if (item_id < (unsigned int)m_items.size())
         {
             GLToolbarItem* item = m_items[item_id];
-            if ((item != nullptr) && !item->is_separator() && item->is_hovered())
+            if ((item != nullptr) && !item->is_separator() && (!check_hover || item->is_hovered()))
             {
                 if (item->is_toggable())
                 {
@@ -588,6 +602,10 @@ void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
                         item->set_state(GLToolbarItem::HoverPressed);
                     else if (state == GLToolbarItem::HoverPressed)
                         item->set_state(GLToolbarItem::Hover);
+                    else if (state == GLToolbarItem::Pressed)
+                        item->set_state(GLToolbarItem::Normal);
+                    else if (state == GLToolbarItem::Normal)
+                        item->set_state(GLToolbarItem::Pressed);
 
                     m_pressed_toggable_id = item->is_pressed() ? item_id : -1;
 
@@ -599,7 +617,7 @@ void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
                     if (m_type == Radio)
                         select_item(item->get_name());
                     else
-                        item->set_state(GLToolbarItem::HoverPressed);
+                        item->set_state(item->is_hovered() ? GLToolbarItem::HoverPressed : GLToolbarItem::Pressed);
 
                     parent.render();
                     item->do_action();
