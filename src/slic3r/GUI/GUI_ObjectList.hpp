@@ -335,7 +335,7 @@ public:
 
     void msw_rescale();
 
-    void recreate_object_list();
+    void update_after_undo_redo();
 
 private:
 #ifdef __WXOSX__

@@ -1756,6 +1756,8 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
         is_layer_settings && opt_cnt == 2 && m_config->has("extruder") && m_config->has("layer_height"))
         return;
 
+    take_snapshot(_(L("Delete Settings")));
+
     int extruder = -1;
     if (m_config->has("extruder"))
         extruder = m_config->option<ConfigOptionInt>("extruder")->value;
@@ -1793,6 +1795,8 @@ void ObjectList::del_layer_from_object(const int obj_idx, const t_layer_height_r
     const auto del_range = object(obj_idx)->layer_config_ranges.find(layer_range);
     if (del_range == object(obj_idx)->layer_config_ranges.end())
         return;
+
+    take_snapshot(_(L("Delete Layers Range")));
         
     object(obj_idx)->layer_config_ranges.erase(del_range);
 
@@ -1923,8 +1927,10 @@ void ObjectList::layers_editing()
         t_layer_config_ranges& ranges = object(obj_idx)->layer_config_ranges;
 
         // set some default value
-        if (ranges.empty())
+        if (ranges.empty()) {
+            take_snapshot(_(L("Add Layers")));
             ranges[{ 0.0f, 2.0f }] = get_default_layer_config(obj_idx);
+        }
 
         // create layer root item
         layers_item = add_layer_root_item(obj_item);
@@ -1956,6 +1962,7 @@ wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)
     for (const auto range : object(obj_idx)->layer_config_ranges)
         add_layer_item(range.first, layers_item);
 
+    Expand(layers_item);
     return layers_item;
 }
 
@@ -2406,6 +2413,8 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
     
     if (current_range == last_range)
     {
+        take_snapshot(_(L("Add New Layers Range")));
+
         const t_layer_height_range& new_range = { last_range.second, last_range.second + 2.0f };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
@@ -2433,12 +2442,15 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             
             t_layer_height_range new_range = { midl_layer, next_range.second };
 
+            take_snapshot(_(L("Add New Layers Range")));
+            suppress_snapshots();
+
+            // create new 2 layers instead of deleted one
+
             // delete old layer
 
             wxDataViewItem layer_item = m_objects_model->GetItemByLayerRange(obj_idx, next_range);
             del_subobject_item(layer_item);
-
-            // create new 2 layers instead of deleted one
 
             ranges[new_range] = old_config;
             add_layer_item(new_range, layers_item, layer_idx);
@@ -2446,9 +2458,12 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             new_range = { current_range.second, midl_layer };
             ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
+            allow_snapshots();
         }
         else
         {
+            take_snapshot(_(L("Add New Layers Range")));
+
             const t_layer_height_range new_range = { current_range.second, next_range.first };
             ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
@@ -2477,8 +2492,10 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                                             config.opt_int("extruder"),
                                                             layer_idx);
 
-    if (config.keys().size() > 2)
-        select_item(m_objects_model->AddSettingsChild(layer_item));
+    if (config.keys().size() > 2) {
+        m_objects_model->AddSettingsChild(layer_item);
+        Expand(layer_item);
+    }
 }
 
 bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
@@ -2507,6 +2524,8 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 {
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return false;
+
+    take_snapshot(_(L("Edit Layers Range")));
 
     const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
 
@@ -3417,10 +3436,12 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
     wxGetApp().plater()->update();
 }
 
-void ObjectList::recreate_object_list()
+void ObjectList::update_after_undo_redo()
 {
     m_prevent_list_events = true;
     m_prevent_canvas_selection_update = true;
+
+    suppress_snapshots();
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
     this->UnselectAll();
@@ -3432,9 +3453,13 @@ void ObjectList::recreate_object_list()
         ++obj_idx;
     }
 
+    allow_snapshots();
+
 #ifndef __WXOSX__ 
     selection_changed();
 #endif /* __WXOSX__ */
+
+    update_selections();
 
     m_prevent_canvas_selection_update = false;
     m_prevent_list_events = false;

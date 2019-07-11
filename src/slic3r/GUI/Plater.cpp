@@ -1280,7 +1280,7 @@ struct Plater::priv
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
     Slic3r::UndoRedo::Stack 	undo_redo_stack;
-    bool                        m_prevent_snapshots = false; /* Used for avoid of excess "snapshoting". 
+    int                         m_prevent_snapshots = 0;     /* Used for avoid of excess "snapshoting". 
                                                               * Like for "delete selected" or "set numbers of copies"
                                                               * we should call tack_snapshot just ones 
                                                               * instead of calls for each action separately
@@ -1587,8 +1587,9 @@ struct Plater::priv
 
 	void take_snapshot(const std::string& snapshot_name)
 	{
-        if (this->m_prevent_snapshots) 
+        if (this->m_prevent_snapshots > 0) 
             return;
+        assert(this->m_prevent_snapshots >= 0);
 	    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection());
 	}
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
@@ -1597,8 +1598,8 @@ struct Plater::priv
     void redo();
     void undo_to(size_t time_to_load);
     void redo_to(size_t time_to_load);
-    void suppress_snapshots()   { this->m_prevent_snapshots = true; }
-    void allow_snapshots()      { this->m_prevent_snapshots = false; }
+    void suppress_snapshots()   { this->m_prevent_snapshots++; }
+    void allow_snapshots()      { this->m_prevent_snapshots--; }
 
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
@@ -3611,9 +3612,8 @@ void Plater::priv::update_after_undo_redo()
 	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
     this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
 
-    wxGetApp().obj_list()->recreate_object_list();
-    wxGetApp().obj_list()->update_selections();
-//	    selection_changed();
+    wxGetApp().obj_list()->update_after_undo_redo();
+
 	//FIXME what about the state of the manipulators?
 	//FIXME what about the focus? Cursor in the side panel?
 }
