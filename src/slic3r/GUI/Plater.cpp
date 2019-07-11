@@ -3432,8 +3432,7 @@ void Plater::priv::init_view_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
-    item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
-    item.is_toggable = false;
+    item.left_action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     if (!view_toolbar.add_item(item))
         return;
 
@@ -3443,8 +3442,7 @@ void Plater::priv::init_view_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
-    item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
-    item.is_toggable = false;
+    item.left_action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     if (!view_toolbar.add_item(item))
         return;
 

@@ -3550,7 +3550,7 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Add...")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3560,8 +3560,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Delete")) + " [Del]";
     item.sprite_id = 1;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_delete(); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3571,8 +3571,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Delete all")) + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_delete_all(); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete_all(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3582,8 +3582,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Arrange")) + " [A]";
     item.sprite_id = 3;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3596,8 +3596,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Copy")) + " [" + GUI::shortkey_ctrl_prefix() + "C]";
     item.sprite_id = 4;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy_to_clipboard(); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_copy_to_clipboard(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3607,8 +3607,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Paste")) + " [" + GUI::shortkey_ctrl_prefix() + "V]";
     item.sprite_id = 5;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste_from_clipboard(); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_paste_from_clipboard(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3621,9 +3621,10 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Add instance")) + " [+]";
     item.sprite_id = 6;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
+
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3633,9 +3634,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Remove instance")) + " [-]";
     item.sprite_id = 7;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3648,9 +3649,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id = 8;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3660,9 +3661,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id = 9;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3675,10 +3676,10 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Layers editing"));
     item.sprite_id = 10;
-    item.is_toggable = true;
-    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
+    item.left_toggable = true;
+    item.left_action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };
-    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3691,10 +3692,13 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
     item.sprite_id = 11;
-    item.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
+    item.left_toggable = false;
+    item.right_toggable = true;
+    item.left_action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_UNDO)); };
+    item.right_action_callback  = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
     item.visibility_callback = []()->bool { return true; };
-    item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); } ;
-    item.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
+    item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); };
+    item.right_render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3704,8 +3708,10 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
     item.sprite_id = 12;
-    item.enabled_state_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
-    item.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
+    item.left_action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_REDO)); };
+    item.right_action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
+    item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
+    item.right_render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -5877,12 +5883,12 @@ bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
 {
     if (m_toolbar.is_item_pressed("undo"))
     {
-        m_toolbar.force_action(m_toolbar.get_item_id("undo"), *this);
+        m_toolbar.force_right_action(m_toolbar.get_item_id("undo"), *this);
         return true;
     }
     else if (m_toolbar.is_item_pressed("redo"))
     {
-        m_toolbar.force_action(m_toolbar.get_item_id("redo"), *this);
+        m_toolbar.force_right_action(m_toolbar.get_item_id("redo"), *this);
         return true;
     }
 

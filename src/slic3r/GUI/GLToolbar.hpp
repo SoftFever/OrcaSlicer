@@ -36,14 +36,22 @@ class GLToolbarItem
 public:
     typedef std::function<void()> ActionCallback;
     typedef std::function<bool()> VisibilityCallback;
-    typedef std::function<bool()> EnabledStateCallback;
-    typedef std::function<void(float, float,float, float)> RenderCallback;
+    typedef std::function<bool()> EnablingCallback;
+    typedef std::function<void(float, float, float, float)> RenderCallback;
 
     enum EType : unsigned char
     {
         Action,
         Separator,
         Num_Types
+    };
+
+    enum EActionType : unsigned char
+    {
+        Undefined,
+        Left,
+        Right,
+        Num_Action_Types
     };
 
     enum EState : unsigned char
@@ -64,25 +72,33 @@ public:
 #endif // ENABLE_SVG_ICONS
         std::string tooltip;
         unsigned int sprite_id;
-        bool is_toggable;
+        bool left_toggable;
+        bool right_toggable;
         bool visible;
-        ActionCallback action_callback;
+        // action on left click
+        ActionCallback left_action_callback;
+        // action on right click
+        ActionCallback right_action_callback;
         VisibilityCallback visibility_callback;
-        EnabledStateCallback enabled_state_callback;
-        RenderCallback render_callback;
+        EnablingCallback enabling_callback;
+        // render callback on left click
+        RenderCallback left_render_callback;
+        // render callback on right click
+        RenderCallback right_render_callback;
 
         Data();
     };
 
     static const ActionCallback Default_Action_Callback;
     static const VisibilityCallback Default_Visibility_Callback;
-    static const EnabledStateCallback Default_Enabled_State_Callback;
+    static const EnablingCallback Default_Enabling_Callback;
     static const RenderCallback Default_Render_Callback;
 
 private:
     EType m_type;
     EState m_state;
     Data m_data;
+    EActionType m_last_action;
 
 public:
     GLToolbarItem(EType type, const Data& data);
@@ -96,16 +112,24 @@ public:
 #endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
-    void do_action() { m_data.action_callback(); }
+    void do_left_action() { m_last_action = Left; m_data.left_action_callback(); }
+    void do_right_action() { m_last_action = Right; m_data.right_action_callback(); }
 
     bool is_enabled() const { return m_state != Disabled; }
     bool is_disabled() const { return m_state == Disabled; }
     bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed); }
     bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
 
-    bool is_toggable() const { return m_data.is_toggable; }
+    bool is_left_toggable() const { return m_data.left_toggable; }
+    bool is_right_toggable() const { return m_data.right_toggable; }
     bool is_visible() const { return m_data.visible; }
     bool is_separator() const { return m_type == Separator; }
+
+    bool has_left_render_callback() const { return m_data.left_render_callback != nullptr; }
+    bool has_right_render_callback() const { return m_data.right_render_callback != nullptr; }
+
+    EActionType get_last_action() const { return m_last_action; }
+    void reset_last_action() { m_last_action = Undefined; }
 
     // returns true if the state changes
     bool update_visibility();
@@ -303,7 +327,8 @@ public:
 
     unsigned int get_item_id(const std::string& name) const;
 
-    void force_action(unsigned int item_id, GLCanvas3D& parent);
+    void force_left_action(unsigned int item_id, GLCanvas3D& parent);
+    void force_right_action(unsigned int item_id, GLCanvas3D& parent);
 
     const std::string& get_tooltip() const { return m_tooltip; }
 
@@ -321,7 +346,7 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
-    void do_action(unsigned int item_id, GLCanvas3D& parent, bool check_hover);
+    void do_action(GLToolbarItem::EActionType type, unsigned int item_id, GLCanvas3D& parent, bool check_hover);
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
