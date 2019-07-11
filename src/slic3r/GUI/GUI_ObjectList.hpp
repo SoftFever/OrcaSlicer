@@ -26,7 +26,7 @@ enum class ModelVolumeType : int;
 // FIXME: broken build on mac os because of this is missing:
 typedef std::vector<std::string>    t_config_option_keys;
 
-typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
+typedef std::map<std::string, std::vector<std::string>> SettingsBundle;
 
 //				  category ->		vector 			 ( option	;  label )
 typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
@@ -152,8 +152,8 @@ class ObjectList : public wxDataViewCtrl
     wxDataViewItem m_last_selected_item {nullptr};
 
 #if 0
-    FreqSettingsBundle m_freq_settings_fff;
-    FreqSettingsBundle m_freq_settings_sla;
+    SettingsBundle m_freq_settings_fff;
+    SettingsBundle m_freq_settings_sla;
 #endif
 
 public:
@@ -209,7 +209,7 @@ public:
 
     void                get_settings_choice(const wxString& category_name);
     void                get_freq_settings_choice(const wxString& bundle_name);
-    void                update_settings_item();
+    void                show_settings(const wxDataViewItem settings_item);
 
     wxMenu*             append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type);
     void                append_menu_items_add_volume(wxMenu* menu);
@@ -247,6 +247,7 @@ public:
     void                layers_editing();
 
     wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
+    wxDataViewItem      add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config);
 
     DynamicPrintConfig  get_default_layer_config(const int obj_idx);
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
@@ -258,6 +259,7 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
+    SettingsBundle      get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_layers_range_settings);
 
     void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();

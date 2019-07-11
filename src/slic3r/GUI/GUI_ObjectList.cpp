@@ -25,7 +25,7 @@ namespace GUI
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
 // pt_FFF
-FreqSettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
+SettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
 {
     { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers" } },
     { L("Infill")               , { "fill_density", "fill_pattern" } },
@@ -36,7 +36,7 @@ FreqSettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
 };
 
 // pt_SLA
-FreqSettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
+SettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
 {
     { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
 };
@@ -676,10 +676,7 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(object_item, wxString::FromUTF8(volume->name.c_str()), volume->type(), 
             volume->get_mesh_errors_count()>0 ,
             volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
-        auto opt_keys = volume->config.keys();
-        if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
-            select_item(m_objects_model->AddSettingsChild(vol_item));
-
+        add_settings_item(vol_item, &volume->config);
         items.Add(vol_item);
     }
 
@@ -991,7 +988,7 @@ std::vector<std::string> ObjectList::get_options(const bool is_part)
     
 const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxString& bundle_name)
 {
-    const FreqSettingsBundle& bundle = printer_technology() == ptSLA ? 
+    const SettingsBundle& bundle = printer_technology() == ptSLA ? 
                                        FREQ_SETTINGS_BUNDLE_SLA : FREQ_SETTINGS_BUNDLE_FFF;
 
     for (auto& it : bundle)
@@ -1001,7 +998,7 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
     }
 #if 0
     // if "Quick menu" is selected
-    FreqSettingsBundle& bundle_quick = printer_technology() == ptSLA ?
+    SettingsBundle& bundle_quick = printer_technology() == ptSLA ?
                                        m_freq_settings_sla: m_freq_settings_fff;
 
     for (auto& it : bundle_quick)
@@ -1077,7 +1074,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     if (selection_cnt > 0) 
     {
         // Add selected items to the "Quick menu"
-        FreqSettingsBundle& freq_settings = printer_technology() == ptSLA ?
+        SettingsBundle& freq_settings = printer_technology() == ptSLA ?
                                             m_freq_settings_sla : m_freq_settings_fff;
         bool changed_existing = false;
 
@@ -1149,8 +1146,8 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     }
 
 
-    // Add settings item for object
-    update_settings_item();
+    // Add settings item for object/sub-object and show them 
+    show_settings(add_settings_item(GetSelection(), m_config));    
 }
 
 void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
@@ -1186,13 +1183,21 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
         }
     }
 
-    // Add settings item for object
-    update_settings_item();
+    // Add settings item for object/sub-object and show them 
+    show_settings(add_settings_item(GetSelection(), m_config));
 }
 
-void ObjectList::update_settings_item()
+void ObjectList::show_settings(const wxDataViewItem settings_item)
 {
-    auto item = GetSelection();
+    if (!settings_item)
+        return;
+
+    select_item(settings_item);
+    
+    // update object selection on Plater
+    if (!m_prevent_canvas_selection_update)
+        update_selections_on_canvas();
+/*    auto item = GetSelection();
     if (item) {
         if (m_objects_model->GetItemType(item) == itInstance)
             item = m_objects_model->GetTopParent(item);
@@ -1204,12 +1209,14 @@ void ObjectList::update_settings_item()
         if (!m_prevent_canvas_selection_update)
             update_selections_on_canvas();
     }
-    else {
+    else { 
+        //# ys_FIXME ??? use case ???
         auto panel = wxGetApp().sidebar().scrolled_panel();
         panel->Freeze();
         wxGetApp().obj_settings()->UpdateAndShow(true);
         panel->Thaw();
     }
+    */
 }
 
 wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type) {
@@ -1520,7 +1527,7 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 {
     // Add default settings bundles
-    const FreqSettingsBundle& bundle = printer_technology() == ptFFF ?
+    const SettingsBundle& bundle = printer_technology() == ptFFF ?
                                      FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
     const int extruders_cnt = extruders_count();
@@ -1535,7 +1542,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     }
 #if 0
     // Add "Quick" settings bundles
-    const FreqSettingsBundle& bundle_quick = printer_technology() == ptFFF ?
+    const SettingsBundle& bundle_quick = printer_technology() == ptFFF ?
                                              m_freq_settings_fff : m_freq_settings_sla;
 
     for (auto& it : bundle_quick) {
@@ -1898,11 +1905,7 @@ void ObjectList::split()
             volume->config.option<ConfigOptionInt>("extruder")->value : 0,
             false);
         // add settings to the part, if it has those
-        auto opt_keys = volume->config.keys();
-        if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
-            select_item(m_objects_model->AddSettingsChild(vol_item));
-            Expand(vol_item);
-        }
+        add_settings_item(vol_item, &volume->config);
     }
 
     if (parent == item)
@@ -2148,6 +2151,77 @@ void ObjectList::part_selection_changed()
     panel.Thaw();
 }
 
+SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_layers_range_settings)
+{
+    auto opt_keys = config->keys();
+    if (opt_keys.empty())
+        return SettingsBundle();
+
+    update_opt_keys(opt_keys); // update options list according to print technology
+
+    if (opt_keys.size() == 1 && opt_keys[0] == "extruder" ||
+        is_layers_range_settings && opt_keys.size() == 2)
+        return SettingsBundle();
+
+    const int extruders_cnt = wxGetApp().extruders_edited_cnt();
+
+    SettingsBundle bundle;
+    for (auto& opt_key : opt_keys)
+    {
+        auto category = config->def()->get(opt_key)->category;
+        if (category.empty() || (category == "Extruders" && extruders_cnt == 1)) 
+            continue;
+
+        std::vector< std::string > new_category;
+
+        auto& cat_opt = bundle.find(category) == bundle.end() ? new_category : bundle.at(category);
+        cat_opt.push_back(opt_key);
+        if (cat_opt.size() == 1)
+            bundle[category] = cat_opt;
+    }
+
+    return bundle;
+}
+
+wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config)
+{
+    wxDataViewItem ret = wxDataViewItem(0);
+
+    if (!parent_item)
+        return ret;
+
+    const bool is_layers_range_settings = m_objects_model->GetItemType(parent_item) == itLayer;
+    SettingsBundle cat_options = get_item_settings_bundle(config, is_layers_range_settings);
+    if (cat_options.empty())
+        return ret;
+
+    std::vector<std::string> categories;
+    categories.reserve(cat_options.size());
+    for (auto& cat : cat_options)
+    {
+        if (cat.second.size() == 1 &&
+            (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
+            continue;
+
+        categories.push_back(cat.first);
+    }
+
+    if (categories.empty())
+        return ret;
+
+    if (m_objects_model->GetItemType(parent_item) & itInstance)
+        parent_item = m_objects_model->GetTopParent(parent_item);
+
+    ret = m_objects_model->IsSettingsItem(parent_item) ? parent_item : m_objects_model->GetSettingsItem(parent_item);
+
+    if (!ret) ret = m_objects_model->AddSettingsChild(parent_item);
+
+    m_objects_model->UpdateSettingsDigest(ret, categories);
+    Expand(parent_item);
+
+    return ret;
+}
+
 void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
 {
     auto model_object = (*m_objects)[obj_idx];
@@ -2167,13 +2241,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
                 !volume->config.has("extruder") ? 0 :
                 volume->config.option<ConfigOptionInt>("extruder")->value,
                 false);
-            auto opt_keys = volume->config.keys();
-            if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
-            	const wxDataViewItem &settings_item = m_objects_model->AddSettingsChild(vol_item);
-            	if (call_selection_changed)
-	                select_item(settings_item);
-                Expand(vol_item);
-            }
+            add_settings_item(vol_item, &volume->config);
         }
         Expand(item);
     }
@@ -2183,13 +2251,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
         increase_object_instances(obj_idx, model_object->instances.size());
 
     // add settings to the object, if it has those
-    auto opt_keys = model_object->config.keys();
-    if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
-    	const wxDataViewItem &settings_item = m_objects_model->AddSettingsChild(item);
-    	if (call_selection_changed)
-            select_item(settings_item);
-        Expand(item);
-    }
+    add_settings_item(item, &model_object->config);
 
     // Add layers if it has
     add_layer_root_item(item);
@@ -2491,11 +2553,7 @@ void ObjectList::add_layer_item(const t_layer_height_range& range,
                                                             range, 
                                                             config.opt_int("extruder"),
                                                             layer_idx);
-
-    if (config.keys().size() > 2) {
-        m_objects_model->AddSettingsChild(layer_item);
-        Expand(layer_item);
-    }
+    add_settings_item(layer_item, &config);
 }
 
 bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t layer_height)
@@ -3010,7 +3068,7 @@ void ObjectList::change_part_type()
     }
     else if (!settings_item && 
               (new_type == ModelVolumeType::MODEL_PART || new_type == ModelVolumeType::PARAMETER_MODIFIER)) {
-        select_item(m_objects_model->AddSettingsChild(item));
+        add_settings_item(item, &volume->config);
     }
 }
 
