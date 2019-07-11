@@ -66,10 +66,13 @@ static int extruders_count()
     return wxGetApp().extruders_cnt();
 }
 
-static void take_snapshot(const wxString& snapshot_name)
+static void take_snapshot(const wxString& snapshot_name) 
 {
     wxGetApp().plater()->take_snapshot(snapshot_name);
 }
+
+static void suppress_snapshots(){ wxGetApp().plater()->suppress_snapshots(); }
+static void allow_snapshots()   { wxGetApp().plater()->allow_snapshots(); }
 
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
@@ -2333,6 +2336,9 @@ void ObjectList::remove()
 
     wxDataViewItem  parent = wxDataViewItem(0);
 
+    take_snapshot(_(L("Delete Selected")));
+    suppress_snapshots();
+
     for (auto& item : sels)
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
@@ -2353,6 +2359,8 @@ void ObjectList::remove()
 
     if (parent)
         select_item(parent);
+
+    allow_snapshots();
 }
 
 void ObjectList::del_layer_range(const t_layer_height_range& range)

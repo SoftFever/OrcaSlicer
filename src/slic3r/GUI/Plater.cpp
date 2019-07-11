@@ -1280,7 +1280,11 @@ struct Plater::priv
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
     Slic3r::UndoRedo::Stack 	undo_redo_stack;
-
+    bool                        m_prevent_snapshots = false; /* Used for avoid of excess "snapshoting". 
+                                                              * Like for "delete selected" or "set numbers of copies"
+                                                              * we should call tack_snapshot just ones 
+                                                              * instead of calls for each action separately
+                                                              * */
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
     wxPanel* current_panel{ nullptr };
@@ -1581,13 +1585,20 @@ struct Plater::priv
     void split_volume();
     void scale_selection_to_fit_print_volume();
 
-	void take_snapshot(const std::string& snapshot_name) { this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection()); }
+	void take_snapshot(const std::string& snapshot_name)
+	{
+        if (this->m_prevent_snapshots) 
+            return;
+	    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection());
+	}
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
     int  get_active_snapshot_index();
     void undo();
     void redo();
     void undo_to(size_t time_to_load);
     void redo_to(size_t time_to_load);
+    void suppress_snapshots()   { this->m_prevent_snapshots = true; }
+    void allow_snapshots()      { this->m_prevent_snapshots = false; }
 
     bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
     void update_print_volume_state();
@@ -3729,7 +3740,9 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 void Plater::remove_selected()
 {
 	this->take_snapshot(_(L("Delete Selected Objects")));
+    this->suppress_snapshots();
     this->p->view3D->delete_selected();
+    this->allow_snapshots();
 }
 
 void Plater::increase_instances(size_t num)
@@ -3809,12 +3822,15 @@ void Plater::set_number_of_copies(/*size_t num*/)
         return;
 
     this->take_snapshot(wxString::Format(_(L("Set numbers of copies to %d")), num));
+    this->suppress_snapshots();
 
     int diff = (int)num - (int)model_object->instances.size();
     if (diff > 0)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
+
+    this->allow_snapshots();
 }
 
 bool Plater::is_selection_empty() const
@@ -4131,6 +4147,8 @@ void Plater::send_gcode()
 
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
+void Plater::suppress_snapshots() { p->suppress_snapshots(); }
+void Plater::allow_snapshots() { p->allow_snapshots(); }
 void Plater::undo() { p->undo(); }
 void Plater::redo() { p->redo(); }
 void Plater::undo_to(int selection)

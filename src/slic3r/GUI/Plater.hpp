@@ -185,6 +185,8 @@ public:
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
+    void suppress_snapshots();
+    void allow_snapshots();
     void undo();
     void redo();
     void undo_to(int selection);
