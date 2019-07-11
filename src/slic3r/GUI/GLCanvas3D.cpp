@@ -2326,6 +2326,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
+    if ((keyCode == WXK_ESCAPE) && _deactivate_undo_redo_toolbar_items())
+        return;
+
     if (m_gizmos.on_char(evt, *this))
         return;
 
