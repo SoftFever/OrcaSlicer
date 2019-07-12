@@ -59,20 +59,20 @@ extern template PackGroup Nester<BottomLeftPlacer, FirstFitSelection>::execute(
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Iterator = std::vector<Item>::iterator>
-PackGroup nest(Iterator from, Iterator to,
+void nest(Iterator from, Iterator to,
                const typename Placer::BinType& bin,
                Coord dist = 0,
                const typename Placer::Config& pconf = {},
                const typename Selector::Config& sconf = {})
 {
     Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
-    return nester.execute(from, to);
+    nester.execute(from, to);
 }
 
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Iterator = std::vector<Item>::iterator>
-PackGroup nest(Iterator from, Iterator to,
+void nest(Iterator from, Iterator to,
                const typename Placer::BinType& bin,
                ProgressFunction prg,
                StopCondition scond = []() { return false; },
@@ -83,7 +83,7 @@ PackGroup nest(Iterator from, Iterator to,
     Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
     if(prg) nester.progressIndicator(prg);
     if(scond) nester.stopCondition(scond);
-    return nester.execute(from, to);
+    nester.execute(from, to);
 }
 
 #ifdef LIBNEST2D_STATIC
@@ -91,14 +91,14 @@ PackGroup nest(Iterator from, Iterator to,
 extern template class Nester<NfpPlacer, FirstFitSelection>;
 extern template class Nester<BottomLeftPlacer, FirstFitSelection>;
 
-extern template PackGroup nest(std::vector<Item>::iterator from, 
+extern template void nest(std::vector<Item>::iterator from, 
                                std::vector<Item>::iterator to,
                                const Box& bin,
                                Coord dist = 0,
                                const NfpPlacer::Config& pconf,
                                const FirstFitSelection::Config& sconf);
 
-extern template PackGroup nest(std::vector<Item>::iterator from, 
+extern template void nest(std::vector<Item>::iterator from, 
                                std::vector<Item>::iterator to,
                                const Box& bin,
                                ProgressFunction prg,
@@ -112,20 +112,19 @@ extern template PackGroup nest(std::vector<Item>::iterator from,
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Container = std::vector<Item>>
-PackGroup nest(Container&& cont,
+void nest(Container&& cont,
                const typename Placer::BinType& bin,
                Coord dist = 0,
                const typename Placer::Config& pconf = {},
                const typename Selector::Config& sconf = {})
 {
-    return nest<Placer, Selector>(cont.begin(), cont.end(),
-                                  bin, dist, pconf, sconf);
+    nest<Placer, Selector>(cont.begin(), cont.end(), bin, dist, pconf, sconf);
 }
 
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Container = std::vector<Item>>
-PackGroup nest(Container&& cont,
+void nest(Container&& cont,
                const typename Placer::BinType& bin,
                ProgressFunction prg,
                StopCondition scond = []() { return false; },
@@ -133,8 +132,8 @@ PackGroup nest(Container&& cont,
                const typename Placer::Config& pconf = {},
                const typename Selector::Config& sconf = {})
 {
-    return nest<Placer, Selector>(cont.begin(), cont.end(),
-                                  bin, prg, scond, dist, pconf, sconf);
+    nest<Placer, Selector>(cont.begin(), cont.end(), bin, prg, scond, dist,
+                           pconf, sconf);
 }
 
 }

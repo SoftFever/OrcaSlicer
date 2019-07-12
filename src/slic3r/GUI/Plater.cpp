@@ -1217,28 +1217,6 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     return true;
 }
 
-namespace {
-arrangement::ArrangeablePtrs get_arrange_input(Model &model, const Selection &sel) {
-    auto selmap = sel.get_content();
-    
-    size_t count = 0;
-    for (auto obj : model.objects) count += obj->instances.size();
-    
-    arrangement::ArrangeablePtrs ret; ret.reserve(count);
-
-    if (selmap.empty())
-        for (ModelObject *mo : model.objects)
-            for (ModelInstance *minst : mo->instances)
-                ret.emplace_back(minst);
-    else
-        for (auto &s : selmap)
-            for (auto &instid : s.second)
-                ret.emplace_back(model.objects[s.first]->instances[instid]);
-    
-    return ret;
-}
-}
-
 // Plater / private
 struct Plater::priv
 {
@@ -1447,17 +1425,18 @@ struct Plater::priv
         class ArrangeJob : public Job
         {   
             GLCanvas3D::WipeTowerInfo m_wti;
-            arrangement::ArrangeablePtrs m_selected, m_unselected;
-
-            static std::array<arrangement::ArrangeablePtrs, 2> collect(
+            arrangement::ArrangePolygons m_selected, m_unselected;
+            
+            static std::array<arrangement::ArrangePolygons, 2> collect(
                 Model &model, const Selection &sel)
             {
-                auto selmap = sel.get_content();
-
+                const Selection::ObjectIdxsToInstanceIdxsMap &selmap =
+                    sel.get_content();
+                
                 size_t count = 0;
                 for (auto obj : model.objects) count += obj->instances.size();
                 
-                arrangement::ArrangeablePtrs selected, unselected;
+                arrangement::ArrangePolygons selected, unselected;
                 selected.reserve(count + 1 /* for optional wti */);
                 unselected.reserve(count + 1 /* for optional wti */);
                 
@@ -1475,12 +1454,12 @@ struct Plater::priv
                             ModelInstance *inst   = model.objects[oidx]
                                                       ->instances[iidx];
                             instit == iids.end() ?
-                                unselected.emplace_back(inst) :
-                                selected.emplace_back(inst);
+                                unselected.emplace_back(inst->get_arrange_polygon()) :
+                                selected.emplace_back(inst->get_arrange_polygon());
                         }
                     } else // object not selected, all instances are unselected
                         for (auto inst : model.objects[oidx]->instances)
-                            unselected.emplace_back(inst);
+                            unselected.emplace_back(inst->get_arrange_polygon());
                 }
                 
                 if (selected.empty()) selected.swap(unselected);
@@ -1495,14 +1474,15 @@ struct Plater::priv
                 m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
                 
                 const Selection& sel = plater().get_selection();
+                BoundingBoxf bedbb(plater().bed.get_shape());
                 auto arrinput = collect(plater().model, sel);
                 m_selected.swap(arrinput[0]);
                 m_unselected.swap(arrinput[1]);
 
                 if (m_wti)
                     sel.is_wipe_tower() ?
-                        m_selected.emplace_back(&m_wti) :
-                        m_unselected.emplace_back(&m_wti);
+                        m_selected.emplace_back(m_wti.get_arrange_polygon()) :
+                        m_unselected.emplace_back(m_wti.get_arrange_polygon());
             }
 
         public:

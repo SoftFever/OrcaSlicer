@@ -491,7 +491,7 @@ private:
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance : public ModelBase, public arrangement::Arrangeable
+class ModelInstance : public ModelBase
 {
 public:
     enum EPrintVolumeState : unsigned char
@@ -555,19 +555,19 @@ public:
     bool is_printable() const { return print_volume_state == PVS_Inside; }
     
     // /////////////////////////////////////////////////////////////////////////
-    // Implement arr::Arrangeable interface
+    // Implement arrangement::Arrangeable interface
     // /////////////////////////////////////////////////////////////////////////
     
     // Getting the input polygon for arrange
-    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const override;
+    arrangement::ArrangePolygon get_arrange_polygon() const;
     
     // Apply the arrange result on the ModelInstance
-    virtual void apply_arrange_result(Vec2d offs, double rot_rads, unsigned /*bed_num*/) override
+    void apply_arrange_result(Vec2crd offs, double rot_rads)
     {
         // write the transformation data into the model instance
         set_rotation(Z, rot_rads);
-        set_offset(X, offs(X));
-        set_offset(Y, offs(Y));
+        set_offset(X, unscale<double>(offs(X)));
+        set_offset(Y, unscale<double>(offs(Y)));
     }
 
 protected:

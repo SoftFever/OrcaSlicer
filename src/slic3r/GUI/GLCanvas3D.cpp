@@ -5739,7 +5739,7 @@ const SLAPrint* GLCanvas3D::sla_print() const
     return (m_process == nullptr) ? nullptr : m_process->sla_print();
 }
 
-void GLCanvas3D::WipeTowerInfo::apply_arrange_result(Vec2d offset, double rotation_rads, unsigned /*bed_num*/)
+void GLCanvas3D::WipeTowerInfo::apply_arrange_result(Vec2d offset, double rotation_rads)
 {
     m_pos      = offset;
     m_rotation = rotation_rads;

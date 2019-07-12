@@ -404,11 +404,16 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
     size_t count = 0;
     for (auto obj : objects) count += obj->instances.size();
     
-    arrangement::ArrangeablePtrs input;
+    arrangement::ArrangePolygons input;
+    ModelInstancePtrs instances;
     input.reserve(count);
+    instances.reserve(count);
     for (ModelObject *mo : objects)
-        for (ModelInstance *minst : mo->instances)
-            input.emplace_back(minst);
+        for (ModelInstance *minst : mo->instances) {
+            input.emplace_back(minst->get_arrange_polygon());
+            instances.emplace_back(minst);
+        }
+    
     
     arrangement::BedShapeHint bedhint;
     
@@ -417,7 +422,22 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         bedhint.shape.box = BoundingBox(scaled(bb->min), scaled(bb->max));
     }
     
-    return arrangement::arrange(input, scaled(dist), bedhint);
+    arrangement::arrange(input, scaled(dist), bedhint);
+    
+    bool ret = true;
+    
+    for(size_t i = 0; i < input.size(); ++i) {
+        auto inst = instances[i];
+        inst->set_rotation(Z, input[i].rotation);
+        auto tr = unscaled<double>(input[i].translation);
+        inst->set_offset(X, tr.x());
+        inst->set_offset(Y, tr.y());
+        
+        if (input[i].bed_idx != 0) ret = false; // no logical beds are allowed
+    }
+    
+    
+    return ret;
 }
 
 // Duplicate the entire model preserving instance relative positions.
@@ -1819,7 +1839,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
 }
 
-std::tuple<Polygon, Vec2crd, double> ModelInstance::get_arrange_polygon() const
+arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 {
     static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
@@ -1835,15 +1855,15 @@ std::tuple<Polygon, Vec2crd, double> ModelInstance::get_arrange_polygon() const
 
     // this may happen for malformed models, see:
     // https://github.com/prusa3d/PrusaSlicer/issues/2209
-    if (p.points.empty()) return {};
+    if (p.points.empty()) return {{}};
 
     Polygons pp{p};
     pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
     if (!pp.empty()) p = pp.front();
-
-    return std::make_tuple(p,
-                           Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))},
-                           get_rotation(Z));
+    
+    ExPolygon ep; ep.contour = std::move(p);
+    
+    return {ep, Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))}, get_rotation(Z)};
 }
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs

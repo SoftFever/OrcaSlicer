@@ -1,7 +1,7 @@
 #ifndef MODELARRANGE_HPP
 #define MODELARRANGE_HPP
 
-#include "Polygon.hpp"
+#include "ExPolygon.hpp"
 #include "BoundingBox.hpp"
 
 namespace Slic3r {
@@ -37,34 +37,57 @@ enum class BedShapeType {
 /// Info about the print bed for the arrange() function.
 struct BedShapeHint {
     BedShapeType type = BedShapeType::INFINITE;
-    /*union*/ struct {  // I know but who cares... TODO: use variant from cpp17?
+    union BedShape_u {  // I know but who cares... TODO: use variant from cpp17?
         CircleBed   circ;
         BoundingBox box;
         Polyline    polygon;
-        InfiniteBed infinite;
+        InfiniteBed infinite{};
+        ~BedShape_u() {}
+        BedShape_u() {};
     } shape;
+    
+    BedShapeHint() {};
+    
+    ~BedShapeHint() {
+        if (type == BedShapeType::IRREGULAR)
+            shape.polygon.Slic3r::Polyline::~Polyline();
+    };
+    
+    BedShapeHint(const BedShapeHint &cpy) {
+        *this = cpy;
+    }
+    
+    BedShapeHint& operator=(const BedShapeHint &cpy) {
+        type = cpy.type;
+        switch(type) {
+        case BedShapeType::BOX: shape.box = cpy.shape.box; break;
+        case BedShapeType::CIRCLE: shape.circ = cpy.shape.circ; break;
+        case BedShapeType::IRREGULAR: shape.polygon = cpy.shape.polygon; break;
+        case BedShapeType::INFINITE: shape.infinite = cpy.shape.infinite; break;
+        case BedShapeType::UNKNOWN: break;
+        }
+        
+        return *this;
+    }
 };
 
 /// Get a bed shape hint for arrange() from a naked Polyline.
 BedShapeHint bedShape(const Polyline& bed);
 
-/**
- * @brief Classes implementing the Arrangeable interface can be used as input 
- * to the arrange function.
- */
-class Arrangeable {
-public:
+static const constexpr long UNARRANGED = -1;
+
+struct ArrangePolygon {
+    const ExPolygon poly;
+    Vec2crd   translation{0, 0};
+    double    rotation{0.0};
+    long      bed_idx{UNARRANGED};
     
-    virtual ~Arrangeable() = default;
-    
-    /// Apply the result transformation calculated by the arrangement.
-    virtual void apply_arrange_result(Vec2d offset, double rotation_rads, unsigned bed_num) = 0;
-    
-    /// Get the 2D silhouette to arrange and an initial offset and rotation
-    virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const = 0;
+    ArrangePolygon(const ExPolygon &p, const Vec2crd &tr = {}, double rot = 0.0)
+        : poly{p}, translation{tr}, rotation{rot}
+    {}
 };
 
-using ArrangeablePtrs = std::vector<Arrangeable*>;
+using ArrangePolygons = std::vector<ArrangePolygon>;
 
 /**
  * \brief Arranges the model objects on the screen.
@@ -97,20 +120,20 @@ using ArrangeablePtrs = std::vector<Arrangeable*>;
  *
  * \param stopcondition A predicate returning true if abort is needed.
  */
-bool arrange(ArrangeablePtrs &items,
-             coord_t min_obj_distance,
-             const BedShapeHint& bedhint,
-             std::function<void(unsigned)> progressind = nullptr,
-             std::function<bool(void)> stopcondition = nullptr);
+void arrange(ArrangePolygons &             items,
+             coord_t                       min_obj_distance,
+             const BedShapeHint &          bedhint,
+             std::function<void(unsigned)> progressind   = nullptr,
+             std::function<bool(void)>     stopcondition = nullptr);
 
 /// Same as the previous, only that it takes unmovable items as an
 /// additional argument.
-bool arrange(ArrangeablePtrs &items,
-             const ArrangeablePtrs &excludes,
-             coord_t min_obj_distance,
-             const BedShapeHint& bedhint,
-             std::function<void(unsigned)> progressind = nullptr,
-             std::function<bool(void)> stopcondition = nullptr);
+void arrange(ArrangePolygons &             items,
+             const ArrangePolygons &       excludes,
+             coord_t                       min_obj_distance,
+             const BedShapeHint &          bedhint,
+             std::function<void(unsigned)> progressind   = nullptr,
+             std::function<bool(void)>     stopcondition = nullptr);
 
 }   // arr
 }   // Slic3r

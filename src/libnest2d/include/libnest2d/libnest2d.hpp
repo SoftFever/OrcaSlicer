@@ -12,6 +12,8 @@
 
 namespace libnest2d {
 
+static const constexpr int BIN_ID_UNSET = -1;
+
 /**
  * \brief An item to be placed on a bin.
  *
@@ -34,9 +36,9 @@ class _Item {
     RawShape sh_;
 
     // Transformation data
-    Vertex translation_;
-    Radians rotation_;
-    Coord inflation_;
+    Vertex translation_{0, 0};
+    Radians rotation_{0.0};
+    Coord inflation_{0};
 
     // Info about whether the transformations will have to take place
     // This is needed because if floating point is used, it is hard to say
@@ -66,9 +68,7 @@ class _Item {
         BBCache(): valid(false) {}
     } bb_cache_;
     
-    static const size_t ID_UNSET = size_t(-1);
-    
-    size_t id_{ID_UNSET};
+    int binid_{BIN_ID_UNSET};
     bool fixed_{false};
 
 public:
@@ -149,8 +149,8 @@ public:
     
     inline bool isFixed() const noexcept { return fixed_; }
     inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
-    inline void id(size_t idx) { id_ = idx; }
-    inline long id() const noexcept { return id_; }
+    inline void binId(int idx) { binid_ = idx; }
+    inline int binId() const noexcept { return binid_; }
 
     /**
      * @brief Convert the polygon to string representation. The format depends
@@ -766,25 +766,6 @@ public:
     void clear() { impl_.clear(); }
 };
 
-using BinIdx = unsigned;
-template<class S, class Key = size_t> using _NestResult =
-    std::vector<
-        std::tuple<Key,          // Identifier of the original shape
-                   TPoint<S>,    // Translation calculated by nesting
-                   Radians,      // Rotation calculated by nesting
-                   BinIdx>       // Logical bin index, first is zero
-        >;
-
-template<class T> struct Indexed {
-    using ShapeType = T;
-    static T& get(T& obj) { return obj; }
-};
-
-template<class K, class S> struct Indexed<std::pair<K, S>> {
-    using ShapeType = S;
-    static S& get(std::pair<K, S>& obj) { return obj.second; }
-};
-
 /**
  * The Arranger is the front-end class for the libnest2d library. It takes the
  * input items and outputs the items with the proper transformations to be
@@ -805,7 +786,6 @@ public:
     using Coord = TCoord<TPoint<typename Item::ShapeType>>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
     using ResultType = PackGroup;
-    template<class K> using NestResult = _NestResult<ShapeType, K>;
 
 private:
     BinType bin_;
@@ -816,8 +796,13 @@ private:
     using TPItem = remove_cvref_t<Item>;
     using TSItem = remove_cvref_t<SItem>;
 
-    std::vector<TPItem> item_cache_;
     StopCondition stopfn_;
+    
+    template<class It> using TVal = remove_cvref_t<typename It::value_type>;
+    
+    template<class It, class Out>
+    using ConvertibleOnly =
+        enable_if_t< std::is_convertible<TVal<It>, TPItem>::value, void>;
 
 public:
 
@@ -864,12 +849,20 @@ public:
      * The number of groups in the pack group is the number of bins opened by
      * the selection algorithm.
      */
-    template<class It, class Key = size_t>
-    inline const NestResult<Key> execute(It from, It to,
-                                         std::function<Key(It)> keyfn = nullptr)
+    template<class It>
+    inline ConvertibleOnly<It, void> execute(It from, It to)
     {
-        if (!keyfn) keyfn = [to](It it) { return to - it; };
-        return _execute(from, to, keyfn);
+        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
+        if(infl > 0) std::for_each(from, to, [this, infl](Item& item) {
+            item.inflate(infl);
+        });
+        
+        selector_.template packItems<PlacementStrategy>(
+            from, to, bin_, pconfig_);
+        
+        if(min_obj_distance_ > 0) std::for_each(from, to, [infl](Item& item) {
+            item.inflate(-infl);
+        });
     }
 
     /// Set a progress indicator function object for the selector.
@@ -890,74 +883,32 @@ public:
     }
 
 private:
-    
-    template<class It> using TVal = remove_cvref_t<typename It::value_type>;
-    
-    template<class It, class Out>
-    using ConvertibleOnly =
-        enable_if_t< std::is_convertible<TVal<It>, TPItem>::value, void>;
-    
-    template<class It, class Out>
-    using NotConvertibleOnly =
-        enable_if_t< ! std::is_convertible<TVal<It>, TPItem>::value, void>;
-    
+
+      
     // This function will be used only if the iterators are pointing to
     // a type compatible with the libnets2d::_Item template.
     // This way we can use references to input elements as they will
     // have to exist for the lifetime of this call.
-    template<class It, class Key>
-    inline ConvertibleOnly<It, const NestResult<Key>> _execute(
-        It from, It to, std::function<Key(It)> keyfn)
-    {
-        {
-            auto it = from; size_t id = 0;
-            while(it != to) 
-                if (it->id() == Item::ID_UNSET) (it++)->id(id++);
-                else { id = it->id() + 1; ++it; }
-        }
-        
-        NestResult<Key> result(to - from);
-        
-        __execute(from, to, keyfn);
-        
-        BinIdx binidx = 0;
-        for(auto &itmgrp : lastResult()) {
-            for(const Item& itm : itmgrp) 
-                result[itm.id()] =
-                    std::make_tuple(keyfn(from + itm.id()), itm.translation(),
-                                    itm.rotation(), binidx);
-            
-            ++binidx;
-        }
-        
-        return result;
-    }
+//    template<class It, class Key>
+//    inline ConvertibleOnly<It, void> _execute(It from, It to)
+//    {
+//        __execute(from, to);
+//    }
     
-    template<class It, class Key = size_t>
-    inline NotConvertibleOnly<It, const NestResult<Key>> _execute(
-        It from, It to, std::function<Key(It)> keyfn)
-    {
-        item_cache_.reserve(to - from);
-        for(auto it = from; it != to; ++it)
-            item_cache_.emplace_back(Indexed<typename It::value_type>::get(*it));
+//    template<class It> inline void _execute(It from, It to)
+//    {
+//        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
+//        if(infl > 0) std::for_each(from, to, [this](Item& item) {
+//            item.inflate(infl);
+//        });
 
-        return _execute(item_cache_.begin(), item_cache_.end(), keyfn);
-    }
-
-    template<class It> inline void __execute(It from, It to)
-    {
-        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
-        if(infl > 0) std::for_each(from, to, [this](Item& item) {
-            item.inflate(infl);
-        });
-
-        selector_.template packItems<PlacementStrategy>(
-                    from, to, bin_, pconfig_);
+//        selector_.template packItems<PlacementStrategy>(
+//                    from, to, bin_, pconfig_);
         
-        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
-            item.inflate(-infl);
-        });
-    }
+//        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
+//            item.inflate(-infl);
+//        });
+//    }
 };
 
 }

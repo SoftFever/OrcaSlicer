@@ -90,8 +90,10 @@ public:
             size_t j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
-                    if((was_packed = placers[j].pack(*it, rem(it, store_) )))
-                            makeProgress(placers[j], j);
+                    if((was_packed = placers[j].pack(*it, rem(it, store_) ))) {
+                        it->get().binId(int(j));
+                        makeProgress(placers[j], j);
+                    }
                 }
 
                 if(!was_packed) {

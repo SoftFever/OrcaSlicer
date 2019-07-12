@@ -612,7 +612,7 @@ public:
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
     
-    class WipeTowerInfo: public arrangement::Arrangeable {
+    class WipeTowerInfo {
         Vec2d m_pos = {std::nan(""), std::nan("")};
         Vec2d m_bb_size;
         double m_rotation;
@@ -624,9 +624,9 @@ public:
             return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
         }
 
-        virtual void apply_arrange_result(Vec2d offset, double rotation_rads, unsigned /*bed_num*/) override;
-
-        virtual std::tuple<Polygon, Vec2crd, double> get_arrange_polygon() const override
+        void apply_arrange_result(Vec2d offset, double rotation_rads);
+        
+        arrangement::ArrangePolygon get_arrange_polygon() const
         {
             Polygon p({
                 {coord_t(0), coord_t(0)},
@@ -635,8 +635,9 @@ public:
                 {coord_t(0), scaled(m_bb_size(Y))},
                 {coord_t(0), coord_t(0)},
             });
-
-            return std::make_tuple(p, scaled(m_pos), m_rotation);
+            
+            ExPolygon ep; ep.contour = std::move(p);
+            return {ep, scaled(m_pos), m_rotation};
         }
     };
     

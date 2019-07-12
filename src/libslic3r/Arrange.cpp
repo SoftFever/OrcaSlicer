@@ -341,9 +341,9 @@ public:
         m_pck.configure(m_pconf);
     }
     
-    template<class...Args> inline PackGroup operator()(Args&&...args) {
+    template<class...Args> inline void operator()(Args&&...args) {
         m_rtree.clear();
-        return m_pck.execute(std::forward<Args>(args)...);
+        m_pck.execute(std::forward<Args>(args)...);
     }
     
     inline void preload(std::vector<Item>& fixeditems) {
@@ -513,7 +513,7 @@ BedShapeHint bedShape(const Polyline &bed) {
 }
 
 template<class BinT> // Arrange for arbitrary bin type
-_NestResult<clppr::Polygon> _arrange(
+void _arrange(
     std::vector<Item> &           shapes,
     std::vector<Item> &           excludes,
     const BinT &                  bin,
@@ -553,40 +553,30 @@ _NestResult<clppr::Polygon> _arrange(
     for (auto &itm : shapes  ) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
     
-    return arranger(inp.begin(), inp.end());
-}
-
-inline SLIC3R_CONSTEXPR coord_t stride_padding(coord_t w)
-{
-    return w + w / 5;
+    arranger(inp.begin(), inp.end());
 }
 
 // The final client function for arrangement. A progress indicator and
 // a stop predicate can be also be passed to control the process.
-bool arrange(ArrangeablePtrs &             arrangables,
-             const ArrangeablePtrs &       excludes,
+void arrange(ArrangePolygons &             arrangables,
+             const ArrangePolygons &       excludes,
              coord_t                       min_obj_dist,
              const BedShapeHint &          bedhint,
              std::function<void(unsigned)> progressind,
              std::function<bool()>         stopcondition)
 {
-    bool ret = true;
     namespace clppr = ClipperLib;
     
     std::vector<Item> items, fixeditems;
     items.reserve(arrangables.size());
-    coord_t binwidth = 0;
-
+    
+    // Create Item from Arrangeable
     auto process_arrangeable =
-        [](const Arrangeable *arrangeable, std::vector<Item> &outp)
+        [](const ArrangePolygon &arrpoly, std::vector<Item> &outp)
     {
-        assert(arrangeable);
-
-        auto arrangeitem = arrangeable->get_arrange_polygon();
-
-        Polygon &      p        = std::get<0>(arrangeitem);
-        const Vec2crd &offs     = std::get<1>(arrangeitem);
-        double         rotation = std::get<2>(arrangeitem);
+        Polygon p        = arrpoly.poly.contour;
+        const Vec2crd &  offs     = arrpoly.translation;
+        double           rotation = arrpoly.rotation;
 
         if (p.is_counter_clockwise()) p.reverse();
 
@@ -600,10 +590,10 @@ bool arrange(ArrangeablePtrs &             arrangables,
         outp.back().translation({offs.x(), offs.y()});
     };
 
-    for (Arrangeable *arrangeable : arrangables)
+    for (ArrangePolygon &arrangeable : arrangables)
         process_arrangeable(arrangeable, items);
     
-    for (const Arrangeable * fixed: excludes)
+    for (const ArrangePolygon &fixed: excludes)
         process_arrangeable(fixed, fixeditems);
     
     // Integer ceiling the min distance from the bed perimeters
@@ -619,7 +609,6 @@ bool arrange(ArrangeablePtrs &             arrangables,
         BoundingBox bbb = bedhint.shape.box;
         bbb.min -= Point{md, md}, bbb.max += Point{md, md};
         Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
-        binwidth = coord_t(binbb.width());
         
         _arrange(items, fixeditems, binbb, min_obj_dist, pri, cfn);
         break;
@@ -627,7 +616,6 @@ bool arrange(ArrangeablePtrs &             arrangables,
     case BedShapeType::CIRCLE: {
         auto c  = bedhint.shape.circ;
         auto cc = to_lnCircle(c);
-        binwidth = scaled(c.radius());
         
         _arrange(items, fixeditems, cc, min_obj_dist, pri, cfn);
         break;
@@ -636,7 +624,6 @@ bool arrange(ArrangeablePtrs &             arrangables,
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
         auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
         BoundingBox polybb(bedhint.shape.polygon);
-        binwidth = (polybb.max(X) - polybb.min(X));
         
         _arrange(items, fixeditems, irrbed, min_obj_dist, pri, cfn);
         break;
@@ -655,19 +642,22 @@ bool arrange(ArrangeablePtrs &             arrangables,
     }
     };
     
-    if(stopcondition && stopcondition()) return false;
-
-    return ret;
+    for(size_t i = 0; i < items.size(); ++i) {
+        clppr::IntPoint tr = items[i].translation();
+        arrangables[i].translation = {coord_t(tr.X), coord_t(tr.Y)};
+        arrangables[i].rotation    = items[i].rotation();
+        arrangables[i].bed_idx     = items[i].binId();
+    }
 }
 
 // Arrange, without the fixed items (excludes)
-bool arrange(ArrangeablePtrs &             inp,
-             coord_t                       min_d,
-             const BedShapeHint &          bedhint,
-             std::function<void(unsigned)> prfn,
-             std::function<bool()>         stopfn)
+void arrange(ArrangePolygons &             inp,
+            coord_t                       min_d,
+            const BedShapeHint &          bedhint,
+            std::function<void(unsigned)> prfn,
+            std::function<bool()>         stopfn)
 {
-    return arrange(inp, {}, min_d, bedhint, prfn, stopfn);
+    arrange(inp, {}, min_d, bedhint, prfn, stopfn);
 }
 
 } // namespace arr
