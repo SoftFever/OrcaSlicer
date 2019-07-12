@@ -56,6 +56,7 @@ class ObjectManipulation : public OG_Settings
     // Non-owning pointers to the reset buttons, so we can hide and show them.
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
+    ScalableButton* m_drop_to_bed_button = nullptr;
 
     // Mirroring buttons and their current state
     enum MirrorButtonState {
