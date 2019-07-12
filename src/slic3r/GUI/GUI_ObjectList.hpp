@@ -319,6 +319,7 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
+    void update_and_show_object_settings_item();
     void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);
     void update_object_list_by_printer_technology();
     void update_object_menu();

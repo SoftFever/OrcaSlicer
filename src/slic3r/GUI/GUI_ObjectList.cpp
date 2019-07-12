@@ -2183,6 +2183,7 @@ SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* co
     return bundle;
 }
 
+// Add new SettingsItem for parent_item if it doesn't exist, or just update a digest according to new config
 wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config)
 {
     wxDataViewItem ret = wxDataViewItem(0);
@@ -3100,6 +3101,7 @@ bool ObjectList::has_multi_part_objects()
     return false;
 }
 
+/* #lm_FIXME_delete_after_testing
 void ObjectList::update_settings_items()
 {
     m_prevent_canvas_selection_update = true;
@@ -3125,22 +3127,52 @@ void ObjectList::update_settings_items()
     SetSelections(sel);
     m_prevent_canvas_selection_update = false;
 }
+*/
+void ObjectList::update_and_show_object_settings_item()
+{
+    const wxDataViewItem item = GetSelection();
+    if (!item) return;
+
+    const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
+    select_item(add_settings_item(obj_item, &get_item_config(obj_item)));
+}
 
 // Update settings item for item had it
 void ObjectList::update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections)
 {
-    const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
-    select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
+    const wxDataViewItem old_settings_item = m_objects_model->GetSettingsItem(item);
+    const wxDataViewItem new_settings_item = add_settings_item(item, &get_item_config(item));
 
-    // If settings item was deleted from the list, 
-    // it's need to be deleted from selection array, if it was there
-    if (settings_item != m_objects_model->GetSettingsItem(item) &&
-        selections.Index(settings_item) != wxNOT_FOUND) {
-        selections.Remove(settings_item);
+    if (!new_settings_item && old_settings_item)
+        m_objects_model->Delete(old_settings_item);
 
-        // Select item, if settings_item doesn't exist for item anymore, but was selected
-        if (selections.Index(item) == wxNOT_FOUND)
-            selections.Add(item);
+    // if ols settings item was is selected area
+    if (selections.Index(old_settings_item) != wxNOT_FOUND)
+    {
+        // If settings item was just updated
+        if (old_settings_item == new_settings_item)
+        {
+            Sidebar& panel = wxGetApp().sidebar();
+            panel.Freeze();
+
+            // update settings list
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+
+            panel.Layout();
+            panel.Thaw();
+        }
+        else
+        // If settings item was deleted from the list, 
+        // it's need to be deleted from selection array, if it was there
+        {
+            selections.Remove(old_settings_item);
+
+            // Select item, if settings_item doesn't exist for item anymore, but was selected
+            if (selections.Index(item) == wxNOT_FOUND) {
+                selections.Add(item);
+                select_item(item); // to correct update of the SettingsList and ManipulationPanel sizers
+            }
+        }
     }
 }
 

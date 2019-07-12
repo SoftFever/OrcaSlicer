@@ -928,10 +928,12 @@ RENDER_AGAIN:
         }
 
         if (value_changed) { // Update side panel
-            wxTheApp->CallAfter([]() {
-                wxGetApp().obj_settings()->UpdateAndShow(true);
-                wxGetApp().obj_list()->update_settings_items();
-            });
+/*            wxTheApp->CallAfter([]() {
+ *                wxGetApp().obj_settings()->UpdateAndShow(true);
+ *                wxGetApp().obj_list()->update_settings_items();
+ *            });
+ * #lm_FIXME_delete_after_testing */
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
 
         bool generate = m_imgui->button(m_desc.at("auto_generate"));
