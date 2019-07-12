@@ -138,6 +138,7 @@ public:
 
     void new_project();
     void load_project();
+    void load_project(const wxString& filename);
     void add_model();
     void extract_config_from_project();
 

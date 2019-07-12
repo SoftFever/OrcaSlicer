@@ -3277,6 +3277,9 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     m_project_filename = from_path(full_path);
     wxGetApp().mainframe->update_title();
+
+    if (!filename.empty())
+        wxGetApp().mainframe->add_to_recent_projects(filename);
 }
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
@@ -3590,15 +3593,19 @@ void Plater::load_project()
 {
     wxString input_file;
     wxGetApp().load_project(this, input_file);
+    load_project(input_file);
+}
 
-    if (input_file.empty())
+void Plater::load_project(const wxString& filename)
+{
+    if (filename.empty())
         return;
 
     p->reset();
-    p->set_project_filename(input_file);
+    p->set_project_filename(filename);
 
     std::vector<fs::path> input_paths;
-    input_paths.push_back(into_path(input_file));
+    input_paths.push_back(into_path(filename));
     load_files(input_paths);
 }
 

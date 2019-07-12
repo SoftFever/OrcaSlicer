@@ -6,6 +6,7 @@
 #include <wx/frame.h>
 #include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/filehistory.h>
 
 #include <string>
 #include <map>
@@ -84,6 +85,8 @@ class MainFrame : public DPIFrame
     // vector of a MenuBar items changeable in respect to printer technology 
     std::vector<wxMenuItem*> m_changeable_menu_items;
 
+    wxFileHistory m_recent_projects;
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
 
@@ -120,6 +123,8 @@ public:
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Platter and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
+
+    void        add_to_recent_projects(const wxString& filename);
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 

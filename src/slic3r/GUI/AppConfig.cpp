@@ -229,6 +229,33 @@ std::string AppConfig::get_last_dir() const
     return std::string();
 }
 
+std::vector<std::string> AppConfig::get_recent_projects() const
+{
+    std::vector<std::string> ret;
+    const auto it = m_storage.find("recent_projects");
+    if (it != m_storage.end())
+    {
+        for (const std::map<std::string, std::string>::value_type& item : it->second)
+        {
+            ret.push_back(item.second);
+        }
+    }
+    return ret;
+}
+
+void AppConfig::set_recent_projects(const std::vector<std::string>& recent_projects)
+{
+    auto it = m_storage.find("recent_projects");
+    if (it == m_storage.end())
+        it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type("recent_projects", std::map<std::string, std::string>())).first;
+
+    it->second.clear();
+    for (unsigned int i = 0; i < (unsigned int)recent_projects.size(); ++i)
+    {
+        it->second[std::to_string(i + 1)] = recent_projects[i];
+    }
+}
+
 void AppConfig::update_config_dir(const std::string &dir)
 {
     this->set("recent", "config_directory", dir);
