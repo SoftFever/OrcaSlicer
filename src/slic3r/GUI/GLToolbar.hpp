@@ -66,25 +66,30 @@ public:
 
     struct Data
     {
+        struct Option
+        {
+            bool toggable;
+            ActionCallback action_callback;
+            RenderCallback render_callback;
+
+            Option();
+
+            bool can_render() const { return toggable && (render_callback != nullptr); }
+        };
+
         std::string name;
 #if ENABLE_SVG_ICONS
         std::string icon_filename;
 #endif // ENABLE_SVG_ICONS
         std::string tooltip;
         unsigned int sprite_id;
-        bool left_toggable;
-        bool right_toggable;
+        // mouse left click
+        Option left;
+        // mouse right click
+        Option right;
         bool visible;
-        // action on left click
-        ActionCallback left_action_callback;
-        // action on right click
-        ActionCallback right_action_callback;
         VisibilityCallback visibility_callback;
         EnablingCallback enabling_callback;
-        // render callback on left click
-        RenderCallback left_render_callback;
-        // render callback on right click
-        RenderCallback right_render_callback;
 
         Data();
     };
@@ -98,7 +103,7 @@ private:
     EType m_type;
     EState m_state;
     Data m_data;
-    EActionType m_last_action;
+    EActionType m_last_action_type;
 
 public:
     GLToolbarItem(EType type, const Data& data);
@@ -112,24 +117,24 @@ public:
 #endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
-    void do_left_action() { m_last_action = Left; m_data.left_action_callback(); }
-    void do_right_action() { m_last_action = Right; m_data.right_action_callback(); }
+    void do_left_action() { m_last_action_type = Left; m_data.left.action_callback(); }
+    void do_right_action() { m_last_action_type = Right; m_data.right.action_callback(); }
 
     bool is_enabled() const { return m_state != Disabled; }
     bool is_disabled() const { return m_state == Disabled; }
     bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed); }
     bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
-
-    bool is_left_toggable() const { return m_data.left_toggable; }
-    bool is_right_toggable() const { return m_data.right_toggable; }
     bool is_visible() const { return m_data.visible; }
     bool is_separator() const { return m_type == Separator; }
 
-    bool has_left_render_callback() const { return m_data.left_render_callback != nullptr; }
-    bool has_right_render_callback() const { return m_data.right_render_callback != nullptr; }
+    bool is_left_toggable() const { return m_data.left.toggable; }
+    bool is_right_toggable() const { return m_data.right.toggable; }
 
-    EActionType get_last_action() const { return m_last_action; }
-    void reset_last_action() { m_last_action = Undefined; }
+    bool has_left_render_callback() const { return m_data.left.render_callback != nullptr; }
+    bool has_right_render_callback() const { return m_data.right.render_callback != nullptr; }
+
+    EActionType get_last_action_type() const { return m_last_action_type; }
+    void reset_last_action_type() { m_last_action_type = Undefined; }
 
     // returns true if the state changes
     bool update_visibility();

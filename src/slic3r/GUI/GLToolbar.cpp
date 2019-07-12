@@ -37,6 +37,13 @@ const GLToolbarItem::VisibilityCallback GLToolbarItem::Default_Visibility_Callba
 const GLToolbarItem::EnablingCallback GLToolbarItem::Default_Enabling_Callback = []()->bool { return true; };
 const GLToolbarItem::RenderCallback GLToolbarItem::Default_Render_Callback = [](float, float, float, float){};
 
+GLToolbarItem::Data::Option::Option()
+    : toggable(false)
+    , action_callback(Default_Action_Callback)
+    , render_callback(nullptr)
+{
+}
+
 GLToolbarItem::Data::Data()
     : name("")
 #if ENABLE_SVG_ICONS
@@ -44,15 +51,9 @@ GLToolbarItem::Data::Data()
 #endif // ENABLE_SVG_ICONS
     , tooltip("")
     , sprite_id(-1)
-    , left_toggable(false)
-    , right_toggable(false)
     , visible(true)
-    , left_action_callback(Default_Action_Callback)
-    , right_action_callback(Default_Action_Callback)
     , visibility_callback(Default_Visibility_Callback)
     , enabling_callback(Default_Enabling_Callback)
-    , left_render_callback(nullptr)
-    , right_render_callback(nullptr)
 {
 }
 
@@ -60,7 +61,7 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     : m_type(type)
     , m_state(Normal)
     , m_data(data)
-    , m_last_action(Undefined)
+    , m_last_action_type(Undefined)
 {
 }
 
@@ -90,10 +91,10 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
 
     if (is_pressed())
     {
-        if ((m_last_action == Left) && m_data.left_toggable && (m_data.left_render_callback != nullptr))
-            m_data.left_render_callback(left, right, bottom, top);
-        else if ((m_last_action == Right) && m_data.right_toggable && (m_data.right_render_callback != nullptr))
-            m_data.right_render_callback(left, right, bottom, top);
+        if ((m_last_action_type == Left) && m_data.left.can_render())
+            m_data.left.render_callback(left, right, bottom, top);
+        else if ((m_last_action_type == Right) && m_data.right.can_render())
+            m_data.right.render_callback(left, right, bottom, top);
     }
 }
 
@@ -490,7 +491,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.left = true;
             m_mouse_capture.parent = &parent;
             processed = true;
-            if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action() == GLToolbarItem::Left)))
+            if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Left)))
             {
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Left, (unsigned int)item_id, parent, true);
@@ -507,7 +508,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &parent;
             processed = true;
-            if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action() == GLToolbarItem::Right)))
+            if ((item_id != -2) && !m_items[item_id]->is_separator() && ((m_pressed_toggable_id == -1) || (m_items[item_id]->get_last_action_type() == GLToolbarItem::Right)))
             {
                 // mouse is inside an icon
                 do_action(GLToolbarItem::Right, (unsigned int)item_id, parent, true);
@@ -633,7 +634,7 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, unsigned int item_id,
                         item->set_state(GLToolbarItem::Pressed);
 
                     m_pressed_toggable_id = item->is_pressed() ? item_id : -1;
-                    item->reset_last_action();
+                    item->reset_last_action_type();
 
                     parent.render();
                     switch (type)
@@ -650,7 +651,7 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, unsigned int item_id,
                     else
                         item->set_state(item->is_hovered() ? GLToolbarItem::HoverPressed : GLToolbarItem::Pressed);
 
-                    item->reset_last_action();
+                    item->reset_last_action_type();
                     parent.render();
                     switch (type)
                     {
