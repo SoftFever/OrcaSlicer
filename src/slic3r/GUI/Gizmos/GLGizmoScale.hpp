@@ -32,11 +32,7 @@ class GLGizmoScale3D : public GLGizmoBase
     StartingData m_starting;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }

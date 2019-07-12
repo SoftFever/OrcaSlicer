@@ -13,13 +13,8 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-#if ENABLE_SVG_ICONS
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)

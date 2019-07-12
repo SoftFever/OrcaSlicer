@@ -1736,11 +1736,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
-#if ENABLE_SVG_ICONS
     , view_toolbar(GLToolbar::Radio, "View")
-#else
-    , view_toolbar(GLToolbar::Radio)
-#endif // ENABLE_SVG_ICONS
     , m_project_filename(wxEmptyString)
 {
 	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -3395,12 +3391,6 @@ bool Plater::priv::complit_init_part_menu()
 
 void Plater::priv::init_view_toolbar()
 {
-#if !ENABLE_SVG_ICONS
-    ItemsIconsTexture::Metadata icons_data;
-    icons_data.filename = "view_toolbar.png";
-    icons_data.icon_size = 64;
-#endif // !ENABLE_SVG_ICONS
-
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
     background_data.left = 16;
@@ -3408,11 +3398,7 @@ void Plater::priv::init_view_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
-#if ENABLE_SVG_ICONS
     if (!view_toolbar.init(background_data))
-#else
-    if (!view_toolbar.init(icons_data, background_data))
-#endif // ENABLE_SVG_ICONS
         return;
 
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
@@ -3422,9 +3408,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "editor.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
@@ -3433,9 +3417,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "preview.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };

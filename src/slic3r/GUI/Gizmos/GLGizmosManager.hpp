@@ -46,9 +46,7 @@ public:
 class GLGizmosManager
 {
 public:
-#if ENABLE_SVG_ICONS
     static const float Default_Icons_Size;
-#endif // ENABLE_SVG_ICONS
 
     enum EType : unsigned char
     {
@@ -66,21 +64,13 @@ private:
     bool m_enabled;
     typedef std::map<EType, GLGizmoBase*> GizmosMap;
     GizmosMap m_gizmos;
-#if ENABLE_SVG_ICONS
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
-#else
-    ItemsIconsTexture m_icons_texture;
-#endif // ENABLE_SVG_ICONS
     BackgroundTexture m_background_texture;
     EType m_current;
 
-#if ENABLE_SVG_ICONS
     float m_overlay_icons_size;
     float m_overlay_scale;
-#else
-    float m_overlay_icons_scale;
-#endif // ENABLE_SVG_ICONS
     float m_overlay_border;
     float m_overlay_gap_y;
 
@@ -109,9 +99,7 @@ public:
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
 
-#if ENABLE_SVG_ICONS
     void set_overlay_icon_size(float size);
-#endif // ENABLE_SVG_ICONS
     void set_overlay_scale(float scale);
 
     void refresh_on_off_state(const Selection& selection);
@@ -173,9 +161,7 @@ private:
 
     GLGizmoBase* get_current() const;
 
-#if ENABLE_SVG_ICONS
     bool generate_icons_texture() const;
-#endif // ENABLE_SVG_ICONS
 
     void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
     std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);

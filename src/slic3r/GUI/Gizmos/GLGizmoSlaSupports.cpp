@@ -19,13 +19,8 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_SVG_ICONS
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_quadric(nullptr)
     , m_its(nullptr)
 {

@@ -23,11 +23,7 @@ class GLGizmoCut : public GLGizmoBase
     bool m_rotate_lower;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
 
 protected:
     virtual bool on_init();

@@ -58,11 +58,7 @@ private:
     };
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
