@@ -106,6 +106,7 @@ private:
     GCodeReader m_parser;
     TypeToMovesMap m_moves_map;
     ExtruderOffsetsMap m_extruder_offsets;
+    GCodeFlavor m_gcode_flavor;
 
     // The output of process_layer()
     std::string m_process_output;
@@ -114,6 +115,8 @@ public:
     GCodeAnalyzer();
 
     void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets);
+
+    void set_gcode_flavor(const GCodeFlavor& flavor);
 
     // Reinitialize the analyzer
     void reset();
@@ -164,10 +167,14 @@ private:
     // Set extruder to relative mode
     void _processM83(const GCodeReader::GCodeLine& line);
 
+    // Set tool (MakerWare and Sailfish flavor)
+    void _processM108orM135(const GCodeReader::GCodeLine& line);
+
     // Set color change
     void _processM600(const GCodeReader::GCodeLine& line);
 
     // Processes T line (Select Tool)
+    void _processT(const std::string& command);
     void _processT(const GCodeReader::GCodeLine& line);
 
     // Processes the tags

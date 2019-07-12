@@ -410,6 +410,8 @@ public:
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
     // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
+    // convex hull
+    const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
 

@@ -586,6 +586,9 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     m_analyzer.set_extruder_offsets(extruder_offsets);
 
+    // tell analyzer about the gcode flavor
+    m_analyzer.set_gcode_flavor(print.config().gcode_flavor);
+
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
