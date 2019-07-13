@@ -496,7 +496,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
     option.opt.width = 7/*6*/;
-    option.opt.sidetext = "     ";
+    option.opt.sidetext = "   ";
     line.append_option(option);
 
     m_brim_width = config->opt_float("brim_width");
@@ -507,7 +507,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     def.gui_type = "";
     def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
-    option.opt.sidetext = "     ";
+    option.opt.sidetext = "";
     line.append_option(option);
 
     auto wiping_dialog_btn = [config, this](wxWindow* parent) {
