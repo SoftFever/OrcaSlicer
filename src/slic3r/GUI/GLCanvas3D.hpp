@@ -624,7 +624,7 @@ public:
             return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
         }
 
-        void apply_arrange_result(Vec2d offset, double rotation_rads);
+        void apply_arrange_result(Vec2crd offset, double rotation_rads);
         
         arrangement::ArrangePolygon get_arrange_polygon() const
         {

@@ -1272,145 +1272,288 @@ struct Plater::priv
     // objects would be frozen for the user. In case of arrange, an animation
     // could be shown, or with the optimize orientations, partial results
     // could be displayed.
-    class Job: public wxEvtHandler {
-        int m_range = 100;
+    class Job : public wxEvtHandler
+    {
+        int               m_range = 100;
         std::future<void> m_ftr;
-        priv *m_plater = nullptr;
-        std::atomic<bool> m_running {false}, m_canceled {false};
-        bool m_finalized = false;
-        
-        void run() { 
-            m_running.store(true); process(); m_running.store(false); 
-            
+        priv *            m_plater = nullptr;
+        std::atomic<bool> m_running{false}, m_canceled{false};
+        bool              m_finalized = false;
+
+        void run()
+        {
+            m_running.store(true);
+            process();
+            m_running.store(false);
+
             // ensure to call the last status to finalize the job
             update_status(status_range(), "");
         }
-        
+
     protected:
-        
         // status range for a particular job
         virtual int status_range() const { return 100; }
-        
+
         // status update, to be used from the work thread (process() method)
-        void update_status(int st, const wxString& msg = "") { 
-            auto evt = new wxThreadEvent(); evt->SetInt(st); evt->SetString(msg);
-            wxQueueEvent(this, evt); 
+        void update_status(int st, const wxString &msg = "")
+        {
+            auto evt = new wxThreadEvent();
+            evt->SetInt(st);
+            evt->SetString(msg);
+            wxQueueEvent(this, evt);
         }
-        
-        priv& plater() { return *m_plater; }
-        bool was_canceled() const { return m_canceled.load(); }
-        
+
+        priv &plater() { return *m_plater; }
+        bool  was_canceled() const { return m_canceled.load(); }
+
         // Launched just before start(), a job can use it to prepare internals
         virtual void prepare() {}
-        
-        // Launched when the job is finished. It refreshes the 3dscene by def.
-        virtual void finalize() {
+
+        // Launched when the job is finished. It refreshes the 3Dscene by def.
+        virtual void finalize()
+        {
             // Do a full refresh of scene tree, including regenerating
             // all the GLVolumes. FIXME The update function shall just
             // reload the modified matrices.
-            if(! was_canceled())
-                plater().update(true);
+            if (!was_canceled()) plater().update(true);
         }
-        
+
     public:
-        
-        Job(priv *_plater): m_plater(_plater)
+        Job(priv *_plater) : m_plater(_plater)
         {
-            Bind(wxEVT_THREAD, [this](const wxThreadEvent& evt){
+            Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
                 auto msg = evt.GetString();
-                if(! msg.empty()) plater().statusbar()->set_status_text(msg);
-                
-                if(m_finalized) return;
-                
+                if (!msg.empty())
+                    plater().statusbar()->set_status_text(msg);
+
+                if (m_finalized) return;
+
                 plater().statusbar()->set_progress(evt.GetInt());
-                if(evt.GetInt() == status_range()) {
-                    
+                if (evt.GetInt() == status_range()) {
                     // set back the original range and cancel callback
                     plater().statusbar()->set_range(m_range);
                     plater().statusbar()->set_cancel_callback();
                     wxEndBusyCursor();
-                    
+
                     finalize();
-                    
+
                     // dont do finalization again for the same process
                     m_finalized = true;
                 }
             });
         }
-        
-        // TODO: use this when we all migrated to VS2019
-        // Job(const Job&) = delete;
-        // Job(Job&&) = default;
-        // Job& operator=(const Job&) = delete;
-        // Job& operator=(Job&&) = default;
-        Job(const Job&) = delete;
-        Job& operator=(const Job&) = delete;
-        Job(Job &&o) :
-            m_range(o.m_range),
-            m_ftr(std::move(o.m_ftr)),
-            m_plater(o.m_plater),
-            m_finalized(o.m_finalized)
-        {
-            m_running.store(o.m_running.load());
-            m_canceled.store(o.m_canceled.load());
-        }
-        
+
+        Job(const Job &) = delete;
+        Job(Job &&)      = default;
+        Job &operator=(const Job &) = delete;
+        Job &operator=(Job &&) = default;
+
         virtual void process() = 0;
-        
-        void start() { // Start the job. No effect if the job is already running
-            if(! m_running.load()) {
-                
-                prepare();                
-                
+
+        void start()
+        { // Start the job. No effect if the job is already running
+            if (!m_running.load()) {
+                prepare();
+
                 // Save the current status indicatior range and push the new one
                 m_range = plater().statusbar()->get_range();
                 plater().statusbar()->set_range(status_range());
-                
+
                 // init cancellation flag and set the cancel callback
                 m_canceled.store(false);
-                plater().statusbar()->set_cancel_callback( [this](){ 
-                    m_canceled.store(true);
-                });
-                
+                plater().statusbar()->set_cancel_callback(
+                    [this]() { m_canceled.store(true); });
+
                 m_finalized = false;
-                
+
                 // Changing cursor to busy
                 wxBeginBusyCursor();
-                
-                try {   // Execute the job
+
+                try { // Execute the job
                     m_ftr = std::async(std::launch::async, &Job::run, this);
-                } catch(std::exception& ) { 
-                    update_status(status_range(), 
-                    _(L("ERROR: not enough resources to execute a new job.")));
+                } catch (std::exception &) {
+                    update_status(status_range(),
+                                  _(L("ERROR: not enough resources to "
+                                      "execute a new job.")));
                 }
-                
+
                 // The state changes will be undone when the process hits the
                 // last status value, in the status update handler (see ctor)
             }
         }
-        
-        // To wait for the running job and join the threads. False is returned
-        // if the timeout has been reached and the job is still running. Call
-        // cancel() before this fn if you want to explicitly end the job.
-        bool join(int timeout_ms = 0) const { 
-            if(!m_ftr.valid()) return true;
-            
-            if(timeout_ms <= 0) 
+
+        // To wait for the running job and join the threads. False is
+        // returned if the timeout has been reached and the job is still
+        // running. Call cancel() before this fn if you want to explicitly
+        // end the job.
+        bool join(int timeout_ms = 0) const
+        {
+            if (!m_ftr.valid()) return true;
+
+            if (timeout_ms <= 0)
                 m_ftr.wait();
-            else if(m_ftr.wait_for(std::chrono::milliseconds(timeout_ms)) == 
-                    std::future_status::timeout) 
+            else if (m_ftr.wait_for(std::chrono::milliseconds(
+                         timeout_ms)) == std::future_status::timeout)
                 return false;
-            
+
             return true;
         }
-        
+
         bool is_running() const { return m_running.load(); }
         void cancel() { m_canceled.store(true); }
     };
-    
+
     enum class Jobs : size_t {
         Arrange,
         Rotoptimize
+    };
+    
+    class ArrangeJob : public Job
+    {
+        // The gap between logical beds in the x axis expressed in ratio of
+        // the current bed width.
+        static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
+        
+        // Cache the wti info
+        GLCanvas3D::WipeTowerInfo m_wti;
+        
+        // Cache the selected instances needed to write back the arrange
+        // result. The order of instances is the same as the arrange polys
+        struct IndexedArrangePolys {
+            ModelInstancePtrs insts;
+            arrangement::ArrangePolygons polys;
+            
+            void reserve(size_t cap) { insts.reserve(cap); polys.reserve(cap); }
+            void clear() { insts.clear(); polys.clear(); }
+        
+            void emplace_back(ModelInstance *inst) {
+                insts.emplace_back(inst);
+                polys.emplace_back(inst->get_arrange_polygon());
+            }
+            
+            void swap(IndexedArrangePolys &pp) {
+                insts.swap(pp.insts); polys.swap(pp.polys);
+            }
+        };
+        
+        IndexedArrangePolys m_selected, m_unselected;
+        
+    protected:
+        
+        void prepare() override
+        {
+            m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
+            
+            // Get the selection map
+            Selection& sel = plater().get_selection();
+            const Selection::ObjectIdxsToInstanceIdxsMap &selmap =
+                sel.get_content();
+            
+            Model &model = plater().model;
+            
+            size_t count = 0; // To know how much space to reserve
+            for (auto obj : model.objects) count += obj->instances.size();
+            
+            m_selected.clear(), m_unselected.clear();
+            m_selected.reserve(count + 1 /* for optional wti */);
+            m_unselected.reserve(count + 1 /* for optional wti */);
+            
+            // Go through the objects and check if inside the selection
+            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                auto oit = selmap.find(int(oidx));
+                
+                if (oit != selmap.end()) { // Object is selected
+                    auto &iids = oit->second;
+                    
+                    // Go through instances and check if inside selection
+                    size_t instcnt = model.objects[oidx]->instances.size();
+                    for (size_t iidx = 0; iidx < instcnt; ++iidx) {
+                        auto           instit = iids.find(iidx);
+                        ModelInstance *oi     = model.objects[oidx]
+                                                ->instances[iidx];
+                        
+                        // Instance is selected
+                        instit != iids.end() ?
+                            m_selected.emplace_back(oi) :
+                            m_unselected.emplace_back(oi);
+                    }
+                } else // object not selected, all instances are unselected
+                    for (ModelInstance *oi : model.objects[oidx]->instances)
+                        m_unselected.emplace_back(oi);
+            }
+            
+            // If the selection is completely empty, consider all items as the
+            // selection
+            if (m_selected.insts.empty() && m_selected.polys.empty())
+                m_selected.swap(m_unselected);
+                        
+            if (m_wti)
+                sel.is_wipe_tower() ?
+                    m_selected.polys.emplace_back(m_wti.get_arrange_polygon()) :
+                    m_unselected.polys.emplace_back(m_wti.get_arrange_polygon());
+            
+            // Stride between logical beds
+            double bedwidth = plater().bed_shape_bb().size().x();
+            coord_t stride = scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+            
+            for (arrangement::ArrangePolygon &ap : m_selected.polys)
+                if (ap.bed_idx > 0) ap.translation.x() -= ap.bed_idx * stride;
+            
+            for (arrangement::ArrangePolygon &ap : m_unselected.polys)
+                if (ap.bed_idx > 0) ap.translation.x() -= ap.bed_idx * stride;
+        }
+        
+    public:
+        using Job::Job;
+        
+        
+        int status_range() const override
+        {
+            return int(m_selected.polys.size());
+        }
+        
+        void process() override;
+        
+        void finalize() override {
+            
+            if (was_canceled()) { // Ignore the arrange result if aborted.
+                Job::finalize();
+                return;
+            }
+            
+            // Stride between logical beds
+            double bedwidth = plater().bed_shape_bb().size().x();
+            coord_t stride = scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+            
+            for(size_t i = 0; i < m_selected.insts.size(); ++i) {
+                if (m_selected.polys[i].bed_idx != arrangement::UNARRANGED) {
+                    Vec2crd offs = m_selected.polys[i].translation;
+                    double rot   = m_selected.polys[i].rotation;
+                    int bdidx    = m_selected.polys[i].bed_idx;
+                    offs.x()    += bdidx * stride;
+                    m_selected.insts[i]->apply_arrange_result(offs, rot, bdidx);
+                }
+            }
+            
+            // Handle the wipe tower
+            const arrangement::ArrangePolygon &wtipoly = m_selected.polys.back();
+            if (m_wti && wtipoly.bed_idx != arrangement::UNARRANGED) {
+                Vec2crd o = wtipoly.translation;
+                double  r = wtipoly.rotation;
+                o.x() += wtipoly.bed_idx * stride;
+                m_wti.apply_arrange_result(o, r);
+            }
+            
+            // Call original finalize (will update the scene)
+            Job::finalize();
+        }
+    };
+    
+    class RotoptimizeJob : public Job
+    {
+    public:
+        using Job::Job;
+        void process() override;
     };
     
     // Jobs defined inside the group class will be managed so that only one can
@@ -1422,84 +1565,8 @@ struct Plater::priv
         
         priv * m_plater;
 
-        class ArrangeJob : public Job
-        {   
-            GLCanvas3D::WipeTowerInfo m_wti;
-            arrangement::ArrangePolygons m_selected, m_unselected;
-            
-            static std::array<arrangement::ArrangePolygons, 2> collect(
-                Model &model, const Selection &sel)
-            {
-                const Selection::ObjectIdxsToInstanceIdxsMap &selmap =
-                    sel.get_content();
-                
-                size_t count = 0;
-                for (auto obj : model.objects) count += obj->instances.size();
-                
-                arrangement::ArrangePolygons selected, unselected;
-                selected.reserve(count + 1 /* for optional wti */);
-                unselected.reserve(count + 1 /* for optional wti */);
-                
-                for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-                    auto oit = selmap.find(int(oidx));
-
-                    if (oit != selmap.end()) {
-                        auto &iids = oit->second;
-
-                        for (size_t iidx = 0;
-                             iidx < model.objects[oidx]->instances.size();
-                             ++iidx)
-                        {
-                            auto           instit = iids.find(iidx);
-                            ModelInstance *inst   = model.objects[oidx]
-                                                      ->instances[iidx];
-                            instit == iids.end() ?
-                                unselected.emplace_back(inst->get_arrange_polygon()) :
-                                selected.emplace_back(inst->get_arrange_polygon());
-                        }
-                    } else // object not selected, all instances are unselected
-                        for (auto inst : model.objects[oidx]->instances)
-                            unselected.emplace_back(inst->get_arrange_polygon());
-                }
-                
-                if (selected.empty()) selected.swap(unselected);
-                
-                return {selected, unselected};
-            }
-
-        protected:
-
-            void prepare() override
-            {
-                m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
-                
-                const Selection& sel = plater().get_selection();
-                BoundingBoxf bedbb(plater().bed.get_shape());
-                auto arrinput = collect(plater().model, sel);
-                m_selected.swap(arrinput[0]);
-                m_unselected.swap(arrinput[1]);
-
-                if (m_wti)
-                    sel.is_wipe_tower() ?
-                        m_selected.emplace_back(m_wti.get_arrange_polygon()) :
-                        m_unselected.emplace_back(m_wti.get_arrange_polygon());
-            }
-
-        public:
-            using Job::Job;
-            int status_range() const override
-            {
-                return int(m_selected.size());
-            }
-            void process() override;
-        } arrange_job{m_plater};
-
-        class RotoptimizeJob : public Job
-        {
-        public:
-            using Job::Job;
-            void process() override;
-        } rotoptimize_job{m_plater};
+        ArrangeJob arrange_job{m_plater};
+        RotoptimizeJob rotoptimize_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
@@ -2447,50 +2514,47 @@ void Plater::priv::sla_optimize_rotation() {
 }
 
 arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
-    arrangement::BedShapeHint bedshape;
     
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
     assert(bed_shape_opt);
     
-    if (bed_shape_opt) {
-        auto &bedpoints = bed_shape_opt->values;
-        Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
-        for (auto &v : bedpoints) bedpoly.append(scaled(v));
-        bedshape = arrangement::bedShape(bedpoly);
-    }
+    if (!bed_shape_opt) return {};
     
-    return bedshape;
+    auto &bedpoints = bed_shape_opt->values;
+    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
+    for (auto &v : bedpoints) bedpoly.append(scaled(v));
+    
+    return arrangement::BedShapeHint(bedpoly);
 }
 
-void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
-    auto count = unsigned(m_selected.size());
-    plater().model.arrange_objects(6.f, nullptr);
-//    static const auto arrangestr = _(L("Arranging"));
+void Plater::priv::ArrangeJob::process() {
+    static const auto arrangestr = _(L("Arranging"));
     
-//    // FIXME: I don't know how to obtain the minimum distance, it depends
-//    // on printer technology. I guess the following should work but it crashes.
-//    double dist = 6; // PrintConfig::min_object_distance(config);
-//    if (plater().printer_technology == ptFFF) {
-//        dist = PrintConfig::min_object_distance(plater().config);
-//    }
+    // FIXME: I don't know how to obtain the minimum distance, it depends
+    // on printer technology. I guess the following should work but it crashes.
+    double dist = 6; // PrintConfig::min_object_distance(config);
+    if (plater().printer_technology == ptFFF) {
+        dist = PrintConfig::min_object_distance(plater().config);
+    }
     
-//    coord_t min_obj_distance = scaled(dist);
-//    auto count = unsigned(m_selected.size());
-//    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    coord_t min_obj_distance = scaled(dist);
+    auto count = unsigned(m_selected.polys.size());
+    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
     
-//    try {
-//        arrangement::arrange(m_selected, m_unselected, min_obj_distance,
-//                             bedshape,
-//                             [this, count](unsigned st) {
-//                                 if (st > 0) // will not finalize after last one
-//                                     update_status(count - st, arrangestr);
-//                             },
-//                             [this]() { return was_canceled(); });
-//    } catch (std::exception & /*e*/) {
-//        GUI::show_error(plater().q,
-//                        _(L("Could not arrange model objects! "
-//                            "Some geometries may be invalid.")));
-//    }
+    try {
+        arrangement::arrange(m_selected.polys, m_unselected.polys,
+                             min_obj_distance,
+                             bedshape,
+                             [this, count](unsigned st) {
+                                 if (st > 0) // will not finalize after last one
+                                     update_status(count - st, arrangestr);
+                             },
+                             [this]() { return was_canceled(); });
+    } catch (std::exception & /*e*/) {
+        GUI::show_error(plater().q,
+                        _(L("Could not arrange model objects! "
+                            "Some geometries may be invalid.")));
+    }
     
     // finalize just here.
     update_status(int(count),
@@ -2503,11 +2567,27 @@ void find_new_position(const Model &            model,
                        coord_t                  min_d,
                        const arrangement::BedShapeHint &bedhint)
 {
+    arrangement::ArrangePolygons movable, fixed;
     
-    // TODO
+    for (const ModelObject *mo : model.objects)
+        for (const ModelInstance *inst : mo->instances) {
+            auto it = std::find(instances.begin(), instances.end(), inst);
+            if (it != instances.end())
+                fixed.emplace_back(inst->get_arrange_polygon());
+        }
+    
+    for (ModelInstance *inst : instances)
+        movable.emplace_back(inst->get_arrange_polygon());
+    
+    arrangement::arrange(movable, fixed, min_d, bedhint);
+    
+    for (size_t i = 0; i < instances.size(); ++i)
+        if (movable[i].bed_idx == 0)
+            instances[i]->apply_arrange_result(movable[i].translation,
+                                               movable[i].rotation);
 }
 
-void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
+void Plater::priv::RotoptimizeJob::process()
 {
     int obj_idx = plater().get_selected_object_idx();
     if (obj_idx < 0) { return; }

@@ -372,35 +372,7 @@ static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb
 /*  arrange objects preserving their instance count
     but altering their instance positions */
 bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
-{
-    // get the (transformed) size of each instance so that we take
-    // into account their different transformations when packing
-//    Pointfs instance_sizes;
-//    Pointfs instance_centers;
-//    for (const ModelObject *o : this->objects)
-//        for (size_t i = 0; i < o->instances.size(); ++ i) {
-//            // an accurate snug bounding box around the transformed mesh.
-//            BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
-//            instance_sizes.emplace_back(to_2d(bbox.size()));
-//            instance_centers.emplace_back(to_2d(bbox.center()));
-//        }
-
-//    Pointfs positions;
-//    if (! _arrange(instance_sizes, dist, bb, positions))
-//        return false;
-
-//    size_t idx = 0;
-//    for (ModelObject *o : this->objects) {
-//        for (ModelInstance *i : o->instances) {
-//            Vec2d offset_xy = positions[idx] - instance_centers[idx];
-//            i->set_offset(Vec3d(offset_xy(0), offset_xy(1), i->get_offset(Z)));
-//            ++idx;
-//        }
-//        o->invalidate_bounding_box();
-//    }
-    
-//    return true;
-    
+{    
     size_t count = 0;
     for (auto obj : objects) count += obj->instances.size();
     
@@ -414,28 +386,22 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
             instances.emplace_back(minst);
         }
     
-    
     arrangement::BedShapeHint bedhint;
-    
-    if (bb) {
-        bedhint.type = arrangement::BedShapeType::BOX;
-        bedhint.shape.box = BoundingBox(scaled(bb->min), scaled(bb->max));
-    }
-    
+
+    if (bb)
+        bedhint = arrangement::BedShapeHint(
+            BoundingBox(scaled(bb->min), scaled(bb->max)));
+
     arrangement::arrange(input, scaled(dist), bedhint);
     
     bool ret = true;
     
     for(size_t i = 0; i < input.size(); ++i) {
-        auto inst = instances[i];
-        inst->set_rotation(Z, input[i].rotation);
-        auto tr = unscaled<double>(input[i].translation);
-        inst->set_offset(X, tr.x());
-        inst->set_offset(Y, tr.y());
-        
-        if (input[i].bed_idx != 0) ret = false; // no logical beds are allowed
+        if (input[i].bed_idx == 0) { // no logical beds are allowed
+            instances[i]->apply_arrange_result(input[i].translation,
+                                               input[i].rotation);
+        } else ret = false;
     }
-    
     
     return ret;
 }
@@ -1842,28 +1808,37 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 {
     static const double SIMPLIFY_TOLERANCE_MM = 0.1;
-
-    Vec3d rotation = get_rotation();
-    rotation.z()   = 0.;
-    Transform3d trafo_instance =
-        Geometry::assemble_transform(Vec3d::Zero(), rotation,
-                                     get_scaling_factor(), get_mirror());
-
-    Polygon p = get_object()->convex_hull_2d(trafo_instance);
-
-    assert(!p.points.empty());
-
-    // this may happen for malformed models, see:
-    // https://github.com/prusa3d/PrusaSlicer/issues/2209
-    if (p.points.empty()) return {{}};
-
-    Polygons pp{p};
-    pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-    if (!pp.empty()) p = pp.front();
     
-    ExPolygon ep; ep.contour = std::move(p);
+    if (!m_arrange_cache.valid) {
+        Vec3d rotation = get_rotation();
+        rotation.z()   = 0.;
+        Transform3d trafo_instance =
+            Geometry::assemble_transform(Vec3d::Zero(), rotation,
+                                         get_scaling_factor(), get_mirror());
     
-    return {ep, Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))}, get_rotation(Z)};
+        Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    
+        assert(!p.points.empty());
+    
+        // this may happen for malformed models, see:
+        // https://github.com/prusa3d/PrusaSlicer/issues/2209
+        if (p.points.empty()) return {{}};
+    
+        Polygons pp{p};
+        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+        if (!pp.empty()) p = pp.front();
+        m_arrange_cache.poly.contour = std::move(p);
+        m_arrange_cache.valid = true;
+    }
+
+    arrangement::ArrangePolygon ret{m_arrange_cache.poly,
+                                    Vec2crd{scaled(get_offset(X)),
+                                            scaled(get_offset(Y))},
+                                    get_rotation(Z)};
+    
+    ret.bed_idx = m_arrange_cache.bed_idx;
+    
+    return ret;
 }
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs

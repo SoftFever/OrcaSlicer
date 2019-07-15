@@ -42,8 +42,13 @@ public:
         
         std::for_each(first, last, [this](Item& itm) {
             if(itm.isFixed()) {
-                if(packed_bins_.empty()) packed_bins_.emplace_back();
-                packed_bins_.front().emplace_back(itm);
+                if (itm.binId() < 0) itm.binId(0);
+                auto binidx = size_t(itm.binId());
+                
+                while(packed_bins_.size() <= binidx)
+                    packed_bins_.emplace_back();
+                
+                packed_bins_[binidx].emplace_back(itm);
             } else {
                 store_.emplace_back(itm);
             }

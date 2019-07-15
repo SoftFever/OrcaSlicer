@@ -434,9 +434,7 @@ inline Circle to_lnCircle(const CircleBed& circ) {
 }
 
 // Get the type of bed geometry from a simple vector of points.
-BedShapeHint bedShape(const Polyline &bed) {
-    BedShapeHint ret;
-
+BedShapeHint::BedShapeHint(const Polyline &bed) {
     auto x = [](const Point& p) { return p(X); };
     auto y = [](const Point& p) { return p(Y); };
 
@@ -497,19 +495,16 @@ BedShapeHint bedShape(const Polyline &bed) {
     auto parea = poly_area(bed);
 
     if( (1.0 - parea/area(bb)) < 1e-3 ) {
-        ret.type = BedShapeType::BOX;
-        ret.shape.box = bb;
+        m_type = BedShapes::bsBox;
+        m_bed.box = bb;
     }
     else if(auto c = isCircle(bed)) {
-        ret.type = BedShapeType::CIRCLE;
-        ret.shape.circ = c;
+        m_type = BedShapes::bsCircle;
+        m_bed.circ = c;
     } else {
-        ret.type = BedShapeType::IRREGULAR;
-        ret.shape.polygon = bed;
+        m_type = BedShapes::bsIrregular;
+        m_bed.polygon = bed;
     }
-
-    // Determine the bed shape by hand
-    return ret;
 }
 
 template<class BinT> // Arrange for arbitrary bin type
@@ -588,6 +583,7 @@ void arrange(ArrangePolygons &             arrangables,
         outp.emplace_back(std::move(clpath));
         outp.back().rotation(rotation);
         outp.back().translation({offs.x(), offs.y()});
+        outp.back().binId(arrpoly.bed_idx);
     };
 
     for (ArrangePolygon &arrangeable : arrangables)
@@ -596,6 +592,8 @@ void arrange(ArrangePolygons &             arrangables,
     for (const ArrangePolygon &fixed: excludes)
         process_arrangeable(fixed, fixeditems);
     
+    for (Item &itm : fixeditems) itm.inflate(-2 * SCALED_EPSILON);
+    
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = min_obj_dist - SCALED_EPSILON;
     md = (md % 2) ? md / 2 + 1 : md / 2;
@@ -603,39 +601,38 @@ void arrange(ArrangePolygons &             arrangables,
     auto &cfn = stopcondition;
     auto &pri = progressind;
     
-    switch (bedhint.type) {
-    case BedShapeType::BOX: {
+    switch (bedhint.get_type()) {
+    case bsBox: {
         // Create the arranger for the box shaped bed
-        BoundingBox bbb = bedhint.shape.box;
+        BoundingBox bbb = bedhint.get_box();
         bbb.min -= Point{md, md}, bbb.max += Point{md, md};
         Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
         
         _arrange(items, fixeditems, binbb, min_obj_dist, pri, cfn);
         break;
     }
-    case BedShapeType::CIRCLE: {
-        auto c  = bedhint.shape.circ;
-        auto cc = to_lnCircle(c);
+    case bsCircle: {
+        auto cc = to_lnCircle(bedhint.get_circle());
         
         _arrange(items, fixeditems, cc, min_obj_dist, pri, cfn);
         break;
     }
-    case BedShapeType::IRREGULAR: {
-        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.shape.polygon);
+    case bsIrregular: {
+        auto ctour = Slic3rMultiPoint_to_ClipperPath(bedhint.get_irregular());
         auto irrbed = sl::create<clppr::Polygon>(std::move(ctour));
-        BoundingBox polybb(bedhint.shape.polygon);
+        BoundingBox polybb(bedhint.get_irregular());
         
         _arrange(items, fixeditems, irrbed, min_obj_dist, pri, cfn);
         break;
     }
-    case BedShapeType::INFINITE: {
-        const InfiniteBed& nobin = bedhint.shape.infinite;
+    case bsInfinite: {
+        const InfiniteBed& nobin = bedhint.get_infinite();
         auto infbb = Box::infinite({nobin.center.x(), nobin.center.y()});
         
         _arrange(items, fixeditems, infbb, min_obj_dist, pri, cfn);
         break;
     }
-    case BedShapeType::UNKNOWN: {
+    case bsUnknown: {
         // We know nothing about the bed, let it be infinite and zero centered
         _arrange(items, fixeditems, Box::infinite(), min_obj_dist, pri, cfn);
         break;

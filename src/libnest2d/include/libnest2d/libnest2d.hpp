@@ -127,25 +127,6 @@ public:
     inline _Item(TContour<RawShape>&& contour,
                  THolesContainer<RawShape>&& holes):
         sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
-
-//    template<class... Args>
-//    _Item(std::function<void(const _Item&, unsigned)> applyfn, Args &&... args):
-//        _Item(std::forward<Args>(args)...)
-//    {
-//        applyfn_ = std::move(applyfn);
-//    }
-
-    // Call the apply callback set in constructor. Within the callback, the
-    // original caller can apply the stored transformation to the original
-    // objects inteded for nesting. It might not be the shape handed over
-    // to _Item (e.g. arranging 3D shapes based on 2D silhouette or the
-    // client uses a simplified or processed polygon for nesting)
-    // This callback, if present, will be called for each item after the nesting
-    // is finished.
-//    inline void callApplyFunction(unsigned binidx) const
-//    {
-//        if (applyfn_) applyfn_(*this, binidx);
-//    }
     
     inline bool isFixed() const noexcept { return fixed_; }
     inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
@@ -881,34 +862,6 @@ public:
     {
         return selector_.getResult();
     }
-
-private:
-
-      
-    // This function will be used only if the iterators are pointing to
-    // a type compatible with the libnets2d::_Item template.
-    // This way we can use references to input elements as they will
-    // have to exist for the lifetime of this call.
-//    template<class It, class Key>
-//    inline ConvertibleOnly<It, void> _execute(It from, It to)
-//    {
-//        __execute(from, to);
-//    }
-    
-//    template<class It> inline void _execute(It from, It to)
-//    {
-//        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
-//        if(infl > 0) std::for_each(from, to, [this](Item& item) {
-//            item.inflate(infl);
-//        });
-
-//        selector_.template packItems<PlacementStrategy>(
-//                    from, to, bin_, pconfig_);
-        
-//        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
-//            item.inflate(-infl);
-//        });
-//    }
 };
 
 }
