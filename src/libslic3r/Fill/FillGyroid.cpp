@@ -152,7 +152,8 @@ void FillGyroid::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
-    // no rotation is supported for this infill pattern (yet)
+    expolygon.rotate(-this->angle);
+
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
     double      density_adjusted = std::max(0., params.density * 2.44);
@@ -160,7 +161,7 @@ void FillGyroid::_fill_surface_single(
     coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 
     // align bounding box to a multiple of our grid module
-    bb.merge(_align_to_grid(bb.min, Point(2.*M_PI*distance, 2.*M_PI*distance)));
+    bb.merge(_align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
 
     // generate pattern
     Polylines polylines_square = make_gyroid_waves(
@@ -169,16 +170,15 @@ void FillGyroid::_fill_surface_single(
         this->spacing,
         ceil(bb.size()(0) / distance) + 1.,
         ceil(bb.size()(1) / distance) + 1.);
-    
-    // move pattern in place
-    for (Polyline &polyline : polylines_square)
-        polyline.translate(bb.min(0), bb.min(1));
 
     // clip pattern to boundaries, keeping the polyline order & ordering the fragment to be able to join them easily
-    //Polylines polylines = intersection_pl(polylines_square, (Polygons)expolygon);
     Polylines polylines_chained;
     for (size_t idx_polyline = 0; idx_polyline < polylines_square.size(); ++idx_polyline) {
+        // shift the polyline to the grid origin
         Polyline &poly_to_cut = polylines_square[idx_polyline];
+        poly_to_cut.translate(bb.min);
+
+        // intersect
         Polylines polylines_to_sort = intersection_pl(Polylines() = { poly_to_cut }, (Polygons)expolygon);
         for (Polyline &polyline : polylines_to_sort) {
             //TODO: replace by closest_index_point()
@@ -225,6 +225,12 @@ void FillGyroid::_fill_surface_single(
             polylines_out.erase(polylines_out.begin() + idx);
             idx--;
         }
+    }
+
+    // new paths must be rotated back
+    for (Polylines::iterator it = polylines_out.begin() + polylines_out_first_idx;
+         it != polylines_out.end(); ++it) {
+        it->rotate(this->angle);
     }
 }
 
