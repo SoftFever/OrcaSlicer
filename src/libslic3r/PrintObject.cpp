@@ -18,7 +18,7 @@
 
 #include <Shiny/Shiny.h>
 
-//! macro used to mark string used at localization, 
+//! macro used to mark string used at localization,
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
 
@@ -430,7 +430,7 @@ SupportLayer* PrintObject::add_support_layer(int id, coordf_t height, coordf_t p
     return m_support_layers.back();
 }
 
-SupportLayerPtrs::const_iterator PrintObject::insert_support_layer(SupportLayerPtrs::const_iterator pos, int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
+SupportLayerPtrs::const_iterator PrintObject::insert_support_layer(SupportLayerPtrs::const_iterator pos, size_t id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
     return m_support_layers.insert(pos, new SupportLayer(id, this, height, print_z, slice_z));
 }
@@ -625,7 +625,7 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool interface_shells = m_config.interface_shells.value;
 
-    for (int idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
+    for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)
@@ -811,8 +811,6 @@ void PrintObject::process_external_surfaces()
     BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info();
 
 	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++region_id) {
-        const PrintRegion &region = *m_print->regions()[region_id];
-        
         BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -1033,7 +1031,6 @@ void PrintObject::discover_vertical_shells()
                         bool hole_first = true;
                         for (int n = (int)idx_layer - n_extra_bottom_layers; n <= (int)idx_layer + n_extra_top_layers; ++ n)
                             if (n >= 0 && n < (int)m_layers.size()) {
-                                Layer &neighbor_layer = *m_layers[n];
                                 const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[n];
                                 if (hole_first) {
                                     hole_first = false;
@@ -2308,7 +2305,7 @@ void PrintObject::discover_horizontal_shells()
     BOOST_LOG_TRIVIAL(trace) << "discover_horizontal_shells()";
     
     for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-        for (int i = 0; i < int(m_layers.size()); ++ i) {
+        for (size_t i = 0; i < m_layers.size(); ++ i) {
             m_print->throw_if_canceled();
             LayerRegion             *layerm = m_layers[i]->regions()[region_id];
             const PrintRegionConfig &region_config = layerm->region()->config();
@@ -2325,7 +2322,7 @@ void PrintObject::discover_horizontal_shells()
             if (region_config.ensure_vertical_shell_thickness.value)
                 continue;
             
-            for (int idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
+            for (size_t idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
                 m_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
                 // Find slices of current type for current layer.
@@ -2499,7 +2496,7 @@ void PrintObject::combine_infill()
     // Work on each region separately.
     for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
         const PrintRegion *region = this->print()->regions()[region_id];
-        const int every = region->config().infill_every_layers.value;
+        const size_t every = region->config().infill_every_layers.value;
         if (every < 2 || region->config().fill_density == 0.)
             continue;
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.

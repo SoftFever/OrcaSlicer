@@ -660,7 +660,7 @@ void gcode_spread_points(
 	for (ExtrusionPoints::const_iterator it = points.begin(); it != points.end(); ++ it) {
 		const V2f  &center = it->center;
 		const float radius = it->radius;
-		const float radius2 = radius * radius;
+		//const float radius2 = radius * radius;
 		const float height_target = it->height;
 		B2f bbox(center - V2f(radius, radius), center + V2f(radius, radius));
 		B2i bboxi(
@@ -774,8 +774,8 @@ void gcode_spread_points(
 			}
 		}
 #endif
-		float area_circle_total2 = float(M_PI) * sqr(radius);
-		float area_err = fabs(area_circle_total2 - area_circle_total) / area_circle_total2;
+//		float area_circle_total2 = float(M_PI) * sqr(radius);
+//		float area_err = fabs(area_circle_total2 - area_circle_total) / area_circle_total2;
 //		printf("area_circle_total: %f, %f, %f\n", area_circle_total, area_circle_total2, area_err);
 		float volume_full = float(M_PI) * sqr(radius) * height_target;
 //		if (true) {
@@ -905,8 +905,8 @@ void ExtrusionSimulator::set_image_size(const Point &image_size)
 	// printf("Allocating image data, allocated\n");
 
 	//FIXME fill the image with red vertical lines.
-	for (size_t r = 0; r < image_size.y(); ++ r) {
-		for (size_t c = 0; c < image_size.x(); c += 2) {
+	for (size_t r = 0; r < size_t(image_size.y()); ++ r) {
+		for (size_t c = 0; c < size_t(image_size.x()); c += 2) {
 			// Color red
 			pimpl->image_data[r * image_size.x() * 4 + c * 4] = 255;
 			// Opacity full
@@ -958,7 +958,7 @@ void ExtrusionSimulator::extrude_to_accumulator(const ExtrusionPath &path, const
 	float scalex  = float(viewport.size().x()) / float(bbox.size().x());
 	float scaley  = float(viewport.size().y()) / float(bbox.size().y());
 	float w = scale_(path.width) * scalex;
-	float h = scale_(path.height) * scalex;
+	//float h = scale_(path.height) * scalex;
 	w = scale_(path.mm3_per_mm / path.height) * scalex;
 	// printf("scalex: %f, scaley: %f\n", scalex, scaley);
 	// printf("bbox: %d,%d %d,%d\n", bbox.min.x(), bbox.min.y, bbox.max.x(), bbox.max.y);
@@ -993,8 +993,8 @@ void ExtrusionSimulator::evaluate_accumulator(ExtrusionSimulationType simulation
 		for (int r = 0; r < sz.y(); ++r) {
 			for (int c = 0; c < sz.x(); ++c) {
 				float p = 0;
-				for (int j = 0; j < pimpl->bitmap_oversampled; ++ j) {
-					for (int i = 0; i < pimpl->bitmap_oversampled; ++ i) {
+				for (unsigned int j = 0; j < pimpl->bitmap_oversampled; ++ j) {
+					for (unsigned int i = 0; i < pimpl->bitmap_oversampled; ++ i) {
 						if (pimpl->bitmap[r * pimpl->bitmap_oversampled + j][c * pimpl->bitmap_oversampled + i])
 							p += 1.f;
 					}

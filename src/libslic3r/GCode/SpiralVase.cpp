@@ -24,7 +24,7 @@ std::string SpiralVase::process_layer(const std::string &gcode)
     // Get total XY length for this layer by summing all extrusion moves.
     float total_layer_length = 0;
     float layer_height = 0;
-    float z;
+    float z = 0.f;
     bool set_z = false;
     
     {

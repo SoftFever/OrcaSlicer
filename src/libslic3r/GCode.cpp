@@ -375,10 +375,10 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
-	assert(m_layer_idx >= 0 && m_layer_idx <= m_tool_changes.size());
+	assert(m_layer_idx >= 0 && size_t(m_layer_idx) <= m_tool_changes.size());
     if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
-		if (m_layer_idx < m_tool_changes.size()) {
-			assert(m_tool_change_idx < m_tool_changes[m_layer_idx].size());
+		if (m_layer_idx < (int)m_tool_changes.size()) {
+			assert(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size());
 			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
 		}
         m_brim_done = true;
@@ -1311,7 +1311,7 @@ void GCode::_print_first_layer_extruder_temperatures(FILE *file, Print &print, c
         int temp = print.config().first_layer_temperature.get_at(first_printing_extruder_id);
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
             temp = temp_by_gcode;
-        m_writer.set_temperature(temp_by_gcode, wait, first_printing_extruder_id);
+        m_writer.set_temperature(temp, wait, first_printing_extruder_id);
     } else {
         // Custom G-code does not set the extruder temperature. Do it now.
         if (print.config().single_extruder_multi_material.value) {
@@ -1402,11 +1402,11 @@ void GCode::process_layer(
     // Check whether it is possible to apply the spiral vase logic for this layer.
     // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
     if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr) {
-        bool enable = (layer.id() > 0 || print.config().brim_width.value == 0.) && (layer.id() >= print.config().skirt_height.value && ! print.has_infinite_skirt());
+        bool enable = (layer.id() > 0 || print.config().brim_width.value == 0.) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())
-                if (layer_region->region()->config().bottom_solid_layers.value > layer.id() ||
-                    layer_region->perimeters.items_count() > 1 ||
+                if (size_t(layer_region->region()->config().bottom_solid_layers.value) > layer.id() ||
+                    layer_region->perimeters.items_count() > 1u ||
                     layer_region->fills.items_count() > 0) {
                     enable = false;
                     break;
@@ -1474,11 +1474,11 @@ void GCode::process_layer(
     bool extrude_skirt = 
 		! print.skirt().entities.empty() &&
         // Not enough skirt layers printed yet.
-        (m_skirt_done.size() < print.config().skirt_height.value || print.has_infinite_skirt()) &&
+        (m_skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
         // This print_z has not been extruded yet
 		(m_skirt_done.empty() ? 0. : m_skirt_done.back()) < print_z - EPSILON &&
         // and this layer is the 1st layer, or it is an object layer, or it is a raft layer.
-        (first_layer || object_layer != nullptr || support_layer->id() < m_config.raft_layers.value);
+        (first_layer || object_layer != nullptr || support_layer->id() < (size_t)m_config.raft_layers.value);
     std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder;
     coordf_t                                          skirt_height = 0.;
     if (extrude_skirt) {
@@ -2127,19 +2127,18 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
         // Retrieve the last start position for this object.
         float last_pos_weight = 1.f;
-        switch (seam_position) {
-        case spAligned:
+
+        if (seam_position == spAligned) {
             // Seam is aligned to the seam at the preceding layer.
             if (m_layer != NULL && m_seam_position.count(m_layer->object()) > 0) {
                 last_pos = m_seam_position[m_layer->object()];
                 last_pos_weight = 1.f;
             }
-            break;
-        case spRear:
+        }
+        else if (seam_position == spRear) {
             last_pos = m_layer->object()->bounding_box().center();
             last_pos(1) += coord_t(3. * m_layer->object()->bounding_box().radius());
             last_pos_weight = 5.f;
-            break;
         }
 
         // Insert a projection of last_pos into the polygon.
@@ -2148,7 +2147,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             Points::iterator it = project_point_to_polygon_and_insert(polygon, last_pos, 0.1 * nozzle_r);
             last_pos_proj_idx = it - polygon.points.begin();
         }
-        Point last_pos_proj = polygon.points[last_pos_proj_idx];
+
         // Parametrize the polygon by its length.
         std::vector<float> lengths = polygon_parameter_by_length(polygon);
 
@@ -2158,7 +2157,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // No penalty for reflex points, slight penalty for convex points, high penalty for flat surfaces.
         const float penaltyConvexVertex = 1.f;
         const float penaltyFlatSurface  = 5.f;
-        const float penaltySeam         = 1.3f;
         const float penaltyOverhangHalf = 10.f;
         // Penalty for visible seams.
         for (size_t i = 0; i < polygon.points.size(); ++ i) {
@@ -2203,10 +2201,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 // Signed distance is positive outside the object, negative inside the object.
                 // The point is considered at an overhang, if it is more than nozzle radius
                 // outside of the lower layer contour.
-                bool found = (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
+                #ifdef NDEBUG // to suppress unused variable warning in release mode
+                    (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
+                #else
+                    bool found = (*lower_layer_edge_grid)->signed_distance(p, search_r, dist);
+                #endif
                 // If the approximate Signed Distance Field was initialized over lower_layer_edge_grid,
                 // then the signed distnace shall always be known.
-                assert(found);
+                assert(found); 
                 penalties[i] += extrudate_overlap_penalty(float(nozzle_r), penaltyOverhangHalf, float(dist));
             }
         }

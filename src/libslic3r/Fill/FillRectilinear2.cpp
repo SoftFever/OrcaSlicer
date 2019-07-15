@@ -287,7 +287,8 @@ public:
         assert(aoffset1 < 0);
         assert(aoffset2 < 0);
         assert(aoffset2 < aoffset1);
-        bool sticks_removed = remove_sticks(polygons_src);
+//        bool sticks_removed = 
+        remove_sticks(polygons_src);
 //        if (sticks_removed) printf("Sticks removed!\n");
         polygons_outer = offset(polygons_src, aoffset1,
             ClipperLib::jtMiter,
@@ -481,7 +482,7 @@ static inline IntersectionTypeOtherVLine intersection_type_on_prev_next_vertical
 {
     // This routine will propose a connecting line even if the connecting perimeter segment intersects 
     // iVertical line multiple times before reaching iIntersectionOther.
-    if (iIntersectionOther == -1)
+    if (iIntersectionOther == size_t(-1))
         return INTERSECTION_TYPE_OTHER_VLINE_UNDEFINED;
     assert(dir_is_next ? (iVerticalLine + 1 < segs.size()) : (iVerticalLine > 0));
     const SegmentedIntersectionLine &il_this      = segs[iVerticalLine];
@@ -858,8 +859,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             if (il > ir)
                 // No vertical line intersects this segment.
                 continue;
-            assert(il >= 0 && il < segs.size());
-            assert(ir >= 0 && ir < segs.size());
+            assert(il >= 0 && size_t(il) < segs.size());
+            assert(ir >= 0 && size_t(ir) < segs.size());
             for (int i = il; i <= ir; ++ i) {
                 coord_t this_x = segs[i].pos;
 				assert(this_x == i * line_spacing + x0);
@@ -1159,8 +1160,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             int iSegAbove = -1;
             int iSegBelow = -1;
             {
-                SegmentIntersection::SegmentIntersectionType type_crossing = (intrsctn->type == SegmentIntersection::INNER_LOW) ?
-                    SegmentIntersection::INNER_HIGH : SegmentIntersection::INNER_LOW;
+//                SegmentIntersection::SegmentIntersectionType type_crossing = (intrsctn->type == SegmentIntersection::INNER_LOW) ?
+//                    SegmentIntersection::INNER_HIGH : SegmentIntersection::INNER_LOW;
                 // Does the perimeter intersect the current vertical line above intrsctn?
                 for (size_t i = i_intersection + 1; i + 1 < seg.intersections.size(); ++ i)
 //                    if (seg.intersections[i].iContour == intrsctn->iContour && seg.intersections[i].type == type_crossing) {

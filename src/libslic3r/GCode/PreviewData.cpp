@@ -404,6 +404,8 @@ std::string GCodePreviewData::get_legend_title() const
         return L("Tool");
     case Extrusion::ColorPrint:
         return L("Color Print");
+    case Extrusion::Num_View_Types:
+        break; // just to supress warning about non-handled value
     }
 
     return "";
@@ -508,6 +510,8 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             }
             break;
         }
+    case Extrusion::Num_View_Types:
+        break; // just to supress warning about non-handled value
     }
 
     return items;

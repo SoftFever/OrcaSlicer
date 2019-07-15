@@ -722,8 +722,8 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
         }
         int done = feof(pFile);
         if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR) {
-            printf("AMF parser: Parse error at line %ul:\n%s\n",
-                  XML_GetCurrentLineNumber(parser),
+            printf("AMF parser: Parse error at line %d:\n%s\n",
+                  (int)XML_GetCurrentLineNumber(parser),
                   XML_ErrorString(XML_GetErrorCode(parser)));
             break;
         }
@@ -781,7 +781,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
     {
-        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
+        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), (int)XML_GetCurrentLineNumber(parser));
         close_zip_reader(&archive);
         return false;
     }
@@ -1010,7 +1010,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
 			const indexed_triangle_set &its = volume->mesh().its;
-            for (size_t i = 0; i < (int)its.indices.size(); ++i) {
+            for (size_t i = 0; i < its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
                 stream << "          <v" << j + 1 << ">" << its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";

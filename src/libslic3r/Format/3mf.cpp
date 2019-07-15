@@ -696,7 +696,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -976,7 +976,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -1533,7 +1533,7 @@ namespace Slic3r {
             object->second.metadata.emplace_back(key, value);
         else if (type == VOLUME_TYPE)
         {
-            if (m_curr_config.volume_id < object->second.volumes.size())
+            if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
                 object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
         }
         else

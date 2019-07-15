@@ -36,7 +36,6 @@ PrintConfigDef::PrintConfigDef()
 
 void PrintConfigDef::init_common_params()
 {
-    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     def = this->add("printer_technology", coEnum);
@@ -102,7 +101,6 @@ void PrintConfigDef::init_common_params()
 
 void PrintConfigDef::init_fff_params()
 {
-    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     // Maximum extruder temperature, bumped to 1500 to support printing of glass.
@@ -1089,16 +1087,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine feedrate limits for XYZE axes. (M203)
 			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum feedrate %1%") % axis_upper).str();
-			L("Maximum feedrate X");
-			L("Maximum feedrate Y");
-			L("Maximum feedrate Z");
-			L("Maximum feedrate E");
+			(void)L("Maximum feedrate X");
+			(void)L("Maximum feedrate Y");
+			(void)L("Maximum feedrate Z");
+			(void)L("Maximum feedrate E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum feedrate of the %1% axis") % axis_upper).str();
-			L("Maximum feedrate of the X axis");
-			L("Maximum feedrate of the Y axis");
-			L("Maximum feedrate of the Z axis");
-			L("Maximum feedrate of the E axis");
+			(void)L("Maximum feedrate of the X axis");
+			(void)L("Maximum feedrate of the Y axis");
+			(void)L("Maximum feedrate of the Z axis");
+			(void)L("Maximum feedrate of the E axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1107,16 +1105,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum acceleration %1%") % axis_upper).str();
-			L("Maximum acceleration X");
-			L("Maximum acceleration Y");
-			L("Maximum acceleration Z");
-			L("Maximum acceleration E");
+			(void)L("Maximum acceleration X");
+			(void)L("Maximum acceleration Y");
+			(void)L("Maximum acceleration Z");
+			(void)L("Maximum acceleration E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum acceleration of the %1% axis") % axis_upper).str();
-			L("Maximum acceleration of the X axis");
-			L("Maximum acceleration of the Y axis");
-			L("Maximum acceleration of the Z axis");
-			L("Maximum acceleration of the E axis");
+			(void)L("Maximum acceleration of the X axis");
+			(void)L("Maximum acceleration of the Y axis");
+			(void)L("Maximum acceleration of the Z axis");
+			(void)L("Maximum acceleration of the E axis");
 			def->sidetext = L("mm/s²");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1125,16 +1123,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum jerk %1%") % axis_upper).str();
-			L("Maximum jerk X");
-			L("Maximum jerk Y");
-			L("Maximum jerk Z");
-			L("Maximum jerk E");
+			(void)L("Maximum jerk X");
+			(void)L("Maximum jerk Y");
+			(void)L("Maximum jerk Z");
+			(void)L("Maximum jerk E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum jerk of the %1% axis") % axis_upper).str();
-			L("Maximum jerk of the X axis");
-			L("Maximum jerk of the Y axis");
-			L("Maximum jerk of the Z axis");
-			L("Maximum jerk of the E axis");
+			(void)L("Maximum jerk of the X axis");
+			(void)L("Maximum jerk of the Y axis");
+			(void)L("Maximum jerk of the Z axis");
+			(void)L("Maximum jerk of the E axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -2234,7 +2232,6 @@ void PrintConfigDef::init_fff_params()
 
 void PrintConfigDef::init_sla_params()
 {
-    t_optiondef_map &Options = this->options;    
     ConfigOptionDef* def;
 
     // SLA Printer settings
