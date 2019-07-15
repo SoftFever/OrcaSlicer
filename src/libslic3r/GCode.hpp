@@ -83,7 +83,7 @@ class WipeTowerIntegration {
 public:
     WipeTowerIntegration(
         const PrintConfig                                           &print_config,
-        const WipeTower::ToolChangeResult                           &priming,
+        const std::vector<WipeTower::ToolChangeResult>              &priming,
         const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
         const WipeTower::ToolChangeResult                           &final_purge) :
         m_left(/*float(print_config.wipe_tower_x.value)*/ 0.f),
@@ -108,15 +108,15 @@ private:
     std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const;
 
     // Postprocesses gcode: rotates and moves all G1 extrusions and returns result
-    std::string rotate_wipe_tower_moves(const std::string& gcode_original, const WipeTower::xy& start_pos, const WipeTower::xy& translation, float angle) const;
+    std::string rotate_wipe_tower_moves(const std::string& gcode_original, const Vec2f& start_pos, const Vec2f& translation, float angle) const;
 
     // Left / right edges of the wipe tower, for the planning of wipe moves.
     const float                                                  m_left;
     const float                                                  m_right;
-    const WipeTower::xy                                          m_wipe_tower_pos;
+    const Vec2f                                                  m_wipe_tower_pos;
     const float                                                  m_wipe_tower_rotation;
     // Reference to cached values at the Printer class.
-    const WipeTower::ToolChangeResult                           &m_priming;
+    const std::vector<WipeTower::ToolChangeResult>              &m_priming;
     const std::vector<std::vector<WipeTower::ToolChangeResult>> &m_tool_changes;
     const WipeTower::ToolChangeResult                           &m_final_purge;
     // Current layer index.

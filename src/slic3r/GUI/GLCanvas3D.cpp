@@ -2038,11 +2038,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             // Should the wipe tower be visualized ?
             unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
 
-            bool semm = dynamic_cast<const ConfigOptionBool*>(m_config->option("single_extruder_multi_material"))->value;
             bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
             bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
-            if ((extruders_count > 1) && semm && wt && !co)
+            if ((extruders_count > 1) && wt && !co)
             {
                 // Height of a print (Show at least a slab)
                 double height = std::max(m_model->bounding_box().max(2), 10.0);
@@ -4617,7 +4616,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     {
         const Print                 *print;
         const std::vector<float>    *tool_colors;
-        WipeTower::xy                wipe_tower_pos;
+        Vec2f                        wipe_tower_pos;
         float                        wipe_tower_angle;
 
         // Number of vertices (each vertex is 6x4=24 bytes long)
@@ -4648,12 +4647,13 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     ctxt.print = print;
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
     if (print->wipe_tower_data().priming && print->config().single_extruder_multi_material_priming)
-        ctxt.priming.emplace_back(*print->wipe_tower_data().priming.get());
+        for (int i=0; i<print->wipe_tower_data().priming.get()->size(); ++i)
+            ctxt.priming.emplace_back(print->wipe_tower_data().priming.get()->at(i));
     if (print->wipe_tower_data().final_purge)
         ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
 
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
-    ctxt.wipe_tower_pos = WipeTower::xy(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
+    ctxt.wipe_tower_pos = Vec2f(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
@@ -4715,19 +4715,19 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                     WipeTower::Extrusion e_prev = extrusions.extrusions[i-1];
 
                     if (!extrusions.priming) { // wipe tower extrusions describe the wipe tower at the origin with no rotation
-                        e_prev.pos.rotate(ctxt.wipe_tower_angle);
-                        e_prev.pos.translate(ctxt.wipe_tower_pos);
+                        e_prev.pos = Eigen::Rotation2Df(ctxt.wipe_tower_angle) * e_prev.pos;
+                        e_prev.pos += ctxt.wipe_tower_pos;
                     }
 
                     for (; i < j; ++i) {
                         WipeTower::Extrusion e = extrusions.extrusions[i];
                         assert(e.width > 0.f);
                         if (!extrusions.priming) {
-                            e.pos.rotate(ctxt.wipe_tower_angle);
-                            e.pos.translate(ctxt.wipe_tower_pos);
+                            e.pos = Eigen::Rotation2Df(ctxt.wipe_tower_angle) * e.pos;
+                            e.pos += ctxt.wipe_tower_pos;
                         }
 
-                        lines.emplace_back(Point::new_scale(e_prev.pos.x, e_prev.pos.y), Point::new_scale(e.pos.x, e.pos.y));
+                        lines.emplace_back(Point::new_scale(e_prev.pos.x(), e_prev.pos.y()), Point::new_scale(e.pos.x(), e.pos.y()));
                         widths.emplace_back(e.width);
 
                         e_prev = e;
@@ -5271,7 +5271,7 @@ void GLCanvas3D::_load_fff_shells()
         double max_z = print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print->config();
         unsigned int extruders_count = config.nozzle_diameter.size();
-        if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
+        if ((extruders_count > 1) && config.wipe_tower && !config.complete_objects) {
             float depth = print->get_wipe_tower_depth();
 
             // Calculate wipe tower brim spacing.

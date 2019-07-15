@@ -216,7 +216,7 @@ struct WipeTowerData
     // Cache it here, so it does not need to be recalculated during the G-code generation.
     ToolOrdering                                          tool_ordering;
     // Cache of tool changes per print layer.
-    std::unique_ptr<WipeTower::ToolChangeResult>          priming;
+    std::unique_ptr<std::vector<WipeTower::ToolChangeResult>> priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          final_purge;
     std::vector<float>                                    used_filament;
