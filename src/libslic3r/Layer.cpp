@@ -128,7 +128,7 @@ void Layer::make_perimeters()
                 && config.external_perimeter_speed == other_config.external_perimeter_speed
                 && config.gap_fill_speed    == other_config.gap_fill_speed
                 && config.overhangs         == other_config.overhangs
-                && config.serialize("perimeter_extrusion_width").compare(other_config.serialize("perimeter_extrusion_width")) == 0
+                && config.opt_serialize("perimeter_extrusion_width") == other_config.opt_serialize("perimeter_extrusion_width")
                 && config.thin_walls        == other_config.thin_walls
                 && config.external_perimeters_first == other_config.external_perimeters_first) {
                 layerms.push_back(other_layerm);

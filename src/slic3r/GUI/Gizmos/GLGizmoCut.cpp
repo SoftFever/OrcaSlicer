@@ -15,59 +15,12 @@
 namespace Slic3r {
 namespace GUI {
 
-
-class GLGizmoCutPanel : public wxPanel
-{
-public:
-    GLGizmoCutPanel(wxWindow *parent);
-
-    void display(bool display);
-private:
-    bool m_active;
-    wxCheckBox *m_cb_rotate;
-    wxButton *m_btn_cut;
-    wxButton *m_btn_cancel;
-};
-
-GLGizmoCutPanel::GLGizmoCutPanel(wxWindow *parent)
-    : wxPanel(parent)
-    , m_active(false)
-    , m_cb_rotate(new wxCheckBox(this, wxID_ANY, _(L("Rotate lower part upwards"))))
-    , m_btn_cut(new wxButton(this, wxID_OK, _(L("Perform cut"))))
-    , m_btn_cancel(new wxButton(this, wxID_CANCEL, _(L("Cancel"))))
-{
-    enum { MARGIN = 5 };
-
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    auto *label = new wxStaticText(this, wxID_ANY, _(L("Cut object:")));
-    sizer->Add(label, 0, wxALL | wxALIGN_CENTER, MARGIN);
-    sizer->Add(m_cb_rotate, 0, wxALL | wxALIGN_CENTER, MARGIN);
-    sizer->AddStretchSpacer();
-    sizer->Add(m_btn_cut, 0, wxALL | wxALIGN_CENTER, MARGIN);
-    sizer->Add(m_btn_cancel, 0, wxALL | wxALIGN_CENTER, MARGIN);
-
-    SetSizer(sizer);
-}
-
-void GLGizmoCutPanel::display(bool display)
-{
-    Show(display);
-    GetParent()->Layout();
-}
-
-
 const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
-#if ENABLE_SVG_ICONS
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
     , m_keep_upper(true)
@@ -188,7 +141,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, co
     m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::PushItemWidth(m_imgui->scaled(5.0f));
-    bool _value_changed = ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
 
     m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);
     m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);

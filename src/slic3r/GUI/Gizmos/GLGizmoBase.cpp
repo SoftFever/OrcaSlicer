@@ -132,18 +132,12 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     glsafe(::glEnd());
 }
 
-#if ENABLE_SVG_ICONS
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-#else
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
-#endif // ENABLE_SVG_ICONS
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_shortcut_key(0)
-#if ENABLE_SVG_ICONS
     , m_icon_filename(icon_filename)
-#endif // ENABLE_SVG_ICONS
     , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)

@@ -20,6 +20,9 @@ You can also customize the bundle output path using the `-DDESTDIR=<some path>` 
 **Warning**: Once the dependency bundle is installed in a destdir, the destdir cannot be moved elsewhere.
 (This is because wxWidgets hardcodes the installation path.)
 
+FIXME The Cereal serialization library needs a tiny patch on some old OSX clang installations
+https://github.com/USCiLab/cereal/issues/339#issuecomment-246166717
+
 
 ### Building PrusaSlicer
 

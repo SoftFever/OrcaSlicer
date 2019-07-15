@@ -26,7 +26,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ModelID m_current_mesh_model_id = 0;
+    ObjectID m_current_mesh_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
     mutable float m_z_shift = 0.f;
@@ -58,11 +58,7 @@ private:
     };
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);

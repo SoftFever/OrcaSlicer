@@ -266,7 +266,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             is_sizer_field(field) ?
                 v_sizer->Add(field->getSizer(), 0, wxEXPAND) :
                 v_sizer->Add(field->getWindow(), 0, wxEXPAND);
-            return;
+            break;//return;
         }
 
 		is_sizer_field(field) ? 
@@ -300,7 +300,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
         {
             // extra widget for non-staticbox option group (like for the frequently used parameters on the sidebar) should be wxALIGN_RIGHT
             const auto v_sizer = new wxBoxSizer(wxVERTICAL);
-            sizer->Add(v_sizer, 1, wxEXPAND);
+            sizer->Add(v_sizer, option_set.size() == 1 ? 0 : 1, wxEXPAND);
             v_sizer->Add(extra_widget(this->ctrl_parent()), 0, wxALIGN_RIGHT);
             return;
         }
@@ -318,6 +318,17 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
     tmp.opt.label = std::string("");
     retval.append_option(tmp);
     return retval;
+}
+
+void OptionsGroup::clear_fields_except_of(const std::vector<std::string> left_fields)
+{
+    auto it = m_fields.begin();
+    while (it != m_fields.end()) {
+        if (std::find(left_fields.begin(), left_fields.end(), it->first) == left_fields.end())
+            it = m_fields.erase(it);
+        else 
+            it++;
+    }
 }
 
 void OptionsGroup::on_set_focus(const std::string& opt_key)

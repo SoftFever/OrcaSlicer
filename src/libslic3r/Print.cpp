@@ -7,10 +7,12 @@
 #include "I18N.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
-#include "GCode/WipeTowerPrusaMM.hpp"
+#include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 
 //#include "PrintExport.hpp"
+
+#include <float.h>
 
 #include <algorithm>
 #include <limits>
@@ -39,36 +41,6 @@ void Print::clear()
         delete region;
     m_regions.clear();
     m_model.clear_objects();
-}
-
-// Only used by the Perl test cases.
-void Print::reload_object(size_t /* idx */)
-{
-	ModelObjectPtrs model_objects;
-	{
-		tbb::mutex::scoped_lock lock(this->state_mutex());
-        // The following call should stop background processing if it is running.
-        this->invalidate_all_steps();
-		/* TODO: this method should check whether the per-object config and per-material configs
-			have changed in such a way that regions need to be rearranged or we can just apply
-			the diff and invalidate something.  Same logic as apply()
-			For now we just re-add all objects since we haven't implemented this incremental logic yet.
-			This should also check whether object volumes (parts) have changed. */
-		// collect all current model objects
-		model_objects.reserve(m_objects.size());
-		for (PrintObject *object : m_objects)
-			model_objects.push_back(object->model_object());
-		// remove our print objects
-		for (PrintObject *object : m_objects)
-			delete object;
-		m_objects.clear();
-		for (PrintRegion *region : m_regions)
-			delete region;
-		m_regions.clear();
-	}
-	// re-add model objects
-    for (ModelObject *mo : model_objects)
-        this->add_model_object(mo);
 }
 
 PrintRegion* Print::add_region()
@@ -121,7 +93,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "filament_density",
         "filament_notes",
         "filament_cost",
-        "filament_max_volumetric_speed",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
         "first_layer_speed",
@@ -216,6 +187,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_cooling_initial_speed"
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
+            || opt_key == "filament_max_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "high_current_on_filament_swap"
             || opt_key == "infill_first"
@@ -335,7 +307,7 @@ unsigned int Print::num_object_instances() const
 {
 	unsigned int instances = 0;
     for (const PrintObject *print_object : m_objects)
-        instances += print_object->copies().size();
+        instances += (unsigned int)print_object->copies().size();
     return instances;
 }
 
@@ -356,198 +328,6 @@ double Print::max_allowed_layer_height() const
     for (unsigned int extruder_id : this->extruders())
         nozzle_diameter_max = std::max(nozzle_diameter_max, m_config.nozzle_diameter.get_at(extruder_id));
     return nozzle_diameter_max;
-}
-
-// Caller is responsible for supplying models whose objects don't collide
-// and have explicit instance positions.
-void Print::add_model_object(ModelObject* model_object, int idx)
-{
-	tbb::mutex::scoped_lock lock(this->state_mutex());
-    // Add a copy of this ModelObject to this Print.
-    m_model.objects.emplace_back(ModelObject::new_copy(*model_object));
-    m_model.objects.back()->set_model(&m_model);
-    // Initialize a new print object and store it at the given position.
-    PrintObject *object = new PrintObject(this, model_object, true);
-    if (idx != -1) {
-        delete m_objects[idx];
-        m_objects[idx] = object;
-    } else
-        m_objects.emplace_back(object);
-    // Invalidate all print steps.
-    this->invalidate_all_steps();
-
-    // Set the transformation matrix without translation from the first instance.
-    if (! model_object->instances.empty()) {
-        // Trafo and bounding box, both in world coordinate system.
-        Transform3d   trafo = model_object->instances.front()->get_matrix();
-        BoundingBoxf3 bbox  = model_object->instance_bounding_box(0);
-        // Now shift the object up to align it with the print bed.
-        trafo.data()[14] -= bbox.min(2);
-		// and reset the XY translation.
-		trafo.data()[12] = 0;
-		trafo.data()[13] = 0;
-		object->set_trafo(trafo);
-    }
-
-    size_t volume_id = 0;
-    for (const ModelVolume *volume : model_object->volumes) {
-        if (! volume->is_model_part() && ! volume->is_modifier())
-            continue;
-        // Get the config applied to this volume.
-        PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, *volume, 99999);
-        // Find an existing print region with the same config.
-        size_t region_id = size_t(-1);
-        for (size_t i = 0; i < m_regions.size(); ++ i)
-            if (config.equals(m_regions[i]->config())) {
-                region_id = i;
-                break;
-            }
-        // If no region exists with the same config, create a new one.
-        if (region_id == size_t(-1)) {
-            region_id = m_regions.size();
-            this->add_region(config);
-        }
-        // Assign volume to a region.
-        object->add_region_volume(region_id, volume_id);
-        ++ volume_id;
-    }
-
-    // Apply config to print object.
-    object->config_apply(this->default_object_config());
-    {
-        //normalize_and_apply_config(object->config(), model_object->config);
-        DynamicPrintConfig src_normalized(model_object->config);
-        src_normalized.normalize();
-        object->config_apply(src_normalized, true);
-    }
-}
-
-// This function is only called through the Perl-C++ binding from the unit tests, should be
-// removed when unit tests are rewritten to C++.
-bool Print::apply_config_perl_tests_only(DynamicPrintConfig config)
-{
-	tbb::mutex::scoped_lock lock(this->state_mutex());
-
-
-    // Perl unit tests were failing in case the preset was not normalized (e.g. https://github.com/prusa3d/PrusaSlicer/issues/2288 was caused
-    // by too short max_layer_height vector. Calling the necessary function Preset::normalize(...) is not currently possible because there is no
-    // access to preset. This should be solved when the unit tests are rewritten to C++. For now we just copy-pasted code from Preset.cpp
-    // to make sure the unit tests pass (functions set_num_extruders and nozzle_options()).
-    auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter", true));
-    assert(nozzle_diameter != nullptr);
-    const auto &defaults = FullPrintConfig::defaults();
-    for (const std::string &key : { "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-                                    "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
-                                    "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
-                                    "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour" })
-    {
-        auto *opt = config.option(key, true);
-        assert(opt != nullptr);
-        assert(opt->is_vector());
-        unsigned int num_extruders = (unsigned int)nozzle_diameter->values.size();
-        static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
-    }
-
-    // we get a copy of the config object so we can modify it safely
-    config.normalize();
-    
-    // apply variables to placeholder parser
-	this->placeholder_parser().apply_config(config);
-    
-    // handle changes to print config
-    t_config_option_keys print_diff = m_config.diff(config);
-    m_config.apply_only(config, print_diff, true);
-    bool invalidated = this->invalidate_state_by_config_options(print_diff);
-    
-    // handle changes to object config defaults
-    m_default_object_config.apply(config, true);
-    for (PrintObject *object : m_objects) {
-        // we don't assume that config contains a full ObjectConfig,
-        // so we base it on the current print-wise default
-        PrintObjectConfig new_config = this->default_object_config();
-        // we override the new config with object-specific options
-        normalize_and_apply_config(new_config, object->model_object()->config);
-        // check whether the new config is different from the current one
-        t_config_option_keys diff = object->config().diff(new_config);
-        object->config_apply_only(new_config, diff, true);
-        invalidated |= object->invalidate_state_by_config_options(diff);
-    }
-    
-    // handle changes to regions config defaults
-    m_default_region_config.apply(config, true);
-    
-    // All regions now have distinct settings.
-    // Check whether applying the new region config defaults we'd get different regions.
-    bool rearrange_regions = false;
-    {
-        // Collect the already visited region configs into other_region_configs,
-        // so one may check for duplicates.
-        std::vector<PrintRegionConfig> other_region_configs;
-        for (size_t region_id = 0; region_id < m_regions.size(); ++ region_id) {
-            PrintRegion       &region = *m_regions[region_id];
-            PrintRegionConfig  this_region_config;
-            bool               this_region_config_set = false;
-            for (PrintObject *object : m_objects) {
-                if (region_id < object->region_volumes.size()) {
-                    for (int volume_id : object->region_volumes[region_id]) {
-                        const ModelVolume &volume = *object->model_object()->volumes[volume_id];
-                        if (this_region_config_set) {
-                            // If the new config for this volume differs from the other
-                            // volume configs currently associated to this region, it means
-                            // the region subdivision does not make sense anymore.
-                            if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, volume, 99999))) {
-                                rearrange_regions = true;
-                                goto exit_for_rearrange_regions;
-                            }
-                        } else {
-                            this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, volume, 99999);
-                            this_region_config_set = true;
-                        }
-                        for (const PrintRegionConfig &cfg : other_region_configs) {
-                            // If the new config for this volume equals any of the other
-                            // volume configs that are not currently associated to this
-                            // region, it means the region subdivision does not make
-                            // sense anymore.
-                            if (cfg.equals(this_region_config)) {
-                                rearrange_regions = true;
-                                goto exit_for_rearrange_regions;
-                            }
-                        }
-                    }
-                }
-            }
-            if (this_region_config_set) {
-                t_config_option_keys diff = region.config().diff(this_region_config);
-                if (! diff.empty()) {
-                    region.config_apply_only(this_region_config, diff, false);
-                    for (PrintObject *object : m_objects)
-                        if (region_id < object->region_volumes.size() && ! object->region_volumes[region_id].empty())
-                            invalidated |= object->invalidate_state_by_config_options(diff);
-                }
-                other_region_configs.emplace_back(std::move(this_region_config));
-            }
-        }
-    }
-
-exit_for_rearrange_regions:
-    
-    if (rearrange_regions) {
-        // The current subdivision of regions does not make sense anymore.
-        // We need to remove all objects and re-add them.
-        ModelObjectPtrs model_objects;
-        model_objects.reserve(m_objects.size());
-        for (PrintObject *object : m_objects)
-            model_objects.push_back(object->model_object());
-        this->clear();
-        for (ModelObject *mo : model_objects)
-            this->add_model_object(mo);
-        invalidated = true;
-    }
-
-    for (PrintObject *object : m_objects)
-        object->update_slicing_parameters();
-
-    return invalidated;
 }
 
 // Add or remove support modifier ModelVolumes from model_object_dst to match the ModelVolumes of model_object_new
@@ -612,11 +392,25 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         assert(mv_src.id() == mv_dst.id());
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
-        mv_dst.config = mv_src.config;
+		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
         ++ i_dst;
+    }
+}
+
+static inline void layer_height_ranges_copy_configs(t_layer_config_ranges &lr_dst, const t_layer_config_ranges &lr_src)
+{
+    assert(lr_dst.size() == lr_src.size());
+    auto it_src = lr_src.cbegin();
+    for (auto &kvp_dst : lr_dst) {
+        const auto &kvp_src = *it_src ++;
+        assert(std::abs(kvp_dst.first.first  - kvp_src.first.first ) <= EPSILON);
+        assert(std::abs(kvp_dst.first.second - kvp_src.first.second) <= EPSILON);
+        // Layer heights are allowed do differ in case the layer height table is being overriden by the smooth profile.
+        // assert(std::abs(kvp_dst.second.option("layer_height")->getFloat() - kvp_src.second.option("layer_height")->getFloat()) <= EPSILON);
+        kvp_dst.second = kvp_src.second;
     }
 }
 
@@ -674,6 +468,23 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
+// Compare just the layer ranges and their layer heights, not the associated configs.
+// Ignore the layer heights if check_layer_heights is false.
+bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_layer_config_ranges &lr2, bool check_layer_height)
+{
+    if (lr1.size() != lr2.size())
+        return false;
+    auto it2 = lr2.begin();
+    for (const auto &kvp1 : lr1) {
+        const auto &kvp2 = *it2 ++;
+        if (std::abs(kvp1.first.first  - kvp2.first.first ) > EPSILON ||
+            std::abs(kvp1.first.second - kvp2.first.second) > EPSILON ||
+            (check_layer_height && std::abs(kvp1.second.option("layer_height")->getFloat() - kvp2.second.option("layer_height")->getFloat()) > EPSILON))
+            return false;
+    }
+    return true;
+}
+
 Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
 #ifdef _DEBUG
@@ -724,6 +535,50 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     // Handle changes to regions config defaults
     m_default_region_config.apply_only(config, region_diff, true);
     
+    class LayerRanges
+    {
+    public:
+        LayerRanges() {}
+        // Convert input config ranges into continuous non-overlapping sorted vector of intervals and their configs.
+        void assign(const t_layer_config_ranges &in) {
+            m_ranges.clear();
+            m_ranges.reserve(in.size());
+            // Input ranges are sorted lexicographically. First range trims the other ranges.
+            coordf_t last_z = 0;
+            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in) {
+//            for (auto &range : in) {
+			if (range.first.second > last_z) {
+                    coordf_t min_z = std::max(range.first.first, 0.);
+                    if (min_z > last_z + EPSILON) {
+                        m_ranges.emplace_back(t_layer_height_range(last_z, min_z), nullptr);
+                        last_z = min_z;
+                    }
+                    if (range.first.second > last_z + EPSILON) {
+						const DynamicPrintConfig* cfg = &range.second;
+                        m_ranges.emplace_back(t_layer_height_range(last_z, range.first.second), cfg);
+                        last_z = range.first.second;
+                    }
+                }
+            }
+            if (m_ranges.empty())
+                m_ranges.emplace_back(t_layer_height_range(0, DBL_MAX), nullptr);
+            else if (m_ranges.back().second == nullptr)
+                m_ranges.back().first.second = DBL_MAX;
+            else
+                m_ranges.emplace_back(t_layer_height_range(m_ranges.back().first.second, DBL_MAX), nullptr);
+        }
+        const DynamicPrintConfig* config(const t_layer_height_range &range) const {
+            auto it = std::lower_bound(m_ranges.begin(), m_ranges.end(), std::make_pair< t_layer_height_range, const DynamicPrintConfig*>(t_layer_height_range(range.first - EPSILON, range.second - EPSILON), nullptr));
+            assert(it != m_ranges.end());
+            assert(it == m_ranges.end() || std::abs(it->first.first  - range.first ) < EPSILON);
+            assert(it == m_ranges.end() || std::abs(it->first.second - range.second) < EPSILON);
+            return (it == m_ranges.end()) ? nullptr : it->second;
+        }
+        std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>>::const_iterator begin() const { return m_ranges.cbegin(); }
+        std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>>::const_iterator end() const { return m_ranges.cend(); }
+    private:
+        std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>> m_ranges;
+    };
     struct ModelObjectStatus {
         enum Status {
             Unknown,
@@ -732,9 +587,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             Moved,
             Deleted,
         };
-        ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
-        ModelID                 id;
-        Status                  status;
+        ModelObjectStatus(ObjectID id, Status status = Unknown) : id(id), status(status) {}
+		ObjectID     id;
+        Status       status;
+        LayerRanges  layer_ranges;
         // Search by id.
         bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
     };
@@ -839,9 +695,9 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             print_object(print_object),
             trafo(print_object->trafo()),
             status(status) {}
-        PrintObjectStatus(ModelID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
+        PrintObjectStatus(ObjectID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
         // ID of the ModelObject & PrintObject
-        ModelID          id;
+        ObjectID          id;
         // Pointer to the old PrintObject
         PrintObject     *print_object;
         // Trafo generated with model_object->world_matrix(true) 
@@ -861,21 +717,23 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
         assert(it_status != model_object_status.end());
         assert(it_status->status != ModelObjectStatus::Deleted);
+		const ModelObject& model_object_new = *model.objects[idx_model_object];
+		const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges);
         if (it_status->status == ModelObjectStatus::New)
             // PrintObject instances will be added in the next loop.
             continue;
         // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
         assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
-        const ModelObject &model_object_new = *model.objects[idx_model_object];
         // Check whether a model part volume was added or removed, their transformations or order changed.
+        // Only volume IDs, volume types and their order are checked, configuration and other parameters are NOT checked.
         bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
         bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
         bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
         bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation         != model_object_new.origin_translation   ||
-            model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
-            model_object.layer_height_profile       != model_object_new.layer_height_profile) {
+            model_object.layer_height_profile       != model_object_new.layer_height_profile ||
+            ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty())) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it) {
@@ -899,7 +757,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             // Synchronize Object's config.
             bool object_config_changed = model_object.config != model_object_new.config;
 			if (object_config_changed)
-                model_object.config = model_object_new.config;
+				static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
             if (! object_diff.empty() || object_config_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -915,7 +773,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             //FIXME What to do with m_material_id?
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);
-            // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
+            layer_height_ranges_copy_configs(model_object.layer_config_ranges /* dst */, model_object_new.layer_config_ranges /* src */);
+            // Copy the ModelObject name, input_file and instances. The instances will be compared against PrintObject instances in the next step.
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
             model_object.clear_instances();
@@ -1027,19 +886,27 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         PrintRegionConfig  this_region_config;
         bool               this_region_config_set = false;
         for (PrintObject *print_object : m_objects) {
+            const LayerRanges *layer_ranges;
+            {
+                auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
+                assert(it_status != model_object_status.end());
+                assert(it_status->status != ModelObjectStatus::Deleted);
+                layer_ranges = &it_status->layer_ranges;
+            }
             if (region_id < print_object->region_volumes.size()) {
-                for (int volume_id : print_object->region_volumes[region_id]) {
-                    const ModelVolume &volume = *print_object->model_object()->volumes[volume_id];
+                for (const std::pair<t_layer_height_range, int> &volume_and_range : print_object->region_volumes[region_id]) {
+                    const ModelVolume        &volume             = *print_object->model_object()->volumes[volume_and_range.second];
+                    const DynamicPrintConfig *layer_range_config = layer_ranges->config(volume_and_range.first);
                     if (this_region_config_set) {
                         // If the new config for this volume differs from the other
                         // volume configs currently associated to this region, it means
                         // the region subdivision does not make sense anymore.
-                        if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, volume, num_extruders)))
+                        if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders)))
                             // Regions were split. Reset this print_object.
                             goto print_object_end;
                     } else {
-                        this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, volume, num_extruders);
-						for (size_t i = 0; i < region_id; ++i) {
+                        this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, layer_range_config, volume, num_extruders);
+						for (size_t i = 0; i < region_id; ++ i) {
 							const PrintRegion &region_other = *m_regions[i];
 							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
 								// Regions were merged. Reset this print_object.
@@ -1054,7 +921,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             update_apply_status(print_object->invalidate_all_steps());
             // Decrease the references to regions from this volume.
             int ireg = 0;
-            for (const std::vector<int> &volumes : print_object->region_volumes) {
+            for (const std::vector<std::pair<t_layer_height_range, int>> &volumes : print_object->region_volumes) {
                 if (! volumes.empty())
                     -- m_regions[ireg]->m_refcnt;
                 ++ ireg;
@@ -1076,52 +943,65 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     for (size_t idx_print_object = 0; idx_print_object < m_objects.size(); ++ idx_print_object) {
         PrintObject        &print_object0 = *m_objects[idx_print_object];
         const ModelObject  &model_object  = *print_object0.model_object();
-        std::vector<int>    map_volume_to_region(model_object.volumes.size(), -1);
+        const LayerRanges *layer_ranges;
+        {
+            auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
+            assert(it_status != model_object_status.end());
+            assert(it_status->status != ModelObjectStatus::Deleted);
+            layer_ranges = &it_status->layer_ranges;
+        }
+        std::vector<int>   regions_in_object;
+        regions_in_object.reserve(64);
         for (size_t i = idx_print_object; i < m_objects.size() && m_objects[i]->model_object() == &model_object; ++ i) {
             PrintObject &print_object = *m_objects[i];
 			bool         fresh = print_object.region_volumes.empty();
             unsigned int volume_id = 0;
+            unsigned int idx_region_in_object = 0;
             for (const ModelVolume *volume : model_object.volumes) {
                 if (! volume->is_model_part() && ! volume->is_modifier()) {
 					++ volume_id;
 					continue;
 				}
-                int region_id = -1;
-                if (&print_object == &print_object0) {
-                    // Get the config applied to this volume.
-                    PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, *volume, num_extruders);
-                    // Find an existing print region with the same config.
-					int idx_empty_slot = -1;
-					for (int i = 0; i < (int)m_regions.size(); ++ i) {
-						if (m_regions[i]->m_refcnt == 0) {
-                            if (idx_empty_slot == -1)
-                                idx_empty_slot = i;
-                        } else if (config.equals(m_regions[i]->config())) {
-                            region_id = i;
-                            break;
+                // Filter the layer ranges, so they do not overlap and they contain at least a single layer.
+                // Now insert a volume with a layer range to its own region.
+                for (auto it_range = layer_ranges->begin(); it_range != layer_ranges->end(); ++ it_range) {
+                    int region_id = -1;
+                    if (&print_object == &print_object0) {
+                        // Get the config applied to this volume.
+                        PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, it_range->second, *volume, num_extruders);
+                        // Find an existing print region with the same config.
+    					int idx_empty_slot = -1;
+    					for (int i = 0; i < (int)m_regions.size(); ++ i) {
+    						if (m_regions[i]->m_refcnt == 0) {
+                                if (idx_empty_slot == -1)
+                                    idx_empty_slot = i;
+                            } else if (config.equals(m_regions[i]->config())) {
+                                region_id = i;
+                                break;
+                            }
+    					}
+                        // If no region exists with the same config, create a new one.
+    					if (region_id == -1) {
+    						if (idx_empty_slot == -1) {
+    							region_id = (int)m_regions.size();
+    							this->add_region(config);
+    						} else {
+    							region_id = idx_empty_slot;
+                                m_regions[region_id]->set_config(std::move(config));
+    						}
                         }
-					}
-                    // If no region exists with the same config, create a new one.
-					if (region_id == -1) {
-						if (idx_empty_slot == -1) {
-							region_id = (int)m_regions.size();
-							this->add_region(config);
-						} else {
-							region_id = idx_empty_slot;
-                            m_regions[region_id]->set_config(std::move(config));
-						}
-                    }
-                    map_volume_to_region[volume_id] = region_id;
-                } else
-                    region_id = map_volume_to_region[volume_id];
-                // Assign volume to a region.
-				if (fresh) {
-					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
-						++ m_regions[region_id]->m_refcnt;
-					print_object.add_region_volume(region_id, volume_id);
-				}
-                ++ volume_id;
-            }
+                        regions_in_object.emplace_back(region_id);
+                    } else
+                        region_id = regions_in_object[idx_region_in_object ++];
+                    // Assign volume to a region.
+    				if (fresh) {
+    					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
+    						++ m_regions[region_id]->m_refcnt;
+    					print_object.add_region_volume(region_id, volume_id, it_range->first);
+    				}
+                }
+				++ volume_id;
+			}
         }
     }
 
@@ -1175,9 +1055,9 @@ std::string Print::validate() const
                 Polygon        convex_hull0    = offset(
                     print_object->model_object()->convex_hull_2d(
                         Geometry::assemble_transform(Vec3d::Zero(), rotation, model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
-                    scale_(m_config.extruder_clearance_radius.value) / 2., jtRound, scale_(0.1)).front();
+                    float(scale_(0.5 * m_config.extruder_clearance_radius.value)), jtRound, float(scale_(0.1))).front();
                 // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
-                for (const Point &copy : print_object->m_copies) {
+                for (const Point &copy : print_object->copies()) {
                     Polygon convex_hull = convex_hull0;
                     convex_hull.translate(copy);
                     if (! intersection(convex_hulls_other, convex_hull).empty())
@@ -1211,23 +1091,21 @@ std::string Print::validate() const
             return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
-    if (m_config.single_extruder_multi_material) {
-        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
-            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
-                return L("All extruders must have the same diameter for single extruder multimaterial printer.");
-    }
-
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
+        
+        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
+            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
+                return L("All extruders must have the same diameter for the Wipe Tower.");
 
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;
             for (const PrintObject *object : m_objects) {
-                has_custom_layering = ! object->model_object()->layer_height_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
+                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();      // #ys_FIXME_experiment
                 if (has_custom_layering) {
                     layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
                     break;
@@ -1434,9 +1312,9 @@ Flow Print::brim_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
-        width, 
-        m_config.nozzle_diameter.get_at(m_regions.front()->config().perimeter_extruder-1),
-        this->skirt_first_layer_height(),
+		width,
+        (float)m_config.nozzle_diameter.get_at(m_regions.front()->config().perimeter_extruder-1),
+		(float)this->skirt_first_layer_height(),
         0
     );
 }
@@ -1456,9 +1334,9 @@ Flow Print::skirt_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
-        width, 
-        m_config.nozzle_diameter.get_at(m_objects.front()->config().support_material_extruder-1),
-        this->skirt_first_layer_height(),
+		width,
+		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_material_extruder-1),
+		(float)this->skirt_first_layer_height(),
         0
     );
 }
@@ -1633,20 +1511,20 @@ void Print::_make_skirt()
 
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
-    Flow brim_flow = this->brim_flow();
+    Flow   brim_flow = this->brim_flow();
     double actual_brim_width = brim_flow.spacing() * floor(m_config.brim_width.value / brim_flow.spacing());
-    coord_t distance = scale_(std::max(m_config.skirt_distance.value, actual_brim_width) - spacing/2.);
+    auto   distance = float(scale_(std::max(m_config.skirt_distance.value, actual_brim_width) - spacing/2.));
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
     for (size_t i = n_skirts, extruder_idx = 0; i > 0; -- i) {
         this->throw_if_canceled();
         // Offset the skirt outside.
-        distance += coord_t(scale_(spacing));
+        distance += float(scale_(spacing));
         // Generate the skirt centerline.
         Polygon loop;
         {
-            Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, scale_(0.1));
+            Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, float(scale_(0.1)));
             Geometry::simplify_polygons(loops, scale_(0.05), &loops);
 			if (loops.empty())
 				break;
@@ -1657,9 +1535,9 @@ void Print::_make_skirt()
         eloop.paths.emplace_back(ExtrusionPath(
             ExtrusionPath(
                 erSkirt,
-                mm3_per_mm,         // this will be overridden at G-code export time
+                (float)mm3_per_mm,         // this will be overridden at G-code export time
                 flow.width,
-                first_layer_height  // this will be overridden at G-code export time
+				(float)first_layer_height  // this will be overridden at G-code export time
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();
         m_skirt.append(eloop);
@@ -1729,7 +1607,6 @@ void Print::_make_brim()
 bool Print::has_wipe_tower() const
 {
     return 
-        m_config.single_extruder_multi_material.value && 
         ! m_config.spiral_vase.value &&
         m_config.wipe_tower.value && 
         m_config.nozzle_diameter.values.size() > 1;
@@ -1785,7 +1662,7 @@ void Print::_make_wipe_tower()
                 // Insert the new support layer.
                 double height    = lt.print_z - m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z;
                 //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
-                it_layer = m_objects.front()->insert_support_layer(it_layer, size_t(-1), height, lt.print_z, lt.print_z - 0.5 * height);
+                it_layer = m_objects.front()->insert_support_layer(it_layer, -1, height, lt.print_z, lt.print_z - 0.5 * height);
                 ++ it_layer;
             }
         }
@@ -1793,12 +1670,13 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTowerPrusaMM wipe_tower(
+    WipeTower wipe_tower(
+        m_config.single_extruder_multi_material.value,
         float(m_config.wipe_tower_x.value),     float(m_config.wipe_tower_y.value), 
         float(m_config.wipe_tower_width.value),
         float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
         float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), 
+        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging),
         m_config.high_current_on_filament_swap.value, m_config.gcode_flavor, wipe_volumes,
         m_wipe_tower_data.tool_ordering.first_extruder());
 
@@ -1807,24 +1685,26 @@ void Print::_make_wipe_tower()
 
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
+
         wipe_tower.set_extruder(
             i, 
-            WipeTowerPrusaMM::parse_material(m_config.filament_type.get_at(i).c_str()),
+            m_config.filament_type.get_at(i),
             m_config.temperature.get_at(i),
             m_config.first_layer_temperature.get_at(i),
-            m_config.filament_loading_speed.get_at(i),
-            m_config.filament_loading_speed_start.get_at(i),
-            m_config.filament_unloading_speed.get_at(i),
-            m_config.filament_unloading_speed_start.get_at(i),
-            m_config.filament_toolchange_delay.get_at(i),
+			(float)m_config.filament_loading_speed.get_at(i),
+			(float)m_config.filament_loading_speed_start.get_at(i),
+			(float)m_config.filament_unloading_speed.get_at(i),
+			(float)m_config.filament_unloading_speed_start.get_at(i),
+			(float)m_config.filament_toolchange_delay.get_at(i),
             m_config.filament_cooling_moves.get_at(i),
-            m_config.filament_cooling_initial_speed.get_at(i),
-            m_config.filament_cooling_final_speed.get_at(i),
+			(float)m_config.filament_cooling_initial_speed.get_at(i),
+			(float)m_config.filament_cooling_final_speed.get_at(i),
             m_config.filament_ramming_parameters.get_at(i),
+            m_config.filament_max_volumetric_speed.get_at(i),
             m_config.nozzle_diameter.get_at(i));
 
-    m_wipe_tower_data.priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.prime(this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
+    m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
+        wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
@@ -1833,21 +1713,21 @@ void Print::_make_wipe_tower()
         for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
-            wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id,false);
+            wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id, false);
             for (const auto extruder_id : layer_tools.extruders) {
                 if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id != current_extruder_id) {
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];             // total volume to wipe after this toolchange
                     // Not all of that can be used for infill purging:
-                    volume_to_wipe -= m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+                    volume_to_wipe -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
                     // try to assign some infills/objects for the wiping:
                     volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_wipe);
 
                     // add back the minimal amount toforce on the wipe tower:
-                    volume_to_wipe += m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+                    volume_to_wipe += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
                     // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
-                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id,
+                    wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id,
                                                first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }

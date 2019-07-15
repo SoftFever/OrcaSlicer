@@ -355,6 +355,10 @@ if (NOT GLEW_FOUND)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 
+# Find the Cereal serialization library
+add_library(cereal INTERFACE)
+target_include_directories(cereal INTERFACE include)
+
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
 add_custom_target(pot

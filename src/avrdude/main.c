@@ -107,7 +107,7 @@ int avrdude_message(const int msglvl, const char *format, ...)
             if (rc > 0 && rc < MSGBUFFER_SIZE) {
                 avrdude_message_handler(msgbuffer, rc, avrdude_message_handler_user_p);
             } else {
-                avrdude_message_handler(format_error, strlen(format_error), avrdude_message_handler_user_p);
+                avrdude_message_handler(format_error, (unsigned)strlen(format_error), avrdude_message_handler_user_p);
             }
         }
 
@@ -567,7 +567,7 @@ int avrdude_main(int argc, char * argv [])
 
 // #endif
 
-  len = strlen(progname) + 2;
+  len = (int)strlen(progname) + 2;
   for (i=0; i<len; i++)
     progbuf[i] = ' ';
   progbuf[i] = 0;
@@ -601,7 +601,7 @@ int avrdude_main(int argc, char * argv [])
 	bitclock = strtod(optarg, &e);
 	if (*e != 0) {
 	  /* trailing unit of measure present */
-	  int suffixlen = strlen(e);
+	  size_t suffixlen = strlen(e);
 	  switch (suffixlen) {
 	  case 2:
 	    if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')

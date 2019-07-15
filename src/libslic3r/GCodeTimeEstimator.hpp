@@ -215,17 +215,22 @@ namespace Slic3r {
         typedef std::vector<G1LineIdToBlockId> G1LineIdToBlockIdMap;
 
     private:
-        EMode _mode;
-        GCodeReader _parser;
-        State _state;
-        Feedrates _curr;
-        Feedrates _prev;
-        BlocksList _blocks;
+        EMode m_mode;
+        GCodeReader m_parser;
+        State m_state;
+        Feedrates m_curr;
+        Feedrates m_prev;
+        BlocksList m_blocks;
         // Map between g1 line id and blocks id, used to speed up export of remaining times
-        G1LineIdToBlockIdMap _g1_line_ids;
+        G1LineIdToBlockIdMap m_g1_line_ids;
         // Index of the last block already st_synchronized
-        int _last_st_synchronized_block_id;
-        float _time; // s
+        int m_last_st_synchronized_block_id;
+        float m_time; // s
+
+        // data to calculate color print times
+        bool m_needs_color_times;
+        std::vector<float> m_color_times;
+        float m_color_time_cache;
 
 #if ENABLE_MOVE_STATS
         MovesStatsMap _moves_stats;
@@ -341,6 +346,15 @@ namespace Slic3r {
         // Returns the estimated time, in minutes (integer)
         std::string get_time_minutes() const;
 
+       // Returns the estimated time, in seconds, for each color
+        std::vector<float> get_color_times() const;
+
+        // Returns the estimated time, in format DDd HHh MMm SSs, for each color
+        std::vector<std::string> get_color_times_dhms() const;
+
+        // Returns the estimated time, in minutes (integer), for each color
+        std::vector<std::string> get_color_times_minutes() const;
+
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;
 
@@ -408,6 +422,9 @@ namespace Slic3r {
 
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
+
+        // Set color change
+        void _processM600(const GCodeReader::GCodeLine& line);
 
         // Unload the current filament into the MK3 MMU2 unit at the end of print.
         void _processM702(const GCodeReader::GCodeLine& line);

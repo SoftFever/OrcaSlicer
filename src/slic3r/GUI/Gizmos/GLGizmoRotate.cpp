@@ -19,11 +19,7 @@ const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-#if ENABLE_SVG_ICONS
     : GLGizmoBase(parent, "", -1)
-#else
-    : GLGizmoBase(parent, -1)
-#endif // ENABLE_SVG_ICONS
     , m_axis(axis)
     , m_angle(0.0)
     , m_quadric(nullptr)
@@ -40,11 +36,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-#if ENABLE_SVG_ICONS
     : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
-#else
-    : GLGizmoBase(other.m_parent, other.m_sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_quadric(nullptr)
@@ -417,13 +409,8 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
-#if ENABLE_SVG_ICONS
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
 {
     m_gizmos.emplace_back(parent, GLGizmoRotate::X);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);

@@ -19,13 +19,8 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_SVG_ICONS
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_quadric(nullptr)
     , m_its(nullptr)
 {
@@ -259,6 +254,10 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 
 void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
+#if ENABLE_RENDER_PICKING_PASS
+	m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+#endif
+
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
 }
@@ -380,7 +379,7 @@ bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_current_mesh_model_id) || m_its == nullptr);
+        && ((m_model_object->id() != m_current_mesh_object_id) || m_its == nullptr);
 }
 
 void GLGizmoSlaSupports::update_mesh()
@@ -390,7 +389,7 @@ void GLGizmoSlaSupports::update_mesh()
     // This mesh does not account for the possible Z up SLA offset.
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
-    m_current_mesh_model_id = m_model_object->id();
+    m_current_mesh_object_id = m_model_object->id();
     m_editing_mode = false;
 
 	m_AABB.deinit();
@@ -924,10 +923,12 @@ RENDER_AGAIN:
         }
 
         if (value_changed) { // Update side panel
-            wxTheApp->CallAfter([]() {
-                wxGetApp().obj_settings()->UpdateAndShow(true);
-                wxGetApp().obj_list()->update_settings_items();
-            });
+/*            wxTheApp->CallAfter([]() {
+ *                wxGetApp().obj_settings()->UpdateAndShow(true);
+ *                wxGetApp().obj_list()->update_settings_items();
+ *            });
+ * #lm_FIXME_delete_after_testing */
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
 
         bool generate = m_imgui->button(m_desc.at("auto_generate"));

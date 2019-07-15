@@ -36,10 +36,11 @@ set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination direct
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
 
-# IGL static library in release mode produces 50MB binary. On the build server, it should be
-# disabled and used in header-only mode. On developer machines, it can be enabled to speed
-# up conpilation and suppress warnings coming from IGL. 
-option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
+# On developer machines, it can be enabled to speed up compilation and suppress warnings coming from IGL. 
+# FIXME:
+# Enabling this option is not safe. IGL will compile itself with its own version of Eigen while
+# Slic3r compiles with a different version which will cause runtime errors.
+# option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
@@ -88,6 +89,7 @@ if (MSVC)
         dep_libcurl
         dep_wxwidgets
         dep_gtest
+        dep_cereal
         dep_nlopt
         # dep_qhull # Experimental
         dep_zlib    # on Windows we still need zlib
@@ -102,9 +104,10 @@ else()
         dep_libcurl
         dep_wxwidgets
         dep_gtest
+        dep_cereal
         dep_nlopt
         dep_qhull
-        dep_libigl
+        # dep_libigl # Not working, static build has different Eigen
     )
 
 endif()

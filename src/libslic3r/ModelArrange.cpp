@@ -62,10 +62,10 @@ std::string toString(const Model& model, bool holes = true) {
             objinst->transform_mesh(&tmpmesh);
             ExPolygons expolys = tmpmesh.horizontal_projection();
             for(auto& expoly_complex : expolys) {
-
-                auto tmp = expoly_complex.simplify(1.0/SCALING_FACTOR);
+                
+                ExPolygons tmp = expoly_complex.simplify(scaled<double>(1.));
                 if(tmp.empty()) continue;
-                auto expoly = tmp.front();
+                ExPolygon expoly = tmp.front();
                 expoly.contour.make_clockwise();
                 for(auto& h : expoly.holes) h.make_counter_clockwise();
 
@@ -610,7 +610,7 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model,
                 
                 if(tolerance > EPSILON) {
                     Polygons pp { p };
-                    pp = p.simplify(double(scaled(tolerance)));
+                    pp = p.simplify(scaled<double>(tolerance));
                     if (!pp.empty()) p = pp.front();
                 }
                 
@@ -633,8 +633,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model,
                 if(item.vertexCount() > 3) {
                     item.rotation(Geometry::rotation_diff_z(rotation0, objinst->get_rotation()));
                     item.translation({
-                    ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
-                    ClipperLib::cInt(objinst->get_offset(Y)/SCALING_FACTOR)
+                        scaled<ClipperLib::cInt>(objinst->get_offset(X)),
+                        scaled<ClipperLib::cInt>(objinst->get_offset(Y))
                     });
                     ret.emplace_back(objinst, item);
                 }
@@ -658,8 +658,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model,
         Item item(std::move(pn));
         item.rotation(wti.rotation),
         item.translation({
-        ClipperLib::cInt(wti.pos(0)/SCALING_FACTOR),
-        ClipperLib::cInt(wti.pos(1)/SCALING_FACTOR)
+            scaled<ClipperLib::cInt>(wti.pos(0)),
+            scaled<ClipperLib::cInt>(wti.pos(1))
         });
         ret.emplace_back(nullptr, item);
     }
@@ -822,7 +822,9 @@ bool arrange(Model &model,              // The model with the geometries
 
     auto& cfn = stopcondition;
     
-    coord_t md = ceil_i(min_obj_distance, 2) - SCALED_EPSILON;
+    // Integer ceiling the min distance from the bed perimeters
+    coord_t md = min_obj_distance - SCALED_EPSILON;
+    md = (md % 2) ? md / 2 + 1 : md / 2;
 
     auto binbb = Box({libnest2d::Coord{bbb.min(0)} - md,
                       libnest2d::Coord{bbb.min(1)} - md},
@@ -916,7 +918,9 @@ void find_new_position(const Model &model,
 
     BoundingBox bbb(bed);
     
-    coord_t md = ceil_i(min_obj_distance, 2) - SCALED_EPSILON;
+    // Integer ceiling the min distance from the bed perimeters
+    coord_t md = min_obj_distance - SCALED_EPSILON;
+    md = (md % 2) ? md / 2 + 1 : md / 2;
     
     auto binbb = Box({libnest2d::Coord{bbb.min(0)} - md,
                       libnest2d::Coord{bbb.min(1)} - md},

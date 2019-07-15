@@ -89,7 +89,7 @@ plan tests => 8;
     
     # we disable combination after infill has been generated
     $config->set('infill_every_layers', 1);
-    $print->apply_config_perl_tests_only($config);
+    $print->apply($print->print->model->clone, $config);
     $print->process;
     
     ok !(defined first { @{$_->get_region(0)->fill_surfaces} == 0 }

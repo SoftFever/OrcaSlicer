@@ -402,21 +402,21 @@ Updates PresetUpdater::priv::get_config_updates() const
 			}
 		}
 
-		copy_file_fix(idx.path(), bundle_path_idx);
-
 		const auto ver_current = idx.find(vp.config_version);
 		const bool ver_current_found = ver_current != idx.end();
-		if (! ver_current_found) {
-			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
-			BOOST_LOG_TRIVIAL(error) << message;
-			GUI::show_error(nullptr, GUI::from_u8(message));
-		}
 
 		BOOST_LOG_TRIVIAL(debug) << boost::format("Vendor: %1%, version installed: %2%%3%, version cached: %4%")
 			% vp.name
 			% vp.config_version.to_string()
 			% (ver_current_found ? "" : " (not found in index!)")
 			% recommended->config_version.to_string();
+
+		if (! ver_current_found) {
+			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
+			BOOST_LOG_TRIVIAL(error) << message;
+			GUI::show_error(nullptr, GUI::from_u8(message));
+			continue;
+		}
 
 		if (ver_current_found && !ver_current->is_current_slic3r_supported()) {
 			BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
@@ -459,10 +459,16 @@ Updates PresetUpdater::priv::get_config_updates() const
 					found = true;
 				}
 			}
-			if (! found)
+
+			if (found) {
+				// 'Install' the index in the vendor directory. This is used to memoize
+				// offered updates and to not offer the same update again if it was cancelled by the user.
+				copy_file_fix(idx.path(), bundle_path_idx);
+			} else {
 				BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources")
 					% idx.vendor()
 					% recommended->config_version.to_string();
+			}
 		}
 	}
 

@@ -54,10 +54,10 @@ public:
     bool                        is_left_handed() const { return m_left_handed; }
 
     struct Instance {
-        Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
+        Instance(ObjectID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
         bool operator==(const Instance &rhs) const { return this->instance_id == rhs.instance_id && this->shift == rhs.shift && this->rotation == rhs.rotation; }
         // ID of the corresponding ModelInstance.
-        ModelID instance_id;
+        ObjectID instance_id;
         // Slic3r::Point objects in scaled G-code coordinates
         Point 	shift;
         // Rotation along the Z axis, in radians.

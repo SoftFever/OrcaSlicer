@@ -22,11 +22,7 @@ class GLGizmoMove3D : public GLGizmoBase
     GLUquadricObj* m_quadric;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }

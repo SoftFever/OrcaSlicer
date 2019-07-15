@@ -13,13 +13,8 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-#if ENABLE_SVG_ICONS
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
@@ -136,7 +131,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
-            m_box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
+            m_box.merge(vol->bounding_box().transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
@@ -151,7 +146,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_box = v->bounding_box;
+        m_box = v->bounding_box();
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets
