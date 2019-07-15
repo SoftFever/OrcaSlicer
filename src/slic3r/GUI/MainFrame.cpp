@@ -35,6 +35,7 @@ namespace GUI {
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
+    , m_recent_projects(9)
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
@@ -383,6 +384,40 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"), nullptr,
             [this](){return m_plater != nullptr; }, this);
+
+        wxMenu* recent_projects_menu = new wxMenu();
+        wxMenuItem* recent_projects_submenu = append_submenu(fileMenu, recent_projects_menu, wxID_ANY, _(L("Recent projects")), "");
+        m_recent_projects.UseMenu(recent_projects_menu);
+        Bind(wxEVT_MENU, [this](wxCommandEvent& evt) {
+            size_t file_id = evt.GetId() - wxID_FILE1;
+            wxString filename = m_recent_projects.GetHistoryFile(file_id);
+            if (wxFileExists(filename))
+                m_plater->load_project(filename);
+            else
+            {
+                wxMessageDialog msg(this, _(L("The selected project is no more available")), _(L("Error")));
+                msg.ShowModal();
+
+                m_recent_projects.RemoveFileFromHistory(file_id);
+                std::vector<std::string> recent_projects;
+                size_t count = m_recent_projects.GetCount();
+                for (size_t i = 0; i < count; ++i)
+                {
+                    recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+                }
+                wxGetApp().app_config->set_recent_projects(recent_projects);
+                wxGetApp().app_config->save();
+            }
+            }, wxID_FILE1, wxID_FILE9);
+
+        std::vector<std::string> recent_projects = wxGetApp().app_config->get_recent_projects();
+        for (const std::string& project : recent_projects)
+        {
+            m_recent_projects.AddFileToHistory(from_u8(project));
+        }
+
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
+
         append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, menu_icon("save"), nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
@@ -1046,6 +1081,23 @@ void MainFrame::on_config_changed(DynamicPrintConfig* config) const
         m_plater->on_config_change(*config); // propagate config change events to the plater
 }
 
+void MainFrame::add_to_recent_projects(const wxString& filename)
+{
+    if (wxFileExists(filename))
+    {
+        m_recent_projects.AddFileToHistory(filename);
+        std::vector<std::string> recent_projects;
+        size_t count = m_recent_projects.GetCount();
+        for (size_t i = 0; i < count; ++i)
+        {
+            recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+        }
+        wxGetApp().app_config->set_recent_projects(recent_projects);
+        wxGetApp().app_config->save();
+    }
+}
+
+//
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
 void MainFrame::update_ui_from_settings()

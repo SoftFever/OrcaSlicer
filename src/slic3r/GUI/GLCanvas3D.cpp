@@ -1199,11 +1199,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_bed(bed)
     , m_camera(camera)
     , m_view_toolbar(view_toolbar)
-#if ENABLE_SVG_ICONS
     , m_toolbar(GLToolbar::Normal, "Top")
-#else
-    , m_toolbar(GLToolbar::Normal)
-#endif // ENABLE_SVG_ICONS
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_keep_dirty(false)
@@ -3422,12 +3418,6 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.is_enabled())
         return true;
 
-#if !ENABLE_SVG_ICONS
-    ItemsIconsTexture::Metadata icons_data;
-    icons_data.filename = "toolbar.png";
-    icons_data.icon_size = 37;
-#endif // !ENABLE_SVG_ICONS
-
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
     background_data.left = 16;
@@ -3435,11 +3425,7 @@ bool GLCanvas3D::_init_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
-#if ENABLE_SVG_ICONS
     if (!m_toolbar.init(background_data))
-#else
-    if (!m_toolbar.init(icons_data, background_data))
-#endif // ENABLE_SVG_ICONS
     {
         // unable to init the toolbar texture, disable it
         m_toolbar.set_enabled(false);
@@ -3456,9 +3442,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "add.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Add...")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
@@ -3466,9 +3450,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "remove.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Delete")) + " [Del]";
     item.sprite_id = 1;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); };
@@ -3477,9 +3459,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "delete_all.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Delete all")) + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); };
@@ -3488,9 +3468,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "arrange";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "arrange.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Arrange")) + " [A]";
     item.sprite_id = 3;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
@@ -3502,9 +3480,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "copy";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "copy.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Copy")) + " [" + GUI::shortkey_ctrl_prefix() + "C]";
     item.sprite_id = 4;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
@@ -3513,9 +3489,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "paste";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "paste.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Paste")) + " [" + GUI::shortkey_ctrl_prefix() + "V]";
     item.sprite_id = 5;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
@@ -3527,9 +3501,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "more";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "instance_add.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Add instance")) + " [+]";
     item.sprite_id = 6;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
@@ -3539,9 +3511,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "fewer";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "instance_remove.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Remove instance")) + " [-]";
     item.sprite_id = 7;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
@@ -3554,9 +3524,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitobjects";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "split_objects.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id = 8;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
@@ -3566,9 +3534,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitvolumes";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "split_parts.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id = 9;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
@@ -3581,9 +3547,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "layersediting";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "layers_white.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Layers editing"));
     item.sprite_id = 10;
     item.is_toggable = true;
@@ -3921,9 +3885,6 @@ void GLCanvas3D::_render_overlays() const
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
-#if !ENABLE_SVG_ICONS
-    _resize_toolbars();
-#endif // !ENABLE_SVG_ICONS
     _render_toolbar();
     _render_view_toolbar();
 
@@ -4000,7 +3961,6 @@ void GLCanvas3D::_render_current_gizmo() const
 
 void GLCanvas3D::_render_gizmos_overlay() const
 {
-#if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
 //     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
@@ -4011,14 +3971,12 @@ void GLCanvas3D::_render_gizmos_overlay() const
     const float size = int(GLGizmosManager::Default_Icons_Size*wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
-#endif // ENABLE_SVG_ICONS
 
     m_gizmos.render_overlay(*this, m_selection);
 }
 
 void GLCanvas3D::_render_toolbar() const
 {
-#if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
 //     m_toolbar.set_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
@@ -4073,20 +4031,12 @@ void GLCanvas3D::_render_toolbar() const
     }
     }
     m_toolbar.set_position(top, left);
-#else
-#if ENABLE_RETINA_GL
-    m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#else
-    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
-#endif /* __WXMSW__ */
-#endif // ENABLE_SVG_ICONS
 
     m_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_view_toolbar() const
 {
-#if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
 //     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
@@ -4106,13 +4056,6 @@ void GLCanvas3D::_render_view_toolbar() const
     float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
     float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
     m_view_toolbar.set_position(top, left);
-#else
-#if ENABLE_RETINA_GL
-    m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#else
-    m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
-#endif /* __WXMSW__ */
-#endif // ENABLE_SVG_ICONS
     m_view_toolbar.render(*this);
 }
 
@@ -5554,73 +5497,6 @@ bool GLCanvas3D::_is_any_volume_outside() const
 
     return false;
 }
-
-#if !ENABLE_SVG_ICONS
-void GLCanvas3D::_resize_toolbars() const
-{
-    Size cnv_size = get_canvas_size();
-    float zoom = (float)m_camera.get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-#if ENABLE_RETINA_GL
-    m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#else
-    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
-#endif /* __WXMSW__ */
-
-    GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
-
-    switch (m_toolbar.get_layout_type())
-    {
-    default:
-    case GLToolbar::Layout::Horizontal:
-    {
-        // centers the toolbar on the top edge of the 3d scene
-        float top, left;
-        if (orientation == GLToolbar::Layout::Top)
-        {
-            top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-            left = -0.5f * m_toolbar.get_width() * inv_zoom;
-        }
-        else
-        {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
-            left = -0.5f * m_toolbar.get_width() * inv_zoom;
-        }
-        m_toolbar.set_position(top, left);
-        break;
-    }
-    case GLToolbar::Layout::Vertical:
-    {
-        // centers the toolbar on the right edge of the 3d scene
-        float top, left;
-        if (orientation == GLToolbar::Layout::Left)
-        {
-            top = 0.5f * m_toolbar.get_height() * inv_zoom;
-            left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
-        }
-        else
-        {
-            top = 0.5f * m_toolbar.get_height() * inv_zoom;
-            left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
-        }
-        m_toolbar.set_position(top, left);
-        break;
-    }
-    }
-
-#if ENABLE_RETINA_GL
-    m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#else
-    m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
-#endif /* __WXMSW__ */
-
-    // places the toolbar on the bottom-left corner of the 3d scene
-    float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
-    float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-    m_view_toolbar.set_position(top, left);
-}
-#endif // !ENABLE_SVG_ICONS
 
 void GLCanvas3D::_update_selection_from_hover()
 {

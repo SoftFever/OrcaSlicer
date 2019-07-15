@@ -245,6 +245,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     last_selected(wxNOT_FOUND),
     m_em_unit(wxGetApp().em_unit())
 {
+    SetFont(wxGetApp().normal_font());
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
 
@@ -372,24 +373,36 @@ class FreqChangedParams : public OG_Settings
     wxSizer*        m_sizer {nullptr};
 
     std::shared_ptr<ConfigOptionsGroup> m_og_sla;
+    std::vector<ScalableButton*>        m_empty_buttons;
 public:
-    FreqChangedParams(wxWindow* parent, const int label_width);
+    FreqChangedParams(wxWindow* parent);
     ~FreqChangedParams() {}
 
     wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
     wxSizer*        get_sizer() override;
     ConfigOptionsGroup* get_og(const bool is_fff);
     void            Show(const bool is_fff);
+
+    void            msw_rescale();
 };
 
-FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
+void FreqChangedParams::msw_rescale()
+{
+    m_og->msw_rescale();
+    m_og_sla->msw_rescale();
+
+    for (auto btn: m_empty_buttons)
+        btn->msw_rescale();
+}
+
+FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     OG_Settings(parent, false)
 {
     DynamicPrintConfig*	config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
     // Frequently changed parameters for FFF_technology
     m_og->set_config(config);
-    m_og->label_width = label_width == 0 ? 1 : label_width;
+    m_og->hide_labels();
 
     m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
@@ -461,6 +474,20 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     Option option = Option(support_def, "support");
     option.opt.full_width = true;
     line.append_option(option);
+
+    /* Not a best solution, but
+     * Temporary workaround for right border alignment
+     */
+    auto empty_widget = [this] (wxWindow* parent) {
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_transparent.png", wxEmptyString,
+            wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+        sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, int(0.3 * wxGetApp().em_unit()));
+        m_empty_buttons.push_back(btn);
+        return sizer;
+    };
+    line.append_widget(empty_widget);
+
     m_og->append_line(line);
 
     
@@ -469,7 +496,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
     option.opt.width = 7/*6*/;
-    option.opt.sidetext = "     ";
+    option.opt.sidetext = "   ";
     line.append_option(option);
 
     m_brim_width = config->opt_float("brim_width");
@@ -480,13 +507,14 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     def.gui_type = "";
     def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
-    option.opt.sidetext = "     ";
+    option.opt.sidetext = "";
     line.append_option(option);
 
     auto wiping_dialog_btn = [config, this](wxWindow* parent) {
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        m_wiping_dialog_button->SetFont(wxGetApp().normal_font());
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(m_wiping_dialog_button);
+        sizer->Add(m_wiping_dialog_button, 0, wxALIGN_CENTER_VERTICAL);
         m_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto &config = wxGetApp().preset_bundle->project_config;
@@ -503,6 +531,13 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
+
+        auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_transparent.png", wxEmptyString, 
+                                      wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+        sizer->Add(btn , 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+            int(0.3 * wxGetApp().em_unit()));
+        m_empty_buttons.push_back(btn);
+
         return sizer;
     };
     line.append_widget(wiping_dialog_btn);
@@ -512,9 +547,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
+    m_og_sla->hide_labels();
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     m_og_sla->set_config(config_sla);
-    m_og_sla->label_width = label_width == 0 ? 1 : label_width;
 
     m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
@@ -552,7 +587,8 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     support_def_sla.enum_labels.erase(support_def_sla.enum_labels.begin() + 2);
     option = Option(support_def_sla, "support");
     option.opt.full_width = true;
-    line.append_option(option);
+    line.append_option(option); 
+    line.append_widget(empty_widget);
     m_og_sla->append_line(line);
 
     line = Line{ "", "" };
@@ -733,13 +769,12 @@ Sidebar::Sidebar(Plater *parent)
     init_combo(&p->combo_printer,       _(L("Printer")),            Preset::TYPE_PRINTER,       false);
 
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
-    const int margin_10 = 10;//int(1.5*wxGetApp().em_unit());// 15;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
     // Frequently changed parameters
-    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled, 0/*label_width*/);
-    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_10);
+    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
+    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
     
     // Object List
     p->object_list = new ObjectList(p->scrolled);
@@ -946,9 +981,7 @@ void Sidebar::msw_rescale()
     // ... then refill them and set min size to correct layout of the sidebar
     update_all_preset_comboboxes();
 
-    p->frequently_changed_parameters->get_og(true)->msw_rescale();
-    p->frequently_changed_parameters->get_og(false)->msw_rescale();
-
+    p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
@@ -1132,10 +1165,20 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                 if (ps.estimated_normal_print_time != "N/A") {
                     new_label += wxString::Format("\n    - %s", _(L("normal mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
+                    for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
+                    {
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
+                    }
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
+                    for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
+                    {
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
+                    }
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
             }
@@ -1693,11 +1736,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
-#if ENABLE_SVG_ICONS
     , view_toolbar(GLToolbar::Radio, "View")
-#else
-    , view_toolbar(GLToolbar::Radio)
-#endif // ENABLE_SVG_ICONS
     , m_project_filename(wxEmptyString)
 {
 	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -3238,6 +3277,9 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     m_project_filename = from_path(full_path);
     wxGetApp().mainframe->update_title();
+
+    if (!filename.empty())
+        wxGetApp().mainframe->add_to_recent_projects(filename);
 }
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
@@ -3352,12 +3394,6 @@ bool Plater::priv::complit_init_part_menu()
 
 void Plater::priv::init_view_toolbar()
 {
-#if !ENABLE_SVG_ICONS
-    ItemsIconsTexture::Metadata icons_data;
-    icons_data.filename = "view_toolbar.png";
-    icons_data.icon_size = 64;
-#endif // !ENABLE_SVG_ICONS
-
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
     background_data.left = 16;
@@ -3365,11 +3401,7 @@ void Plater::priv::init_view_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
-#if ENABLE_SVG_ICONS
     if (!view_toolbar.init(background_data))
-#else
-    if (!view_toolbar.init(icons_data, background_data))
-#endif // ENABLE_SVG_ICONS
         return;
 
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
@@ -3379,9 +3411,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "editor.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
@@ -3390,9 +3420,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "preview.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
@@ -3565,15 +3593,19 @@ void Plater::load_project()
 {
     wxString input_file;
     wxGetApp().load_project(this, input_file);
+    load_project(input_file);
+}
 
-    if (input_file.empty())
+void Plater::load_project(const wxString& filename)
+{
+    if (filename.empty())
         return;
 
     p->reset();
-    p->set_project_filename(input_file);
+    p->set_project_filename(filename);
 
     std::vector<fs::path> input_paths;
-    input_paths.push_back(into_path(input_file));
+    input_paths.push_back(into_path(filename));
     load_files(input_paths);
 }
 

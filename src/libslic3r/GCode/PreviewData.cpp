@@ -466,7 +466,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::Tool:
         {
-            unsigned int tools_colors_count = tool_colors.size() / 4;
+            unsigned int tools_colors_count = (unsigned int)tool_colors.size() / 4;
             items.reserve(tools_colors_count);
             for (unsigned int i = 0; i < tools_colors_count; ++i)
             {
@@ -491,17 +491,20 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
                     items.emplace_back(Slic3r::I18N::translate(L("Default print color")), color);
                     break;
                 }
+
+                std::string id_str = std::to_string(i + 1) + ": ";
+
                 if (i == 0) {
-                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("up to %.2f mm"))) % cp_values[0].first).str(), color);
+                    items.emplace_back(id_str + (boost::format(Slic3r::I18N::translate(L("up to %.2f mm"))) % cp_values[0].first).str(), color);
                     break;
                 }
                 if (i == color_print_cnt) {
-                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("above %.2f mm"))) % cp_values[i-1].second).str(), color);
+                    items.emplace_back(id_str + (boost::format(Slic3r::I18N::translate(L("above %.2f mm"))) % cp_values[i - 1].second).str(), color);
                     continue;
                 }
 
 //                 items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1] % cp_values[i]).str(), color);
-                items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1].second % cp_values[i].first).str(), color);
+                items.emplace_back(id_str + (boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) % cp_values[i - 1].second% cp_values[i].first).str(), color);
             }
             break;
         }

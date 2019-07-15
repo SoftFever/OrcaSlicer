@@ -19,13 +19,8 @@ const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
-#if ENABLE_SVG_ICONS
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
     , m_keep_upper(true)

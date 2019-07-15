@@ -60,7 +60,7 @@ class EigenMesh3D {
 
     Eigen::MatrixXd m_V;
     Eigen::MatrixXi m_F;
-    double m_ground_level = 0;
+    double m_ground_level = 0, m_gnd_offset = 0;
 
     std::unique_ptr<AABBImpl> m_aabb;
 public:
@@ -71,7 +71,9 @@ public:
 
     ~EigenMesh3D();
 
-    inline double ground_level() const { return m_ground_level; }
+    inline double ground_level() const { return m_ground_level + m_gnd_offset; }
+    inline void ground_level_offset(double o) { m_gnd_offset = o; }
+    inline double ground_level_offset() const { return m_gnd_offset; }
 
     inline const Eigen::MatrixXd& V() const { return m_V; }
     inline const Eigen::MatrixXi& F() const { return m_F; }
@@ -149,6 +151,12 @@ public:
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 
     double squared_distance(const Vec3d& p, int& i, Vec3d& c) const;
+    inline double squared_distance(const Vec3d &p) const
+    {
+        int   i;
+        Vec3d c;
+        return squared_distance(p, i, c);
+    }
 };
 
 

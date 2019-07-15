@@ -2504,6 +2504,19 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.0));
+    
+    def = this->add("support_base_safety_distance", coFloat);
+    def->label = L("Support base safety distance");
+    def->category = L("Supports");
+    def->tooltip  = L(
+        "The minimum distance of the pillar base from the model in mm. "
+        "Makes sense in zero elevation mode where a gap according "
+        "to this parameter is inserted between the model and the pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("support_critical_angle", coFloat);
     def->label = L("Critical angle");
@@ -2537,7 +2550,9 @@ void PrintConfigDef::init_sla_params()
     def = this->add("support_object_elevation", coFloat);
     def->label = L("Object elevation");
     def->category = L("Supports");
-    def->tooltip = L("How much the supports should lift up the supported object.");
+    def->tooltip = L("How much the supports should lift up the supported object. "
+                     "If this value is zero, the bottom of the model geometry "
+                     "will be considered as part of the pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 150; // This is the max height of print on SL1
@@ -2623,6 +2638,47 @@ void PrintConfigDef::init_sla_params()
     def->max = 90;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45.0));
+    
+    def = this->add("pad_object_gap", coFloat);
+    def->label = L("Pad object gap");
+    def->category = L("Pad");
+    def->tooltip  = L("The gap between the object bottom and the generated "
+                      "pad in zero elevation mode.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1));
+    
+    def = this->add("pad_object_connector_stride", coFloat);
+    def->label = L("Pad object connector stride");
+    def->category = L("Pad");
+    def->tooltip = L("Distance between two connector sticks between "
+                     "the object pad and the generated pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(10));
+    
+    def = this->add("pad_object_connector_width", coFloat);
+    def->label = L("Pad object connector width");
+    def->category = L("Pad");
+    def->tooltip  = L("The width of the connectors sticks which connect the "
+                      "object pad and the generated pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+    
+    def = this->add("pad_object_connector_penetration", coFloat);
+    def->label = L("Pad object connector penetration");
+    def->category = L("Pad");
+    def->tooltip  = L(
+        "How much should the tiny connectors penetrate into the model body.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.3));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

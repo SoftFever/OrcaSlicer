@@ -89,9 +89,7 @@ protected:
     int m_group_id;
     EState m_state;
     int m_shortcut_key;
-#if ENABLE_SVG_ICONS
     std::string m_icon_filename;
-#endif // ENABLE_SVG_ICONS
     unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
@@ -102,11 +100,7 @@ protected:
     ImGuiWrapper* m_imgui;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoBase() {}
 
     bool init() { return on_init(); }
@@ -122,9 +116,7 @@ public:
     int get_shortcut_key() const { return m_shortcut_key; }
     void set_shortcut_key(int key) { m_shortcut_key = key; }
 
-#if ENABLE_SVG_ICONS
     const std::string& get_icon_filename() const { return m_icon_filename; }
-#endif // ENABLE_SVG_ICONS
 
     bool is_activable(const Selection& selection) const { return on_is_activable(selection); }
     bool is_selectable() const { return on_is_selectable(); }

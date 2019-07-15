@@ -37,11 +37,7 @@ private:
     bool is_plane_update_necessary() const;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
 
     void set_flattening_data(const ModelObject* model_object);
     Vec3d get_flattening_normal() const;

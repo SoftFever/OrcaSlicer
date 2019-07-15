@@ -983,6 +983,9 @@ public:
 
     // The height of the pillar base cone in mm.
     ConfigOptionFloat support_base_height /*= 1.0*/;
+    
+    // The minimum distance of the pillar base from the model in mm.
+    ConfigOptionFloat support_base_safety_distance; /*= 1.0*/;
 
     // The default angle for connecting support sticks and junctions.
     ConfigOptionFloat support_critical_angle /*= 45*/;
@@ -996,7 +999,7 @@ public:
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom. Units in mm.
     ConfigOptionFloat support_object_elevation /*= 5.0*/;
-
+    
     /////// Following options influence automatic support points placement:
     ConfigOptionInt support_points_density_relative;
     ConfigOptionFloat support_points_minimal_distance;
@@ -1021,6 +1024,26 @@ public:
 
     // The slope of the pad wall...
     ConfigOptionFloat pad_wall_slope;
+    
+    // /////////////////////////////////////////////////////////////////////////
+    // Zero elevation mode parameters:
+    //    - The object pad will be derived from the the model geometry.
+    //    - There will be a gap between the object pad and the generated pad
+    //      according to the support_base_safety_distance parameter.
+    //    - The two pads will be connected with tiny connector sticks
+    // /////////////////////////////////////////////////////////////////////////
+    
+    // This is the gap between the object bottom and the generated pad
+    ConfigOptionFloat pad_object_gap;
+    
+    // How far to place the connector sticks on the object pad perimeter
+    ConfigOptionFloat pad_object_connector_stride;
+    
+    // The width of the connectors sticks
+    ConfigOptionFloat pad_object_connector_width;
+    
+    // How much should the tiny connectors penetrate into the model body
+    ConfigOptionFloat pad_object_connector_penetration;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1038,6 +1061,7 @@ protected:
         OPT_PTR(support_pillar_widening_factor);
         OPT_PTR(support_base_diameter);
         OPT_PTR(support_base_height);
+        OPT_PTR(support_base_safety_distance);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
         OPT_PTR(support_max_pillar_link_distance);
@@ -1050,6 +1074,10 @@ protected:
         OPT_PTR(pad_max_merge_distance);
         OPT_PTR(pad_edge_radius);
         OPT_PTR(pad_wall_slope);
+        OPT_PTR(pad_object_gap);
+        OPT_PTR(pad_object_connector_stride);
+        OPT_PTR(pad_object_connector_width);
+        OPT_PTR(pad_object_connector_penetration);
     }
 };
 

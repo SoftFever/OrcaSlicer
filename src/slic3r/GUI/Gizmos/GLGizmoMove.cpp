@@ -10,13 +10,8 @@ namespace GUI {
 
 const double GLGizmoMove3D::Offset = 10.0;
 
-#if ENABLE_SVG_ICONS
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())

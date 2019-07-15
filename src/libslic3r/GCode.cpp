@@ -586,6 +586,9 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     m_analyzer.set_extruder_offsets(extruder_offsets);
 
+    // tell analyzer about the gcode flavor
+    m_analyzer.set_gcode_flavor(print.config().gcode_flavor);
+
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
@@ -1057,6 +1060,10 @@ void GCode::_do_export(Print &print, FILE *file)
     print.m_print_statistics.clear();
     print.m_print_statistics.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
     print.m_print_statistics.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
+    print.m_print_statistics.estimated_normal_color_print_times = m_normal_time_estimator.get_color_times_dhms();
+    if (m_silent_time_estimator_enabled)
+        print.m_print_statistics.estimated_silent_color_print_times = m_silent_time_estimator.get_color_times_dhms();
+
     std::vector<Extruder> extruders = m_writer.extruders();
     if (! extruders.empty()) {
         std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);

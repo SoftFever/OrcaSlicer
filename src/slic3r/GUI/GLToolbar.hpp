@@ -58,9 +58,7 @@ public:
     struct Data
     {
         std::string name;
-#if ENABLE_SVG_ICONS
         std::string icon_filename;
-#endif // ENABLE_SVG_ICONS
         std::string tooltip;
         unsigned int sprite_id;
         bool is_toggable;
@@ -88,9 +86,7 @@ public:
     void set_state(EState state) { m_state = state; }
 
     const std::string& get_name() const { return m_data.name; }
-#if ENABLE_SVG_ICONS
     const std::string& get_icon_filename() const { return m_data.icon_filename; }
-#endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
     void do_action() { m_data.action_callback(); }
@@ -118,27 +114,6 @@ private:
     friend class GLToolbar;
 };
 
-#if !ENABLE_SVG_ICONS
-// items icon textures are assumed to be square and all with the same size in pixels, no internal check is done
-// icons are layed-out into the texture starting from the top-left corner in the same order as enum GLToolbarItem::EState
-// from left to right
-struct ItemsIconsTexture
-{
-    struct Metadata
-    {
-        // path of the file containing the icons' texture
-        std::string filename;
-        // size of the square icons, in pixels
-        unsigned int icon_size;
-
-        Metadata();
-    };
-
-    GLTexture texture;
-    Metadata metadata;
-};
-#endif // !ENABLE_SVG_ICONS
-
 struct BackgroundTexture
 {
     struct Metadata
@@ -164,9 +139,7 @@ struct BackgroundTexture
 class GLToolbar
 {
 public:
-#if ENABLE_SVG_ICONS
     static const float Default_Icons_Size;
-#endif // ENABLE_SVG_ICONS
 
     enum EType : unsigned char
     {
@@ -201,12 +174,8 @@ public:
         float border;
         float separator_size;
         float gap_size;
-#if ENABLE_SVG_ICONS
         float icons_size;
         float scale;
-#else
-        float icons_scale;
-#endif // ENABLE_SVG_ICONS
 
         float width;
         float height;
@@ -219,16 +188,10 @@ private:
     typedef std::vector<GLToolbarItem*> ItemsList;
 
     EType m_type;
-#if ENABLE_SVG_ICONS
     std::string m_name;
-#endif // ENABLE_SVG_ICONS
     bool m_enabled;
-#if ENABLE_SVG_ICONS
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
-#else
-    ItemsIconsTexture m_icons_texture;
-#endif // ENABLE_SVG_ICONS
     BackgroundTexture m_background_texture;
     mutable Layout m_layout;
 
@@ -251,18 +214,10 @@ private:
     std::string m_tooltip;
 
 public:
-#if ENABLE_SVG_ICONS
     GLToolbar(EType type, const std::string& name);
-#else
-    explicit GLToolbar(EType type);
-#endif // ENABLE_SVG_ICONS
     ~GLToolbar();
 
-#if ENABLE_SVG_ICONS
     bool init(const BackgroundTexture::Metadata& background_texture);
-#else
-    bool init(const ItemsIconsTexture::Metadata& icons_texture, const BackgroundTexture::Metadata& background_texture);
-#endif // ENABLE_SVG_ICONS
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
@@ -273,12 +228,8 @@ public:
     void set_border(float border);
     void set_separator_size(float size);
     void set_gap_size(float size);
-#if ENABLE_SVG_ICONS
     void set_icons_size(float size);
     void set_scale(float scale);
-#else
-    void set_icons_scale(float scale);
-#endif // ENABLE_SVG_ICONS
 
     bool is_enabled() const;
     void set_enabled(bool enable);
@@ -296,7 +247,6 @@ public:
     bool is_item_visible(const std::string& name) const;
 
     const std::string& get_tooltip() const { return m_tooltip; }
-
 
     // returns true if any item changed its state
     bool update_items_state();
@@ -324,9 +274,7 @@ private:
     void render_horizontal(const GLCanvas3D& parent) const;
     void render_vertical(const GLCanvas3D& parent) const;
 
-#if ENABLE_SVG_ICONS
     bool generate_icons_texture() const;
-#endif // ENABLE_SVG_ICONS
 
     // returns true if any item changed its state
     bool update_items_visibility();
