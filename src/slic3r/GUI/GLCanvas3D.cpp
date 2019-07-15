@@ -2016,9 +2016,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             assert(it != aux_volume_state.end() && it->geometry_id == key.geometry_id);
                             if (it->new_geometry())
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
-                            else
-                                // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
-                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
+							else {
+								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
+								m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
+								m_volumes.volumes[it->volume_idx]->set_instance_transformation(model_object->instances[instance_idx]->get_transformation());
+							}
                         }
                 }
 
