@@ -1481,16 +1481,16 @@ struct Plater::priv
                     for (ModelInstance *oi : model.objects[oidx]->instances)
                         m_unselected.emplace_back(oi);
             }
-            
-            // If the selection is completely empty, consider all items as the
-            // selection
-            if (m_selected.insts.empty() && m_selected.polys.empty())
-                m_selected.swap(m_unselected);
-                        
+
             if (m_wti)
                 sel.is_wipe_tower() ?
                     m_selected.polys.emplace_back(m_wti.get_arrange_polygon()) :
                     m_unselected.polys.emplace_back(m_wti.get_arrange_polygon());
+           
+            // If the selection is completely empty, consider all items as the
+            // selection
+            if (m_selected.insts.empty() && m_selected.polys.empty())
+                m_selected.swap(m_unselected);            
             
             // Stride between logical beds
             double bedwidth = plater().bed_shape_bb().size().x();
@@ -1534,16 +1534,18 @@ struct Plater::priv
                     m_selected.insts[i]->apply_arrange_result(offs, rot, bdidx);
                 }
             }
-            
+
             // Handle the wipe tower
-            const arrangement::ArrangePolygon &wtipoly = m_selected.polys.back();
-            if (m_wti && wtipoly.bed_idx != arrangement::UNARRANGED) {
-                Vec2crd o = wtipoly.translation;
-                double  r = wtipoly.rotation;
-                o.x() += wtipoly.bed_idx * stride;
-                m_wti.apply_arrange_result(o, r);
+            if (m_wti && m_selected.polys.size() > m_selected.insts.size()) {
+                auto &wtipoly = m_selected.polys.back();
+                if (wtipoly.bed_idx != arrangement::UNARRANGED) {
+                    Vec2crd o = wtipoly.translation;
+                    double  r = wtipoly.rotation;
+                    o.x() += wtipoly.bed_idx * stride;
+                    m_wti.apply_arrange_result(o, r);
+                }
             }
-            
+
             // Call original finalize (will update the scene)
             Job::finalize();
         }
@@ -1638,6 +1640,8 @@ struct Plater::priv
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
     arrangement::BedShapeHint get_bed_shape_hint() const;
+    
+    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
@@ -2527,6 +2531,32 @@ arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
     return arrangement::BedShapeHint(bedpoly);
 }
 
+void Plater::priv::find_new_position(const ModelInstancePtrs &instances, coord_t min_d)
+{
+    arrangement::ArrangePolygons movable, fixed;
+    
+    for (const ModelObject *mo : model.objects)
+        for (const ModelInstance *inst : mo->instances) {
+            auto it = std::find(instances.begin(), instances.end(), inst);
+            auto arrpoly = inst->get_arrange_polygon();
+            
+            if (it == instances.end())
+                fixed.emplace_back(std::move(arrpoly));
+            else
+                movable.emplace_back(std::move(arrpoly));
+        }
+    
+    auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
+    if (wti) fixed.emplace_back(wti.get_arrange_polygon());
+    
+    arrangement::arrange(movable, fixed, min_d, get_bed_shape_hint());
+    
+    for (size_t i = 0; i < instances.size(); ++i)
+        if (movable[i].bed_idx == 0)
+            instances[i]->apply_arrange_result(movable[i].translation,
+                                               movable[i].rotation);
+}
+
 void Plater::priv::ArrangeJob::process() {
     static const auto arrangestr = _(L("Arranging"));
     
@@ -2560,31 +2590,6 @@ void Plater::priv::ArrangeJob::process() {
     update_status(int(count),
                   was_canceled() ? _(L("Arranging canceled."))
                                  : _(L("Arranging done.")));
-}
-
-void find_new_position(const Model &            model,
-                       ModelInstancePtrs        instances,
-                       coord_t                  min_d,
-                       const arrangement::BedShapeHint &bedhint)
-{
-    arrangement::ArrangePolygons movable, fixed;
-    
-    for (const ModelObject *mo : model.objects)
-        for (const ModelInstance *inst : mo->instances) {
-            auto it = std::find(instances.begin(), instances.end(), inst);
-            if (it != instances.end())
-                fixed.emplace_back(inst->get_arrange_polygon());
-        }
-    
-    for (ModelInstance *inst : instances)
-        movable.emplace_back(inst->get_arrange_polygon());
-    
-    arrangement::arrange(movable, fixed, min_d, bedhint);
-    
-    for (size_t i = 0; i < instances.size(); ++i)
-        if (movable[i].bed_idx == 0)
-            instances[i]->apply_arrange_result(movable[i].translation,
-                                               movable[i].rotation);
 }
 
 void Plater::priv::RotoptimizeJob::process()
@@ -2624,11 +2629,8 @@ void Plater::priv::RotoptimizeJob::process()
             
             oi->set_rotation(rt);
         }
-    
-        find_new_position(plater().model,
-                          o->instances,
-                          scaled(mindist),
-                          plater().get_bed_shape_hint());
+        
+        plater().find_new_position(o->instances, scaled(mindist));
 
         // Correct the z offset of the object which was corrupted be
         // the rotation
