@@ -312,6 +312,22 @@ void Selection::add_all()
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances)
+{
+    if (! m_valid)
+        return;
+
+	m_mode = mode;
+    for (unsigned int i : m_list)
+        (*m_volumes)[i]->selected = false;
+    m_list.clear();
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++ i)
+		if (std::binary_search(volumes_and_instances.begin(), volumes_and_instances.end(), (*m_volumes)[i]->geometry_id))
+			this->do_add_volume(i);
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
 void Selection::clear()
 {
     if (!m_valid)
@@ -790,6 +806,8 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0)
             {
+                wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
+
                 TransformationType type;
                 type.set_world();
                 type.set_relative();
@@ -798,12 +816,12 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
                 // apply scale
                 start_dragging();
                 scale(s * Vec3d::Ones(), type);
-                wxGetApp().plater()->canvas3D()->do_scale();
+                wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
 
                 // center selection on print bed
                 start_dragging();
                 translate(print_volume.center() - get_bounding_box().center());
-                wxGetApp().plater()->canvas3D()->do_move();
+                wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
                 wxGetApp().obj_manipul()->set_dirty();
             }
@@ -1177,7 +1195,7 @@ void Selection::copy_to_clipboard()
         ModelObject* dst_object = m_clipboard.add_object();
         dst_object->name                 = src_object->name;
         dst_object->input_file           = src_object->input_file;
-        dst_object->config               = src_object->config;
+		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
         dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
@@ -2016,6 +2034,10 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
 void Selection::paste_volumes_from_clipboard()
 {
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
     int dst_obj_idx = get_object_idx();
     if ((dst_obj_idx < 0) || ((int)m_model->objects.size() <= dst_obj_idx))
         return;
@@ -2057,6 +2079,9 @@ void Selection::paste_volumes_from_clipboard()
             }
 
             volumes.push_back(dst_volume);
+#ifdef _DEBUG
+		    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
         }
 
         // keeps relative position of multivolume selections
@@ -2070,10 +2095,18 @@ void Selection::paste_volumes_from_clipboard()
 
         wxGetApp().obj_list()->paste_volumes_into_list(dst_obj_idx, volumes);
     }
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 void Selection::paste_objects_from_clipboard()
 {
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
     std::vector<size_t> object_idxs;
     const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
     for (const ModelObject* src_object : src_objects)
@@ -2087,9 +2120,16 @@ void Selection::paste_objects_from_clipboard()
         }
 
         object_idxs.push_back(m_model->objects.size() - 1);
+#ifdef _DEBUG
+	    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
     }
 
     wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 } // namespace GUI

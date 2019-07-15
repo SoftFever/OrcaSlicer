@@ -51,7 +51,7 @@ public:
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
     ImVec2 calc_text_size(const wxString &text);
 
-    void set_next_window_pos(float x, float y, int flag);
+    void set_next_window_pos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     void set_next_window_bg_alpha(float alpha);
 
     bool begin(const std::string &name, int flags = 0);
@@ -67,6 +67,7 @@ public:
     void text(const std::string &label);
     void text(const wxString &label);
     bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
+    bool undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool, int, const char**), int& hovered, int& selected);
 
     void disabled_begin(bool disabled);
     void disabled_end();

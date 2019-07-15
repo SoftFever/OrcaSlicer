@@ -171,7 +171,7 @@ private:
         Vec3d dragging_center;
         // Map from indices of ModelObject instances in Model::objects
         // to a set of indices of ModelVolume instances in ModelObject::instances
-        // Here the index means a position inside the respective std::vector, not ModelID.
+        // Here the index means a position inside the respective std::vector, not ObjectID.
         ObjectIdxsToInstanceIdxsMap content;
     };
 
@@ -236,6 +236,9 @@ public:
     void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
     void add_all();
+
+    // To be called after Undo or Redo once the volumes are updated.
+    void set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances);
 
     // Update the selection based on the new instance IDs.
 	void instances_changed(const std::vector<size_t> &instance_ids_selected);

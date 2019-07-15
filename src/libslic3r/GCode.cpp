@@ -1809,7 +1809,7 @@ void GCode::append_full_config(const Print& print, std::string& str)
         const StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
             if (key != "compatible_printers")
-                str += "; " + key + " = " + cfg->serialize(key) + "\n";
+                str += "; " + key + " = " + cfg->opt_serialize(key) + "\n";
     }
     const DynamicConfig &full_config = print.placeholder_parser().config();
 	for (const char *key : {

@@ -242,8 +242,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                 selection.synchronize_unselected_volumes();
                 // Copy mirroring values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-                canvas->do_mirror();
-                canvas->set_as_dirty();
+                canvas->do_mirror("Set Mirror");
                 UpdateAndShow(true);
             });
         return sizer;
@@ -324,7 +323,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                     selection.synchronize_unselected_volumes();
                     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-                    canvas->do_rotate();
+                    canvas->do_rotate("Set Rotation");
 
                     UpdateAndShow(true);
                 });
@@ -710,7 +709,7 @@ void ObjectManipulation::change_position_value(int axis, double value)
     Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
-    canvas->do_move();
+    canvas->do_move("Set Position");
 
     m_cache.position = position;
 	m_cache.position_rounded(axis) = DBL_MAX;
@@ -741,7 +740,7 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
 		transformation_type);
-    canvas->do_rotate();
+    canvas->do_rotate("Set Orientation");
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
@@ -806,7 +805,7 @@ void ObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 
     selection.start_dragging();
     selection.scale(scaling_factor * 0.01, transformation_type);
-    wxGetApp().plater()->canvas3D()->do_scale();
+    wxGetApp().plater()->canvas3D()->do_scale("Set Scale");
 }
 
 void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any& value)
