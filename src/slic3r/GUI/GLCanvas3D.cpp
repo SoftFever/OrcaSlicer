@@ -3647,9 +3647,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "undo";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "undo_toolbar.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
     item.sprite_id = 11;
     item.left.toggable = false;
@@ -3663,9 +3661,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "redo";
-#if ENABLE_SVG_ICONS
     item.icon_filename = "redo_toolbar.svg";
-#endif // ENABLE_SVG_ICONS
     item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
     item.sprite_id = 12;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_REDO)); };
