@@ -2351,7 +2351,7 @@ void PrintObject::discover_horizontal_shells()
 //                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
                 
                 size_t solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_solid_layers.value;                
-                for (int n = (type == stTop) ? i-1 : i+1; std::abs(n - i) < solid_layers; (type == stTop) ? -- n : ++ n) {
+                for (int n = (type == stTop) ? i-1 : i+1; std::abs(n - (int)i) < solid_layers; (type == stTop) ? -- n : ++ n) {
                     if (n < 0 || n >= int(m_layers.size()))
                         continue;
 //                    Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;                  
