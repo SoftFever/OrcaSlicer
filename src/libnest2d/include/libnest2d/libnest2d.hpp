@@ -68,7 +68,7 @@ class _Item {
         BBCache(): valid(false) {}
     } bb_cache_;
     
-    int binid_{BIN_ID_UNSET};
+    int binid_{BIN_ID_UNSET}, priority_{0};
     bool fixed_{false};
 
 public:
@@ -130,8 +130,12 @@ public:
     
     inline bool isFixed() const noexcept { return fixed_; }
     inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
+    
     inline void binId(int idx) { binid_ = idx; }
     inline int binId() const noexcept { return binid_; }
+    
+    inline void priority(int p) { priority_ = p; }
+    inline int priority() const noexcept { return priority_; }
 
     /**
      * @brief Convert the polygon to string representation. The format depends

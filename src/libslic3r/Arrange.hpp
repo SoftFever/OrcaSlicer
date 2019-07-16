@@ -140,15 +140,18 @@ static const constexpr int UNARRANGED = -1;
 /// polygon belongs: UNARRANGED means no place for the polygon
 /// (also the initial state before arrange), 0..N means the index of the bed.
 /// Zero is the physical bed, larger than zero means a virtual bed.
-struct ArrangePolygon {
-    const ExPolygon poly;           /// The 2D silhouette to be arranged
+struct ArrangePolygon { 
+    ExPolygon poly;                 /// The 2D silhouette to be arranged
     Vec2crd   translation{0, 0};    /// The translation of the poly
     double    rotation{0.0};        /// The rotation of the poly in radians
     int       bed_idx{UNARRANGED};  /// To which logical bed does poly belong...
+    int       priority{0};
     
-    ArrangePolygon(ExPolygon p, const Vec2crd &tr = {}, double rot = 0.0)
-        : poly{std::move(p)}, translation{tr}, rotation{rot}
-    {}
+    /// Optional setter function which can store arbitrary data in its closure
+    std::function<void(const ArrangePolygon&)> setter = nullptr;
+    
+    /// Helper function to call the setter with the arrange data arguments
+    void apply() const { if (setter) setter(*this); }
 };
 
 using ArrangePolygons = std::vector<ArrangePolygon>;

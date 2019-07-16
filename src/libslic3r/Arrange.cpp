@@ -584,6 +584,7 @@ void arrange(ArrangePolygons &             arrangables,
         outp.back().rotation(rotation);
         outp.back().translation({offs.x(), offs.y()});
         outp.back().binId(arrpoly.bed_idx);
+        outp.back().priority(arrpoly.priority);
     };
 
     for (ArrangePolygon &arrangeable : arrangables)
@@ -595,7 +596,7 @@ void arrange(ArrangePolygons &             arrangables,
     for (Item &itm : fixeditems) itm.inflate(-2 * SCALED_EPSILON);
     
     // Integer ceiling the min distance from the bed perimeters
-    coord_t md = min_obj_dist - SCALED_EPSILON;
+    coord_t md = min_obj_dist - 2 * scaled(0.1 + EPSILON);
     md = (md % 2) ? md / 2 + 1 : md / 2;
     
     auto &cfn = stopcondition;

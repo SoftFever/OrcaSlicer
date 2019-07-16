@@ -387,20 +387,24 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         }
     
     arrangement::BedShapeHint bedhint;
-
-    if (bb)
+    coord_t bedwidth = 0;
+    
+    if (bb) {
+        bedwidth = scaled(bb->size().x());
         bedhint = arrangement::BedShapeHint(
             BoundingBox(scaled(bb->min), scaled(bb->max)));
+    }
 
     arrangement::arrange(input, scaled(dist), bedhint);
     
     bool ret = true;
+    coord_t stride = bedwidth + bedwidth / 5;
     
     for(size_t i = 0; i < input.size(); ++i) {
-        if (input[i].bed_idx == 0) { // no logical beds are allowed
-            instances[i]->apply_arrange_result(input[i].translation,
-                                               input[i].rotation);
-        } else ret = false;
+        if (input[i].bed_idx != 0) ret = false;
+        if (input[i].bed_idx >= 0)
+            instances[i]->apply_arrange_result(input[i],
+                                               {input[i].bed_idx * stride, 0});
     }
     
     return ret;
@@ -1822,22 +1826,24 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     
         // this may happen for malformed models, see:
         // https://github.com/prusa3d/PrusaSlicer/issues/2209
-        if (p.points.empty()) return {{}};
+        if (p.points.empty()) return {};
     
         Polygons pp{p};
         pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
         if (!pp.empty()) p = pp.front();
         m_arrange_cache.poly.contour = std::move(p);
+        m_arrange_cache.bed_origin = {0, 0};
+        m_arrange_cache.bed_idx = arrangement::UNARRANGED;
         m_arrange_cache.valid = true;
     }
 
-    arrangement::ArrangePolygon ret{m_arrange_cache.poly,
-                                    Vec2crd{scaled(get_offset(X)),
-                                            scaled(get_offset(Y))},
-                                    get_rotation(Z)};
-    
-    ret.bed_idx = m_arrange_cache.bed_idx;
-    
+    arrangement::ArrangePolygon ret;
+    ret.poly        = m_arrange_cache.poly;
+    ret.translation = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))} -
+                      m_arrange_cache.bed_origin;
+    ret.rotation    = get_rotation(Z);
+    ret.bed_idx     = m_arrange_cache.bed_idx;
+
     return ret;
 }
 

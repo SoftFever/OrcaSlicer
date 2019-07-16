@@ -5739,11 +5739,8 @@ const SLAPrint* GLCanvas3D::sla_print() const
     return (m_process == nullptr) ? nullptr : m_process->sla_print();
 }
 
-void GLCanvas3D::WipeTowerInfo::apply_arrange_result(Vec2crd off, double rotation_rads)
+void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
 {
-    Vec2d offset = unscaled(off);
-    m_pos        = offset;
-    m_rotation   = rotation_rads;
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = m_pos(X);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = m_pos(Y);

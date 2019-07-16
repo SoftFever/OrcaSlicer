@@ -558,13 +558,15 @@ public:
     arrangement::ArrangePolygon get_arrange_polygon() const;
     
     // Apply the arrange result on the ModelInstance
-    void apply_arrange_result(Vec2crd offs, double rot_rads, int bed_idx = 0)
+    void apply_arrange_result(const arrangement::ArrangePolygon& ap,
+                              const Vec2crd& bed_origin = {0, 0})
     {
         // write the transformation data into the model instance
-        set_rotation(Z, rot_rads);
-        set_offset(X, unscale<double>(offs(X)));
-        set_offset(Y, unscale<double>(offs(Y)));
-        m_arrange_cache.bed_idx = bed_idx;
+        set_rotation(Z, ap.rotation);
+        set_offset(X, unscale<double>(ap.translation(X) + bed_origin.x()));
+        set_offset(Y, unscale<double>(ap.translation(Y) + bed_origin.y()));
+        m_arrange_cache.bed_origin = bed_origin;
+        m_arrange_cache.bed_idx    = ap.bed_idx;
     }
 
 protected:
@@ -599,8 +601,9 @@ private:
     // Warning! This object is not guarded against concurrency.
     mutable struct ArrangeCache {
         bool valid = false;
-        int bed_idx { arrangement::UNARRANGED };
+        Vec2crd bed_origin {0, 0};
         ExPolygon poly;
+        int bed_idx = arrangement::UNARRANGED;
     } m_arrange_cache;
 };
 

@@ -1262,6 +1262,56 @@ struct Plater::priv
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
     
+    // Cache the wti info
+    class WipeTower: public GLCanvas3D::WipeTowerInfo {
+        Vec2d m_bed_origin = {0., 0.};
+        int   m_bed_idx = arrangement::UNARRANGED;
+        friend priv;
+    public:
+        
+        void apply_arrange_result(const arrangement::ArrangePolygon& ap,
+                                  const Vec2crd& bedc) {
+            m_bed_origin = unscaled(bedc);
+            m_pos = unscaled(ap.translation) + m_bed_origin;
+            m_rotation = ap.rotation;
+            m_bed_idx  = ap.bed_idx;
+            apply_wipe_tower();
+        }
+        
+        arrangement::ArrangePolygon get_arrange_polygon() const
+        {
+            Polygon p({
+                {coord_t(0), coord_t(0)},
+                {scaled(m_bb_size(X)), coord_t(0)},
+                {scaled(m_bb_size)},
+                {coord_t(0), scaled(m_bb_size(Y))},
+                {coord_t(0), coord_t(0)},
+                });
+            
+            arrangement::ArrangePolygon ret;
+            ret.poly.contour = std::move(p);
+            ret.translation  = scaled(m_pos) - scaled(m_bed_origin);
+            ret.rotation     = m_rotation;
+            ret.bed_idx      = m_bed_idx;
+            return ret;
+        }
+        
+        // For future use
+        int  bed_index() const { return m_bed_idx; }        
+    };
+    
+private:
+    WipeTower m_wipetower;
+    
+public:
+    WipeTower& wipe_tower() {
+        auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
+        m_wipetower.m_pos = wti.pos();
+        m_wipetower.m_rotation = wti.rotation();
+        m_wipetower.m_bb_size  = wti.bb_size();
+        return m_wipetower;
+    }
+    
     // A class to handle UI jobs like arranging and optimizing rotation.
     // These are not instant jobs, the user has to be informed about their
     // state in the status progress indicator. On the other hand they are 
@@ -1410,40 +1460,20 @@ struct Plater::priv
     
     class ArrangeJob : public Job
     {
+        using ArrangePolygon = arrangement::ArrangePolygon;
+        using ArrangePolygons = arrangement::ArrangePolygons;
+        
         // The gap between logical beds in the x axis expressed in ratio of
         // the current bed width.
         static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
+        static const constexpr int    UNARRANGED = arrangement::UNARRANGED;
         
-        // Cache the wti info
-        GLCanvas3D::WipeTowerInfo m_wti;
-        
-        // Cache the selected instances needed to write back the arrange
-        // result. The order of instances is the same as the arrange polys
-        struct IndexedArrangePolys {
-            ModelInstancePtrs insts;
-            arrangement::ArrangePolygons polys;
-            
-            void reserve(size_t cap) { insts.reserve(cap); polys.reserve(cap); }
-            void clear() { insts.clear(); polys.clear(); }
-        
-            void emplace_back(ModelInstance *inst) {
-                insts.emplace_back(inst);
-                polys.emplace_back(inst->get_arrange_polygon());
-            }
-            
-            void swap(IndexedArrangePolys &pp) {
-                insts.swap(pp.insts); polys.swap(pp.polys);
-            }
-        };
-        
-        IndexedArrangePolys m_selected, m_unselected;
+        ArrangePolygons m_selected, m_unselected;
         
     protected:
         
         void prepare() override
         {
-            m_wti = plater().view3D->get_canvas3d()->get_wipe_tower_info();
-            
             // Get the selection map
             Selection& sel = plater().get_selection();
             const Selection::ObjectIdxsToInstanceIdxsMap &selmap =
@@ -1458,59 +1488,57 @@ struct Plater::priv
             m_selected.reserve(count + 1 /* for optional wti */);
             m_unselected.reserve(count + 1 /* for optional wti */);
             
-            // Go through the objects and check if inside the selection
-            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-                auto oit = selmap.find(int(oidx));
-                
-                if (oit != selmap.end()) { // Object is selected
-                    auto &iids = oit->second;
-                    
-                    // Go through instances and check if inside selection
-                    size_t instcnt = model.objects[oidx]->instances.size();
-                    for (size_t iidx = 0; iidx < instcnt; ++iidx) {
-                        auto           instit = iids.find(iidx);
-                        ModelInstance *oi     = model.objects[oidx]
-                                                ->instances[iidx];
-                        
-                        // Instance is selected
-                        instit != iids.end() ?
-                            m_selected.emplace_back(oi) :
-                            m_unselected.emplace_back(oi);
-                    }
-                } else // object not selected, all instances are unselected
-                    for (ModelInstance *oi : model.objects[oidx]->instances)
-                        m_unselected.emplace_back(oi);
-            }
-
-            if (m_wti)
-                sel.is_wipe_tower() ?
-                    m_selected.polys.emplace_back(m_wti.get_arrange_polygon()) :
-                    m_unselected.polys.emplace_back(m_wti.get_arrange_polygon());
-           
-            // If the selection is completely empty, consider all items as the
-            // selection
-            if (m_selected.insts.empty() && m_selected.polys.empty())
-                m_selected.swap(m_unselected);            
-            
             // Stride between logical beds
             double bedwidth = plater().bed_shape_bb().size().x();
             coord_t stride = scaled((1. + LOGICAL_BED_GAP) * bedwidth);
             
-            for (arrangement::ArrangePolygon &ap : m_selected.polys)
-                if (ap.bed_idx > 0) ap.translation.x() -= ap.bed_idx * stride;
+            // Go through the objects and check if inside the selection
+            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                auto oit = selmap.find(int(oidx));
+                ModelObject *mo = model.objects[oidx];
+                
+                std::vector<bool> inst_sel(mo->instances.size(), false);
+                
+                if (oit != selmap.end())
+                    for (auto inst_id : oit->second) inst_sel[inst_id] = true;
+                
+                for (size_t i = 0; i < inst_sel.size(); ++i) {
+                    ModelInstance *mi = mo->instances[i];
+                    ArrangePolygon ap = mi->get_arrange_polygon();
+                    ap.priority = 0;
+                    ap.setter = [mi, stride](const ArrangePolygon &p) {
+                        if (p.bed_idx != UNARRANGED) 
+                            mi->apply_arrange_result(p, {p.bed_idx * stride, 0});
+                    };
+                    
+                    inst_sel[i] ?
+                        m_selected.emplace_back(std::move(ap)) :
+                        m_unselected.emplace_back(std::move(ap));
+                }
+            }
             
-            for (arrangement::ArrangePolygon &ap : m_unselected.polys)
-                if (ap.bed_idx > 0) ap.translation.x() -= ap.bed_idx * stride;
+            auto& wti = plater().wipe_tower();
+            if (wti) {
+                ArrangePolygon ap = wti.get_arrange_polygon();
+                ap.setter = [&wti, stride](const ArrangePolygon &p) {
+                    if (p.bed_idx != UNARRANGED)
+                        wti.apply_arrange_result(p, {p.bed_idx * stride, 0});
+                };
+                
+                ap.priority = 1;
+                sel.is_wipe_tower() ?
+                    m_selected.emplace_back(std::move(ap)) :
+                    m_unselected.emplace_back(std::move(ap));
+            }
+            
+            // If the selection was empty arrange everything
+            if (m_selected.empty()) m_selected.swap(m_unselected);
         }
         
     public:
         using Job::Job;
         
-        
-        int status_range() const override
-        {
-            return int(m_selected.polys.size());
-        }
+        int status_range() const override { return int(m_selected.size()); }
         
         void process() override;
         
@@ -1521,30 +1549,8 @@ struct Plater::priv
                 return;
             }
             
-            // Stride between logical beds
-            double bedwidth = plater().bed_shape_bb().size().x();
-            coord_t stride = scaled((1. + LOGICAL_BED_GAP) * bedwidth);
-            
-            for(size_t i = 0; i < m_selected.insts.size(); ++i) {
-                if (m_selected.polys[i].bed_idx != arrangement::UNARRANGED) {
-                    Vec2crd offs = m_selected.polys[i].translation;
-                    double rot   = m_selected.polys[i].rotation;
-                    int bdidx    = m_selected.polys[i].bed_idx;
-                    offs.x()    += bdidx * stride;
-                    m_selected.insts[i]->apply_arrange_result(offs, rot, bdidx);
-                }
-            }
-
-            // Handle the wipe tower
-            if (m_wti && m_selected.polys.size() > m_selected.insts.size()) {
-                auto &wtipoly = m_selected.polys.back();
-                if (wtipoly.bed_idx != arrangement::UNARRANGED) {
-                    Vec2crd o = wtipoly.translation;
-                    double  r = wtipoly.rotation;
-                    o.x() += wtipoly.bed_idx * stride;
-                    m_wti.apply_arrange_result(o, r);
-                }
-            }
+            // Apply the arrange result to all selected objects
+            for (ArrangePolygon &ap : m_selected) ap.apply();
 
             // Call original finalize (will update the scene)
             Job::finalize();
@@ -2531,7 +2537,8 @@ arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
     return arrangement::BedShapeHint(bedpoly);
 }
 
-void Plater::priv::find_new_position(const ModelInstancePtrs &instances, coord_t min_d)
+void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
+                                     coord_t min_d)
 {
     arrangement::ArrangePolygons movable, fixed;
     
@@ -2546,15 +2553,14 @@ void Plater::priv::find_new_position(const ModelInstancePtrs &instances, coord_t
                 movable.emplace_back(std::move(arrpoly));
         }
     
-    auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
-    if (wti) fixed.emplace_back(wti.get_arrange_polygon());
+    if (wipe_tower())
+        fixed.emplace_back(m_wipetower.get_arrange_polygon());
     
     arrangement::arrange(movable, fixed, min_d, get_bed_shape_hint());
     
     for (size_t i = 0; i < instances.size(); ++i)
         if (movable[i].bed_idx == 0)
-            instances[i]->apply_arrange_result(movable[i].translation,
-                                               movable[i].rotation);
+            instances[i]->apply_arrange_result(movable[i]);
 }
 
 void Plater::priv::ArrangeJob::process() {
@@ -2567,16 +2573,15 @@ void Plater::priv::ArrangeJob::process() {
         dist = PrintConfig::min_object_distance(plater().config);
     }
     
-    coord_t min_obj_distance = scaled(dist);
-    auto count = unsigned(m_selected.polys.size());
+    coord_t min_d = scaled(dist);
+    auto count = unsigned(m_selected.size());
     arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
     
     try {
-        arrangement::arrange(m_selected.polys, m_unselected.polys,
-                             min_obj_distance,
-                             bedshape,
+        arrangement::arrange(m_selected, m_unselected, min_d, bedshape,
                              [this, count](unsigned st) {
-                                 if (st > 0) // will not finalize after last one
+                                 if (st >
+                                     0) // will not finalize after last one
                                      update_status(count - st, arrangestr);
                              },
                              [this]() { return was_canceled(); });

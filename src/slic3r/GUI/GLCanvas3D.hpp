@@ -613,9 +613,10 @@ public:
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
     
     class WipeTowerInfo {
+    protected:
         Vec2d m_pos = {std::nan(""), std::nan("")};
-        Vec2d m_bb_size;
-        double m_rotation;
+        Vec2d m_bb_size = {0., 0.};
+        double m_rotation = 0.;
         friend class GLCanvas3D;
     public:
         
@@ -623,22 +624,12 @@ public:
         {
             return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
         }
-
-        void apply_arrange_result(Vec2crd offset, double rotation_rads);
         
-        arrangement::ArrangePolygon get_arrange_polygon() const
-        {
-            Polygon p({
-                {coord_t(0), coord_t(0)},
-                {scaled(m_bb_size(X)), coord_t(0)},
-                {scaled(m_bb_size)},
-                {coord_t(0), scaled(m_bb_size(Y))},
-                {coord_t(0), coord_t(0)},
-            });
-            
-            ExPolygon ep; ep.contour = std::move(p);
-            return {ep, scaled(m_pos), m_rotation};
-        }
+        inline const Vec2d& pos() const { return m_pos; }
+        inline double rotation() const { return m_rotation; }
+        inline const Vec2d bb_size() const { return m_bb_size; }
+        
+        void apply_wipe_tower() const;
     };
     
     WipeTowerInfo get_wipe_tower_info() const;

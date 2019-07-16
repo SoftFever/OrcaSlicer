@@ -62,9 +62,10 @@ public:
             placers.back().configure(pconfig);
             placers.back().preload(ig);
         }
-
+        
         auto sortfunc = [](Item& i1, Item& i2) {
-            return i1.area() > i2.area();
+            int p1 = i1.priority(), p2 = i2.priority();
+            return p1 == p2 ? i1.area() > i2.area() : p1 > p2;
         };
 
         std::sort(store_.begin(), store_.end(), sortfunc);
