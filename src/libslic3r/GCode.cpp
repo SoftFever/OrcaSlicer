@@ -2811,17 +2811,16 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
     const std::string& toolchange_gcode = m_config.toolchange_gcode.value;
-    if (m_writer.extruder() != nullptr) {
-        // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
-        if (!toolchange_gcode.empty()) {
-            DynamicConfig config;
-            config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
-            config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-            config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
-            config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
-            gcode += placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
-            check_add_eol(gcode);
-        }
+
+    // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
+    if (!toolchange_gcode.empty()) {
+        DynamicConfig config;
+        config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1 )));
+        config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
+        config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
+        gcode += placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
+        check_add_eol(gcode);
     }
 
     // We inform the writer about what is happening, but we may not use the resulting gcode.
