@@ -672,7 +672,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
 #define EXTRUDER_CONFIG(OPT) config.OPT.get_at(m_current_extruder)
         int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
         int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
-        if (layer_id >= EXTRUDER_CONFIG(disable_fan_first_layers)) {
+        if (layer_id >= (size_t)EXTRUDER_CONFIG(disable_fan_first_layers)) {
             int   max_fan_speed             = EXTRUDER_CONFIG(max_fan_speed);
             float slowdown_below_layer_time = float(EXTRUDER_CONFIG(slowdown_below_layer_time));
             float fan_below_layer_time      = float(EXTRUDER_CONFIG(fan_below_layer_time));

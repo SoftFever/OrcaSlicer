@@ -22,7 +22,6 @@ Linef3 transform(const Linef3& line, const Transform3d& t)
 bool Line::intersection_infinite(const Line &other, Point* point) const
 {
     Vec2d a1 = this->a.cast<double>();
-    Vec2d a2 = other.a.cast<double>();
     Vec2d v12 = (other.a - this->a).cast<double>();
     Vec2d v1 = (this->b - this->a).cast<double>();
     Vec2d v2 = (other.b - other.a).cast<double>();

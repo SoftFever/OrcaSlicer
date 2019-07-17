@@ -11,8 +11,8 @@ typedef class GLUquadric GLUquadricObj;
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 namespace Slic3r {
+class Shader;
 namespace GUI {
-
 class TransformationType
 {
 public:
@@ -171,7 +171,7 @@ private:
         Vec3d dragging_center;
         // Map from indices of ModelObject instances in Model::objects
         // to a set of indices of ModelVolume instances in ModelObject::instances
-        // Here the index means a position inside the respective std::vector, not ModelID.
+        // Here the index means a position inside the respective std::vector, not ObjectID.
         ObjectIdxsToInstanceIdxsMap content;
     };
 
@@ -212,7 +212,7 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
     void set_volumes(GLVolumePtrs* volumes);
-    bool init(bool useVBOs);
+    bool init();
 
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
@@ -236,6 +236,9 @@ public:
     void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
     void add_all();
+
+    // To be called after Undo or Redo once the volumes are updated.
+    void set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances);
 
     // Update the selection based on the new instance IDs.
 	void instances_changed(const std::vector<size_t> &instance_ids_selected);
@@ -302,7 +305,7 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    void render_sidebar_hints(const std::string& sidebar_field) const;
+    void render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const;
 
     bool requires_local_axes() const;
 
@@ -332,6 +335,7 @@ private:
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     void render_sidebar_scale_hints(const std::string& sidebar_field) const;
     void render_sidebar_size_hints(const std::string& sidebar_field) const;
+    void render_sidebar_layers_hints(const std::string& sidebar_field) const;
     void render_sidebar_position_hint(Axis axis) const;
     void render_sidebar_rotation_hint(Axis axis) const;
     void render_sidebar_scale_hint(Axis axis) const;

@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     }
 
     std::cout << "/* WARN: This file is auto-generated from `" << filename << "` */" << std::endl;
-    std::cout << "unsigned char " << symbol << "[] = {";
+    std::cout << "const unsigned char " << symbol << "[] = {";
 
     char c;
     std::cout << std::hex;
@@ -34,8 +34,8 @@ int main(int argc, char const *argv[])
     std::cout << "\n    0, 0\n};\n";
 
     std::cout << std::dec;
-    std::cout << "size_t " << symbol << "_size = " << size << ";" << std::endl;
-    std::cout << "size_t " << symbol << "_size_yy = " << size + 2 << ";" << std::endl;
+    std::cout << "const size_t " << symbol << "_size = " << size << ";" << std::endl;
+    std::cout << "const size_t " << symbol << "_size_yy = " << size + 2 << ";" << std::endl;
 
     return 0;
 }

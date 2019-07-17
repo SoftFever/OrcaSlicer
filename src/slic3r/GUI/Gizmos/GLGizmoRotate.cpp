@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoRotate.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -19,11 +20,7 @@ const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-#if ENABLE_SVG_ICONS
     : GLGizmoBase(parent, "", -1)
-#else
-    : GLGizmoBase(parent, -1)
-#endif // ENABLE_SVG_ICONS
     , m_axis(axis)
     , m_angle(0.0)
     , m_quadric(nullptr)
@@ -40,11 +37,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-#if ENABLE_SVG_ICONS
     : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
-#else
-    : GLGizmoBase(other.m_parent, other.m_sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_quadric(nullptr)
@@ -80,9 +73,9 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
-void GLGizmoRotate::on_start_dragging(const Selection& selection)
+void GLGizmoRotate::on_start_dragging()
 {
-    const BoundingBoxf3& box = selection.get_bounding_box();
+    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
     m_center = box.center();
     m_radius = Offset + box.radius();
     m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -91,9 +84,9 @@ void GLGizmoRotate::on_start_dragging(const Selection& selection)
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoRotate::on_update(const UpdateData& data)
 {
-    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, selection));
+    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, m_parent.get_selection()));
 
     Vec2d orig_dir = Vec2d::UnitX();
     Vec2d new_dir = mouse_pos.normalized();
@@ -126,11 +119,12 @@ void GLGizmoRotate::on_update(const UpdateData& data, const Selection& selection
     m_angle = theta;
 }
 
-void GLGizmoRotate::on_render(const Selection& selection) const
+void GLGizmoRotate::on_render() const
 {
     if (!m_grabbers[0].enabled)
         return;
 
+    const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
 
     std::string axis;
@@ -183,8 +177,10 @@ void GLGizmoRotate::on_render(const Selection& selection) const
     glsafe(::glPopMatrix());
 }
 
-void GLGizmoRotate::on_render_for_picking(const Selection& selection) const
+void GLGizmoRotate::on_render_for_picking() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
@@ -417,13 +413,8 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
-#if ENABLE_SVG_ICONS
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
 {
     m_gizmos.emplace_back(parent, GLGizmoRotate::X);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
@@ -458,10 +449,10 @@ std::string GLGizmoRotate3D::on_get_name() const
     return (_(L("Rotate")) + " [R]").ToUTF8().data();
 }
 
-void GLGizmoRotate3D::on_start_dragging(const Selection& selection)
+void GLGizmoRotate3D::on_start_dragging()
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
-        m_gizmos[m_hover_id].start_dragging(selection);
+        m_gizmos[m_hover_id].start_dragging();
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
@@ -470,23 +461,23 @@ void GLGizmoRotate3D::on_stop_dragging()
         m_gizmos[m_hover_id].stop_dragging();
 }
 
-void GLGizmoRotate3D::on_render(const Selection& selection) const
+void GLGizmoRotate3D::on_render() const
 {
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     if ((m_hover_id == -1) || (m_hover_id == 0))
-        m_gizmos[X].render(selection);
+        m_gizmos[X].render();
 
     if ((m_hover_id == -1) || (m_hover_id == 1))
-        m_gizmos[Y].render(selection);
+        m_gizmos[Y].render();
 
     if ((m_hover_id == -1) || (m_hover_id == 2))
-        m_gizmos[Z].render(selection);
+        m_gizmos[Z].render();
 }
 
-void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
-{
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
+{
     Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
     wxString label = _(L("Rotation (deg)"));
 
@@ -495,8 +486,8 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
     m_imgui->end();
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 
 

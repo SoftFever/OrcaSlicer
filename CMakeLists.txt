@@ -169,8 +169,19 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
-    #removes LOTS of extraneous Eigen warnings
-    # add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
+    #removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
+    #if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 6.1)
+        # add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
+    #endif()
+
+    #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
+    # We will turn the warning of for GCC for now:
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options(-Wno-unknown-pragmas)
+    endif()
+
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -343,6 +354,10 @@ if (NOT GLEW_FOUND)
     add_definitions(-DGLEW_STATIC)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
+
+# Find the Cereal serialization library
+add_library(cereal INTERFACE)
+target_include_directories(cereal INTERFACE include)
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")

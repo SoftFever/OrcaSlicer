@@ -22,11 +22,7 @@ class GLGizmoMove3D : public GLGizmoBase
     GLUquadricObj* m_quadric;
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -37,12 +33,14 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
-    virtual void on_start_dragging(const Selection& selection);
+    virtual void on_start_dragging();
     virtual void on_stop_dragging();
-    virtual void on_update(const UpdateData& data, const Selection& selection);
-    virtual void on_render(const Selection& selection) const;
-    virtual void on_render_for_picking(const Selection& selection) const;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection);
+    virtual void on_update(const UpdateData& data);
+    virtual void on_render() const;
+    virtual void on_render_for_picking() const;
+#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+    virtual void on_render_input_window(float x, float y, float bottom_limit);
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 private:
     double calc_projection(const UpdateData& data) const;

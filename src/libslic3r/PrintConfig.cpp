@@ -36,7 +36,6 @@ PrintConfigDef::PrintConfigDef()
 
 void PrintConfigDef::init_common_params()
 {
-    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     def = this->add("printer_technology", coEnum);
@@ -102,7 +101,6 @@ void PrintConfigDef::init_common_params()
 
 void PrintConfigDef::init_fff_params()
 {
-    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     // Maximum extruder temperature, bumped to 1500 to support printing of glass.
@@ -368,7 +366,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("end_filament_gcode", coStrings);
     def->label = L("End G-code");
-    def->tooltip = L("This end procedure is inserted at the end of the output file, before the printer end gcode. "
+    def->tooltip = L("This end procedure is inserted at the end of the output file, before the printer end gcode (and "
+                   "before any toolchange from this filament in case of multimaterial printers). "
                    "Note that you can use placeholder variables for all Slic3r settings. "
                    "If you have multiple extruders, the gcode is processed in extruder order.");
     def->multiline = true;
@@ -406,10 +405,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
     def = this->add("bottom_fill_pattern", coEnum);
-    *def = *def_top_fill_pattern;
     def->label = L("Bottom fill pattern");
+    def->category = L("Infill");
     def->tooltip = L("Fill pattern for bottom infill. This only affects the bottom external visible layer, and not its adjacent solid shells.");
     def->cli = "bottom-fill-pattern|external-fill-pattern|solid-fill-pattern";
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values = def_top_fill_pattern->enum_values;
+    def->aliases = def_top_fill_pattern->aliases;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
     def = this->add("external_perimeter_extrusion_width", coFloatOrPercent);
@@ -1085,16 +1087,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine feedrate limits for XYZE axes. (M203)
 			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum feedrate %1%") % axis_upper).str();
-			L("Maximum feedrate X");
-			L("Maximum feedrate Y");
-			L("Maximum feedrate Z");
-			L("Maximum feedrate E");
+			(void)L("Maximum feedrate X");
+			(void)L("Maximum feedrate Y");
+			(void)L("Maximum feedrate Z");
+			(void)L("Maximum feedrate E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum feedrate of the %1% axis") % axis_upper).str();
-			L("Maximum feedrate of the X axis");
-			L("Maximum feedrate of the Y axis");
-			L("Maximum feedrate of the Z axis");
-			L("Maximum feedrate of the E axis");
+			(void)L("Maximum feedrate of the X axis");
+			(void)L("Maximum feedrate of the Y axis");
+			(void)L("Maximum feedrate of the Z axis");
+			(void)L("Maximum feedrate of the E axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1103,16 +1105,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum acceleration %1%") % axis_upper).str();
-			L("Maximum acceleration X");
-			L("Maximum acceleration Y");
-			L("Maximum acceleration Z");
-			L("Maximum acceleration E");
+			(void)L("Maximum acceleration X");
+			(void)L("Maximum acceleration Y");
+			(void)L("Maximum acceleration Z");
+			(void)L("Maximum acceleration E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum acceleration of the %1% axis") % axis_upper).str();
-			L("Maximum acceleration of the X axis");
-			L("Maximum acceleration of the Y axis");
-			L("Maximum acceleration of the Z axis");
-			L("Maximum acceleration of the E axis");
+			(void)L("Maximum acceleration of the X axis");
+			(void)L("Maximum acceleration of the Y axis");
+			(void)L("Maximum acceleration of the Z axis");
+			(void)L("Maximum acceleration of the E axis");
 			def->sidetext = L("mm/s²");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1121,16 +1123,16 @@ void PrintConfigDef::init_fff_params()
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
 			def->full_label = (boost::format("Maximum jerk %1%") % axis_upper).str();
-			L("Maximum jerk X");
-			L("Maximum jerk Y");
-			L("Maximum jerk Z");
-			L("Maximum jerk E");
+			(void)L("Maximum jerk X");
+			(void)L("Maximum jerk Y");
+			(void)L("Maximum jerk Z");
+			(void)L("Maximum jerk E");
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format("Maximum jerk of the %1% axis") % axis_upper).str();
-			L("Maximum jerk of the X axis");
-			L("Maximum jerk of the Y axis");
-			L("Maximum jerk of the Z axis");
-			L("Maximum jerk of the E axis");
+			(void)L("Maximum jerk of the X axis");
+			(void)L("Maximum jerk of the Y axis");
+			(void)L("Maximum jerk of the Z axis");
+			(void)L("Maximum jerk of the E axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1784,7 +1786,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("start_filament_gcode", coStrings);
     def->label = L("Start G-code");
-    def->tooltip = L("This start procedure is inserted at the beginning, after any printer start gcode. "
+    def->tooltip = L("This start procedure is inserted at the beginning, after any printer start gcode (and "
+                   "after any toolchange to this filament in case of multi-material printers). "
                    "This is used to override settings for a specific filament. If Slic3r detects "
                    "M104, M109, M140 or M190 in your custom codes, such commands will "
                    "not be prepended automatically so you're free to customize the order "
@@ -2039,9 +2042,10 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("toolchange_gcode", coString);
     def->label = L("Tool change G-code");
-    def->tooltip = L("This custom code is inserted right before every extruder change. "
-                   "Note that you can use placeholder variables for all Slic3r settings as well "
-                   "as [previous_extruder] and [next_extruder].");
+    def->tooltip = L("This custom code is inserted at every extruder change. If you don't leave this empty, you are "
+                     "expected to take care of the toolchange yourself - PrusaSlicer will not output any other G-code to "
+                     "change the filament. You can use placeholder variables for all Slic3r settings as well as [previous_extruder] "
+                     "and [next_extruder], so e.g. the standard toolchange command can be scripted as T[next_extruder].");
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
@@ -2228,7 +2232,6 @@ void PrintConfigDef::init_fff_params()
 
 void PrintConfigDef::init_sla_params()
 {
-    t_optiondef_map &Options = this->options;    
     ConfigOptionDef* def;
 
     // SLA Printer settings
@@ -2504,6 +2507,19 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.0));
+    
+    def = this->add("support_base_safety_distance", coFloat);
+    def->label = L("Support base safety distance");
+    def->category = L("Supports");
+    def->tooltip  = L(
+        "The minimum distance of the pillar base from the model in mm. "
+        "Makes sense in zero elevation mode where a gap according "
+        "to this parameter is inserted between the model and the pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("support_critical_angle", coFloat);
     def->label = L("Critical angle");
@@ -2537,7 +2553,9 @@ void PrintConfigDef::init_sla_params()
     def = this->add("support_object_elevation", coFloat);
     def->label = L("Object elevation");
     def->category = L("Supports");
-    def->tooltip = L("How much the supports should lift up the supported object.");
+    def->tooltip = L("How much the supports should lift up the supported object. "
+                     "If this value is zero, the bottom of the model geometry "
+                     "will be considered as part of the pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 150; // This is the max height of print on SL1
@@ -2623,6 +2641,47 @@ void PrintConfigDef::init_sla_params()
     def->max = 90;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45.0));
+    
+    def = this->add("pad_object_gap", coFloat);
+    def->label = L("Pad object gap");
+    def->category = L("Pad");
+    def->tooltip  = L("The gap between the object bottom and the generated "
+                      "pad in zero elevation mode.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(1));
+    
+    def = this->add("pad_object_connector_stride", coFloat);
+    def->label = L("Pad object connector stride");
+    def->category = L("Pad");
+    def->tooltip = L("Distance between two connector sticks between "
+                     "the object pad and the generated pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(10));
+    
+    def = this->add("pad_object_connector_width", coFloat);
+    def->label = L("Pad object connector width");
+    def->category = L("Pad");
+    def->tooltip  = L("The width of the connectors sticks which connect the "
+                      "object pad and the generated pad.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+    
+    def = this->add("pad_object_connector_penetration", coFloat);
+    def->label = L("Pad object connector penetration");
+    def->category = L("Pad");
+    def->tooltip  = L(
+        "How much should the tiny connectors penetrate into the model body.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.3));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
@@ -3194,3 +3253,7 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
 }
 
 }
+
+#include <cereal/types/polymorphic.hpp>
+CEREAL_REGISTER_TYPE(Slic3r::DynamicPrintConfig)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::DynamicConfig, Slic3r::DynamicPrintConfig) 

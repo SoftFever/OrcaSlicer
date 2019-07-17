@@ -132,7 +132,7 @@ struct HashTableEdges {
 	~HashTableEdges() {
 #ifndef NDEBUG
 		for (int i = 0; i < this->M; ++ i)
-	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i])
+	    	for (HashEdge *temp = this->heads[i]; temp != this->tail; temp = temp->next)
 	        	++ this->freed;
 		this->tail = nullptr;
 #endif /* NDEBUG */

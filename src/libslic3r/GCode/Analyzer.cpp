@@ -106,6 +106,11 @@ void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap
     m_extruder_offsets = extruder_offsets;
 }
 
+void GCodeAnalyzer::set_gcode_flavor(const GCodeFlavor& flavor)
+{
+    m_gcode_flavor = flavor;
+}
+
 void GCodeAnalyzer::reset()
 {
     _set_units(Millimeters);
@@ -247,6 +252,14 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
                 case 83: // Set extruder to relative mode
                     {
                         _processM83(line);
+                        break;
+                    }
+                case 108:
+                case 135:
+                    {
+                        // these are used by MakerWare and Sailfish firmwares
+                        // for tool changing - we can process it in one place
+                        _processM108orM135(line);
                         break;
                     }
                 }
@@ -426,9 +439,27 @@ void GCodeAnalyzer::_processM600(const GCodeReader::GCodeLine& line)
     _set_cp_color_id(m_state.cur_cp_color_id);
 }
 
-void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
+void GCodeAnalyzer::_processM108orM135(const GCodeReader::GCodeLine& line)
 {
-    std::string cmd = line.cmd();
+    // These M-codes are used by MakerWare and Sailfish to change active tool.
+    // They have to be processed otherwise toolchanges will be unrecognised
+    // by the analyzer - see https://github.com/prusa3d/PrusaSlicer/issues/2566
+
+    size_t code = ::atoi(&(line.cmd()[1]));
+    if ((code == 108 && m_gcode_flavor == gcfSailfish)
+     || (code == 135 && m_gcode_flavor == gcfMakerWare)) {
+
+        std::string cmd = line.raw();
+        size_t T_pos = cmd.find("T");
+        if (T_pos != std::string::npos) {
+            cmd = cmd.substr(T_pos);
+            _processT(cmd);
+        }
+    }
+}
+
+void GCodeAnalyzer::_processT(const std::string& cmd)
+{
     if (cmd.length() > 1)
     {
         unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
@@ -440,6 +471,11 @@ void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
             _store_move(GCodeMove::Tool_change);
         }
     }
+}
+
+void GCodeAnalyzer::_processT(const GCodeReader::GCodeLine& line)
+{
+    _processT(line.cmd());
 }
 
 bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)

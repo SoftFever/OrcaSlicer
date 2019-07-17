@@ -141,6 +141,18 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
 {}
 
+GUI_App::~GUI_App()
+{
+    if (app_config != nullptr)
+        delete app_config;
+
+    if (preset_bundle != nullptr)
+        delete preset_bundle;
+
+    if (preset_updater != nullptr)
+        delete preset_updater;
+}
+
 bool GUI_App::OnInit()
 {
     try {
@@ -920,6 +932,11 @@ ObjectSettings* GUI_App::obj_settings()
 ObjectList* GUI_App::obj_list()
 {
     return sidebar().obj_list();
+}
+
+ObjectLayers* GUI_App::obj_layers()
+{
+    return sidebar().obj_layers();
 }
 
 Plater* GUI_App::plater()

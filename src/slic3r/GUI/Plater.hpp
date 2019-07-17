@@ -33,6 +33,7 @@ class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
 class ObjectSettings;
+class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 
@@ -93,6 +94,7 @@ public:
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
+    ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
     wxPanel*                presets_panel();
 
@@ -136,6 +138,7 @@ public:
 
     void new_project();
     void load_project();
+    void load_project(const wxString& filename);
     void add_model();
     void extract_config_from_project();
 
@@ -181,6 +184,16 @@ public:
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 
+    void take_snapshot(const std::string &snapshot_name);
+    void take_snapshot(const wxString &snapshot_name);
+    void suppress_snapshots();
+    void allow_snapshots();
+    void undo();
+    void redo();
+    void undo_to(int selection);
+    void redo_to(int selection);
+    bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
+
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
     // On activating the parent window.
@@ -215,8 +228,12 @@ public:
     bool can_layers_editing() const;
     bool can_paste_from_clipboard() const;
     bool can_copy_to_clipboard() const;
+    bool can_undo() const;
+    bool can_redo() const;
 
     void msw_rescale();
+
+    const Camera& get_camera() const;
 
 private:
     struct priv;

@@ -34,25 +34,30 @@ use Slic3r::Test;
 {
     # this represents the aggregate config from presets
     my $config = Slic3r::Config::new_from_defaults;
+    # Define 4 extruders.
+    $config->set('nozzle_diameter', [0.4, 0.4, 0.4, 0.4]);
     
     # user adds one object to the plater
     my $print = Slic3r::Test::init_print(my $model = Slic3r::Test::model('20mm_cube'), config => $config);
     
     # user sets a per-region option
-    $print->print->objects->[0]->model_object->config->set('fill_density', 100);
-    $print->print->reload_object(0);
+    my $model2 = $model->clone;
+    $model2->get_object(0)->config->set('fill_density', 100);
+    $print->apply($model2, $config);
+    
     is $print->print->regions->[0]->config->fill_density, 100, 'region config inherits model object config';
     
     # user exports G-code, thus the default config is reapplied
-    $print->print->apply_config_perl_tests_only($config);
-    
-    is $print->print->regions->[0]->config->fill_density, 100, 'apply_config() does not override per-object settings';
+    $model2->get_object(0)->config->erase('fill_density');
+    $print->apply($model2, $config);
+
+    is $print->print->regions->[0]->config->fill_density, 20, 'region config is resetted';
     
     # user assigns object extruders
-    $print->print->objects->[0]->model_object->config->set('extruder', 3);
-    $print->print->objects->[0]->model_object->config->set('perimeter_extruder', 2);
-    $print->print->reload_object(0);
-    
+    $model2->get_object(0)->config->set('extruder', 3);
+    $model2->get_object(0)->config->set('perimeter_extruder', 2);
+    $print->apply($model2, $config);
+
     is $print->print->regions->[0]->config->infill_extruder, 3, 'extruder setting is correctly expanded';
     is $print->print->regions->[0]->config->perimeter_extruder, 2, 'extruder setting does not override explicitely specified extruders';
 }
