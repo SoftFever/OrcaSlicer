@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include <numeric>
 
@@ -21,6 +22,22 @@ bool GLGizmoFlatten::on_init()
 {
     m_shortcut_key = WXK_CONTROL_F;
     return true;
+}
+
+void GLGizmoFlatten::on_set_state()
+{
+    // m_model_object pointer can be invalid (for instance because of undo/redo action),
+    // we should recover it from the object id
+    m_model_object = nullptr;
+    for (const auto mo : *wxGetApp().model_objects()) {
+        if (mo->id() == m_model_object_id) {
+            m_model_object = mo;
+            break;
+        }
+    }
+
+    if (m_state == On && is_plane_update_necessary())
+        update_planes();
 }
 
 std::string GLGizmoFlatten::on_get_name() const
@@ -120,6 +137,7 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
         m_planes_valid = false;
     }
     m_model_object = model_object;
+    m_model_object_id = model_object ? model_object->id() : 0;
 }
 
 void GLGizmoFlatten::update_planes()
