@@ -3410,9 +3410,9 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
         if (vol->is_wipe_tower) {
             wti.m_pos = Vec2d(m_config->opt_float("wipe_tower_x"),
                             m_config->opt_float("wipe_tower_y"));
-            wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
+            wti.m_rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
             const BoundingBoxf3& bb = vol->bounding_box();
-            wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
+            wti.m_bb_size = Vec2d(bb.size().x(), bb.size().y());
             break;
         }
     }

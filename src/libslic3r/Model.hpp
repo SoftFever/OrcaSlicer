@@ -623,10 +623,18 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) { assert(this->id().valid()); }
+    explicit ModelInstance(ModelObject *object) : print_volume_state(PVS_Inside), object(object)
+    {
+        assert(this->id().valid());
+        get_arrange_polygon(); // initialize the cache
+    }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) { assert(this->id().valid() && this->id() != other.id()); }
+        m_transformation(other.m_transformation), print_volume_state(PVS_Inside), object(object)
+    {
+        assert(this->id().valid() && this->id() != other.id());
+        get_arrange_polygon(); // initialize the cache
+    }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
@@ -641,10 +649,10 @@ private:
 	}
     
     // Warning! This object is not guarded against concurrency.
-    // mutable struct ArrangeCache {
-    //     bool valid = false;
-    //     ExPolygon poly;
-    // } m_arrange_cache;
+    mutable struct ArrangeCache {
+        bool      valid = false;
+        ExPolygon poly;
+    } m_arrange_cache;
 };
 
 // The print bed content.
