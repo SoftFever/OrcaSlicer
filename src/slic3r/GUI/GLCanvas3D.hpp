@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <memory>
 
-#include "libslic3r/Arrange.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"

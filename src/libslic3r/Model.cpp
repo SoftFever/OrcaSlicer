@@ -402,9 +402,11 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
     
     for(size_t i = 0; i < input.size(); ++i) {
         if (input[i].bed_idx != 0) ret = false;
-        if (input[i].bed_idx >= 0)
-            instances[i]->apply_arrange_result(input[i],
-                                               {input[i].bed_idx * stride, 0});
+        if (input[i].bed_idx >= 0) {
+            input[i].translation += Vec2crd{input[i].bed_idx * stride, 0};
+            instances[i]->apply_arrange_result(input[i].translation,
+                                               input[i].rotation);
+        }
     }
     
     return ret;
@@ -1826,23 +1828,20 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     
         // this may happen for malformed models, see:
         // https://github.com/prusa3d/PrusaSlicer/issues/2209
-        if (p.points.empty()) return {};
-    
-        Polygons pp{p};
-        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-        if (!pp.empty()) p = pp.front();
+        if (!p.points.empty()) {
+            Polygons pp{p};
+            pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+            if (!pp.empty()) p = pp.front();
+        }
+        
         m_arrange_cache.poly.contour = std::move(p);
-        m_arrange_cache.bed_origin = {0, 0};
-        m_arrange_cache.bed_idx = arrangement::UNARRANGED;
         m_arrange_cache.valid = true;
     }
 
     arrangement::ArrangePolygon ret;
     ret.poly        = m_arrange_cache.poly;
-    ret.translation = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))} -
-                      m_arrange_cache.bed_origin;
+    ret.translation = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
     ret.rotation    = get_rotation(Z);
-    ret.bed_idx     = m_arrange_cache.bed_idx;
 
     return ret;
 }

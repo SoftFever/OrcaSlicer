@@ -1264,21 +1264,18 @@ struct Plater::priv
     
     // Cache the wti info
     class WipeTower: public GLCanvas3D::WipeTowerInfo {
-        Vec2d m_bed_origin = {0., 0.};
-        int   m_bed_idx = arrangement::UNARRANGED;
+        using ArrangePolygon = arrangement::ArrangePolygon;
+        static const constexpr auto UNARRANGED = arrangement::UNARRANGED;
         friend priv;
     public:
         
-        void apply_arrange_result(const arrangement::ArrangePolygon& ap,
-                                  const Vec2crd& bedc) {
-            m_bed_origin = unscaled(bedc);
-            m_pos = unscaled(ap.translation) + m_bed_origin;
-            m_rotation = ap.rotation;
-            m_bed_idx  = ap.bed_idx;
+        void apply_arrange_result(const Vec2crd& tr, double rotation)
+        {
+            m_pos = unscaled(tr); m_rotation = rotation;
             apply_wipe_tower();
         }
         
-        arrangement::ArrangePolygon get_arrange_polygon() const
+        ArrangePolygon get_arrange_polygon() const
         {
             Polygon p({
                 {coord_t(0), coord_t(0)},
@@ -1288,28 +1285,20 @@ struct Plater::priv
                 {coord_t(0), coord_t(0)},
                 });
             
-            arrangement::ArrangePolygon ret;
+            ArrangePolygon ret;
             ret.poly.contour = std::move(p);
-            ret.translation  = scaled(m_pos) - scaled(m_bed_origin);
+            ret.translation  = scaled(m_pos);
             ret.rotation     = m_rotation;
-            ret.bed_idx      = m_bed_idx;
             return ret;
         }
-        
-        // For future use
-        int  bed_index() const { return m_bed_idx; }        
-    };
+    } wipetower;
     
-private:
-    WipeTower m_wipetower;
-    
-public:
-    WipeTower& wipe_tower() {
+    WipeTower& updated_wipe_tower() {
         auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
-        m_wipetower.m_pos = wti.pos();
-        m_wipetower.m_rotation = wti.rotation();
-        m_wipetower.m_bb_size  = wti.bb_size();
-        return m_wipetower;
+        wipetower.m_pos = wti.pos();
+        wipetower.m_rotation = wti.rotation();
+        wipetower.m_bb_size  = wti.bb_size();
+        return wipetower;
     }
     
     // A class to handle UI jobs like arranging and optimizing rotation.
@@ -1506,26 +1495,31 @@ public:
                     ModelInstance *mi = mo->instances[i];
                     ArrangePolygon ap = mi->get_arrange_polygon();
                     ap.priority = 0;
-                    ap.setter = [mi, stride](const ArrangePolygon &p) {
-                        if (p.bed_idx != UNARRANGED) 
-                            mi->apply_arrange_result(p, {p.bed_idx * stride, 0});
-                    };
+                    ap.bed_idx = ap.translation.x() / stride;
                     
+                    ap.setter = [mi, stride](const ArrangePolygon &p) {
+                        if (p.bed_idx != UNARRANGED) {
+                            auto t = p.translation; t.x() += p.bed_idx * stride;
+                            mi->apply_arrange_result(t, p.rotation);
+                        }
+                    };
+
                     inst_sel[i] ?
                         m_selected.emplace_back(std::move(ap)) :
                         m_unselected.emplace_back(std::move(ap));
                 }
             }
             
-            auto& wti = plater().wipe_tower();
+            auto& wti = plater().updated_wipe_tower();
             if (wti) {
                 ArrangePolygon ap = wti.get_arrange_polygon();
+                ap.bed_idx = ap.translation.x() / stride;
+                ap.priority = 1; // Wipe tower should be on physical bed
                 ap.setter = [&wti, stride](const ArrangePolygon &p) {
-                    if (p.bed_idx != UNARRANGED)
-                        wti.apply_arrange_result(p, {p.bed_idx * stride, 0});
+                    auto t = p.translation; t.x() += p.bed_idx * stride;
+                    wti.apply_arrange_result(t, p.rotation);
                 };
                 
-                ap.priority = 1;
                 sel.is_wipe_tower() ?
                     m_selected.emplace_back(std::move(ap)) :
                     m_unselected.emplace_back(std::move(ap));
@@ -1533,6 +1527,11 @@ public:
             
             // If the selection was empty arrange everything
             if (m_selected.empty()) m_selected.swap(m_unselected);
+            
+            // The strides have to be removed from the fixed items. For the
+            // arrangeable (selected) items it bed_idx is ignored and the
+            // translation is irrelevant.
+            for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
         }
         
     public:
@@ -2553,14 +2552,15 @@ void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
                 movable.emplace_back(std::move(arrpoly));
         }
     
-    if (wipe_tower())
-        fixed.emplace_back(m_wipetower.get_arrange_polygon());
+    if (updated_wipe_tower())
+        fixed.emplace_back(wipetower.get_arrange_polygon());
     
     arrangement::arrange(movable, fixed, min_d, get_bed_shape_hint());
     
     for (size_t i = 0; i < instances.size(); ++i)
         if (movable[i].bed_idx == 0)
-            instances[i]->apply_arrange_result(movable[i]);
+            instances[i]->apply_arrange_result(movable[i].translation,
+                                               movable[i].rotation);
 }
 
 void Plater::priv::ArrangeJob::process() {
