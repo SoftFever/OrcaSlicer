@@ -737,17 +737,6 @@ public:
         return impl_.getResult();
     }
 
-    /**
-     * @brief Loading a group of already packed bins. It is best to use a result
-     * from a previous packing. The algorithm will consider this input as if the
-     * objects are already packed and not move them. If any of these items are
-     * outside the bin, it is up to the placer algorithm what will happen.
-     * Packing additional items can fail for the bottom-left and nfp placers.
-     * @param pckgrp A packgroup which is a vector of item vectors. Each item
-     * vector corresponds to a packed bin.
-     */
-    inline void preload(const PackGroup& pckgrp) { impl_.preload(pckgrp); }
-
     void clear() { impl_.clear(); }
 };
 
