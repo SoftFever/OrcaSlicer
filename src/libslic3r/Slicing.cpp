@@ -196,7 +196,6 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
         coordf_t hi = it_range->first.second;
         coordf_t height = it_range->second;
         coordf_t last_z      = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 2];
-        coordf_t last_height = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 1];
         if (lo > last_z + EPSILON) {
             // Insert a step of normal layer height.
             layer_height_profile.push_back(last_z);
@@ -212,7 +211,6 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     }
 
     coordf_t last_z      = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 2];
-    coordf_t last_height = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 1];
     if (last_z < slicing_params.object_print_z_height()) {
         // Insert a step of normal layer height up to the object top.
         layer_height_profile.push_back(last_z);
@@ -254,7 +252,6 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     }
     coordf_t slice_z = slicing_params.first_object_layer_height;
     coordf_t height  = slicing_params.first_object_layer_height;
-    coordf_t cusp_height = 0.;
     int current_facet = 0;
     while ((slice_z - height) <= slicing_params.object_print_z_height()) {
         height = 999;
@@ -410,7 +407,6 @@ void adjust_layer_height_profile(
         }
         // Adjust height by layer_thickness_delta.
         coordf_t weight = std::abs(zz - z) < 0.5 * band_width ? (0.5 + 0.5 * cos(2. * M_PI * (zz - z) / band_width)) : 0.;
-        coordf_t height_new = height;
         switch (action) {
             case LAYER_HEIGHT_EDIT_ACTION_INCREASE:
             case LAYER_HEIGHT_EDIT_ACTION_DECREASE:

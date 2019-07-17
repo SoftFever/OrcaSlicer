@@ -195,4 +195,24 @@ TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 
 }
 
+// Serialization through the Cereal library
+#include <cereal/access.hpp>
+namespace cereal {
+	template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
+	template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
+        stl_file &stl = mesh.stl;
+        stl.stats.type = inmemory;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+        stl_allocate(&stl);
+		archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+        stl_get_size(&stl);
+        mesh.repair();
+	}
+	template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
+		const stl_file& stl = mesh.stl;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+		archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+	}
+}
+
 #endif

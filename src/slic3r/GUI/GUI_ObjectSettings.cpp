@@ -63,20 +63,28 @@ ObjectSettings::ObjectSettings(wxWindow* parent) :
     m_bmp_delete = ScalableBitmap(parent, "cross");
 }
 
-void ObjectSettings::update_settings_list()
+bool ObjectSettings::update_settings_list()
 {
     m_settings_list_sizer->Clear(true);
+    m_og_settings.resize(0);
 
     auto objects_ctrl   = wxGetApp().obj_list();
     auto objects_model  = wxGetApp().obj_list()->GetModel();
     auto config         = wxGetApp().obj_list()->config();
 
     const auto item = objects_ctrl->GetSelection();
-    const bool is_layers_range_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itLayer;
+    
+    if (!item || !objects_model->IsSettingsItem(item) || !config || objects_ctrl->multiple_selection())
+        return false;
 
-    if (item && !objects_ctrl->multiple_selection() && 
-        config && objects_model->IsSettingsItem(item))
-	{
+    const bool is_layers_range_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itLayer;
+	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(config, is_layers_range_settings);
+
+    if (!cat_options.empty())
+    {
+	    std::vector<std::string> categories;
+        categories.reserve(cat_options.size());
+
         auto extra_column = [config, this](wxWindow* parent, const Line& line)
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
@@ -96,86 +104,61 @@ void ObjectSettings::update_settings_list()
 			return btn;
 		};
 
-		std::map<std::string, std::vector<std::string>> cat_options;
-		auto opt_keys = config->keys();
-        objects_ctrl->update_opt_keys(opt_keys); // update options list according to print technology
-
-        m_og_settings.resize(0);
-        std::vector<std::string> categories;
-        if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
+        for (auto& cat : cat_options)
         {
-            const int extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
-                wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            if (cat.second.size() == 1 &&
+                (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
+                continue;
 
-            for (auto& opt_key : opt_keys) {
-                auto category = config->def()->get(opt_key)->category;
-                if (category.empty() ||
-                    (category == "Extruders" && extruders_cnt == 1)) continue;
+            categories.push_back(cat.first);
 
-                std::vector< std::string > new_category;
+            auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), config, false, extra_column);
+            optgroup->label_width = 15;
+            optgroup->sidetext_width = 5.5;
 
-                auto& cat_opt = cat_options.find(category) == cat_options.end() ? new_category : cat_options.at(category);
-                cat_opt.push_back(opt_key);
-                if (cat_opt.size() == 1)
-                    cat_options[category] = cat_opt;
-            }
+            optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
+                                    wxGetApp().obj_list()->changed_object(); };
 
-            for (auto& cat : cat_options) {
-                if (cat.second.size() == 1 && 
-                    (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
+            // call back for rescaling of the extracolumn control
+            optgroup->rescale_extra_column_item = [this](wxWindow* win) {
+                auto *ctrl = dynamic_cast<ScalableButton*>(win);
+                if (ctrl == nullptr)
+                    return;
+                ctrl->SetBitmap_(m_bmp_delete);
+            };
+
+            const bool is_extruders_cat = cat.first == "Extruders";
+            for (auto& opt : cat.second)
+            {
+                if (opt == "extruder" || is_layers_range_settings && opt == "layer_height")
                     continue;
-
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), config, false, extra_column);
-                optgroup->label_width = 15;
-                optgroup->sidetext_width = 5.5;
-
-                optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
-                                        wxGetApp().obj_list()->changed_object(); };
-
-                const bool is_extruders_cat = cat.first == "Extruders";
-                for (auto& opt : cat.second)
-                {
-                    if (opt == "extruder" || is_layers_range_settings && opt == "layer_height")
-                        continue;
-                    Option option = optgroup->get_option(opt);
-                    option.opt.width = 12;
-                    if (is_extruders_cat)
-                        option.opt.max = wxGetApp().extruders_cnt();
-                    optgroup->append_single_option_line(option);
-                }
-                optgroup->reload_config();
-                m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
-
-                // call back for rescaling of the extracolumn control
-                optgroup->rescale_extra_column_item = [this](wxWindow* win) {
-                    auto *ctrl = dynamic_cast<ScalableButton*>(win);
-                    if (ctrl == nullptr)
-                        return;
-                    ctrl->SetBitmap_(m_bmp_delete);
-                };
-
-                m_og_settings.push_back(optgroup);
-
-                categories.push_back(cat.first);
+                Option option = optgroup->get_option(opt);
+                option.opt.width = 12;
+                if (is_extruders_cat)
+                    option.opt.max = wxGetApp().extruders_edited_cnt();
+                optgroup->append_single_option_line(option);
             }
+            optgroup->reload_config();
+
+            m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
+            m_og_settings.push_back(optgroup);
         }
 
-        if (m_og_settings.empty()) {
-            objects_ctrl->select_item(objects_model->Delete(item));
-        }
-        else {
-            if (!categories.empty())
-                objects_model->UpdateSettingsDigest(item, categories);
-        }
-	}
+        if (!categories.empty())
+            objects_model->UpdateSettingsDigest(item, categories);
+    }
+    else
+    {
+        objects_ctrl->select_item(objects_model->Delete(item));
+        return false;
+    } 
+            
+    return true;
 }
 
 void ObjectSettings::UpdateAndShow(const bool show)
 {
-    if (show)
-        update_settings_list();
-
-    OG_Settings::UpdateAndShow(show);
+    OG_Settings::UpdateAndShow(show ? update_settings_list() : false);
 }
 
 void ObjectSettings::msw_rescale()

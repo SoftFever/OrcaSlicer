@@ -806,8 +806,12 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 	if (node_parent) {
         if (node->m_type & (itInstanceRoot|itLayerRoot))
         {
-            for (int i = node->GetChildCount() - 1; i >= (node->m_type & itInstanceRoot ? 1 : 0); i--)
+            // node can be deleted by the Delete, let's check its type while we safely can
+            bool is_instance_root = (node->m_type & itInstanceRoot);
+
+            for (int i = node->GetChildCount() - 1; i >= (is_instance_root ? 1 : 0); i--)
                 Delete(wxDataViewItem(node->GetNthChild(i)));
+
             return parent;
         }
 

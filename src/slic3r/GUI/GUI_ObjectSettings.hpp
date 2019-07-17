@@ -44,7 +44,7 @@ public:
     ObjectSettings(wxWindow* parent);
     ~ObjectSettings() {}
 
-    void        update_settings_list();
+    bool        update_settings_list();
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
 };

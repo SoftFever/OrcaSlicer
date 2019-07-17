@@ -233,9 +233,9 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
     return size;
 }
 
-void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
+void ImGuiWrapper::set_next_window_pos(float x, float y, int flag, float pivot_x, float pivot_y)
 {
-    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag);
+    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag, ImVec2(pivot_x, pivot_y));
     ImGui::SetNextWindowSize(ImVec2(0.0, 0.0));
 }
 
@@ -340,6 +340,32 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
 
     selection = selection_out;
     return res;
+}
+
+bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected)
+{
+    bool is_hovered = false;
+    ImGui::ListBoxHeader("", size);
+
+    int i=0;
+    const char* item_text;
+    while (items_getter(is_undo, i, &item_text))
+    {
+        ImGui::Selectable(item_text, i < hovered);
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(item_text);
+            hovered = i;
+            is_hovered = true;
+        }
+
+        if (ImGui::IsItemClicked())
+            selected = i;
+        i++;
+    }
+
+    ImGui::ListBoxFooter();
+    return is_hovered;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

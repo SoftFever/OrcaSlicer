@@ -130,14 +130,14 @@ static inline Point hilbert_n_to_xy(const size_t n)
         }
     }
     int state    = (ndigits & 1) ? 4 : 0;
-    int dirstate = (ndigits & 1) ? 0 : 4;
+//    int dirstate = (ndigits & 1) ? 0 : 4;
     coord_t x = 0;
     coord_t y = 0;
     for (int i = (int)ndigits - 1; i >= 0; -- i) {
         int digit = (n >> (i * 2)) & 3;
         state += digit;
-        if (digit != 3)
-            dirstate = state; // lowest non-3 digit
+//        if (digit != 3)
+//            dirstate = state; // lowest non-3 digit
         x |= digit_to_x[state] << i;
         y |= digit_to_y[state] << i;
         state = next_state[state];

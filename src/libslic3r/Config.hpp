@@ -18,6 +18,9 @@
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 
+#include <cereal/access.hpp>
+#include <cereal/types/base_class.hpp>
+
 namespace Slic3r {
 
 // Name of the configuration option.
@@ -152,6 +155,10 @@ public:
 
     bool operator==(const T &rhs) const { return this->value == rhs; }
     bool operator!=(const T &rhs) const { return this->value != rhs; }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive & ar) { ar(this->value); }
 };
 
 // Value of a vector valued option (bools, ints, floats, strings, points)
@@ -294,6 +301,10 @@ public:
 
     bool operator==(const std::vector<T> &rhs) const { return this->values == rhs; }
     bool operator!=(const std::vector<T> &rhs) const { return this->values != rhs; }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive & ar) { ar(this->values); }
 };
 
 class ConfigOptionFloat : public ConfigOptionSingle<double>
@@ -328,6 +339,10 @@ public:
         this->set(opt);
         return *this;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<double>>(this)); }
 };
 
 class ConfigOptionFloats : public ConfigOptionVector<double>
@@ -386,6 +401,10 @@ public:
         this->set(opt);
         return *this;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector<double>>(this)); }
 };
 
 class ConfigOptionInt : public ConfigOptionSingle<int>
@@ -422,6 +441,10 @@ public:
         this->set(opt);
         return *this;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<int>>(this)); }
 };
 
 class ConfigOptionInts : public ConfigOptionVector<int>
@@ -472,6 +495,10 @@ public:
         }
         return true;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector<int>>(this)); }
 };
 
 class ConfigOptionString : public ConfigOptionSingle<std::string>
@@ -496,6 +523,10 @@ public:
         UNUSED(append);
         return unescape_string_cstyle(str, this->value);
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<std::string>>(this)); }
 };
 
 // semicolon-separated strings
@@ -530,6 +561,10 @@ public:
             this->values.clear();
         return unescape_strings_cstyle(str, this->values);
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector<std::string>>(this)); }
 };
 
 class ConfigOptionPercent : public ConfigOptionFloat
@@ -562,6 +597,10 @@ public:
         iss >> this->value;
         return !iss.fail();
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionFloat>(this)); }
 };
 
 class ConfigOptionPercents : public ConfigOptionFloats
@@ -616,6 +655,10 @@ public:
         }
         return true;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionFloats>(this)); }
 };
 
 class ConfigOptionFloatOrPercent : public ConfigOptionPercent
@@ -665,6 +708,10 @@ public:
         iss >> this->value;
         return !iss.fail();
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionPercent>(this), percent); }
 };
 
 class ConfigOptionPoint : public ConfigOptionSingle<Vec2d>
@@ -695,6 +742,10 @@ public:
         return sscanf(str.data(), " %lf , %lf %c", &this->value(0), &this->value(1), &dummy) == 2 ||
                sscanf(str.data(), " %lf x %lf %c", &this->value(0), &this->value(1), &dummy) == 2;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<Vec2d>>(this)); }
 };
 
 class ConfigOptionPoints : public ConfigOptionVector<Vec2d>
@@ -754,8 +805,21 @@ public:
         }
         return true;
     }
-};
 
+private:
+	friend class cereal::access;
+	template<class Archive> void save(Archive& archive) const {
+		size_t cnt = this->values.size();
+		archive(cnt);
+		archive.saveBinary((const char*)this->values.data(), sizeof(Vec2d) * cnt);
+	}
+	template<class Archive> void load(Archive& archive) {
+		size_t cnt;
+		archive(cnt);
+		this->values.assign(cnt, Vec2d());
+		archive.loadBinary((char*)this->values.data(), sizeof(Vec2d) * cnt);
+	}
+};
 
 class ConfigOptionPoint3 : public ConfigOptionSingle<Vec3d>
 {
@@ -787,6 +851,10 @@ public:
         return sscanf(str.data(), " %lf , %lf , %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 2 ||
                sscanf(str.data(), " %lf x %lf x %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 2;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<Vec3d>>(this)); }
 };
 
 class ConfigOptionBool : public ConfigOptionSingle<bool>
@@ -813,6 +881,10 @@ public:
         this->value = (str.compare("1") == 0);
         return true;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<bool>>(this)); }
 };
 
 class ConfigOptionBools : public ConfigOptionVector<unsigned char>
@@ -868,6 +940,10 @@ public:
         }
         return true;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector<unsigned char>>(this)); }
 };
 
 // Map from an enum integer value to an enum name.
@@ -1006,19 +1082,73 @@ public:
         this->value = it->second;
         return true;
     }
+
+private:
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionInt>(this)); }
 };
 
 // Definition of a configuration value for the purpose of GUI presentation, editing, value mapping and config file handling.
 class ConfigOptionDef
 {
 public:
+	// Identifier of this option. It is stored here so that it is accessible through the by_serialization_key_ordinal map.
+	t_config_option_key 				opt_key;
     // What type? bool, int, string etc.
     ConfigOptionType                    type            = coNone;
     // Default value of this option. The default value object is owned by ConfigDef, it is released in its destructor.
     Slic3r::clonable_ptr<const ConfigOption> default_value;
-    void set_default_value(const ConfigOption* ptr) { this->default_value = Slic3r::clonable_ptr<const ConfigOption>(ptr); }
-    template<typename T>
-    const T* get_default_value() const { return static_cast<const T*>(this->default_value.get()); }
+    void 								set_default_value(const ConfigOption* ptr) { this->default_value = Slic3r::clonable_ptr<const ConfigOption>(ptr); }
+    template<typename T> const T* 		get_default_value() const { return static_cast<const T*>(this->default_value.get()); }
+
+    // Create an empty option to be used as a base for deserialization of DynamicConfig.
+    ConfigOption*						create_empty_option() const;
+    // Create a default option to be inserted into a DynamicConfig.
+    ConfigOption*						create_default_option() const;
+
+    template<class Archive> ConfigOption* load_option_from_archive(Archive &archive) const {
+	    switch (this->type) {
+	    case coFloat:           { auto opt = new ConfigOptionFloat();  			archive(*opt); return opt; }
+	    case coFloats:          { auto opt = new ConfigOptionFloats(); 			archive(*opt); return opt; }
+	    case coInt:             { auto opt = new ConfigOptionInt();    			archive(*opt); return opt; }
+	    case coInts:            { auto opt = new ConfigOptionInts();   			archive(*opt); return opt; }
+	    case coString:          { auto opt = new ConfigOptionString(); 			archive(*opt); return opt; }
+	    case coStrings:         { auto opt = new ConfigOptionStrings(); 		archive(*opt); return opt; }
+	    case coPercent:         { auto opt = new ConfigOptionPercent(); 		archive(*opt); return opt; }
+	    case coPercents:        { auto opt = new ConfigOptionPercents(); 		archive(*opt); return opt; }
+	    case coFloatOrPercent:  { auto opt = new ConfigOptionFloatOrPercent(); 	archive(*opt); return opt; }
+	    case coPoint:           { auto opt = new ConfigOptionPoint(); 			archive(*opt); return opt; }
+	    case coPoints:          { auto opt = new ConfigOptionPoints(); 			archive(*opt); return opt; }
+	    case coPoint3:          { auto opt = new ConfigOptionPoint3(); 			archive(*opt); return opt; }
+	    case coBool:            { auto opt = new ConfigOptionBool(); 			archive(*opt); return opt; }
+	    case coBools:           { auto opt = new ConfigOptionBools(); 			archive(*opt); return opt; }
+	    case coEnum:            { auto opt = new ConfigOptionEnumGeneric(this->enum_keys_map); archive(*opt); return opt; }
+	    default:                throw std::runtime_error(std::string("ConfigOptionDef::load_option_from_archive(): Unknown option type for option ") + this->opt_key);
+	    }
+	}
+
+    template<class Archive> ConfigOption* save_option_to_archive(Archive &archive, const ConfigOption *opt) const {
+	    switch (this->type) {
+	    case coFloat:           archive(*static_cast<const ConfigOptionFloat*>(opt));  			break;
+	    case coFloats:          archive(*static_cast<const ConfigOptionFloats*>(opt)); 			break;
+	    case coInt:             archive(*static_cast<const ConfigOptionInt*>(opt)); 	 		break;
+	    case coInts:            archive(*static_cast<const ConfigOptionInts*>(opt)); 	 		break;
+	    case coString:          archive(*static_cast<const ConfigOptionString*>(opt)); 			break;
+	    case coStrings:         archive(*static_cast<const ConfigOptionStrings*>(opt)); 		break;
+	    case coPercent:         archive(*static_cast<const ConfigOptionPercent*>(opt)); 		break;
+	    case coPercents:        archive(*static_cast<const ConfigOptionPercents*>(opt)); 		break;
+	    case coFloatOrPercent:  archive(*static_cast<const ConfigOptionFloatOrPercent*>(opt));	break;
+	    case coPoint:           archive(*static_cast<const ConfigOptionPoint*>(opt)); 			break;
+	    case coPoints:          archive(*static_cast<const ConfigOptionPoints*>(opt)); 			break;
+	    case coPoint3:          archive(*static_cast<const ConfigOptionPoint3*>(opt)); 			break;
+	    case coBool:            archive(*static_cast<const ConfigOptionBool*>(opt)); 			break;
+	    case coBools:           archive(*static_cast<const ConfigOptionBools*>(opt)); 			break;
+	    case coEnum:            archive(*static_cast<const ConfigOptionEnumGeneric*>(opt)); 	break;
+	    default:                throw std::runtime_error(std::string("ConfigOptionDef::save_option_to_archive(): Unknown option type for option ") + this->opt_key);
+	    }
+		// Make the compiler happy, shut up the warnings.
+		return nullptr;
+	}
 
     // Usually empty. 
     // Special values - "i_enum_open", "f_enum_open" to provide combo box for int or float selection,
@@ -1088,6 +1218,9 @@ public:
         return false;
     }
 
+    // 0 is an invalid key.
+    size_t 								serialization_key_ordinal = 0;
+
     // Returns the alternative CLI arguments for the given option.
     // If there are no cli arguments defined, use the key and replace underscores with dashes.
     std::vector<std::string> cli_args(const std::string &key) const;
@@ -1107,7 +1240,8 @@ typedef std::map<t_config_option_key, ConfigOptionDef> t_optiondef_map;
 class ConfigDef
 {
 public:
-    t_optiondef_map         options;
+    t_optiondef_map         					options;
+    std::map<size_t, const ConfigOptionDef*>	by_serialization_key_ordinal;
 
     bool                    has(const t_config_option_key &opt_key) const { return this->options.count(opt_key) > 0; }
     const ConfigOptionDef*  get(const t_config_option_key &opt_key) const {
@@ -1128,11 +1262,7 @@ public:
         std::function<bool(const ConfigOptionDef &)> filter = [](const ConfigOptionDef &){ return true; }) const;
 
 protected:
-    ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type) {
-        ConfigOptionDef* opt = &this->options[opt_key];
-        opt->type = type;
-        return opt;
-    }
+    ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type);
 };
 
 // An abstract configuration store.
@@ -1201,7 +1331,7 @@ public:
     bool equals(const ConfigBase &other) const { return this->diff(other).empty(); }
     t_config_option_keys diff(const ConfigBase &other) const;
     t_config_option_keys equal(const ConfigBase &other) const;
-    std::string serialize(const t_config_option_key &opt_key) const;
+    std::string opt_serialize(const t_config_option_key &opt_key) const;
     // Set a configuration value from a string, it will call an overridable handle_legacy() 
     // to resolve renamed and removed configuration keys.
     bool set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false);
@@ -1239,7 +1369,7 @@ public:
         assert(this->def() == nullptr || this->def() == rhs.def());
         this->clear();
         for (const auto &kvp : rhs.options)
-            this->options[kvp.first] = kvp.second->clone();
+            this->options[kvp.first].reset(kvp.second->clone());
         return *this;
     }
 
@@ -1262,15 +1392,13 @@ public:
         for (const auto &kvp : rhs.options) {
             auto it = this->options.find(kvp.first);
             if (it == this->options.end())
-                this->options[kvp.first] = kvp.second->clone();
+                this->options[kvp.first].reset(kvp.second->clone());
             else {
                 assert(it->second->type() == kvp.second->type());
                 if (it->second->type() == kvp.second->type())
                     *it->second = *kvp.second;
-                else {
-                    delete it->second;
-                    it->second = kvp.second->clone();
-                }
+                else
+                    it->second.reset(kvp.second->clone());
             }
         }
         return *this;
@@ -1281,14 +1409,13 @@ public:
     DynamicConfig& operator+=(DynamicConfig &&rhs) 
     {
         assert(this->def() == nullptr || this->def() == rhs.def());
-        for (const auto &kvp : rhs.options) {
+        for (auto &kvp : rhs.options) {
             auto it = this->options.find(kvp.first);
             if (it == this->options.end()) {
-                this->options[kvp.first] = kvp.second;
+                this->options.insert(std::make_pair(kvp.first, std::move(kvp.second)));
             } else {
                 assert(it->second->type() == kvp.second->type());
-                delete it->second;
-                it->second = kvp.second;
+                it->second = std::move(kvp.second);
             }
         }
         rhs.options.clear();
@@ -1305,8 +1432,6 @@ public:
 
     void clear()
     { 
-        for (auto &opt : this->options) 
-            delete opt.second; 
         this->options.clear(); 
     }
 
@@ -1315,7 +1440,6 @@ public:
         auto it = this->options.find(opt_key);
         if (it == this->options.end())
             return false;
-        delete it->second;
         this->options.erase(it);
         return true;
     }
@@ -1340,11 +1464,10 @@ public:
     {
         auto it = this->options.find(opt_key);
         if (it == this->options.end()) {
-            this->options[opt_key] = opt;
+            this->options[opt_key].reset(opt);
             return true;
         } else {
-            delete it->second;
-            it->second = opt;
+            it->second.reset(opt);
             return false;
         }
     }
@@ -1374,12 +1497,15 @@ public:
     void                read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys = nullptr);
     bool                read_cli(int argc, char** argv, t_config_option_keys* extra, t_config_option_keys* keys = nullptr);
 
-    typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
-    t_options_map::const_iterator cbegin() const { return options.cbegin(); }
-    t_options_map::const_iterator cend()   const { return options.cend(); }
+    std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator cbegin() const { return options.cbegin(); }
+    std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator cend()   const { return options.cend(); }
+    size_t                        												 size()   const { return options.size(); }
 
 private:
-    t_options_map options;
+    std::map<t_config_option_key, std::unique_ptr<ConfigOption>> options;
+
+	friend class cereal::access;
+	template<class Archive> void serialize(Archive &ar) { ar(options); }
 };
 
 /// Configuration store with a static definition of configuration values.

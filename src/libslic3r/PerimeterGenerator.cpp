@@ -175,7 +175,7 @@ void PerimeterGenerator::process()
                     const PerimeterGeneratorLoop &loop = contours_d[i];
                     // find the contour loop that contains it
                     for (int t = d - 1; t >= 0; -- t) {
-                        for (int j = 0; j < contours[t].size(); ++ j) {
+                        for (size_t j = 0; j < contours[t].size(); ++ j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
                                 candidate_parent.children.push_back(loop);
@@ -397,7 +397,7 @@ static inline ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyli
                 pp.push_back(line.b);
                 width.push_back(line.b_width);
                 
-                assert(pp.size() == segments + 1);
+                assert(pp.size() == segments + 1u);
                 assert(width.size() == segments*2);
             }
             

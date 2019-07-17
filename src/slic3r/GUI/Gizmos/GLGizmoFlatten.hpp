@@ -45,11 +45,10 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const Selection& selection) const;
-    virtual void on_start_dragging(const Selection& selection);
-    virtual void on_update(const UpdateData& data, const Selection& selection) {}
-    virtual void on_render(const Selection& selection) const;
-    virtual void on_render_for_picking(const Selection& selection) const;
+    virtual bool on_is_activable() const;
+    virtual void on_start_dragging();
+    virtual void on_render() const;
+    virtual void on_render_for_picking() const;
     virtual void on_set_state()
     {
         if (m_state == On && is_plane_update_necessary())

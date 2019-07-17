@@ -538,6 +538,14 @@ void MainFrame::init_menubar()
             menu_icon("delete_all_menu"), nullptr, [this](){return can_delete_all(); }, this);
 
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _(L("&Undo")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "Z",
+            _(L("Undo")), [this](wxCommandEvent&) { m_plater->undo(); },
+            "undo", nullptr, [this](){return m_plater->can_undo(); }, this);
+        append_menu_item(editMenu, wxID_ANY, _(L("&Redo")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "Y",
+            _(L("Redo")), [this](wxCommandEvent&) { m_plater->redo(); },
+            "redo", nullptr, [this](){return m_plater->can_redo(); }, this);
+
+        editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
             _(L("Copy selection to clipboard")), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);

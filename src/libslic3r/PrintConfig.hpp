@@ -1218,6 +1218,8 @@ private:
             this->options.insert(cli_actions_config_def.options.begin(), cli_actions_config_def.options.end());
             this->options.insert(cli_transform_config_def.options.begin(), cli_transform_config_def.options.end());
             this->options.insert(cli_misc_config_def.options.begin(), cli_misc_config_def.options.end());
+            for (const auto &kvp : this->options)
+            	this->by_serialization_key_ordinal[kvp.second.serialization_key_ordinal] = &kvp.second;
         }
         // Do not release the default values, they are handled by print_config_def & cli_actions_config_def / cli_transform_config_def / cli_misc_config_def.
         ~PrintAndCLIConfigDef() { this->options.clear(); }
@@ -1226,5 +1228,39 @@ private:
 };
 
 } // namespace Slic3r
+
+// Serialization through the Cereal library
+namespace cereal {
+	// Let cereal know that there are load / save non-member functions declared for DynamicPrintConfig, ignore serialize / load / save from parent class DynamicConfig.
+	template <class Archive> struct specialize<Archive, Slic3r::DynamicPrintConfig, cereal::specialization::non_member_load_save> {};
+
+	template<class Archive> void load(Archive& archive, Slic3r::DynamicPrintConfig &config) 
+	{
+		size_t cnt;
+		archive(cnt);
+		config.clear();
+		for (size_t i = 0; i < cnt; ++ i) {
+			size_t serialization_key_ordinal;
+			archive(serialization_key_ordinal);
+			assert(serialization_key_ordinal > 0);
+			auto it = Slic3r::print_config_def.by_serialization_key_ordinal.find(serialization_key_ordinal);
+			assert(it != Slic3r::print_config_def.by_serialization_key_ordinal.end());
+			config.set_key_value(it->second->opt_key, it->second->load_option_from_archive(archive));
+		}
+	}
+
+	template<class Archive> void save(Archive& archive, const Slic3r::DynamicPrintConfig &config)
+	{
+		size_t cnt = config.size();
+		archive(cnt);
+		for (auto it = config.cbegin(); it != config.cend(); ++it) {
+			const Slic3r::ConfigOptionDef* optdef = Slic3r::print_config_def.get(it->first);
+			assert(optdef != nullptr);
+			assert(optdef->serialization_key_ordinal > 0);
+			archive(optdef->serialization_key_ordinal);
+			optdef->save_option_to_archive(archive, it->second.get());
+		}
+	}
+}
 
 #endif

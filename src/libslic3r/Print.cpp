@@ -7,7 +7,7 @@
 #include "I18N.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
-#include "GCode/WipeTowerPrusaMM.hpp"
+#include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 
 //#include "PrintExport.hpp"
@@ -20,7 +20,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
-//! macro used to mark string used at localization, 
+//! macro used to mark string used at localization,
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
 
@@ -93,7 +93,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "filament_density",
         "filament_notes",
         "filament_cost",
-        "filament_max_volumetric_speed",
         "first_layer_acceleration",
         "first_layer_bed_temperature",
         "first_layer_speed",
@@ -188,6 +187,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_cooling_initial_speed"
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
+            || opt_key == "filament_max_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "high_current_on_filament_swap"
             || opt_key == "infill_first"
@@ -392,7 +392,7 @@ static inline void model_volume_list_copy_configs(ModelObject &model_object_dst,
         assert(mv_src.id() == mv_dst.id());
         // Copy the ModelVolume data.
         mv_dst.name   = mv_src.name;
-        mv_dst.config = mv_src.config;
+		static_cast<DynamicPrintConfig&>(mv_dst.config) = static_cast<const DynamicPrintConfig&>(mv_src.config);
         //FIXME what to do with the materials?
         // mv_dst.m_material_id = mv_src.m_material_id;
         ++ i_src;
@@ -587,10 +587,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             Moved,
             Deleted,
         };
-        ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
-        ModelID     id;
-        Status      status;
-        LayerRanges layer_ranges;
+        ModelObjectStatus(ObjectID id, Status status = Unknown) : id(id), status(status) {}
+		ObjectID     id;
+        Status       status;
+        LayerRanges  layer_ranges;
         // Search by id.
         bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
     };
@@ -695,9 +695,9 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             print_object(print_object),
             trafo(print_object->trafo()),
             status(status) {}
-        PrintObjectStatus(ModelID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
+        PrintObjectStatus(ObjectID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
         // ID of the ModelObject & PrintObject
-        ModelID          id;
+        ObjectID          id;
         // Pointer to the old PrintObject
         PrintObject     *print_object;
         // Trafo generated with model_object->world_matrix(true) 
@@ -757,7 +757,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             // Synchronize Object's config.
             bool object_config_changed = model_object.config != model_object_new.config;
 			if (object_config_changed)
-                model_object.config = model_object_new.config;
+				static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
             if (! object_diff.empty() || object_config_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -995,7 +995,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         region_id = regions_in_object[idx_region_in_object ++];
                     // Assign volume to a region.
     				if (fresh) {
-    					if (region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
+    					if ((size_t)region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
     						++ m_regions[region_id]->m_refcnt;
     					print_object.add_region_volume(region_id, volume_id, it_range->first);
     				}
@@ -1091,17 +1091,15 @@ std::string Print::validate() const
             return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
-    if (m_config.single_extruder_multi_material) {
-        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
-            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
-                return L("All extruders must have the same diameter for single extruder multimaterial printer.");
-    }
-
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
+        
+        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
+            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
+                return L("All extruders must have the same diameter for the Wipe Tower.");
 
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1139,11 +1137,10 @@ std::string Print::validate() const
             if (has_custom_layering) {
                 const std::vector<coordf_t> &layer_height_profile_tallest = layer_height_profiles[tallest_object_idx];
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
-                    const PrintObject           *object               = m_objects[idx_object];
                     const std::vector<coordf_t> &layer_height_profile = layer_height_profiles[idx_object];
                     bool                         failed               = false;
                     if (layer_height_profile_tallest.size() >= layer_height_profile.size()) {
-                        int i = 0;
+                        size_t i = 0;
                         while (i < layer_height_profile.size() && i < layer_height_profile_tallest.size()) {
                             if (std::abs(layer_height_profile_tallest[i] - layer_height_profile[i])) {
                                 failed = true;
@@ -1508,7 +1505,7 @@ void Print::_make_skirt()
     }
 
     // Number of skirt loops per skirt layer.
-    int n_skirts = m_config.skirts.value;
+    size_t n_skirts = m_config.skirts.value;
     if (this->has_infinite_skirt() && n_skirts == 0)
         n_skirts = 1;
 
@@ -1520,7 +1517,7 @@ void Print::_make_skirt()
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
-    for (int i = n_skirts, extruder_idx = 0; i > 0; -- i) {
+    for (size_t i = n_skirts, extruder_idx = 0; i > 0; -- i) {
         this->throw_if_canceled();
         // Offset the skirt outside.
         distance += float(scale_(spacing));
@@ -1610,7 +1607,6 @@ void Print::_make_brim()
 bool Print::has_wipe_tower() const
 {
     return 
-        m_config.single_extruder_multi_material.value && 
         ! m_config.spiral_vase.value &&
         m_config.wipe_tower.value && 
         m_config.nozzle_diameter.values.size() > 1;
@@ -1674,12 +1670,13 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTowerPrusaMM wipe_tower(
+    WipeTower wipe_tower(
+        m_config.single_extruder_multi_material.value,
         float(m_config.wipe_tower_x.value),     float(m_config.wipe_tower_y.value), 
         float(m_config.wipe_tower_width.value),
         float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
         float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), 
+        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging),
         m_config.high_current_on_filament_swap.value, m_config.gcode_flavor, wipe_volumes,
         m_wipe_tower_data.tool_ordering.first_extruder());
 
@@ -1688,9 +1685,10 @@ void Print::_make_wipe_tower()
 
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
+
         wipe_tower.set_extruder(
             i, 
-            WipeTowerPrusaMM::parse_material(m_config.filament_type.get_at(i).c_str()),
+            m_config.filament_type.get_at(i),
             m_config.temperature.get_at(i),
             m_config.first_layer_temperature.get_at(i),
 			(float)m_config.filament_loading_speed.get_at(i),
@@ -1702,9 +1700,10 @@ void Print::_make_wipe_tower()
 			(float)m_config.filament_cooling_initial_speed.get_at(i),
 			(float)m_config.filament_cooling_final_speed.get_at(i),
             m_config.filament_ramming_parameters.get_at(i),
-			(float)m_config.nozzle_diameter.get_at(i));
+            m_config.filament_max_volumetric_speed.get_at(i),
+            m_config.nozzle_diameter.get_at(i));
 
-    m_wipe_tower_data.priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
+    m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
         wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each

@@ -89,6 +89,7 @@ if (MSVC)
         dep_libcurl
         dep_wxwidgets
         dep_gtest
+        dep_cereal
         dep_nlopt
         # dep_qhull # Experimental
         dep_zlib    # on Windows we still need zlib
@@ -103,6 +104,7 @@ else()
         dep_libcurl
         dep_wxwidgets
         dep_gtest
+        dep_cereal
         dep_nlopt
         dep_qhull
         # dep_libigl # Not working, static build has different Eigen

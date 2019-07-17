@@ -722,8 +722,8 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
         }
         int done = feof(pFile);
         if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR) {
-            printf("AMF parser: Parse error at line %ul:\n%s\n",
-                  XML_GetCurrentLineNumber(parser),
+            printf("AMF parser: Parse error at line %d:\n%s\n",
+                  (int)XML_GetCurrentLineNumber(parser),
                   XML_ErrorString(XML_GetErrorCode(parser)));
             break;
         }
@@ -781,7 +781,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
     {
-        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
+        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), (int)XML_GetCurrentLineNumber(parser));
         close_zip_reader(&archive);
         return false;
     }
@@ -901,7 +901,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         std::string str_config = "\n";
         for (const std::string &key : config->keys())
             if (key != "compatible_printers")
-                str_config += "; " + key + " = " + config->serialize(key) + "\n";
+                str_config += "; " + key + " = " + config->opt_serialize(key) + "\n";
         stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(str_config) << "</metadata>\n";
     }
 
@@ -913,7 +913,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         for (const auto &attr : material.second->attributes)
             stream << "    <metadata type=\"" << attr.first << "\">" << attr.second << "</metadata>\n";
         for (const std::string &key : material.second->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.opt_serialize(key) << "</metadata>\n";
         stream << "  </material>\n";
     }
     std::string instances;
@@ -921,7 +921,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         ModelObject *object = model->objects[object_id];
         stream << "  <object id=\"" << object_id << "\">\n";
         for (const std::string &key : object->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.opt_serialize(key) << "</metadata>\n";
         if (!object->name.empty())
             stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
         const std::vector<double> &layer_height_profile = object->layer_height_profile;
@@ -933,10 +933,8 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << ";" << layer_height_profile[i];
                 stream << "\n    </metadata>\n";
         }
-        //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
 
-
-        // #ys_FIXME_experiment : Try to export layer config range
+        // Export layer height ranges including the layer range specific config overrides.
         const t_layer_config_ranges& config_ranges = object->layer_config_ranges;
         if (!config_ranges.empty())
         {
@@ -950,7 +948,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << range.first.first << ";" << range.first.second << "</metadata>\n";
 
                 for (const std::string& key : range.second.keys())
-                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.serialize(key) << "</metadata>\n";
+                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.opt_serialize(key) << "</metadata>\n";
 
                 stream << "      </range>\n";
                 layer_counter++;
@@ -1005,14 +1003,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             else
                 stream << "      <volume materialid=\"" << volume->material_id() << "\">\n";
             for (const std::string &key : volume->config.keys())
-                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.opt_serialize(key) << "</metadata>\n";
             if (!volume->name.empty())
                 stream << "        <metadata type=\"name\">" << xml_escape(volume->name) << "</metadata>\n";
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
 			const indexed_triangle_set &its = volume->mesh().its;
-            for (size_t i = 0; i < (int)its.indices.size(); ++i) {
+            for (size_t i = 0; i < its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
                 stream << "          <v" << j + 1 << ">" << its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";

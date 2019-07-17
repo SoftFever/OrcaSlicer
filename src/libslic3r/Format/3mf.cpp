@@ -696,7 +696,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -976,7 +976,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -1533,7 +1533,7 @@ namespace Slic3r {
             object->second.metadata.emplace_back(key, value);
         else if (type == VOLUME_TYPE)
         {
-            if (m_curr_config.volume_id < object->second.volumes.size())
+            if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
                 object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
         }
         else
@@ -2134,7 +2134,7 @@ namespace Slic3r {
                     const DynamicPrintConfig& config = range.second;
                     for (const std::string& opt_key : config.keys())
                     {
-                        pt::ptree& opt_tree = range_tree.add("option", config.serialize(opt_key));
+                        pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
                         opt_tree.put("<xmlattr>.opt_key", opt_key);
                     }
                 }
@@ -2216,7 +2216,7 @@ namespace Slic3r {
 
         for (const std::string &key : config.keys())
             if (key != "compatible_printers")
-                out += "; " + key + " = " + config.serialize(key) + "\n";
+                out += "; " + key + " = " + config.opt_serialize(key) + "\n";
 
         if (!out.empty())
         {
@@ -2250,7 +2250,7 @@ namespace Slic3r {
                 // stores object's config data
                 for (const std::string& key : obj->config.keys())
                 {
-                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.serialize(key) << "\"/>\n";
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
 
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes)
@@ -2280,7 +2280,7 @@ namespace Slic3r {
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())
                             {
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.serialize(key) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
                             stream << "  </" << VOLUME_TAG << ">\n";

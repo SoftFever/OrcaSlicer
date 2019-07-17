@@ -874,11 +874,10 @@ void Tab::update_wiping_button_visibility() {
         return; // ys_FIXME
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
-    bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
     auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
     if (wiping_dialog_button) {
-        wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
+        wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders);
         wiping_dialog_button->GetParent()->Layout();
     }
 }
@@ -1557,6 +1556,9 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
+        optgroup = page->new_optgroup(_(L("Wipe tower parameters")));
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
+
         optgroup = page->new_optgroup(_(L("Toolchange parameters with single extruder MM printers")));
 		optgroup->append_single_option_line("filament_loading_speed_start");
         optgroup->append_single_option_line("filament_loading_speed");
@@ -1568,7 +1570,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_moves");
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
-        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent) {
