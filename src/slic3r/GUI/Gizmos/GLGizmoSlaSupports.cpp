@@ -106,6 +106,9 @@ void GLGizmoSlaSupports::on_render() const
         return;
     }
 
+    if (! m_its || ! m_mesh)
+        const_cast<GLGizmoSlaSupports*>(this)->update_mesh();
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
@@ -387,18 +390,26 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 
 void GLGizmoSlaSupports::update_mesh()
 {
+    if (! m_model_object)
+        return;
+
     wxBusyCursor wait;
     // this way we can use that mesh directly.
     // This mesh does not account for the possible Z up SLA offset.
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
+
+    // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
+    if (m_current_mesh_object_id != m_model_object->id() || (m_AABB.m_left == NULL && m_AABB.m_right == NULL))
+    {
+        m_AABB.deinit();
+        m_AABB.init(
+            MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
+            MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
+    }
+
     m_current_mesh_object_id = m_model_object->id();
     m_editing_mode = false;
-
-	m_AABB.deinit();
-    m_AABB.init(
-        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
-        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
 }
 
 // Unprojects the mouse position on the mesh and return the hit point and normal of the facet.
@@ -1034,48 +1045,67 @@ std::string GLGizmoSlaSupports::on_get_name() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
-        if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-            if (is_mesh_update_necessary())
-                update_mesh();
-
-            // we'll now reload support points:
-            if (m_model_object)
-                editing_mode_reload_cache();
-
-            m_parent.toggle_model_objects_visibility(false);
-            if (m_model_object)
-                m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
-
-            // Set default head diameter from config.
-            const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-            m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
+    // m_model_object pointer can be invalid (for instance because of undo/redo action),
+    // we should recover it from the object id
+    const ModelObject* old_model_object = m_model_object;
+    m_model_object = nullptr;
+    for (const auto mo : *wxGetApp().model_objects()) {
+        if (mo->id() == m_current_mesh_object_id) {
+            m_model_object = mo;
+            break;
         }
-        if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-            wxGetApp().CallAfter([this]() {
-                // Following is called through CallAfter, because otherwise there was a problem
-                // on OSX with the wxMessageDialog being shown several times when clicked into.
-                if (m_model_object) {
-                    if (m_unsaved_changes) {
-                        wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points?")) + "\n",
-                                            _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
-                        if (dlg.ShowModal() == wxID_YES)
-                            editing_mode_apply_changes();
-                        else
-                            editing_mode_discard_changes();
-                    }
+    }
+
+    // If ModelObject pointer really changed, invalidate mesh and do everything
+    // as if the gizmo was switched from Off state
+    if (m_model_object == nullptr || old_model_object != m_model_object) {
+        m_mesh = nullptr;
+        m_its = nullptr;
+        m_old_state = Off;
+    }
+
+    if (m_state == On && m_old_state != On) { // the gizmo was just turned on
+        if (is_mesh_update_necessary())
+            update_mesh();
+
+        // we'll now reload support points:
+        if (m_model_object)
+            editing_mode_reload_cache();
+
+        m_parent.toggle_model_objects_visibility(false);
+        if (m_model_object)
+            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+
+        // Set default head diameter from config.
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
+    }
+    if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
+        wxGetApp().CallAfter([this]() {
+            // Following is called through CallAfter, because otherwise there was a problem
+            // on OSX with the wxMessageDialog being shown several times when clicked into.
+            if (m_model_object) {
+                if (m_unsaved_changes) {
+                    wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points?")) + "\n",
+                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                        editing_mode_apply_changes();
+                    else
+                        editing_mode_discard_changes();
                 }
-                m_parent.toggle_model_objects_visibility(true);
-                m_editing_mode = false; // so it is not active next time the gizmo opens
-                m_editing_mode_cache.clear();
-                m_clipping_plane_distance = 0.f;
-                // Release triangle mesh slicer and the AABB spatial search structure.
-                m_AABB.deinit();
-                m_its = nullptr;
-                m_tms.reset();
-                m_supports_tms.reset();
-            });
-        }
-        m_old_state = m_state;
+            }
+            m_parent.toggle_model_objects_visibility(true);
+            m_editing_mode = false; // so it is not active next time the gizmo opens
+            m_editing_mode_cache.clear();
+            m_clipping_plane_distance = 0.f;
+            // Release triangle mesh slicer and the AABB spatial search structure.
+            m_AABB.deinit();
+            m_its = nullptr;
+            m_tms.reset();
+            m_supports_tms.reset();
+        });
+    }
+    m_old_state = m_state;
 }
 
 
@@ -1086,6 +1116,26 @@ void GLGizmoSlaSupports::on_start_dragging()
         select_point(NoPoints);
         select_point(m_hover_id);
     }
+}
+
+
+
+void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
+{
+    ar(m_clipping_plane_distance,
+       m_clipping_plane_normal,
+       m_current_mesh_object_id
+    );
+}
+
+
+
+void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
+{
+    ar(m_clipping_plane_distance,
+       m_clipping_plane_normal,
+       m_current_mesh_object_id
+    );
 }
 
 
@@ -1146,6 +1196,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
     // If there are no changes, don't touch the front-end. The data in the cache could have been
     // taken from the backend and copying them to ModelObject would needlessly invalidate them.
     if (m_unsaved_changes) {
+        wxGetApp().plater()->take_snapshot(_(L("Support points edit")));
         m_model_object->sla_points_status = sla::PointsStatus::UserModified;
         m_model_object->sla_support_points.clear();
         for (const CacheEntry& cache_entry : m_editing_mode_cache)
@@ -1204,6 +1255,7 @@ void GLGizmoSlaSupports::auto_generate()
                 )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
     if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_editing_mode_cache.empty() || dlg.ShowModal() == wxID_YES) {
+        wxGetApp().plater()->take_snapshot(_(L("Autogenerate support points")));
         m_model_object->sla_support_points.clear();
         m_model_object->sla_points_status = sla::PointsStatus::Generating;
         m_editing_mode_cache.clear();

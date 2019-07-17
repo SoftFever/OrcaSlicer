@@ -14,6 +14,8 @@
 #include "libslic3r/SLAPrint.hpp"
 #include <wx/dialog.h>
 
+#include <cereal/types/vector.hpp>
+
 
 namespace Slic3r {
 namespace GUI {
@@ -49,12 +51,21 @@ private:
 
     class CacheEntry {
     public:
+        CacheEntry() :
+            support_point(sla::SupportPoint()), selected(false), normal(Vec3f::Zero()) {}
+
         CacheEntry(const sla::SupportPoint& point, bool sel, const Vec3f& norm = Vec3f::Zero()) :
             support_point(point), selected(sel), normal(norm) {}
 
         sla::SupportPoint support_point;
         bool selected; // whether the point is selected
         Vec3f normal;
+
+        template<class Archive>
+        void serialize(Archive & ar)
+        {
+            ar(support_point, selected, normal);
+        }
     };
 
 public:
@@ -139,6 +150,8 @@ protected:
     virtual std::string on_get_name() const;
     virtual bool on_is_activable() const;
     virtual bool on_is_selectable() const;
+    virtual void on_load(cereal::BinaryInputArchive& ar) override;
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const override;
 };
 
 
