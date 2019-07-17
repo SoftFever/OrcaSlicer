@@ -1856,9 +1856,9 @@ void TabPrinter::build_fff()
 			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
                 BedShapeDialog dlg(this);
-                dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+                dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"));
                 if (dlg.ShowModal() == wxID_OK) {
-                    std::vector<Vec2d> shape = dlg.GetValue();
+                    std::vector<Vec2d> shape = dlg.get_bed_shape();
                     if (!shape.empty())
                     {
                         load_key_value("bed_shape", shape);
@@ -2062,9 +2062,9 @@ void TabPrinter::build_sla()
         btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
             BedShapeDialog dlg(this);
-            dlg.build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"));
             if (dlg.ShowModal() == wxID_OK) {
-                std::vector<Vec2d> shape = dlg.GetValue();
+                std::vector<Vec2d> shape = dlg.get_bed_shape();
                 if (!shape.empty())
                 {
                     load_key_value("bed_shape", shape);

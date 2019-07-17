@@ -532,15 +532,14 @@ PageBedShape::PageBedShape(ConfigWizard *parent)
 {
     append_text(_(L("Set the shape of your printer's bed.")));
 
-    shape_panel->build_panel(wizard_p()->custom_config->option<ConfigOptionPoints>("bed_shape"));
+    shape_panel->build_panel(*wizard_p()->custom_config->option<ConfigOptionPoints>("bed_shape"));
     append(shape_panel);
 }
 
 void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
 {
-    const auto points(shape_panel->GetValue());
-    auto *opt = new ConfigOptionPoints(points);
-    config.set_key_value("bed_shape", opt);
+    const auto points(shape_panel->get_bed_shape());
+    config.set_key_value("bed_shape", new ConfigOptionPoints(points));
 }
 
 PageDiameters::PageDiameters(ConfigWizard *parent)

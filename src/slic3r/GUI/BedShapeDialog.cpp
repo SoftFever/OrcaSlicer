@@ -16,7 +16,7 @@
 namespace Slic3r {
 namespace GUI {
 
-void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
+void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt)
 {
     SetFont(wxGetApp().normal_font());
 	m_panel = new BedShapePanel(this);
@@ -51,7 +51,7 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
-void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
+void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt)
 {
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
@@ -113,7 +113,7 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);
-	m_canvas->m_bed_shape = default_pt->values;
+    m_canvas->m_bed_shape = default_pt.values;
 
 	// main sizer
 	auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -155,20 +155,20 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& tit
 // Deduce the bed shape type(rect, circle, custom)
 // This routine shall be smart enough if the user messes up
 // with the list of points in the ini file directly.
-void BedShapePanel::set_shape(ConfigOptionPoints* points)
+void BedShapePanel::set_shape(const ConfigOptionPoints& points)
 {
-	auto polygon = Polygon::new_scale(points->values);
+    auto polygon = Polygon::new_scale(points.values);
 
 	// is this a rectangle ?
-	if (points->size() == 4) {
-		auto lines = polygon.lines();
+    if (points.size() == 4) {
+        auto lines = polygon.lines();
 		if (lines[0].parallel_to(lines[2]) && lines[1].parallel_to(lines[3])) {
 			// okay, it's a rectangle
 			// find origin
             coordf_t x_min, x_max, y_min, y_max;
-            x_max = x_min = points->values[0](0);
-			y_max = y_min = points->values[0](1);
-			for (auto pt : points->values)
+            x_max = x_min = points.values[0](0);
+            y_max = y_min = points.values[0](1);
+            for (auto pt : points.values)
             {
                 x_min = std::min(x_min, pt(0));
                 x_max = std::max(x_max, pt(0));
@@ -219,8 +219,8 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		}
 	}
 
-	if (points->size() < 3) {
-		// Invalid polygon.Revert to default bed dimensions.
+    if (points.size() < 3) {
+        // Invalid polygon.Revert to default bed dimensions.
 		m_shape_options_book->SetSelection(SHAPE_RECTANGULAR);
 		auto optgroup = m_optgroups[SHAPE_RECTANGULAR];
 		optgroup->set_value("rect_size", new ConfigOptionPoints{ Vec2d(200, 200) });
@@ -232,7 +232,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 	// This is a custom bed shape, use the polygon provided.
 	m_shape_options_book->SetSelection(SHAPE_CUSTOM);
 	// Copy the polygon to the canvas, make a copy of the array.
-    m_loaded_bed_shape = points->values;
+    m_loaded_bed_shape = points.values;
     update_shape();
 }
 
@@ -324,7 +324,7 @@ void BedShapePanel::load_stl()
 	try {
 		model = Model::read_from_file(file_name);
 	}
-	catch (std::exception &e) {
+	catch (std::exception &) {
         show_error(this, _(L("Error! Invalid model")));
         return;
     }

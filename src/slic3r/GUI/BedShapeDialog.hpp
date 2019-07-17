@@ -23,15 +23,15 @@ public:
 	BedShapePanel(wxWindow* parent) : wxPanel(parent, wxID_ANY) {}
 	~BedShapePanel() {}
 
-	void		build_panel(ConfigOptionPoints* default_pt);
-	
+    void		build_panel(const ConfigOptionPoints& default_pt);
+
     // Returns the resulting bed shape polygon. This value will be stored to the ini file.
-    std::vector<Vec2d>	GetValue() { return m_canvas->m_bed_shape; }
+    std::vector<Vec2d> get_bed_shape() { return m_canvas->m_bed_shape; }
 
 private:
     ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
-    void		set_shape(ConfigOptionPoints* points);
-	void		update_preview();
+    void		set_shape(const ConfigOptionPoints& points);
+    void		update_preview();
 	void		update_shape();
 	void		load_stl();
 	
@@ -49,8 +49,8 @@ public:
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {}
 	~BedShapeDialog() {}
 
-	void		build_dialog(ConfigOptionPoints* default_pt);
-	std::vector<Vec2d>	GetValue() { return m_panel->GetValue(); }
+    void		       build_dialog(const ConfigOptionPoints& default_pt);
+    std::vector<Vec2d> get_bed_shape() { return m_panel->get_bed_shape(); }
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
