@@ -46,11 +46,12 @@ template<class S> struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
 
 namespace Slic3r {
 
-template<class Tout = double, class = FloatingOnly<Tout>>
-inline SLIC3R_CONSTEXPR EigenVec<Tout, 2> unscaled(
+template<class Tout = double, class = FloatingOnly<Tout>, int...EigenArgs>
+inline SLIC3R_CONSTEXPR Eigen::Matrix<Tout, 2, EigenArgs...> unscaled(
     const ClipperLib::IntPoint &v) SLIC3R_NOEXCEPT
 {
-    return EigenVec<Tout, 2>{unscaled<Tout>(v.X), unscaled<Tout>(v.Y)};
+    return Eigen::Matrix<Tout, 2, EigenArgs...>{unscaled<Tout>(v.X),
+                                                unscaled<Tout>(v.Y)};
 }
 
 namespace arrangement {
@@ -139,7 +140,7 @@ protected:
     ItemGroup m_remaining; // Remaining items (m_items at the beginning)
     ItemGroup m_items;     // The items to be packed
     
-    template<class T, class = ArithmeticOnly<T>> double norm(T val)
+    template<class T> ArithmeticOnly<T, double> norm(T val)
     {
         return double(val) / m_norm;
     }
