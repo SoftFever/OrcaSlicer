@@ -108,7 +108,7 @@ double fixed_overfit(const std::tuple<double, Box>& result, const Box &binbb)
     double score = std::get<0>(result);
     Box pilebb  = std::get<1>(result);
     Box fullbb  = sl::boundingBox(pilebb, binbb);
-    double diff = fullbb.area() - binbb.area();
+    auto diff = double(fullbb.area()) - binbb.area();
     if(diff > 0) score += diff;
     
     return score;
@@ -138,6 +138,11 @@ protected:
     Box          m_pilebb;      // The bounding box of the merged pile.
     ItemGroup m_remaining; // Remaining items (m_items at the beginning)
     ItemGroup m_items;     // The items to be packed
+    
+    template<class T, class = ArithmeticOnly<T>> double norm(T val)
+    {
+        return double(val) / m_norm;
+    }
 
     // This is "the" object function which is evaluated many times for each
     // vertex (decimated with the accuracy parameter) of each object.
@@ -177,9 +182,6 @@ protected:
         
         // Density is the pack density: how big is the arranged pile
         double density = 0;
-        
-        const double N = m_norm;
-        auto norm = [N](double val) { return val / N; };
         
         // Distinction of cases for the arrangement scene
         enum e_cases {
@@ -593,7 +595,7 @@ void arrange(ArrangePolygons &             arrangables,
     for (const ArrangePolygon &fixed: excludes)
         process_arrangeable(fixed, fixeditems);
     
-    for (Item &itm : fixeditems) itm.inflate(-2 * SCALED_EPSILON);
+    for (Item &itm : fixeditems) itm.inflate(scaled(-2. * EPSILON));
     
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = min_obj_dist - 2 * scaled(0.1 + EPSILON);

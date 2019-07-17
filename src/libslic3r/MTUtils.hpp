@@ -281,9 +281,8 @@ using EigenVec = Eigen::Matrix<T, N, 1, Eigen::DontAlign>;
 // Conversion definition from unscaled to floating point scaled
 template<class Tout,
          class Tin,
-         class = FloatingOnly<Tin>,
-         class = FloatingOnly<Tout>>
-inline SLIC3R_CONSTEXPR Tout scaled(const Tin &v) SLIC3R_NOEXCEPT
+         class = FloatingOnly<Tin>>
+inline SLIC3R_CONSTEXPR FloatingOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCEPT
 {
     return Tout(v / Tin(SCALING_FACTOR));
 }
