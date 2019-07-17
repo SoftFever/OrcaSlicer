@@ -1203,6 +1203,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_camera(camera)
     , m_view_toolbar(view_toolbar)
     , m_toolbar(GLToolbar::Normal, "Top")
+    , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_keep_dirty(false)
@@ -1319,7 +1320,7 @@ bool GLCanvas3D::init()
 //    if (!m_volumes.empty())
 //        m_volumes.finalize_geometry();
 
-    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
+    if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
     if (!_init_toolbar())

@@ -14,8 +14,8 @@ namespace GUI {
 
 const float GLGizmosManager::Default_Icons_Size = 64;
 
-GLGizmosManager::GLGizmosManager()
-    : m_parent(nullptr)
+GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
+    : m_parent(parent)
     , m_enabled(false)
     , m_icons_texture_dirty(true)
     , m_current(Undefined)
@@ -33,10 +33,8 @@ GLGizmosManager::~GLGizmosManager()
     reset();
 }
 
-bool GLGizmosManager::init(GLCanvas3D& parent)
+bool GLGizmosManager::init()
 {
-    m_parent = &parent;
-
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
     m_background_texture.metadata.top = 16;
@@ -52,7 +50,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
         }
     }
 
-    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "move.svg", 0);
+    GLGizmoBase* gizmo = new GLGizmoMove3D(m_parent, "move.svg", 0);
     if (gizmo == nullptr)
         return false;
 
@@ -61,7 +59,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
-    gizmo = new GLGizmoScale3D(parent, "scale.svg", 1);
+    gizmo = new GLGizmoScale3D(m_parent, "scale.svg", 1);
     if (gizmo == nullptr)
         return false;
 
@@ -70,7 +68,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
-    gizmo = new GLGizmoRotate3D(parent, "rotate.svg", 2);
+    gizmo = new GLGizmoRotate3D(m_parent, "rotate.svg", 2);
     if (gizmo == nullptr)
     {
         reset();
@@ -85,7 +83,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
-    gizmo = new GLGizmoFlatten(parent, "place.svg", 3);
+    gizmo = new GLGizmoFlatten(m_parent, "place.svg", 3);
     if (gizmo == nullptr)
         return false;
 
@@ -96,7 +94,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
-    gizmo = new GLGizmoCut(parent, "cut.svg", 4);
+    gizmo = new GLGizmoCut(m_parent, "cut.svg", 4);
     if (gizmo == nullptr)
         return false;
 
@@ -107,7 +105,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
 
-    gizmo = new GLGizmoSlaSupports(parent, "sla_supports.svg", 5);
+    gizmo = new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5);
     if (gizmo == nullptr)
         return false;
 
@@ -141,9 +139,6 @@ void GLGizmosManager::set_overlay_scale(float scale)
 
 void GLGizmosManager::refresh_on_off_state()
 {
-    if (m_parent == nullptr)
-        return;
-
     if (m_serializing)
         return;
 
@@ -207,7 +202,7 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
 
 void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
@@ -217,10 +212,10 @@ void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
 
 void GLGizmosManager::update_data()
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
-    const Selection& selection = m_parent->get_selection();
+    const Selection& selection = m_parent.get_selection();
 
     bool is_wipe_tower = selection.is_wipe_tower();
     enable_grabber(Move, 2, !is_wipe_tower);
@@ -279,10 +274,10 @@ bool GLGizmosManager::is_running() const
 
 bool GLGizmosManager::handle_shortcut(int key)
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return false;
 
-    if (m_parent->get_selection().is_empty())
+    if (m_parent.get_selection().is_empty())
         return false;
 
     EType old_current = m_current;
@@ -332,7 +327,7 @@ bool GLGizmosManager::is_dragging() const
 
 void GLGizmosManager::start_dragging()
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
@@ -427,12 +422,12 @@ void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
 
 void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, m_parent->get_selection());
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -463,7 +458,7 @@ ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
 
 void GLGizmosManager::render_current_gizmo() const
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
@@ -473,7 +468,7 @@ void GLGizmosManager::render_current_gizmo() const
 
 void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
@@ -483,7 +478,7 @@ void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 
 void GLGizmosManager::render_overlay() const
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
     if (m_icons_texture_dirty)
@@ -494,9 +489,6 @@ void GLGizmosManager::render_overlay() const
 
 bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
-    if (m_parent == nullptr)
-        return false;
-
     bool processed = false;
 
     if (m_current == SlaSupports) {
@@ -510,13 +502,10 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 {
-    if (m_parent == nullptr)
-        return false;
-
     Point pos(evt.GetX(), evt.GetY());
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
 
-    Selection& selection = m_parent->get_selection();
+    Selection& selection = m_parent.get_selection();
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
@@ -562,33 +551,33 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 if (m_current == Flatten)
                 {
                     // Rotate the object so the normal points downward:
-                    m_parent->do_flatten(get_flattening_normal(), "Gizmo - Place on Face");
+                    m_parent.do_flatten(get_flattening_normal(), "Gizmo-Place on Face");
                     wxGetApp().obj_manipul()->set_dirty();
                 }
 
-                m_parent->set_as_dirty();
+                m_parent.set_as_dirty();
                 processed = true;
             }
         }
         else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::RightDown))
             // event was taken care of by the SlaSupports gizmo
             processed = true;
-        else if (evt.Dragging() && (m_parent->get_move_volume_id() != -1) && (m_current == SlaSupports))
-            // don't allow dragging objects with the Sla gizmo on
+        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports))
+                        // don't allow dragging objects with the Sla gizmo on
             processed = true;
         else if (evt.Dragging() && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
         {
             // the gizmo got the event and took some action, no need to do anything more here
-            m_parent->set_as_dirty();
+            m_parent.set_as_dirty();
             processed = true;
         }
         else if (evt.Dragging() && is_dragging())
         {
-            if (!m_parent->get_wxglcanvas()->HasCapture())
-                m_parent->get_wxglcanvas()->CaptureMouse();
+            if (!m_parent.get_wxglcanvas()->HasCapture())
+                m_parent.get_wxglcanvas()->CaptureMouse();
 
-            m_parent->set_mouse_as_dragging();
-            update(m_parent->mouse_ray(pos), pos);
+            m_parent.set_mouse_as_dragging();
+            update(m_parent.mouse_ray(pos), pos);
 
             switch (m_current)
             {
@@ -625,7 +614,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 break;
             }
 
-            m_parent->set_as_dirty();
+            m_parent.set_as_dirty();
             processed = true;
         }
         else if (evt.LeftUp() && is_dragging())
@@ -634,18 +623,18 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             {
             case Move:
             {
-                m_parent->disable_regenerate_volumes();
-                m_parent->do_move("Gizmo-Move Object");
+                m_parent.disable_regenerate_volumes();
+                m_parent.do_move("Gizmo-Move");
                 break;
             }
             case Scale:
             {
-                m_parent->do_scale("Gizmo-Scale Object");
+                m_parent.do_scale("Gizmo-Scale");
                 break;
             }
             case Rotate:
             {
-                m_parent->do_rotate("Gizmo-Rotate Object");
+                m_parent.do_rotate("Gizmo-Rotate");
                 break;
             }
             default:
@@ -658,20 +647,20 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             wxGetApp().obj_manipul()->set_dirty();
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
-            m_parent->post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             // updates camera target constraints
-            m_parent->refresh_camera_scene_box();
+            m_parent.refresh_camera_scene_box();
 
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports) && !m_parent->is_mouse_dragging())
+        else if (evt.LeftUp() && (m_current == SlaSupports) && !m_parent.is_mouse_dragging())
         {
             // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && ((m_parent->get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
+        else if (evt.LeftUp() && (m_current == Flatten) && ((m_parent.get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
         {
             // to avoid to loose the selection when user clicks an object while the Flatten gizmo is active
             processed = true;
@@ -683,24 +672,24 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         if (evt.LeftDown() || evt.LeftDClick())
         {
             m_mouse_capture.left = true;
-            m_mouse_capture.parent = m_parent;
+            m_mouse_capture.parent = &m_parent;
             processed = true;
             if (!selection.is_empty())
             {
                 update_on_off_state(mouse_pos);
                 update_data();
-                m_parent->set_as_dirty();
+                m_parent.set_as_dirty();
             }
         }
         else if (evt.MiddleDown())
         {
             m_mouse_capture.middle = true;
-            m_mouse_capture.parent = m_parent;
+            m_mouse_capture.parent = &m_parent;
         }
         else if (evt.RightDown())
         {
             m_mouse_capture.right = true;
-            m_mouse_capture.parent = m_parent;
+            m_mouse_capture.parent = &m_parent;
         }
         else if (evt.LeftUp())
             processed = true;
@@ -711,9 +700,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
 bool GLGizmosManager::on_char(wxKeyEvent& evt)
 {
-    if (m_parent == nullptr)
-        return false;
-
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
@@ -828,16 +814,13 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
     }
 
     if (processed)
-        m_parent->set_as_dirty();
+        m_parent.set_as_dirty();
 
     return processed;
 }
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    if (m_parent == nullptr)
-        return false;
-
     const int keyCode = evt.GetKeyCode();
     bool processed = false;
 
@@ -862,19 +845,19 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
 
 //        if (processed)
-//            m_parent->set_cursor(GLCanvas3D::Standard);
+//            m_parent.set_cursor(GLCanvas3D::Standard);
     }
     else if (evt.GetEventType() == wxEVT_KEY_DOWN)
     {
         if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
         {
-//            m_parent->set_cursor(GLCanvas3D::Cross);
+//            m_parent.set_cursor(GLCanvas3D::Cross);
             processed = true;
         }
     }
 
     if (processed)
-        m_parent->set_as_dirty();
+        m_parent.set_as_dirty();
 
     return processed;
 }
@@ -898,12 +881,12 @@ void GLGizmosManager::reset()
 
 void GLGizmosManager::do_render_overlay() const
 {
-    if ((m_parent == nullptr) || m_gizmos.empty())
+    if (m_gizmos.empty())
         return;
 
-    float cnv_w = (float)m_parent->get_canvas_size().get_width();
-    float cnv_h = (float)m_parent->get_canvas_size().get_height();
-    float zoom = (float)m_parent->get_camera().get_zoom();
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
+    float zoom = (float)m_parent.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
@@ -1016,7 +999,7 @@ void GLGizmosManager::do_render_overlay() const
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (it->second->get_state() == GLGizmoBase::On) {
-            float toolbar_top = (float)cnv_h - m_parent->get_view_toolbar_height();
+            float toolbar_top = (float)cnv_h - m_parent.get_view_toolbar_height();
             it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top);
         }
         top_y -= scaled_stride_y;
@@ -1081,10 +1064,10 @@ bool GLGizmosManager::generate_icons_texture() const
 
 void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return;
 
-    float cnv_h = (float)m_parent->get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
 
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
@@ -1127,10 +1110,10 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
 {
     std::string name = "";
 
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return name;
 
-    float cnv_h = (float)m_parent->get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
     float scaled_border = m_overlay_border * m_overlay_scale;
@@ -1158,10 +1141,10 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
 
 bool GLGizmosManager::overlay_contains_mouse(const Vec2d& mouse_pos) const
 {
-    if (!m_enabled || (m_parent == nullptr))
+    if (!m_enabled)
         return false;
 
-    float cnv_h = (float)m_parent->get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
 
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;

@@ -60,7 +60,7 @@ public:
     };
 
 private:
-    GLCanvas3D* m_parent;
+    GLCanvas3D& m_parent;
     bool m_enabled;
     typedef std::map<EType, GLGizmoBase*> GizmosMap;
     GizmosMap m_gizmos;
@@ -92,10 +92,10 @@ private:
     bool m_serializing;
 
 public:
-    GLGizmosManager();
+    explicit GLGizmosManager(GLCanvas3D& parent);
     ~GLGizmosManager();
 
-    bool init(GLCanvas3D& parent);
+    bool init();
 
     template<class Archive>
     void load(Archive& ar)
