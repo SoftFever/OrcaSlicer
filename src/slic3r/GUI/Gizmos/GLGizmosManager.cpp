@@ -551,7 +551,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 if (m_current == Flatten)
                 {
                     // Rotate the object so the normal points downward:
-                    m_parent.do_flatten(get_flattening_normal(), "Gizmo-Place on Face");
+                    m_parent.do_flatten(get_flattening_normal(), L("Gizmo-Place on Face"));
                     wxGetApp().obj_manipul()->set_dirty();
                 }
 
@@ -624,17 +624,17 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             case Move:
             {
                 m_parent.disable_regenerate_volumes();
-                m_parent.do_move("Gizmo-Move");
+                m_parent.do_move(L("Gizmo-Move"));
                 break;
             }
             case Scale:
             {
-                m_parent.do_scale("Gizmo-Scale");
+                m_parent.do_scale(L("Gizmo-Scale"));
                 break;
             }
             case Rotate:
             {
-                m_parent.do_rotate("Gizmo-Rotate");
+                m_parent.do_rotate(L("Gizmo-Rotate"));
                 break;
             }
             default:

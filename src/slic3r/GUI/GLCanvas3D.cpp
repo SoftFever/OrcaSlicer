@@ -1795,7 +1795,7 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 void GLCanvas3D::mirror_selection(Axis axis)
 {
     m_selection.mirror(axis);
-    do_mirror("Mirror Object");
+    do_mirror(L("Mirror Object"));
     wxGetApp().obj_manipul()->set_dirty();
 }
 
@@ -2950,7 +2950,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             m_regenerate_volumes = false;
-            do_move("Move Object");
+            do_move(L("Move Object"));
             wxGetApp().obj_manipul()->set_dirty();
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
@@ -3115,7 +3115,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
     bool object_moved = false;
@@ -3177,7 +3177,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3237,7 +3237,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3291,10 +3291,10 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_type)
 {
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     m_selection.flattening_rotate(normal);
-    do_rotate(""); // avoid taking another snapshot
+    do_rotate(L("")); // avoid taking another snapshot
 }
 
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
@@ -3303,7 +3303,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
