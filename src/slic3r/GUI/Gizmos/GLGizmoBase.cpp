@@ -180,7 +180,7 @@ void GLGizmoBase::disable_grabber(unsigned int id)
     on_disable_grabber(id);
 }
 
-void GLGizmoBase::start_dragging(const Selection& selection)
+void GLGizmoBase::start_dragging()
 {
     m_dragging = true;
 
@@ -189,7 +189,7 @@ void GLGizmoBase::start_dragging(const Selection& selection)
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-    on_start_dragging(selection);
+    on_start_dragging();
 }
 
 void GLGizmoBase::stop_dragging()
@@ -204,10 +204,10 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const UpdateData& data, const Selection& selection)
+void GLGizmoBase::update(const UpdateData& data)
 {
     if (m_hover_id != -1)
-        on_update(data, selection);
+        on_update(data);
 }
 
 std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const

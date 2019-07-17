@@ -76,10 +76,10 @@ public:
 
     struct UpdateData
     {
-        const Linef3 mouse_ray;
-        const Point* mouse_pos;
+        const Linef3& mouse_ray;
+        const Point& mouse_pos;
 
-        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr)
+        UpdateData(const Linef3& mouse_ray, const Point& mouse_pos)
             : mouse_ray(mouse_ray), mouse_pos(mouse_pos)
         {}
     };
@@ -122,7 +122,7 @@ public:
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
 
-    bool is_activable(const Selection& selection) const { return on_is_activable(selection); }
+    bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
@@ -135,16 +135,16 @@ public:
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 
-    void start_dragging(const Selection& selection);
+    void start_dragging();
     void stop_dragging();
 
     bool is_dragging() const { return m_dragging; }
 
-    void update(const UpdateData& data, const Selection& selection);
+    void update(const UpdateData& data);
 
-    void render(const Selection& selection) const { on_render(selection); }
-    void render_for_picking(const Selection& selection) const { on_render_for_picking(selection); }
-    void render_input_window(float x, float y, float bottom_limit, const Selection& selection) { on_render_input_window(x, y, bottom_limit, selection); }
+    void render() const { on_render(); }
+    void render_for_picking() const { on_render_for_picking(); }
+    void render_input_window(float x, float y, float bottom_limit) { on_render_input_window(x, y, bottom_limit); }
 
 protected:
     virtual bool on_init() = 0;
@@ -153,16 +153,16 @@ protected:
     virtual std::string on_get_name() const = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
-    virtual bool on_is_activable(const Selection& selection) const { return true; }
+    virtual bool on_is_activable() const { return true; }
     virtual bool on_is_selectable() const { return true; }
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
-    virtual void on_start_dragging(const Selection& selection) {}
+    virtual void on_start_dragging() {}
     virtual void on_stop_dragging() {}
-    virtual void on_update(const UpdateData& data, const Selection& selection) = 0;
-    virtual void on_render(const Selection& selection) const = 0;
-    virtual void on_render_for_picking(const Selection& selection) const = 0;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) {}
+    virtual void on_update(const UpdateData& data) {}
+    virtual void on_render() const = 0;
+    virtual void on_render_for_picking() const = 0;
+    virtual void on_render_input_window(float x, float y, float bottom_limit) {}
 
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)

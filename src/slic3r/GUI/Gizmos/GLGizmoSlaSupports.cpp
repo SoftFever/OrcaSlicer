@@ -94,8 +94,10 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
     }
 }
 
-void GLGizmoSlaSupports::on_render(const Selection& selection) const
+void GLGizmoSlaSupports::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     // If current m_model_object does not match selection, ask GLCanvas3D to turn us off
     if (m_state == On
      && (m_model_object != selection.get_model()->objects[selection.get_object_idx()]
@@ -252,8 +254,9 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 }
 
 
-void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
+void GLGizmoSlaSupports::on_render_for_picking() const
 {
+    const Selection& selection = m_parent.get_selection();
 #if ENABLE_RENDER_PICKING_PASS
 	m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 #endif
@@ -702,12 +705,12 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
     //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLGizmoSlaSupports::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoSlaSupports::on_update(const UpdateData& data)
 {
-    if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_editing_mode_cache[m_hover_id].support_point.is_new_island || !m_lock_unique_islands)) {
+    if (m_editing_mode && m_hover_id != -1 && (!m_editing_mode_cache[m_hover_id].support_point.is_new_island || !m_lock_unique_islands)) {
         std::pair<Vec3f, Vec3f> pos_and_normal;
         try {
-            pos_and_normal = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
+            pos_and_normal = unproject_on_mesh(data.mouse_pos.cast<double>());
         }
         catch (...) { return; }
         m_editing_mode_cache[m_hover_id].support_point.pos = pos_and_normal.first;
@@ -822,7 +825,7 @@ void GLGizmoSlaSupports::make_line_segments() const
 */
 
 
-void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
+void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (!m_model_object)
         return;
@@ -1002,11 +1005,13 @@ RENDER_AGAIN:
         m_parent.set_as_dirty();
 }
 
-bool GLGizmoSlaSupports::on_is_activable(const Selection& selection) const
+bool GLGizmoSlaSupports::on_is_activable() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA
         || !selection.is_from_single_instance())
-            return false;
+        return false;
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
     const Selection::IndicesList& list = selection.get_volume_idxs();
@@ -1075,7 +1080,7 @@ void GLGizmoSlaSupports::on_set_state()
 
 
 
-void GLGizmoSlaSupports::on_start_dragging(const Selection& selection)
+void GLGizmoSlaSupports::on_start_dragging()
 {
     if (m_hover_id != -1) {
         select_point(NoPoints);

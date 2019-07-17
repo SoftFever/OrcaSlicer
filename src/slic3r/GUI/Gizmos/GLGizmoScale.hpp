@@ -45,12 +45,14 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const Selection& selection) const { return !selection.is_wipe_tower(); }
-    virtual void on_start_dragging(const Selection& selection);
-    virtual void on_update(const UpdateData& data, const Selection& selection);
-    virtual void on_render(const Selection& selection) const;
-    virtual void on_render_for_picking(const Selection& selection) const;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection);
+    virtual bool on_is_activable() const;
+    virtual void on_start_dragging();
+    virtual void on_update(const UpdateData& data);
+    virtual void on_render() const;
+    virtual void on_render_for_picking() const;
+#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+    virtual void on_render_input_window(float x, float y, float bottom_limit);
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;

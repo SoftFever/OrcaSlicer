@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFlatten.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <numeric>
 
@@ -27,23 +28,25 @@ std::string GLGizmoFlatten::on_get_name() const
     return (_(L("Place on face")) + " [F]").ToUTF8().data();
 }
 
-bool GLGizmoFlatten::on_is_activable(const Selection& selection) const
+bool GLGizmoFlatten::on_is_activable() const
 {
-    return selection.is_single_full_instance();
+    return m_parent.get_selection().is_single_full_instance();
 }
 
-void GLGizmoFlatten::on_start_dragging(const Selection& selection)
+void GLGizmoFlatten::on_start_dragging()
 {
     if (m_hover_id != -1)
     {
         assert(m_planes_valid);
         m_normal = m_planes[m_hover_id].normal;
-        m_starting_center = selection.get_bounding_box().center();
+        m_starting_center = m_parent.get_selection().get_bounding_box().center();
     }
 }
 
-void GLGizmoFlatten::on_render(const Selection& selection) const
+void GLGizmoFlatten::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -78,8 +81,10 @@ void GLGizmoFlatten::on_render(const Selection& selection) const
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLGizmoFlatten::on_render_for_picking(const Selection& selection) const
+void GLGizmoFlatten::on_render_for_picking() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
 

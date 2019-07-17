@@ -150,7 +150,7 @@ void GLGizmosManager::refresh_on_off_state()
     GizmosMap::iterator it = m_gizmos.find(m_current);
     if ((it != m_gizmos.end()) && (it->second != nullptr))
     {
-        if (!it->second->is_activable(m_parent->get_selection()))
+        if (!it->second->is_activable())
         {
             it->second->set_state(GLGizmoBase::Off);
             m_current = Undefined;
@@ -205,14 +205,14 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
     }
 }
 
-void GLGizmosManager::update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
 {
     if (!m_enabled || (m_parent == nullptr))
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos), m_parent->get_selection());
+        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos));
 }
 
 void GLGizmosManager::update_data()
@@ -282,8 +282,7 @@ bool GLGizmosManager::handle_shortcut(int key)
     if (!m_enabled || (m_parent == nullptr))
         return false;
 
-    const Selection& selection = m_parent->get_selection();
-    if (selection.is_empty())
+    if (m_parent->get_selection().is_empty())
         return false;
 
     EType old_current = m_current;
@@ -295,7 +294,7 @@ bool GLGizmosManager::handle_shortcut(int key)
 
         int it_key = it->second->get_shortcut_key();
 
-        if (it->second->is_activable(selection) && ((it_key == key - 64) || (it_key == key - 96)))
+        if (it->second->is_activable() && ((it_key == key - 64) || (it_key == key - 96)))
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -338,7 +337,7 @@ void GLGizmosManager::start_dragging()
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->start_dragging(m_parent->get_selection());
+        curr->start_dragging();
 }
 
 void GLGizmosManager::stop_dragging()
@@ -469,7 +468,7 @@ void GLGizmosManager::render_current_gizmo() const
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->render(m_parent->get_selection());
+        curr->render();
 }
 
 void GLGizmosManager::render_current_gizmo_for_picking_pass() const
@@ -479,7 +478,7 @@ void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->render_for_picking(m_parent->get_selection());
+        curr->render_for_picking();
 }
 
 void GLGizmosManager::render_overlay() const
@@ -589,7 +588,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 m_parent->get_wxglcanvas()->CaptureMouse();
 
             m_parent->set_mouse_as_dragging();
-            update(m_parent->mouse_ray(pos), &pos);
+            update(m_parent->mouse_ray(pos), pos);
 
             switch (m_current)
             {
@@ -902,8 +901,6 @@ void GLGizmosManager::do_render_overlay() const
     if ((m_parent == nullptr) || m_gizmos.empty())
         return;
 
-    const Selection& selection = m_parent->get_selection();
-
     float cnv_w = (float)m_parent->get_canvas_size().get_width();
     float cnv_h = (float)m_parent->get_canvas_size().get_height();
     float zoom = (float)m_parent->get_camera().get_zoom();
@@ -1020,7 +1017,7 @@ void GLGizmosManager::do_render_overlay() const
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - m_parent->get_view_toolbar_height();
-            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top);
         }
         top_y -= scaled_stride_y;
     }
@@ -1087,8 +1084,6 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     if (!m_enabled || (m_parent == nullptr))
         return;
 
-    const Selection& selection = m_parent->get_selection();
-
     float cnv_h = (float)m_parent->get_canvas_size().get_height();
     float height = get_total_overlay_height();
 
@@ -1104,7 +1099,7 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
             continue;
 
         bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-        if (it->second->is_activable(selection) && inside)
+        if (it->second->is_activable() && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1135,8 +1130,6 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
     if (!m_enabled || (m_parent == nullptr))
         return name;
 
-    const Selection& selection = m_parent->get_selection();
-
     float cnv_h = (float)m_parent->get_canvas_size().get_height();
     float height = get_total_overlay_height();
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
@@ -1154,7 +1147,7 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
         if (inside)
             name = it->second->get_name();
 
-        if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
+        if (it->second->is_activable() && (it->second->get_state() != GLGizmoBase::On))
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
 
         top_y += scaled_stride_y;

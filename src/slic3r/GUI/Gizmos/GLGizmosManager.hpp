@@ -140,7 +140,7 @@ public:
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
 
-    void update(const Linef3& mouse_ray, const Point* mouse_pos = nullptr);
+    void update(const Linef3& mouse_ray, const Point& mouse_pos);
     void update_data();
 
     EType get_current_type() const { return m_current; }
