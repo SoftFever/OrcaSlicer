@@ -132,6 +132,7 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     glsafe(::glEnd());
 }
 
+
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : m_parent(parent)
     , m_group_id(-1)

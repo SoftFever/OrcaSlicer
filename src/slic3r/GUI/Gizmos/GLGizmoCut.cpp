@@ -28,7 +28,6 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, uns
     , m_rotate_lower(false)
 {}
 
-
 bool GLGizmoCut::on_init()
 {
     m_grabbers.emplace_back();

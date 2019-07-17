@@ -1719,7 +1719,7 @@ void GLCanvas3D::deselect_all()
     m_selection.set_mode(Selection::Instance);
     wxGetApp().obj_manipul()->set_dirty();
     m_gizmos.reset_all_states();
-    m_gizmos.update_data(*this);
+    m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
@@ -2082,8 +2082,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
-    m_gizmos.update_data(*this);
-    m_gizmos.refresh_on_off_state(m_selection);
+    m_gizmos.update_data();
+    m_gizmos.refresh_on_off_state();
 
     // Update the toolbar
 	if (update_object_list)
@@ -2323,7 +2323,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     if ((keyCode == WXK_ESCAPE) && _deactivate_undo_redo_toolbar_items())
         return;
 
-    if (m_gizmos.on_char(evt, *this))
+    if (m_gizmos.on_char(evt))
         return;
 
 //#ifdef __APPLE__
@@ -2450,7 +2450,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     }
     else
     {
-        if (!m_gizmos.on_key(evt, *this))
+        if (!m_gizmos.on_key(evt))
         {
             if (evt.GetEventType() == wxEVT_KEY_UP) {
                 if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
@@ -2560,7 +2560,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
 
     // Inform gizmos about the event so they have the opportunity to react.
-    if (m_gizmos.on_mouse_wheel(evt, *this))
+    if (m_gizmos.on_mouse_wheel(evt))
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
@@ -2688,7 +2688,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
-    if (m_gizmos.on_mouse(evt, *this))
+    if (m_gizmos.on_mouse(evt))
     {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -2815,9 +2815,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         if (m_selection.is_empty())
                             m_gizmos.reset_all_states();
                         else
-                            m_gizmos.refresh_on_off_state(m_selection);
+                            m_gizmos.refresh_on_off_state();
 
-                        m_gizmos.update_data(*this);
+                        m_gizmos.update_data();
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
                     }
@@ -2985,9 +2985,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // forces the selection of the volume
                     m_selection.add(volume_idx);
-                    m_gizmos.refresh_on_off_state(m_selection);
+                    m_gizmos.refresh_on_off_state();
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                    m_gizmos.update_data(*this);
+                    m_gizmos.update_data();
                     wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
@@ -3355,8 +3355,8 @@ void GLCanvas3D::set_camera_zoom(double zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
-    m_gizmos.update_data(*this);
-    m_gizmos.refresh_on_off_state(get_selection());
+    m_gizmos.update_data();
+    m_gizmos.refresh_on_off_state();
 }
 
 void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool focus_on)
@@ -3762,7 +3762,7 @@ void GLCanvas3D::_picking_pass() const
         if (m_camera_clipping_plane.is_active())
             ::glDisable(GL_CLIP_PLANE0);
 
-        m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
+        m_gizmos.render_current_gizmo_for_picking_pass();
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
@@ -4072,7 +4072,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
 void GLCanvas3D::_render_current_gizmo() const
 {
-    m_gizmos.render_current_gizmo(m_selection);
+    m_gizmos.render_current_gizmo();
 }
 
 void GLCanvas3D::_render_gizmos_overlay() const
@@ -4088,7 +4088,7 @@ void GLCanvas3D::_render_gizmos_overlay() const
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
-    m_gizmos.render_overlay(*this, m_selection);
+    m_gizmos.render_overlay();
 }
 
 void GLCanvas3D::_render_toolbar() const
@@ -5661,9 +5661,9 @@ void GLCanvas3D::_update_selection_from_hover()
     if (m_selection.is_empty())
         m_gizmos.reset_all_states();
     else
-        m_gizmos.refresh_on_off_state(m_selection);
+        m_gizmos.refresh_on_off_state();
 
-    m_gizmos.update_data(*this);
+    m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     m_dirty = true;
 }

@@ -6,6 +6,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Selection.hpp"
 
+#include <cereal/archives/binary.hpp>
 
 class wxWindow;
 class GLUquadric;
@@ -105,6 +106,9 @@ public:
 
     bool init() { return on_init(); }
 
+    void load(cereal::BinaryInputArchive& ar) { m_state = On; on_load(ar); }
+    void save(cereal::BinaryOutputArchive& ar) const { on_save(ar); }
+
     std::string get_name() const { return on_get_name(); }
 
     int get_group_id() const { return m_group_id; }
@@ -144,6 +148,8 @@ public:
 
 protected:
     virtual bool on_init() = 0;
+    virtual void on_load(cereal::BinaryInputArchive& ar) {}
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const {}
     virtual std::string on_get_name() const = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}

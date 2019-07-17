@@ -4,14 +4,13 @@
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
+#include "libslic3r/ObjectID.hpp"
 
 #include <map>
 
 namespace Slic3r {
 namespace GUI {
 
-class Selection;
-class GLGizmoBase;
 class GLCanvas3D;
 class ClippingPlane;
 
@@ -43,7 +42,7 @@ public:
     float get_height() const { return m_top - m_bottom; }
 };
 
-class GLGizmosManager
+class GLGizmosManager : public Slic3r::ObjectBase
 {
 public:
     static const float Default_Icons_Size;
@@ -61,6 +60,7 @@ public:
     };
 
 private:
+    GLCanvas3D* m_parent;
     bool m_enabled;
     typedef std::map<EType, GLGizmoBase*> GizmosMap;
     GizmosMap m_gizmos;
@@ -89,6 +89,7 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
+    bool m_serializing;
 
 public:
     GLGizmosManager();
@@ -96,29 +97,59 @@ public:
 
     bool init(GLCanvas3D& parent);
 
+    template<class Archive>
+    void load(Archive& ar)
+    {
+        if (!m_enabled)
+            return;
+
+        m_serializing = true;
+
+        ar(m_current);
+
+        GLGizmoBase* curr = get_current();
+        if (curr != nullptr)
+        {
+            curr->set_state(GLGizmoBase::On);
+            curr->load(ar);
+        }
+    }
+
+    template<class Archive>
+    void save(Archive& ar) const
+    {
+        if (!m_enabled)
+            return;
+
+        ar(m_current);
+
+        GLGizmoBase* curr = get_current();
+        if (curr != nullptr)
+            curr->save(ar);
+    }
+
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
 
     void set_overlay_icon_size(float size);
     void set_overlay_scale(float scale);
 
-    void refresh_on_off_state(const Selection& selection);
+    void refresh_on_off_state();
     void reset_all_states();
 
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
 
-    void update(const Linef3& mouse_ray, const Selection& selection, const Point* mouse_pos = nullptr);
-    void update_data(GLCanvas3D& canvas);
+    void update(const Linef3& mouse_ray, const Point* mouse_pos = nullptr);
+    void update_data();
 
-    Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
     EType get_current_type() const { return m_current; }
 
     bool is_running() const;
-    bool handle_shortcut(int key, const Selection& selection);
+    bool handle_shortcut(int key);
 
     bool is_dragging() const;
-    void start_dragging(const Selection& selection);
+    void start_dragging();
     void stop_dragging();
 
     Vec3d get_displacement() const;
@@ -135,26 +166,28 @@ public:
 
     void set_flattening_data(const ModelObject* model_object);
 
-    void set_sla_support_data(ModelObject* model_object, const Selection& selection);
+    void set_sla_support_data(ModelObject* model_object);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_sla_clipping_plane() const;
 
-    void render_current_gizmo(const Selection& selection) const;
-    void render_current_gizmo_for_picking_pass(const Selection& selection) const;
+    void render_current_gizmo() const;
+    void render_current_gizmo_for_picking_pass() const;
 
-    void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
+    void render_overlay() const;
 
     const std::string& get_tooltip() const { return m_tooltip; }
 
-    bool on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas);
-    bool on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas);
-    bool on_char(wxKeyEvent& evt, GLCanvas3D& canvas);
-    bool on_key(wxKeyEvent& evt, GLCanvas3D& canvas);
+    bool on_mouse(wxMouseEvent& evt);
+    bool on_mouse_wheel(wxMouseEvent& evt);
+    bool on_char(wxKeyEvent& evt);
+    bool on_key(wxKeyEvent& evt);
+
+    void update_after_undo_redo();
 
 private:
     void reset();
 
-    void do_render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
+    void do_render_overlay() const;
 
     float get_total_overlay_height() const;
     float get_total_overlay_width() const;
@@ -163,13 +196,18 @@ private:
 
     bool generate_icons_texture() const;
 
-    void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
-    std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
-    bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
+    void update_on_off_state(const Vec2d& mouse_pos);
+    std::string update_hover_state(const Vec2d& mouse_pos);
+    bool overlay_contains_mouse(const Vec2d& mouse_pos) const;
     bool grabber_contains_mouse() const;
 };
 
 } // namespace GUI
 } // namespace Slic3r
+
+namespace cereal
+{
+    template <class Archive> struct specialize<Archive, Slic3r::GUI::GLGizmosManager, cereal::specialization::member_load_save> {};
+}
 
 #endif // slic3r_GUI_GLGizmosManager_hpp_

@@ -27,6 +27,8 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual void on_load(cereal::BinaryInputArchive& ar) { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
     virtual std::string on_get_name() const;
     virtual void on_set_state();
     virtual bool on_is_activable(const Selection& selection) const;
