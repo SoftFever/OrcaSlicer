@@ -14,8 +14,9 @@ namespace GUI {
 
 const float GLGizmosManager::Default_Icons_Size = 64;
 
-GLGizmosManager::GLGizmosManager()
-    : m_enabled(false)
+GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
+    : m_parent(parent)
+    , m_enabled(false)
     , m_icons_texture_dirty(true)
     , m_current(Undefined)
     , m_overlay_icons_size(Default_Icons_Size)
@@ -23,6 +24,7 @@ GLGizmosManager::GLGizmosManager()
     , m_overlay_border(5.0f)
     , m_overlay_gap_y(5.0f)
     , m_tooltip("")
+    , m_serializing(false)
 {
 }
 
@@ -31,7 +33,7 @@ GLGizmosManager::~GLGizmosManager()
     reset();
 }
 
-bool GLGizmosManager::init(GLCanvas3D& parent)
+bool GLGizmosManager::init()
 {
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
@@ -48,7 +50,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
         }
     }
 
-    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "move.svg", 0);
+    GLGizmoBase* gizmo = new GLGizmoMove3D(m_parent, "move.svg", 0);
     if (gizmo == nullptr)
         return false;
 
@@ -57,7 +59,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
-    gizmo = new GLGizmoScale3D(parent, "scale.svg", 1);
+    gizmo = new GLGizmoScale3D(m_parent, "scale.svg", 1);
     if (gizmo == nullptr)
         return false;
 
@@ -66,7 +68,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
-    gizmo = new GLGizmoRotate3D(parent, "rotate.svg", 2);
+    gizmo = new GLGizmoRotate3D(m_parent, "rotate.svg", 2);
     if (gizmo == nullptr)
     {
         reset();
@@ -81,7 +83,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
-    gizmo = new GLGizmoFlatten(parent, "place.svg", 3);
+    gizmo = new GLGizmoFlatten(m_parent, "place.svg", 3);
     if (gizmo == nullptr)
         return false;
 
@@ -92,7 +94,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
-    gizmo = new GLGizmoCut(parent, "cut.svg", 4);
+    gizmo = new GLGizmoCut(m_parent, "cut.svg", 4);
     if (gizmo == nullptr)
         return false;
 
@@ -103,7 +105,7 @@ bool GLGizmosManager::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
 
-    gizmo = new GLGizmoSlaSupports(parent, "sla_supports.svg", 5);
+    gizmo = new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5);
     if (gizmo == nullptr)
         return false;
 
@@ -135,12 +137,15 @@ void GLGizmosManager::set_overlay_scale(float scale)
     }
 }
 
-void GLGizmosManager::refresh_on_off_state(const Selection& selection)
+void GLGizmosManager::refresh_on_off_state()
 {
+    if (m_serializing)
+        return;
+
     GizmosMap::iterator it = m_gizmos.find(m_current);
     if ((it != m_gizmos.end()) && (it->second != nullptr))
     {
-        if (!it->second->is_activable(selection))
+        if (!it->second->is_activable())
         {
             it->second->set_state(GLGizmoBase::Off);
             m_current = Undefined;
@@ -151,6 +156,9 @@ void GLGizmosManager::refresh_on_off_state(const Selection& selection)
 void GLGizmosManager::reset_all_states()
 {
     if (!m_enabled)
+        return;
+
+    if (m_serializing)
         return;
 
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
@@ -192,22 +200,22 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
     }
 }
 
-void GLGizmosManager::update(const Linef3& mouse_ray, const Selection& selection, const Point* mouse_pos)
+void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos), selection);
+        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos));
 }
 
-void GLGizmosManager::update_data(GLCanvas3D& canvas)
+void GLGizmosManager::update_data()
 {
     if (!m_enabled)
         return;
 
-    const Selection& selection = canvas.get_selection();
+    const Selection& selection = m_parent.get_selection();
 
     bool is_wipe_tower = selection.is_wipe_tower();
     enable_grabber(Move, 2, !is_wipe_tower);
@@ -228,7 +236,7 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
         set_rotation(Vec3d::Zero());
         ModelObject* model_object = selection.get_model()->objects[selection.get_object_idx()];
         set_flattening_data(model_object);
-        set_sla_support_data(model_object, selection);
+        set_sla_support_data(model_object);
     }
     else if (selection.is_single_volume() || selection.is_single_modifier())
     {
@@ -236,7 +244,7 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
         set_scale(volume->get_volume_scaling_factor());
         set_rotation(Vec3d::Zero());
         set_flattening_data(nullptr);
-        set_sla_support_data(nullptr, selection);
+        set_sla_support_data(nullptr);
     }
     else if (is_wipe_tower)
     {
@@ -244,14 +252,14 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
         set_scale(Vec3d::Ones());
         set_rotation(Vec3d(0., 0., (M_PI/180.) * dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value));
         set_flattening_data(nullptr);
-        set_sla_support_data(nullptr, selection);
+        set_sla_support_data(nullptr);
     }
     else
     {
         set_scale(Vec3d::Ones());
         set_rotation(Vec3d::Zero());
         set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        set_sla_support_data(nullptr, selection);
+        set_sla_support_data(nullptr);
     }
 }
 
@@ -264,9 +272,12 @@ bool GLGizmosManager::is_running() const
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
-bool GLGizmosManager::handle_shortcut(int key, const Selection& selection)
+bool GLGizmosManager::handle_shortcut(int key)
 {
-    if (!m_enabled || selection.is_empty())
+    if (!m_enabled)
+        return false;
+
+    if (m_parent.get_selection().is_empty())
         return false;
 
     EType old_current = m_current;
@@ -278,7 +289,7 @@ bool GLGizmosManager::handle_shortcut(int key, const Selection& selection)
 
         int it_key = it->second->get_shortcut_key();
 
-        if (it->second->is_activable(selection) && ((it_key == key - 64) || (it_key == key - 96)))
+        if (it->second->is_activable() && ((it_key == key - 64) || (it_key == key - 96)))
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -314,14 +325,14 @@ bool GLGizmosManager::is_dragging() const
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
-void GLGizmosManager::start_dragging(const Selection& selection)
+void GLGizmosManager::start_dragging()
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->start_dragging(selection);
+        curr->start_dragging();
 }
 
 void GLGizmosManager::stop_dragging()
@@ -409,14 +420,14 @@ void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
-void GLGizmosManager::set_sla_support_data(ModelObject* model_object, const Selection& selection)
+void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, selection);
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -445,27 +456,27 @@ ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
 }
 
 
-void GLGizmosManager::render_current_gizmo(const Selection& selection) const
+void GLGizmosManager::render_current_gizmo() const
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->render(selection);
+        curr->render();
 }
 
-void GLGizmosManager::render_current_gizmo_for_picking_pass(const Selection& selection) const
+void GLGizmosManager::render_current_gizmo_for_picking_pass() const
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = get_current();
     if (curr != nullptr)
-        curr->render_for_picking(selection);
+        curr->render_for_picking();
 }
 
-void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& selection) const
+void GLGizmosManager::render_overlay() const
 {
     if (!m_enabled)
         return;
@@ -473,10 +484,10 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
     if (m_icons_texture_dirty)
         generate_icons_texture();
 
-    do_render_overlay(canvas, selection);
+    do_render_overlay();
 }
 
-bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
+bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
     bool processed = false;
 
@@ -489,14 +500,12 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
     return processed;
 }
 
-
-
-bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
+bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 {
     Point pos(evt.GetX(), evt.GetY());
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
 
-    Selection& selection = canvas.get_selection();
+    Selection& selection = m_parent.get_selection();
     int selected_object_idx = selection.get_object_idx();
     bool processed = false;
 
@@ -512,7 +521,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 
     // mouse anywhere
     if (evt.Moving())
-        m_tooltip = update_hover_state(canvas, mouse_pos);
+        m_tooltip = update_hover_state(mouse_pos);
     else if (evt.LeftUp())
         m_mouse_capture.left = false;
     else if (evt.MiddleUp())
@@ -523,7 +532,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
 
-    if (!overlay_contains_mouse(canvas, mouse_pos))
+    if (!overlay_contains_mouse(mouse_pos))
     {
         // mouse is outside the toolbar
         m_tooltip = "";
@@ -535,40 +544,40 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse())
             {
-                update_data(canvas);
+                update_data();
                 selection.start_dragging();
-                start_dragging(selection);
+                start_dragging();
 
                 if (m_current == Flatten)
                 {
                     // Rotate the object so the normal points downward:
-                    canvas.do_flatten(get_flattening_normal(), "Place on Face");
+                    m_parent.do_flatten(get_flattening_normal(), L("Gizmo-Place on Face"));
                     wxGetApp().obj_manipul()->set_dirty();
                 }
 
-                canvas.set_as_dirty();
+                m_parent.set_as_dirty();
                 processed = true;
             }
         }
         else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::RightDown))
             // event was taken care of by the SlaSupports gizmo
             processed = true;
-        else if (evt.Dragging() && (canvas.get_move_volume_id() != -1) && (m_current == SlaSupports))
-            // don't allow dragging objects with the Sla gizmo on
+        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports))
+                        // don't allow dragging objects with the Sla gizmo on
             processed = true;
         else if (evt.Dragging() && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
         {
             // the gizmo got the event and took some action, no need to do anything more here
-            canvas.set_as_dirty();
+            m_parent.set_as_dirty();
             processed = true;
         }
         else if (evt.Dragging() && is_dragging())
         {
-            if (!canvas.get_wxglcanvas()->HasCapture())
-                canvas.get_wxglcanvas()->CaptureMouse();
+            if (!m_parent.get_wxglcanvas()->HasCapture())
+                m_parent.get_wxglcanvas()->CaptureMouse();
 
-            canvas.set_mouse_as_dragging();
-            update(canvas.mouse_ray(pos), selection, &pos);
+            m_parent.set_mouse_as_dragging();
+            update(m_parent.mouse_ray(pos), pos);
 
             switch (m_current)
             {
@@ -605,7 +614,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 break;
             }
 
-            canvas.set_as_dirty();
+            m_parent.set_as_dirty();
             processed = true;
         }
         else if (evt.LeftUp() && is_dragging())
@@ -614,18 +623,18 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             {
             case Move:
             {
-                canvas.disable_regenerate_volumes();
-                canvas.do_move("Gizmo-Move Object");
+                m_parent.disable_regenerate_volumes();
+                m_parent.do_move(L("Gizmo-Move"));
                 break;
             }
             case Scale:
             {
-                canvas.do_scale("Gizmo-Scale Object");
+                m_parent.do_scale(L("Gizmo-Scale"));
                 break;
             }
             case Rotate:
             {
-                canvas.do_rotate("Gizmo-Rotate Object");
+                m_parent.do_rotate(L("Gizmo-Rotate"));
                 break;
             }
             default:
@@ -633,25 +642,25 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             }
 
             stop_dragging();
-            update_data(canvas);
+            update_data();
 
             wxGetApp().obj_manipul()->set_dirty();
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
-            canvas.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             // updates camera target constraints
-            canvas.refresh_camera_scene_box();
+            m_parent.refresh_camera_scene_box();
 
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports) && !canvas.is_mouse_dragging())
+        else if (evt.LeftUp() && (m_current == SlaSupports) && !m_parent.is_mouse_dragging())
         {
             // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
+        else if (evt.LeftUp() && (m_current == Flatten) && ((m_parent.get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
         {
             // to avoid to loose the selection when user clicks an object while the Flatten gizmo is active
             processed = true;
@@ -663,24 +672,24 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
         if (evt.LeftDown() || evt.LeftDClick())
         {
             m_mouse_capture.left = true;
-            m_mouse_capture.parent = &canvas;
+            m_mouse_capture.parent = &m_parent;
             processed = true;
             if (!selection.is_empty())
             {
-                update_on_off_state(canvas, mouse_pos, selection);
-                update_data(canvas);
-                canvas.set_as_dirty();
+                update_on_off_state(mouse_pos);
+                update_data();
+                m_parent.set_as_dirty();
             }
         }
         else if (evt.MiddleDown())
         {
             m_mouse_capture.middle = true;
-            m_mouse_capture.parent = &canvas;
+            m_mouse_capture.parent = &m_parent;
         }
         else if (evt.RightDown())
         {
             m_mouse_capture.right = true;
-            m_mouse_capture.parent = &canvas;
+            m_mouse_capture.parent = &m_parent;
         }
         else if (evt.LeftUp())
             processed = true;
@@ -689,7 +698,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
     return processed;
 }
 
-bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
+bool GLGizmosManager::on_char(wxKeyEvent& evt)
 {
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
@@ -797,20 +806,20 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
 
     if (!processed && !evt.HasModifiers())
     {
-        if (handle_shortcut(keyCode, canvas.get_selection()))
+        if (handle_shortcut(keyCode))
         {
-            update_data(canvas);
+            update_data();
             processed = true;
         }
     }
 
     if (processed)
-        canvas.set_as_dirty();
+        m_parent.set_as_dirty();
 
     return processed;
 }
 
-bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
+bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
     const int keyCode = evt.GetKeyCode();
     bool processed = false;
@@ -836,21 +845,27 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
         }
 
 //        if (processed)
-//            canvas.set_cursor(GLCanvas3D::Standard);
+//            m_parent.set_cursor(GLCanvas3D::Standard);
     }
     else if (evt.GetEventType() == wxEVT_KEY_DOWN)
     {
         if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
         {
-//            canvas.set_cursor(GLCanvas3D::Cross);
+//            m_parent.set_cursor(GLCanvas3D::Cross);
             processed = true;
         }
     }
 
     if (processed)
-        canvas.set_as_dirty();
+        m_parent.set_as_dirty();
 
     return processed;
+}
+
+void GLGizmosManager::update_after_undo_redo()
+{
+    update_data();
+    m_serializing = false;
 }
 
 void GLGizmosManager::reset()
@@ -864,14 +879,14 @@ void GLGizmosManager::reset()
     m_gizmos.clear();
 }
 
-void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selection& selection) const
+void GLGizmosManager::do_render_overlay() const
 {
     if (m_gizmos.empty())
         return;
 
-    float cnv_w = (float)canvas.get_canvas_size().get_width();
-    float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float zoom = (float)canvas.get_camera().get_zoom();
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
+    float zoom = (float)m_parent.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
@@ -984,8 +999,8 @@ void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selectio
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (it->second->get_state() == GLGizmoBase::On) {
-            float toolbar_top = (float)cnv_h - canvas.get_view_toolbar_height();
-            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            float toolbar_top = (float)cnv_h - m_parent.get_view_toolbar_height();
+            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top);
         }
         top_y -= scaled_stride_y;
     }
@@ -1047,12 +1062,12 @@ bool GLGizmosManager::generate_icons_texture() const
     return res;
 }
 
-void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection)
+void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
 
-    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
 
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
@@ -1067,7 +1082,7 @@ void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d&
             continue;
 
         bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-        if (it->second->is_activable(selection) && inside)
+        if (it->second->is_activable() && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1091,16 +1106,14 @@ void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d&
         it->second->set_state(GLGizmoBase::On);
 }
 
-std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
+std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
 {
     std::string name = "";
 
     if (!m_enabled)
         return name;
 
-    const Selection& selection = canvas.get_selection();
-
-    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
     float scaled_border = m_overlay_border * m_overlay_scale;
@@ -1117,7 +1130,7 @@ std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const 
         if (inside)
             name = it->second->get_name();
 
-        if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
+        if (it->second->is_activable() && (it->second->get_state() != GLGizmoBase::On))
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
 
         top_y += scaled_stride_y;
@@ -1126,12 +1139,12 @@ std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const 
     return name;
 }
 
-bool GLGizmosManager::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const
+bool GLGizmosManager::overlay_contains_mouse(const Vec2d& mouse_pos) const
 {
     if (!m_enabled)
         return false;
 
-    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float height = get_total_overlay_height();
 
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;

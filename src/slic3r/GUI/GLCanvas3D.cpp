@@ -604,6 +604,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
+            wxGetApp().plater()->take_snapshot(_(L("Layers heights")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
@@ -1202,6 +1203,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_camera(camera)
     , m_view_toolbar(view_toolbar)
     , m_toolbar(GLToolbar::Normal, "Top")
+    , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_keep_dirty(false)
@@ -1318,7 +1320,7 @@ bool GLCanvas3D::init()
 //    if (!m_volumes.empty())
 //        m_volumes.finalize_geometry();
 
-    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
+    if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
     if (!_init_toolbar())
@@ -1719,7 +1721,7 @@ void GLCanvas3D::deselect_all()
     m_selection.set_mode(Selection::Instance);
     wxGetApp().obj_manipul()->set_dirty();
     m_gizmos.reset_all_states();
-    m_gizmos.update_data(*this);
+    m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
@@ -1793,7 +1795,7 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 void GLCanvas3D::mirror_selection(Axis axis)
 {
     m_selection.mirror(axis);
-    do_mirror("Mirror Object");
+    do_mirror(L("Mirror Object"));
     wxGetApp().obj_manipul()->set_dirty();
 }
 
@@ -2082,8 +2084,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
-    m_gizmos.update_data(*this);
-    m_gizmos.refresh_on_off_state(m_selection);
+    m_gizmos.update_data();
+    m_gizmos.refresh_on_off_state();
 
     // Update the toolbar
 	if (update_object_list)
@@ -2323,7 +2325,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     if ((keyCode == WXK_ESCAPE) && _deactivate_undo_redo_toolbar_items())
         return;
 
-    if (m_gizmos.on_char(evt, *this))
+    if (m_gizmos.on_char(evt))
         return;
 
 //#ifdef __APPLE__
@@ -2450,7 +2452,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     }
     else
     {
-        if (!m_gizmos.on_key(evt, *this))
+        if (!m_gizmos.on_key(evt))
         {
             if (evt.GetEventType() == wxEVT_KEY_UP) {
                 if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
@@ -2560,7 +2562,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
 
     // Inform gizmos about the event so they have the opportunity to react.
-    if (m_gizmos.on_mouse_wheel(evt, *this))
+    if (m_gizmos.on_mouse_wheel(evt))
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
@@ -2688,7 +2690,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
-    if (m_gizmos.on_mouse(evt, *this))
+    if (m_gizmos.on_mouse(evt))
     {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -2815,9 +2817,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         if (m_selection.is_empty())
                             m_gizmos.reset_all_states();
                         else
-                            m_gizmos.refresh_on_off_state(m_selection);
+                            m_gizmos.refresh_on_off_state();
 
-                        m_gizmos.update_data(*this);
+                        m_gizmos.update_data();
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
                     }
@@ -2948,7 +2950,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             m_regenerate_volumes = false;
-            do_move("Move Object");
+            do_move(L("Move Object"));
             wxGetApp().obj_manipul()->set_dirty();
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
@@ -2985,9 +2987,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // forces the selection of the volume
                     m_selection.add(volume_idx);
-                    m_gizmos.refresh_on_off_state(m_selection);
+                    m_gizmos.refresh_on_off_state();
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                    m_gizmos.update_data(*this);
+                    m_gizmos.update_data();
                     wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
@@ -3113,7 +3115,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
     bool object_moved = false;
@@ -3175,7 +3177,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3235,7 +3237,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3289,10 +3291,10 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_type)
 {
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     m_selection.flattening_rotate(normal);
-    do_rotate(""); // avoid taking another snapshot
+    do_rotate(L("")); // avoid taking another snapshot
 }
 
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
@@ -3301,7 +3303,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(L(snapshot_type)));
+        wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -3355,8 +3357,8 @@ void GLCanvas3D::set_camera_zoom(double zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
-    m_gizmos.update_data(*this);
-    m_gizmos.refresh_on_off_state(get_selection());
+    m_gizmos.update_data();
+    m_gizmos.refresh_on_off_state();
 }
 
 void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool focus_on)
@@ -3762,7 +3764,7 @@ void GLCanvas3D::_picking_pass() const
         if (m_camera_clipping_plane.is_active())
             ::glDisable(GL_CLIP_PLANE0);
 
-        m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
+        m_gizmos.render_current_gizmo_for_picking_pass();
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
@@ -4072,7 +4074,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
 void GLCanvas3D::_render_current_gizmo() const
 {
-    m_gizmos.render_current_gizmo(m_selection);
+    m_gizmos.render_current_gizmo();
 }
 
 void GLCanvas3D::_render_gizmos_overlay() const
@@ -4088,7 +4090,7 @@ void GLCanvas3D::_render_gizmos_overlay() const
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
-    m_gizmos.render_overlay(*this, m_selection);
+    m_gizmos.render_overlay();
 }
 
 void GLCanvas3D::_render_toolbar() const
@@ -5661,9 +5663,9 @@ void GLCanvas3D::_update_selection_from_hover()
     if (m_selection.is_empty())
         m_gizmos.reset_all_states();
     else
-        m_gizmos.refresh_on_off_state(m_selection);
+        m_gizmos.refresh_on_off_state();
 
-    m_gizmos.update_data(*this);
+    m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     m_dirty = true;
 }

@@ -15,6 +15,7 @@ class Model;
 
 namespace GUI {
 	class Selection;
+    class GLGizmosManager;
 } // namespace GUI
 
 namespace UndoRedo {
@@ -65,7 +66,7 @@ public:
 	void release_least_recently_used();
 
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
-	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
+    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos);
 
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
@@ -73,10 +74,10 @@ public:
 
 	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
 	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
-	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, size_t time_to_load = SIZE_MAX);
+    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
 
 	// Jump forward in time. If time_to_load is SIZE_MAX, the next snapshot is activated.
-	bool redo(Slic3r::Model &model, size_t time_to_load = SIZE_MAX);
+    bool redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
 
 	// Snapshot history (names with timestamps).
 	// Each snapshot indicates start of an interval in which this operation is performed.

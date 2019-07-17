@@ -517,6 +517,9 @@ public:
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
 
+    const GLGizmosManager& get_gizmos_manager() const { return m_gizmos; }
+    GLGizmosManager& get_gizmos_manager() { return m_gizmos; }
+
     void bed_shape_changed();
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)

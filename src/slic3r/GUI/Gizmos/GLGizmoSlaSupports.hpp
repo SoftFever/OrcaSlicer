@@ -14,6 +14,8 @@
 #include "libslic3r/SLAPrint.hpp"
 #include <wx/dialog.h>
 
+#include <cereal/types/vector.hpp>
+
 
 namespace Slic3r {
 namespace GUI {
@@ -49,12 +51,21 @@ private:
 
     class CacheEntry {
     public:
+        CacheEntry() :
+            support_point(sla::SupportPoint()), selected(false), normal(Vec3f::Zero()) {}
+
         CacheEntry(const sla::SupportPoint& point, bool sel, const Vec3f& norm = Vec3f::Zero()) :
             support_point(point), selected(sel), normal(norm) {}
 
         sla::SupportPoint support_point;
         bool selected; // whether the point is selected
         Vec3f normal;
+
+        template<class Archive>
+        void serialize(Archive & ar)
+        {
+            ar(support_point, selected, normal);
+        }
     };
 
 public:
@@ -70,9 +81,9 @@ public:
 
 private:
     bool on_init();
-    void on_update(const UpdateData& data, const Selection& selection);
-    virtual void on_render(const Selection& selection) const;
-    virtual void on_render_for_picking(const Selection& selection) const;
+    void on_update(const UpdateData& data);
+    virtual void on_render() const;
+    virtual void on_render_for_picking() const;
 
     //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
@@ -133,12 +144,14 @@ protected:
         if ((int)m_editing_mode_cache.size() <= m_hover_id)
             m_hover_id = -1;
     }
-    void on_start_dragging(const Selection& selection) override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
+    void on_start_dragging() override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const Selection& selection) const;
+    virtual bool on_is_activable() const;
     virtual bool on_is_selectable() const;
+    virtual void on_load(cereal::BinaryInputArchive& ar) override;
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const override;
 };
 
 

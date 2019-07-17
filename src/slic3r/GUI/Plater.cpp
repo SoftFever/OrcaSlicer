@@ -1646,7 +1646,7 @@ struct Plater::priv
         if (this->m_prevent_snapshots > 0) 
             return;
         assert(this->m_prevent_snapshots >= 0);
-	    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection());
+        this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager());
 	    this->undo_redo_stack.release_least_recently_used();
     	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
 	}
@@ -3630,27 +3630,27 @@ int Plater::priv::get_active_snapshot_index()
 void Plater::priv::undo()
 {
 	bool temp_snapshot_was_taken = this->undo_redo_stack.temp_snapshot_active();
-	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection()))
+    if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager()))
 		this->update_after_undo_redo(temp_snapshot_was_taken);
 }
 
 void Plater::priv::redo()
 { 
-	if (this->undo_redo_stack.redo(model))
-		this->update_after_undo_redo();
+    if (this->undo_redo_stack.redo(model, this->view3D->get_canvas3d()->get_gizmos_manager()))
+        this->update_after_undo_redo();
 }
 
 void Plater::priv::undo_to(size_t time_to_load)
 {
 	bool temp_snapshot_was_taken = this->undo_redo_stack.temp_snapshot_active();
-	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), time_to_load))
+    if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), time_to_load))
 		this->update_after_undo_redo(temp_snapshot_was_taken);
 }
 
 void Plater::priv::redo_to(size_t time_to_load)
 { 
-	if (this->undo_redo_stack.redo(model, time_to_load))
-		this->update_after_undo_redo();
+    if (this->undo_redo_stack.redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), time_to_load))
+        this->update_after_undo_redo();
 }
 
 void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
@@ -3665,6 +3665,7 @@ void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
 		this->undo_redo_stack.release_least_recently_used();
 	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
     this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
+    this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo();
 
     wxGetApp().obj_list()->update_after_undo_redo();
 
@@ -3924,7 +3925,7 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
         return;
     }
 
-	Plater::TakeSnapshot snapshot(this, _(L("Cut")));
+	Plater::TakeSnapshot snapshot(this, _(L("Cut by Plane")));
 
     wxBusyCursor wait;
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
