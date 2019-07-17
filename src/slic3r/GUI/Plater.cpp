@@ -1255,19 +1255,32 @@ const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", 
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
-	plater->take_snapshot(_(L("Load Files")));
-
     std::vector<fs::path> paths;
-
     for (const auto &filename : filenames) {
         fs::path path(into_path(filename));
-
         if (std::regex_match(path.string(), pattern_drop)) {
             paths.push_back(std::move(path));
         } else {
             return false;
         }
     }
+
+	wxString snapshot_label;
+	assert(! paths.empty());
+	if (paths.size() == 1) {
+		snapshot_label = _(L("Load File"));
+		snapshot_label += ": ";
+		snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+	} else {
+		snapshot_label = _(L("Load Files"));
+		snapshot_label += ": ";
+		snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+		for (size_t i = 1; i < paths.size(); ++ i) {
+			snapshot_label += ", ";
+			snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
+		}
+	}
+	Plater::TakeSnapshot snapshot(plater, snapshot_label);
 
     // FIXME: when drag and drop is done on a .3mf or a .amf file we should clear the plater for consistence with the open project command
     // (the following call to plater->load_files() will load the config data, if present)
@@ -1595,7 +1608,7 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
-    void update(bool force_full_scene_refresh = false);
+    void update(bool force_full_scene_refresh = false, bool force_background_processing_update = false);
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
     void select_next_view_3D();
@@ -1634,6 +1647,8 @@ struct Plater::priv
             return;
         assert(this->m_prevent_snapshots >= 0);
 	    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection());
+	    this->undo_redo_stack.release_least_recently_used();
+    	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
 	}
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
     int  get_active_snapshot_index();
@@ -1734,7 +1749,7 @@ private:
 
     void update_fff_scene();
     void update_sla_scene();
-    void update_after_undo_redo();
+    void update_after_undo_redo(bool temp_snapshot_was_taken = false);
 
     // path to project file stored with no extension
     wxString m_project_filename;
@@ -1888,7 +1903,7 @@ Plater::priv::~priv()
         delete config;
 }
 
-void Plater::priv::update(bool force_full_scene_refresh)
+void Plater::priv::update(bool force_full_scene_refresh, bool force_background_processing_update)
 {
     // the following line, when enabled, causes flickering on NVIDIA graphics cards
 //    wxWindowUpdateLocker freeze_guard(q);
@@ -1901,7 +1916,7 @@ void Plater::priv::update(bool force_full_scene_refresh)
     }
 
     unsigned int update_status = 0;
-    if (this->printer_technology == ptSLA)
+    if (this->printer_technology == ptSLA || force_background_processing_update)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
         update_status = this->update_background_process(false);
@@ -2459,7 +2474,10 @@ void Plater::priv::remove(size_t obj_idx)
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
-    this->take_snapshot(_(L("Delete Object")));
+	wxString snapshot_label = _(L("Delete Object"));
+	if (! model.objects[obj_idx]->name.empty())
+		snapshot_label += ": " + wxString::FromUTF8(model.objects[obj_idx]->name.c_str());
+	Plater::TakeSnapshot snapshot(q, snapshot_label);
     model.delete_object(obj_idx);
     update();
     object_list_changed();
@@ -2467,7 +2485,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
-	this->take_snapshot(_(L("Reset Project")));
+	Plater::TakeSnapshot snapshot(q, _(L("Reset Project")));
 
     set_project_filename(wxEmptyString);
 
@@ -2663,7 +2681,7 @@ void Plater::priv::split_object()
         Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
     else
     {
-        this->take_snapshot(_(L("Split to Objects")));
+		Plater::TakeSnapshot snapshot(q, _(L("Split to Objects")));
 
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
@@ -2903,7 +2921,7 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::reload_from_disk()
 {
-    this->take_snapshot(_(L("Reload from Disk")));
+	Plater::TakeSnapshot snapshot(q, _(L("Reload from Disk")));
 
     const auto &selection = get_selection();
     const auto obj_orig_idx = selection.get_object_idx();
@@ -2939,7 +2957,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     if (obj_idx < 0)
         return;
 
-    this->take_snapshot(_(L("Fix Throught NetFabb")));
+	Plater::TakeSnapshot snapshot(q, _(L("Fix Throught NetFabb")));
 
     fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
     this->update();
@@ -3603,7 +3621,7 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 
 int Plater::priv::get_active_snapshot_index()
 {
-    const size_t& active_snapshot_time = this->undo_redo_stack.active_snapshot_time();
+    const size_t active_snapshot_time = this->undo_redo_stack.active_snapshot_time();
     const std::vector<UndoRedo::Snapshot>& ss_stack = this->undo_redo_stack.snapshots();
     const auto it = std::lower_bound(ss_stack.begin(), ss_stack.end(), UndoRedo::Snapshot(active_snapshot_time));
     return it - ss_stack.begin();
@@ -3611,8 +3629,9 @@ int Plater::priv::get_active_snapshot_index()
 
 void Plater::priv::undo()
 {
+	bool temp_snapshot_was_taken = this->undo_redo_stack.temp_snapshot_active();
 	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection()))
-		this->update_after_undo_redo();
+		this->update_after_undo_redo(temp_snapshot_was_taken);
 }
 
 void Plater::priv::redo()
@@ -3623,8 +3642,9 @@ void Plater::priv::redo()
 
 void Plater::priv::undo_to(size_t time_to_load)
 {
+	bool temp_snapshot_was_taken = this->undo_redo_stack.temp_snapshot_active();
 	if (this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), time_to_load))
-		this->update_after_undo_redo();
+		this->update_after_undo_redo(temp_snapshot_was_taken);
 }
 
 void Plater::priv::redo_to(size_t time_to_load)
@@ -3633,10 +3653,16 @@ void Plater::priv::redo_to(size_t time_to_load)
 		this->update_after_undo_redo();
 }
 
-void Plater::priv::update_after_undo_redo()
+void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
 {
 	this->view3D->get_canvas3d()->get_selection().clear();
-	this->update(false); // update volumes from the deserializd model
+	// Update volumes from the deserializd model, always stop / update the background processing (for both the SLA and FFF technologies).
+	this->update(false, true);
+	// Release old snapshots if the memory allocated is excessive. This may remove the top most snapshot if jumping to the very first snapshot.
+	//if (temp_snapshot_was_taken)
+	// Release the old snapshots always, as it may have happened, that some of the triangle meshes got deserialized from the snapshot, while some
+	// triangle meshes may have gotten released from the scene or the background processing, therefore now being calculated into the Undo / Redo stack size.
+		this->undo_redo_stack.release_least_recently_used();
 	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
     this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
 
@@ -3644,6 +3670,8 @@ void Plater::priv::update_after_undo_redo()
 
 	//FIXME what about the state of the manipulators?
 	//FIXME what about the focus? Cursor in the side panel?
+
+    BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot reloaded. Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
@@ -3683,10 +3711,12 @@ void Plater::new_project()
 
 void Plater::load_project()
 {
-	this->take_snapshot(_(L("Load Project")));
-
+    // Ask user for a project file name.
     wxString input_file;
     wxGetApp().load_project(this, input_file);
+    // Take the Undo / Redo snapshot.
+	Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(input_file).stem().string().c_str()));
+    // And finally load the new project.
     load_project(input_file);
 }
 
@@ -3710,13 +3740,28 @@ void Plater::add_model()
     if (input_files.empty())
         return;
 
-    this->take_snapshot(_(L("Add object(s)")));
+    std::vector<fs::path> paths;
+    for (const auto &file : input_files)
+        paths.push_back(into_path(file));
 
-    std::vector<fs::path> input_paths;
-    for (const auto &file : input_files) {
-        input_paths.push_back(into_path(file));
-    }
-    load_files(input_paths, true, false);
+	wxString snapshot_label;
+	assert(! paths.empty());
+	if (paths.size() == 1) {
+		snapshot_label = _(L("Import Object"));
+		snapshot_label += ": ";
+		snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+	} else {
+		snapshot_label = _(L("Import Objects"));
+		snapshot_label += ": ";
+		snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+		for (size_t i = 1; i < paths.size(); ++ i) {
+			snapshot_label += ", ";
+			snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
+		}
+	}
+
+	Plater::TakeSnapshot snapshot(this, snapshot_label);
+    load_files(paths, true, false);
 }
 
 void Plater::extract_config_from_project()
@@ -3769,17 +3814,15 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 
 void Plater::remove_selected()
 {
-	this->take_snapshot(_(L("Delete Selected Objects")));
-    this->suppress_snapshots();
+	Plater::TakeSnapshot snapshot(this, _(L("Delete Selected Objects")));
     this->p->view3D->delete_selected();
-    this->allow_snapshots();
 }
 
 void Plater::increase_instances(size_t num)
 {
     if (! can_increase_instances()) { return; }
 
-	this->take_snapshot(_(L("Increase Instances")));
+	Plater::TakeSnapshot snapshot(this, _(L("Increase Instances")));
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -3815,7 +3858,7 @@ void Plater::decrease_instances(size_t num)
 {
     if (! can_decrease_instances()) { return; }
 
-	this->take_snapshot(_(L("Decrease Instances")));
+	Plater::TakeSnapshot snapshot(this, _(L("Decrease Instances")));
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -3851,16 +3894,13 @@ void Plater::set_number_of_copies(/*size_t num*/)
     if (num < 0)
         return;
 
-    this->take_snapshot(wxString::Format(_(L("Set numbers of copies to %d")), num));
-    this->suppress_snapshots();
+	Plater::TakeSnapshot snapshot(this, wxString::Format(_(L("Set numbers of copies to %d")), num));
 
     int diff = (int)num - (int)model_object->instances.size();
     if (diff > 0)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
-
-    this->allow_snapshots();
 }
 
 bool Plater::is_selection_empty() const
@@ -3884,7 +3924,7 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
         return;
     }
 
-    this->take_snapshot(_(L("Cut")));
+	Plater::TakeSnapshot snapshot(this, _(L("Cut")));
 
     wxBusyCursor wait;
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);

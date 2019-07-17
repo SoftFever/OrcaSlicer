@@ -607,6 +607,12 @@ void TriangleMesh::require_shared_vertices()
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
+size_t TriangleMesh::memsize() const
+{
+	size_t memsize = 8 + this->stl.memsize() + this->its.memsize();
+	return memsize;
+}
+
 void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callback_type throw_on_cancel)
 {
     mesh = _mesh;

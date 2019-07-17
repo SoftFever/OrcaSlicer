@@ -67,6 +67,8 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;
+    // Estimate of the memory occupied by this structure.
+    size_t memsize() const;
 
     stl_file stl;
     indexed_triangle_set its;

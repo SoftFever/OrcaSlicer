@@ -121,8 +121,8 @@ public:
     void            recreate_GUI();
     void            system_info();
     void            keyboard_shortcuts();
-    void            load_project(wxWindow *parent, wxString& input_file);
-    void            import_model(wxWindow *parent, wxArrayString& input_files);
+    void            load_project(wxWindow *parent, wxString& input_file) const;
+    void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);

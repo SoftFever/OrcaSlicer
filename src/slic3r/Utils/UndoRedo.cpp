@@ -18,6 +18,7 @@
 #include <cereal/archives/adapters.hpp>
 
 #include <libslic3r/ObjectID.hpp>
+#include <libslic3r/Utils.hpp>
 
 #include <boost/foreach.hpp>
 
@@ -28,11 +29,11 @@
 namespace Slic3r {
 namespace UndoRedo {
 
-static std::string topmost_snapsnot_name = "@@@ Topmost @@@";
+static std::string topmost_snapshot_name = "@@@ Topmost @@@";
 
 bool Snapshot::is_topmost() const
 {
-	return this->name == topmost_snapsnot_name;
+	return this->name == topmost_snapshot_name;
 }
 
 // Time interval, start is closed, end is open.
@@ -53,8 +54,11 @@ public:
 	bool    operator<(const Interval &rhs) const { return (m_begin < rhs.m_begin) || (m_begin == rhs.m_begin && m_end < rhs.m_end); }
 	bool 	operator==(const Interval &rhs) const { return m_begin == rhs.m_begin && m_end == rhs.m_end; }
 
+	void 	trim_begin(size_t new_begin)  { m_begin = std::max(m_begin, new_begin); }
 	void    trim_end(size_t new_end) { m_end = std::min(m_end, new_end); }
 	void 	extend_end(size_t new_end) { assert(new_end >= m_end); m_end = new_end; }
+
+	size_t 	memsize() const { return sizeof(this); }
 
 private:
 	size_t 	m_begin;
@@ -75,8 +79,15 @@ public:
 	// If the history is empty, the ObjectHistory object could be released.
 	virtual bool empty() = 0;
 
+	// Release all data before the given timestamp. For the ImmutableObjectHistory, the shared pointer is NOT released.
+	// Return the amount of memory released.
+	virtual size_t release_before_timestamp(size_t timestamp) = 0;
 	// Release all data after the given timestamp. For the ImmutableObjectHistory, the shared pointer is NOT released.
-	virtual void release_after_timestamp(size_t timestamp) = 0;
+	// Return the amount of memory released.
+	virtual size_t release_after_timestamp(size_t timestamp) = 0;
+
+	// Estimated size in memory, to be used to drop least recently used snapshots.
+	virtual size_t memsize() const = 0;
 
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	// Human readable debug information.
@@ -96,21 +107,54 @@ public:
 	// If the history is empty, the ObjectHistory object could be released.
 	bool empty() override { return m_history.empty(); }
 
-	// Release all data after the given timestamp. The shared pointer is NOT released.
-	void release_after_timestamp(size_t timestamp) override {
-		assert(! m_history.empty());
-		assert(this->valid());
-		// it points to an interval which either starts with timestamp, or follows the timestamp.
-		auto it = std::lower_bound(m_history.begin(), m_history.end(), T(timestamp, timestamp));
-		if (it != m_history.begin()) {
-			auto it_prev = it;
-			-- it_prev;
-			assert(it_prev->begin() < timestamp);
-			// Trim the last interval with timestamp.
-			it_prev->trim_end(timestamp);
+	// Release all data before the given timestamp. For the ImmutableObjectHistory, the shared pointer is NOT released.
+	size_t release_before_timestamp(size_t timestamp) override {
+		size_t mem_released = 0;
+		if (! m_history.empty()) {
+			assert(this->valid());
+			// it points to an interval which either starts with timestamp, or follows the timestamp.
+			auto it = std::lower_bound(m_history.begin(), m_history.end(), T(timestamp, timestamp));
+			// Find the first iterator with begin() < timestamp.
+			if (it == m_history.end())
+				-- it;
+			while (it != m_history.begin() && it->begin() >= timestamp)
+				-- it;
+			if (it->begin() < timestamp && it->end() > timestamp) {
+				it->trim_begin(timestamp);
+				if (it != m_history.begin())
+					-- it;
+			}
+			if (it->end() <= timestamp) {
+				auto it_end = ++ it;
+				for (it = m_history.begin(); it != it_end; ++ it)
+					mem_released += it->memsize();
+				m_history.erase(m_history.begin(), it_end);
+			}
+			assert(this->valid());
 		}
-		m_history.erase(it, m_history.end());
-		assert(this->valid());
+		return mem_released;
+	}
+
+	// Release all data after the given timestamp. The shared pointer is NOT released.
+	size_t release_after_timestamp(size_t timestamp) override {
+		size_t mem_released = 0;
+		if (! m_history.empty()) {
+			assert(this->valid());
+			// it points to an interval which either starts with timestamp, or follows the timestamp.
+			auto it = std::lower_bound(m_history.begin(), m_history.end(), T(timestamp, timestamp));
+			if (it != m_history.begin()) {
+				auto it_prev = it;
+				-- it_prev;
+				assert(it_prev->begin() < timestamp);
+				// Trim the last interval with timestamp.
+				it_prev->trim_end(timestamp);
+			}
+			for (auto it2 = it; it2 != m_history.end(); ++ it2)
+				mem_released += it2->memsize();
+			m_history.erase(it, m_history.end());
+			assert(this->valid());
+		}
+		return mem_released;
 	}
 
 protected:
@@ -137,6 +181,18 @@ public:
 	bool is_mutable() const override { return false; }
 	bool is_immutable() const override { return true; }
 	const void* immutable_object_ptr() const { return (const void*)m_shared_object.get(); }
+
+	// Estimated size in memory, to be used to drop least recently used snapshots.
+	size_t memsize() const override {
+		size_t memsize = sizeof(*this);
+		if (this->is_serialized())
+			memsize += m_serialized.size();
+		else if (m_shared_object.use_count() == 1)
+			// Only count the shared object's memsize into the total Undo / Redo stack memsize if it is referenced from the Undo / Redo stack only.
+			memsize += m_shared_object->memsize();
+		memsize += m_history.size() * sizeof(Interval);
+		return memsize;
+	}
 
 	void save(size_t active_snapshot_time, size_t current_time) {
 		assert(m_history.empty() || m_history.back().end() <= active_snapshot_time || 
@@ -230,7 +286,8 @@ public:
 	const Interval& interval() const { return m_interval; }
 	size_t		begin() const { return m_interval.begin(); }
 	size_t		end()   const { return m_interval.end(); }
-	void 		trim_end(size_t timestamp) { m_interval.trim_end(timestamp); }
+	void 		trim_begin(size_t timestamp) { m_interval.trim_begin(timestamp); }
+	void 		trim_end  (size_t timestamp) { m_interval.trim_end(timestamp); }
 	void 		extend_end(size_t timestamp) { m_interval.extend_end(timestamp); }
 
 	bool		operator<(const MutableHistoryInterval& rhs) const { return m_interval < rhs.m_interval; }
@@ -240,6 +297,13 @@ public:
 	size_t  	size() const { return m_data->size; }
 	size_t		refcnt() const { return m_data->refcnt; }
 	bool		matches(const std::string& data) { return m_data->matches(data); }
+	size_t 		memsize() const { 
+		return m_data->refcnt == 1 ?
+			// Count just the size of the snapshot data.
+			m_data->size :
+			// Count the size of the snapshot data divided by the number of references, rounded up.
+			(m_data->size + m_data->refcnt - 1) / m_data->refcnt;
+	}
 
 private:
 	MutableHistoryInterval(const MutableHistoryInterval &rhs);
@@ -269,6 +333,15 @@ public:
 
 	bool is_mutable() const override { return true; }
 	bool is_immutable() const override { return false; }
+
+	// Estimated size in memory, to be used to drop least recently used snapshots.
+	size_t memsize() const override {
+		size_t memsize = sizeof(*this);
+		memsize += m_history.size() * sizeof(MutableHistoryInterval);
+		for (const MutableHistoryInterval &interval : m_history)
+			memsize += interval.memsize();
+		return memsize;
+	}
 
 	void save(size_t active_snapshot_time, size_t current_time, const std::string &data) {
 		assert(m_history.empty() || m_history.back().end() <= active_snapshot_time);
@@ -356,7 +429,17 @@ class StackImpl
 {
 public:
 	// Stack needs to be initialized. An empty stack is not valid, there must be a "New Project" status stored at the beginning.
-	StackImpl() : m_active_snapshot_time(0), m_current_time(0) {}
+	// Initially enable Undo / Redo stack to occupy maximum 10% of the total system physical memory.
+	StackImpl() : m_memory_limit(std::min(Slic3r::total_physical_memory() / 10, size_t(1 * 16384 * 65536))), m_active_snapshot_time(0), m_current_time(0) {}
+
+	void set_memory_limit(size_t memsize) { m_memory_limit = memsize; }
+
+	size_t memsize() const {
+		size_t memsize = 0;
+		for (const auto &object : m_objects)
+			memsize += object.second->memsize();
+		return memsize;
+	}
 
 	// The Undo / Redo stack is being initialized with an empty model and an empty selection.
 	// The first snapshot cannot be removed.
@@ -370,13 +453,15 @@ public:
 	bool has_redo_snapshot() const;
 	bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, size_t jump_to_time);
 	bool redo(Slic3r::Model &model, size_t jump_to_time);
+	void release_least_recently_used();
 
 	// Snapshot history (names with timestamps).
 	const std::vector<Snapshot>& 	snapshots() const { return m_snapshots; }
 	// Timestamp of the active snapshot.
 	size_t 							active_snapshot_time() const { return m_active_snapshot_time; }
+	bool 							temp_snapshot_active() const { return m_snapshots.back().timestamp == m_active_snapshot_time && ! m_snapshots.back().is_topmost_captured(); }
 
-	const Selection& selection_deserialized() const { return m_selection; }
+	const Selection& 				selection_deserialized() const { return m_selection; }
 
 //protected:
 	template<typename T, typename T_AS> ObjectID save_mutable_object(const T &object);
@@ -400,6 +485,7 @@ public:
 		if (m_active_snapshot_time > m_snapshots.back().timestamp)
 			out += ">>>\n";
 		out += "Current time: " + std::to_string(m_current_time) + "\n";
+		out += "Total memory occupied: " + std::to_string(this->memsize()) + "\n";
 		return out;
 	}
 	void print() const {
@@ -412,9 +498,10 @@ public:
 #ifndef NDEBUG
 	bool valid() const {
 		assert(! m_snapshots.empty());
+		assert(m_snapshots.back().is_topmost());
 		auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 		assert(it != m_snapshots.begin() && it != m_snapshots.end() && it->timestamp == m_active_snapshot_time);
-		assert(m_active_snapshot_time < m_snapshots.back().timestamp || m_snapshots.back().is_topmost());
+		assert(m_active_snapshot_time <= m_snapshots.back().timestamp);
 		for (auto it = m_objects.begin(); it != m_objects.end(); ++ it)
 			assert(it->second->valid());
 		return true;
@@ -436,6 +523,9 @@ private:
 	}
 	void 							collect_garbage();
 
+	// Maximum memory allowed to be occupied by the Undo / Redo stack. If the limit is exceeded,
+	// least recently used snapshots will be released.
+	size_t 													m_memory_limit;
 	// Each individual object (Model, ModelObject, ModelInstance, ModelVolume, Selection, TriangleMesh)
 	// is stored with its own history, referenced by the ObjectID. Immutable objects do not provide
 	// their own IDs, therefore there are temporary IDs generated for them and stored to m_shared_ptr_to_object_id.
@@ -655,7 +745,7 @@ void StackImpl::take_snapshot(const std::string &snapshot_name, const Slic3r::Mo
 	m_active_snapshot_time = m_current_time;
 	// Save snapshot info of the last "current" aka "top most" state, that is only being serialized
 	// if undoing an action. Such a snapshot has an invalid Model ID assigned if it was not taken yet.
-	m_snapshots.emplace_back(topmost_snapsnot_name, m_active_snapshot_time, 0);
+	m_snapshots.emplace_back(topmost_snapshot_name, m_active_snapshot_time, 0);
 	// Release empty objects from the history.
 	this->collect_garbage();
 	assert(this->valid());
@@ -710,9 +800,10 @@ bool StackImpl::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selecti
 	}
 	assert(time_to_load < m_active_snapshot_time);
 	assert(std::binary_search(m_snapshots.begin(), m_snapshots.end(), Snapshot(time_to_load)));
+	bool new_snapshot_taken = false;
 	if (m_active_snapshot_time == m_snapshots.back().timestamp && ! m_snapshots.back().is_topmost_captured()) {
 		// The current state is temporary. The current state needs to be captured to be redoable.
-		this->take_snapshot(topmost_snapsnot_name, model, selection);
+		this->take_snapshot(topmost_snapshot_name, model, selection);
 		// The line above entered another topmost_snapshot_name.
 		assert(m_snapshots.back().is_topmost());
 		assert(! m_snapshots.back().is_topmost_captured());
@@ -722,8 +813,15 @@ bool StackImpl::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selecti
 		//-- m_current_time;
 		assert(m_snapshots.back().is_topmost());
 		assert(m_snapshots.back().is_topmost_captured());
+		new_snapshot_taken = true;
 	}
 	this->load_snapshot(time_to_load, model);
+	if (new_snapshot_taken) {
+		// Release old snapshots if the memory allocated due to capturing the top most state is excessive.
+		// Don't release the snapshots here, release them first after the scene and background processing gets updated, as this will release some references
+		// to the shared TriangleMeshes.
+		//this->release_least_recently_used();
+	}
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	std::cout << "After undo" << std::endl;
  	this->print();
@@ -764,10 +862,70 @@ void StackImpl::collect_garbage()
 	}
 }
 
+void StackImpl::release_least_recently_used()
+{
+	assert(this->valid());
+	size_t current_memsize = this->memsize();
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	bool released = false;
+#endif
+	while (current_memsize > m_memory_limit && m_snapshots.size() >= 3) {
+		// From which side to remove a snapshot?
+		assert(m_snapshots.front().timestamp < m_active_snapshot_time);
+		size_t mem_released = 0;
+		if (m_snapshots[1].timestamp == m_active_snapshot_time) {
+			// Remove the last snapshot.
+			for (auto it = m_objects.begin(); it != m_objects.end();) {
+				mem_released += it->second->release_after_timestamp(m_snapshots.back().timestamp);
+				if (it->second->empty()) {
+					if (it->second->immutable_object_ptr() != nullptr)
+						// Release the immutable object from the ptr to ObjectID map.
+						m_shared_ptr_to_object_id.erase(it->second->immutable_object_ptr());
+					mem_released += it->second->memsize();
+					it = m_objects.erase(it);
+				} else
+					++ it;
+			}
+			m_snapshots.pop_back();
+			m_snapshots.back().name = topmost_snapshot_name;
+		} else {
+			// Remove the first snapshot.
+			for (auto it = m_objects.begin(); it != m_objects.end();) {
+				mem_released += it->second->release_before_timestamp(m_snapshots[1].timestamp);
+				if (it->second->empty()) {
+					if (it->second->immutable_object_ptr() != nullptr)
+						// Release the immutable object from the ptr to ObjectID map.
+						m_shared_ptr_to_object_id.erase(it->second->immutable_object_ptr());
+					mem_released += it->second->memsize();
+					it = m_objects.erase(it);
+				} else
+					++ it;
+			}
+			m_snapshots.erase(m_snapshots.begin());
+		}
+		assert(current_memsize >= mem_released);
+		if (current_memsize >= mem_released)
+			current_memsize -= mem_released;
+		else
+			current_memsize = 0;
+#ifdef SLIC3R_UNDOREDO_DEBUG
+		released = true;
+#endif
+	}
+	assert(this->valid());
+#ifdef SLIC3R_UNDOREDO_DEBUG
+	std::cout << "After release_least_recently_used" << std::endl;
+ 	this->print();
+#endif /* SLIC3R_UNDOREDO_DEBUG */
+}
+
 // Wrappers of the private implementation.
 Stack::Stack() : pimpl(new StackImpl()) {}
 Stack::~Stack() {}
-void Stack::take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection) { pimpl->take_snapshot(snapshot_name, model, selection); }
+void Stack::set_memory_limit(size_t memsize) { pimpl->set_memory_limit(memsize); }
+size_t Stack::memsize() const { return pimpl->memsize(); }
+void Stack::release_least_recently_used() { pimpl->release_least_recently_used(); }
+void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection) { pimpl->take_snapshot(snapshot_name, model, selection); }
 bool Stack::has_undo_snapshot() const { return pimpl->has_undo_snapshot(); }
 bool Stack::has_redo_snapshot() const { return pimpl->has_redo_snapshot(); }
 bool Stack::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, size_t time_to_load) { return pimpl->undo(model, selection, time_to_load); }
@@ -776,6 +934,7 @@ const Selection& Stack::selection_deserialized() const { return pimpl->selection
 
 const std::vector<Snapshot>& Stack::snapshots() const { return pimpl->snapshots(); }
 size_t Stack::active_snapshot_time() const { return pimpl->active_snapshot_time(); }
+bool Stack::temp_snapshot_active() const { return pimpl->temp_snapshot_active(); }
 
 } // namespace UndoRedo
 } // namespace Slic3r

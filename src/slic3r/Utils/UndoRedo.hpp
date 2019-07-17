@@ -55,6 +55,15 @@ public:
 	Stack();
 	~Stack();
 
+	// Set maximum memory threshold. If the threshold is exceeded, least recently used snapshots are released.
+	void set_memory_limit(size_t memsize);
+
+	// Estimate size of the RAM consumed by the Undo / Redo stack.
+	size_t memsize() const;
+
+	// Release least recently used snapshots up to the memory limit set above.
+	void release_least_recently_used();
+
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
 	void take_snapshot(const std::string &snapshot_name, const Slic3r::Model &model, const Slic3r::GUI::Selection &selection);
 
@@ -78,6 +87,9 @@ public:
 	// The snapshot time indicates start of an operation, which is finished at the time of the following snapshot, therefore
 	// the active snapshot is the successive snapshot. The same logic applies to the time_to_load parameter of undo() and redo() operations.
 	size_t active_snapshot_time() const;
+	// Temporary snapshot is active if the topmost snapshot is active and it has not been captured yet.
+	// In that case the Undo action will capture the last snapshot.
+	bool   temp_snapshot_active() const;
 
 	// After load_snapshot() / undo() / redo() the selection is deserialized into a list of ObjectIDs, which needs to be converted
 	// into the list of GLVolume pointers once the 3D scene is updated.
