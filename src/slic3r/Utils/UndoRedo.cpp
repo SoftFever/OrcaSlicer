@@ -803,7 +803,7 @@ bool StackImpl::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selecti
 	bool new_snapshot_taken = false;
 	if (m_active_snapshot_time == m_snapshots.back().timestamp && ! m_snapshots.back().is_topmost_captured()) {
 		// The current state is temporary. The current state needs to be captured to be redoable.
-        this->take_snapshot(topmost_snapsnot_name, model, selection, gizmos);
+        this->take_snapshot(topmost_snapshot_name, model, selection, gizmos);
         // The line above entered another topmost_snapshot_name.
 		assert(m_snapshots.back().is_topmost());
 		assert(! m_snapshots.back().is_topmost_captured());
