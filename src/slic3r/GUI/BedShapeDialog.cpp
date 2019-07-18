@@ -17,11 +17,11 @@
 namespace Slic3r {
 namespace GUI {
 
-void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture)
+void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     SetFont(wxGetApp().normal_font());
 	m_panel = new BedShapePanel(this);
-    m_panel->build_panel(default_pt, custom_texture);
+    m_panel->build_panel(default_pt, custom_texture, custom_model);
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
@@ -55,10 +55,11 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 const std::string BedShapePanel::NONE = "None";
 const std::string BedShapePanel::EMPTY_STRING = "";
 
-void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture)
+void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     m_shape = default_pt.values;
     m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
+    m_custom_model = custom_model.value.empty() ? NONE : custom_model.value;
 
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
@@ -113,6 +114,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 	optgroup->append_line(line);
 
     wxPanel* texture_panel = init_texture_panel();
+    wxPanel* model_panel = init_model_panel();
 
     Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e)
     {
@@ -121,16 +123,13 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);
-
-    if (m_canvas != nullptr)
-    {
-        m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent& e) { m_canvas->repaint(m_shape); });
-        m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
-    }
+    m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent& e) { m_canvas->repaint(m_shape); });
+    m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
 
     wxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
     left_sizer->Add(sbsizer, 0, wxEXPAND);
     left_sizer->Add(texture_panel, 1, wxEXPAND);
+    left_sizer->Add(model_panel, 1, wxEXPAND);
 
     wxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->Add(left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
@@ -214,6 +213,66 @@ wxPanel* BedShapePanel::init_texture_panel()
         remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
             {
                 e.Enable(m_custom_texture != NONE);
+            }));
+
+        return sizer;
+    };
+    optgroup->append_line(line);
+
+    panel->SetSizerAndFit(optgroup->sizer);
+
+    return panel;
+}
+
+wxPanel* BedShapePanel::init_model_panel()
+{
+    wxPanel* panel = new wxPanel(this);
+    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Model")));
+
+    optgroup->label_width = 10;
+    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        update_shape();
+    };
+
+    Line line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        wxButton* load_btn = new wxButton(parent, wxID_ANY, _(L("Load...")));
+        wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
+        load_sizer->Add(load_btn, 1, wxEXPAND);
+
+        wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
+        wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
+        filename_sizer->Add(filename_lbl, 1, wxEXPAND);
+
+        wxButton* remove_btn = new wxButton(parent, wxID_ANY, _(L("Remove")));
+        wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
+        remove_sizer->Add(remove_btn, 1, wxEXPAND);
+
+        wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+        sizer->Add(filename_sizer, 1, wxEXPAND);
+        sizer->Add(load_sizer, 1, wxEXPAND);
+        sizer->Add(remove_sizer, 1, wxEXPAND);
+
+        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+            {
+                load_model();
+            }));
+
+        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+            {
+                m_custom_model = NONE;
+                update_shape();
+            }));
+
+        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
+            {
+                e.SetText(_(boost::filesystem::path(m_custom_model).filename().string()));
+            }));
+
+        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
+            {
+                e.Enable(m_custom_model != NONE);
             }));
 
         return sizer;
@@ -390,7 +449,6 @@ void BedShapePanel::load_stl()
         return;
 
     std::string file_name = dialog.GetPath().ToUTF8().data();
-
     if (!boost::iequals(boost::filesystem::path(file_name).extension().string().c_str(), ".stl"))
     {
         show_error(this, _(L("Invalid file format.")));
@@ -451,6 +509,29 @@ void BedShapePanel::load_texture()
     wxBusyCursor wait;
 
     m_custom_texture = file_name;
+    update_shape();
+}
+
+void BedShapePanel::load_model()
+{
+    wxFileDialog dialog(this, _(L("Choose an STL file to import bed model from:")), "", "",
+        file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    m_custom_model = NONE;
+
+    std::string file_name = dialog.GetPath().ToUTF8().data();
+    if (!boost::iequals(boost::filesystem::path(file_name).extension().string().c_str(), ".stl"))
+    {
+        show_error(this, _(L("Invalid file format.")));
+        return;
+    }
+
+    wxBusyCursor wait;
+
+    m_custom_model = file_name;
     update_shape();
 }
 

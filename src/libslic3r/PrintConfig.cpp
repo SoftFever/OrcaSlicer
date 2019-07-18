@@ -56,6 +56,11 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("bed_custom_model", coString);
+    def->label = L("Bed custom model");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("layer_height", coFloat);
     def->label = L("Layer height");
     def->category = L("Layers and Perimeters");
