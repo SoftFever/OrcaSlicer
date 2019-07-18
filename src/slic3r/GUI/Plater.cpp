@@ -1345,7 +1345,6 @@ struct Plater::priv
     // Cache the wti info
     class WipeTower: public GLCanvas3D::WipeTowerInfo {
         using ArrangePolygon = arrangement::ArrangePolygon;
-        static const constexpr auto UNARRANGED = arrangement::UNARRANGED;
         friend priv;
     public:
         
@@ -1535,7 +1534,6 @@ struct Plater::priv
         // The gap between logical beds in the x axis expressed in ratio of
         // the current bed width.
         static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
-        static const constexpr int    UNARRANGED = arrangement::UNARRANGED;
         
         ArrangePolygons m_selected, m_unselected;
         
@@ -1578,7 +1576,7 @@ struct Plater::priv
                     ap.bed_idx = ap.translation.x() / stride;
                     
                     ap.setter = [mi, stride](const ArrangePolygon &p) {
-                        if (p.bed_idx != UNARRANGED) {
+                        if (p.is_arranged()) {
                             auto t = p.translation; t.x() += p.bed_idx * stride;
                             mi->apply_arrange_result(t, p.rotation);
                         }
@@ -1596,8 +1594,10 @@ struct Plater::priv
                 ap.bed_idx = ap.translation.x() / stride;
                 ap.priority = 1; // Wipe tower should be on physical bed
                 ap.setter = [&wti, stride](const ArrangePolygon &p) {
-                    auto t = p.translation; t.x() += p.bed_idx * stride;
-                    wti.apply_arrange_result(t, p.rotation);
+                    if (p.is_arranged()) {
+                        auto t = p.translation; t.x() += p.bed_idx * stride;
+                        wti.apply_arrange_result(t, p.rotation);
+                    }
                 };
                 
                 sel.is_wipe_tower() ?

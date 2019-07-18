@@ -127,7 +127,7 @@ public:
 };
 
 /// A logical bed representing an object not being arranged. Either the arrange
-/// has not yet succesfully run on this ArrangePolygon or it could not fit the
+/// has not yet successfully run on this ArrangePolygon or it could not fit the
 /// object due to overly large size or invalid geometry.
 static const constexpr int UNARRANGED = -1;
 
@@ -152,6 +152,9 @@ struct ArrangePolygon {
     
     /// Helper function to call the setter with the arrange data arguments
     void apply() const { if (setter) setter(*this); }
+
+    /// Test if arrange() was called previously and gave a successful result.
+    bool is_arranged() const { return bed_idx != UNARRANGED; }
 };
 
 using ArrangePolygons = std::vector<ArrangePolygon>;
