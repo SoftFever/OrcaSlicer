@@ -1856,12 +1856,15 @@ void TabPrinter::build_fff()
 			btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
 			{
                 BedShapeDialog dlg(this);
-                dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"));
+                dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
+                    *m_config->option<ConfigOptionString>("bed_custom_texture"));
                 if (dlg.ShowModal() == wxID_OK) {
-                    std::vector<Vec2d> shape = dlg.get_bed_shape();
+                    const std::vector<Vec2d>& shape = dlg.get_shape();
+                    const std::string& custom_texture = dlg.get_custom_texture();
                     if (!shape.empty())
                     {
                         load_key_value("bed_shape", shape);
+                        load_key_value("bed_custom_texture", custom_texture);
                         update_changed_ui();
                     }
                 }
@@ -2062,12 +2065,15 @@ void TabPrinter::build_sla()
         btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"));
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
+                *m_config->option<ConfigOptionString>("bed_custom_texture"));
             if (dlg.ShowModal() == wxID_OK) {
-                std::vector<Vec2d> shape = dlg.get_bed_shape();
+                const std::vector<Vec2d>& shape = dlg.get_shape();
+                const std::string& custom_texture = dlg.get_custom_texture();
                 if (!shape.empty())
                 {
                     load_key_value("bed_shape", shape);
+                    load_key_value("bed_custom_texture", custom_texture);
                     update_changed_ui();
                 }
             }

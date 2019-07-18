@@ -10,17 +10,18 @@
 #include "libslic3r/Polygon.hpp"
 
 #include "boost/nowide/iostream.hpp"
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <algorithm>
 
 namespace Slic3r {
 namespace GUI {
 
-void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt)
+void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture)
 {
     SetFont(wxGetApp().normal_font());
 	m_panel = new BedShapePanel(this);
-	m_panel->build_panel(default_pt);
+    m_panel->build_panel(default_pt, custom_texture);
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
@@ -51,14 +52,19 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
-void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt)
+const std::string BedShapePanel::NONE = "None";
+const std::string BedShapePanel::EMPTY_STRING = "";
+
+void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture)
 {
+    m_shape = default_pt.values;
+    m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
+
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _(L("Shape")));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
 
 	// shape options
-    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, 
-                           wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
+    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
     sbsizer->Add(m_shape_options_book);
 
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));
@@ -106,6 +112,8 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt)
 	};
 	optgroup->append_line(line);
 
+    wxPanel* texture_panel = init_texture_panel();
+
     Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e)
     {
 		update_shape();
@@ -113,13 +121,20 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt)
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);
-    m_canvas->m_bed_shape = default_pt.values;
 
-	// main sizer
-	auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    top_sizer->Add(sbsizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
-    if (m_canvas)
-		top_sizer->Add(m_canvas, 1, wxEXPAND | wxALL, 10) ;
+    if (m_canvas != nullptr)
+    {
+        m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent& e) { m_canvas->repaint(m_shape); });
+        m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
+    }
+
+    wxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
+    left_sizer->Add(sbsizer, 0, wxEXPAND);
+    left_sizer->Add(texture_panel, 1, wxEXPAND);
+
+    wxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    top_sizer->Add(left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
+    top_sizer->Add(m_canvas, 1, wxEXPAND | wxALL, 10);
 
 	SetSizerAndFit(top_sizer);
 
@@ -148,6 +163,66 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& tit
     m_shape_options_book->AddPage(panel, title);
 
     return optgroup;
+}
+
+wxPanel* BedShapePanel::init_texture_panel()
+{
+    wxPanel* panel = new wxPanel(this);
+    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Texture")));
+
+    optgroup->label_width = 10;
+    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        update_shape();
+    };
+
+    Line line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        wxButton* load_btn = new wxButton(parent, wxID_ANY, _(L("Load...")));
+        wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
+        load_sizer->Add(load_btn, 1, wxEXPAND);
+
+        wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
+        wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
+        filename_sizer->Add(filename_lbl, 1, wxEXPAND);
+
+        wxButton* remove_btn = new wxButton(parent, wxID_ANY, _(L("Remove")));
+        wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
+        remove_sizer->Add(remove_btn, 1, wxEXPAND);
+
+        wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+        sizer->Add(filename_sizer, 1, wxEXPAND);
+        sizer->Add(load_sizer, 1, wxEXPAND);
+        sizer->Add(remove_sizer, 1, wxEXPAND);
+
+        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+            {
+                load_texture();
+            }));
+
+        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e)
+            {
+                m_custom_texture = NONE;
+                update_shape();
+            }));
+
+        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
+            {
+                e.SetText(_(boost::filesystem::path(m_custom_texture).filename().string()));
+            }));
+
+        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
+            {
+                e.Enable(m_custom_texture != NONE);
+            }));
+
+        return sizer;
+    };
+    optgroup->append_line(line);
+
+    panel->SetSizerAndFit(optgroup->sizer);
+
+    return panel;
 }
 
 // Called from the constructor.
@@ -232,7 +307,7 @@ void BedShapePanel::set_shape(const ConfigOptionPoints& points)
 	// This is a custom bed shape, use the polygon provided.
 	m_shape_options_book->SetSelection(SHAPE_CUSTOM);
 	// Copy the polygon to the canvas, make a copy of the array.
-    m_loaded_bed_shape = points.values;
+    m_loaded_shape = points.values;
     update_shape();
 }
 
@@ -277,11 +352,11 @@ void BedShapePanel::update_shape()
 		x1 -= dx;
 		y0 -= dy;
 		y1 -= dy;
-		m_canvas->m_bed_shape = {	Vec2d(x0, y0),
-									Vec2d(x1, y0),
-									Vec2d(x1, y1),
-									Vec2d(x0, y1)};
-	} 
+        m_shape = { Vec2d(x0, y0),
+                    Vec2d(x1, y0),
+                    Vec2d(x1, y1),
+                    Vec2d(x0, y1) };
+    }
 	else if(page_idx == SHAPE_CIRCULAR) {
 		double diameter;
 		try{
@@ -293,16 +368,16 @@ void BedShapePanel::update_shape()
  		if (diameter == 0.0) return ;
 		auto r = diameter / 2;
 		auto twopi = 2 * PI;
-		auto edges = 60;
-		std::vector<Vec2d> points;
-		for (size_t i = 1; i <= 60; ++i) {
-			auto angle = i * twopi / edges;
+        auto edges = 72;
+        std::vector<Vec2d> points;
+        for (size_t i = 1; i <= edges; ++i) {
+            auto angle = i * twopi / edges;
 			points.push_back(Vec2d(r*cos(angle), r*sin(angle)));
 		}
-		m_canvas->m_bed_shape = points;
-	}
+        m_shape = points;
+    }
     else if (page_idx == SHAPE_CUSTOM) 
-        m_canvas->m_bed_shape = m_loaded_bed_shape;
+        m_shape = m_loaded_shape;
 
 	update_preview();
 }
@@ -310,19 +385,23 @@ void BedShapePanel::update_shape()
 // Loads an stl file, projects it to the XY plane and calculates a polygon.
 void BedShapePanel::load_stl()
 {
-    wxFileDialog dialog(this, _(L("Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):")), "", "",
-        file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(this, _(L("Choose an STL file to import bed shape from:")), "", "", file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
-    wxArrayString input_file;
-    dialog.GetPaths(input_file);
+    std::string file_name = dialog.GetPath().ToUTF8().data();
 
-	std::string file_name = input_file[0].ToUTF8().data();
+    if (!boost::iequals(boost::filesystem::path(file_name).extension().string().c_str(), ".stl"))
+    {
+        show_error(this, _(L("Invalid file format.")));
+        return;
+    }
+
+    wxBusyCursor wait;
 
 	Model model;
 	try {
-		model = Model::read_from_file(file_name);
+        model = Model::read_from_file(file_name);
 	}
 	catch (std::exception &) {
         show_error(this, _(L("Error! Invalid model")));
@@ -346,7 +425,32 @@ void BedShapePanel::load_stl()
 	for (auto pt : polygon.points)
 		points.push_back(unscale(pt));
 
-    m_loaded_bed_shape = points;
+    m_loaded_shape = points;
+    update_shape();
+}
+
+void BedShapePanel::load_texture()
+{
+    wxFileDialog dialog(this, _(L("Choose a file to import bed texture from (PNG/SVG):")), "", "",
+        file_wildcards(FT_TEX), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    m_custom_texture = NONE;
+
+    std::string file_name = dialog.GetPath().ToUTF8().data();
+    std::string file_ext = boost::filesystem::path(file_name).extension().string();
+
+    if (!boost::iequals(file_ext.c_str(), ".png") && !boost::iequals(file_ext.c_str(), ".svg"))
+    {
+        show_error(this, _(L("Invalid file format.")));
+        return;
+    }
+
+    wxBusyCursor wait;
+
+    m_custom_texture = file_name;
     update_shape();
 }
 

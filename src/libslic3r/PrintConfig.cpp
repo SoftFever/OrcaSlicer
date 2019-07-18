@@ -51,6 +51,11 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) });
     
+    def = this->add("bed_custom_texture", coString);
+    def->label = L("Bed custom texture");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("layer_height", coFloat);
     def->label = L("Layer height");
     def->category = L("Layers and Perimeters");
