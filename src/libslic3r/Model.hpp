@@ -17,6 +17,13 @@
 #include <utility>
 #include <vector>
 
+namespace cereal {
+	class BinaryInputArchive;
+	class BinaryOutputArchive;
+	template <class T> void load_optional(BinaryInputArchive &ar, std::shared_ptr<const T> &ptr);
+	template <class T> void save_optional(BinaryOutputArchive &ar, const std::shared_ptr<const T> &ptr);
+}
+
 namespace Slic3r {
 
 class Model;
