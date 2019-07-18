@@ -31,6 +31,7 @@ private:
     bool m_planes_valid = false;
     mutable Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
+    ObjectID m_model_object_id = 0;
     std::vector<const Transform3d*> instances_matrices;
 
     void update_planes();
@@ -49,11 +50,7 @@ protected:
     virtual void on_start_dragging();
     virtual void on_render() const;
     virtual void on_render_for_picking() const;
-    virtual void on_set_state()
-    {
-        if (m_state == On && is_plane_update_necessary())
-            update_planes();
-    }
+    virtual void on_set_state() override;
 };
 
 } // namespace GUI
