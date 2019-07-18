@@ -526,8 +526,23 @@ private:
 	ModelVolume() : ObjectBase(-1), config(-1), object(nullptr) {
 		assert(this->id().invalid()); assert(this->config.id().invalid());
 	}
-	template<class Archive> void serialize(Archive &ar) {
-		ar(name, config, m_mesh, m_type, m_material_id, m_convex_hull, m_transformation, m_is_splittable);
+	template<class Archive> void load(Archive &ar) {
+		bool has_convex_hull;
+		ar(name, config, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		assert(m_mesh);
+		if (has_convex_hull) {
+			cereal::load_optional(ar, m_convex_hull);
+			if (! m_convex_hull && ! m_mesh->empty())
+				// The convex hull was released from the Undo / Redo stack to conserve memory. Recalculate it.
+				this->calculate_convex_hull();
+		} else
+			m_convex_hull.reset();
+	}
+	template<class Archive> void save(Archive &ar) const {
+		bool has_convex_hull = m_convex_hull.get() != nullptr;
+		ar(name, config, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		if (has_convex_hull)
+			cereal::save_optional(ar, m_convex_hull);
 	}
 };
 
@@ -746,5 +761,10 @@ void check_model_ids_equal(const Model &model1, const Model &model2);
 #endif /* NDEBUG */
 
 } // namespace Slic3r
+
+namespace cereal
+{
+	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume, cereal::specialization::member_load_save> {};
+}
 
 #endif /* slic3r_Model_hpp_ */

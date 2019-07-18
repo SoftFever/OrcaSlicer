@@ -613,6 +613,34 @@ size_t TriangleMesh::memsize() const
 	return memsize;
 }
 
+// Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
+size_t TriangleMesh::release_optional()
+{
+	size_t memsize_released = sizeof(stl_neighbors) * this->stl.neighbors_start.size() + this->its.memsize();
+	// The indexed triangle set may be recalculated using the stl_generate_shared_vertices() function.
+	this->its.clear();
+	// The neighbors structure may be recalculated using the stl_check_facets_exact() function.
+	this->stl.neighbors_start.clear();
+	return memsize_released;
+}
+
+// Restore optional data possibly released by release_optional().
+void TriangleMesh::restore_optional()
+{
+	if (! this->stl.facet_start.empty()) {
+		// Save the old stats before calling stl_check_faces_exact, as it may modify the statistics.
+		stl_stats stats = this->stl.stats;
+		if (this->stl.neighbors_start.empty()) {
+			stl_reallocate(&this->stl);
+			stl_check_facets_exact(&this->stl);
+		}
+		if (this->its.vertices.empty())
+			stl_generate_shared_vertices(&this->stl, this->its);
+		// Restore the old statistics.
+		this->stl.stats = stats;
+	}
+}
+
 void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callback_type throw_on_cancel)
 {
     mesh = _mesh;

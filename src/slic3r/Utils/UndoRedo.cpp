@@ -25,6 +25,12 @@
 #ifndef NDEBUG
 // #define SLIC3R_UNDOREDO_DEBUG
 #endif /* NDEBUG */
+#if 0
+	// Stop at a fraction of the normal Undo / Redo stack size.
+	#define UNDO_REDO_DEBUG_LOW_MEM_FACTOR 10000
+#else
+	#define UNDO_REDO_DEBUG_LOW_MEM_FACTOR 1
+#endif
 
 namespace Slic3r {
 namespace UndoRedo {
@@ -74,6 +80,9 @@ public:
 	// Is the object captured by this history mutable or immutable?
 	virtual bool is_mutable() const = 0;
 	virtual bool is_immutable() const = 0;
+	// The object is optional, it may be released if the Undo / Redo stack memory grows over the limits.
+	virtual bool is_optional() const { return false; }
+	// If it is an immutable object, return its pointer. There is a map assigning a temporary ObjectID to the immutable object pointer.
 	virtual const void* immutable_object_ptr() const { return nullptr; }
 
 	// If the history is empty, the ObjectHistory object could be released.
@@ -85,6 +94,10 @@ public:
 	// Release all data after the given timestamp. For the ImmutableObjectHistory, the shared pointer is NOT released.
 	// Return the amount of memory released.
 	virtual size_t release_after_timestamp(size_t timestamp) = 0;
+	// Release all optional data of this history.
+	virtual size_t release_optional() = 0;
+	// Restore optional data possibly released by release_optional.
+	virtual void   restore_optional() = 0;
 
 	// Estimated size in memory, to be used to drop least recently used snapshots.
 	virtual size_t memsize() const = 0;
@@ -175,11 +188,13 @@ template<typename T>
 class ImmutableObjectHistory : public ObjectHistory<Interval>
 {
 public:
-	ImmutableObjectHistory(std::shared_ptr<const T>	shared_object) : m_shared_object(shared_object) {}
+	ImmutableObjectHistory(std::shared_ptr<const T>	shared_object, bool optional) : m_shared_object(shared_object), m_optional(optional) {}
 	~ImmutableObjectHistory() override {}
 
 	bool is_mutable() const override { return false; }
 	bool is_immutable() const override { return true; }
+	bool is_optional() const override { return m_optional; }
+	// If it is an immutable object, return its pointer. There is a map assigning a temporary ObjectID to the immutable object pointer.
 	const void* immutable_object_ptr() const { return (const void*)m_shared_object.get(); }
 
 	// Estimated size in memory, to be used to drop least recently used snapshots.
@@ -216,6 +231,37 @@ public:
 		return timestamp >= it->begin() && timestamp < it->end();
 	}
 
+	// Release all optional data of this history.
+	size_t release_optional() override {
+		size_t mem_released = 0;
+		if (m_optional) {
+			bool released = false;
+			if (this->is_serialized()) {
+				mem_released += m_serialized.size();
+				m_serialized.clear();
+				released = true;
+			} else if (m_shared_object.use_count() == 1) {
+				mem_released += m_shared_object->memsize();
+				m_shared_object.reset();
+				released = true;
+			}
+			if (released) {
+				mem_released += m_history.size() * sizeof(Interval);
+				m_history.clear();
+			}
+		} else if (m_shared_object.use_count() == 1) {
+			// The object is in memory, but it is not shared with the scene. Let the object decide whether there is any optional data to release.
+			const_cast<T*>(m_shared_object.get())->release_optional();
+		}
+		return mem_released;
+	}
+
+	// Restore optional data possibly released by this->release_optional().
+	void restore_optional() override {
+		if (m_shared_object.use_count() == 1)
+			const_cast<T*>(m_shared_object.get())->restore_optional();
+	}
+
 	bool 						is_serialized() const { return m_shared_object.get() == nullptr; }
 	const std::string&			serialized_data() const { return m_serialized; }
 	std::shared_ptr<const T>& 	shared_ptr(StackImpl &stack);
@@ -240,6 +286,8 @@ private:
 	// Either the source object is held by a shared pointer and the m_serialized field is empty,
 	// or the shared pointer is null and the object is being serialized into m_serialized.
 	std::shared_ptr<const T>	m_shared_object;
+	// If this object is optional, then it may be deleted from the Undo / Redo stack and recalculated from other data (for example mesh convex hull).
+	bool 						m_optional;
 	std::string 				m_serialized;
 };
 
@@ -375,6 +423,11 @@ public:
 		return std::string(it->data(), it->data() + it->size());
 	}
 
+	// Currently all mutable snapshots are mandatory.
+	size_t release_optional() override { return 0; }
+	// Currently there is no way to release optional data from the mutable objects.
+	void   restore_optional() override {}
+
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	std::string format() override {
 		std::string out = typeid(T).name();
@@ -430,7 +483,7 @@ class StackImpl
 public:
 	// Stack needs to be initialized. An empty stack is not valid, there must be a "New Project" status stored at the beginning.
 	// Initially enable Undo / Redo stack to occupy maximum 10% of the total system physical memory.
-	StackImpl() : m_memory_limit(std::min(Slic3r::total_physical_memory() / 10, size_t(1 * 16384 * 65536))), m_active_snapshot_time(0), m_current_time(0) {}
+	StackImpl() : m_memory_limit(std::min(Slic3r::total_physical_memory() / 10, size_t(1 * 16384 * 65536 / UNDO_REDO_DEBUG_LOW_MEM_FACTOR))), m_active_snapshot_time(0), m_current_time(0) {}
 
 	void set_memory_limit(size_t memsize) { m_memory_limit = memsize; }
 
@@ -461,9 +514,9 @@ public:
 
 //protected:
 	template<typename T, typename T_AS> ObjectID save_mutable_object(const T &object);
-	template<typename T> ObjectID save_immutable_object(std::shared_ptr<const T> &object);
+	template<typename T> ObjectID save_immutable_object(std::shared_ptr<const T> &object, bool optional);
 	template<typename T> T* load_mutable_object(const Slic3r::ObjectID id);
-	template<typename T> std::shared_ptr<const T> load_immutable_object(const Slic3r::ObjectID id);
+	template<typename T> std::shared_ptr<const T> load_immutable_object(const Slic3r::ObjectID id, bool optional);
 	template<typename T, typename T_AS> void load_mutable_object(const Slic3r::ObjectID id, T &target);
 
 #ifdef SLIC3R_UNDOREDO_DEBUG
@@ -620,7 +673,11 @@ namespace cereal
 	// store just the ObjectID to this stream.
 	template <class T> void save(BinaryOutputArchive &ar, const std::shared_ptr<const T> &ptr)
 	{
-		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_immutable_object<T>(const_cast<std::shared_ptr<const T>&>(ptr)));
+		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_immutable_object<T>(const_cast<std::shared_ptr<const T>&>(ptr), false));
+	}
+	template <class T> void save_optional(BinaryOutputArchive &ar, const std::shared_ptr<const T> &ptr)
+	{
+		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_immutable_object<T>(const_cast<std::shared_ptr<const T>&>(ptr), true));
 	}
 
 	// Load ObjectBase derived class from the Undo / Redo stack as a separate object
@@ -630,7 +687,14 @@ namespace cereal
 		Slic3r::UndoRedo::StackImpl &stack = cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar);
 		size_t id;
 		ar(id);
-		ptr = stack.load_immutable_object<T>(Slic3r::ObjectID(id));
+		ptr = stack.load_immutable_object<T>(Slic3r::ObjectID(id), false);
+	}
+	template <class T> void load_optional(BinaryInputArchive &ar, std::shared_ptr<const T> &ptr)
+	{
+		Slic3r::UndoRedo::StackImpl &stack = cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar);
+		size_t id;
+		ar(id);
+		ptr = stack.load_immutable_object<T>(Slic3r::ObjectID(id), true);
 	}
 }
 
@@ -675,14 +739,16 @@ template<typename T, typename T_AS> ObjectID StackImpl::save_mutable_object(cons
 	return object.id();
 }
 
-template<typename T> ObjectID StackImpl::save_immutable_object(std::shared_ptr<const T> &object)
+template<typename T> ObjectID StackImpl::save_immutable_object(std::shared_ptr<const T> &object, bool optional)
 {
 	// First allocate a temporary ObjectID for this pointer.
 	ObjectID object_id = this->immutable_object_id(object);
 	// and find or allocate a history stack for the ObjectID associated to this shared_ptr.
 	auto it_object_history = m_objects.find(object_id);
 	if (it_object_history == m_objects.end())
-		it_object_history = m_objects.emplace_hint(it_object_history, object_id, std::unique_ptr<ImmutableObjectHistory<T>>(new ImmutableObjectHistory<T>(object)));
+		it_object_history = m_objects.emplace_hint(it_object_history, object_id, std::unique_ptr<ImmutableObjectHistory<T>>(new ImmutableObjectHistory<T>(object, optional)));
+	else
+		assert(it_object_history->second.get()->is_optional() == optional);
 	// Then save the interval.
 	static_cast<ImmutableObjectHistory<T>*>(it_object_history->second.get())->save(m_active_snapshot_time, m_current_time);
 	return object_id;
@@ -695,13 +761,16 @@ template<typename T> T* StackImpl::load_mutable_object(const Slic3r::ObjectID id
 	return target;
 }
 
-template<typename T> std::shared_ptr<const T> StackImpl::load_immutable_object(const Slic3r::ObjectID id)
+template<typename T> std::shared_ptr<const T> StackImpl::load_immutable_object(const Slic3r::ObjectID id, bool optional)
 {
 	// First find a history stack for the ObjectID of this object instance.
 	auto it_object_history = m_objects.find(id);
-	assert(it_object_history != m_objects.end());
+	assert(optional || it_object_history != m_objects.end());
+	if (it_object_history == m_objects.end())
+		return std::shared_ptr<const T>();
 	auto *object_history = static_cast<ImmutableObjectHistory<T>*>(it_object_history->second.get());
 	assert(object_history->has_snapshot(m_active_snapshot_time));
+	object_history->restore_optional();
 	return object_history->shared_ptr(*this);
 }
 
@@ -869,12 +938,32 @@ void StackImpl::release_least_recently_used()
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	bool released = false;
 #endif
+	// First try to release the optional immutable data (for example the convex hulls),
+	// or the shared vertices of triangle meshes.
+	for (auto it = m_objects.begin(); current_memsize > m_memory_limit && it != m_objects.end();) {
+		const void *ptr = it->second->immutable_object_ptr();
+		size_t mem_released = it->second->release_optional();
+		if (it->second->empty()) {
+			if (ptr != nullptr)
+				// Release the immutable object from the ptr to ObjectID map.
+				m_shared_ptr_to_object_id.erase(ptr);
+			mem_released += it->second->memsize();
+			it = m_objects.erase(it);
+		} else
+			++ it;
+		assert(current_memsize >= mem_released);
+		if (current_memsize >= mem_released)
+			current_memsize -= mem_released;
+		else
+			current_memsize = 0;
+	}
 	while (current_memsize > m_memory_limit && m_snapshots.size() >= 3) {
 		// From which side to remove a snapshot?
 		assert(m_snapshots.front().timestamp < m_active_snapshot_time);
 		size_t mem_released = 0;
 		if (m_snapshots[1].timestamp == m_active_snapshot_time) {
 			// Remove the last snapshot.
+#if 0
 			for (auto it = m_objects.begin(); it != m_objects.end();) {
 				mem_released += it->second->release_after_timestamp(m_snapshots.back().timestamp);
 				if (it->second->empty()) {
@@ -888,6 +977,12 @@ void StackImpl::release_least_recently_used()
 			}
 			m_snapshots.pop_back();
 			m_snapshots.back().name = topmost_snapshot_name;
+#else
+			// Rather don't release the last snapshot as it will be very confusing to the user
+			// as of why he cannot jump to the top most state. The Undo / Redo stack maximum size
+			// should be set low enough to accomodate for the top most snapshot.
+			break;
+#endif
 		} else {
 			// Remove the first snapshot.
 			for (auto it = m_objects.begin(); it != m_objects.end();) {
