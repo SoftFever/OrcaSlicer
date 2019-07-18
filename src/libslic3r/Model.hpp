@@ -555,7 +555,7 @@ public:
     ModelObject* get_object() const { return this->object; }
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
-    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; m_arrange_cache.valid = false; }
+    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -566,21 +566,21 @@ public:
     const Vec3d& get_rotation() const { return m_transformation.get_rotation(); }
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
-    void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); m_arrange_cache.valid = false; }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); if (axis != Z) m_arrange_cache.valid = false; }
+    void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
+    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); m_arrange_cache.valid = false; }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); m_arrange_cache.valid = false; }
+    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
+    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
 
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
 	bool is_left_handed() const { return m_transformation.is_left_handed(); }
     
-    void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); m_arrange_cache.valid = false; }
-    void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); m_arrange_cache.valid = false; }
+    void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
+    void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -623,18 +623,10 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject *object) : print_volume_state(PVS_Inside), object(object)
-    {
-        assert(this->id().valid());
-        get_arrange_polygon(); // initialize the cache
-    }
+    explicit ModelInstance(ModelObject *object) : print_volume_state(PVS_Inside), object(object) { assert(this->id().valid()); }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), print_volume_state(PVS_Inside), object(object)
-    {
-        assert(this->id().valid() && this->id() != other.id());
-        get_arrange_polygon(); // initialize the cache
-    }
+        m_transformation(other.m_transformation), print_volume_state(PVS_Inside), object(object) { assert(this->id().valid() && this->id() != other.id()); }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
@@ -647,12 +639,6 @@ private:
 	template<class Archive> void serialize(Archive &ar) {
 		ar(m_transformation, print_volume_state);
 	}
-    
-    // Warning! This object is not guarded against concurrency.
-    mutable struct ArrangeCache {
-        bool      valid = false;
-        ExPolygon poly;
-    } m_arrange_cache;
 };
 
 // The print bed content.

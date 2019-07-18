@@ -1829,33 +1829,28 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 {
     static const double SIMPLIFY_TOLERANCE_MM = 0.1;
     
-    if (!m_arrange_cache.valid) {
-        Vec3d rotation = get_rotation();
-        rotation.z()   = 0.;
-        Transform3d trafo_instance =
-            Geometry::assemble_transform(Vec3d::Zero(), rotation,
-                                         get_scaling_factor(), get_mirror());
-    
-        Polygon p = get_object()->convex_hull_2d(trafo_instance);
-    
-        assert(!p.points.empty());
-    
-        // this may happen for malformed models, see:
-        // https://github.com/prusa3d/PrusaSlicer/issues/2209
-        if (!p.points.empty()) {
-            Polygons pp{p};
-            pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-            if (!pp.empty()) p = pp.front();
-        }
-        
-        m_arrange_cache.poly.contour = std::move(p);
-        m_arrange_cache.valid = true;
-    }
+    Vec3d rotation = get_rotation();
+    rotation.z()   = 0.;
+    Transform3d trafo_instance =
+        Geometry::assemble_transform(Vec3d::Zero(), rotation,
+                                     get_scaling_factor(), get_mirror());
 
+    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+
+    assert(!p.points.empty());
+
+    // this may happen for malformed models, see:
+    // https://github.com/prusa3d/PrusaSlicer/issues/2209
+    if (!p.points.empty()) {
+        Polygons pp{p};
+        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+        if (!pp.empty()) p = pp.front();
+    }
+   
     arrangement::ArrangePolygon ret;
-    ret.poly        = m_arrange_cache.poly;
-    ret.translation = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
-    ret.rotation    = get_rotation(Z);
+    ret.poly.contour = std::move(p);
+    ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
+    ret.rotation     = get_rotation(Z);
 
     return ret;
 }
