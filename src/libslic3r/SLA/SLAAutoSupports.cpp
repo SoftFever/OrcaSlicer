@@ -386,7 +386,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
             } else {
                 // This is a new cell.
                 PoissonDiskGridEntry data;
-                data.first_sample_idx = i;
+                data.first_sample_idx = int(i);
                 data.sample_cnt       = 1;
                 auto result     = cells.insert({sample.cell_id, data});
                 last_cell_id    = sample.cell_id;
