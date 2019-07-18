@@ -292,8 +292,7 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture)
     std::string cst_texture(custom_texture);
     if (!cst_texture.empty())
     {
-        std::string ext = boost::filesystem::path(cst_texture).extension().string();
-        if ((!boost::iequals(ext.c_str(), ".png") && !boost::iequals(ext.c_str(), ".svg")) || !boost::filesystem::exists(custom_texture))
+        if ((!boost::algorithm::iends_with(custom_texture, ".png") && !boost::algorithm::iends_with(custom_texture, ".svg")) || !boost::filesystem::exists(custom_texture))
             cst_texture = "";
     }
 
@@ -520,8 +519,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
-        std::string ext = boost::filesystem::path(filename).extension().string();
-        if (boost::iequals(ext.c_str(), ".svg"))
+        if (boost::algorithm::iends_with(filename, ".svg"))
         {
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
             if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
@@ -537,7 +535,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
                 return;
             }
         }
-        else if (boost::iequals(ext.c_str(), ".png"))
+        else if (boost::algorithm::iends_with(filename, ".png"))
         {
             std::cout << "texture: " << filename << std::endl;
             render_custom();

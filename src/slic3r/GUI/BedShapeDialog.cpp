@@ -449,7 +449,7 @@ void BedShapePanel::load_stl()
         return;
 
     std::string file_name = dialog.GetPath().ToUTF8().data();
-    if (!boost::iequals(boost::filesystem::path(file_name).extension().string().c_str(), ".stl"))
+    if (!boost::algorithm::iends_with(file_name, ".stl"))
     {
         show_error(this, _(L("Invalid file format.")));
         return;
@@ -498,9 +498,7 @@ void BedShapePanel::load_texture()
     m_custom_texture = NONE;
 
     std::string file_name = dialog.GetPath().ToUTF8().data();
-    std::string file_ext = boost::filesystem::path(file_name).extension().string();
-
-    if (!boost::iequals(file_ext.c_str(), ".png") && !boost::iequals(file_ext.c_str(), ".svg"))
+    if (!boost::algorithm::iends_with(file_name, ".png") && !boost::algorithm::iends_with(file_name, ".svg"))
     {
         show_error(this, _(L("Invalid file format.")));
         return;
@@ -523,7 +521,7 @@ void BedShapePanel::load_model()
     m_custom_model = NONE;
 
     std::string file_name = dialog.GetPath().ToUTF8().data();
-    if (!boost::iequals(boost::filesystem::path(file_name).extension().string().c_str(), ".stl"))
+    if (!boost::algorithm::iends_with(file_name, ".stl"))
     {
         show_error(this, _(L("Invalid file format.")));
         return;
