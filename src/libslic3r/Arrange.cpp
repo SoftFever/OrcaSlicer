@@ -66,10 +66,6 @@ using Circle       = _Circle<clppr::IntPoint>;
 using Segment      = _Segment<clppr::IntPoint>;
 using MultiPolygon = TMultiShape<clppr::Polygon>;
 
-// The return value of nesting, a vector (for each logical bed) of Item
-// reference vectors. 
-using PackGroup    = _PackGroup<clppr::Polygon>;
-
 // Summon the spatial indexing facilities from boost
 namespace bgi = boost::geometry::index;
 using SpatElement = std::pair<Box, unsigned>;
@@ -102,7 +98,7 @@ void fillConfig(PConf& pcfg) {
     pcfg.parallel = true;
 }
 
-// Apply penality to object function result. This is used only when alignment
+// Apply penalty to object function result. This is used only when alignment
 // after arrange is explicitly disabled (PConfig::Alignment::DONT_ALIGN)
 double fixed_overfit(const std::tuple<double, Box>& result, const Box &binbb)
 {
@@ -123,7 +119,7 @@ public:
     // Useful type shortcuts...
     using Placer = typename placers::_NofitPolyPlacer<clppr::Polygon, TBin>;
     using Selector = selections::_FirstFitSelection<clppr::Polygon>;
-    using Packer   = Nester<Placer, Selector>;
+    using Packer   = _Nester<Placer, Selector>;
     using PConfig  = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
 

@@ -65,7 +65,7 @@ void nest(Iterator from, Iterator to,
                const typename Placer::Config& pconf = {},
                const typename Selector::Config& sconf = {})
 {
-    Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
+    _Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
     nester.execute(from, to);
 }
 
@@ -80,7 +80,7 @@ void nest(Iterator from, Iterator to,
                const typename Placer::Config& pconf = {},
                const typename Selector::Config& sconf = {})
 {
-    Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
+    _Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
     if(prg) nester.progressIndicator(prg);
     if(scond) nester.stopCondition(scond);
     nester.execute(from, to);

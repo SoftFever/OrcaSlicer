@@ -1609,7 +1609,7 @@ struct Plater::priv
             if (m_selected.empty()) m_selected.swap(m_unselected);
             
             // The strides have to be removed from the fixed items. For the
-            // arrangeable (selected) items it bed_idx is ignored and the
+            // arrangeable (selected) items bed_idx is ignored and the
             // translation is irrelevant.
             for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
         }

@@ -370,7 +370,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
     ASSERT_EQ(getX(bin.center()), 105);
     ASSERT_EQ(getY(bin.center()), 125);
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin);
+    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin);
     
     arrange.execute(rects.begin(), rects.end());
 
@@ -438,7 +438,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
     
     Coord min_obj_distance = 5;
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin, min_obj_distance);
+    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin, min_obj_distance);
     
     arrange.execute(rects.begin(), rects.end());
     

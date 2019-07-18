@@ -741,12 +741,11 @@ public:
 };
 
 /**
- * The Arranger is the front-end class for the libnest2d library. It takes the
- * input items and outputs the items with the proper transformations to be
- * inside the provided bin.
+ * The _Nester is the front-end class for the libnest2d library. It takes the
+ * input items and changes their transformations to be inside the provided bin.
  */
 template<class PlacementStrategy, class SelectionStrategy >
-class Nester {
+class _Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
 public:
@@ -771,12 +770,12 @@ private:
     using TSItem = remove_cvref_t<SItem>;
 
     StopCondition stopfn_;
-    
-    template<class It> using TVal = remove_cvref_t<typename It::value_type>;
+
+    template<class It> using TVal = remove_ref_t<typename It::value_type>;
     
     template<class It, class Out>
-    using ConvertibleOnly =
-        enable_if_t< std::is_convertible<TVal<It>, TPItem>::value, void>;
+    using ItemIteratorOnly =
+        enable_if_t<std::is_convertible<TVal<It>&, TPItem&>::value, Out>;
 
 public:
 
@@ -789,10 +788,8 @@ public:
     template<class TBinType = BinType,
              class PConf = PlacementConfig,
              class SConf = SelectionConfig>
-    Nester( TBinType&& bin,
-              Coord min_obj_distance = 0,
-              const PConf& pconfig = PConf(),
-              const SConf& sconfig = SConf()):
+    _Nester(TBinType&& bin, Coord min_obj_distance = 0,
+            const PConf& pconfig = PConf(), const SConf& sconfig = SConf()):
         bin_(std::forward<TBinType>(bin)),
         pconfig_(pconfig),
         min_obj_distance_(min_obj_distance)
@@ -817,14 +814,17 @@ public:
     }
 
     /**
-     * \brief Arrange an input sequence and return a PackGroup object with
-     * the packed groups corresponding to the bins.
+     * \brief Arrange an input sequence of _Item-s.
+     *
+     * To get the result, call the translation(), rotation() and binId()
+     * methods of each item. If only the transformed polygon is needed, call
+     * transformedShape() to get the properly transformed shapes.
      *
      * The number of groups in the pack group is the number of bins opened by
      * the selection algorithm.
      */
     template<class It>
-    inline ConvertibleOnly<It, void> execute(It from, It to)
+    inline ItemIteratorOnly<It, void> execute(It from, It to)
     {
         auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
         if(infl > 0) std::for_each(from, to, [this, infl](Item& item) {
@@ -840,13 +840,13 @@ public:
     }
 
     /// Set a progress indicator function object for the selector.
-    inline Nester& progressIndicator(ProgressFunction func)
+    inline _Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
     }
 
     /// Set a predicate to tell when to abort nesting.
-    inline Nester& stopCondition(StopCondition fn)
+    inline _Nester& stopCondition(StopCondition fn)
     {
         stopfn_ = fn; selector_.stopCondition(fn); return *this;
     }
