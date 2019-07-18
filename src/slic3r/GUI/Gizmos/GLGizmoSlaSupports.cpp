@@ -1049,7 +1049,7 @@ void GLGizmoSlaSupports::on_set_state()
     // we should recover it from the object id
     const ModelObject* old_model_object = m_model_object;
     m_model_object = nullptr;
-    for (const auto mo : *wxGetApp().model_objects()) {
+    for (const auto mo : wxGetApp().model().objects) {
         if (mo->id() == m_current_mesh_object_id) {
             m_model_object = mo;
             break;

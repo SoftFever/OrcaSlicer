@@ -761,6 +761,12 @@ extern bool model_object_list_extended(const Model &model_old, const Model &mode
 // than the old ModelObject.
 extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type);
 
+// If the model has multi-part objects, then it is currently not supported by the SLA mode.
+// Either the model cannot be loaded, or a SLA printer has to be activated.
+extern bool model_has_multi_part_objects(const Model &model);
+// If the model has advanced features, then it cannot be processed in simple mode.
+extern bool model_has_advanced_features(const Model &model);
+
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
 void check_model_ids_validity(const Model &model);

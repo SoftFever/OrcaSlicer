@@ -2603,7 +2603,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 
 void ObjectList::init_objects()
 {
-    m_objects = wxGetApp().model_objects();
+    m_objects = &wxGetApp().model().objects;
 }
 
 bool ObjectList::multiple_selection() const 
@@ -3078,19 +3078,6 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
 
     // set a default extruder value, since user can't add it manually
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
-}
-
-bool ObjectList::has_multi_part_objects()
-{
-    if (!m_objects_model->IsEmpty()) {
-        wxDataViewItemArray items;
-        m_objects_model->GetChildren(wxDataViewItem(0), items);
-
-        for (auto& item : items)
-            if (m_objects_model->GetItemByType(item, itVolume))
-                return true;
-    }
-    return false;
 }
 
 /* #lm_FIXME_delete_after_testing

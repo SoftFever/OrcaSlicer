@@ -139,7 +139,7 @@ public:
     void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);
-    bool            check_unsaved_changes();
+    bool            check_unsaved_changes(const wxString &header = wxString());
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
@@ -158,7 +158,7 @@ public:
     ObjectList*         obj_list();
     ObjectLayers*       obj_layers();
     Plater*             plater();
-    std::vector<ModelObject*> *model_objects();
+    Model&      		model();
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };

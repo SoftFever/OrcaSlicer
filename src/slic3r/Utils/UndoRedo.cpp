@@ -495,12 +495,12 @@ public:
 	}
 
     // Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
-    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos);
+    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology);
     void load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos);
 
 	bool has_undo_snapshot() const;
 	bool has_redo_snapshot() const;
-    bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, Slic3r::GUI::GLGizmosManager &gizmos, size_t jump_to_time);
+    bool undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, Slic3r::GUI::GLGizmosManager &gizmos, PrinterTechnology printer_technology, size_t jump_to_time);
     bool redo(Slic3r::Model &model, Slic3r::GUI::GLGizmosManager &gizmos, size_t jump_to_time);
 	void release_least_recently_used();
 
@@ -788,7 +788,7 @@ template<typename T, typename T_AS> void StackImpl::load_mutable_object(const Sl
 }
 
 // Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
-void StackImpl::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos)
+void StackImpl::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology)
 {
 	// Release old snapshot data.
 	assert(m_active_snapshot_time <= m_current_time);
@@ -808,11 +808,11 @@ void StackImpl::take_snapshot(const std::string& snapshot_name, const Slic3r::Mo
 	this->save_mutable_object<Selection, Selection>(m_selection);
     this->save_mutable_object<Slic3r::GUI::GLGizmosManager, Slic3r::GUI::GLGizmosManager>(gizmos);
     // Save the snapshot info.
-	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id);
+	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id, printer_technology);
 	m_active_snapshot_time = m_current_time;
 	// Save snapshot info of the last "current" aka "top most" state, that is only being serialized
 	// if undoing an action. Such a snapshot has an invalid Model ID assigned if it was not taken yet.
-	m_snapshots.emplace_back(topmost_snapshot_name, m_active_snapshot_time, 0);
+	m_snapshots.emplace_back(topmost_snapshot_name, m_active_snapshot_time, 0, printer_technology);
 	// Release empty objects from the history.
 	this->collect_garbage();
 	assert(this->valid());
@@ -858,7 +858,7 @@ bool StackImpl::has_redo_snapshot() const
 	return ++ it != m_snapshots.end();
 }
 
-bool StackImpl::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load)
+bool StackImpl::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, Slic3r::GUI::GLGizmosManager &gizmos, PrinterTechnology printer_technology, size_t time_to_load)
 {
 	assert(this->valid());
 	if (time_to_load == SIZE_MAX) {
@@ -872,7 +872,7 @@ bool StackImpl::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selecti
 	bool new_snapshot_taken = false;
 	if (m_active_snapshot_time == m_snapshots.back().timestamp && ! m_snapshots.back().is_topmost_captured()) {
 		// The current state is temporary. The current state needs to be captured to be redoable.
-        this->take_snapshot(topmost_snapshot_name, model, selection, gizmos);
+        this->take_snapshot(topmost_snapshot_name, model, selection, gizmos, printer_technology);
         // The line above entered another topmost_snapshot_name.
 		assert(m_snapshots.back().is_topmost());
 		assert(! m_snapshots.back().is_topmost_captured());
@@ -1020,10 +1020,12 @@ Stack::~Stack() {}
 void Stack::set_memory_limit(size_t memsize) { pimpl->set_memory_limit(memsize); }
 size_t Stack::memsize() const { return pimpl->memsize(); }
 void Stack::release_least_recently_used() { pimpl->release_least_recently_used(); }
-void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos) { pimpl->take_snapshot(snapshot_name, model, selection, gizmos); }
+void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology)
+	{ pimpl->take_snapshot(snapshot_name, model, selection, gizmos, printer_technology); }
 bool Stack::has_undo_snapshot() const { return pimpl->has_undo_snapshot(); }
 bool Stack::has_redo_snapshot() const { return pimpl->has_redo_snapshot(); }
-bool Stack::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load) { return pimpl->undo(model, selection, gizmos, time_to_load); }
+bool Stack::undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, PrinterTechnology printer_technology, size_t time_to_load) 
+	{ return pimpl->undo(model, selection, gizmos, printer_technology, time_to_load); }
 bool Stack::redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load) { return pimpl->redo(model, gizmos, time_to_load); }
 const Selection& Stack::selection_deserialized() const { return pimpl->selection_deserialized(); }
 
