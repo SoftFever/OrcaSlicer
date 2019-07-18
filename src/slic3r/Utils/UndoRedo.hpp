@@ -12,6 +12,7 @@
 namespace Slic3r {
 
 class Model;
+enum PrinterTechnology : unsigned char;
 
 namespace GUI {
 	class Selection;

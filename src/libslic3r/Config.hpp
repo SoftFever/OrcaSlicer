@@ -93,7 +93,7 @@ enum ConfigOptionMode {
     comExpert
 };
 
-enum PrinterTechnology
+enum PrinterTechnology : unsigned char
 {
     // Fused Filament Fabrication
     ptFFF,
