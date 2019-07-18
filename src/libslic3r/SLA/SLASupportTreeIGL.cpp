@@ -12,10 +12,18 @@
 #include "SLABoostAdapter.hpp"
 #include "boost/geometry/index/rtree.hpp"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
 #include <igl/ray_mesh_intersect.h>
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/remove_duplicate_vertices.h>
 #include <igl/signed_distance.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <tbb/parallel_for.h>
 
