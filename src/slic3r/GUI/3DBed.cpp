@@ -14,6 +14,7 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/operations.hpp>
 
 static const float GROUND_Z = -0.02f;
 
@@ -274,6 +275,7 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
+    , m_custom_texture("")
 #if ENABLE_TEXTURES_FROM_SVG
     , m_requires_canvas_update(false)
     , m_vbo_id(0)
@@ -282,14 +284,25 @@ Bed3D::Bed3D()
 {
 }
 
-bool Bed3D::set_shape(const Pointfs& shape)
+bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture)
 {
     EType new_type = detect_type(shape);
-    if (m_shape == shape && m_type == new_type)
+
+    // check that the passed custom texture filename is valid
+    std::string cst_texture(custom_texture);
+    if (!cst_texture.empty())
+    {
+        std::string ext = boost::filesystem::path(cst_texture).extension().string();
+        if ((!boost::iequals(ext.c_str(), ".png") && !boost::iequals(ext.c_str(), ".svg")) || !boost::filesystem::exists(custom_texture))
+            cst_texture = "";
+    }
+
+    if ((m_shape == shape) && (m_type == new_type) && (m_custom_texture == cst_texture))
         // No change, no need to update the UI.
         return false;
 
     m_shape = shape;
+    m_custom_texture = cst_texture;
     m_type = new_type;
 
     calc_bounding_boxes();
@@ -498,26 +511,39 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 #if ENABLE_TEXTURES_FROM_SVG
 void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom) const
 {
-    std::string tex_path = resources_dir() + "/icons/bed/" + key;
+    std::string filename = !m_custom_texture.empty() ? m_custom_texture : resources_dir() + "/icons/bed/" + key + ".svg";
 
     std::string model_path = resources_dir() + "/models/" + key;
 
     // use higher resolution images if graphic card and opengl version allow
     GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
 
-    std::string filename = tex_path + ".svg";
-
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
-        // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-        if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+        std::string ext = boost::filesystem::path(filename).extension().string();
+        if (boost::iequals(ext.c_str(), ".svg"))
         {
+            // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+            if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+            {
+                render_custom();
+                return;
+            }
+
+            // starts generating the main texture, compression will run asynchronously
+            if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
+            {
+                render_custom();
+                return;
+            }
+        }
+        else if (boost::iequals(ext.c_str(), ".png"))
+        {
+            std::cout << "texture: " << filename << std::endl;
             render_custom();
             return;
         }
-
-        // starts generating the main texture, compression will run asynchronously
-        if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
+        else
         {
             render_custom();
             return;

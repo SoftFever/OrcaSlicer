@@ -512,6 +512,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
     if (s_opts.empty()) {
         s_opts = {
             "printer_technology",
+            "bed_shape", "bed_custom_texture", "bed_custom_model", "max_print_height",
             "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "display_mirror_x", "display_mirror_y",

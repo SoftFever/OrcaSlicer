@@ -1700,7 +1700,7 @@ struct Plater::priv
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape);
+    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -1750,7 +1750,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "bed_shape", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
@@ -1853,11 +1853,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
+        {
+            set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
+                config->option<ConfigOptionString>("bed_custom_texture")->value);
+        });
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
+        {
+            set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
+                config->option<ConfigOptionString>("bed_custom_texture")->value);
+        });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_EDIT_COLOR_CHANGE, [this](wxKeyEvent& evt) { preview->edit_double_slider(evt); });
@@ -3504,9 +3512,9 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
-void Plater::priv::set_bed_shape(const Pointfs& shape)
+void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture)
 {
-    bool new_shape = bed.set_shape(shape);
+    bool new_shape = bed.set_shape(shape, custom_texture);
     if (new_shape)
     {
         if (view3D) view3D->bed_shape_changed();
@@ -4251,7 +4259,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
-        else if (opt_key == "bed_shape") {
+        else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture")) {
             bed_shape_changed = true;
             update_scheduled = true;
         } 
@@ -4285,7 +4293,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     }
 
     if (bed_shape_changed)
-        p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+        p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+            p->config->option<ConfigOptionString>("bed_custom_texture")->value);
 
     if (update_scheduled) 
         update();
