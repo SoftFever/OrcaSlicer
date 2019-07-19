@@ -71,7 +71,8 @@ template<> inline ClipperLib::cInt& y(PointImpl& p)
 
 namespace shapelike {
 
-template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
+template<>
+inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance, const PolygonTag&)
 {
     #define DISABLE_BOOST_OFFSET
 
@@ -121,6 +122,14 @@ template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
             sh.Holes.back().emplace_back(std::move(front_p));
         }
     }
+}
+
+template<>
+inline void offset(PathImpl& sh, TCoord<PointImpl> distance, const PathTag&)
+{
+    PolygonImpl p(std::move(sh));
+    offset(p, distance, PolygonTag());
+    sh = p.Contour;
 }
 
 // Tell libnest2d how to make string out of a ClipperPolygon object

@@ -514,19 +514,30 @@ void _arrange(
     coord_t                       minobjd,
     std::function<void(unsigned)> prind,
     std::function<bool()>         stopfn)
-{   
-    AutoArranger<BinT> arranger{bin, minobjd, prind, stopfn};
+{
+    // Integer ceiling the min distance from the bed perimeters
+    coord_t md = minobjd - 2 * scaled(0.1 + EPSILON);
+    md = (md % 2) ? md / 2 + 1 : md / 2;
+    
+    auto corrected_bin = bin;
+    sl::offset(corrected_bin, md);
+    
+    AutoArranger<BinT> arranger{corrected_bin, 0, prind, stopfn};
+    
+    auto infl = coord_t(std::ceil(minobjd / 2.0));
+    for (Item& itm : shapes) itm.inflate(infl);
+    for (Item& itm : excludes) itm.inflate(infl);
     
     auto it = excludes.begin();
     while (it != excludes.end())
-        sl::isInside(it->transformedShape(), bin) ?
+        sl::isInside(it->transformedShape(), corrected_bin) ?
             ++it : it = excludes.erase(it);
 
     // If there is something on the plate
     if(!excludes.empty())
         {
             arranger.preload(excludes);
-            auto binbb = sl::boundingBox(bin);
+            auto binbb = sl::boundingBox(corrected_bin);
 
             // Try to put the first item to the center, as the arranger
             // will not do this for us.
@@ -548,6 +559,7 @@ void _arrange(
     for (auto &itm : excludes) inp.emplace_back(itm);
     
     arranger(inp.begin(), inp.end());
+    for (Item &itm : inp) itm.inflate(-infl);
 }
 
 // The final client function for arrangement. A progress indicator and
@@ -594,10 +606,6 @@ void arrange(ArrangePolygons &             arrangables,
     
     for (Item &itm : fixeditems) itm.inflate(scaled(-2. * EPSILON));
     
-    // Integer ceiling the min distance from the bed perimeters
-    coord_t md = min_obj_dist - 2 * scaled(0.1 + EPSILON);
-    md = (md % 2) ? md / 2 + 1 : md / 2;
-    
     auto &cfn = stopcondition;
     auto &pri = progressind;
     
@@ -605,7 +613,6 @@ void arrange(ArrangePolygons &             arrangables,
     case bsBox: {
         // Create the arranger for the box shaped bed
         BoundingBox bbb = bedhint.get_box();
-        bbb.min -= Point{md, md}, bbb.max += Point{md, md};
         Box binbb{{bbb.min(X), bbb.min(Y)}, {bbb.max(X), bbb.max(Y)}};
         
         _arrange(items, fixeditems, binbb, min_obj_dist, pri, cfn);

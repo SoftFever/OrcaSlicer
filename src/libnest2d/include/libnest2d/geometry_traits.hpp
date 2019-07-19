@@ -507,15 +507,13 @@ enum class Formats {
 namespace shapelike {
 
 template<class S>
-inline S create(const TContour<S>& contour,
-                       const THolesContainer<S>& holes)
+inline S create(const TContour<S>& contour, const THolesContainer<S>& holes)
 {
     return S(contour, holes);
 }
 
 template<class S>
-inline S create(TContour<S>&& contour,
-                       THolesContainer<S>&& holes)
+inline S create(TContour<S>&& contour, THolesContainer<S>&& holes)
 {
     return S(contour, holes);
 }
@@ -727,9 +725,16 @@ inline void translate(S& /*sh*/, const P& /*offs*/)
 }
 
 template<class S>
-inline void offset(S& /*sh*/, TCoord<TPoint<S>> /*distance*/)
+inline void offset(S& /*sh*/, TCoord<S> /*distance*/, const PathTag&)
 {
     dout() << "The current geometry backend does not support offsetting!\n";
+}
+
+template<class S>
+inline void offset(S& sh, TCoord<S> distance, const PolygonTag&)
+{
+    offset(contour(sh), distance);
+    for(auto &h : holes(sh)) offset(h, -distance);
 }
 
 template<class S>
@@ -1226,6 +1231,23 @@ template<class Poly> inline bool isConvex(const Poly& sh, const PolygonTag&)
 template<class S> inline bool isConvex(const S& sh) // dispatch
 {
     return isConvex(sh, Tag<S>());
+}
+
+template<class Box> inline void offset(Box& bb, TCoord<Box> d, const BoxTag&)
+{
+    TPoint<Box> md{d, d};
+    bb.minCorner() -= md;
+    bb.maxCorner() += md;
+}
+
+template<class C> inline void offset(C& circ, TCoord<C> d, const CircleTag&)
+{
+    circ.radius(circ.radius() + double(d));
+}
+
+// Dispatch function
+template<class S> inline void offset(S& sh, TCoord<S> d) {
+    offset(sh, d, Tag<S>());
 }
 
 }
