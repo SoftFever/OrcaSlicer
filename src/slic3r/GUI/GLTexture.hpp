@@ -76,6 +76,7 @@ namespace GUI {
         virtual ~GLTexture();
 
         bool load_from_file(const std::string& filename, bool use_mipmaps, bool compress);
+        bool load_from_file(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
         // meanings of states: (std::pair<int, bool>)
         // first field (int):
@@ -106,6 +107,7 @@ namespace GUI {
 
     private:
         bool load_from_png(const std::string& filename, bool use_mipmaps, bool compress);
+        bool load_from_png(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
 
         friend class Compressor;

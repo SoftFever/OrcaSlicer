@@ -519,13 +519,18 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
+        m_texture.reset();
+
         if (boost::algorithm::iends_with(filename, ".svg"))
         {
-            // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-            if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
             {
-                render_custom();
-                return;
+                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+                if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+                {
+                    render_custom();
+                    return;
+                }
             }
 
             // starts generating the main texture, compression will run asynchronously
@@ -537,9 +542,22 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
         }
         else if (boost::algorithm::iends_with(filename, ".png"))
         {
-            std::cout << "texture: " << filename << std::endl;
-            render_custom();
-            return;
+            // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
+            {
+                if (!m_temp_texture.load_from_file(filename, false, false, false, max_tex_size))
+                {
+                    render_custom();
+                    return;
+                }
+            }
+
+            // starts generating the main texture, compression will run asynchronously
+            if (!m_texture.load_from_file(filename, true, true, true, max_tex_size))
+            {
+                render_custom();
+                return;
+            }
         }
         else
         {
@@ -634,6 +652,7 @@ void Bed3D::render_prusa_shader(bool transparent) const
     {
         m_shader.start_using();
         m_shader.set_uniform("transparent_background", transparent);
+        m_shader.set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
         unsigned int stride = m_triangles.get_vertex_data_size();
 
