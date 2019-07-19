@@ -430,6 +430,8 @@ private:
 // floats of the first edge matches all six floats of the second edge.
 void stl_check_facets_exact(stl_file *stl)
 {
+	assert(stl->facet_start.size() == stl->neighbors_start.size());
+
   	stl->stats.connected_edges         = 0;
   	stl->stats.connected_facets_1_edge = 0;
   	stl->stats.connected_facets_2_edge = 0;

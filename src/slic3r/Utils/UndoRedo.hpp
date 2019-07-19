@@ -12,6 +12,7 @@
 namespace Slic3r {
 
 class Model;
+enum PrinterTechnology : unsigned char;
 
 namespace GUI {
 	class Selection;
@@ -23,11 +24,13 @@ namespace UndoRedo {
 struct Snapshot
 {
 	Snapshot(size_t timestamp) : timestamp(timestamp) {}
-	Snapshot(const std::string &name, size_t timestamp, size_t model_id) : name(name), timestamp(timestamp), model_id(model_id) {}
+	Snapshot(const std::string &name, size_t timestamp, size_t model_id, Slic3r::PrinterTechnology printer_technology) :
+		name(name), timestamp(timestamp), model_id(model_id), printer_technology(printer_technology) {}
 	
-	std::string name;
-	size_t 		timestamp;
-	size_t 		model_id;
+	std::string 		name;
+	size_t 				timestamp;
+	size_t 				model_id;
+	PrinterTechnology 	printer_technology;
 
 	bool		operator< (const Snapshot &rhs) const { return this->timestamp < rhs.timestamp; }
 	bool		operator==(const Snapshot &rhs) const { return this->timestamp == rhs.timestamp; }
@@ -56,8 +59,17 @@ public:
 	Stack();
 	~Stack();
 
+	// Set maximum memory threshold. If the threshold is exceeded, least recently used snapshots are released.
+	void set_memory_limit(size_t memsize);
+
+	// Estimate size of the RAM consumed by the Undo / Redo stack.
+	size_t memsize() const;
+
+	// Release least recently used snapshots up to the memory limit set above.
+	void release_least_recently_used();
+
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
-    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos);
+    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology);
 
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
@@ -65,7 +77,7 @@ public:
 
 	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
 	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
-    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
+    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, PrinterTechnology printer_technology, size_t time_to_load = SIZE_MAX);
 
 	// Jump forward in time. If time_to_load is SIZE_MAX, the next snapshot is activated.
     bool redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
@@ -79,6 +91,9 @@ public:
 	// The snapshot time indicates start of an operation, which is finished at the time of the following snapshot, therefore
 	// the active snapshot is the successive snapshot. The same logic applies to the time_to_load parameter of undo() and redo() operations.
 	size_t active_snapshot_time() const;
+	// Temporary snapshot is active if the topmost snapshot is active and it has not been captured yet.
+	// In that case the Undo action will capture the last snapshot.
+	bool   temp_snapshot_active() const;
 
 	// After load_snapshot() / undo() / redo() the selection is deserialized into a list of ObjectIDs, which needs to be converted
 	// into the list of GLVolume pointers once the 3D scene is updated.

@@ -127,6 +127,10 @@ struct stl_file {
 		this->stats.reset();
 	}
 
+	size_t memsize() const {
+		return sizeof(*this) + sizeof(stl_facet) * facet_start.size() + sizeof(stl_neighbors) * neighbors_start.size();
+	}
+
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Statistics
@@ -138,6 +142,10 @@ struct indexed_triangle_set
 	indexed_triangle_set() {}
 
 	void clear() { indices.clear(); vertices.clear(); }
+
+	size_t memsize() const {
+		return sizeof(*this) + sizeof(stl_triangle_vertex_indices) * indices.size() + sizeof(stl_vertex) * vertices.size();
+	}
 
 	std::vector<stl_triangle_vertex_indices> 	indices;
 	std::vector<stl_vertex>       				vertices;

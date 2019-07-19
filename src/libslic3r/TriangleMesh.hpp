@@ -67,6 +67,12 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;
+    // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
+    size_t memsize() const;
+    // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
+    size_t release_optional();
+	// Restore optional data possibly released by release_optional().
+	void restore_optional();
 
     stl_file stl;
     indexed_triangle_set its;
