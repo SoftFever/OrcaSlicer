@@ -199,18 +199,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off.png");
     m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
 
-	for (const std::string axis : { "x", "y", "z" }) {
-        const std::string label = boost::algorithm::to_upper_copy(axis);
-        def.set_default_value(new ConfigOptionString{ "   " + label });
-        Option option = Option(def, axis + "_axis_legend");
-
-        unsigned int axis_idx = (axis[0] - 'x'); // 0, 1 or 2
+    static const char axes[] = { 'X', 'Y', 'Z' };
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++) {
+        const char label = axes[axis_idx];
+        def.set_default_value(new ConfigOptionString{ std::string("   ") + label });
+        Option option(def, std::string() + label + "_axis_legend");
 
         // We will add a button to toggle mirroring to each axis:
-        auto mirror_button = [this, mirror_btn_width, axis_idx, &label](wxWindow* parent) {
+        auto mirror_button = [this, mirror_btn_width, axis_idx, label](wxWindow* parent) {
             wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
             auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off.png", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
-            btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), label));
+            btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
 
             m_mirror_buttons[axis_idx].first = btn;
             m_mirror_buttons[axis_idx].second = mbShown;
@@ -245,7 +244,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 canvas->do_mirror(L("Set Mirror"));
                 UpdateAndShow(true);
             });
-        return sizer;
+
+            return sizer;
         };
 
         option.side_widget = mirror_button;
