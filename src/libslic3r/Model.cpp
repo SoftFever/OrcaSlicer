@@ -1918,6 +1918,31 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
     return false;
 }
 
+extern bool model_has_multi_part_objects(const Model &model)
+{
+    for (const ModelObject *model_object : model.objects)
+    	if (model_object->volumes.size() != 1 || ! model_object->volumes.front()->is_model_part())
+    		return true;
+    return false;
+}
+
+extern bool model_has_advanced_features(const Model &model)
+{
+	auto config_is_advanced = [](const DynamicPrintConfig &config) {
+        return ! (config.empty() || (config.size() == 1 && config.cbegin()->first == "extruder"));
+	};
+    for (const ModelObject *model_object : model.objects) {
+        // Is there more than one instance or advanced config data?
+        if (model_object->instances.size() > 1 || config_is_advanced(model_object->config))
+        	return true;
+        // Is there any modifier or advanced config data?
+        for (const ModelVolume* model_volume : model_object->volumes)
+            if (! model_volume->is_model_part() || config_is_advanced(model_volume->config))
+            	return true;
+    }
+    return false;
+}
+
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
 void check_model_ids_validity(const Model &model)

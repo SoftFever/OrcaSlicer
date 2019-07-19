@@ -27,6 +27,11 @@ class ModelObject;
 class Print;
 class SLAPrint;
 
+namespace UndoRedo {
+	class Stack;
+	struct Snapshot;	
+};
+
 namespace GUI {
 
 class MainFrame;
@@ -186,13 +191,12 @@ public:
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
-    void suppress_snapshots();
-    void allow_snapshots();
     void undo();
     void redo();
     void undo_to(int selection);
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
+    const Slic3r::UndoRedo::Stack& undo_redo_stack() const;
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
@@ -235,9 +239,45 @@ public:
 
     const Camera& get_camera() const;
 
+	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
+	class SuppressSnapshots
+	{
+	public:
+		SuppressSnapshots(Plater *plater) : m_plater(plater)
+		{
+			m_plater->suppress_snapshots();
+		}
+		~SuppressSnapshots()
+		{
+			m_plater->allow_snapshots();
+		}
+	private:
+		Plater *m_plater;
+	};
+
+	// ROII wrapper for taking an Undo / Redo snapshot while disabling the snapshot taking by the methods called from inside this snapshot.
+	class TakeSnapshot
+	{
+	public:
+		TakeSnapshot(Plater *plater, const wxString &snapshot_name) : m_plater(plater)
+		{
+			m_plater->take_snapshot(snapshot_name);
+			m_plater->suppress_snapshots();
+		}
+		~TakeSnapshot()
+		{
+			m_plater->allow_snapshots();
+		}
+	private:
+		Plater *m_plater;
+	};
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    void suppress_snapshots();
+    void allow_snapshots();
 
     friend class SuppressBackgroundProcessingUpdate;
 };

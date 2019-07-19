@@ -317,7 +317,6 @@ public:
     void change_part_type();
 
     void last_volume_is_deleted(const int obj_idx);
-    bool has_multi_part_objects();
     void update_settings_items();
     void update_and_show_object_settings_item();
     void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);

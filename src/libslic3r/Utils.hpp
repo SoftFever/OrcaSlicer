@@ -21,6 +21,8 @@ extern std::string format_memsize_MB(size_t n);
 // The string is non-empty only if the loglevel >= info (3).
 extern std::string log_memory_info();
 extern void disable_multi_threading();
+// Returns the size of physical memory (RAM) in bytes.
+extern size_t total_physical_memory();
 
 // Set a path with GUI resource files.
 void set_var_dir(const std::string &path);

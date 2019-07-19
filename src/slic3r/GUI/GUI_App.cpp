@@ -534,7 +534,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     });
 }
 
-void GUI_App::load_project(wxWindow *parent, wxString& input_file)
+void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
@@ -546,7 +546,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file)
         input_file = dialog.GetPath();
 }
 
-void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
+void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
@@ -854,7 +854,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
-bool GUI_App::check_unsaved_changes()
+bool GUI_App::check_unsaved_changes(const wxString &header)
 {
     wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
@@ -868,8 +868,12 @@ bool GUI_App::check_unsaved_changes()
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
+    wxString message;
+    if (! header.empty())
+    	message = header + "\n\n";
+    message += _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?"));
     wxMessageDialog dialog(mainframe,
-        _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?")),
+        message,
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;
@@ -944,9 +948,9 @@ Plater* GUI_App::plater()
     return plater_;
 }
 
-ModelObjectPtrs* GUI_App::model_objects()
+Model& GUI_App::model()
 {
-    return &plater_->model().objects;
+    return plater_->model();
 }
 
 wxNotebook* GUI_App::tab_panel() const

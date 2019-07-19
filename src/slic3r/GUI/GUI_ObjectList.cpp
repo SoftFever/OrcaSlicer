@@ -71,9 +71,6 @@ static void take_snapshot(const wxString& snapshot_name)
     wxGetApp().plater()->take_snapshot(snapshot_name);
 }
 
-static void suppress_snapshots(){ wxGetApp().plater()->suppress_snapshots(); }
-static void allow_snapshots()   { wxGetApp().plater()->allow_snapshots(); }
-
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -2406,8 +2403,7 @@ void ObjectList::remove()
 
     wxDataViewItem  parent = wxDataViewItem(0);
 
-    take_snapshot(_(L("Delete Selected")));
-    suppress_snapshots();
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete Selected")));
 
     for (auto& item : sels)
     {
@@ -2429,8 +2425,6 @@ void ObjectList::remove()
 
     if (parent)
         select_item(parent);
-
-    allow_snapshots();
 }
 
 void ObjectList::del_layer_range(const t_layer_height_range& range)
@@ -2505,8 +2499,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             
             t_layer_height_range new_range = { midl_layer, next_range.second };
 
-            take_snapshot(_(L("Add New Layers Range")));
-            suppress_snapshots();
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add New Layers Range")));
 
             // create new 2 layers instead of deleted one
 
@@ -2521,7 +2514,6 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             new_range = { current_range.second, midl_layer };
             ranges[new_range] = get_default_layer_config(obj_idx);
             add_layer_item(new_range, layers_item, layer_idx);
-            allow_snapshots();
         }
         else
         {
@@ -2611,7 +2603,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 
 void ObjectList::init_objects()
 {
-    m_objects = wxGetApp().model_objects();
+    m_objects = &wxGetApp().model().objects;
 }
 
 bool ObjectList::multiple_selection() const 
@@ -3088,19 +3080,6 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 }
 
-bool ObjectList::has_multi_part_objects()
-{
-    if (!m_objects_model->IsEmpty()) {
-        wxDataViewItemArray items;
-        m_objects_model->GetChildren(wxDataViewItem(0), items);
-
-        for (auto& item : items)
-            if (m_objects_model->GetItemByType(item, itVolume))
-                return true;
-    }
-    return false;
-}
-
 /* #lm_FIXME_delete_after_testing
 void ObjectList::update_settings_items()
 {
@@ -3531,7 +3510,7 @@ void ObjectList::update_after_undo_redo()
     m_prevent_list_events = true;
     m_prevent_canvas_selection_update = true;
 
-    suppress_snapshots();
+    Plater::SuppressSnapshots suppress(wxGetApp().plater());
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
     this->UnselectAll();
@@ -3542,8 +3521,6 @@ void ObjectList::update_after_undo_redo()
         add_object_to_list(obj_idx, false);
         ++obj_idx;
     }
-
-    allow_snapshots();
 
 #ifndef __WXOSX__ 
     selection_changed();

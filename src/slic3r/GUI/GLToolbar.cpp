@@ -403,6 +403,9 @@ void GLToolbar::render(const GLCanvas3D& parent) const
 
 bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
 {
+    if (!m_enabled)
+        return false;
+
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
     bool processed = false;
 
@@ -1009,9 +1012,6 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
         float bg_right = right;
         float bg_top = top;
         float bg_bottom = bottom;
-        float bg_width = right - left;
-        float bg_height = top - bottom;
-        float bg_min_size = std::min(bg_width, bg_height);
 
         float bg_uv_i_left = (float)m_background_texture.metadata.left * inv_bg_tex_width;
         float bg_uv_i_right = 1.0f - (float)m_background_texture.metadata.right * inv_bg_tex_width;
@@ -1139,9 +1139,6 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
         float bg_right = right;
         float bg_top = top;
         float bg_bottom = bottom;
-        float bg_width = right - left;
-        float bg_height = top - bottom;
-        float bg_min_size = std::min(bg_width, bg_height);
 
         float bg_uv_i_left = (float)m_background_texture.metadata.left * inv_bg_tex_width;
         float bg_uv_i_right = 1.0f - (float)m_background_texture.metadata.right * inv_bg_tex_width;

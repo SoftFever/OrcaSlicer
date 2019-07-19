@@ -25,7 +25,7 @@ static double get_volume_min_z(const GLVolume* volume)
     const Transform3f& world_matrix = volume->world_matrix().cast<float>();
 
     // need to get the ModelVolume pointer
-    const ModelObject* mo = wxGetApp().model_objects()->at(volume->composite_id.object_id);
+    const ModelObject* mo = wxGetApp().model().objects[volume->composite_id.object_id];
     const ModelVolume* mv = mo->volumes[volume->composite_id.volume_id];
     const TriangleMesh& hull = mv->get_convex_hull();
 
@@ -199,18 +199,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off.png");
     m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
 
-	for (const std::string axis : { "x", "y", "z" }) {
-        const std::string label = boost::algorithm::to_upper_copy(axis);
-        def.set_default_value(new ConfigOptionString{ "   " + label });
-        Option option = Option(def, axis + "_axis_legend");
-
-        unsigned int axis_idx = (axis[0] - 'x'); // 0, 1 or 2
+    static const char axes[] = { 'X', 'Y', 'Z' };
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++) {
+        const char label = axes[axis_idx];
+        def.set_default_value(new ConfigOptionString{ std::string("   ") + label });
+        Option option(def, std::string() + label + "_axis_legend");
 
         // We will add a button to toggle mirroring to each axis:
-        auto mirror_button = [this, mirror_btn_width, axis_idx, &label](wxWindow* parent) {
+        auto mirror_button = [this, mirror_btn_width, axis_idx, label](wxWindow* parent) {
             wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
             auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off.png", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
-            btn->SetToolTip(wxString::Format(_(L("Toggle %s axis mirroring")), label));
+            btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
 
             m_mirror_buttons[axis_idx].first = btn;
             m_mirror_buttons[axis_idx].second = mbShown;
@@ -245,7 +244,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 canvas->do_mirror(L("Set Mirror"));
                 UpdateAndShow(true);
             });
-        return sizer;
+
+            return sizer;
         };
 
         option.side_widget = mirror_button;
@@ -466,7 +466,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
 		} else {
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
-			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct((*wxGetApp().model_objects())[volume->object_idx()]->raw_mesh_bounding_box().size());
+			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
 			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
 		}
 
@@ -779,7 +779,7 @@ void ObjectManipulation::change_size_value(int axis, double value)
     else if (selection.is_single_full_instance())
 		ref_size = m_world_coordinates ? 
             selection.get_unscaled_instance_bounding_box().size() :
-            (*wxGetApp().model_objects())[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
+            wxGetApp().model().objects[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
 
     this->do_scale(axis, 100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 
@@ -902,7 +902,7 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
                 return;
             }
             // Bake the rotation into the meshes of the object.
-            (*wxGetApp().model_objects())[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
+            wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
             // Update the 3D scene, selections etc.
             wxGetApp().plater()->update();
             // Recalculate cached values at this panel, refresh the screen.

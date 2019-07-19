@@ -29,7 +29,7 @@ void GLGizmoFlatten::on_set_state()
     // m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
     m_model_object = nullptr;
-    for (const auto mo : *wxGetApp().model_objects()) {
+    for (const auto mo : wxGetApp().model().objects) {
         if (mo->id() == m_model_object_id) {
             m_model_object = mo;
             break;

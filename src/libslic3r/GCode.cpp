@@ -169,6 +169,9 @@ static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const Vec2
 
 std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
 {
+    if (new_extruder_id != -1 && new_extruder_id != tcr.new_tool)
+        throw std::invalid_argument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
+
     std::string gcode;
 
     // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
@@ -182,8 +185,11 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         end_pos = Eigen::Rotation2Df(alpha) * end_pos;
         end_pos += m_wipe_tower_pos;
     }
-    std::string tcr_rotated_gcode = tcr.priming ? tcr.gcode : rotate_wipe_tower_moves(tcr.gcode, tcr.start_pos, m_wipe_tower_pos, alpha);
-    
+
+    Vec2f wipe_tower_offset = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
+    float wipe_tower_rotation = tcr.priming ? 0.f : alpha;
+
+    std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
     // Disable linear advance for the wipe tower operations.
     gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
@@ -285,17 +291,21 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
 // This function postprocesses gcode_original, rotates and moves all G1 extrusions and returns resulting gcode
 // Starting position has to be supplied explicitely (otherwise it would fail in case first G1 command only contained one coordinate)
-std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gcode_original, const Vec2f& start_pos, const Vec2f& translation, float angle) const
+std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const
 {
-    std::istringstream gcode_str(gcode_original);
+    Vec2f extruder_offset = m_extruder_offsets[tcr.initial_tool].cast<float>();
+
+    std::istringstream gcode_str(tcr.gcode);
     std::string gcode_out;
     std::string line;
-    Vec2f pos = start_pos;
-    Vec2f transformed_pos;
+    Vec2f pos = tcr.start_pos;
+    Vec2f transformed_pos = pos;
     Vec2f old_pos(-1000.1f, -1000.1f);
 
     while (gcode_str) {
         std::getline(gcode_str, line);  // we read the gcode line by line
+
+        // All G1 commands should be translated and rotated
         if (line.find("G1 ") == 0) {
             std::ostringstream line_out;
             std::istringstream line_str(line);
@@ -317,17 +327,34 @@ std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gco
 
             if (transformed_pos != old_pos) {
                 line = line_out.str();
-                char buf[2048] = "G1";
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(3) << "G1 ";
                 if (transformed_pos.x() != old_pos.x())
-                    sprintf(buf + strlen(buf), " X%.3f", transformed_pos.x());
+                    oss << " X" << transformed_pos.x() - extruder_offset.x();
                 if (transformed_pos.y() != old_pos.y())
-                    sprintf(buf + strlen(buf), " Y%.3f", transformed_pos.y());
+                    oss << " Y" << transformed_pos.y() - extruder_offset.y();
 
-                line.replace(line.find("G1 "), 3, buf);
+                line.replace(line.find("G1 "), 3, oss.str());
                 old_pos = transformed_pos;
             }
         }
+
         gcode_out += line + "\n";
+
+        // If this was a toolchange command, we should change current extruder offset
+        if (line == "[toolchange_gcode]") {
+            extruder_offset = m_extruder_offsets[tcr.new_tool].cast<float>();
+
+            // If the extruder offset changed, add an extra move so everything is continuous
+            if (extruder_offset != m_extruder_offsets[tcr.initial_tool].cast<float>()) {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(3)
+                    << "G1 X" << transformed_pos.x() - extruder_offset.x()
+                    << " Y"   << transformed_pos.y() - extruder_offset.y()
+                    << "\n";
+                gcode_out += oss.str();
+            }
+        }
     }
     return gcode_out;
 }
@@ -2784,7 +2811,17 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         m_placeholder_parser.set("current_extruder", extruder_id);
-        return m_writer.toolchange(extruder_id);
+        
+        std::string gcode;
+        // Append the filament start G-code.
+        const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
+        if (! start_filament_gcode.empty()) {
+            // Process the start_filament_gcode for the filament.
+            gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id);
+            check_add_eol(gcode);
+        }
+        gcode += m_writer.toolchange(extruder_id);
+        return gcode;
     }
     
     // prepend retraction on the current extruder

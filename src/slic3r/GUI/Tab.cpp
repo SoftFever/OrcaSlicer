@@ -2904,7 +2904,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 // Because of we can't to print the multi-part objects with SLA technology.
 bool Tab::may_switch_to_SLA_preset()
 {
-    if (wxGetApp().obj_list()->has_multi_part_objects())
+    if (model_has_multi_part_objects(wxGetApp().model()))
     {
         show_info( parent(), 
                     _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +

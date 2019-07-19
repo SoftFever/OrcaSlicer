@@ -135,8 +135,7 @@ void config_wizard(int reason)
 
 	wxGetApp().load_current_presets();
 
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA &&
-        wxGetApp().obj_list()->has_multi_part_objects())
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA && model_has_multi_part_objects(wxGetApp().model()))
     {
         show_info(nullptr,
             _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
