@@ -268,7 +268,6 @@ sub SetMatrix
 }
 */
 
-#if ENABLE_TEXTURES_FROM_SVG
 Shader::Shader()
     : m_shader(nullptr)
 {
@@ -363,6 +362,5 @@ void Shader::reset()
         m_shader = nullptr;
     }
 }
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 } // namespace Slic3r
