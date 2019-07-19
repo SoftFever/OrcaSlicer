@@ -3514,7 +3514,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 
     int hovered = m_imgui_undo_redo_hovered_pos;
     int selected = -1;
-    const float em = static_cast<float>(wxGetApp().em_unit());
+    float em = static_cast<float>(wxGetApp().em_unit());
 #if ENABLE_RETINA_GL
 	em *= m_retina_helper->get_scale_factor();
 #endif
