@@ -2784,7 +2784,17 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         m_placeholder_parser.set("current_extruder", extruder_id);
-        return m_writer.toolchange(extruder_id);
+        
+        std::string gcode;
+        // Append the filament start G-code.
+        const std::string &start_filament_gcode = m_config.start_filament_gcode.get_at(extruder_id);
+        if (! start_filament_gcode.empty()) {
+            // Process the start_filament_gcode for the filament.
+            gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id);
+            check_add_eol(gcode);
+        }
+        gcode += m_writer.toolchange(extruder_id);
+        return gcode;
     }
     
     // prepend retraction on the current extruder
