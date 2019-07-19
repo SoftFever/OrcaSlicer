@@ -1641,17 +1641,7 @@ struct Plater::priv
     void split_volume();
     void scale_selection_to_fit_print_volume();
 
-	void take_snapshot(const std::string& snapshot_name)
-	{
-        if (this->m_prevent_snapshots > 0) 
-            return;
-        assert(this->m_prevent_snapshots >= 0);
-        this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology);
-	    this->undo_redo_stack.release_least_recently_used();
-	    // Save the last active preset name of a particular printer technology.
-	    ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
-    	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
-	}
+	void take_snapshot(const std::string& snapshot_name);
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
     int  get_active_snapshot_index();
     void undo();
@@ -3588,6 +3578,21 @@ int Plater::priv::get_active_snapshot_index()
     return it - ss_stack.begin();
 }
 
+void Plater::priv::take_snapshot(const std::string& snapshot_name)
+{
+    if (this->m_prevent_snapshots > 0) 
+        return;
+    assert(this->m_prevent_snapshots >= 0);
+    unsigned int flags = 0;
+    if (this->view3D->is_layers_editing_enabled())
+    	flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
+    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, flags);
+    this->undo_redo_stack.release_least_recently_used();
+    // Save the last active preset name of a particular printer technology.
+    ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
+	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
+}
+
 void Plater::priv::undo()
 {
 	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack.snapshots();
@@ -3627,9 +3632,18 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 	}
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
+    // Flags made of Snapshot::Flags enum values.
+    unsigned int new_flags = it_snapshot->flags;
+	unsigned int top_snapshot_flags = 0;
+    if (this->view3D->is_layers_editing_enabled())
+    	top_snapshot_flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
+	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
+	// Disable layer editing before the Undo / Redo jump.
+    if (! new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
+    	view3D->enable_layers_editing(false);
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack.active_snapshot_time() ?
-		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, it_snapshot->timestamp) :
+		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, top_snapshot_flags, it_snapshot->timestamp) :
 		this->undo_redo_stack.redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), it_snapshot->timestamp)) {
 		if (printer_technology_changed) {
 			// Switch to the other printer technology. Switch to the last printer active for that particular technology.
@@ -3641,6 +3655,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         	wxGetApp().load_current_presets();
         }
 		this->update_after_undo_redo(temp_snapshot_was_taken);
+		// Enable layer editing after the Undo / Redo jump.
+		if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
+			view3D->enable_layers_editing(true);
 	}
 }
 

@@ -24,13 +24,20 @@ namespace UndoRedo {
 struct Snapshot
 {
 	Snapshot(size_t timestamp) : timestamp(timestamp) {}
-	Snapshot(const std::string &name, size_t timestamp, size_t model_id, Slic3r::PrinterTechnology printer_technology) :
-		name(name), timestamp(timestamp), model_id(model_id), printer_technology(printer_technology) {}
+	Snapshot(const std::string &name, size_t timestamp, size_t model_id, Slic3r::PrinterTechnology printer_technology, unsigned int flags) :
+		name(name), timestamp(timestamp), model_id(model_id), printer_technology(printer_technology), flags(flags) {}
+
+	// Bitmask of various binary flags to be stored with the snapshot.
+	enum Flags {
+		VARIABLE_LAYER_EDITING_ACTIVE = 1,
+	};
 	
 	std::string 		name;
 	size_t 				timestamp;
 	size_t 				model_id;
 	PrinterTechnology 	printer_technology;
+	// Bitmap of Flags (see the Flags enum).
+	unsigned int        flags;
 
 	bool		operator< (const Snapshot &rhs) const { return this->timestamp < rhs.timestamp; }
 	bool		operator==(const Snapshot &rhs) const { return this->timestamp == rhs.timestamp; }
@@ -69,7 +76,7 @@ public:
 	void release_least_recently_used();
 
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
-    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology);
+    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology, unsigned int flags);
 
 	// To be queried to enable / disable the Undo / Redo buttons at the UI.
 	bool has_undo_snapshot() const;
@@ -77,7 +84,7 @@ public:
 
 	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
 	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
-    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, PrinterTechnology printer_technology, size_t time_to_load = SIZE_MAX);
+    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, PrinterTechnology printer_technology, unsigned int flags, size_t time_to_load = SIZE_MAX);
 
 	// Jump forward in time. If time_to_load is SIZE_MAX, the next snapshot is activated.
     bool redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
