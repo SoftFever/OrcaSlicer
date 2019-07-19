@@ -1647,17 +1647,13 @@ struct Plater::priv
         void process() override;
         
         void finalize() override {
-            
-            if (was_canceled()) { // Ignore the arrange result if aborted.
-                Job::finalize();
-                return;
-            }
+            // Ignore the arrange result if aborted.
+            if (was_canceled()) return;
             
             // Apply the arrange result to all selected objects
             for (ArrangePolygon &ap : m_selected) ap.apply();
 
-            // Call original finalize (will update the scene)
-            Job::finalize();
+            plater().update(false /*dont force_full_scene_refresh*/);
         }
     };
     
