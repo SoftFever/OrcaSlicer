@@ -43,7 +43,7 @@ bool GLGizmosManager::init()
 
     if (!m_background_texture.metadata.filename.empty())
     {
-        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false, true))
+        if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false, GLTexture::SingleThreaded, false))
         {
             reset();
             return false;

@@ -302,7 +302,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename, false, true))
+        if (!m_tooltip_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
             return;
     }
 
@@ -334,7 +334,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename, false, true))
+        if (!m_reset_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
             return;
     }
 

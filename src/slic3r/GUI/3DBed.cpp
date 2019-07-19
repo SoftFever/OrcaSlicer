@@ -418,7 +418,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
             if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
             {
-                if (!m_temp_texture.load_from_file(filename, false, false, false, max_tex_size))
+                if (!m_temp_texture.load_from_file(filename, false, GLTexture::None, false))
                 {
                     render_custom();
                     return;
@@ -426,7 +426,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
             }
 
             // starts generating the main texture, compression will run asynchronously
-            if (!m_texture.load_from_file(filename, true, true, true, max_tex_size))
+            if (!m_texture.load_from_file(filename, true, GLTexture::MultiThreaded, true))
             {
                 render_custom();
                 return;
