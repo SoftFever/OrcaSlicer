@@ -3639,8 +3639,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     	top_snapshot_flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
 	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
 	// Disable layer editing before the Undo / Redo jump.
-    if (! new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
-    	view3D->enable_layers_editing(false);
+    if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
+        view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack.active_snapshot_time() ?
 		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, top_snapshot_flags, it_snapshot->timestamp) :
@@ -3657,8 +3657,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 		this->update_after_undo_redo(temp_snapshot_was_taken);
 		// Enable layer editing after the Undo / Redo jump.
 		if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
-			view3D->enable_layers_editing(true);
-	}
+            view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+    }
 }
 
 void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)

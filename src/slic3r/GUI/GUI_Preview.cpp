@@ -63,7 +63,8 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
-    m_canvas->enable_toolbar(true);
+    m_canvas->enable_main_toolbar(true);
+    m_canvas->enable_undoredo_toolbar(true);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

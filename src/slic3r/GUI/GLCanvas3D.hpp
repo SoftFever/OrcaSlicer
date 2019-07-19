@@ -438,7 +438,8 @@ private:
     Shader m_shader;
     Mouse m_mouse;
     mutable GLGizmosManager m_gizmos;
-    mutable GLToolbar m_toolbar;
+    mutable GLToolbar m_main_toolbar;
+    mutable GLToolbar m_undoredo_toolbar;
     ClippingPlane m_clipping_planes[2];
     mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -551,7 +552,8 @@ public:
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
     void enable_selection(bool enable);
-    void enable_toolbar(bool enable);
+    void enable_main_toolbar(bool enable);
+    void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
@@ -644,10 +646,16 @@ public:
     void start_keeping_dirty() { m_keep_dirty = true; }
     void stop_keeping_dirty() { m_keep_dirty = false; }
 
+    unsigned int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
+    void force_main_toolbar_left_action(unsigned int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
+    void force_main_toolbar_right_action(unsigned int item_id) { m_main_toolbar.force_right_action(item_id, *this); }
+
 private:
     bool _is_shown_on_screen() const;
 
-    bool _init_toolbar();
+    bool _init_toolbars();
+    bool _init_main_toolbar();
+    bool _init_undoredo_toolbar();
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
@@ -674,7 +682,8 @@ private:
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
-    void _render_toolbar() const;
+    void _render_main_toolbar() const;
+    void _render_undoredo_toolbar() const;
     void _render_view_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
