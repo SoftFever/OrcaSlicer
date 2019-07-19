@@ -1421,8 +1421,9 @@ struct Plater::priv
             wxQueueEvent(this, evt);
         }
 
-        priv &plater() { return *m_plater; }
-        bool  was_canceled() const { return m_canceled.load(); }
+        priv &      plater() { return *m_plater; }
+        const priv &plater() const { return *m_plater; }
+        bool        was_canceled() const { return m_canceled.load(); }
 
         // Launched just before start(), a job can use it to prepare internals
         virtual void prepare() {}
@@ -1537,51 +1538,76 @@ struct Plater::priv
         
         ArrangePolygons m_selected, m_unselected;
         
-    protected:
-        
-        void prepare() override
-        {
-            // Get the selection map
-            Selection& sel = plater().get_selection();
-            const Selection::ObjectIdxsToInstanceIdxsMap &selmap =
-                sel.get_content();
-            
-            Model &model = plater().model;
+        // clear m_selected and m_unselected, reserve space for next usage
+        void clear_input() {
+            const Model &model = plater().model;
             
             size_t count = 0; // To know how much space to reserve
             for (auto obj : model.objects) count += obj->instances.size();
-            
             m_selected.clear(), m_unselected.clear();
             m_selected.reserve(count + 1 /* for optional wti */);
             m_unselected.reserve(count + 1 /* for optional wti */);
-            
-            // Stride between logical beds
+        }
+        
+        // Stride between logical beds
+        coord_t bed_stride() const {
             double bedwidth = plater().bed_shape_bb().size().x();
-            coord_t stride = scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+            return scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+        }
+        
+        // Set up arrange polygon for a ModelInstance and Wipe tower
+        template<class T> ArrangePolygon get_arrange_poly(T *obj) const {
+            ArrangePolygon ap = obj->get_arrange_polygon();
+            ap.priority = 0;
+            ap.bed_idx = ap.translation.x() / bed_stride();
+            ap.setter = [obj, this](const ArrangePolygon &p) {
+                if (p.is_arranged()) {
+                    auto t = p.translation; t.x() += p.bed_idx * bed_stride();
+                    obj->apply_arrange_result(t, p.rotation);
+                }
+            };
+            return ap;
+        }
+        
+        // Prepare all objects on the bed regardless of the selection
+        void prepare_all() {
+            clear_input();
+            
+            for (ModelObject *obj: plater().model.objects)
+                for (ModelInstance *mi : obj->instances)
+                    m_selected.emplace_back(get_arrange_poly(mi));
+            
+            auto& wti = plater().updated_wipe_tower();
+            if (wti) m_selected.emplace_back(get_arrange_poly(&wti));
+        }
+        
+        // Prepare the selected and unselected items separately. If nothing is
+        // selected, behaves as if everything would be selected.
+        void prepare_selected() {
+            clear_input();
+            
+            Model &model = plater().model;
+            coord_t stride = bed_stride();
+            
+            std::vector<const Selection::InstanceIdxsList *>
+                obj_sel(model.objects.size(), nullptr);
+            
+            for (auto &s : plater().get_selection().get_content())
+                if (s.first < int(obj_sel.size())) obj_sel[s.first] = &s.second; 
             
             // Go through the objects and check if inside the selection
             for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-                auto oit = selmap.find(int(oidx));
+                const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
                 ModelObject *mo = model.objects[oidx];
                 
                 std::vector<bool> inst_sel(mo->instances.size(), false);
                 
-                if (oit != selmap.end())
-                    for (auto inst_id : oit->second) inst_sel[inst_id] = true;
+                if (instlist)
+                    for (auto inst_id : *instlist) inst_sel[inst_id] = true;
                 
                 for (size_t i = 0; i < inst_sel.size(); ++i) {
-                    ModelInstance *mi = mo->instances[i];
-                    ArrangePolygon ap = mi->get_arrange_polygon();
-                    ap.priority = 0;
-                    ap.bed_idx = ap.translation.x() / stride;
+                    ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
                     
-                    ap.setter = [mi, stride](const ArrangePolygon &p) {
-                        if (p.is_arranged()) {
-                            auto t = p.translation; t.x() += p.bed_idx * stride;
-                            mi->apply_arrange_result(t, p.rotation);
-                        }
-                    };
-
                     inst_sel[i] ?
                         m_selected.emplace_back(std::move(ap)) :
                         m_unselected.emplace_back(std::move(ap));
@@ -1590,17 +1616,9 @@ struct Plater::priv
             
             auto& wti = plater().updated_wipe_tower();
             if (wti) {
-                ArrangePolygon ap = wti.get_arrange_polygon();
-                ap.bed_idx = ap.translation.x() / stride;
-                ap.priority = 1; // Wipe tower should be on physical bed
-                ap.setter = [&wti, stride](const ArrangePolygon &p) {
-                    if (p.is_arranged()) {
-                        auto t = p.translation; t.x() += p.bed_idx * stride;
-                        wti.apply_arrange_result(t, p.rotation);
-                    }
-                };
+                ArrangePolygon &&ap = get_arrange_poly(&wti);
                 
-                sel.is_wipe_tower() ?
+                plater().get_selection().is_wipe_tower() ?
                     m_selected.emplace_back(std::move(ap)) :
                     m_unselected.emplace_back(std::move(ap));
             }
@@ -1612,6 +1630,13 @@ struct Plater::priv
             // arrangeable (selected) items bed_idx is ignored and the
             // translation is irrelevant.
             for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+        }
+        
+    protected:
+        
+        void prepare() override
+        {
+            wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
         }
         
     public:
