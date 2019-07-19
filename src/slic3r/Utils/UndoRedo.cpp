@@ -514,11 +514,11 @@ public:
 	const Selection& 				selection_deserialized() const { return m_selection; }
 
 //protected:
-	template<typename T, typename T_AS> ObjectID save_mutable_object(const T &object);
+	template<typename T> ObjectID save_mutable_object(const T &object);
 	template<typename T> ObjectID save_immutable_object(std::shared_ptr<const T> &object, bool optional);
 	template<typename T> T* load_mutable_object(const Slic3r::ObjectID id);
 	template<typename T> std::shared_ptr<const T> load_immutable_object(const Slic3r::ObjectID id, bool optional);
-	template<typename T, typename T_AS> void load_mutable_object(const Slic3r::ObjectID id, T &target);
+	template<typename T> void load_mutable_object(const Slic3r::ObjectID id, T &target);
 
 #ifdef SLIC3R_UNDOREDO_DEBUG
 	std::string format() const {
@@ -601,7 +601,6 @@ class ModelObject;
 class ModelVolume;
 class ModelInstance;
 class ModelMaterial;
-class ModelConfig;
 class DynamicPrintConfig;
 class TriangleMesh;
 
@@ -616,14 +615,13 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelConfig, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 
 	// Store ObjectBase derived class onto the Undo / Redo stack as a separate object,
 	// store just the ObjectID to this stream.
 	template <class T> void save(BinaryOutputArchive& ar, T* const& ptr)
 	{
-		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_mutable_object<T, T>(*ptr));
+		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_mutable_object<T>(*ptr));
 	}
 
 	// Load ObjectBase derived class from the Undo / Redo stack as a separate object
@@ -655,19 +653,18 @@ namespace cereal
 
 	// Store ObjectBase derived class onto the Undo / Redo stack as a separate object,
 	// store just the ObjectID to this stream.
-	void save(BinaryOutputArchive& ar, const Slic3r::ModelConfig &cfg)
+	template<class T> void save_by_value(BinaryOutputArchive& ar, const T &cfg)
 	{
-		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_mutable_object<Slic3r::ModelConfig, Slic3r::DynamicPrintConfig>(cfg));
+		ar(cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar).save_mutable_object<T>(cfg));
 	}
-
 	// Load ObjectBase derived class from the Undo / Redo stack as a separate object
 	// based on the ObjectID loaded from this stream.
-	void load(BinaryInputArchive& ar, Slic3r::ModelConfig &cfg)
+	template<class T> void load_by_value(BinaryInputArchive& ar, T &cfg)
 	{
 		Slic3r::UndoRedo::StackImpl& stack = cereal::get_user_data<Slic3r::UndoRedo::StackImpl>(ar);
 		size_t id;
 		ar(id);
-		stack.load_mutable_object<Slic3r::ModelConfig, Slic3r::DynamicPrintConfig>(Slic3r::ObjectID(id), cfg);
+		stack.load_mutable_object<T>(Slic3r::ObjectID(id), cfg);
 	}
 
 	// Store ObjectBase derived class onto the Undo / Redo stack as a separate object,
@@ -723,7 +720,7 @@ template<typename T> std::shared_ptr<const T>& 	ImmutableObjectHistory<T>::share
 	return m_shared_object;
 }
 
-template<typename T, typename T_AS> ObjectID StackImpl::save_mutable_object(const T &object)
+template<typename T> ObjectID StackImpl::save_mutable_object(const T &object)
 {
 	// First find or allocate a history stack for the ObjectID of this object instance.
 	auto it_object_history = m_objects.find(object.id());
@@ -734,7 +731,7 @@ template<typename T, typename T_AS> ObjectID StackImpl::save_mutable_object(cons
 	std::ostringstream oss;
 	{
 		Slic3r::UndoRedo::OutputArchive archive(*this, oss);
-		archive(static_cast<const T_AS&>(object));
+		archive(object);
 	}
 	object_history->save(m_active_snapshot_time, m_current_time, oss.str());
 	return object.id();
@@ -758,7 +755,7 @@ template<typename T> ObjectID StackImpl::save_immutable_object(std::shared_ptr<c
 template<typename T> T* StackImpl::load_mutable_object(const Slic3r::ObjectID id)
 {
 	T *target = new T();
-	this->load_mutable_object<T, T>(id, *target);
+	this->load_mutable_object<T>(id, *target);
 	return target;
 }
 
@@ -775,7 +772,7 @@ template<typename T> std::shared_ptr<const T> StackImpl::load_immutable_object(c
 	return object_history->shared_ptr(*this);
 }
 
-template<typename T, typename T_AS> void StackImpl::load_mutable_object(const Slic3r::ObjectID id, T &target)
+template<typename T> void StackImpl::load_mutable_object(const Slic3r::ObjectID id, T &target)
 {
 	// First find a history stack for the ObjectID of this object instance.
 	auto it_object_history = m_objects.find(id);
@@ -785,7 +782,7 @@ template<typename T, typename T_AS> void StackImpl::load_mutable_object(const Sl
 	std::istringstream iss(object_history->load(m_active_snapshot_time));
 	Slic3r::UndoRedo::InputArchive archive(*this, iss);
 	target.m_id = id;
-	archive(static_cast<T_AS&>(target));
+	archive(target);
 }
 
 // Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
@@ -800,14 +797,14 @@ void StackImpl::take_snapshot(const std::string& snapshot_name, const Slic3r::Mo
 		m_snapshots.erase(it, m_snapshots.end());
 	}
 	// Take new snapshots.
-	this->save_mutable_object<Slic3r::Model, Slic3r::Model>(model);
+	this->save_mutable_object<Slic3r::Model>(model);
 	m_selection.volumes_and_instances.clear();
 	m_selection.volumes_and_instances.reserve(selection.get_volume_idxs().size());
 	m_selection.mode = selection.get_mode();
 	for (unsigned int volume_idx : selection.get_volume_idxs())
 		m_selection.volumes_and_instances.emplace_back(selection.get_volume(volume_idx)->geometry_id);
-	this->save_mutable_object<Selection, Selection>(m_selection);
-    this->save_mutable_object<Slic3r::GUI::GLGizmosManager, Slic3r::GUI::GLGizmosManager>(gizmos);
+	this->save_mutable_object<Selection>(m_selection);
+    this->save_mutable_object<Slic3r::GUI::GLGizmosManager>(gizmos);
     // Save the snapshot info.
 	m_snapshots.emplace_back(snapshot_name, m_current_time ++, model.id().id, printer_technology, flags);
 	m_active_snapshot_time = m_current_time;
@@ -833,12 +830,12 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 	m_active_snapshot_time = timestamp;
 	model.clear_objects();
 	model.clear_materials();
-	this->load_mutable_object<Slic3r::Model, Slic3r::Model>(ObjectID(it_snapshot->model_id), model);
+	this->load_mutable_object<Slic3r::Model>(ObjectID(it_snapshot->model_id), model);
 	model.update_links_bottom_up_recursive();
 	m_selection.volumes_and_instances.clear();
-	this->load_mutable_object<Selection, Selection>(m_selection.id(), m_selection);
+	this->load_mutable_object<Selection>(m_selection.id(), m_selection);
     gizmos.reset_all_states();
-    this->load_mutable_object<Slic3r::GUI::GLGizmosManager, Slic3r::GUI::GLGizmosManager>(gizmos.id(), gizmos);
+    this->load_mutable_object<Slic3r::GUI::GLGizmosManager>(gizmos.id(), gizmos);
     // Sort the volumes so that we may use binary search.
 	std::sort(m_selection.volumes_and_instances.begin(), m_selection.volumes_and_instances.end());
 	this->m_active_snapshot_time = timestamp;

@@ -22,6 +22,8 @@ namespace cereal {
 	class BinaryOutputArchive;
 	template <class T> void load_optional(BinaryInputArchive &ar, std::shared_ptr<const T> &ptr);
 	template <class T> void save_optional(BinaryOutputArchive &ar, const std::shared_ptr<const T> &ptr);
+	template <class T> void load_by_value(BinaryInputArchive &ar, T &obj);
+	template <class T> void save_by_value(BinaryOutputArchive &ar, const T &obj);
 }
 
 namespace Slic3r {
@@ -31,6 +33,7 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
+class ModelWipeTower;
 class Print;
 class SLAPrint;
 
@@ -65,6 +68,21 @@ private:
 		ar(cereal::base_class<DynamicPrintConfig>(this));
 	}
 };
+
+namespace Internal {
+	template<typename T>
+	class StaticSerializationWrapper
+	{
+	public:
+		StaticSerializationWrapper(T &wrap) : wrapped(wrap) {}
+	private:
+		friend class cereal::access;
+		friend class UndoRedo::StackImpl;
+		template<class Archive> void load(Archive &ar) { cereal::load_by_value(ar, wrapped); }
+		template<class Archive> void save(Archive &ar) const { cereal::save_by_value(ar, wrapped); }
+		T&	wrapped;
+	};
+}
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
@@ -140,7 +158,8 @@ private:
 	ModelMaterial() : ObjectBase(-1), config(-1), m_model(nullptr) { assert(this->id().invalid()); assert(this->config.id().invalid()); }
 	template<class Archive> void serialize(Archive &ar) { 
 		assert(this->id().invalid()); assert(this->config.id().invalid());
-		ar(attributes, config);
+		Internal::StaticSerializationWrapper<ModelConfig> config_wrapper(config);
+		ar(attributes, config_wrapper);
 		// assert(this->id().valid()); assert(this->config.id().valid());
 	}
 
@@ -349,7 +368,8 @@ private:
 	}
 	template<class Archive> void serialize(Archive &ar) {
 		ar(cereal::base_class<ObjectBase>(this));
-		ar(name, input_file, instances, volumes, config, layer_config_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
+		Internal::StaticSerializationWrapper<ModelConfig> config_wrapper(config);
+		ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_height_profile, sla_support_points, sla_points_status, origin_translation,
 			m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
 };
@@ -535,7 +555,8 @@ private:
 	}
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
-		ar(name, config, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
 			cereal::load_optional(ar, m_convex_hull);
@@ -547,7 +568,8 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-		ar(name, config, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+		cereal::save_by_value(ar, config);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
 	}
@@ -650,6 +672,35 @@ private:
 	}
 };
 
+class ModelWipeTower final : public ObjectBase
+{
+public:
+	Vec2d		position;
+	double 		rotation;
+
+private:
+	friend class cereal::access;
+	friend class UndoRedo::StackImpl;
+	friend class Model;
+
+    // Constructors to be only called by derived classes.
+    // Default constructor to assign a unique ID.
+    explicit ModelWipeTower() {}
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    explicit ModelWipeTower(int) : ObjectBase(-1) {}
+    // Copy constructor copies the ID.
+	explicit ModelWipeTower(const ModelWipeTower &cfg) = default;
+
+	// Disabled methods.
+	ModelWipeTower(ModelWipeTower &&rhs) = delete;
+	ModelWipeTower& operator=(const ModelWipeTower &rhs) = delete;
+    ModelWipeTower& operator=(ModelWipeTower &&rhs) = delete;
+
+    // For serialization / deserialization of ModelWipeTower composed into another class into the Undo / Redo stack as a separate object.
+    template<typename Archive> void serialize(Archive &ar) { ar(position, rotation); }
+};
+
 // The print bed content.
 // Description of a triangular model with multiple materials, multiple instances with various affine transformations
 // and with multiple modifier meshes.
@@ -665,6 +716,8 @@ public:
     ModelMaterialMap    materials;
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
     ModelObjectPtrs     objects;
+    // Wipe tower object.
+    ModelWipeTower	    wipe_tower;
     
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }
@@ -742,7 +795,8 @@ private:
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) {
-		ar(materials, objects);
+		Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
+		ar(materials, objects, wipe_tower_wrapper);
 	}
 };
 
@@ -778,6 +832,7 @@ void check_model_ids_equal(const Model &model1, const Model &model2);
 namespace cereal
 {
 	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume, cereal::specialization::member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelConfig, cereal::specialization::member_serialize> {};
 }
 
 #endif /* slic3r_Model_hpp_ */

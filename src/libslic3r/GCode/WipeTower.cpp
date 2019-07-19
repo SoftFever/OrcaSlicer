@@ -553,7 +553,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
         result.elapsed_time = writer.elapsed_time();
         result.extrusions 	= writer.extrusions();
         result.start_pos  	= writer.start_pos_rotated();
-        result.end_pos 	  	= writer.pos_rotated();
+        result.end_pos 	  	= writer.pos();
 
         results.push_back(std::move(result));
 
@@ -643,7 +643,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(unsigned int tool, bool last_
                           m_is_first_layer ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
         toolchange_Load(writer, cleaning_box);
-        writer.travel(writer.x(),writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
+        writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
         ++ m_num_tool_changes;
     } else
