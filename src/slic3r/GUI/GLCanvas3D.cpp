@@ -1202,7 +1202,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_bed(bed)
     , m_camera(camera)
     , m_view_toolbar(view_toolbar)
-    , m_toolbar(GLToolbar::Normal, "Top")
+    , m_main_toolbar(GLToolbar::Normal, "Top")
+    , m_undoredo_toolbar(GLToolbar::Normal, "Top")
     , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -1309,7 +1310,7 @@ bool GLCanvas3D::init()
         return false;
     }
 
-    if (m_toolbar.is_enabled() && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+    if (m_main_toolbar.is_enabled() && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
     {
         std::cout << "Unable to initialize variable_layer_height shader: please, check that the files variable_layer_height.vs and variable_layer_height.fs are available" << std::endl;
         return false;
@@ -1323,7 +1324,7 @@ bool GLCanvas3D::init()
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
-    if (!_init_toolbar())
+    if (!_init_toolbars())
         return false;
 
     if (m_selection.is_enabled() && !m_selection.init())
@@ -1514,9 +1515,14 @@ void GLCanvas3D::enable_selection(bool enable)
     m_selection.set_enabled(enable);
 }
 
-void GLCanvas3D::enable_toolbar(bool enable)
+void GLCanvas3D::enable_main_toolbar(bool enable)
 {
-    m_toolbar.set_enabled(enable);
+    m_main_toolbar.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_undoredo_toolbar(bool enable)
+{
+    m_undoredo_toolbar.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_dynamic_background(bool enable)
@@ -2295,7 +2301,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     if (!m_initialized)
         return;
 
-    m_dirty |= m_toolbar.update_items_state();
+    m_dirty |= m_main_toolbar.update_items_state();
+    m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 
     if (!m_dirty)
@@ -2674,7 +2681,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 	}
 
-    if (m_toolbar.on_mouse(evt, *this))
+    if (m_main_toolbar.on_mouse(evt, *this))
+    {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
+    if (m_undoredo_toolbar.on_mouse(evt, *this))
     {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -3015,7 +3030,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             tooltip = m_gizmos.get_tooltip();
 
         if (tooltip.empty())
-            tooltip = m_toolbar.get_tooltip();
+            tooltip = m_main_toolbar.get_tooltip();
+
+        if (tooltip.empty())
+            tooltip = m_undoredo_toolbar.get_tooltip();
 
         if (tooltip.empty())
             tooltip = m_view_toolbar.get_tooltip();
@@ -3480,7 +3498,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
     const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
-    imgui->set_next_window_pos(x, m_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+    imgui->set_next_window_pos(x, m_undoredo_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     imgui->set_next_window_bg_alpha(0.5f);
     imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -3505,9 +3523,20 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     imgui->end();
 }
 
-bool GLCanvas3D::_init_toolbar()
+bool GLCanvas3D::_init_toolbars()
 {
-    if (!m_toolbar.is_enabled())
+    if (!_init_main_toolbar())
+        return false;
+
+    if (!_init_undoredo_toolbar())
+        return false;
+
+    return true;
+}
+
+bool GLCanvas3D::_init_main_toolbar()
+{
+    if (!m_main_toolbar.is_enabled())
         return true;
 
     BackgroundTexture::Metadata background_data;
@@ -3517,19 +3546,19 @@ bool GLCanvas3D::_init_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
-    if (!m_toolbar.init(background_data))
+    if (!m_main_toolbar.init(background_data))
     {
         // unable to init the toolbar texture, disable it
-        m_toolbar.set_enabled(false);
+        m_main_toolbar.set_enabled(false);
         return true;
     }
 
-//    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
-    m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
-    m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
-    m_toolbar.set_border(5.0f);
-    m_toolbar.set_separator_size(5);
-    m_toolbar.set_gap_size(2);
+//    m_main_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_main_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
+    m_main_toolbar.set_border(5.0f);
+    m_main_toolbar.set_separator_size(5);
+    m_main_toolbar.set_gap_size(2);
 
     GLToolbarItem::Data item;
 
@@ -3538,7 +3567,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = _utf8(L("Add...")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "delete";
@@ -3547,7 +3576,7 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 1;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "deleteall";
@@ -3556,7 +3585,7 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 2;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete_all(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "arrange";
@@ -3565,10 +3594,10 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 3;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_toolbar.add_separator())
+    if (!m_main_toolbar.add_separator())
         return false;
 
     item.name = "copy";
@@ -3577,7 +3606,7 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 4;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_copy_to_clipboard(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "paste";
@@ -3586,10 +3615,10 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 5;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_paste_from_clipboard(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_toolbar.add_separator())
+    if (!m_main_toolbar.add_separator())
         return false;
 
     item.name = "more";
@@ -3600,7 +3629,7 @@ bool GLCanvas3D::_init_toolbar()
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
 
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "fewer";
@@ -3610,10 +3639,10 @@ bool GLCanvas3D::_init_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_toolbar.add_separator())
+    if (!m_main_toolbar.add_separator())
         return false;
 
     item.name = "splitobjects";
@@ -3623,7 +3652,7 @@ bool GLCanvas3D::_init_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
     item.name = "splitvolumes";
@@ -3633,10 +3662,10 @@ bool GLCanvas3D::_init_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_toolbar.add_separator())
+    if (!m_main_toolbar.add_separator())
         return false;
 
     item.name = "layersediting";
@@ -3647,16 +3676,44 @@ bool GLCanvas3D::_init_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_toolbar.add_separator())
-        return false;
+    return true;
+}
+
+bool GLCanvas3D::_init_undoredo_toolbar()
+{
+    if (!m_undoredo_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_undoredo_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_undoredo_toolbar.set_enabled(false);
+        return true;
+    }
+
+//    m_undoredo_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_undoredo_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_undoredo_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
+    m_undoredo_toolbar.set_border(5.0f);
+    m_undoredo_toolbar.set_separator_size(5);
+    m_undoredo_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
 
     item.name = "undo";
     item.icon_filename = "undo_toolbar.svg";
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
-    item.sprite_id = 11;
+    item.sprite_id = 0;
     item.left.toggable = false;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_UNDO)); };
     item.right.toggable = true;
@@ -3664,18 +3721,18 @@ bool GLCanvas3D::_init_toolbar()
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
     item.visibility_callback = []()->bool { return true; };
     item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_undoredo_toolbar.add_item(item))
         return false;
 
     item.name = "redo";
     item.icon_filename = "redo_toolbar.svg";
     item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
-    item.sprite_id = 12;
+    item.sprite_id = 1;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_REDO)); };
     item.right.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
     item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
-    if (!m_toolbar.add_item(item))
+    if (!m_undoredo_toolbar.add_item(item))
         return false;
 
     return true;
@@ -4006,7 +4063,8 @@ void GLCanvas3D::_render_overlays() const
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
-    _render_toolbar();
+    _render_main_toolbar();
+    _render_undoredo_toolbar();
     _render_view_toolbar();
 
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
@@ -4096,64 +4154,57 @@ void GLCanvas3D::_render_gizmos_overlay() const
     m_gizmos.render_overlay();
 }
 
-void GLCanvas3D::_render_toolbar() const
+void GLCanvas3D::_render_main_toolbar() const
 {
+    if (!m_main_toolbar.is_enabled())
+        return;
+
 #if ENABLE_RETINA_GL
-//     m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+//     m_main_toolbar.set_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
-    m_toolbar.set_scale(scale); //! #ys_FIXME_experiment
+    m_main_toolbar.set_scale(scale); //! #ys_FIXME_experiment
 #else
-//     m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
-//     m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+//     m_main_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+//     m_main_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
-    m_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
+    m_main_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
     float zoom = (float)m_camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width()) * inv_zoom;
 
-    float top = 0.0f;
-    float left = 0.0f;
-    switch (m_toolbar.get_layout_type())
-    {
-    default:
-    case GLToolbar::Layout::Horizontal:
-    {
-        // centers the toolbar on the top edge of the 3d scene
-        if (orientation == GLToolbar::Layout::Top)
-        {
-            top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-            left = -0.5f * m_toolbar.get_width() * inv_zoom;
-        }
-        else
-        {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
-            left = -0.5f * m_toolbar.get_width() * inv_zoom;
-        }
-        break;
-    }
-    case GLToolbar::Layout::Vertical:
-    {
-        // centers the toolbar on the right edge of the 3d scene
-        if (orientation == GLToolbar::Layout::Left)
-        {
-            top = 0.5f * m_toolbar.get_height() * inv_zoom;
-            left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
-        }
-        else
-        {
-            top = 0.5f * m_toolbar.get_height() * inv_zoom;
-            left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
-        }
-        break;
-    }
-    }
-    m_toolbar.set_position(top, left);
+    m_main_toolbar.set_position(top, left);
+    m_main_toolbar.render(*this);
+}
 
-    m_toolbar.render(*this);
+void GLCanvas3D::_render_undoredo_toolbar() const
+{
+    if (!m_undoredo_toolbar.is_enabled())
+        return;
+
+#if ENABLE_RETINA_GL
+//     m_undoredo_toolbar.set_scale(m_retina_helper->get_scale_factor());
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(true);
+    m_undoredo_toolbar.set_scale(scale); //! #ys_FIXME_experiment
+#else
+//     m_undoredo_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+//     m_undoredo_toolbar.set_scale(wxGetApp().em_unit()*0.1f);
+    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(true));
+    m_undoredo_toolbar.set_icons_size(size); //! #ys_FIXME_experiment
+#endif // ENABLE_RETINA_GL
+
+    Size cnv_size = get_canvas_size();
+    float zoom = (float)m_camera.get_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width())) * inv_zoom;
+    m_undoredo_toolbar.set_position(top, left);
+    m_undoredo_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_view_toolbar() const
@@ -5675,14 +5726,14 @@ void GLCanvas3D::_update_selection_from_hover()
 
 bool GLCanvas3D::_deactivate_undo_redo_toolbar_items()
 {
-    if (m_toolbar.is_item_pressed("undo"))
+    if (m_undoredo_toolbar.is_item_pressed("undo"))
     {
-        m_toolbar.force_right_action(m_toolbar.get_item_id("undo"), *this);
+        m_undoredo_toolbar.force_right_action(m_undoredo_toolbar.get_item_id("undo"), *this);
         return true;
     }
-    else if (m_toolbar.is_item_pressed("redo"))
+    else if (m_undoredo_toolbar.is_item_pressed("redo"))
     {
-        m_toolbar.force_right_action(m_toolbar.get_item_id("redo"), *this);
+        m_undoredo_toolbar.force_right_action(m_undoredo_toolbar.get_item_id("redo"), *this);
         return true;
     }
 
