@@ -4564,15 +4564,9 @@ bool Plater::can_copy_to_clipboard() const
     return true;
 }
 
-bool Plater::can_undo() const
-{
-    return p->undo_redo_stack.has_undo_snapshot();
-}
-
-bool Plater::can_redo() const
-{
-    return p->undo_redo_stack.has_redo_snapshot();
-}
+bool Plater::can_undo() const { return p->undo_redo_stack.has_undo_snapshot(); }
+bool Plater::can_redo() const { return p->undo_redo_stack.has_redo_snapshot(); }
+const UndoRedo::Stack& Plater::undo_redo_stack() const { return p->undo_redo_stack; }
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_running(wxGetApp().plater()->is_background_process_running())

@@ -68,6 +68,7 @@ public:
 
 	// Set maximum memory threshold. If the threshold is exceeded, least recently used snapshots are released.
 	void set_memory_limit(size_t memsize);
+	size_t get_memory_limit() const;
 
 	// Estimate size of the RAM consumed by the Undo / Redo stack.
 	size_t memsize() const;

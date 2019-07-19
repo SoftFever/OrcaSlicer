@@ -486,6 +486,7 @@ public:
 	StackImpl() : m_memory_limit(std::min(Slic3r::total_physical_memory() / 10, size_t(1 * 16384 * 65536 / UNDO_REDO_DEBUG_LOW_MEM_FACTOR))), m_active_snapshot_time(0), m_current_time(0) {}
 
 	void set_memory_limit(size_t memsize) { m_memory_limit = memsize; }
+	size_t get_memory_limit() const { return m_memory_limit; }
 
 	size_t memsize() const {
 		size_t memsize = 0;
@@ -1018,6 +1019,7 @@ void StackImpl::release_least_recently_used()
 Stack::Stack() : pimpl(new StackImpl()) {}
 Stack::~Stack() {}
 void Stack::set_memory_limit(size_t memsize) { pimpl->set_memory_limit(memsize); }
+size_t Stack::get_memory_limit() const { return pimpl->get_memory_limit(); }
 size_t Stack::memsize() const { return pimpl->memsize(); }
 void Stack::release_least_recently_used() { pimpl->release_least_recently_used(); }
 void Stack::take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::PrinterTechnology printer_technology, unsigned int flags)
