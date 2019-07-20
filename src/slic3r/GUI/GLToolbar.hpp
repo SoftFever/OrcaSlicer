@@ -189,18 +189,25 @@ public:
             Num_Types
         };
 
-        enum EOrientation : unsigned int
+        enum EHorizontalOrientation : unsigned char
         {
-            Top,
-            Bottom,
-            Left,
-            Right,
-            Center,
-            Num_Locations
+            HO_Left,
+            HO_Center,
+            HO_Right,
+            Num_Horizontal_Orientations
+        };
+
+        enum EVerticalOrientation : unsigned char
+        {
+            VO_Top,
+            VO_Center,
+            VO_Bottom,
+            Num_Vertical_Orientations
         };
 
         EType type;
-        EOrientation orientation;
+        EHorizontalOrientation horizontal_orientation;
+        EVerticalOrientation vertical_orientation;
         float top;
         float left;
         float border;
@@ -254,8 +261,10 @@ public:
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
-    Layout::EOrientation get_layout_orientation() const;
-    void set_layout_orientation(Layout::EOrientation orientation);
+    Layout::EHorizontalOrientation get_horizontal_orientation() const { return m_layout.horizontal_orientation; }
+    void set_horizontal_orientation(Layout::EHorizontalOrientation orientation) { m_layout.horizontal_orientation = orientation; }
+    Layout::EVerticalOrientation get_vertical_orientation() const { return m_layout.vertical_orientation; }
+    void set_vertical_orientation(Layout::EVerticalOrientation orientation) { m_layout.vertical_orientation = orientation; }
 
     void set_position(float top, float left);
     void set_border(float border);
@@ -311,6 +320,7 @@ private:
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
+    void render_background(float left, float top, float right, float bottom, float border) const;
     void render_horizontal(const GLCanvas3D& parent) const;
     void render_vertical(const GLCanvas3D& parent) const;
 

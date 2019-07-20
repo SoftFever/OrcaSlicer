@@ -3422,7 +3422,8 @@ void Plater::priv::init_view_toolbar()
     if (!view_toolbar.init(background_data))
         return;
 
-    view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
+    view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
+    view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Bottom);
     view_toolbar.set_border(5.0f);
     view_toolbar.set_gap_size(1.0f);
 
