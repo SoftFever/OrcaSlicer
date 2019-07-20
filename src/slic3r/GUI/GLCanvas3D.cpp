@@ -3033,7 +3033,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Moving())
     {
         m_mouse.position = pos.cast<double>();
-        std::string tooltip = "";
+        std::string tooltip = L("");
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
@@ -3725,13 +3725,29 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     item.icon_filename = "undo_toolbar.svg";
     item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
     item.sprite_id = 0;
-    item.left.toggable = false;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_UNDO)); };
     item.right.toggable = true;
     item.right.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
-    item.visibility_callback = []()->bool { return true; };
-    item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_undo(); };
+    item.enabling_callback = [this]()->bool {
+        bool can_undo = wxGetApp().plater()->can_undo();
+        unsigned int id = m_undoredo_toolbar.get_item_id("undo");
+
+        std::string curr_additional_tooltip;
+        m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
+
+        std::string new_additional_tooltip = L("");
+        if (can_undo)
+            wxGetApp().plater()->undo_redo_topmost_string_getter(true, new_additional_tooltip);
+
+        if (new_additional_tooltip != curr_additional_tooltip)
+        {
+            m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
+            set_tooltip(L(""));
+        }
+        return can_undo;
+    };
+
     if (!m_undoredo_toolbar.add_item(item))
         return false;
 
@@ -3742,7 +3758,25 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_REDO)); };
     item.right.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
-    item.enabling_callback = [this]()->bool { return wxGetApp().plater()->can_redo(); };
+    item.enabling_callback = [this]()->bool {
+        bool can_redo = wxGetApp().plater()->can_redo();
+        unsigned int id = m_undoredo_toolbar.get_item_id("redo");
+
+        std::string curr_additional_tooltip;
+        m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
+
+        std::string new_additional_tooltip = L("");
+        if (can_redo)
+            wxGetApp().plater()->undo_redo_topmost_string_getter(false, new_additional_tooltip);
+
+        if (new_additional_tooltip != curr_additional_tooltip)
+        {
+            m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
+            set_tooltip(L(""));
+        }
+        return can_redo;
+    };
+
     if (!m_undoredo_toolbar.add_item(item))
         return false;
 

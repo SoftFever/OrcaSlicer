@@ -4301,6 +4301,19 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     return false;
 }
 
+void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text)
+{
+    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
+    const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -1 : 0);
+
+    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+        out_text = ss_stack[idx_in_ss_stack].name;
+        return;
+    }
+
+    out_text = L("");
+}
+
 void Plater::on_extruders_change(int num_extruders)
 {
     auto& choices = sidebar().combos_filament();

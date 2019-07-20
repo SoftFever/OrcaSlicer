@@ -196,6 +196,7 @@ public:
     void undo_to(int selection);
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
+    void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
     const Slic3r::UndoRedo::Stack& undo_redo_stack() const;
 
     void on_extruders_change(int extruders_count);

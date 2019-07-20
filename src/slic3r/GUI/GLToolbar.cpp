@@ -48,6 +48,7 @@ GLToolbarItem::Data::Data()
     : name("")
     , icon_filename("")
     , tooltip("")
+    , additional_tooltip("")
     , sprite_id(-1)
     , visible(true)
     , visibility_callback(Default_Visibility_Callback)
@@ -365,6 +366,31 @@ void GLToolbar::force_right_action(unsigned int item_id, GLCanvas3D& parent)
     do_action(GLToolbarItem::Right, item_id, parent, false);
 }
 
+void GLToolbar::get_additional_tooltip(unsigned int item_id, std::string& text)
+{
+    if (item_id < (unsigned int)m_items.size())
+    {
+        GLToolbarItem* item = m_items[item_id];
+        if (item != nullptr)
+        {
+            text = item->get_additional_tooltip();
+            return;
+        }
+    }
+
+    text = L("");
+}
+
+void GLToolbar::set_additional_tooltip(unsigned int item_id, const std::string& text)
+{
+    if (item_id < (unsigned int)m_items.size())
+    {
+        GLToolbarItem* item = m_items[item_id];
+        if (item != nullptr)
+            item->set_additional_tooltip(text);
+    }
+}
+
 bool GLToolbar::update_items_state()
 {
     bool ret = false;
@@ -427,7 +453,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     if (item_id == -1)
     {
         // mouse is outside the toolbar
-        m_tooltip = "";
+        m_tooltip = L("");
     }
     else
     {
@@ -594,7 +620,7 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, unsigned int item_id,
 std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
     if (!m_enabled)
-        return "";
+        return L("");
 
     switch (m_layout.type)
     {
@@ -643,7 +669,15 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
             GLToolbarItem::EState state = item->get_state();
             bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
             if (inside)
+            {
                 tooltip = item->get_tooltip();
+                if (!item->is_pressed())
+                {
+                    const std::string& additional_tooltip = item->get_additional_tooltip();
+                    if (!additional_tooltip.empty())
+                        tooltip += L("\n") + additional_tooltip;
+                }
+            }
 
             switch (state)
             {
@@ -739,7 +773,15 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
             GLToolbarItem::EState state = item->get_state();
             bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
             if (inside)
+            {
                 tooltip = item->get_tooltip();
+                if (!item->is_pressed())
+                {
+                    const std::string& additional_tooltip = item->get_additional_tooltip();
+                    if (!additional_tooltip.empty())
+                        tooltip += L("\n") + additional_tooltip;
+                }
+            }
 
             switch (state)
             {

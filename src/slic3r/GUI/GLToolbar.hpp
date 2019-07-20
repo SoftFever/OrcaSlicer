@@ -80,6 +80,7 @@ public:
         std::string name;
         std::string icon_filename;
         std::string tooltip;
+        std::string additional_tooltip;
         unsigned int sprite_id;
         // mouse left click
         Option left;
@@ -112,6 +113,8 @@ public:
     const std::string& get_name() const { return m_data.name; }
     const std::string& get_icon_filename() const { return m_data.icon_filename; }
     const std::string& get_tooltip() const { return m_data.tooltip; }
+    const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
+    void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }
 
     void do_left_action() { m_last_action_type = Left; m_data.left.action_callback(); }
     void do_right_action() { m_last_action_type = Right; m_data.right.action_callback(); }
@@ -296,6 +299,9 @@ public:
     void force_right_action(unsigned int item_id, GLCanvas3D& parent);
 
     const std::string& get_tooltip() const { return m_tooltip; }
+
+    void get_additional_tooltip(unsigned int item_id, std::string& text);
+    void set_additional_tooltip(unsigned int item_id, const std::string& text);
 
     // returns true if any item changed its state
     bool update_items_state();

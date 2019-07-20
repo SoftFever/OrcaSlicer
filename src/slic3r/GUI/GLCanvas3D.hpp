@@ -649,6 +649,8 @@ public:
     unsigned int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(unsigned int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
     void force_main_toolbar_right_action(unsigned int item_id) { m_main_toolbar.force_right_action(item_id, *this); }
+    void get_undoredo_toolbar_additional_tooltip(unsigned int item_id, std::string& text) { return m_undoredo_toolbar.get_additional_tooltip(item_id, text); }
+    void set_undoredo_toolbar_additional_tooltip(unsigned int item_id, const std::string& text) { m_undoredo_toolbar.set_additional_tooltip(item_id, text); }
 
 private:
     bool _is_shown_on_screen() const;
