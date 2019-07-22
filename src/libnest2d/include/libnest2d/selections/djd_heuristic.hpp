@@ -711,7 +711,12 @@ public:
             addBin();
             packjob(placers[idx], remaining, idx); idx++;
         }
-
+        
+        int binid = 0;
+        for(auto &bin : packed_bins_) {
+            for(Item& itm : bin) itm.binId(binid);
+            binid++;
+        }
     }
 };
 

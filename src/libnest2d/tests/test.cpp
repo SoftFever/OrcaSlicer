@@ -363,29 +363,43 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
         {5, 5},
         {20, 20} };
     
+    Box bin(210, 250, {105, 125});
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250));
+    ASSERT_EQ(bin.width(), 210);
+    ASSERT_EQ(bin.height(), 250);
+    ASSERT_EQ(getX(bin.center()), 105);
+    ASSERT_EQ(getY(bin.center()), 125);
     
-    auto groups = arrange(rects.begin(), rects.end());
+    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin);
     
-    ASSERT_EQ(groups.size(), 1u);
-    ASSERT_EQ(groups[0].size(), rects.size());
-    
+    arrange.execute(rects.begin(), rects.end());
+
+    auto max_group = std::max_element(rects.begin(), rects.end(),
+                                      [](const Item &i1, const Item &i2) {
+                                          return i1.binId() < i2.binId();
+                                      });
+
+    int groups = max_group == rects.end() ? 0 : max_group->binId() + 1;
+
+    ASSERT_EQ(groups, 1u);
+    ASSERT_TRUE(
+        std::all_of(rects.begin(), rects.end(), [](const Rectangle &itm) {
+            return itm.binId() != BIN_ID_UNSET;
+        }));
+
     // check for no intersections, no containment:
     
-    for(auto result : groups) {
-        bool valid = true;
-        for(Item& r1 : result) {
-            for(Item& r2 : result) {
-                if(&r1 != &r2 ) {
-                    valid = !Item::intersects(r1, r2) || Item::touches(r1, r2);
-                    valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
-                    ASSERT_TRUE(valid);
-                }
+    bool valid = true;
+    for(Item& r1 : rects) {
+        for(Item& r2 : rects) {
+            if(&r1 != &r2 ) {
+                valid = !Item::intersects(r1, r2) || Item::touches(r1, r2);
+                ASSERT_TRUE(valid);
+                valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
+                ASSERT_TRUE(valid);
             }
         }
     }
-    
 }
 
 TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
@@ -415,21 +429,36 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
         {5, 5},
         {20, 20} };
     
+    Box bin(210, 250, {105, 125});
+    
+    ASSERT_EQ(bin.width(), 210);
+    ASSERT_EQ(bin.height(), 250);
+    ASSERT_EQ(getX(bin.center()), 105);
+    ASSERT_EQ(getY(bin.center()), 125);
+    
     Coord min_obj_distance = 5;
     
-    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250),
-                                                   min_obj_distance);
+    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin, min_obj_distance);
     
-    auto groups = arrange(rects.begin(), rects.end());
+    arrange.execute(rects.begin(), rects.end());
     
-    ASSERT_EQ(groups.size(), 1u);
-    ASSERT_EQ(groups[0].size(), rects.size());
+    auto max_group = std::max_element(rects.begin(), rects.end(),
+                                      [](const Item &i1, const Item &i2) {
+                                          return i1.binId() < i2.binId();
+                                      });
+    
+    size_t groups = max_group == rects.end() ? 0 : max_group->binId() + 1;
+    
+    ASSERT_EQ(groups, 1u);
+    ASSERT_TRUE(
+        std::all_of(rects.begin(), rects.end(), [](const Rectangle &itm) {
+            return itm.binId() != BIN_ID_UNSET;
+        }));
     
     // check for no intersections, no containment:
-    auto result = groups[0];
     bool valid = true;
-    for(Item& r1 : result) {
-        for(Item& r2 : result) {
+    for(Item& r1 : rects) {
+        for(Item& r2 : rects) {
             if(&r1 != &r2 ) {
                 valid = !Item::intersects(r1, r2);
                 valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
@@ -541,27 +570,24 @@ TEST(GeometryAlgorithms, convexHull) {
 
 TEST(GeometryAlgorithms, NestTest) {
     std::vector<Item> input = prusaParts();
+
+    libnest2d::nest(input, Box(250000000, 210000000), [](unsigned cnt) {
+        std::cout << "parts left: " << cnt << std::endl;
+    });
+
+    auto max_binid_it = std::max_element(input.begin(), input.end(),
+                                         [](const Item &i1, const Item &i2) {
+                                             return i1.binId() < i2.binId();
+                                         });
+
+    size_t bins = max_binid_it == input.end() ? 0 : max_binid_it->binId() + 1;
     
-    PackGroup result = libnest2d::nest(input,
-                                       Box(250000000, 210000000),
-                                       [](unsigned cnt) {
-                                           std::cout
-                                               << "parts left: " << cnt
-                                               << std::endl;
-                                       });
-    
-    ASSERT_LE(result.size(), 2);
-    
-    size_t partsum = std::accumulate(result.begin(),
-                                     result.end(),
-                                     size_t(0),
-                                     [](size_t s,
-                                        const decltype(
-                                            result)::value_type &bin) {
-                                         return s += bin.size();
-                                     });
-    
-    ASSERT_EQ(input.size(), partsum);
+    ASSERT_EQ(bins, 2u);
+
+    ASSERT_TRUE(
+        std::all_of(input.begin(), input.end(), [](const Item &itm) {
+            return itm.binId() != BIN_ID_UNSET;
+        }));
 }
 
 namespace {
