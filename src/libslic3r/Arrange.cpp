@@ -136,9 +136,6 @@ protected:
     ItemGroup m_remaining; // Remaining items (m_items at the beginning)
     ItemGroup m_items;     // The items to be packed
     
-    // Used only for preloading objects before arrange
-    // std::vector<SpatIndex> m_preload_idx; // spatial index for preloaded beds
-    
     template<class T> ArithmeticOnly<T, double> norm(T val)
     {
         return double(val) / m_norm;
@@ -321,7 +318,6 @@ public:
             m_pilebb = sl::boundingBox(merged_pile);
 
             m_rtree.clear();
-//            m_preload_idx.clear();
             m_smallsrtree.clear();
             
             // We will treat big items (compared to the print bed) differently
@@ -362,25 +358,10 @@ public:
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
             itm.markAsFixed();
-//            size_t bedidx = itm.binId() < 0 ? 0u : size_t(itm.binId());
-            
-//            while (m_preload_idx.size() <= bedidx) m_preload_idx.emplace_back();
-//            m_preload_idx[bedidx].insert({itm.boundingBox(), idx});
         }
 
         m_pck.configure(m_pconf);
     }
-
-//    int is_colliding(const Item& item) {
-//        size_t bedidx = item.binId() < 0 ? 0u : size_t(item.binId());
-//        if (m_preload_idx.size() <= bedidx || m_preload_idx[bedidx].empty())
-//            return false;
-
-//        std::vector<SpatElement> result;
-//        m_preload_idx[bedidx].query(bgi::intersects(item.boundingBox()),
-//                                    std::back_inserter(result));
-//        return !result.empty();
-//    }
 };
 
 template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
@@ -544,21 +525,7 @@ void _arrange(
             ++it : it = excludes.erase(it);
 
     // If there is something on the plate
-    if (!excludes.empty()) {
-        arranger.preload(excludes);
-//        auto binbb = sl::boundingBox(corrected_bin);
-
-//        // Try to put the first item to the center, as the arranger
-//        // will not do this for us.
-//        for (Item &itm : shapes) {
-//            auto ibb = itm.boundingBox();
-//            auto d   = binbb.center() - ibb.center();
-//            itm.translate(d);
-//            itm.binId(UNARRANGED);
-
-//            if (!arranger.is_colliding(itm)) { itm.markAsFixed(); break; }
-//        }
-    }
+    if (!excludes.empty()) arranger.preload(excludes);
 
     std::vector<std::reference_wrapper<Item>> inp;
     inp.reserve(shapes.size() + excludes.size());
