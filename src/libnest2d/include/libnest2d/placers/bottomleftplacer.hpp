@@ -68,11 +68,11 @@ public:
         return toWallPoly(item, Dir::DOWN);
     }
 
-    inline Unit availableSpaceLeft(const Item& item) {
+    inline Coord availableSpaceLeft(const Item& item) {
         return availableSpace(item, Dir::LEFT);
     }
 
-    inline Unit availableSpaceDown(const Item& item) {
+    inline Coord availableSpaceDown(const Item& item) {
         return availableSpace(item, Dir::DOWN);
     }
 
@@ -83,7 +83,7 @@ protected:
         // Get initial position for item in the top right corner
         setInitialPosition(item);
 
-        Unit d = availableSpaceDown(item);
+        Coord d = availableSpaceDown(item);
         auto eps = config_.epsilon;
         bool can_move = d > eps;
         bool can_be_packed = can_move;
@@ -179,7 +179,7 @@ protected:
         return ret;
     }
 
-    Unit availableSpace(const Item& _item, const Dir dir) {
+    Coord availableSpace(const Item& _item, const Dir dir) {
 
         Item item (_item.transformedShape());
 
@@ -223,7 +223,7 @@ protected:
                                                    cmp);
 
         // Get the initial distance in floating point
-        Unit m = getCoord(*minvertex_it);
+        Coord m = getCoord(*minvertex_it);
 
         // Check available distance for every vertex of item to the objects
         // in the way for the nearest intersection

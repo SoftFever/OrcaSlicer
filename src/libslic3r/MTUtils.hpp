@@ -314,49 +314,48 @@ template<class I> struct is_scaled_coord
 };
 
 // Meta predicates for floating, 'scaled coord' and generic arithmetic types
-template<class T>
-using FloatingOnly = enable_if_t<std::is_floating_point<T>::value, T>;
+template<class T, class O = T>
+using FloatingOnly = enable_if_t<std::is_floating_point<T>::value, O>;
 
-template<class T>
-using ScaledCoordOnly = enable_if_t<is_scaled_coord<T>::value, T>;
+template<class T, class O = T>
+using ScaledCoordOnly = enable_if_t<is_scaled_coord<T>::value, O>;
 
-template<class T>
-using ArithmeticOnly = enable_if_t<std::is_arithmetic<T>::value, T>;
-
-// A shorter form for a generic Eigen vector which is widely used in PrusaSlicer 
-template<class T, int N>
-using EigenVec = Eigen::Matrix<T, N, 1, Eigen::DontAlign>;
+template<class T, class O = T>
+using ArithmeticOnly = enable_if_t<std::is_arithmetic<T>::value, O>;
 
 // Semantics are the following:
 // Upscaling (scaled()): only from floating point types (or Vec) to either
 //                       floating point or integer 'scaled coord' coordinates.
-// Downscaling (unscaled()): from arithmetic types (or Vec) to either
-//                           floating point only
+// Downscaling (unscaled()): from arithmetic (or Vec) to floating point only
 
 // Conversion definition from unscaled to floating point scaled
 template<class Tout,
          class Tin,
-         class = FloatingOnly<Tin>,
-         class = FloatingOnly<Tout>>
-inline SLIC3R_CONSTEXPR Tout scaled(const Tin &v) SLIC3R_NOEXCEPT
+         class = FloatingOnly<Tin>>
+inline constexpr FloatingOnly<Tout> scaled(const Tin &v) noexcept
 {
-    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
+    return Tout(v / Tin(SCALING_FACTOR));
 }
 
 // Conversion definition from unscaled to integer 'scaled coord'.
-// TODO: is the rounding necessary ? Here it is to show that it can be different
-// but it does not have to be. Using std::round means loosing noexcept and
-// constexpr modifiers
+// TODO: is the rounding necessary? Here it is commented  out to show that
+// it can be different for integers but it does not have to be. Using
+// std::round means loosing noexcept and constexpr modifiers
 template<class Tout = coord_t, class Tin, class = FloatingOnly<Tin>>
-inline SLIC3R_CONSTEXPR ScaledCoordOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCEPT
+inline constexpr ScaledCoordOnly<Tout> scaled(const Tin &v) noexcept
 {
     //return static_cast<Tout>(std::round(v / SCALING_FACTOR));
-    return static_cast<Tout>(v / static_cast<Tin>(SCALING_FACTOR));
+    return Tout(v / Tin(SCALING_FACTOR));
 }
 
 // Conversion for Eigen vectors (N dimensional points)
-template<class Tout = coord_t, class Tin, int N, class = FloatingOnly<Tin>>
-inline EigenVec<ArithmeticOnly<Tout>, N> scaled(const EigenVec<Tin, N> &v)
+template<class Tout = coord_t,
+         class Tin,
+         int N,
+         class = FloatingOnly<Tin>,
+         int...EigenArgs>
+inline Eigen::Matrix<ArithmeticOnly<Tout>, N, EigenArgs...>
+scaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v)
 {
     return (v / SCALING_FACTOR).template cast<Tout>();
 }
@@ -366,9 +365,9 @@ template<class Tout = double,
          class Tin,
          class = ArithmeticOnly<Tin>,
          class = FloatingOnly<Tout>>
-inline SLIC3R_CONSTEXPR Tout unscaled(const Tin &v) SLIC3R_NOEXCEPT
+inline constexpr Tout unscaled(const Tin &v) noexcept
 {
-    return static_cast<Tout>(v * static_cast<Tout>(SCALING_FACTOR));
+    return Tout(v * Tout(SCALING_FACTOR));
 }
 
 // Unscaling for Eigen vectors. Input base type can be arithmetic, output base
@@ -377,9 +376,10 @@ template<class Tout = double,
          class Tin,
          int N,
          class = ArithmeticOnly<Tin>,
-         class = FloatingOnly<Tout>>
-inline SLIC3R_CONSTEXPR EigenVec<Tout, N> unscaled(
-    const EigenVec<Tin, N> &v) SLIC3R_NOEXCEPT
+         class = FloatingOnly<Tout>,
+         int...EigenArgs>
+inline constexpr Eigen::Matrix<Tout, N, EigenArgs...>
+unscaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v) noexcept
 {
     return v.template cast<Tout>() * SCALING_FACTOR;
 }

@@ -10,6 +10,7 @@
 #include "Slicing.hpp"
 #include "SLA/SLACommon.hpp"
 #include "TriangleMesh.hpp"
+#include "Arrange.hpp"
 
 #include <map>
 #include <memory>
@@ -602,7 +603,7 @@ public:
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
-
+    
     void set_offset(const Vec3d& offset) { m_transformation.set_offset(offset); }
     void set_offset(Axis axis, double offset) { m_transformation.set_offset(axis, offset); }
 
@@ -621,7 +622,7 @@ public:
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
 	bool is_left_handed() const { return m_transformation.is_left_handed(); }
-
+    
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
 
@@ -639,6 +640,18 @@ public:
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
+    
+    // Getting the input polygon for arrange
+    arrangement::ArrangePolygon get_arrange_polygon() const;
+    
+    // Apply the arrange result on the ModelInstance
+    void apply_arrange_result(const Vec2crd& offs, double rotation)
+    {
+        // write the transformation data into the model instance
+        set_rotation(Z, rotation);
+        set_offset(X, unscale<double>(offs(X)));
+        set_offset(Y, unscale<double>(offs(Y)));
+    }
 
 protected:
     friend class Print;
@@ -654,10 +667,10 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) { assert(this->id().valid()); }
+    explicit ModelInstance(ModelObject *object) : print_volume_state(PVS_Inside), object(object) { assert(this->id().valid()); }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) { assert(this->id().valid() && this->id() != other.id()); }
+        m_transformation(other.m_transformation), print_volume_state(PVS_Inside), object(object) { assert(this->id().valid() && this->id() != other.id()); }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;

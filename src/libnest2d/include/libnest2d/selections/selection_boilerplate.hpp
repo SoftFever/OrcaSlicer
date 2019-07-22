@@ -22,8 +22,6 @@ public:
 
     inline void stopCondition(StopCondition cond) { stopcond_ = cond; }
 
-    inline void preload(const PackGroup& pckgrp) { packed_bins_ = pckgrp; }
-
     inline void clear() { packed_bins_.clear(); }
 
 protected:

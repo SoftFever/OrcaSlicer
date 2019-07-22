@@ -41,25 +41,25 @@ template<> struct HolesContainer<PolygonImpl> { using Type = ClipperLib::Paths; 
 namespace pointlike {
 
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
-template<> inline TCoord<PointImpl> x(const PointImpl& p)
+template<> inline ClipperLib::cInt x(const PointImpl& p)
 {
     return p.X;
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
-template<> inline TCoord<PointImpl> y(const PointImpl& p)
+template<> inline ClipperLib::cInt y(const PointImpl& p)
 {
     return p.Y;
 }
 
 // Tell libnest2d how to extract the X coord from a ClipperPoint object
-template<> inline TCoord<PointImpl>& x(PointImpl& p)
+template<> inline ClipperLib::cInt& x(PointImpl& p)
 {
     return p.X;
 }
 
 // Tell libnest2d how to extract the Y coord from a ClipperPoint object
-template<> inline TCoord<PointImpl>& y(PointImpl& p)
+template<> inline ClipperLib::cInt& y(PointImpl& p)
 {
     return p.Y;
 }
@@ -71,7 +71,8 @@ template<> inline TCoord<PointImpl>& y(PointImpl& p)
 
 namespace shapelike {
 
-template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
+template<>
+inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance, const PolygonTag&)
 {
     #define DISABLE_BOOST_OFFSET
 
@@ -121,6 +122,14 @@ template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
             sh.Holes.back().emplace_back(std::move(front_p));
         }
     }
+}
+
+template<>
+inline void offset(PathImpl& sh, TCoord<PointImpl> distance, const PathTag&)
+{
+    PolygonImpl p(std::move(sh));
+    offset(p, distance, PolygonTag());
+    sh = p.Contour;
 }
 
 // Tell libnest2d how to make string out of a ClipperPolygon object
@@ -259,10 +268,12 @@ inline TMultiShape<PolygonImpl> clipper_execute(
         poly.Contour.swap(pptr->Contour);
 
         assert(!pptr->IsHole());
-
-        if(pptr->IsOpen()) {
+        
+        if(!poly.Contour.empty() ) {
             auto front_p = poly.Contour.front();
-            poly.Contour.emplace_back(front_p);
+            auto &back_p  = poly.Contour.back();
+            if(front_p.X != back_p.X || front_p.Y != back_p.X) 
+                poly.Contour.emplace_back(front_p);
         }
 
         for(auto h : pptr->Childs) { processHole(h, poly); }
@@ -274,10 +285,12 @@ inline TMultiShape<PolygonImpl> clipper_execute(
         poly.Holes.emplace_back(std::move(pptr->Contour));
 
         assert(pptr->IsHole());
-
-        if(pptr->IsOpen()) {
-            auto front_p = poly.Holes.back().front();
-            poly.Holes.back().emplace_back(front_p);
+        
+        if(!poly.Contour.empty() ) {
+            auto front_p = poly.Contour.front();
+            auto &back_p  = poly.Contour.back();
+            if(front_p.X != back_p.X || front_p.Y != back_p.X) 
+                poly.Contour.emplace_back(front_p);
         }
 
         for(auto c : pptr->Childs) processPoly(c);
