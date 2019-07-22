@@ -96,6 +96,7 @@ private:
         EPositioningType e_local_positioning_type;
         Metadata data;
         Vec3d start_position = Vec3d::Zero();
+        float cached_position[5]{ FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
         float start_extrusion;
         float position[Num_Axis];
         unsigned int cur_cp_color_id = 0;
@@ -170,6 +171,12 @@ private:
     // Set tool (MakerWare and Sailfish flavor)
     void _processM108orM135(const GCodeReader::GCodeLine& line);
 
+    // Repetier: Store x, y and z position
+    void _processM401(const GCodeReader::GCodeLine& line);
+
+    // Repetier: Go to stored position
+    void _processM402(const GCodeReader::GCodeLine& line);
+
     // Set color change
     void _processM600(const GCodeReader::GCodeLine& line);
 
@@ -231,6 +238,11 @@ private:
 
     void _set_start_position(const Vec3d& position);
     const Vec3d& _get_start_position() const;
+
+    void _set_cached_position(unsigned char axis, float position);
+    float _get_cached_position(unsigned char axis) const;
+
+    void _reset_cached_position();
 
     void _set_start_extrusion(float extrusion);
     float _get_start_extrusion() const;

@@ -359,9 +359,7 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
     assert(item);
     const ItemType type = m_objects_model->GetItemType(item);
 
-    const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                        m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
-
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
@@ -1037,12 +1035,17 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 {
     wxArrayString names;
     wxArrayInt selections;
+    wxDataViewItem item = GetSelection();
 
     settings_menu_hierarchy settings_menu;
-    const bool is_part = m_objects_model->GetParent(GetSelection()) != wxDataViewItem(0);
+    const bool is_part = m_objects_model->GetItemType(item) & (itVolume | itLayer);
     get_options_menu(settings_menu, is_part);
     std::vector< std::pair<std::string, std::string> > *settings_list = nullptr;
 
+    if (!m_config)
+        m_config = &get_item_config(item);
+
+    assert(m_config);
     auto opt_keys = m_config->keys();
 
     for (auto& cat : settings_menu)
@@ -1144,27 +1147,33 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 
 
     // Add settings item for object/sub-object and show them 
-    show_settings(add_settings_item(GetSelection(), m_config));    
+    if (!(m_objects_model->GetItemType(item) & (itObject | itVolume | itLayer)))
+        item = m_objects_model->GetTopParent(item);
+    show_settings(add_settings_item(item, m_config));
 }
 
 void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
     std::vector<std::string> options = get_options_for_bundle(bundle_name);
+    wxDataViewItem item = GetSelection();
 
     /* Because of we couldn't edited layer_height for ItVolume from settings list,
      * correct options according to the selected item type :
      * remove "layer_height" option
      */
-    if ((m_objects_model->GetItemType(GetSelection()) & itVolume) && bundle_name == _("Layers and Perimeters")) {
+    if ((m_objects_model->GetItemType(item) & itVolume) && bundle_name == _("Layers and Perimeters")) {
         const auto layer_height_it = std::find(options.begin(), options.end(), "layer_height");
         if (layer_height_it != options.end())
             options.erase(layer_height_it);
     }
 
+    if (!m_config)
+        m_config = &get_item_config(item);
+
     assert(m_config);
     auto opt_keys = m_config->keys();
 
-    take_snapshot(wxString::Format(_(L("Add Settings Bundle for %s")), m_objects_model->GetItemType(GetSelection()) & itObject ? _(L("Object")) : _(L("Sub-object"))));
+    take_snapshot(wxString::Format(_(L("Add Settings Bundle for %s")), m_objects_model->GetItemType(item) & (itVolume|itLayer) ? _(L("Sub-object")) : _(L("Object"))));
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     for (auto& opt_key : options)
@@ -1181,7 +1190,9 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     }
 
     // Add settings item for object/sub-object and show them 
-    show_settings(add_settings_item(GetSelection(), m_config));
+    if (!(m_objects_model->GetItemType(item) & (itObject | itVolume | itLayer)))
+        item = m_objects_model->GetTopParent(item);
+    show_settings(add_settings_item(item, m_config));
 }
 
 void ObjectList::show_settings(const wxDataViewItem settings_item)

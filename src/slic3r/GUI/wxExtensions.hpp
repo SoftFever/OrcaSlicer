@@ -301,27 +301,7 @@ public:
 		return m_children.GetCount();
 	}
 
-	bool SetValue(const wxVariant &variant, unsigned int col)
-	{
-		switch (col)
-		{
-		case 0:{
-            DataViewBitmapText data;
-			data << variant;
-            m_bmp = data.GetBitmap();
-			m_name = data.GetText();
-			return true;}
-		case 1:
-			m_extruder = variant.GetString();
-			return true;
-		case 2:
-			m_action_icon << variant;
-			return true;
-		default:
-			printf("MyObjectTreeModel::SetValue: wrong column");
-		}
-		return false;
-	}
+	bool            SetValue(const wxVariant &variant, unsigned int col);
 
 	void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
     const wxBitmap& GetBitmap() const               { return m_bmp; }

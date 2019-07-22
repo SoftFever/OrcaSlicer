@@ -126,6 +126,7 @@ void GCodeAnalyzer::reset()
     _set_start_position(DEFAULT_START_POSITION);
     _set_start_extrusion(DEFAULT_START_EXTRUSION);
     _reset_axes_position();
+    _reset_cached_position();
 
     m_moves_map.clear();
     m_extruder_offsets.clear();
@@ -260,6 +261,16 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
                         // these are used by MakerWare and Sailfish firmwares
                         // for tool changing - we can process it in one place
                         _processM108orM135(line);
+                        break;
+                    }
+                case 401: // Repetier: Store x, y and z position
+                    {
+                        _processM401(line);
+                        break;
+                    }
+                case 402: // Repetier: Go to stored position
+                    {
+                        _processM402(line);
                         break;
                     }
                 }
@@ -433,12 +444,6 @@ void GCodeAnalyzer::_processM83(const GCodeReader::GCodeLine& line)
     _set_e_local_positioning_type(Relative);
 }
 
-void GCodeAnalyzer::_processM600(const GCodeReader::GCodeLine& line)
-{
-    m_state.cur_cp_color_id++;
-    _set_cp_color_id(m_state.cur_cp_color_id);
-}
-
 void GCodeAnalyzer::_processM108orM135(const GCodeReader::GCodeLine& line)
 {
     // These M-codes are used by MakerWare and Sailfish to change active tool.
@@ -447,7 +452,7 @@ void GCodeAnalyzer::_processM108orM135(const GCodeReader::GCodeLine& line)
 
     size_t code = ::atoi(&(line.cmd()[1]));
     if ((code == 108 && m_gcode_flavor == gcfSailfish)
-     || (code == 135 && m_gcode_flavor == gcfMakerWare)) {
+        || (code == 135 && m_gcode_flavor == gcfMakerWare)) {
 
         std::string cmd = line.raw();
         size_t T_pos = cmd.find("T");
@@ -456,6 +461,66 @@ void GCodeAnalyzer::_processM108orM135(const GCodeReader::GCodeLine& line)
             _processT(cmd);
         }
     }
+}
+
+void GCodeAnalyzer::_processM401(const GCodeReader::GCodeLine& line)
+{
+    if (m_gcode_flavor != gcfRepetier)
+        return;
+
+    for (unsigned char a = 0; a <= 3; ++a)
+    {
+        _set_cached_position(a, _get_axis_position((EAxis)a));
+    }
+    _set_cached_position(4, _get_feedrate());
+}
+
+void GCodeAnalyzer::_processM402(const GCodeReader::GCodeLine& line)
+{
+    if (m_gcode_flavor != gcfRepetier)
+        return;
+
+    // see for reference:
+    // https://github.com/repetier/Repetier-Firmware/blob/master/src/ArduinoAVR/Repetier/Printer.cpp
+    // void Printer::GoToMemoryPosition(bool x, bool y, bool z, bool e, float feed)
+
+    bool has_xyz = !(line.has_x() || line.has_y() || line.has_z());
+
+    float p = FLT_MAX;
+    for (unsigned char a = X; a <= Z; ++a)
+    {
+        if (has_xyz || line.has(a))
+        {
+            p = _get_cached_position(a);
+            if (p != FLT_MAX)
+                _set_axis_position((EAxis)a, p);
+        }
+    }
+
+    p = _get_cached_position(E);
+    if (p != FLT_MAX)
+        _set_axis_position(E, p);
+
+    p = FLT_MAX;
+    if (!line.has_value(4, p))
+        p = _get_cached_position(4);
+
+    if (p != FLT_MAX)
+        _set_feedrate(p);
+}
+
+void GCodeAnalyzer::_reset_cached_position()
+{
+    for (unsigned char a = 0; a <= 4; ++a)
+    {
+        m_state.cached_position[a] = FLT_MAX;
+    }
+}
+
+void GCodeAnalyzer::_processM600(const GCodeReader::GCodeLine& line)
+{
+    m_state.cur_cp_color_id++;
+    _set_cp_color_id(m_state.cur_cp_color_id);
 }
 
 void GCodeAnalyzer::_processT(const std::string& cmd)
@@ -666,6 +731,17 @@ void GCodeAnalyzer::_set_start_position(const Vec3d& position)
 const Vec3d& GCodeAnalyzer::_get_start_position() const
 {
     return m_state.start_position;
+}
+
+void GCodeAnalyzer::_set_cached_position(unsigned char axis, float position)
+{
+    if ((0 <= axis) || (axis <= 4))
+        m_state.cached_position[axis] = position;
+}
+
+float GCodeAnalyzer::_get_cached_position(unsigned char axis) const
+{
+    return ((0 <= axis) || (axis <= 4)) ? m_state.cached_position[axis] : FLT_MAX;
 }
 
 void GCodeAnalyzer::_set_start_extrusion(float extrusion)

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <algorithm>
+#include <numeric>
 #include <vector>
 #include <string>
 #include <regex>
@@ -31,7 +32,6 @@
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Model.hpp"
-#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -1355,6 +1355,44 @@ struct Plater::priv
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
     
+    // Cache the wti info
+    class WipeTower: public GLCanvas3D::WipeTowerInfo {
+        using ArrangePolygon = arrangement::ArrangePolygon;
+        friend priv;
+    public:
+        
+        void apply_arrange_result(const Vec2crd& tr, double rotation)
+        {
+            m_pos = unscaled(tr); m_rotation = rotation;
+            apply_wipe_tower();
+        }
+        
+        ArrangePolygon get_arrange_polygon() const
+        {
+            Polygon p({
+                {coord_t(0), coord_t(0)},
+                {scaled(m_bb_size(X)), coord_t(0)},
+                {scaled(m_bb_size)},
+                {coord_t(0), scaled(m_bb_size(Y))},
+                {coord_t(0), coord_t(0)},
+                });
+            
+            ArrangePolygon ret;
+            ret.poly.contour = std::move(p);
+            ret.translation  = scaled(m_pos);
+            ret.rotation     = m_rotation;
+            return ret;
+        }
+    } wipetower;
+    
+    WipeTower& updated_wipe_tower() {
+        auto wti = view3D->get_canvas3d()->get_wipe_tower_info();
+        wipetower.m_pos = wti.pos();
+        wipetower.m_rotation = wti.rotation();
+        wipetower.m_bb_size  = wti.bb_size();
+        return wipetower;
+    }
+    
     // A class to handle UI jobs like arranging and optimizing rotation.
     // These are not instant jobs, the user has to be informed about their
     // state in the status progress indicator. On the other hand they are 
@@ -1365,145 +1403,278 @@ struct Plater::priv
     // objects would be frozen for the user. In case of arrange, an animation
     // could be shown, or with the optimize orientations, partial results
     // could be displayed.
-    class Job: public wxEvtHandler {
-        int m_range = 100;
+    class Job : public wxEvtHandler
+    {
+        int               m_range = 100;
         std::future<void> m_ftr;
-        priv *m_plater = nullptr;
-        std::atomic<bool> m_running {false}, m_canceled {false};
-        bool m_finalized = false;
-        
-        void run() { 
-            m_running.store(true); process(); m_running.store(false); 
-            
+        priv *            m_plater = nullptr;
+        std::atomic<bool> m_running{false}, m_canceled{false};
+        bool              m_finalized = false;
+
+        void run()
+        {
+            m_running.store(true);
+            process();
+            m_running.store(false);
+
             // ensure to call the last status to finalize the job
             update_status(status_range(), "");
         }
-        
+
     protected:
-        
         // status range for a particular job
         virtual int status_range() const { return 100; }
-        
+
         // status update, to be used from the work thread (process() method)
-        void update_status(int st, const wxString& msg = "") { 
-            auto evt = new wxThreadEvent(); evt->SetInt(st); evt->SetString(msg);
-            wxQueueEvent(this, evt); 
+        void update_status(int st, const wxString &msg = "")
+        {
+            auto evt = new wxThreadEvent();
+            evt->SetInt(st);
+            evt->SetString(msg);
+            wxQueueEvent(this, evt);
         }
-        
-        priv& plater() { return *m_plater; }
-        bool was_canceled() const { return m_canceled.load(); }
-        
+
+        priv &      plater() { return *m_plater; }
+        const priv &plater() const { return *m_plater; }
+        bool        was_canceled() const { return m_canceled.load(); }
+
         // Launched just before start(), a job can use it to prepare internals
         virtual void prepare() {}
-        
-        // Launched when the job is finished. It refreshes the 3dscene by def.
-        virtual void finalize() {
+
+        // Launched when the job is finished. It refreshes the 3Dscene by def.
+        virtual void finalize()
+        {
             // Do a full refresh of scene tree, including regenerating
             // all the GLVolumes. FIXME The update function shall just
             // reload the modified matrices.
-            if(! was_canceled())
-                plater().update(true);
+            if (!was_canceled()) plater().update(true);
         }
-        
+
     public:
-        
-        Job(priv *_plater): m_plater(_plater)
+        Job(priv *_plater) : m_plater(_plater)
         {
-            Bind(wxEVT_THREAD, [this](const wxThreadEvent& evt){
+            Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
                 auto msg = evt.GetString();
-                if(! msg.empty()) plater().statusbar()->set_status_text(msg);
-                
-                if(m_finalized) return;
-                
+                if (!msg.empty())
+                    plater().statusbar()->set_status_text(msg);
+
+                if (m_finalized) return;
+
                 plater().statusbar()->set_progress(evt.GetInt());
-                if(evt.GetInt() == status_range()) {
-                    
+                if (evt.GetInt() == status_range()) {
                     // set back the original range and cancel callback
                     plater().statusbar()->set_range(m_range);
                     plater().statusbar()->set_cancel_callback();
                     wxEndBusyCursor();
-                    
+
                     finalize();
-                    
+
                     // dont do finalization again for the same process
                     m_finalized = true;
                 }
             });
         }
-        
-        // TODO: use this when we all migrated to VS2019
-        // Job(const Job&) = delete;
-        // Job(Job&&) = default;
-        // Job& operator=(const Job&) = delete;
-        // Job& operator=(Job&&) = default;
-        Job(const Job&) = delete;
-        Job& operator=(const Job&) = delete;
-        Job(Job &&o) :
-            m_range(o.m_range),
-            m_ftr(std::move(o.m_ftr)),
-            m_plater(o.m_plater),
-            m_finalized(o.m_finalized)
-        {
-            m_running.store(o.m_running.load());
-            m_canceled.store(o.m_canceled.load());
-        }
-        
+
+        Job(const Job &) = delete;
+        Job(Job &&)      = default;
+        Job &operator=(const Job &) = delete;
+        Job &operator=(Job &&) = default;
+
         virtual void process() = 0;
-        
-        void start() { // Start the job. No effect if the job is already running
-            if(! m_running.load()) {
-                
-                prepare();                
-                
+
+        void start()
+        { // Start the job. No effect if the job is already running
+            if (!m_running.load()) {
+                prepare();
+
                 // Save the current status indicatior range and push the new one
                 m_range = plater().statusbar()->get_range();
                 plater().statusbar()->set_range(status_range());
-                
+
                 // init cancellation flag and set the cancel callback
                 m_canceled.store(false);
-                plater().statusbar()->set_cancel_callback( [this](){ 
-                    m_canceled.store(true);
-                });
-                
+                plater().statusbar()->set_cancel_callback(
+                    [this]() { m_canceled.store(true); });
+
                 m_finalized = false;
-                
+
                 // Changing cursor to busy
                 wxBeginBusyCursor();
-                
-                try {   // Execute the job
+
+                try { // Execute the job
                     m_ftr = std::async(std::launch::async, &Job::run, this);
-                } catch(std::exception& ) { 
-                    update_status(status_range(), 
-                    _(L("ERROR: not enough resources to execute a new job.")));
+                } catch (std::exception &) {
+                    update_status(status_range(),
+                                  _(L("ERROR: not enough resources to "
+                                      "execute a new job.")));
                 }
-                
+
                 // The state changes will be undone when the process hits the
                 // last status value, in the status update handler (see ctor)
             }
         }
-        
-        // To wait for the running job and join the threads. False is returned
-        // if the timeout has been reached and the job is still running. Call
-        // cancel() before this fn if you want to explicitly end the job.
-        bool join(int timeout_ms = 0) const { 
-            if(!m_ftr.valid()) return true;
-            
-            if(timeout_ms <= 0) 
+
+        // To wait for the running job and join the threads. False is
+        // returned if the timeout has been reached and the job is still
+        // running. Call cancel() before this fn if you want to explicitly
+        // end the job.
+        bool join(int timeout_ms = 0) const
+        {
+            if (!m_ftr.valid()) return true;
+
+            if (timeout_ms <= 0)
                 m_ftr.wait();
-            else if(m_ftr.wait_for(std::chrono::milliseconds(timeout_ms)) == 
-                    std::future_status::timeout) 
+            else if (m_ftr.wait_for(std::chrono::milliseconds(
+                         timeout_ms)) == std::future_status::timeout)
                 return false;
-            
+
             return true;
         }
-        
+
         bool is_running() const { return m_running.load(); }
         void cancel() { m_canceled.store(true); }
     };
-    
+
     enum class Jobs : size_t {
         Arrange,
         Rotoptimize
+    };
+    
+    class ArrangeJob : public Job
+    {
+        using ArrangePolygon = arrangement::ArrangePolygon;
+        using ArrangePolygons = arrangement::ArrangePolygons;
+        
+        // The gap between logical beds in the x axis expressed in ratio of
+        // the current bed width.
+        static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
+        
+        ArrangePolygons m_selected, m_unselected;
+        
+        // clear m_selected and m_unselected, reserve space for next usage
+        void clear_input() {
+            const Model &model = plater().model;
+            
+            size_t count = 0; // To know how much space to reserve
+            for (auto obj : model.objects) count += obj->instances.size();
+            m_selected.clear(), m_unselected.clear();
+            m_selected.reserve(count + 1 /* for optional wti */);
+            m_unselected.reserve(count + 1 /* for optional wti */);
+        }
+        
+        // Stride between logical beds
+        coord_t bed_stride() const {
+            double bedwidth = plater().bed_shape_bb().size().x();
+            return scaled((1. + LOGICAL_BED_GAP) * bedwidth);
+        }
+        
+        // Set up arrange polygon for a ModelInstance and Wipe tower
+        template<class T> ArrangePolygon get_arrange_poly(T *obj) const {
+            ArrangePolygon ap = obj->get_arrange_polygon();
+            ap.priority = 0;
+            ap.bed_idx = ap.translation.x() / bed_stride();
+            ap.setter = [obj, this](const ArrangePolygon &p) {
+                if (p.is_arranged()) {
+                    auto t = p.translation; t.x() += p.bed_idx * bed_stride();
+                    obj->apply_arrange_result(t, p.rotation);
+                }
+            };
+            return ap;
+        }
+        
+        // Prepare all objects on the bed regardless of the selection
+        void prepare_all() {
+            clear_input();
+            
+            for (ModelObject *obj: plater().model.objects)
+                for (ModelInstance *mi : obj->instances)
+                    m_selected.emplace_back(get_arrange_poly(mi));
+            
+            auto& wti = plater().updated_wipe_tower();
+            if (wti) m_selected.emplace_back(get_arrange_poly(&wti));
+        }
+        
+        // Prepare the selected and unselected items separately. If nothing is
+        // selected, behaves as if everything would be selected.
+        void prepare_selected() {
+            clear_input();
+            
+            Model &model = plater().model;
+            coord_t stride = bed_stride();
+            
+            std::vector<const Selection::InstanceIdxsList *>
+                obj_sel(model.objects.size(), nullptr);
+            
+            for (auto &s : plater().get_selection().get_content())
+                if (s.first < int(obj_sel.size())) obj_sel[s.first] = &s.second; 
+            
+            // Go through the objects and check if inside the selection
+            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
+                ModelObject *mo = model.objects[oidx];
+                
+                std::vector<bool> inst_sel(mo->instances.size(), false);
+                
+                if (instlist)
+                    for (auto inst_id : *instlist) inst_sel[inst_id] = true;
+                
+                for (size_t i = 0; i < inst_sel.size(); ++i) {
+                    ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
+                    
+                    inst_sel[i] ?
+                        m_selected.emplace_back(std::move(ap)) :
+                        m_unselected.emplace_back(std::move(ap));
+                }
+            }
+            
+            auto& wti = plater().updated_wipe_tower();
+            if (wti) {
+                ArrangePolygon &&ap = get_arrange_poly(&wti);
+                
+                plater().get_selection().is_wipe_tower() ?
+                    m_selected.emplace_back(std::move(ap)) :
+                    m_unselected.emplace_back(std::move(ap));
+            }
+            
+            // If the selection was empty arrange everything
+            if (m_selected.empty()) m_selected.swap(m_unselected);
+            
+            // The strides have to be removed from the fixed items. For the
+            // arrangeable (selected) items bed_idx is ignored and the
+            // translation is irrelevant.
+            for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+        }
+        
+    protected:
+        
+        void prepare() override
+        {
+            wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
+        }
+        
+    public:
+        using Job::Job;
+        
+        int status_range() const override { return int(m_selected.size()); }
+        
+        void process() override;
+        
+        void finalize() override {
+            // Ignore the arrange result if aborted.
+            if (was_canceled()) return;
+            
+            // Apply the arrange result to all selected objects
+            for (ArrangePolygon &ap : m_selected) ap.apply();
+
+            plater().update(false /*dont force_full_scene_refresh*/);
+        }
+    };
+    
+    class RotoptimizeJob : public Job
+    {
+    public:
+        using Job::Job;
+        void process() override;
     };
     
     // Jobs defined inside the group class will be managed so that only one can
@@ -1515,49 +1686,19 @@ struct Plater::priv
         
         priv * m_plater;
 
-        class ArrangeJob : public Job
-        {
-            int count = 0;
-
-        protected:
-            void prepare() override
-            {
-                count = 0;
-                for (auto obj : plater().model.objects)
-                    count += int(obj->instances.size());
-            }
-
-        public:
-            //using Job::Job;
-            ArrangeJob(priv * pltr): Job(pltr) {}
-            int  status_range() const override { return count; }
-            void set_count(int c) { count = c; }
-            void process() override;
-        } arrange_job/*{m_plater}*/;
-
-        class RotoptimizeJob : public Job
-        {
-        public:
-            //using Job::Job;
-            RotoptimizeJob(priv * pltr): Job(pltr) {}
-            void process() override;
-        } rotoptimize_job/*{m_plater}*/;
+        ArrangeJob arrange_job{m_plater};
+        RotoptimizeJob rotoptimize_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
         // Register the instance of the class in the m_jobs container
         // if it cannot run concurrently with other jobs in this group 
 
-        std::vector<std::reference_wrapper<Job>> m_jobs/*{arrange_job,
-                                                        rotoptimize_job}*/;
+        std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
+                                                        rotoptimize_job};
 
     public:
-        ExclusiveJobGroup(priv *_plater)
-            : m_plater(_plater)
-            , arrange_job(m_plater)
-            , rotoptimize_job(m_plater)
-            , m_jobs({arrange_job, rotoptimize_job})
-        {}
+        ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
 
         void start(Jobs jid) {
             m_plater->background_process.stop();
@@ -1618,6 +1759,9 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
+    arrangement::BedShapeHint get_bed_shape_hint() const;
+    
+    void find_new_position(const ModelInstancePtrs  &instances, coord_t min_d);
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     wxString get_export_file(GUI::FileType file_type);
@@ -2247,9 +2391,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     auto& bedpoints = bed_shape_opt->values;
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
-
-    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
-
+    
+    std::pair<bool, GLCanvas3D::WipeTowerInfo> wti = view3D->get_canvas3d()->get_wipe_tower_info();
+    
     arr::find_new_position(model, new_instances, min_obj_distance, bed, wti);
 
     // it remains to move the wipe tower:
@@ -2488,71 +2632,82 @@ void Plater::priv::sla_optimize_rotation() {
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-void Plater::priv::ExclusiveJobGroup::ArrangeJob::process() {
-    // TODO: we should decide whether to allow arrange when the search is
-    // running we should probably disable explicit slicing and background
-    // processing
+arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
+    
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    assert(bed_shape_opt);
+    
+    if (!bed_shape_opt) return {};
+    
+    auto &bedpoints = bed_shape_opt->values;
+    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
+    for (auto &v : bedpoints) bedpoly.append(scaled(v));
+    
+    return arrangement::BedShapeHint(bedpoly);
+}
 
+void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
+                                     coord_t min_d)
+{
+    arrangement::ArrangePolygons movable, fixed;
+    
+    for (const ModelObject *mo : model.objects)
+        for (const ModelInstance *inst : mo->instances) {
+            auto it = std::find(instances.begin(), instances.end(), inst);
+            auto arrpoly = inst->get_arrange_polygon();
+            
+            if (it == instances.end())
+                fixed.emplace_back(std::move(arrpoly));
+            else
+                movable.emplace_back(std::move(arrpoly));
+        }
+    
+    if (updated_wipe_tower())
+        fixed.emplace_back(wipetower.get_arrange_polygon());
+    
+    arrangement::arrange(movable, fixed, min_d, get_bed_shape_hint());
+    
+    for (size_t i = 0; i < instances.size(); ++i)
+        if (movable[i].bed_idx == 0)
+            instances[i]->apply_arrange_result(movable[i].translation,
+                                               movable[i].rotation);
+}
+
+void Plater::priv::ArrangeJob::process() {
     static const auto arrangestr = _(L("Arranging"));
-
-    auto &config = plater().config;
-    auto &view3D = plater().view3D;
-    auto &model  = plater().model;
-
+    
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
     double dist = 6; // PrintConfig::min_object_distance(config);
     if (plater().printer_technology == ptFFF) {
-        dist = PrintConfig::min_object_distance(config);
+        dist = PrintConfig::min_object_distance(plater().config);
     }
-
-    auto min_obj_distance = coord_t(dist / SCALING_FACTOR);
-
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>(
-        "bed_shape");
-
-    assert(bed_shape_opt);
-    auto &   bedpoints = bed_shape_opt->values;
-    Polyline bed;
-    bed.points.reserve(bedpoints.size());
-    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
-
-    update_status(0, arrangestr);
-
-    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
-
+    
+    coord_t min_d = scaled(dist);
+    auto count = unsigned(m_selected.size());
+    arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
+    
     try {
-        arr::BedShapeHint hint;
-
-        // TODO: from Sasha from GUI or
-        hint.type = arr::BedShapeType::WHO_KNOWS;
-
-        arr::arrange(model,
-                     wti,
-                     min_obj_distance,
-                     bed,
-                     hint,
-                     false, // create many piles not just one pile
-                     [this](unsigned st) {
-                         if (st > 0)
-                             update_status(count - int(st), arrangestr);
-                     },
-                     [this]() { return was_canceled(); });
+        arrangement::arrange(m_selected, m_unselected, min_d, bedshape,
+                             [this, count](unsigned st) {
+                                 if (st >
+                                     0) // will not finalize after last one
+                                     update_status(count - st, arrangestr);
+                             },
+                             [this]() { return was_canceled(); });
     } catch (std::exception & /*e*/) {
         GUI::show_error(plater().q,
-                        L("Could not arrange model objects! "
-                          "Some geometries may be invalid."));
+                        _(L("Could not arrange model objects! "
+                            "Some geometries may be invalid.")));
     }
-
-    update_status(count,
+    
+    // finalize just here.
+    update_status(int(count),
                   was_canceled() ? _(L("Arranging canceled."))
                                  : _(L("Arranging done.")));
-
-    // it remains to move the wipe tower:
-    view3D->get_canvas3d()->arrange_wipe_tower(wti);
 }
 
-void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
+void Plater::priv::RotoptimizeJob::process()
 {
     int obj_idx = plater().get_selected_object_idx();
     if (obj_idx < 0) { return; }
@@ -2569,15 +2724,6 @@ void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
         },
         [this]() { return was_canceled(); });
 
-    const auto *bed_shape_opt =
-        plater().config->opt<ConfigOptionPoints>("bed_shape");
-    
-    assert(bed_shape_opt);
-
-    auto &   bedpoints = bed_shape_opt->values;
-    Polyline bed;
-    bed.points.reserve(bedpoints.size());
-    for (auto &v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
     double mindist = 6.0; // FIXME
     
@@ -2598,14 +2744,9 @@ void Plater::priv::ExclusiveJobGroup::RotoptimizeJob::process()
             
             oi->set_rotation(rt);
         }
-    
-        arr::WipeTowerInfo wti; // useless in SLA context
-        arr::find_new_position(plater().model,
-                               o->instances,
-                               coord_t(mindist / SCALING_FACTOR),
-                               bed,
-                               wti);
-    
+        
+        plater().find_new_position(o->instances, scaled(mindist));
+
         // Correct the z offset of the object which was corrupted be
         // the rotation
         o->ensure_on_bed();
@@ -3494,7 +3635,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom
 
 bool Plater::priv::can_delete() const
 {
-    return !get_selection().is_empty() && !get_selection().is_wipe_tower();
+    return !get_selection().is_empty() && !get_selection().is_wipe_tower() && !m_ui_jobs.is_any_running();
 }
 
 bool Plater::priv::can_delete_all() const
