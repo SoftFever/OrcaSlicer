@@ -39,6 +39,20 @@ public:
 
         std::vector<Placer> placers;
         placers.reserve(last-first);
+        
+        std::for_each(first, last, [this](Item& itm) {
+            if(itm.isFixed()) {
+                if (itm.binId() < 0) itm.binId(0);
+                auto binidx = size_t(itm.binId());
+                
+                while(packed_bins_.size() <= binidx)
+                    packed_bins_.emplace_back();
+                
+                packed_bins_[binidx].emplace_back(itm);
+            } else {
+                store_.emplace_back(itm);
+            }
+        });
 
         // If the packed_items array is not empty we have to create as many
         // placers as there are elements in packed bins and preload each item
@@ -48,11 +62,10 @@ public:
             placers.back().configure(pconfig);
             placers.back().preload(ig);
         }
-
-        std::copy(first, last, std::back_inserter(store_));
-
+        
         auto sortfunc = [](Item& i1, Item& i2) {
-            return i1.area() > i2.area();
+            int p1 = i1.priority(), p2 = i2.priority();
+            return p1 == p2 ? i1.area() > i2.area() : p1 > p2;
         };
 
         std::sort(store_.begin(), store_.end(), sortfunc);
@@ -76,7 +89,6 @@ public:
             }
         }
 
-
         auto it = store_.begin();
 
         while(it != store_.end() && !cancelled()) {
@@ -84,8 +96,10 @@ public:
             size_t j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
-                    if((was_packed = placers[j].pack(*it, rem(it, store_) )))
-                            makeProgress(placers[j], j);
+                    if((was_packed = placers[j].pack(*it, rem(it, store_) ))) {
+                        it->get().binId(int(j));
+                        makeProgress(placers[j], j);
+                    }
                 }
 
                 if(!was_packed) {

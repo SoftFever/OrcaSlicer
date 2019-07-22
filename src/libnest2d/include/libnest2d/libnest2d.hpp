@@ -12,6 +12,8 @@
 
 namespace libnest2d {
 
+static const constexpr int BIN_ID_UNSET = -1;
+
 /**
  * \brief An item to be placed on a bin.
  *
@@ -34,22 +36,22 @@ class _Item {
     RawShape sh_;
 
     // Transformation data
-    Vertex translation_;
-    Radians rotation_;
-    Coord offset_distance_;
+    Vertex translation_{0, 0};
+    Radians rotation_{0.0};
+    Coord inflation_{0};
 
     // Info about whether the transformations will have to take place
     // This is needed because if floating point is used, it is hard to say
     // that a zero angle is not a rotation because of testing for equality.
-    bool has_rotation_ = false, has_translation_ = false, has_offset_ = false;
+    bool has_rotation_ = false, has_translation_ = false, has_inflation_ = false;
 
     // For caching the calculations as they can get pretty expensive.
     mutable RawShape tr_cache_;
     mutable bool tr_cache_valid_ = false;
     mutable double area_cache_ = 0;
     mutable bool area_cache_valid_ = false;
-    mutable RawShape offset_cache_;
-    mutable bool offset_cache_valid_ = false;
+    mutable RawShape inflate_cache_;
+    mutable bool inflate_cache_valid_ = false;
 
     enum class Convexity: char {
         UNCHECKED,
@@ -65,6 +67,9 @@ class _Item {
         Box bb; bool valid;
         BBCache(): valid(false) {}
     } bb_cache_;
+    
+    int binid_{BIN_ID_UNSET}, priority_{0};
+    bool fixed_{false};
 
 public:
 
@@ -121,8 +126,16 @@ public:
 
     inline _Item(TContour<RawShape>&& contour,
                  THolesContainer<RawShape>&& holes):
-        sh_(sl::create<RawShape>(std::move(contour),
-                                        std::move(holes))) {}
+        sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
+    
+    inline bool isFixed() const noexcept { return fixed_; }
+    inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
+    
+    inline void binId(int idx) { binid_ = idx; }
+    inline int binId() const noexcept { return binid_; }
+    
+    inline void priority(int p) { priority_ = p; }
+    inline int priority() const noexcept { return priority_; }
 
     /**
      * @brief Convert the polygon to string representation. The format depends
@@ -200,7 +213,7 @@ public:
         double ret ;
         if(area_cache_valid_) ret = area_cache_;
         else {
-            ret = sl::area(offsettedShape());
+            ret = sl::area(infaltedShape());
             area_cache_ = ret;
             area_cache_valid_ = true;
         }
@@ -271,17 +284,21 @@ public:
     {
         rotation(rotation() + rads);
     }
-
-    inline void addOffset(Coord distance) BP2D_NOEXCEPT
+    
+    inline void inflation(Coord distance) BP2D_NOEXCEPT
     {
-        offset_distance_ = distance;
-        has_offset_ = true;
+        inflation_ = distance;
+        has_inflation_ = true;
         invalidateCache();
     }
-
-    inline void removeOffset() BP2D_NOEXCEPT {
-        has_offset_ = false;
-        invalidateCache();
+    
+    inline Coord inflation() const BP2D_NOEXCEPT {
+        return inflation_;
+    }
+    
+    inline void inflate(Coord distance) BP2D_NOEXCEPT
+    {
+        inflation(inflation() + distance);
     }
 
     inline Radians rotation() const BP2D_NOEXCEPT
@@ -315,7 +332,7 @@ public:
     {
         if(tr_cache_valid_) return tr_cache_;
 
-        RawShape cpy = offsettedShape();
+        RawShape cpy = infaltedShape();
         if(has_rotation_) sl::rotate(cpy, rotation_);
         if(has_translation_) sl::translate(cpy, translation_);
         tr_cache_ = cpy; tr_cache_valid_ = true;
@@ -336,17 +353,17 @@ public:
 
     inline void resetTransformation() BP2D_NOEXCEPT
     {
-        has_translation_ = false; has_rotation_ = false; has_offset_ = false;
+        has_translation_ = false; has_rotation_ = false; has_inflation_ = false;
         invalidateCache();
     }
 
     inline Box boundingBox() const {
         if(!bb_cache_.valid) {
             if(!has_rotation_)
-                bb_cache_.bb = sl::boundingBox(offsettedShape());
+                bb_cache_.bb = sl::boundingBox(infaltedShape());
             else {
                 // TODO make sure this works
-                auto rotsh = offsettedShape();
+                auto rotsh = infaltedShape();
                 sl::rotate(rotsh, rotation_);
                 bb_cache_.bb = sl::boundingBox(rotsh);
             }
@@ -395,14 +412,14 @@ public:
 
 private:
 
-    inline const RawShape& offsettedShape() const {
-        if(has_offset_ ) {
-            if(offset_cache_valid_) return offset_cache_;
+    inline const RawShape& infaltedShape() const {
+        if(has_inflation_ ) {
+            if(inflate_cache_valid_) return inflate_cache_;
 
-            offset_cache_ = sh_;
-            sl::offset(offset_cache_, offset_distance_);
-            offset_cache_valid_ = true;
-            return offset_cache_;
+            inflate_cache_ = sh_;
+            sl::offset(inflate_cache_, inflation_);
+            inflate_cache_valid_ = true;
+            return inflate_cache_;
         }
         return sh_;
     }
@@ -412,7 +429,7 @@ private:
         tr_cache_valid_ = false;
         lmb_valid_ = false; rmt_valid_ = false;
         area_cache_valid_ = false;
-        offset_cache_valid_ = false;
+        inflate_cache_valid_ = false;
         bb_cache_.valid = false;
         convexity_ = Convexity::UNCHECKED;
     }
@@ -491,24 +508,6 @@ template<class RawShape> using _ItemGroup = std::vector<_ItemRef<RawShape>>;
  */
 template<class RawShape>
 using _PackGroup = std::vector<std::vector<_ItemRef<RawShape>>>;
-
-/**
- * \brief A list of packed (index, item) pair vectors. Each vector represents a
- * bin.
- *
- * The index is points to the position of the item in the original input
- * sequence. This way the caller can use the items as a transformation data
- * carrier and transform the original objects manually.
- */
-template<class RawShape>
-using _IndexedPackGroup = std::vector<
-                               std::vector<
-                                   std::pair<
-                                       unsigned,
-                                       _ItemRef<RawShape>
-                                   >
-                               >
-                          >;
 
 template<class Iterator>
 struct ConstItemRange {
@@ -738,54 +737,45 @@ public:
         return impl_.getResult();
     }
 
-    /**
-     * @brief Loading a group of already packed bins. It is best to use a result
-     * from a previous packing. The algorithm will consider this input as if the
-     * objects are already packed and not move them. If any of these items are
-     * outside the bin, it is up to the placer algorithm what will happen.
-     * Packing additional items can fail for the bottom-left and nfp placers.
-     * @param pckgrp A packgroup which is a vector of item vectors. Each item
-     * vector corresponds to a packed bin.
-     */
-    inline void preload(const PackGroup& pckgrp) { impl_.preload(pckgrp); }
-
     void clear() { impl_.clear(); }
 };
 
 /**
- * The Arranger is the front-end class for the libnest2d library. It takes the
- * input items and outputs the items with the proper transformations to be
- * inside the provided bin.
+ * The _Nester is the front-end class for the libnest2d library. It takes the
+ * input items and changes their transformations to be inside the provided bin.
  */
 template<class PlacementStrategy, class SelectionStrategy >
-class Nester {
+class _Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
 public:
     using Item = typename PlacementStrategy::Item;
+    using ShapeType = typename Item::ShapeType;
     using ItemRef = std::reference_wrapper<Item>;
     using TPlacer = PlacementStrategyLike<PlacementStrategy>;
     using BinType = typename TPlacer::BinType;
     using PlacementConfig = typename TPlacer::Config;
     using SelectionConfig = typename TSel::Config;
-
-    using Unit = TCoord<TPoint<typename Item::ShapeType>>;
-
-    using IndexedPackGroup = _IndexedPackGroup<typename Item::ShapeType>;
+    using Coord = TCoord<TPoint<typename Item::ShapeType>>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
     using ResultType = PackGroup;
-    using ResultTypeIndexed = IndexedPackGroup;
 
 private:
     BinType bin_;
     PlacementConfig pconfig_;
-    Unit min_obj_distance_;
+    Coord min_obj_distance_;
 
     using SItem =  typename SelectionStrategy::Item;
     using TPItem = remove_cvref_t<Item>;
     using TSItem = remove_cvref_t<SItem>;
 
-    std::vector<TPItem> item_cache_;
+    StopCondition stopfn_;
+
+    template<class It> using TVal = remove_ref_t<typename It::value_type>;
+    
+    template<class It, class Out>
+    using ItemIteratorOnly =
+        enable_if_t<std::is_convertible<TVal<It>&, TPItem&>::value, Out>;
 
 public:
 
@@ -798,10 +788,8 @@ public:
     template<class TBinType = BinType,
              class PConf = PlacementConfig,
              class SConf = SelectionConfig>
-    Nester( TBinType&& bin,
-              Unit min_obj_distance = 0,
-              const PConf& pconfig = PConf(),
-              const SConf& sconfig = SConf()):
+    _Nester(TBinType&& bin, Coord min_obj_distance = 0,
+            const PConf& pconfig = PConf(), const SConf& sconfig = SConf()):
         bin_(std::forward<TBinType>(bin)),
         pconfig_(pconfig),
         min_obj_distance_(min_obj_distance)
@@ -814,181 +802,58 @@ public:
 
     void configure(const PlacementConfig& pconf) { pconfig_ = pconf; }
     void configure(const SelectionConfig& sconf) { selector_.configure(sconf); }
-    void configure(const PlacementConfig& pconf, const SelectionConfig& sconf) {
+    void configure(const PlacementConfig& pconf, const SelectionConfig& sconf)
+    {
         pconfig_ = pconf;
         selector_.configure(sconf);
     }
-    void configure(const SelectionConfig& sconf, const PlacementConfig& pconf) {
+    void configure(const SelectionConfig& sconf, const PlacementConfig& pconf)
+    {
         pconfig_ = pconf;
         selector_.configure(sconf);
     }
 
     /**
-     * \brief Arrange an input sequence and return a PackGroup object with
-     * the packed groups corresponding to the bins.
+     * \brief Arrange an input sequence of _Item-s.
+     *
+     * To get the result, call the translation(), rotation() and binId()
+     * methods of each item. If only the transformed polygon is needed, call
+     * transformedShape() to get the properly transformed shapes.
      *
      * The number of groups in the pack group is the number of bins opened by
      * the selection algorithm.
      */
-    template<class TIterator>
-    inline PackGroup execute(TIterator from, TIterator to)
+    template<class It>
+    inline ItemIteratorOnly<It, void> execute(It from, It to)
     {
-        return _execute(from, to);
-    }
-
-    /**
-     * A version of the arrange method returning an IndexedPackGroup with
-     * the item indexes into the original input sequence.
-     *
-     * Takes a little longer to collect the indices. Scales linearly with the
-     * input sequence size.
-     */
-    template<class TIterator>
-    inline IndexedPackGroup executeIndexed(TIterator from, TIterator to)
-    {
-        return _executeIndexed(from, to);
-    }
-
-    /// Shorthand to normal arrange method.
-    template<class TIterator>
-    inline PackGroup operator() (TIterator from, TIterator to)
-    {
-        return _execute(from, to);
+        auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
+        if(infl > 0) std::for_each(from, to, [this, infl](Item& item) {
+            item.inflate(infl);
+        });
+        
+        selector_.template packItems<PlacementStrategy>(
+            from, to, bin_, pconfig_);
+        
+        if(min_obj_distance_ > 0) std::for_each(from, to, [infl](Item& item) {
+            item.inflate(-infl);
+        });
     }
 
     /// Set a progress indicator function object for the selector.
-    inline Nester& progressIndicator(ProgressFunction func)
+    inline _Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
     }
 
     /// Set a predicate to tell when to abort nesting.
-    inline Nester& stopCondition(StopCondition fn)
+    inline _Nester& stopCondition(StopCondition fn)
     {
-        selector_.stopCondition(fn); return *this;
+        stopfn_ = fn; selector_.stopCondition(fn); return *this;
     }
 
     inline const PackGroup& lastResult() const
     {
         return selector_.getResult();
-    }
-
-    inline void preload(const PackGroup& pgrp)
-    {
-        selector_.preload(pgrp);
-    }
-
-    inline void preload(const IndexedPackGroup& ipgrp)
-    {
-        PackGroup pgrp; pgrp.reserve(ipgrp.size());
-        for(auto& ig : ipgrp) {
-            pgrp.emplace_back(); pgrp.back().reserve(ig.size());
-            for(auto& r : ig) pgrp.back().emplace_back(r.second);
-        }
-        preload(pgrp);
-    }
-
-private:
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-
-             // This function will be used only if the iterators are pointing to
-             // a type compatible with the libnets2d::_Item template.
-             // This way we can use references to input elements as they will
-             // have to exist for the lifetime of this call.
-             class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline const PackGroup& _execute(TIterator from, TIterator to, bool = false)
-    {
-        __execute(from, to);
-        return lastResult();
-    }
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-             class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline const PackGroup& _execute(TIterator from, TIterator to, int = false)
-    {
-        item_cache_ = {from, to};
-
-        __execute(item_cache_.begin(), item_cache_.end());
-        return lastResult();
-    }
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-
-             // This function will be used only if the iterators are pointing to
-             // a type compatible with the libnest2d::_Item template.
-             // This way we can use references to input elements as they will
-             // have to exist for the lifetime of this call.
-             class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline IndexedPackGroup _executeIndexed(TIterator from,
-                                            TIterator to,
-                                            bool = false)
-    {
-        __execute(from, to);
-        return createIndexedPackGroup(from, to, selector_);
-    }
-
-    template<class TIterator,
-             class IT = remove_cvref_t<typename TIterator::value_type>,
-             class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
-             >
-    inline IndexedPackGroup _executeIndexed(TIterator from,
-                                            TIterator to,
-                                            int = false)
-    {
-        item_cache_ = {from, to};
-        __execute(item_cache_.begin(), item_cache_.end());
-        return createIndexedPackGroup(from, to, selector_);
-    }
-
-    template<class TIterator>
-    static IndexedPackGroup createIndexedPackGroup(TIterator from,
-                                                   TIterator to,
-                                                   TSel& selector)
-    {
-        IndexedPackGroup pg;
-        pg.reserve(selector.getResult().size());
-
-        const PackGroup& pckgrp = selector.getResult();
-
-        for(size_t i = 0; i < pckgrp.size(); i++) {
-            auto items = pckgrp[i];
-            pg.emplace_back();
-            pg[i].reserve(items.size());
-
-            for(Item& itemA : items) {
-                auto it = from;
-                unsigned idx = 0;
-                while(it != to) {
-                    Item& itemB = *it;
-                    if(&itemB == &itemA) break;
-                    it++; idx++;
-                }
-                pg[i].emplace_back(idx, itemA);
-            }
-        }
-
-        return pg;
-    }
-
-    template<class TIter> inline void __execute(TIter from, TIter to)
-    {
-        if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
-            item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
-        });
-
-        selector_.template packItems<PlacementStrategy>(
-                    from, to, bin_, pconfig_);
-
-        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
-            item.removeOffset();
-        });
     }
 };
 

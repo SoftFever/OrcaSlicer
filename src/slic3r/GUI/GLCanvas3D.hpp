@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <memory>
 
-#include "libslic3r/ModelArrange.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -626,9 +625,28 @@ public:
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
-
-    arr::WipeTowerInfo get_wipe_tower_info() const;
-    void arrange_wipe_tower(const arr::WipeTowerInfo& wti) const;
+    
+    class WipeTowerInfo {
+    protected:
+        Vec2d m_pos = {std::nan(""), std::nan("")};
+        Vec2d m_bb_size = {0., 0.};
+        double m_rotation = 0.;
+        friend class GLCanvas3D;
+    public:
+        
+        inline operator bool() const
+        {
+            return !std::isnan(m_pos.x()) && !std::isnan(m_pos.y());
+        }
+        
+        inline const Vec2d& pos() const { return m_pos; }
+        inline double rotation() const { return m_rotation; }
+        inline const Vec2d bb_size() const { return m_bb_size; }
+        
+        void apply_wipe_tower() const;
+    };
+    
+    WipeTowerInfo get_wipe_tower_info() const;
 
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
