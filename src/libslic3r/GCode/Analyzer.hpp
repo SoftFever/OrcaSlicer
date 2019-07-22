@@ -96,7 +96,7 @@ private:
         EPositioningType e_local_positioning_type;
         Metadata data;
         Vec3d start_position = Vec3d::Zero();
-        float cached_position[5]{ FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
+        float cached_position[5];
         float start_extrusion;
         float position[Num_Axis];
         unsigned int cur_cp_color_id = 0;
