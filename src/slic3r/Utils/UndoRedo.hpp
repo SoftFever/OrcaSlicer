@@ -28,10 +28,12 @@ namespace UndoRedo {
 // which may be handy sometimes.
 struct SnapshotData
 {
-	PrinterTechnology 	printer_technology = ptUnknown;
-	// Bitmap of Flags (see the Flags enum).
-	unsigned int        flags = 0;
+	// Constructor is defined in .cpp due to the forward declaration of enum PrinterTechnology.
+	SnapshotData();
 
+	PrinterTechnology 	printer_technology;
+	// Bitmap of Flags (see the Flags enum).
+	unsigned int        flags;
 
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {

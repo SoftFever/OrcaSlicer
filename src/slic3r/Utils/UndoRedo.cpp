@@ -35,6 +35,10 @@
 namespace Slic3r {
 namespace UndoRedo {
 
+SnapshotData::SnapshotData() : printer_technology(ptUnknown), flags(0)
+{
+}
+
 static std::string topmost_snapshot_name = "@@@ Topmost @@@";
 
 bool Snapshot::is_topmost() const
