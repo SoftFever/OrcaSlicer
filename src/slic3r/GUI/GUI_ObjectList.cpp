@@ -487,13 +487,15 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 {
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
+    const int volume_id = m_objects_model->GetVolumeIdByItem(item);
 
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+    take_snapshot(wxString::Format(_(L("Rename %s")), volume_id < 0 ? _(L("Object")) : _(L("Sub-object"))));
+
+    if (m_objects_model->GetItemType(item) & itObject) {
         (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToUTF8().data();
         return;
     }
 
-    const int volume_id = m_objects_model->GetVolumeIdByItem(item);
     if (volume_id < 0) return;
     (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
 }
@@ -925,7 +927,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
     if (m_dragged_data.type() == itInstance)
     {
-        take_snapshot(_(L("Instances to Separated Objects")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(),_(L("Instances to Separated Objects")));
         instances_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.inst_idxs());
         m_dragged_data.clear();
         return;
@@ -943,7 +945,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 //     if (to_volume_id > from_volume_id) to_volume_id--;
 // #endif // __WXGTK__
 
-    take_snapshot(_(L("Remov Volume(s)")));
+    take_snapshot(_(L("Remove Volume(s)")));
 
     auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
@@ -3055,7 +3057,7 @@ void ObjectList::change_part_type()
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
 
-    take_snapshot(_(L("Paste from Clipboard")));
+    take_snapshot(_(L("Change Part Type")));
 
     const auto item = GetSelection();
     volume->set_type(new_type);
@@ -3293,6 +3295,8 @@ void ObjectList::split_instances()
     const int obj_idx = selection.get_object_idx();
     if (obj_idx == -1)
         return;
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Instances to Separated Objects")));
 
     if (selection.is_single_full_object())
     {
