@@ -879,6 +879,60 @@ void GLGizmosManager::reset()
     m_gizmos.clear();
 }
 
+void GLGizmosManager::render_background(float left, float top, float right, float bottom, float border) const
+{
+    unsigned int tex_id = m_background_texture.texture.get_id();
+    float tex_width = (float)m_background_texture.texture.get_width();
+    float tex_height = (float)m_background_texture.texture.get_height();
+    if ((tex_id != 0) && (tex_width > 0) && (tex_height > 0))
+    {
+        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+
+        float internal_left = left + border;
+        float internal_right = right - border;
+        float internal_top = top - border;
+        float internal_bottom = bottom + border;
+
+        float left_uv = 0.0f;
+        float right_uv = 1.0f;
+        float top_uv = 1.0f;
+        float bottom_uv = 0.0f;
+
+        float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
+        float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
+        float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
+        float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
+
+        // top-left corner
+        GLTexture::render_sub_texture(tex_id, left, internal_left, internal_top, top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+
+        // top edge
+        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, internal_top, top, { { internal_left_uv, internal_top_uv }, { internal_right_uv, internal_top_uv }, { internal_right_uv, top_uv }, { internal_left_uv, top_uv } });
+
+        // top-right corner
+        GLTexture::render_sub_texture(tex_id, internal_right, right, internal_top, top, { { internal_right_uv, internal_top_uv }, { right_uv, internal_top_uv }, { right_uv, top_uv }, { internal_right_uv, top_uv } });
+
+        // center-left edge
+        GLTexture::render_sub_texture(tex_id, left, internal_left, internal_bottom, internal_top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+
+        // center
+        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, internal_bottom, internal_top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+
+        // center-right edge
+        GLTexture::render_sub_texture(tex_id, internal_right, right, internal_bottom, internal_top, { { internal_right_uv, internal_bottom_uv }, { right_uv, internal_bottom_uv }, { right_uv, internal_top_uv }, { internal_right_uv, internal_top_uv } });
+
+        // bottom-left corner
+        GLTexture::render_sub_texture(tex_id, left, internal_left, bottom, internal_bottom, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+
+        // bottom edge
+        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, bottom, internal_bottom, { { internal_left_uv, bottom_uv }, { internal_right_uv, bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_left_uv, internal_bottom_uv } });
+
+        // bottom-right corner
+        GLTexture::render_sub_texture(tex_id, internal_right, right, bottom, internal_bottom, { { internal_right_uv, bottom_uv }, { right_uv, bottom_uv }, { right_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv } });
+    }
+}
+
 void GLGizmosManager::do_render_overlay() const
 {
     if (m_gizmos.empty())
@@ -901,71 +955,7 @@ void GLGizmosManager::do_render_overlay() const
     float right = left + width * inv_zoom;
     float bottom = top - height * inv_zoom;
 
-    // renders background
-    unsigned int bg_tex_id = m_background_texture.texture.get_id();
-    float bg_tex_width = (float)m_background_texture.texture.get_width();
-    float bg_tex_height = (float)m_background_texture.texture.get_height();
-    if ((bg_tex_id != 0) && (bg_tex_width > 0) && (bg_tex_height > 0))
-    {
-        float inv_bg_tex_width = (bg_tex_width != 0.0f) ? 1.0f / bg_tex_width : 0.0f;
-        float inv_bg_tex_height = (bg_tex_height != 0.0f) ? 1.0f / bg_tex_height : 0.0f;
-
-        float bg_uv_left = 0.0f;
-        float bg_uv_right = 1.0f;
-        float bg_uv_top = 1.0f;
-        float bg_uv_bottom = 0.0f;
-
-        float bg_left = left;
-        float bg_right = right;
-        float bg_top = top;
-        float bg_bottom = bottom;
-        float bg_width = right - left;
-        float bg_height = top - bottom;
-        float bg_min_size = std::min(bg_width, bg_height);
-
-        float bg_uv_i_left = (float)m_background_texture.metadata.left * inv_bg_tex_width;
-        float bg_uv_i_right = 1.0f - (float)m_background_texture.metadata.right * inv_bg_tex_width;
-        float bg_uv_i_top = 1.0f - (float)m_background_texture.metadata.top * inv_bg_tex_height;
-        float bg_uv_i_bottom = (float)m_background_texture.metadata.bottom * inv_bg_tex_height;
-
-        float bg_i_left = bg_left + scaled_border;
-        float bg_i_right = bg_right - scaled_border;
-        float bg_i_top = bg_top - scaled_border;
-        float bg_i_bottom = bg_bottom + scaled_border;
-
-        bg_uv_left = bg_uv_i_left;
-        bg_i_left = bg_left;
-
-        if ((m_overlay_border > 0) && (bg_uv_top != bg_uv_i_top))
-        {
-            if (bg_uv_left != bg_uv_i_left)
-                GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_i_top, bg_top, { { bg_uv_left, bg_uv_i_top }, { bg_uv_i_left, bg_uv_i_top }, { bg_uv_i_left, bg_uv_top }, { bg_uv_left, bg_uv_top } });
-
-            GLTexture::render_sub_texture(bg_tex_id, bg_i_left, bg_i_right, bg_i_top, bg_top, { { bg_uv_i_left, bg_uv_i_top }, { bg_uv_i_right, bg_uv_i_top }, { bg_uv_i_right, bg_uv_top }, { bg_uv_i_left, bg_uv_top } });
-
-            if (bg_uv_right != bg_uv_i_right)
-                GLTexture::render_sub_texture(bg_tex_id, bg_i_right, bg_right, bg_i_top, bg_top, { { bg_uv_i_right, bg_uv_i_top }, { bg_uv_right, bg_uv_i_top }, { bg_uv_right, bg_uv_top }, { bg_uv_i_right, bg_uv_top } });
-        }
-
-        if ((m_overlay_border > 0) && (bg_uv_left != bg_uv_i_left))
-            GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_i_bottom, bg_i_top, { { bg_uv_left, bg_uv_i_bottom }, { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_i_left, bg_uv_i_top }, { bg_uv_left, bg_uv_i_top } });
-
-        GLTexture::render_sub_texture(bg_tex_id, bg_i_left, bg_i_right, bg_i_bottom, bg_i_top, { { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_i_right, bg_uv_i_bottom }, { bg_uv_i_right, bg_uv_i_top }, { bg_uv_i_left, bg_uv_i_top } });
-
-        if ((m_overlay_border > 0) && (bg_uv_right != bg_uv_i_right))
-            GLTexture::render_sub_texture(bg_tex_id, bg_i_right, bg_right, bg_i_bottom, bg_i_top, { { bg_uv_i_right, bg_uv_i_bottom }, { bg_uv_right, bg_uv_i_bottom }, { bg_uv_right, bg_uv_i_top }, { bg_uv_i_right, bg_uv_i_top } });
-
-        if ((m_overlay_border > 0) && (bg_uv_bottom != bg_uv_i_bottom))
-        {
-            if (bg_uv_left != bg_uv_i_left)
-                GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_bottom, bg_i_bottom, { { bg_uv_left, bg_uv_bottom }, { bg_uv_i_left, bg_uv_bottom }, { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_left, bg_uv_i_bottom } });
-
-            GLTexture::render_sub_texture(bg_tex_id, bg_i_left, bg_i_right, bg_bottom, bg_i_bottom, { { bg_uv_i_left, bg_uv_bottom }, { bg_uv_i_right, bg_uv_bottom }, { bg_uv_i_right, bg_uv_i_bottom }, { bg_uv_i_left, bg_uv_i_bottom } });
-
-            if (bg_uv_right != bg_uv_i_right)
-                GLTexture::render_sub_texture(bg_tex_id, bg_i_right, bg_right, bg_bottom, bg_i_bottom, { { bg_uv_i_right, bg_uv_bottom }, { bg_uv_right, bg_uv_bottom }, { bg_uv_right, bg_uv_i_bottom }, { bg_uv_i_right, bg_uv_i_bottom } });
-        }
-    }
+    render_background(left, top, right, bottom, scaled_border);
 
     top_x += scaled_border;
     top_y -= scaled_border;

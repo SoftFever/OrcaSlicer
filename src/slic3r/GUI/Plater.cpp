@@ -3430,7 +3430,8 @@ void Plater::priv::init_view_toolbar()
     if (!view_toolbar.init(background_data))
         return;
 
-    view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
+    view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
+    view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Bottom);
     view_toolbar.set_border(5.0f);
     view_toolbar.set_gap_size(1.0f);
 
@@ -3594,6 +3595,13 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     unsigned int flags = 0;
     if (this->view3D->is_layers_editing_enabled())
     	flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
+    //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
+    // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+    if (this->printer_technology == ptFFF) {
+        const DynamicPrintConfig &config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
+        model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+    }
     this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, flags);
     this->undo_redo_stack.release_least_recently_used();
     // Save the last active preset name of a particular printer technology.
@@ -3640,6 +3648,13 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 	}
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
+    //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
+    // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+    if (this->printer_technology == ptFFF) {
+        const DynamicPrintConfig &config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
+                model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+    }
     // Flags made of Snapshot::Flags enum values.
     unsigned int new_flags = it_snapshot->flags;
 	unsigned int top_snapshot_flags = 0;
@@ -3647,8 +3662,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     	top_snapshot_flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
 	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
 	// Disable layer editing before the Undo / Redo jump.
-    if (! new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
-    	view3D->enable_layers_editing(false);
+    if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
+        view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack.active_snapshot_time() ?
 		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, top_snapshot_flags, it_snapshot->timestamp) :
@@ -3662,11 +3677,27 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         	// This also switches the printer technology based on the printer technology of the active printer profile.
         	wxGetApp().load_current_presets();
         }
-		this->update_after_undo_redo(temp_snapshot_was_taken);
+        //FIXME updating the Print config from the Wipe tower config values at the ModelWipeTower.
+        // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+        if (this->printer_technology == ptFFF) {
+            const DynamicPrintConfig &current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            Vec2d 					  current_position(current_config.opt_float("wipe_tower_x"), current_config.opt_float("wipe_tower_y"));
+            double 					  current_rotation = current_config.opt_float("wipe_tower_rotation_angle");
+            if (current_position != model.wipe_tower.position || current_rotation != model.wipe_tower.rotation) {
+                DynamicPrintConfig new_config;
+                new_config.set_key_value("wipe_tower_x", new ConfigOptionFloat(model.wipe_tower.position.x()));
+                new_config.set_key_value("wipe_tower_y", new ConfigOptionFloat(model.wipe_tower.position.y()));
+                new_config.set_key_value("wipe_tower_rotation_angle", new ConfigOptionFloat(model.wipe_tower.rotation));
+                Tab *tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
+                tab_print->load_config(new_config);
+                tab_print->update_dirty();
+            }
+        }
+        this->update_after_undo_redo(temp_snapshot_was_taken);
 		// Enable layer editing after the Undo / Redo jump.
 		if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
-			view3D->enable_layers_editing(true);
-	}
+            view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+    }
 }
 
 void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
@@ -4276,6 +4307,19 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     }
 
     return false;
+}
+
+void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text)
+{
+    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
+    const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -1 : 0);
+
+    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+        out_text = ss_stack[idx_in_ss_stack].name;
+        return;
+    }
+
+    out_text = L("");
 }
 
 void Plater::on_extruders_change(int num_extruders)

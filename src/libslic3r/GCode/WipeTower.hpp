@@ -139,13 +139,15 @@ public:
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
 
-        std::stringstream stream{m_semm ? ramming_parameters : std::string()};
-        float speed = 0.f;
-        stream >> m_filpar[idx].ramming_line_width_multiplicator >> m_filpar[idx].ramming_step_multiplicator;
-        m_filpar[idx].ramming_line_width_multiplicator /= 100;
-        m_filpar[idx].ramming_step_multiplicator /= 100;
-        while (stream >> speed)
-            m_filpar[idx].ramming_speed.push_back(speed);
+        if (m_semm) {
+            std::stringstream stream{ramming_parameters};
+            float speed = 0.f;
+            stream >> m_filpar[idx].ramming_line_width_multiplicator >> m_filpar[idx].ramming_step_multiplicator;
+            m_filpar[idx].ramming_line_width_multiplicator /= 100;
+            m_filpar[idx].ramming_step_multiplicator /= 100;
+            while (stream >> speed)
+                m_filpar[idx].ramming_speed.push_back(speed);
+        }
 
         m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
 	}
@@ -241,8 +243,8 @@ public:
         int                 cooling_moves = 0;
         float               cooling_initial_speed = 0.f;
         float               cooling_final_speed = 0.f;
-        float               ramming_line_width_multiplicator = 0.f;
-        float               ramming_step_multiplicator = 0.f;
+        float               ramming_line_width_multiplicator = 1.f;
+        float               ramming_step_multiplicator = 1.f;
         float               max_e_speed = std::numeric_limits<float>::max();
         std::vector<float>  ramming_speed;
         float               nozzle_diameter;

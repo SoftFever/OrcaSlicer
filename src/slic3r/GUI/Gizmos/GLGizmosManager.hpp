@@ -187,6 +187,7 @@ public:
 private:
     void reset();
 
+    void render_background(float left, float top, float right, float bottom, float border) const;
     void do_render_overlay() const;
 
     float get_total_overlay_height() const;
