@@ -31,6 +31,12 @@ struct SnapshotData
 	PrinterTechnology 	printer_technology = ptUnknown;
 	// Bitmap of Flags (see the Flags enum).
 	unsigned int        flags = 0;
+
+
+	// Bitmask of various binary flags to be stored with the snapshot.
+	enum Flags {
+		VARIABLE_LAYER_EDITING_ACTIVE = 1,
+	};
 };
 
 struct Snapshot
@@ -38,11 +44,6 @@ struct Snapshot
 	Snapshot(size_t timestamp) : timestamp(timestamp) {}
 	Snapshot(const std::string &name, size_t timestamp, size_t model_id, const SnapshotData &snapshot_data) :
 		name(name), timestamp(timestamp), model_id(model_id), snapshot_data(snapshot_data) {}
-
-	// Bitmask of various binary flags to be stored with the snapshot.
-	enum Flags {
-		VARIABLE_LAYER_EDITING_ACTIVE = 1,
-	};
 	
 	std::string 		name;
 	size_t 				timestamp;

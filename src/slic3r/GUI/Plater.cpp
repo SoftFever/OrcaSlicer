@@ -3728,7 +3728,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
-    	snapshot_data.flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
+    	snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     if (this->printer_technology == ptFFF) {
@@ -3794,8 +3794,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 	UndoRedo::SnapshotData top_snapshot_data;
     top_snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
-    	top_snapshot_data.flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
-	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
+    	top_snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
 	// Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
