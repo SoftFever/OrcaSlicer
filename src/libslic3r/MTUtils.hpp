@@ -1,11 +1,13 @@
 #ifndef MTUTILS_HPP
 #define MTUTILS_HPP
 
-#include <atomic>     // for std::atomic_flag and memory orders
-#include <mutex>      // for std::lock_guard
-#include <functional> // for std::function
-#include <utility>    // for std::forward
+#include <atomic>       // for std::atomic_flag and memory orders
+#include <mutex>        // for std::lock_guard
+#include <functional>   // for std::function
+#include <utility>      // for std::forward
+#include <vector>
 #include <algorithm>
+#include <cmath>
 
 #include "libslic3r.h"
 #include "Point.hpp"
@@ -242,6 +244,58 @@ template<class C> bool all_of(const C &container)
                        });
 }
 
+template<class T> struct remove_cvref
+{
+    using type =
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+};
+
+template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
+
+template<template<class> class C, class T>
+class Container : public C<remove_cvref_t<T>>
+{
+public:
+    explicit Container(size_t count, T &&initval)
+        : C<remove_cvref_t<T>>(count, initval)
+    {}
+};
+
+template<class T> using DefaultContainer = std::vector<T>;
+
+/// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
+template<class T, class I, template<class> class C = DefaultContainer>
+inline C<remove_cvref_t<T>> linspace(const T &start, const T &stop, const I &n)
+{
+    Container<C, T> vals(n, T());
+
+    T      stride = (stop - start) / n;
+    size_t i      = 0;
+    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
+        return start + i++ * stride;
+    });
+
+    return vals;
+}
+
+/// A set of equidistant values starting from 'start' (inclusive), ending
+/// in the closest multiple of 'stride' less than or equal to 'end' and
+/// leaving 'stride' space between each value. 
+/// Very similar to Matlab [start:stride:end] notation.
+template<class T, template<class> class C = DefaultContainer>
+inline C<remove_cvref_t<T>> grid(const T &start, const T &stop, const T &stride)
+{
+    Container<C, T> vals(size_t(std::ceil((stop - start) / stride)), T());
+    
+    int i = 0;
+    std::generate(vals.begin(), vals.end(), [&i, start, stride] {
+        return start + i++ * stride; 
+    });
+     
+    return vals;
+}
+
+
 // A shorter C++14 style form of the enable_if metafunction
 template<bool B, class T>
 using enable_if_t = typename std::enable_if<B, T>::type;
@@ -304,7 +358,7 @@ inline SLIC3R_CONSTEXPR ScaledCoordOnly<Tout> scaled(const Tin &v) SLIC3R_NOEXCE
 template<class Tout = coord_t, class Tin, int N, class = FloatingOnly<Tin>>
 inline EigenVec<ArithmeticOnly<Tout>, N> scaled(const EigenVec<Tin, N> &v)
 {
-    return v.template cast<Tout>() / SCALING_FACTOR;
+    return (v / SCALING_FACTOR).template cast<Tout>();
 }
 
 // Conversion from arithmetic scaled type to floating point unscaled

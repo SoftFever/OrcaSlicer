@@ -361,17 +361,17 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     std::sort(layers_sorted.begin(), layers_sorted.end(), MyLayersPtrCompare());
     int layer_id = 0;
     assert(object.support_layers().empty());
-    for (int i = 0; i < int(layers_sorted.size());) {
+    for (size_t i = 0; i < layers_sorted.size();) {
         // Find the last layer with roughly the same print_z, find the minimum layer height of all.
         // Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
-        int j = i + 1;
+        size_t j = i + 1;
         coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
         for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j) ;
         // Assign an average print_z to the set of layers with nearly equal print_z.
         coordf_t zavg = 0.5 * (layers_sorted[i]->print_z + layers_sorted[j - 1]->print_z);
         coordf_t height_min = layers_sorted[i]->height;
         bool     empty = true;
-        for (int u = i; u < j; ++u) {
+        for (size_t u = i; u < j; ++u) {
             MyLayer &layer = *layers_sorted[u];
             if (! layer.polygons.empty())
                 empty = false;
@@ -829,7 +829,7 @@ namespace SupportMaterialInternal {
         assert(expansion_scaled >= 0.f);
         for (const ExtrusionPath &ep : loop.paths)
             if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty()) {
-                float exp = 0.5f * scale_(ep.width) + expansion_scaled;
+                float exp = 0.5f * (float)scale_(ep.width) + expansion_scaled;
                 if (ep.is_closed()) {
                     if (ep.size() >= 3) {
                         // This is a complete loop.
@@ -1042,7 +1042,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         float fw = float(layerm->flow(frExternalPerimeter).scaled_width());
                         no_interface_offset = (no_interface_offset == 0.f) ? fw : std::min(no_interface_offset, fw);
                         float lower_layer_offset = 
-                            (layer_id < m_object_config->support_material_enforce_layers.value) ? 
+                            (layer_id < (size_t)m_object_config->support_material_enforce_layers.value) ? 
                                 // Enforce a full possible support, ignore the overhang angle.
                                 0.f :
                             (threshold_rad > 0. ? 
@@ -1352,7 +1352,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 		{
 			// Find the span of layers, which are to be printed at the first layer height.
 			int j = 0;
-			for (; j < contact_out.size() && contact_out[j]->print_z < m_slicing_params.first_print_layer_height + this->m_support_layer_height_min - EPSILON; ++ j);
+			for (; j < (int)contact_out.size() && contact_out[j]->print_z < m_slicing_params.first_print_layer_height + this->m_support_layer_height_min - EPSILON; ++ j);
 			if (j > 0) {
 				// Merge the contact_out layers (0) to (j - 1) into the contact_out[0].
 				MyLayer &dst = *contact_out.front();
@@ -1377,7 +1377,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // Find the span of layers closer than m_support_layer_height_min.
             int j = i + 1;
             coordf_t zmax = contact_out[i]->print_z + m_support_layer_height_min + EPSILON;
-            for (; j < contact_out.size() && contact_out[j]->print_z < zmax; ++ j) ;
+            for (; j < (int)contact_out.size() && contact_out[j]->print_z < zmax; ++ j) ;
             if (i + 1 < j) {
                 // Merge the contact_out layers (i + 1) to (j - 1) into the contact_out[i].
                 MyLayer &dst = *contact_out[i];
@@ -1395,7 +1395,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 contact_out[k] = contact_out[i];
             i = j;
         }
-        if (k < contact_out.size())
+        if (k < (int)contact_out.size())
             contact_out.erase(contact_out.begin() + k, contact_out.end());
     }
 
@@ -2214,7 +2214,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
         // Expand the bases of the support columns in the 1st layer.
         columns_base->polygons = diff(
             offset(columns_base->polygons, inflate_factor_1st_layer),
-            offset(m_object->layers().front()->slices.expolygons, scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+            offset(m_object->layers().front()->slices.expolygons, (float)scale_(m_gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS));
         if (contacts != nullptr)
             columns_base->polygons = diff(columns_base->polygons, interface_polygons);
     }
@@ -2566,11 +2566,11 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
     {
         // make more loops
         Polygons loop_polygons = loops0;
-        for (size_t i = 1; i < n_contact_loops; ++ i)
+        for (int i = 1; i < n_contact_loops; ++ i)
             polygons_append(loop_polygons, 
                 offset2(
                     loops0, 
-                    - int(i) * flow.scaled_spacing() - 0.5f * flow.scaled_spacing(), 
+                    - i * flow.scaled_spacing() - 0.5f * flow.scaled_spacing(), 
                     0.5f * flow.scaled_spacing()));
         // Clip such loops to the side oriented towards the object.
         // Collect split points, so they will be recognized after the clipping.
@@ -3226,7 +3226,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     // TODO: use brim ordering algorithm
                     Polygons to_infill_polygons = to_polygons(to_infill);
                     // TODO: use offset2_ex()
-                    to_infill = offset_ex(to_infill, - 0.4 * float(flow.scaled_spacing()));
+                    to_infill = offset_ex(to_infill, - 0.4f * float(flow.scaled_spacing()));
                     extrusion_entities_append_paths(
                         base_layer.extrusions, 
                         to_polylines(std::move(to_infill_polygons)),

@@ -67,6 +67,12 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;
+    // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
+    size_t memsize() const;
+    // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
+    size_t release_optional();
+	// Restore optional data possibly released by release_optional().
+	void restore_optional();
 
     stl_file stl;
     indexed_triangle_set its;
@@ -193,6 +199,26 @@ TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
 
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 
+}
+
+// Serialization through the Cereal library
+#include <cereal/access.hpp>
+namespace cereal {
+	template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
+	template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
+        stl_file &stl = mesh.stl;
+        stl.stats.type = inmemory;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+        stl_allocate(&stl);
+		archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+        stl_get_size(&stl);
+        mesh.repair();
+	}
+	template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
+		const stl_file& stl = mesh.stl;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+		archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+	}
 }
 
 #endif

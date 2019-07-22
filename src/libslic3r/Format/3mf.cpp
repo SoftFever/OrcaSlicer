@@ -11,9 +11,15 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/foreach.hpp>
+namespace pt = boost::property_tree;
 
 #include <expat.h>
 #include <Eigen/Dense>
@@ -33,6 +39,7 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
+const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 
 const char* MODEL_TAG = "model";
@@ -331,6 +338,7 @@ namespace Slic3r {
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
         typedef std::map<int, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
+        typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
 
         // Version of the 3mf file
@@ -347,6 +355,7 @@ namespace Slic3r {
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
+        IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
@@ -365,6 +374,7 @@ namespace Slic3r {
         bool _load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
@@ -476,6 +486,7 @@ namespace Slic3r {
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
         m_layer_heights_profiles.clear();
+        m_layer_config_ranges.clear();
         m_sla_support_points.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
@@ -546,8 +557,13 @@ namespace Slic3r {
 
                 if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE))
                 {
-                    // extract slic3r lazer heights profile file
+                    // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
+                }
+                if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE))
+                {
+                    // extract slic3r layer config ranges file
+                    _extract_layer_config_ranges_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, SLA_SUPPORT_POINTS_FILE))
                 {
@@ -591,6 +607,11 @@ namespace Slic3r {
             IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
                 model_object->layer_height_profile = obj_layer_heights_profile->second;
+
+            // m_layer_config_ranges are indexed by a 1 based model object index.
+            IdToLayerConfigRangesMap::iterator obj_layer_config_ranges = m_layer_config_ranges.find(object.second + 1);
+            if (obj_layer_config_ranges != m_layer_config_ranges.end())
+                model_object->layer_config_ranges = obj_layer_config_ranges->second;
 
             // m_sla_support_points are indexed by a 1 based model object index.
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.second + 1);
@@ -675,7 +696,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -765,6 +786,66 @@ namespace Slic3r {
                 }
 
                 m_layer_heights_profiles.insert(IdToLayerHeightsProfileMap::value_type(object_id, profile));
+            }
+        }
+    }
+
+    void _3MF_Importer::_extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading layer config ranges data to buffer");
+                return;
+            }
+
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree objects_tree;
+            pt::read_xml(iss, objects_tree);
+
+            for (const auto& object : objects_tree.get_child("objects"))
+            {
+                pt::ptree object_tree = object.second;
+                int obj_idx = object_tree.get<int>("<xmlattr>.id", -1);
+                if (obj_idx <= 0) {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+
+                IdToLayerConfigRangesMap::iterator object_item = m_layer_config_ranges.find(obj_idx);
+                if (object_item != m_layer_config_ranges.end()) {
+                    add_error("Found duplicated layer config range");
+                    continue;
+                }
+
+                t_layer_config_ranges config_ranges;
+
+                for (const auto& range : object_tree)
+                {
+                    if (range.first != "range")
+                        continue;
+                    pt::ptree range_tree = range.second;
+                    double min_z = range_tree.get<double>("<xmlattr>.min_z");
+                    double max_z = range_tree.get<double>("<xmlattr>.max_z");
+
+                    // get Z range information
+                    DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
+
+                    for (const auto& option : range_tree)
+                    {
+                        if (option.first != "option")
+                            continue;
+                        std::string opt_key = option.second.get<std::string>("<xmlattr>.opt_key");
+                        std::string value = option.second.data();
+
+                        config.set_deserialize(opt_key, value);
+                    }
+                }
+
+                if (!config_ranges.empty())
+                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, config_ranges));
             }
         }
     }
@@ -895,7 +976,7 @@ namespace Slic3r {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -1452,7 +1533,7 @@ namespace Slic3r {
             object->second.metadata.emplace_back(key, value);
         else if (type == VOLUME_TYPE)
         {
-            if (m_curr_config.volume_id < object->second.volumes.size())
+            if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
                 object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
         }
         else
@@ -1624,6 +1705,7 @@ namespace Slic3r {
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
@@ -1678,6 +1760,16 @@ namespace Slic3r {
         // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_height_profile_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
+        // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
+        // The index differes from the index of an object ID of an object instance of a 3MF file!
+        if (!_add_layer_config_ranges_file_to_archive(archive, model))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -1895,7 +1987,7 @@ namespace Slic3r {
                 return false;
             }
 
-            vertices_count += its.vertices.size();
+            vertices_count += (int)its.vertices.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
@@ -1925,7 +2017,7 @@ namespace Slic3r {
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += its.indices.size();
+            triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
             for (size_t i = 0; i < its.indices.size(); ++ i)
@@ -2013,6 +2105,70 @@ namespace Slic3r {
         return true;
     }
 
+    bool _3MF_Exporter::_add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        std::string out = "";
+        pt::ptree tree;
+
+        unsigned int object_cnt = 0;
+        for (const ModelObject* object : model.objects)
+        {
+            object_cnt++;
+            const t_layer_config_ranges& ranges = object->layer_config_ranges;
+            if (!ranges.empty())
+            {
+                pt::ptree& obj_tree = tree.add("objects.object","");
+
+                obj_tree.put("<xmlattr>.id", object_cnt);
+
+                // Store the layer config ranges.
+                for (const auto& range : ranges)
+                {
+                    pt::ptree& range_tree = obj_tree.add("range", "");
+
+                    // store minX and maxZ
+                    range_tree.put("<xmlattr>.min_z", range.first.first);
+                    range_tree.put("<xmlattr>.max_z", range.first.second);
+
+                    // store range configuration
+                    const DynamicPrintConfig& config = range.second;
+                    for (const std::string& opt_key : config.keys())
+                    {
+                        pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
+                        opt_tree.put("<xmlattr>.opt_key", opt_key);
+                    }
+                }
+            }
+        }
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            boost::property_tree::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string for a better preview
+            boost::replace_all(out, "><object",      ">\n <object");
+            boost::replace_all(out, "><range",       ">\n  <range");
+            boost::replace_all(out, "><option",      ">\n   <option");
+            boost::replace_all(out, "></range>",     ">\n  </range>");
+            boost::replace_all(out, "></object>",    ">\n </object>");
+            // OR just 
+            boost::replace_all(out, "><",            ">\n<"); 
+        }
+
+        if (!out.empty())
+        {
+            if (!mz_zip_writer_add_mem(&archive, LAYER_CONFIG_RANGES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+            {
+                add_error("Unable to add layer heights profile file to archive");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool _3MF_Exporter::_add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         std::string out = "";
@@ -2060,7 +2216,7 @@ namespace Slic3r {
 
         for (const std::string &key : config.keys())
             if (key != "compatible_printers")
-                out += "; " + key + " = " + config.serialize(key) + "\n";
+                out += "; " + key + " = " + config.opt_serialize(key) + "\n";
 
         if (!out.empty())
         {
@@ -2094,7 +2250,7 @@ namespace Slic3r {
                 // stores object's config data
                 for (const std::string& key : obj->config.keys())
                 {
-                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.serialize(key) << "\"/>\n";
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
 
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes)
@@ -2124,7 +2280,7 @@ namespace Slic3r {
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())
                             {
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.serialize(key) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
                             stream << "  </" << VOLUME_TAG << ">\n";

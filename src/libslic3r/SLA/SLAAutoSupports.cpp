@@ -59,8 +59,6 @@ SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3
 void SLAAutoSupports::project_onto_mesh(std::vector<sla::SupportPoint>& points) const
 {
     // The function  makes sure that all the points are really exactly placed on the mesh.
-    igl::Hit hit_up{0, 0, 0.f, 0.f, 0.f};
-    igl::Hit hit_down{0, 0, 0.f, 0.f, 0.f};
 
     // Use a reasonable granularity to account for the worker thread synchronization cost.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, points.size(), 64),
@@ -140,7 +138,6 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
 			SLAAutoSupports::MyLayer &layer_above = layers[layer_id];
 			SLAAutoSupports::MyLayer &layer_below = layers[layer_id - 1];
             //FIXME WTF?
-            const float height = (layer_id>2 ? heights[layer_id-3] : heights[0]-(heights[1]-heights[0]));
             const float layer_height = (layer_id!=0 ? heights[layer_id]-heights[layer_id-1] : heights[0]);
             const float safe_angle = 5.f * (float(M_PI)/180.f); // smaller number - less supports
             const float between_layers_offset =  float(scale_(layer_height / std::tan(safe_angle)));
@@ -212,7 +209,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
         for (Structure &top : layer_top->islands)
 			for (Structure::Link &bottom_link : top.islands_below) {
                 Structure &bottom = *bottom_link.island;
-                float centroids_dist = (bottom.centroid - top.centroid).norm();
+                //float centroids_dist = (bottom.centroid - top.centroid).norm();
                 // Penalization resulting from centroid offset:
 //                  bottom.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * centroids_dist * centroids_dist / bottom.area));
                 float &support_force = support_force_bottom[&bottom - layer_bottom->islands.data()];
@@ -239,7 +236,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
 //            s.supports_force_inherited /= std::max(1.f, (layer_height / 0.3f) * e_area / s.area);
             s.supports_force_inherited /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
 
-            float force_deficit = s.support_force_deficit(m_config.tear_pressure());
+            //float force_deficit = s.support_force_deficit(m_config.tear_pressure());
             if (s.islands_below.empty()) { // completely new island - needs support no doubt
                 uniformly_cover({ *s.polygon }, s, point_grid, true);
             } else if (! s.dangling_areas.empty()) {
@@ -380,7 +377,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     {
         typename Cells::iterator last_cell_id_it;
         Vec2i           last_cell_id(-1, -1);
-        for (int i = 0; i < raw_samples_sorted.size(); ++ i) {
+        for (size_t i = 0; i < raw_samples_sorted.size(); ++ i) {
             const RawSample &sample = raw_samples_sorted[i];
             if (sample.cell_id == last_cell_id) {
                 // This sample is in the same cell as the previous, so just increase the count.  Cells are
@@ -389,7 +386,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
             } else {
                 // This is a new cell.
                 PoissonDiskGridEntry data;
-                data.first_sample_idx = i;
+                data.first_sample_idx = int(i);
                 data.sample_cnt       = 1;
                 auto result     = cells.insert({sample.cell_id, data});
                 last_cell_id    = sample.cell_id;

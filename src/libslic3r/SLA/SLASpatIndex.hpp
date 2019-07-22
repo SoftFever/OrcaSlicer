@@ -7,13 +7,15 @@
 
 #include <Eigen/Geometry>
 
+#include <libslic3r/BoundingBox.hpp>
+
 namespace Slic3r {
 namespace sla {
 
 typedef Eigen::Matrix<double,   3, 1, Eigen::DontAlign> Vec3d;
-using SpatElement = std::pair<Vec3d, unsigned>;
+using PointIndexEl = std::pair<Vec3d, unsigned>;
 
-class SpatIndex {
+class PointIndex {
     class Impl;
 
     // We use Pimpl because it takes a long time to compile boost headers which
@@ -21,30 +23,67 @@ class SpatIndex {
     std::unique_ptr<Impl> m_impl;
 public:
 
-    SpatIndex();
-    ~SpatIndex();
+    PointIndex();
+    ~PointIndex();
 
-    SpatIndex(const SpatIndex&);
-    SpatIndex(SpatIndex&&);
-    SpatIndex& operator=(const SpatIndex&);
-    SpatIndex& operator=(SpatIndex&&);
+    PointIndex(const PointIndex&);
+    PointIndex(PointIndex&&);
+    PointIndex& operator=(const PointIndex&);
+    PointIndex& operator=(PointIndex&&);
 
-    void insert(const SpatElement&);
-    bool remove(const SpatElement&);
+    void insert(const PointIndexEl&);
+    bool remove(const PointIndexEl&);
 
     inline void insert(const Vec3d& v, unsigned idx)
     {
         insert(std::make_pair(v, unsigned(idx)));
     }
 
-    std::vector<SpatElement> query(std::function<bool(const SpatElement&)>);
-    std::vector<SpatElement> nearest(const Vec3d&, unsigned k);
+    std::vector<PointIndexEl> query(std::function<bool(const PointIndexEl&)>);
+    std::vector<PointIndexEl> nearest(const Vec3d&, unsigned k);
 
     // For testing
     size_t size() const;
     bool empty() const { return size() == 0; }
 
-    void foreach(std::function<void(const SpatElement& el)> fn);
+    void foreach(std::function<void(const PointIndexEl& el)> fn);
+};
+
+using BoxIndexEl = std::pair<Slic3r::BoundingBox, unsigned>;
+
+class BoxIndex {
+    class Impl;
+    
+    // We use Pimpl because it takes a long time to compile boost headers which
+    // is the engine of this class. We include it only in the cpp file.
+    std::unique_ptr<Impl> m_impl;
+public:
+    
+    BoxIndex();
+    ~BoxIndex();
+    
+    BoxIndex(const BoxIndex&);
+    BoxIndex(BoxIndex&&);
+    BoxIndex& operator=(const BoxIndex&);
+    BoxIndex& operator=(BoxIndex&&);
+    
+    void insert(const BoxIndexEl&);
+    inline void insert(const BoundingBox& bb, unsigned idx)
+    {
+        insert(std::make_pair(bb, unsigned(idx)));
+    }
+    
+    bool remove(const BoxIndexEl&);
+
+    enum QueryType { qtIntersects, qtWithin };
+
+    std::vector<BoxIndexEl> query(const BoundingBox&, QueryType qt);
+    
+    // For testing
+    size_t size() const;
+    bool empty() const { return size() == 0; }
+    
+    void foreach(std::function<void(const BoxIndexEl& el)> fn);
 };
 
 }

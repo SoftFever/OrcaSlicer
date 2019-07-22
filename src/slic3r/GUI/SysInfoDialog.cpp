@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
+#include "../Utils/UndoRedo.hpp"
 
 #include <string>
 
@@ -9,6 +10,14 @@
 #include <wx/platinfo.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
+
+#ifdef _WIN32
+	// The standard Windows includes.
+	#define WIN32_LEAN_AND_MEAN
+	#define NOMINMAX
+	#include <Windows.h>
+	#include <psapi.h>
+#endif /* _WIN32 */
 
 namespace Slic3r { 
 namespace GUI {
@@ -36,7 +45,34 @@ std::string get_main_info(bool format_as_html)
         "System Version:      "
 #endif
         << b_end << wxPlatformInfo::Get().GetOperatingSystemDescription() << line_end;
+    out << b_start << "Total RAM size [MB]: "  << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory());
 
+    return out.str();
+}
+
+std::string get_mem_info(bool format_as_html)
+{
+    std::stringstream out;
+
+    std::string b_start  = format_as_html ? "<b>"  : "";
+    std::string b_end    = format_as_html ? "</b>" : "";
+    std::string line_end = format_as_html ? "<br>" : "\n";
+
+    const Slic3r::UndoRedo::Stack &stack = wxGetApp().plater()->undo_redo_stack();
+    out << b_start << "RAM size reserved for the Undo / Redo stack [MB]: "  << b_end << Slic3r::format_memsize_MB(stack.get_memory_limit()) << line_end;
+    out << b_start << "RAM size occupied by the Undo / Redo stack  [MB]: "  << b_end << Slic3r::format_memsize_MB(stack.memsize()) << line_end << line_end;
+
+#ifdef _WIN32
+   	HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ::GetCurrentProcessId());
+    if (hProcess != nullptr) {
+        PROCESS_MEMORY_COUNTERS_EX pmc;
+        if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+			out << b_start << "WorkingSet     [MB]: "   << b_end << format_memsize_MB(pmc.WorkingSetSize) << line_end
+				<< b_start << "PrivateBytes   [MB]: " << b_end << format_memsize_MB(pmc.PrivateUsage) << line_end
+				<< b_start << "Pagefile(peak) [MB]: " << b_end << format_memsize_MB(pmc.PagefileUsage) << "(" << format_memsize_MB(pmc.PeakPagefileUsage) << ")" << line_end;
+        CloseHandle(hProcess);
+    }
+#endif
     return out.str();
 }
 
@@ -111,7 +147,7 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            _3DScene::get_gl_info(true, true));
+            get_mem_info(true) + "<br>" + _3DScene::get_gl_info(true, true));
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }

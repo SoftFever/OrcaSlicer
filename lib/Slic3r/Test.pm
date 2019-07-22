@@ -146,60 +146,66 @@ sub mesh {
 }
 
 sub model {
-    my ($model_name, %params) = @_;
+    my ($model_names, %params) = @_;
+    $model_names = [ $model_names ] if ! ref($model_names);
 
-    my $input_file = "${model_name}.stl";
-    my $mesh = mesh($model_name, %params);
-#    $mesh->write_ascii("out/$input_file");
-    
     my $model = Slic3r::Model->new;
-    my $object = $model->add_object(input_file => $input_file);
-    $model->set_material($model_name);
-    $object->add_volume(mesh => $mesh, material_id => $model_name);
-    $object->add_instance(
-        offset          => Slic3r::Pointf->new(0,0),
-        # 3D full transform
-        rotation        => Slic3r::Pointf3->new(0, 0, $params{rotation} // 0),
-        scaling_factor  => Slic3r::Pointf3->new($params{scale} // 1, $params{scale} // 1, $params{scale} // 1),
-        # old transform
-#        rotation        => $params{rotation} // 0,
-#        scaling_factor  => $params{scale} // 1,
-    );
+
+    for my $model_name (@$model_names) {
+        my $input_file = "${model_name}.stl";
+        my $mesh = mesh($model_name, %params);
+    #    $mesh->write_ascii("out/$input_file");
+        
+        my $object = $model->add_object(input_file => $input_file);
+        $model->set_material($model_name);
+        $object->add_volume(mesh => $mesh, material_id => $model_name);
+        $object->add_instance(
+            offset          => Slic3r::Pointf->new(0,0),
+            # 3D full transform
+            rotation        => Slic3r::Pointf3->new(0, 0, $params{rotation} // 0),
+            scaling_factor  => Slic3r::Pointf3->new($params{scale} // 1, $params{scale} // 1, $params{scale} // 1),
+            # old transform
+    #        rotation        => $params{rotation} // 0,
+    #        scaling_factor  => $params{scale} // 1,
+        );
+    }
     return $model;
 }
 
 sub init_print {
     my ($models, %params) = @_;
+    my $model;
+    if (ref($models) eq 'ARRAY') {
+        $model = model($models, %params);
+    } elsif (ref($models)) {
+        $model = $models;
+    } else {
+        $model = model([$models], %params);
+    }
     
     my $config = Slic3r::Config->new;
     $config->apply($params{config}) if $params{config};
     $config->set('gcode_comments', 1) if $ENV{SLIC3R_TESTS_GCODE};
     
     my $print = Slic3r::Print->new;
-    $print->apply_config_perl_tests_only($config);
-    
-    $models = [$models] if ref($models) ne 'ARRAY';
-    $models = [ map { ref($_) ? $_ : model($_, %params) } @$models ];
-    for my $model (@$models) {
-        die "Unknown model in test" if !defined $model;
-        if (defined $params{duplicate} && $params{duplicate} > 1) {
-            $model->duplicate($params{duplicate} // 1, $print->config->min_object_distance);
-        }
-        $model->arrange_objects($print->config->min_object_distance);
-        $model->center_instances_around_point($params{print_center} ? Slic3r::Pointf->new(@{$params{print_center}}) : Slic3r::Pointf->new(100,100));
-        foreach my $model_object (@{$model->objects}) {
-            $print->auto_assign_extruders($model_object);
-            $print->add_model_object($model_object);
-        }
+    die "Unknown model in test" if !defined $model;
+    if (defined $params{duplicate} && $params{duplicate} > 1) {
+        $model->duplicate($params{duplicate} // 1, $config->min_object_distance);
     }
-    # Call apply_config_perl_tests_only one more time, so that the layer height profiles are updated over all PrintObjects.
-    $print->apply_config_perl_tests_only($config);
+    $model->arrange_objects($config->min_object_distance);
+    $model->center_instances_around_point($params{print_center} ? Slic3r::Pointf->new(@{$params{print_center}}) : Slic3r::Pointf->new(100,100));
+    foreach my $model_object (@{$model->objects}) {
+        $model_object->ensure_on_bed;
+        $print->auto_assign_extruders($model_object);
+    }
+
+    $print->apply($model, $config);
     $print->validate;
     
     # We return a proxy object in order to keep $models alive as required by the Print API.
     return Slic3r::Test::Print->new(
-        print   => $print,
-        models  => $models,
+        print  => $print,
+        model  => $model,
     );
 }
 
@@ -250,7 +256,7 @@ sub add_facet {
 package Slic3r::Test::Print;
 use Moo;
 
-has 'print'     => (is => 'ro', required => 1, handles => [qw(process apply_config_perl_tests_only)]);
-has 'models'    => (is => 'ro', required => 1);
+has 'print'     => (is => 'ro', required => 1, handles => [qw(process apply)]);
+has 'model'     => (is => 'ro', required => 1);
 
 1;

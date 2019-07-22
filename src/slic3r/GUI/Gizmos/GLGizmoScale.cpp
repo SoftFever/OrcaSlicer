@@ -1,7 +1,6 @@
-
-
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoScale.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -13,13 +12,8 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-#if ENABLE_SVG_ICONS
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
@@ -53,13 +47,18 @@ std::string GLGizmoScale3D::on_get_name() const
     return (_(L("Scale")) + " [S]").ToUTF8().data();
 }
 
-void GLGizmoScale3D::on_start_dragging(const Selection& selection)
+bool GLGizmoScale3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_wipe_tower();
+}
+
+void GLGizmoScale3D::on_start_dragging()
 {
     if (m_hover_id != -1)
     {
         m_starting.drag_position = m_grabbers[m_hover_id].center;
         m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
-        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : selection.get_bounding_box();
+        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
 
         const Vec3d& center = m_starting.box.center();
         m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
@@ -71,7 +70,7 @@ void GLGizmoScale3D::on_start_dragging(const Selection& selection)
     }
 }
 
-void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoScale3D::on_update(const UpdateData& data)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_along_axis(X, data);
@@ -83,8 +82,10 @@ void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selectio
         do_scale_uniform(data);
 }
 
-void GLGizmoScale3D::on_render(const Selection& selection) const
+void GLGizmoScale3D::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
     bool single_selection = single_instance || single_volume;
@@ -136,7 +137,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
-            m_box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
+            m_box.merge(vol->bounding_box().transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
@@ -151,7 +152,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_box = v->bounding_box;
+        m_box = v->bounding_box();
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets
@@ -277,16 +278,16 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     }
 }
 
-void GLGizmoScale3D::on_render_for_picking(const Selection& selection) const
+void GLGizmoScale3D::on_render_for_picking() const
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-
-    render_grabbers_for_picking(selection.get_bounding_box());
+    render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
 
-void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
-{
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    const Selection& selection = m_parent.get_selection();
     bool single_instance = selection.is_single_full_instance();
     wxString label = _(L("Scale (%)"));
 
@@ -295,8 +296,8 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
     m_imgui->end();
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {

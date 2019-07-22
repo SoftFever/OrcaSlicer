@@ -206,16 +206,12 @@ ModelMaterial::attributes()
     Ref<Model> model()
         %code%{ RETVAL = THIS->get_model(); %};
 
-    t_layer_height_ranges layer_height_ranges()
-        %code%{ RETVAL = THIS->layer_height_ranges; %};
-    void set_layer_height_ranges(t_layer_height_ranges ranges)
-        %code%{ THIS->layer_height_ranges = ranges; %};
-
     Ref<Vec3d> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
     void set_origin_translation(Vec3d* point)
         %code%{ THIS->origin_translation = *point; %};
     
+    void ensure_on_bed();
     bool needed_repair() const;
     int materials_count() const;
     int facets_count();

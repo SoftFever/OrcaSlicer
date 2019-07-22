@@ -132,7 +132,7 @@ struct HashTableEdges {
 	~HashTableEdges() {
 #ifndef NDEBUG
 		for (int i = 0; i < this->M; ++ i)
-	    	for (HashEdge *temp = this->heads[i]; this->heads[i] != this->tail; temp = this->heads[i])
+	    	for (HashEdge *temp = this->heads[i]; temp != this->tail; temp = temp->next)
 	        	++ this->freed;
 		this->tail = nullptr;
 #endif /* NDEBUG */
@@ -430,6 +430,8 @@ private:
 // floats of the first edge matches all six floats of the second edge.
 void stl_check_facets_exact(stl_file *stl)
 {
+	assert(stl->facet_start.size() == stl->neighbors_start.size());
+
   	stl->stats.connected_edges         = 0;
   	stl->stats.connected_facets_1_edge = 0;
   	stl->stats.connected_facets_2_edge = 0;

@@ -41,13 +41,4 @@
 #define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
 
 
-//====================
-// 1.42.0.alpha8 techs
-//====================
-#define ENABLE_1_42_0_ALPHA8 1
-
-// Toolbars and Gizmos use icons imported from svg files
-#define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
-
-
 #endif // _technologies_h_

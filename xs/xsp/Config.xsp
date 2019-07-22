@@ -33,7 +33,7 @@
         %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
     void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
         %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
+    std::string opt_serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
         double get_abs_value(t_config_option_key opt_key, double ratio_over);
@@ -49,7 +49,7 @@
     void erase(t_config_option_key opt_key);
     void normalize();
     %name{setenv} void setenv_();
-    double min_object_distance() %code{% RETVAL = PrintConfig::min_object_distance(THIS); %};
+    double min_object_distance() %code{% PrintConfig cfg; cfg.apply(*THIS, true); RETVAL = cfg.min_object_distance(); %};
     static DynamicPrintConfig* load(char *path)
         %code%{
             auto config = new DynamicPrintConfig();
@@ -95,7 +95,7 @@
         %code{% RETVAL = ConfigBase__set_deserialize(THIS, opt_key, str); %};
     void set_ifndef(t_config_option_key opt_key, SV* value, bool deserialize = false)
         %code{% ConfigBase__set_ifndef(THIS, opt_key, value, deserialize); %};
-    std::string serialize(t_config_option_key opt_key);
+    std::string opt_serialize(t_config_option_key opt_key);
     double get_abs_value(t_config_option_key opt_key);
     %name{get_abs_value_over}
         double get_abs_value(t_config_option_key opt_key, double ratio_over);

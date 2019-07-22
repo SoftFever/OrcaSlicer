@@ -461,6 +461,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_pillar_widening_factor",
             "support_base_diameter",
             "support_base_height",
+            "support_base_safety_distance",
             "support_critical_angle",
             "support_max_bridge_length",
             "support_max_pillar_link_distance",
@@ -474,6 +475,10 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_max_merge_distance",
             "pad_edge_radius",
             "pad_wall_slope",
+            "pad_object_gap",
+            "pad_object_connector_stride",
+            "pad_object_connector_width",
+            "pad_object_connector_penetration",
             "output_filename_format", 
             "default_sla_print_profile",
             "compatible_printers",
@@ -824,11 +829,25 @@ const Preset* PresetCollection::get_selected_preset_parent() const
     if (this->get_selected_idx() == -1)
         // This preset collection has no preset activated yet. Only the get_edited_preset() is valid.
         return nullptr;
-    const std::string &inherits = this->get_edited_preset().inherits();
+//    const std::string &inherits = this->get_edited_preset().inherits();
+//    if (inherits.empty())
+//		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+
+    std::string inherits = this->get_edited_preset().inherits();
     if (inherits.empty())
-		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
+    {
+		if (this->get_selected_preset().is_system || this->get_selected_preset().is_default) 
+            return &this->get_selected_preset();
+        if (this->get_selected_preset().is_external)
+            return nullptr;
+        
+        inherits = m_type != Preset::Type::TYPE_PRINTER ? "- default -" :
+                   this->get_edited_preset().printer_technology() == ptFFF ? 
+                   "- default FFF -" : "- default SLA -" ;
+    }
+
     const Preset* preset = this->find_preset(inherits, false);
-    return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
+    return (preset == nullptr/* || preset->is_default*/ || preset->is_external) ? nullptr : preset;
 }
 
 const Preset* PresetCollection::get_preset_parent(const Preset& child) const

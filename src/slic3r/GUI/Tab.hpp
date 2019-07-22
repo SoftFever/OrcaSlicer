@@ -142,6 +142,12 @@ protected:
 	PresetDependencies 	m_compatible_printers;
 	PresetDependencies 	m_compatible_prints;
 
+    /* Indicates, that default preset or preset inherited from default is selected
+     * This value is used for a options color updating 
+     * (use green color only for options, which values are equal to system values)
+     */
+    bool                    m_is_default_preset {false};
+
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
 	ScalableButton*			m_question_btn;

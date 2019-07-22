@@ -19,20 +19,14 @@ const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
-#if ENABLE_SVG_ICONS
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
     , m_keep_upper(true)
     , m_keep_lower(true)
     , m_rotate_lower(false)
 {}
-
 
 bool GLGizmoCut::on_init()
 {
@@ -54,15 +48,18 @@ void GLGizmoCut::on_set_state()
     }
 }
 
-bool GLGizmoCut::on_is_activable(const Selection& selection) const
+bool GLGizmoCut::on_is_activable() const
 {
+    const Selection& selection = m_parent.get_selection();
     return selection.is_single_full_instance() && !selection.is_wipe_tower();
 }
 
-void GLGizmoCut::on_start_dragging(const Selection& selection)
+void GLGizmoCut::on_start_dragging()
 {
-    if (m_hover_id == -1) { return; }
+    if (m_hover_id == -1)
+        return;
 
+    const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_start_z = m_cut_z;
     update_max_z(selection);
@@ -71,18 +68,20 @@ void GLGizmoCut::on_start_dragging(const Selection& selection)
     m_drag_center(2) = m_cut_z;
 }
 
-void GLGizmoCut::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoCut::on_update(const UpdateData& data)
 {
     if (m_hover_id != -1) {
         set_cut_z(m_start_z + calc_projection(data.mouse_ray));
     }
 }
 
-void GLGizmoCut::on_render(const Selection& selection) const
+void GLGizmoCut::on_render() const
 {
     if (m_grabbers[0].dragging) {
         set_tooltip("Z: " + format(m_cut_z, 2));
     }
+
+    const Selection& selection = m_parent.get_selection();
 
     update_max_z(selection);
 
@@ -129,14 +128,13 @@ void GLGizmoCut::on_render(const Selection& selection) const
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
 }
 
-void GLGizmoCut::on_render_for_picking(const Selection& selection) const
+void GLGizmoCut::on_render_for_picking() const
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-
-    render_grabbers_for_picking(selection.get_bounding_box());
+    render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
 
-void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
+void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 {
     const float approx_height = m_imgui->scaled(11.0f);
     y = std::min(y, bottom_limit - approx_height);
@@ -159,7 +157,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, co
     m_imgui->end();
 
     if (cut_clicked && (m_keep_upper || m_keep_lower)) {
-        perform_cut(selection);
+        perform_cut(m_parent.get_selection());
     }
 }
 

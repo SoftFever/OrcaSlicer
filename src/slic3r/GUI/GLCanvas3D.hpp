@@ -12,6 +12,7 @@
 #include "Camera.hpp"
 #include "Selection.hpp"
 #include "Gizmos/GLGizmosManager.hpp"
+#include "GUI_ObjectLayers.hpp"
 
 #include <float.h>
 
@@ -126,6 +127,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 
 class GLCanvas3D
 {
@@ -435,7 +438,8 @@ private:
     Shader m_shader;
     Mouse m_mouse;
     mutable GLGizmosManager m_gizmos;
-    mutable GLToolbar m_toolbar;
+    mutable GLToolbar m_main_toolbar;
+    mutable GLToolbar m_undoredo_toolbar;
     ClippingPlane m_clipping_planes[2];
     mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -452,7 +456,6 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
-    bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
     bool m_warning_texture_enabled;
@@ -485,6 +488,8 @@ private:
     RenderStats m_render_stats;
 #endif // ENABLE_RENDER_STATISTICS
 
+    int m_imgui_undo_redo_hovered_pos{ -1 };
+
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
@@ -494,7 +499,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-    bool init(bool useVBOs);
+    bool init();
     void post_event(wxEvent &&event);
 
     void set_as_dirty();
@@ -512,6 +517,9 @@ public:
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
+
+    const GLGizmosManager& get_gizmos_manager() const { return m_gizmos; }
+    GLGizmosManager& get_gizmos_manager() { return m_gizmos; }
 
     void bed_shape_changed();
 
@@ -544,7 +552,8 @@ public:
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
     void enable_selection(bool enable);
-    void enable_toolbar(bool enable);
+    void enable_main_toolbar(bool enable);
+    void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
@@ -596,11 +605,12 @@ public:
 
     void set_tooltip(const std::string& tooltip) const;
 
-    void do_move();
-    void do_rotate();
-    void do_scale();
-    void do_flatten();
-    void do_mirror();
+    // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
+    void do_move(const std::string& snapshot_type);
+    void do_rotate(const std::string& snapshot_type);
+    void do_scale(const std::string& snapshot_type);
+    void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
+    void do_mirror(const std::string& snapshot_type);
 
     void set_camera_zoom(double zoom);
 
@@ -608,6 +618,7 @@ public:
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
+    void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
 
@@ -635,10 +646,18 @@ public:
     void start_keeping_dirty() { m_keep_dirty = true; }
     void stop_keeping_dirty() { m_keep_dirty = false; }
 
+    unsigned int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
+    void force_main_toolbar_left_action(unsigned int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
+    void force_main_toolbar_right_action(unsigned int item_id) { m_main_toolbar.force_right_action(item_id, *this); }
+    void get_undoredo_toolbar_additional_tooltip(unsigned int item_id, std::string& text) { return m_undoredo_toolbar.get_additional_tooltip(item_id, text); }
+    void set_undoredo_toolbar_additional_tooltip(unsigned int item_id, const std::string& text) { m_undoredo_toolbar.set_additional_tooltip(item_id, text); }
+
 private:
     bool _is_shown_on_screen() const;
 
-    bool _init_toolbar();
+    bool _init_toolbars();
+    bool _init_main_toolbar();
+    bool _init_undoredo_toolbar();
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
@@ -665,13 +684,15 @@ private:
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
-    void _render_toolbar() const;
+    void _render_main_toolbar() const;
+    void _render_undoredo_toolbar() const;
     void _render_view_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
+    void _render_undo_redo_stack(const bool is_undo, float pos_x);
 
     void _update_volumes_hover_state() const;
 
@@ -711,8 +732,6 @@ private:
     void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
     void _load_fff_shells();
-    // generates objects geometry for sla
-    void _load_sla_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();
@@ -727,12 +746,10 @@ private:
 
     bool _is_any_volume_outside() const;
 
-#if !ENABLE_SVG_ICONS
-    void _resize_toolbars() const;
-#endif // !ENABLE_SVG_ICONS
-
     // updates the selection from the content of m_hover_volume_idxs
     void _update_selection_from_hover();
+
+    bool _deactivate_undo_redo_toolbar_items();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

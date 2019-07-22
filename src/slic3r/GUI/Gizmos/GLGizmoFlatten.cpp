@@ -1,5 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFlatten.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include <numeric>
 
@@ -9,13 +11,8 @@ namespace Slic3r {
 namespace GUI {
 
 
-#if ENABLE_SVG_ICONS
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_normal(Vec3d::Zero())
     , m_starting_center(Vec3d::Zero())
 {
@@ -27,28 +24,46 @@ bool GLGizmoFlatten::on_init()
     return true;
 }
 
+void GLGizmoFlatten::on_set_state()
+{
+    // m_model_object pointer can be invalid (for instance because of undo/redo action),
+    // we should recover it from the object id
+    m_model_object = nullptr;
+    for (const auto mo : wxGetApp().model().objects) {
+        if (mo->id() == m_model_object_id) {
+            m_model_object = mo;
+            break;
+        }
+    }
+
+    if (m_state == On && is_plane_update_necessary())
+        update_planes();
+}
+
 std::string GLGizmoFlatten::on_get_name() const
 {
     return (_(L("Place on face")) + " [F]").ToUTF8().data();
 }
 
-bool GLGizmoFlatten::on_is_activable(const Selection& selection) const
+bool GLGizmoFlatten::on_is_activable() const
 {
-    return selection.is_single_full_instance();
+    return m_parent.get_selection().is_single_full_instance();
 }
 
-void GLGizmoFlatten::on_start_dragging(const Selection& selection)
+void GLGizmoFlatten::on_start_dragging()
 {
     if (m_hover_id != -1)
     {
         assert(m_planes_valid);
         m_normal = m_planes[m_hover_id].normal;
-        m_starting_center = selection.get_bounding_box().center();
+        m_starting_center = m_parent.get_selection().get_bounding_box().center();
     }
 }
 
-void GLGizmoFlatten::on_render(const Selection& selection) const
+void GLGizmoFlatten::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -83,8 +98,10 @@ void GLGizmoFlatten::on_render(const Selection& selection) const
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLGizmoFlatten::on_render_for_picking(const Selection& selection) const
+void GLGizmoFlatten::on_render_for_picking() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
 
@@ -120,6 +137,7 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
         m_planes_valid = false;
     }
     m_model_object = model_object;
+    m_model_object_id = model_object ? model_object->id() : 0;
 }
 
 void GLGizmoFlatten::update_planes()
