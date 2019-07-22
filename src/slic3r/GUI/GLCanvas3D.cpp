@@ -3429,35 +3429,23 @@ void GLCanvas3D::update_ui_from_settings()
 
 
 
-arr::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
+GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
 {
-    arr::WipeTowerInfo wti;
+    WipeTowerInfo wti;
+    
     for (const GLVolume* vol : m_volumes.volumes) {
         if (vol->is_wipe_tower) {
-            wti.is_wipe_tower = true;
-            wti.pos = Vec2d(m_config->opt_float("wipe_tower_x"),
+            wti.m_pos = Vec2d(m_config->opt_float("wipe_tower_x"),
                             m_config->opt_float("wipe_tower_y"));
-            wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
+            wti.m_rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
             const BoundingBoxf3& bb = vol->bounding_box();
-            wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
+            wti.m_bb_size = Vec2d(bb.size().x(), bb.size().y());
             break;
         }
     }
+    
     return wti;
 }
-
-
-void GLCanvas3D::arrange_wipe_tower(const arr::WipeTowerInfo& wti) const
-{
-    if (wti.is_wipe_tower) {
-        DynamicPrintConfig cfg;
-        cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = wti.pos(0);
-        cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = wti.pos(1);
-        cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = (180./M_PI) * wti.rotation;
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
-    }
-}
-
 
 Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 {
@@ -5743,6 +5731,15 @@ const Print* GLCanvas3D::fff_print() const
 const SLAPrint* GLCanvas3D::sla_print() const
 {
     return (m_process == nullptr) ? nullptr : m_process->sla_print();
+}
+
+void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
+{
+    DynamicPrintConfig cfg;
+    cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = m_pos(X);
+    cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = m_pos(Y);
+    cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = (180./M_PI) * m_rotation;
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
 } // namespace GUI

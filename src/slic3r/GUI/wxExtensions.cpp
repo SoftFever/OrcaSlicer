@@ -552,6 +552,29 @@ void ObjectDataViewModelNode::msw_rescale()
         update_settings_digest_bitmaps();
 }
 
+bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
+{
+    switch (col)
+    {
+    case 0: {
+        DataViewBitmapText data;
+        data << variant;
+        m_bmp = data.GetBitmap();
+        m_name = data.GetText();
+        return true; }
+    case 1: {
+        const wxString & val = variant.GetString();
+        m_extruder = val == "0" ? _(L("default")) : val;
+        return true; }
+    case 2:
+        m_action_icon << variant;
+        return true;
+    default:
+        printf("MyObjectTreeModel::SetValue: wrong column");
+    }
+    return false;
+}
+
 void ObjectDataViewModelNode::SetIdx(const int& idx)
 {
     m_idx = idx;
