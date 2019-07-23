@@ -73,10 +73,14 @@ public:
         smVolume    = 1,
         smInstance  = 2,
         smLayer     = 4,
-        smSettings  = 8, // used for undo/redo
-    } m_selection_mode {smUndef};
+        smSettings  = 8,  // used for undo/redo
+        smLayerRoot = 16, // used for undo/redo
+    };
 
 private:
+    SELECTION_MODE m_selection_mode {smUndef};
+    t_layer_height_range m_selected_layers_range;
+
     struct dragged_item_data
     {
         void init(const int obj_idx, const int subobj_idx, const ItemType type) {
@@ -305,6 +309,8 @@ public:
     void init_objects();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
+    t_layer_height_range get_selected_layers_range() const;
+    void set_selected_layers_range(const t_layer_height_range range) { m_selected_layers_range = range; }
     void set_selection_mode(SELECTION_MODE mode) { m_selection_mode = mode; }
     void update_selections();
     void update_selections_on_canvas();

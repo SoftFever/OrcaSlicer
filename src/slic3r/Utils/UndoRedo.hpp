@@ -9,6 +9,9 @@
 
 #include <libslic3r/ObjectID.hpp>
 
+typedef double                          coordf_t;
+typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
+
 namespace Slic3r {
 
 class Model;
@@ -38,8 +41,12 @@ struct SnapshotData
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {
 		VARIABLE_LAYER_EDITING_ACTIVE = 1,
-		SETTINGS_SELECTED_ON_SIDEBAR  = 2,
+		SELECTED_SETTINGS_ON_SIDEBAR  = 2,
+		SELECTED_LAYERROOT_ON_SIDEBAR = 4,
+		SELECTED_LAYER_ON_SIDEBAR     = 8,
 	};
+
+    t_layer_height_range layer_range;
 };
 
 struct Snapshot

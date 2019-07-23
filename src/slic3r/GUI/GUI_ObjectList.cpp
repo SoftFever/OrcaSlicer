@@ -2633,12 +2633,28 @@ bool ObjectList::is_selected(const ItemType type) const
     return false;
 }
 
+t_layer_height_range ObjectList::get_selected_layers_range() const
+{
+    t_layer_height_range layer_range = { 0.0, 0.0 };
+    const wxDataViewItem& item = GetSelection();
+    if (!item) 
+        return layer_range;
+
+    const ItemType type = m_objects_model->GetItemType(item);
+    if (type & itSettings && m_objects_model->GetItemType(m_objects_model->GetParent(item)) != itLayer)
+        return layer_range;
+
+    return  type & itLayer ? m_objects_model->GetLayerRangeByItem(item) :
+            type & itSettings ? m_objects_model->GetLayerRangeByItem(m_objects_model->GetParent(item)) :
+            layer_range;
+}
+
 void ObjectList::update_selections()
 {
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
-    if (m_selection_mode & smSettings == 0)
+    if ( ( m_selection_mode & (smSettings|smLayer|smLayerRoot) ) == 0)
         m_selection_mode = smInstance;
 
     // We doesn't update selection if SettingsItem for the current object/part is selected
@@ -2665,10 +2681,21 @@ void ObjectList::update_selections()
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
         const Selection::ObjectIdxsToInstanceIdxsMap& objects_content = selection.get_content();
-        if (m_selection_mode & smSettings)
+        if (m_selection_mode & (smSettings | smLayer | smLayerRoot))
         {
-            wxDataViewItem obj_item = m_objects_model->GetItemById(objects_content.begin()->first);
-            sels.Add(m_objects_model->GetSettingsItem(obj_item));
+            auto obj_idx = objects_content.begin()->first;
+            wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
+            if (m_selection_mode & smSettings)
+            {
+                if (m_selected_layers_range.first <= EPSILON && m_selected_layers_range.second <= EPSILON)
+                    sels.Add(m_objects_model->GetSettingsItem(obj_item));
+                else
+                    sels.Add(m_objects_model->GetSettingsItem(m_objects_model->GetItemByLayerRange(obj_idx, m_selected_layers_range)));
+            }
+            else if (m_selection_mode & smLayerRoot)
+                sels.Add(m_objects_model->GetLayerRootItem(obj_item));
+            else if (m_selection_mode & smLayer)
+                sels.Add(m_objects_model->GetItemByLayerRange(obj_idx, m_selected_layers_range));
         }
         else {
         for (const auto& object : objects_content) {
@@ -3550,8 +3577,6 @@ void ObjectList::update_after_undo_redo()
     unselect_objects();//this->UnselectAll();
     m_objects_model->DeleteAll();
 
-//    m_prevent_list_events = true;
-
     size_t obj_idx = 0;
     while (obj_idx < m_objects->size()) {
         add_object_to_list(obj_idx, false);
@@ -3559,13 +3584,12 @@ void ObjectList::update_after_undo_redo()
     }
 
 #ifndef __WXOSX__ 
-    selection_changed();
+//    selection_changed();
 #endif /* __WXOSX__ */
 
     update_selections();
 
     m_prevent_canvas_selection_update = false;
-//    m_prevent_list_events = false;
 }
 
 ModelObject* ObjectList::object(const int obj_idx) const
