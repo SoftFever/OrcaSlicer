@@ -3729,6 +3729,8 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
     	snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+    if (this->sidebar->obj_list()->is_selected(itSettings))
+        snapshot_data.flags |= UndoRedo::SnapshotData::SETTINGS_SELECTED_ON_SIDEBAR;
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     if (this->printer_technology == ptFFF) {
@@ -3795,7 +3797,10 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     top_snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
     	top_snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+    if (this->sidebar->obj_list()->is_selected(itSettings))
+    	top_snapshot_data.flags |= UndoRedo::SnapshotData::SETTINGS_SELECTED_ON_SIDEBAR;
 	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
+    bool         new_settings_selected_on_sidebar  = (new_flags & UndoRedo::SnapshotData::SETTINGS_SELECTED_ON_SIDEBAR) != 0;
 	// Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
@@ -3828,6 +3833,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
                 tab_print->update_dirty();
             }
         }
+        // set settings mode for ObjectList on sidebar
+        if (new_settings_selected_on_sidebar)
+            this->sidebar->obj_list()->set_selection_mode(ObjectList::SELECTION_MODE::smSettings);
         this->update_after_undo_redo(temp_snapshot_was_taken);
 		// Enable layer editing after the Undo / Redo jump.
 		if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)

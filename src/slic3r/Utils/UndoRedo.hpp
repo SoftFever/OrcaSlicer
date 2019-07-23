@@ -38,6 +38,7 @@ struct SnapshotData
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {
 		VARIABLE_LAYER_EDITING_ACTIVE = 1,
+		SETTINGS_SELECTED_ON_SIDEBAR  = 2,
 	};
 };
 

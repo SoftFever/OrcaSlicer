@@ -66,14 +66,17 @@ struct ItemForDelete
 
 class ObjectList : public wxDataViewCtrl
 {
+public:
     enum SELECTION_MODE
     {
         smUndef     = 0,
         smVolume    = 1,
         smInstance  = 2,
-        smLayer     = 4
+        smLayer     = 4,
+        smSettings  = 8, // used for undo/redo
     } m_selection_mode {smUndef};
 
+private:
     struct dragged_item_data
     {
         void init(const int obj_idx, const int subobj_idx, const ItemType type) {
@@ -302,6 +305,7 @@ public:
     void init_objects();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
+    void set_selection_mode(SELECTION_MODE mode) { m_selection_mode = mode; }
     void update_selections();
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);
