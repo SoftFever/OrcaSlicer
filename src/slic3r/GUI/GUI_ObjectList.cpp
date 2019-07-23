@@ -1741,7 +1741,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     ItemType type;
 
     m_objects_model->GetItemInfo(item, type, obj_idx, idx);
-    if (type & itUndef)
+    if (type == itUndef)
         return;
 
     if (type & itSettings)
@@ -3101,7 +3101,7 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || obj_idx >= m_objects->size() || (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || obj_idx >= m_objects->size() || (*m_objects)[obj_idx]->volumes.size() != 1)
         return;
 
     auto volume = (*m_objects)[obj_idx]->volumes.front();
