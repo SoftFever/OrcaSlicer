@@ -323,9 +323,9 @@ public:
 	}
 
 	bool SwapChildrens(int frst_id, int scnd_id) {
-		if (GetChildCount() < 2 || 
-			frst_id < 0 || frst_id >= GetChildCount() || 
-			scnd_id < 0 || scnd_id >= GetChildCount())
+		if (GetChildCount() < 2 ||
+			frst_id < 0 || (size_t)frst_id >= GetChildCount() ||
+			scnd_id < 0 || (size_t)scnd_id >= GetChildCount())
 			return false;
 
 		ObjectDataViewModelNode new_scnd = *GetNthChild(frst_id);

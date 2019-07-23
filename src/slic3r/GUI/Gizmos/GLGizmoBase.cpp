@@ -166,7 +166,7 @@ void GLGizmoBase::set_highlight_color(const float* color)
 
 void GLGizmoBase::enable_grabber(unsigned int id)
 {
-    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+    if (id < m_grabbers.size())
         m_grabbers[id].enabled = true;
 
     on_enable_grabber(id);
@@ -174,7 +174,7 @@ void GLGizmoBase::enable_grabber(unsigned int id)
 
 void GLGizmoBase::disable_grabber(unsigned int id)
 {
-    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+    if (id < m_grabbers.size())
         m_grabbers[id].enabled = false;
 
     on_disable_grabber(id);
