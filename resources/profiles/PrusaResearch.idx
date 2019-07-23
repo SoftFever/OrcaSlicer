@@ -1,4 +1,7 @@
 min_slic3r_version = 1.42.0-alpha6
+0.8.3 FW version and SL1 materials update
+0.8.2 FFF and SL1 settings update
+0.8.1 Output settings and SLA materials update
 0.8.0 Updated for the PrusaSlicer 2.0.0 final release
 0.8.0-rc2 Updated firmware versions for MK2.5/S and MK3/S
 0.8.0-rc1 Updated SLA profiles
@@ -18,6 +21,8 @@ min_slic3r_version = 1.42.0-alpha
 0.4.0-alpha3 Update of SLA profiles
 0.4.0-alpha2 First SLA profiles
 min_slic3r_version = 1.41.3-alpha
+0.4.8 MK2.5/3/S FW update
+0.4.7 MK2/S/MMU FW update
 0.4.6 Updated firmware versions for MK2.5/S and MK3/S
 0.4.5 Enabled remaining time support for MK2/S/MMU1
 0.4.4 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt
@@ -26,6 +31,8 @@ min_slic3r_version = 1.41.3-alpha
 0.4.1 New MK2.5S and MK3S FW versions
 0.4.0 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt 
 min_slic3r_version = 1.41.1
+0.3.8 MK2.5/3/S FW update
+0.3.7 MK2/S/MMU FW update
 0.3.6 Updated firmware versions for MK2.5 and MK3
 0.3.5 New MK2.5 and MK3 FW versions
 0.3.4 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt 
@@ -60,6 +67,8 @@ min_slic3r_version = 1.41.0-alpha
 0.2.0-alpha1 added initial profiles for the i3 MK3 Multi Material Upgrade 2.0
 0.2.0-alpha moved machine limits from the start G-code to the new print profile parameters
 min_slic3r_version = 1.40.0
+0.1.16 MK2.5/3/S FW update
+0.1.15 MK2/S/MMU FW update
 0.1.14 Updated firmware versions for MK2.5 and MK3
 0.1.13 New MK2.5 and MK3 FW versions
 0.1.12 New MK2.5 and MK3 FW versions
