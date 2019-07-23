@@ -157,7 +157,7 @@ public:
             change_analyzer_mm3_per_mm(len, e);
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
-			float width = float(double(e) * /*Filament_Area*/2.40528 / (len * m_layer_height));
+			float width = float(double(e) * m_filpar[0].filament_area / (len * m_layer_height));
 			// Correct for the roundings of a squished extrusion.
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
@@ -822,7 +822,7 @@ void WipeTower::toolchange_Unload(
     while (i < m_filpar[m_current_tool].ramming_speed.size())
     {
         const float x = volume_to_length(m_filpar[m_current_tool].ramming_speed[i] * 0.25f, line_width, m_layer_height);
-        const float e = m_filpar[m_current_tool].ramming_speed[i] * 0.25f / Filament_Area; // transform volume per sec to E move;
+        const float e = m_filpar[m_current_tool].ramming_speed[i] * 0.25f / filament_area(); // transform volume per sec to E move;
         const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
         const float actual_time = dist/x * 0.25;
         writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), dist / (actual_time / 60.));
