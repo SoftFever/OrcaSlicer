@@ -111,7 +111,8 @@ public:
 	// Set the extruder properties.
 	void set_extruder(size_t idx, std::string material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
                       float unloading_speed, float unloading_speed_start, float delay, int cooling_moves,
-                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float max_volumetric_speed, float nozzle_diameter)
+                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float max_volumetric_speed,
+                      float nozzle_diameter, float filament_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -133,9 +134,11 @@ public:
             m_filpar[idx].cooling_final_speed     = cooling_final_speed;
         }
 
-        if (max_volumetric_speed != 0.f)
-            m_filpar[idx].max_e_speed = (max_volumetric_speed / Filament_Area);
+        m_filpar[idx].filament_area = (M_PI/4.f) * pow(filament_diameter, 2); // all extruders are assumed to have the same filament diameter at this point
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
+
+        if (max_volumetric_speed != 0.f)
+            m_filpar[idx].max_e_speed = (max_volumetric_speed / filament_area());
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
 
@@ -248,6 +251,7 @@ public:
         float               max_e_speed = std::numeric_limits<float>::max();
         std::vector<float>  ramming_speed;
         float               nozzle_diameter;
+        float               filament_area;
     };
 
 private:
@@ -261,9 +265,11 @@ private:
 
 
     const bool  m_peters_wipe_tower   = false; // sparse wipe tower inspired by Peter's post processor - not finished yet
-    const float Filament_Area         = float(M_PI * 1.75f * 1.75f / 4.f); // filament area in mm^2
     const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
     const float WT_EPSILON            = 1e-3f;
+    const float filament_area() const {
+        return m_filpar[0].filament_area; // all extruders are assumed to have the same filament diameter at this point
+    }
 
 
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
@@ -315,7 +321,7 @@ private:
 	{
 		if ( layer_height < 0 )
 			return m_extrusion_flow;
-		return layer_height * ( m_perimeter_width - layer_height * (1.f-float(M_PI)/4.f)) / Filament_Area;
+		return layer_height * ( m_perimeter_width - layer_height * (1.f-float(M_PI)/4.f)) / filament_area();
 	}
 
 	// Calculates length of extrusion line to extrude given volume
