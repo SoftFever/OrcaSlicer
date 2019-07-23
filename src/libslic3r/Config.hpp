@@ -188,6 +188,8 @@ public:
     virtual size_t size()  const = 0;
     // Is this vector empty?
     virtual bool   empty() const = 0;
+    // Is the value nil? That should only be possible if this->nullable().
+    virtual bool   is_nil(size_t idx) const = 0;
 
 protected:
     // Used to verify type compatibility when assigning to / from a scalar ConfigOption.
@@ -363,14 +365,20 @@ public:
     static ConfigOptionType static_type() { return coFloats; }
     ConfigOptionType        type()  const override { return static_type(); }
     ConfigOption*           clone() const override { return new ConfigOptionFloatsTempl(*this); }
-    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { return this->values == rhs.values; }
+    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { vectors_equal(this->values, rhs.values); }
+    bool 					operator==(const ConfigOption &rhs) const override {
+        if (rhs.type() != this->type())
+            throw std::runtime_error("ConfigOptionFloatsTempl: Comparing incompatible types");
+        assert(dynamic_cast<const ConfigOptionVector<double>*>(&rhs));
+        return vectors_equal(this->values, static_cast<const ConfigOptionVector<double>*>(&rhs)->values);
+    }
     // Could a special "nil" value be stored inside the vector, indicating undefined value?
     bool 					nullable() const override { return NULLABLE; }
     // Special "nil" value to be stored into the vector if this->supports_nil().
     static double 			nil_value() { return std::numeric_limits<double>::quiet_NaN(); }
     // A scalar is nil, or all values of a vector are nil.
-    virtual bool 			is_nil() const override { for (auto v : this->values) if (! std::isnan(v)) return false; return true; }
-    bool 					is_nil(size_t idx) const { return std::isnan(v->values[idx]); }
+    bool 					is_nil() const override { for (auto v : this->values) if (! std::isnan(v)) return false; return true; }
+    bool 					is_nil(size_t idx) const override { return std::isnan(v->values[idx]); }
 
     std::string serialize() const override
     {
@@ -436,6 +444,18 @@ protected:
         	} else
         		std::runtime_error("Serializing invalid number");		
 	}
+    static bool vectors_equal(const std::vector<double> &v1, const std::vector<double> &v2) {
+    	if (NULLABLE) {
+    		if (v1.size() != v2.size())
+    			return false;
+    		for (auto it1 = v1.begin(), it2 = v2.begin(); it1 != v1.end(); ++ it1, ++ it2)
+	    		if (! ((std::isnan(*it1) && std::isnan(*it2)) || *it1 == *it2))
+	    			return false;
+    		return true;
+    	} else
+    		// Not supporting nullable values, the default vector compare is cheaper.
+    		return v1 == v2;
+    }
 
 private:
 	friend class cereal::access;
@@ -503,8 +523,8 @@ public:
     // Special "nil" value to be stored into the vector if this->supports_nil().
     static int	 			nil_value() { return std::numeric_limits<int>::max(); }
     // A scalar is nil, or all values of a vector are nil.
-    virtual bool 			is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
-    bool 					is_nil(size_t idx) const { return v->values[idx] == nil_value(); }
+    bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
+    bool 					is_nil(size_t idx) const override { return v->values[idx] == nil_value(); }
 
     std::string serialize() const override
     {
@@ -973,8 +993,8 @@ public:
     // Special "nil" value to be stored into the vector if this->supports_nil().
     static unsigned char	nil_value() { return std::numeric_limits<unsigned char>::max(); }
     // A scalar is nil, or all values of a vector are nil.
-    virtual bool 			is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
-    bool 					is_nil(size_t idx) const { return v->values[idx] == nil_value(); }
+    bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
+    bool 					is_nil(size_t idx) const override { return v->values[idx] == nil_value(); }
 
     bool& get_at(size_t i) {
         assert(! this->values.empty());
