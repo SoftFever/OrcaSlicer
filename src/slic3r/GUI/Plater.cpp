@@ -3904,8 +3904,6 @@ void Plater::load_project()
     // Ask user for a project file name.
     wxString input_file;
     wxGetApp().load_project(this, input_file);
-    // Take the Undo / Redo snapshot.
-	Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(input_file).stem().string().c_str()));
     // And finally load the new project.
     load_project(input_file);
 }
@@ -3914,6 +3912,9 @@ void Plater::load_project(const wxString& filename)
 {
     if (filename.empty())
         return;
+
+    // Take the Undo / Redo snapshot.
+    Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(filename).stem().string().c_str()));
 
     p->reset();
     p->set_project_filename(filename);
