@@ -162,15 +162,15 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     endif ()
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    add_compile_options(-Wall)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder" )
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
     #removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
-    #if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 6.1)
+    #if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 6.1)
         # add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
     #endif()
 
@@ -317,10 +317,10 @@ endif()
 
 # Find eigen3 or use bundled version
 if (NOT SLIC3R_STATIC)
-    find_package(Eigen3 3)
+    find_package(Eigen3 3.3)
 endif ()
-if (NOT Eigen3_FOUND)
-    set(Eigen3_FOUND 1)
+if (NOT EIGEN3_FOUND)
+    set(EIGEN3_FOUND 1)
     set(EIGEN3_INCLUDE_DIR ${LIBDIR}/eigen/)
 endif ()
 include_directories(BEFORE SYSTEM ${EIGEN3_INCLUDE_DIR})

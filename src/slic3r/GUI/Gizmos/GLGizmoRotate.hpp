@@ -93,19 +93,19 @@ protected:
     }
     virtual void on_set_hover_id()
     {
-        for (unsigned int i = 0; i < 3; ++i)
+        for (int i = 0; i < 3; ++i)
         {
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
         }
     }
     virtual void on_enable_grabber(unsigned int id)
     {
-        if ((0 <= id) && (id < 3))
+        if (id < 3)
             m_gizmos[id].enable_grabber(0);
     }
     virtual void on_disable_grabber(unsigned int id)
     {
-        if ((0 <= id) && (id < 3))
+        if (id < 3)
             m_gizmos[id].disable_grabber(0);
     }
     virtual void on_start_dragging();

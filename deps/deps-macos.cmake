@@ -111,6 +111,6 @@ ExternalProject_Add(dep_wxwidgets
         --with-expat=builtin
         --disable-debug
         --disable-debug_flag
-    BUILD_COMMAND make "-j${NPROC}" && make -C locale allmo
+    BUILD_COMMAND make "-j${NPROC}" && PATH=/usr/local/opt/gettext/bin/:$ENV{PATH} make -C locale allmo
     INSTALL_COMMAND make install
 )

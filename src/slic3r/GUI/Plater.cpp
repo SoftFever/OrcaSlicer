@@ -3733,9 +3733,10 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     if (this->m_prevent_snapshots > 0) 
         return;
     assert(this->m_prevent_snapshots >= 0);
-    unsigned int flags = 0;
+    UndoRedo::SnapshotData snapshot_data;
+    snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
-    	flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
+    	snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     if (this->printer_technology == ptFFF) {
@@ -3743,7 +3744,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
         model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
         model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
-    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, flags);
+    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
     this->undo_redo_stack.release_least_recently_used();
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
@@ -3777,11 +3778,11 @@ void Plater::priv::undo_redo_to(size_t time_to_load)
 void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
 	bool 				temp_snapshot_was_taken 	= this->undo_redo_stack.temp_snapshot_active();
-	PrinterTechnology 	new_printer_technology 		= it_snapshot->printer_technology;
+	PrinterTechnology 	new_printer_technology 		= it_snapshot->snapshot_data.printer_technology;
 	bool 				printer_technology_changed 	= this->printer_technology != new_printer_technology;
 	if (printer_technology_changed) {
 		// Switching the printer technology when jumping forwards / backwards in time. Switch to the last active printer profile of the other type.
-		std::string s_pt = (it_snapshot->printer_technology == ptFFF) ? "FFF" : "SLA";
+		std::string s_pt = (it_snapshot->snapshot_data.printer_technology == ptFFF) ? "FFF" : "SLA";
 		if (! wxGetApp().check_unsaved_changes(from_u8((boost::format(_utf8(
 			L("%1% printer was active at the time the target Undo / Redo snapshot was taken. Switching to %1% printer requires reloading of %1% presets."))) % s_pt).str())))
 			// Don't switch the profiles.
@@ -3797,17 +3798,18 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
                 model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
     // Flags made of Snapshot::Flags enum values.
-    unsigned int new_flags = it_snapshot->flags;
-	unsigned int top_snapshot_flags = 0;
+    unsigned int new_flags = it_snapshot->snapshot_data.flags;
+	UndoRedo::SnapshotData top_snapshot_data;
+    top_snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
-    	top_snapshot_flags |= UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE;
-	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::Snapshot::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
+    	top_snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
 	// Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack.active_snapshot_time() ?
-		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->printer_technology, top_snapshot_flags, it_snapshot->timestamp) :
+		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), top_snapshot_data, it_snapshot->timestamp) :
 		this->undo_redo_stack.redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), it_snapshot->timestamp)) {
 		if (printer_technology_changed) {
 			// Switch to the other printer technology. Switch to the last printer active for that particular technology.
@@ -3910,8 +3912,6 @@ void Plater::load_project()
     // Ask user for a project file name.
     wxString input_file;
     wxGetApp().load_project(this, input_file);
-    // Take the Undo / Redo snapshot.
-	Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(input_file).stem().string().c_str()));
     // And finally load the new project.
     load_project(input_file);
 }
@@ -3920,6 +3920,9 @@ void Plater::load_project(const wxString& filename)
 {
     if (filename.empty())
         return;
+
+    // Take the Undo / Redo snapshot.
+    Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(filename).stem().string().c_str()));
 
     p->reset();
     p->set_project_filename(filename);
