@@ -1783,47 +1783,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
-/*
-// Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
-// and removing spaces.
-static std::string short_time(const std::string &time)
-{
-    // Parse the dhms time format.
-    int days    = 0;
-    int hours   = 0;
-    int minutes = 0;
-    int seconds = 0;
-    if (time.find('d') != std::string::npos)
-        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
-    else if (time.find('h') != std::string::npos)
-        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
-    else if (time.find('m') != std::string::npos)
-        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
-    else if (time.find('s') != std::string::npos)
-        ::sscanf(time.c_str(), "%ds", &seconds);
-    // Round to full minutes.
-    if (days + hours + minutes > 0 && seconds >= 30) {
-        if (++ minutes == 60) {
-            minutes = 0;
-            if (++ hours == 24) {
-                hours = 0;
-                ++ days;
-            }
-        }
-    }
-    // Format the dhm time.
-    char buffer[64];
-    if (days > 0)
-        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
-    else if (hours > 0)
-        ::sprintf(buffer, "%dh%dm", hours, minutes);
-    else if (minutes > 0)
-        ::sprintf(buffer, "%dm", minutes);
-    else
-        ::sprintf(buffer, "%ds", seconds);
-    return buffer;
-}
-*/
+
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;

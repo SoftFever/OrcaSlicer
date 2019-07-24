@@ -2228,6 +2228,30 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    // Declare retract values for filament profile, overriding the printer's extruder profile.
+    for (const char *opt_key : {
+    	// floats
+		"retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel", 
+		// bools
+		"retract_layer_change", "wipe",
+		// percents
+		"retract_before_wipe"}) {
+    	auto it_opt = options.find(opt_key);
+    	assert(it_opt != options.end());
+    	def = this->add_nullable(std::string("filament_") + opt_key, it_opt->second.type);
+    	def->label 		= it_opt->second.label;
+    	def->full_label = it_opt->second.full_label;
+    	def->tooltip 	= it_opt->second.tooltip;
+    	def->sidetext   = it_opt->second.sidetext;
+    	def->mode       = it_opt->second.mode;
+    	switch (def->type) {
+    	case coFloats   : def->set_default_value(new ConfigOptionFloatsNullable  (static_cast<const ConfigOptionFloats*  >(it_opt->second.default_value.get())->values)); break;
+    	case coPercents : def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercents*>(it_opt->second.default_value.get())->values)); break;
+    	case coBools    : def->set_default_value(new ConfigOptionBoolsNullable   (static_cast<const ConfigOptionBools*   >(it_opt->second.default_value.get())->values)); break;
+    	default: assert(false);
+    	}
+    }
 }
 
 void PrintConfigDef::init_sla_params()
@@ -2987,7 +3011,7 @@ std::string FullPrintConfig::validate()
         }
         case coFloats:
         case coPercents:
-            for (double v : static_cast<const ConfigOptionFloats*>(opt)->values)
+            for (double v : static_cast<const ConfigOptionVector<double>*>(opt)->values)
                 if (v < optdef->min || v > optdef->max) {
                     out_of_range = true;
                     break;
@@ -3000,7 +3024,7 @@ std::string FullPrintConfig::validate()
             break;
         }
         case coInts:
-            for (int v : static_cast<const ConfigOptionInts*>(opt)->values)
+            for (int v : static_cast<const ConfigOptionVector<int>*>(opt)->values)
                 if (v < optdef->min || v > optdef->max) {
                     out_of_range = true;
                     break;
