@@ -189,13 +189,14 @@ void Bed3D::Axes::render_axis(double length) const
 Bed3D::Bed3D()
     : m_type(Custom)
     , m_custom_texture("")
+    , m_custom_model("")
     , m_requires_canvas_update(false)
     , m_vbo_id(0)
     , m_scale_factor(1.0f)
 {
 }
 
-bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture)
+bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
     EType new_type = detect_type(shape);
 
@@ -207,12 +208,21 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture)
             cst_texture = "";
     }
 
-    if ((m_shape == shape) && (m_type == new_type) && (m_custom_texture == cst_texture))
+    // check that the passed custom texture filename is valid
+    std::string cst_model(custom_model);
+    if (!cst_model.empty())
+    {
+        if (!boost::algorithm::iends_with(custom_model, ".stl") || !boost::filesystem::exists(custom_model))
+            cst_model = "";
+    }
+
+    if ((m_shape == shape) && (m_type == new_type) && (m_custom_texture == cst_texture) && (m_custom_model == cst_model))
         // No change, no need to update the UI.
         return false;
 
     m_shape = shape;
     m_custom_texture = cst_texture;
+    m_custom_model = cst_model;
     m_type = new_type;
 
     calc_bounding_boxes();
@@ -385,7 +395,7 @@ void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom
 {
     if (!bottom)
     {
-        std::string filename = resources_dir() + "/models/" + key + "_bed.stl";
+        std::string filename = m_custom_model.empty() ? resources_dir() + "/models/" + key + "_bed.stl" : m_custom_model;
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
         {
             Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));

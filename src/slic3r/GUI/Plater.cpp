@@ -1851,7 +1851,7 @@ struct Plater::priv
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture);
+    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -2010,7 +2010,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
         {
             set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
-                config->option<ConfigOptionString>("bed_custom_texture")->value);
+                config->option<ConfigOptionString>("bed_custom_texture")->value,
+                config->option<ConfigOptionString>("bed_custom_model")->value);
         });
 
     // Preview events:
@@ -2018,7 +2019,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
         {
             set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
-                config->option<ConfigOptionString>("bed_custom_texture")->value);
+                config->option<ConfigOptionString>("bed_custom_texture")->value,
+                config->option<ConfigOptionString>("bed_custom_model")->value);
         });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, [this](wxKeyEvent& evt) { preview->move_double_slider(evt); });
@@ -3623,9 +3625,9 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
-void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture)
+void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
-    bool new_shape = bed.set_shape(shape, custom_texture);
+    bool new_shape = bed.set_shape(shape, custom_texture, custom_model);
     if (new_shape)
     {
         if (view3D) view3D->bed_shape_changed();
@@ -4502,7 +4504,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
-        else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture")) {
+        else if ((opt_key == "bed_shape") || (opt_key == "bed_custom_texture") || (opt_key == "bed_custom_model")) {
             bed_shape_changed = true;
             update_scheduled = true;
         } 
@@ -4537,7 +4539,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (bed_shape_changed)
         p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
-            p->config->option<ConfigOptionString>("bed_custom_texture")->value);
+            p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+            p->config->option<ConfigOptionString>("bed_custom_model")->value);
 
     if (update_scheduled) 
         update();
