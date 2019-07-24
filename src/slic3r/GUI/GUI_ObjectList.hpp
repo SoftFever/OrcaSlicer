@@ -78,8 +78,8 @@ public:
     };
 
 private:
-    SELECTION_MODE m_selection_mode {smUndef};
-    t_layer_height_range m_selected_layers_range;
+    SELECTION_MODE  m_selection_mode {smUndef};
+    int             m_selected_layers_range_idx;
 
     struct dragged_item_data
     {
@@ -309,8 +309,8 @@ public:
     void init_objects();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
-    t_layer_height_range get_selected_layers_range() const;
-    void set_selected_layers_range(const t_layer_height_range range) { m_selected_layers_range = range; }
+    int  get_selected_layers_range_idx() const;
+    void set_selected_layers_range_idx(const int range_idx) { m_selected_layers_range_idx = range_idx; }
     void set_selection_mode(SELECTION_MODE mode) { m_selection_mode = mode; }
     void update_selections();
     void update_selections_on_canvas();

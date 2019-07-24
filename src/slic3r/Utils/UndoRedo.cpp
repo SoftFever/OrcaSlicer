@@ -36,7 +36,7 @@
 namespace Slic3r {
 namespace UndoRedo {
 
-SnapshotData::SnapshotData() : printer_technology(ptUnknown), flags(0), layer_range({0.0, 0.0})
+SnapshotData::SnapshotData() : printer_technology(ptUnknown), flags(0), layer_range_idx(-1)
 {
 }
 

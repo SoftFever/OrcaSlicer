@@ -2633,20 +2633,17 @@ bool ObjectList::is_selected(const ItemType type) const
     return false;
 }
 
-t_layer_height_range ObjectList::get_selected_layers_range() const
+int ObjectList::get_selected_layers_range_idx() const
 {
-    t_layer_height_range layer_range = { 0.0, 0.0 };
     const wxDataViewItem& item = GetSelection();
     if (!item) 
-        return layer_range;
+        return -1;
 
     const ItemType type = m_objects_model->GetItemType(item);
     if (type & itSettings && m_objects_model->GetItemType(m_objects_model->GetParent(item)) != itLayer)
-        return layer_range;
+        return -1;
 
-    return  type & itLayer ? m_objects_model->GetLayerRangeByItem(item) :
-            type & itSettings ? m_objects_model->GetLayerRangeByItem(m_objects_model->GetParent(item)) :
-            layer_range;
+    return m_objects_model->GetLayerIdByItem(type & itLayer ? item : m_objects_model->GetParent(item));
 }
 
 void ObjectList::update_selections()
@@ -2687,15 +2684,15 @@ void ObjectList::update_selections()
             wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
             if (m_selection_mode & smSettings)
             {
-                if (m_selected_layers_range.first <= EPSILON && m_selected_layers_range.second <= EPSILON)
+                if (m_selected_layers_range_idx < 0)
                     sels.Add(m_objects_model->GetSettingsItem(obj_item));
                 else
-                    sels.Add(m_objects_model->GetSettingsItem(m_objects_model->GetItemByLayerRange(obj_idx, m_selected_layers_range)));
+                    sels.Add(m_objects_model->GetSettingsItem(m_objects_model->GetItemByLayerId(obj_idx, m_selected_layers_range_idx)));
             }
             else if (m_selection_mode & smLayerRoot)
                 sels.Add(m_objects_model->GetLayerRootItem(obj_item));
             else if (m_selection_mode & smLayer)
-                sels.Add(m_objects_model->GetItemByLayerRange(obj_idx, m_selected_layers_range));
+                sels.Add(m_objects_model->GetItemByLayerId(obj_idx, m_selected_layers_range_idx));
         }
         else {
         for (const auto& object : objects_content) {

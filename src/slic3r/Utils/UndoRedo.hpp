@@ -37,6 +37,7 @@ struct SnapshotData
 	PrinterTechnology 	printer_technology;
 	// Bitmap of Flags (see the Flags enum).
 	unsigned int        flags;
+    int                 layer_range_idx;
 
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {
@@ -45,8 +46,6 @@ struct SnapshotData
 		SELECTED_LAYERROOT_ON_SIDEBAR = 4,
 		SELECTED_LAYER_ON_SIDEBAR     = 8,
 	};
-
-    t_layer_height_range layer_range;
 };
 
 struct Snapshot
