@@ -3919,7 +3919,7 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-    m_bed.render(const_cast<GLCanvas3D*>(this), theta, scale_factor);
+    m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor);
 }
 
 void GLCanvas3D::_render_axes() const

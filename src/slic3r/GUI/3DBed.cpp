@@ -250,7 +250,7 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-void Bed3D::render(GLCanvas3D* canvas, float theta, float scale_factor) const
+void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
@@ -274,7 +274,7 @@ void Bed3D::render(GLCanvas3D* canvas, float theta, float scale_factor) const
     default:
     case Custom:
     {
-        render_custom();
+        render_custom(canvas, theta > 90.0f);
         break;
     }
     }
@@ -309,7 +309,7 @@ void Bed3D::calc_triangles(const ExPolygon& poly)
     Polygons triangles;
     poly.triangulate(&triangles);
 
-    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, m_type != Custom))
+    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, true))
         printf("Unable to create bed triangles\n");
 }
 
@@ -381,14 +381,11 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
     return type;
 }
 
-void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom) const
+void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const
 {
     std::string filename = !m_custom_texture.empty() ? m_custom_texture : resources_dir() + "/icons/bed/" + key + ".svg";
 
     std::string model_path = resources_dir() + "/models/" + key;
-
-    // use higher resolution images if graphic card and opengl version allow
-    GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
@@ -396,12 +393,14 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
 
         if (boost::algorithm::iends_with(filename, ".svg"))
         {
+            // use higher resolution images if graphic card and opengl version allow
+            GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
             if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
             {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed
                 if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
                 {
-                    render_custom();
+                    render_default();
                     return;
                 }
             }
@@ -409,7 +408,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
             // starts generating the main texture, compression will run asynchronously
             if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
             {
-                render_custom();
+                render_default();
                 return;
             }
         }
@@ -420,7 +419,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
             {
                 if (!m_temp_texture.load_from_file(filename, false, GLTexture::None, false))
                 {
-                    render_custom();
+                    render_default();
                     return;
                 }
             }
@@ -428,13 +427,13 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
             // starts generating the main texture, compression will run asynchronously
             if (!m_texture.load_from_file(filename, true, GLTexture::MultiThreaded, true))
             {
-                render_custom();
+                render_default();
                 return;
             }
         }
         else
         {
-            render_custom();
+            render_default();
             return;
         }
     }
@@ -451,9 +450,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
     }
     else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
     {
-        if (canvas != nullptr)
-            canvas->stop_keeping_dirty();
-
+        canvas.stop_keeping_dirty();
         m_requires_canvas_update = false;
     }
 
@@ -506,7 +503,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
         if (bottom)
             glsafe(::glFrontFace(GL_CW));
 
-        render_prusa_shader(bottom);
+        render_texture(bottom);
 
         if (bottom)
             glsafe(::glFrontFace(GL_CCW));
@@ -516,7 +513,7 @@ void Bed3D::render_prusa(GLCanvas3D* canvas, const std::string &key, bool bottom
     }
 }
 
-void Bed3D::render_prusa_shader(bool transparent) const
+void Bed3D::render_texture(bool transparent) const
 {
     if (m_shader.get_shader_program_id() == 0)
         m_shader.init("printbed.vs", "printbed.fs");
@@ -566,7 +563,114 @@ void Bed3D::render_prusa_shader(bool transparent) const
     }
 }
 
-void Bed3D::render_custom() const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
+{
+    if (m_custom_texture.empty())
+    {
+        render_default();
+        return;
+    }
+    else
+    {
+        if ((m_texture.get_id() == 0) || (m_texture.get_source() != m_custom_texture))
+        {
+            m_texture.reset();
+
+            if (boost::algorithm::iends_with(m_custom_texture, ".svg"))
+            {
+                // use higher resolution images if graphic card and opengl version allow
+                GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
+                if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_custom_texture))
+                {
+                    // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+                    if (!m_temp_texture.load_from_svg_file(m_custom_texture, false, false, false, max_tex_size / 8))
+                    {
+                        render_default();
+                        return;
+                    }
+                }
+
+                // starts generating the main texture, compression will run asynchronously
+                if (!m_texture.load_from_svg_file(m_custom_texture, true, true, true, max_tex_size))
+                {
+                    render_default();
+                    return;
+                }
+            }
+            else if (boost::algorithm::iends_with(m_custom_texture, ".png"))
+            {
+                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+                if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_custom_texture))
+                {
+                    if (!m_temp_texture.load_from_file(m_custom_texture, false, GLTexture::None, false))
+                    {
+                        render_default();
+                        return;
+                    }
+                }
+
+                // starts generating the main texture, compression will run asynchronously
+                if (!m_texture.load_from_file(m_custom_texture, true, GLTexture::MultiThreaded, true))
+                {
+                    render_default();
+                    return;
+                }
+            }
+            else
+            {
+                render_default();
+                return;
+            }
+        }
+        else if (m_texture.unsent_compressed_data_available())
+        {
+            // sends to gpu the already available compressed levels of the main texture
+            m_texture.send_compressed_data_to_gpu();
+
+            // the temporary texture is not needed anymore, reset it
+            if (m_temp_texture.get_id() != 0)
+                m_temp_texture.reset();
+
+            m_requires_canvas_update = true;
+        }
+        else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
+        {
+            canvas.stop_keeping_dirty();
+            m_requires_canvas_update = false;
+        }
+    }
+
+    unsigned int triangles_vcount = m_triangles.get_vertices_count();
+    if (triangles_vcount > 0)
+    {
+        if (m_vbo_id == 0)
+        {
+            glsafe(::glGenBuffers(1, &m_vbo_id));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        }
+
+        glsafe(::glEnable(GL_DEPTH_TEST));
+        glsafe(::glDepthMask(GL_FALSE));
+
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+        if (bottom)
+            glsafe(::glFrontFace(GL_CW));
+
+        render_texture(bottom);
+
+        if (bottom)
+            glsafe(::glFrontFace(GL_CCW));
+
+        glsafe(::glDisable(GL_BLEND));
+        glsafe(::glDepthMask(GL_TRUE));
+    }
+}
+
+void Bed3D::render_default() const
 {
     m_texture.reset();
 
@@ -587,14 +691,12 @@ void Bed3D::render_custom() const
         glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
 
         // draw grid
-        unsigned int gridlines_vcount = m_gridlines.get_vertices_count();
-
         // we need depth test for grid, otherwise it would disappear when looking the object from below
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glLineWidth(3.0f * m_scale_factor));
         glsafe(::glColor4f(0.2f, 0.2f, 0.2f, 0.4f));
         glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-        glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount));
+        glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 
         glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 

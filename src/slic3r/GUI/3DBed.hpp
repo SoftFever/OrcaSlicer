@@ -109,7 +109,7 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D* canvas, float theta, float scale_factor) const;
+    void render(GLCanvas3D& canvas, float theta, float scale_factor) const;
     void render_axes() const;
 
 private:
@@ -117,9 +117,10 @@ private:
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     EType detect_type(const Pointfs& shape) const;
-    void render_prusa(GLCanvas3D* canvas, const std::string& key, bool bottom) const;
-    void render_prusa_shader(bool transparent) const;
-    void render_custom() const;
+    void render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const;
+    void render_texture(bool transparent) const;
+    void render_custom(GLCanvas3D& canvas, bool bottom) const;
+    void render_default() const;
     void reset();
 };
 
