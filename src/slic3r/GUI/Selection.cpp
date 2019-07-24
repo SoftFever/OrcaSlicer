@@ -425,7 +425,6 @@ void Selection::add_volumes(EMode mode, const std::vector<unsigned int>& volume_
         if (i < (unsigned int)m_volumes->size())
             do_add_volume(i);
     }
-//    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -495,7 +494,9 @@ void Selection::remove_all()
     if (is_empty())
         return;
     
-    wxGetApp().plater()->take_snapshot(_(L("Selection - Remove - remove_all()")));
+//#####################################################################################################################################################################################
+//    wxGetApp().plater()->take_snapshot(_(L("Selection - Remove - remove_all()")));
+//#####################################################################################################################################################################################
 
     m_mode = Instance;
     clear();
