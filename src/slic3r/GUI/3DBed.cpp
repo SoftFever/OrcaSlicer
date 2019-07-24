@@ -383,9 +383,46 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 
 void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const
 {
-    std::string filename = !m_custom_texture.empty() ? m_custom_texture : resources_dir() + "/icons/bed/" + key + ".svg";
+    if (!bottom)
+    {
+        std::string filename = resources_dir() + "/models/" + key + "_bed.stl";
+        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
+        {
+            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
+            if (key == "mk2")
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 7.5, -0.03);
+            else if (key == "mk3")
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 5.5, 2.43);
+            else if (key == "sl1")
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 0.0, -0.03);
 
-    std::string model_path = resources_dir() + "/models/" + key;
+            m_model.center_around(offset);
+
+            // update extended bounding box
+            calc_bounding_boxes();
+        }
+
+        if (!m_model.get_filename().empty())
+        {
+            glsafe(::glEnable(GL_LIGHTING));
+            m_model.render();
+            glsafe(::glDisable(GL_LIGHTING));
+        }
+    }
+
+    render_texture(m_custom_texture.empty() ? resources_dir() + "/icons/bed/" + key + ".svg" : m_custom_texture, bottom, canvas);
+}
+
+void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const
+{
+    if (filename.empty())
+    {
+        m_texture.reset();
+        return;
+    }
 
     if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
     {
@@ -454,112 +491,77 @@ void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom
         m_requires_canvas_update = false;
     }
 
-    if (!bottom)
+    if (m_triangles.get_vertices_count() > 0)
     {
-        filename = model_path + "_bed.stl";
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename)) {
-            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
-            if (key == "mk2")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 7.5, -0.03);
-            else if (key == "mk3")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 5.5, 2.43);
-            else if (key == "sl1")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 0.0, -0.03);
+        if (m_shader.get_shader_program_id() == 0)
+            m_shader.init("printbed.vs", "printbed.fs");
 
-            m_model.center_around(offset);
-
-            // update extended bounding box
-            calc_bounding_boxes();
-        }
-
-        if (!m_model.get_filename().empty())
+        if (m_shader.is_initialized())
         {
-            glsafe(::glEnable(GL_LIGHTING));
-            m_model.render();
-            glsafe(::glDisable(GL_LIGHTING));
-        }
-    }
+            m_shader.start_using();
+            m_shader.set_uniform("transparent_background", bottom);
+            m_shader.set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    if (triangles_vcount > 0)
-    {
-        if (m_vbo_id == 0)
-        {
-            glsafe(::glGenBuffers(1, &m_vbo_id));
+            if (m_vbo_id == 0)
+            {
+                glsafe(::glGenBuffers(1, &m_vbo_id));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+                glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            }
+
+            glsafe(::glEnable(GL_DEPTH_TEST));
+            glsafe(::glDepthMask(GL_FALSE));
+
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+            if (bottom)
+                glsafe(::glFrontFace(GL_CW));
+
+            unsigned int stride = m_triangles.get_vertex_data_size();
+
+            GLint position_id = m_shader.get_attrib_location("v_position");
+            GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
+
+            // show the temporary texture while no compressed data is available
+            GLuint tex_id = (GLuint)m_temp_texture.get_id();
+            if (tex_id == 0)
+                tex_id = (GLuint)m_texture.get_id();
+
+            glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
+
+            if (position_id != -1)
+            {
+                glsafe(::glEnableVertexAttribArray(position_id));
+                glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_position_offset()));
+            }
+            if (tex_coords_id != -1)
+            {
+                glsafe(::glEnableVertexAttribArray(tex_coords_id));
+                glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_tex_coords_offset()));
+            }
+
+            glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));
+
+            if (tex_coords_id != -1)
+                glsafe(::glDisableVertexAttribArray(tex_coords_id));
+
+            if (position_id != -1)
+                glsafe(::glDisableVertexAttribArray(position_id));
+
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+
+            if (bottom)
+                glsafe(::glFrontFace(GL_CCW));
+
+            glsafe(::glDisable(GL_BLEND));
+            glsafe(::glDepthMask(GL_TRUE));
+
+            m_shader.stop_using();
         }
-
-        glsafe(::glEnable(GL_DEPTH_TEST));
-        glsafe(::glDepthMask(GL_FALSE));
-
-        glsafe(::glEnable(GL_BLEND));
-        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-        if (bottom)
-            glsafe(::glFrontFace(GL_CW));
-
-        render_texture(bottom);
-
-        if (bottom)
-            glsafe(::glFrontFace(GL_CCW));
-
-        glsafe(::glDisable(GL_BLEND));
-        glsafe(::glDepthMask(GL_TRUE));
-    }
-}
-
-void Bed3D::render_texture(bool transparent) const
-{
-    if (m_shader.get_shader_program_id() == 0)
-        m_shader.init("printbed.vs", "printbed.fs");
-
-    if (m_shader.is_initialized())
-    {
-        m_shader.start_using();
-        m_shader.set_uniform("transparent_background", transparent);
-        m_shader.set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
-
-        unsigned int stride = m_triangles.get_vertex_data_size();
-
-        GLint position_id = m_shader.get_attrib_location("v_position");
-        GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
-
-        // show the temporary texture while no compressed data is available
-        GLuint tex_id = (GLuint)m_temp_texture.get_id();
-        if (tex_id == 0)
-            tex_id = (GLuint)m_texture.get_id();
-
-        glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-
-        if (position_id != -1)
-        {
-            glsafe(::glEnableVertexAttribArray(position_id));
-            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_position_offset()));
-        }
-        if (tex_coords_id != -1)
-        {
-            glsafe(::glEnableVertexAttribArray(tex_coords_id));
-            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_triangles.get_tex_coords_offset()));
-        }
-
-        glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));
-
-        if (tex_coords_id != -1)
-            glsafe(::glDisableVertexAttribArray(tex_coords_id));
-
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
-
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-
-        m_shader.stop_using();
     }
 }
 
@@ -570,104 +572,8 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
         render_default();
         return;
     }
-    else
-    {
-        if ((m_texture.get_id() == 0) || (m_texture.get_source() != m_custom_texture))
-        {
-            m_texture.reset();
 
-            if (boost::algorithm::iends_with(m_custom_texture, ".svg"))
-            {
-                // use higher resolution images if graphic card and opengl version allow
-                GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
-                if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_custom_texture))
-                {
-                    // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                    if (!m_temp_texture.load_from_svg_file(m_custom_texture, false, false, false, max_tex_size / 8))
-                    {
-                        render_default();
-                        return;
-                    }
-                }
-
-                // starts generating the main texture, compression will run asynchronously
-                if (!m_texture.load_from_svg_file(m_custom_texture, true, true, true, max_tex_size))
-                {
-                    render_default();
-                    return;
-                }
-            }
-            else if (boost::algorithm::iends_with(m_custom_texture, ".png"))
-            {
-                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_custom_texture))
-                {
-                    if (!m_temp_texture.load_from_file(m_custom_texture, false, GLTexture::None, false))
-                    {
-                        render_default();
-                        return;
-                    }
-                }
-
-                // starts generating the main texture, compression will run asynchronously
-                if (!m_texture.load_from_file(m_custom_texture, true, GLTexture::MultiThreaded, true))
-                {
-                    render_default();
-                    return;
-                }
-            }
-            else
-            {
-                render_default();
-                return;
-            }
-        }
-        else if (m_texture.unsent_compressed_data_available())
-        {
-            // sends to gpu the already available compressed levels of the main texture
-            m_texture.send_compressed_data_to_gpu();
-
-            // the temporary texture is not needed anymore, reset it
-            if (m_temp_texture.get_id() != 0)
-                m_temp_texture.reset();
-
-            m_requires_canvas_update = true;
-        }
-        else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
-        {
-            canvas.stop_keeping_dirty();
-            m_requires_canvas_update = false;
-        }
-    }
-
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    if (triangles_vcount > 0)
-    {
-        if (m_vbo_id == 0)
-        {
-            glsafe(::glGenBuffers(1, &m_vbo_id));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        }
-
-        glsafe(::glEnable(GL_DEPTH_TEST));
-        glsafe(::glDepthMask(GL_FALSE));
-
-        glsafe(::glEnable(GL_BLEND));
-        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-        if (bottom)
-            glsafe(::glFrontFace(GL_CW));
-
-        render_texture(bottom);
-
-        if (bottom)
-            glsafe(::glFrontFace(GL_CCW));
-
-        glsafe(::glDisable(GL_BLEND));
-        glsafe(::glDepthMask(GL_TRUE));
-    }
+    render_texture(m_custom_texture, bottom, canvas);
 }
 
 void Bed3D::render_default() const
