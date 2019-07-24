@@ -1898,8 +1898,35 @@ void TabPrinter::build_fff()
 					extruders_count_changed(extruders_count);
                     init_options_list(); // m_options_list should be updated before UI updating
 					update_dirty();
-                    if (opt_key == "single_extruder_multi_material") // the single_extruder_multimaterial was added to force pages
+                    if (opt_key == "single_extruder_multi_material") { // the single_extruder_multimaterial was added to force pages
                         on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
+
+                        if (boost::any_cast<bool>(value) && m_extruders_count > 1) {
+                            SuppressBackgroundProcessingUpdate sbpu;
+                            std::vector<double> nozzle_diameters = static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
+                            const double frst_diam = nozzle_diameters[0];
+
+                            for (auto cur_diam : nozzle_diameters) {
+                                // if value is differs from first nozzle diameter value
+                                if (fabs(cur_diam - frst_diam) > EPSILON) {
+                                    const wxString msg_text = _(L("Single Extruder Multi Material is selected, \n"
+                                                                  "and all extruders must have the same diameter.\n"
+                                                                  "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
+                                    auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                                    
+                                    if (dialog->ShowModal() == wxID_YES) {
+                                        DynamicPrintConfig new_conf = *m_config;
+                                        for (size_t i = 1; i < nozzle_diameters.size(); i++)
+                                            nozzle_diameters[i] = frst_diam;
+
+                                        new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
+                                        load_config(new_conf);
+                                    }
+                                    break;
+                                }
+                            } 
+                        }
+                    }
 				}
 				else {
 					update_dirty();
@@ -2330,7 +2357,7 @@ void TabPrinter::build_unregular_pages()
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
             {
-                if (m_extruders_count > 1 && opt_key.find_first_of("nozzle_diameter") != std::string::npos)
+                if (m_config->opt_bool("single_extruder_multi_material") && m_extruders_count > 1 && opt_key.find_first_of("nozzle_diameter") != std::string::npos)
                 {
                     SuppressBackgroundProcessingUpdate sbpu;
                     const double new_nd = boost::any_cast<double>(value);
