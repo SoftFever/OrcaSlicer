@@ -172,7 +172,7 @@ extern std::string xml_escape(std::string text);
 #if defined __GNUC__ && __GNUC__ < 5 && !defined __clang__
 // Older GCCs don't have std::is_trivially_copyable
 // cf. https://gcc.gnu.org/onlinedocs/gcc-4.9.4/libstdc++/manual/manual/status.html#status.iso.2011
-#warning "GCC version < 5, faking std::is_trivially_copyable"
+// #warning "GCC version < 5, faking std::is_trivially_copyable"
 template<typename T> struct IsTriviallyCopyable { static constexpr bool value = true; };
 #else
 template<typename T> struct IsTriviallyCopyable : public std::is_trivially_copyable<T> {};
