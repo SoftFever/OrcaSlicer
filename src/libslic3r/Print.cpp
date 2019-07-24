@@ -545,9 +545,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             m_ranges.reserve(in.size());
             // Input ranges are sorted lexicographically. First range trims the other ranges.
             coordf_t last_z = 0;
-            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in) {
-//            for (auto &range : in) {
-			if (range.first.second > last_z) {
+            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in)
+				if (range.first.second > last_z) {
                     coordf_t min_z = std::max(range.first.first, 0.);
                     if (min_z > last_z + EPSILON) {
                         m_ranges.emplace_back(t_layer_height_range(last_z, min_z), nullptr);
@@ -559,7 +558,6 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         last_z = range.first.second;
                     }
                 }
-            }
             if (m_ranges.empty())
                 m_ranges.emplace_back(t_layer_height_range(0, DBL_MAX), nullptr);
             else if (m_ranges.back().second == nullptr)

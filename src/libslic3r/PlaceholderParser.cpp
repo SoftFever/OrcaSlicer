@@ -62,7 +62,7 @@
 
 namespace Slic3r {
 
-PlaceholderParser::PlaceholderParser()
+PlaceholderParser::PlaceholderParser(const DynamicConfig *external_config) : m_external_config(external_config)
 {
     this->set("version", std::string(SLIC3R_VERSION));
     this->apply_env_variables();
@@ -608,6 +608,7 @@ namespace client
     }
 
     struct MyContext {
+    	const DynamicConfig     *external_config        = nullptr;
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
         size_t                   current_extruder_id    = 0;
@@ -628,6 +629,8 @@ namespace client
                 opt = config_override->option(opt_key);
             if (opt == nullptr)
                 opt = config->option(opt_key);
+            if (opt == nullptr && external_config != nullptr)
+                opt = external_config->option(opt_key);
             return opt;
         }
 
@@ -1255,6 +1258,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
 {
     client::MyContext context;
+    context.external_config 	= this->external_config();
     context.config              = &this->config();
     context.config_override     = config_override;
     context.current_extruder_id = current_extruder_id;
@@ -1266,8 +1270,8 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
 bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override)
 {
     client::MyContext context;
-    context.config                  = &config;
-    context.config_override         = config_override;
+    context.config              = &config;
+    context.config_override     = config_override;
     // Let the macro processor parse just a boolean expression, not the full macro language.
     context.just_boolean_expression = true;
     return process_macro(templ, context) == "true";
