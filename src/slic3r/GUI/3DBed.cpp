@@ -558,8 +558,10 @@ void Bed3D::render_model(const std::string& filename) const
 
     if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
     {
-        // move the model a bit down to avoid z-fighting with the texture quad
-        m_model.set_offset(-0.03 * Vec3d::UnitZ());
+        // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
+        Vec3d shift = m_bounding_box.center();
+        shift(2) = -0.03;
+        m_model.set_offset(shift);
 
         // update extended bounding box
         calc_bounding_boxes();
