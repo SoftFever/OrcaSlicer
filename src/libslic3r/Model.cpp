@@ -1134,7 +1134,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_upper) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
-        upper->sla_points_status = sla::PointsStatus::None;
+        upper->sla_points_status = sla::PointsStatus::NoPoints;
         upper->clear_volumes();
         upper->input_file = "";
     }
@@ -1142,7 +1142,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_lower) {
         lower->set_model(nullptr);
         lower->sla_support_points.clear();
-        lower->sla_points_status = sla::PointsStatus::None;
+        lower->sla_points_status = sla::PointsStatus::NoPoints;
         lower->clear_volumes();
         lower->input_file = "";
     }

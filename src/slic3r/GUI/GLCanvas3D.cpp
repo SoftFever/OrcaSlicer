@@ -1905,7 +1905,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (volume->volume_idx() < 0) {
 			auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
             if (it != aux_volume_state.end() && it->geometry_id == key.geometry_id)
-                mvs = &(*it);
+                // This can be an SLA support structure that should not be rendered (in case someone used undo
+                // to revert to before it was generated). We only reuse the volume if that's not the case.
+                if (m_model->objects[volume->composite_id.object_id]->sla_points_status != sla::PointsStatus::NoPoints)
+                    mvs = &(*it);
         } else {
 			auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
             if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
@@ -2018,8 +2021,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         ModelVolumeState key(state.step[istep].timestamp, instance.instance_id.id);
                         auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
                         assert(it != aux_volume_state.end() && it->geometry_id == key.geometry_id);
-                        if (it->new_geometry())
-                            instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
+                        if (it->new_geometry()) {
+                            // This can be an SLA support structure that should not be rendered (in case someone used undo
+                            // to revert to before it was generated). If that's the case, we should not generate anything.
+                            if (model_object->sla_points_status != sla::PointsStatus::NoPoints)
+                                instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
+                            else
+                                shift_zs[object_idx] = 0.;
+                        }
 						else {
 							// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
 							m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
