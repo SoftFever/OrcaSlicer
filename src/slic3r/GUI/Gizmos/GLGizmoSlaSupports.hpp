@@ -98,6 +98,8 @@ private:
     float m_new_point_head_diameter;        // Size of a new point.
     float m_minimal_point_distance = 20.f;
     mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
+    std::vector<CacheEntry> m_old_cache; // to restore after discarding changes or undo/redo
+
     float m_clipping_plane_distance = 0.f;
     mutable float m_old_clipping_plane_distance = 0.f;
     mutable Vec3d m_old_clipping_plane_normal;

@@ -223,7 +223,7 @@ void GLGizmosManager::update_data()
     enable_grabber(Rotate, 1, !is_wipe_tower);
 
     bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
-    for (int i = 0; i < 6; ++i)
+    for (unsigned int i = 0; i < 6; ++i)
     {
         enable_grabber(Scale, i, enable_scale_xyz);
     }

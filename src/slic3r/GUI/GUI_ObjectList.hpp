@@ -66,13 +66,20 @@ struct ItemForDelete
 
 class ObjectList : public wxDataViewCtrl
 {
+public:
     enum SELECTION_MODE
     {
         smUndef     = 0,
         smVolume    = 1,
         smInstance  = 2,
-        smLayer     = 4
-    } m_selection_mode {smUndef};
+        smLayer     = 4,
+        smSettings  = 8,  // used for undo/redo
+        smLayerRoot = 16, // used for undo/redo
+    };
+
+private:
+    SELECTION_MODE  m_selection_mode {smUndef};
+    int             m_selected_layers_range_idx;
 
     struct dragged_item_data
     {
@@ -302,6 +309,9 @@ public:
     void init_objects();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
+    int  get_selected_layers_range_idx() const;
+    void set_selected_layers_range_idx(const int range_idx) { m_selected_layers_range_idx = range_idx; }
+    void set_selection_mode(SELECTION_MODE mode) { m_selection_mode = mode; }
     void update_selections();
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);

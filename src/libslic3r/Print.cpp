@@ -1146,6 +1146,13 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
+        // make sure all extruders use same diameter filament and have the same nozzle diameter
+        for (const auto& extruder_idx : extruders()) {
+            if (m_config.nozzle_diameter.get_at(extruder_idx) != m_config.nozzle_diameter.get_at(extruders().front())
+             || m_config.filament_diameter.get_at(extruder_idx) != m_config.filament_diameter.get_at(extruders().front()))
+                 return L("The wipe tower is only supported if all extruders have the same nozzle diameter and use filaments of the same diameter.");
+        }
+
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
@@ -1754,8 +1761,9 @@ void Print::_make_wipe_tower()
 			(float)m_config.filament_cooling_initial_speed.get_at(i),
 			(float)m_config.filament_cooling_final_speed.get_at(i),
             m_config.filament_ramming_parameters.get_at(i),
-			(float)m_config.filament_max_volumetric_speed.get_at(i),
-            (float)m_config.nozzle_diameter.get_at(i));
+            (float)m_config.filament_max_volumetric_speed.get_at(i),
+            (float)m_config.nozzle_diameter.get_at(i),
+            (float)m_config.filament_diameter.get_at(i));
 
     m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
         wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
