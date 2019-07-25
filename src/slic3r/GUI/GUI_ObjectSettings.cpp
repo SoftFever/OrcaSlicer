@@ -77,8 +77,8 @@ bool ObjectSettings::update_settings_list()
     if (!item || !objects_model->IsSettingsItem(item) || !config || objects_ctrl->multiple_selection())
         return false;
 
-    const bool is_layers_range_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itLayer;
-	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(config, is_layers_range_settings);
+    const bool is_object_settings = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
+	SettingsBundle cat_options = objects_ctrl->get_item_settings_bundle(config, is_object_settings);
 
     if (!cat_options.empty())
     {
@@ -107,10 +107,6 @@ bool ObjectSettings::update_settings_list()
 
         for (auto& cat : cat_options)
         {
-            if (cat.second.size() == 1 &&
-                (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
-                continue;
-
             categories.push_back(cat.first);
 
             auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), config, false, extra_column);
@@ -131,8 +127,6 @@ bool ObjectSettings::update_settings_list()
             const bool is_extruders_cat = cat.first == "Extruders";
             for (auto& opt : cat.second)
             {
-                if (opt == "extruder" || is_layers_range_settings && opt == "layer_height")
-                    continue;
                 Option option = optgroup->get_option(opt);
                 option.opt.width = 12;
                 if (is_extruders_cat)

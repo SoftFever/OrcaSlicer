@@ -1566,9 +1566,9 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 #endif
 }
 
-void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
+void ObjectList::update_opt_keys(t_config_option_keys& opt_keys, const bool is_object)
 {
-    auto full_current_opts = get_options(false);
+    auto full_current_opts = get_options(!is_object);
     for (int i = opt_keys.size()-1; i >= 0; --i)
         if (find(full_current_opts.begin(), full_current_opts.end(), opt_keys[i]) == full_current_opts.end())
             opt_keys.erase(opt_keys.begin() + i);
@@ -2161,16 +2161,15 @@ void ObjectList::part_selection_changed()
     panel.Thaw();
 }
 
-SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_layers_range_settings)
+SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_object_settings)
 {
     auto opt_keys = config->keys();
     if (opt_keys.empty())
         return SettingsBundle();
 
-    update_opt_keys(opt_keys); // update options list according to print technology
+    update_opt_keys(opt_keys, is_object_settings); // update options list according to print technology
 
-    if (opt_keys.size() == 1 && opt_keys[0] == "extruder" ||
-        is_layers_range_settings && opt_keys.size() == 2)
+    if (opt_keys.empty())
         return SettingsBundle();
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
@@ -2201,24 +2200,15 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     if (!parent_item)
         return ret;
 
-    const bool is_layers_range_settings = m_objects_model->GetItemType(parent_item) == itLayer;
-    SettingsBundle cat_options = get_item_settings_bundle(config, is_layers_range_settings);
+    const bool is_object_settings = m_objects_model->GetItemType(parent_item) == itObject;
+    SettingsBundle cat_options = get_item_settings_bundle(config, is_object_settings);
     if (cat_options.empty())
         return ret;
 
     std::vector<std::string> categories;
     categories.reserve(cat_options.size());
     for (auto& cat : cat_options)
-    {
-        if (cat.second.size() == 1 &&
-            (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
-            continue;
-
         categories.push_back(cat.first);
-    }
-
-    if (categories.empty())
-        return ret;
 
     if (m_objects_model->GetItemType(parent_item) & itInstance)
         parent_item = m_objects_model->GetTopParent(parent_item);
