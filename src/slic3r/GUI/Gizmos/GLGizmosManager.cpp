@@ -623,7 +623,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             {
             case Move:
             {
-                m_parent.disable_regenerate_volumes();
                 m_parent.do_move(L("Gizmo-Move"));
                 break;
             }
