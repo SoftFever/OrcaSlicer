@@ -3739,6 +3739,16 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
     	snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+    if (this->sidebar->obj_list()->is_selected(itSettings)) {
+        snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_SETTINGS_ON_SIDEBAR;
+        snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
+    }
+    else if (this->sidebar->obj_list()->is_selected(itLayer)) {
+        snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_LAYER_ON_SIDEBAR;
+        snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
+    }
+    else if (this->sidebar->obj_list()->is_selected(itLayerRoot))
+        snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_LAYERROOT_ON_SIDEBAR;
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     if (this->printer_technology == ptFFF) {
@@ -3805,7 +3815,21 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     top_snapshot_data.printer_technology = this->printer_technology;
     if (this->view3D->is_layers_editing_enabled())
     	top_snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
+    if (this->sidebar->obj_list()->is_selected(itSettings)) {
+    	top_snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_SETTINGS_ON_SIDEBAR;
+        top_snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
+    }
+    else if (this->sidebar->obj_list()->is_selected(itLayer)) {
+        top_snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_LAYER_ON_SIDEBAR;
+        top_snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
+    }
+    else if (this->sidebar->obj_list()->is_selected(itLayerRoot))
+        top_snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_LAYERROOT_ON_SIDEBAR;
 	bool   		 new_variable_layer_editing_active = (new_flags & UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE) != 0;
+    bool         new_selected_settings_on_sidebar  = (new_flags & UndoRedo::SnapshotData::SELECTED_SETTINGS_ON_SIDEBAR) != 0;
+    bool         new_selected_layer_on_sidebar     = (new_flags & UndoRedo::SnapshotData::SELECTED_LAYER_ON_SIDEBAR) != 0;
+    bool         new_selected_layerroot_on_sidebar = (new_flags & UndoRedo::SnapshotData::SELECTED_LAYERROOT_ON_SIDEBAR) != 0;
+
 	// Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
@@ -3838,6 +3862,14 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
                 tab_print->update_dirty();
             }
         }
+        // set selection mode for ObjectList on sidebar
+        this->sidebar->obj_list()->set_selection_mode(new_selected_settings_on_sidebar  ? ObjectList::SELECTION_MODE::smSettings :
+                                                      new_selected_layer_on_sidebar     ? ObjectList::SELECTION_MODE::smLayer :
+                                                      new_selected_layerroot_on_sidebar ? ObjectList::SELECTION_MODE::smLayerRoot : 
+                                                                                          ObjectList::SELECTION_MODE::smUndef);
+        if (new_selected_settings_on_sidebar || new_selected_layer_on_sidebar)
+            this->sidebar->obj_list()->set_selected_layers_range_idx(it_snapshot->snapshot_data.layer_range_idx);
+
         this->update_after_undo_redo(temp_snapshot_was_taken);
 		// Enable layer editing after the Undo / Redo jump.
 		if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)

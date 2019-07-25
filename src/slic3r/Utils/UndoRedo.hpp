@@ -9,6 +9,9 @@
 
 #include <libslic3r/ObjectID.hpp>
 
+typedef double                          coordf_t;
+typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
+
 namespace Slic3r {
 
 class Model;
@@ -34,10 +37,14 @@ struct SnapshotData
 	PrinterTechnology 	printer_technology;
 	// Bitmap of Flags (see the Flags enum).
 	unsigned int        flags;
+    int                 layer_range_idx;
 
 	// Bitmask of various binary flags to be stored with the snapshot.
 	enum Flags {
 		VARIABLE_LAYER_EDITING_ACTIVE = 1,
+		SELECTED_SETTINGS_ON_SIDEBAR  = 2,
+		SELECTED_LAYERROOT_ON_SIDEBAR = 4,
+		SELECTED_LAYER_ON_SIDEBAR     = 8,
 	};
 };
 
