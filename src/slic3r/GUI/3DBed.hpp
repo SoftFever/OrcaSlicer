@@ -122,7 +122,7 @@ private:
     void render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const;
     void render_model(const std::string& filename) const;
     void render_custom(GLCanvas3D& canvas, bool bottom) const;
-    void render_default() const;
+    void render_default(bool bottom) const;
     void reset();
 };
 
