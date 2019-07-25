@@ -120,6 +120,7 @@ private:
     EType detect_type(const Pointfs& shape) const;
     void render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const;
     void render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const;
+    void render_model(const std::string& filename) const;
     void render_custom(GLCanvas3D& canvas, bool bottom) const;
     void render_default() const;
     void reset();

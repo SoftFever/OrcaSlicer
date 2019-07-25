@@ -394,24 +394,7 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
 void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const
 {
     if (!bottom)
-    {
-        std::string filename = m_custom_model.empty() ? resources_dir() + "/models/" + key + "_bed.stl" : m_custom_model;
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
-        {
-            // move the model a bit down to avoid z-fighting with the texture quad
-            m_model.set_offset(-0.03 * Vec3d::UnitZ());
-
-            // update extended bounding box
-            calc_bounding_boxes();
-        }
-
-        if (!m_model.get_filename().empty())
-        {
-            glsafe(::glEnable(GL_LIGHTING));
-            m_model.render();
-            glsafe(::glDisable(GL_LIGHTING));
-        }
-    }
+        render_model(m_custom_model.empty() ? resources_dir() + "/models/" + key + "_bed.stl" : m_custom_model);
 
     render_texture(m_custom_texture.empty() ? resources_dir() + "/icons/bed/" + key + ".svg" : m_custom_texture, bottom, canvas);
 }
@@ -421,6 +404,7 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
     if (filename.empty())
     {
         m_texture.reset();
+        render_default();
         return;
     }
 
@@ -565,13 +549,38 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
     }
 }
 
+void Bed3D::render_model(const std::string& filename) const
+{
+    if (filename.empty())
+        return;
+
+    if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
+    {
+        // move the model a bit down to avoid z-fighting with the texture quad
+        m_model.set_offset(-0.03 * Vec3d::UnitZ());
+
+        // update extended bounding box
+        calc_bounding_boxes();
+    }
+
+    if (!m_model.get_filename().empty())
+    {
+        glsafe(::glEnable(GL_LIGHTING));
+        m_model.render();
+        glsafe(::glDisable(GL_LIGHTING));
+    }
+}
+
 void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
 {
-    if (m_custom_texture.empty())
+    if (m_custom_texture.empty() && m_custom_model.empty())
     {
         render_default();
         return;
     }
+
+    if (!bottom)
+        render_model(m_custom_model);
 
     render_texture(m_custom_texture, bottom, canvas);
 }
