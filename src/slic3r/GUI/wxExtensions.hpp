@@ -946,7 +946,7 @@ private:
 class ModeSizer : public wxFlexGridSizer
 {
 public:
-    ModeSizer( wxWindow *parent, int hgap = 10);
+    ModeSizer( wxWindow *parent, int hgap = 0);
     ~ModeSizer() {}
 
     void SetMode(const /*ConfigOptionMode*/int mode);
