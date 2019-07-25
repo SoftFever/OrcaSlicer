@@ -1508,7 +1508,7 @@ ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
     if (!item.IsOk())
         return itUndef;
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    return node->m_type;
+    return node->m_type < 0 ? itUndef : node->m_type;
 }
 
 wxDataViewItem ObjectDataViewModel::GetItemByType(const wxDataViewItem &parent_item, ItemType type) const 
