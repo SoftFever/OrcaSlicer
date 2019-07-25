@@ -208,6 +208,14 @@ wxPanel* BedShapePanel::init_texture_panel()
         filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
             {
                 e.SetText(_(boost::filesystem::path(m_custom_texture).filename().string()));
+                wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
+                if (lbl != nullptr)
+                {
+                    wxString tooltip_text = (m_custom_texture == NONE) ? _(L("")) : _(m_custom_texture);
+                    wxToolTip* tooltip = lbl->GetToolTip();
+                    if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
+                        lbl->SetToolTip(tooltip_text);
+                }
             }));
 
         remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
@@ -268,6 +276,14 @@ wxPanel* BedShapePanel::init_model_panel()
         filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
             {
                 e.SetText(_(boost::filesystem::path(m_custom_model).filename().string()));
+                wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
+                if (lbl != nullptr)
+                {
+                    wxString tooltip_text = (m_custom_model == NONE) ? _(L("")) : _(m_custom_model);
+                    wxToolTip* tooltip = lbl->GetToolTip();
+                    if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
+                        lbl->SetToolTip(tooltip_text);
+                }
             }));
 
         remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e)
