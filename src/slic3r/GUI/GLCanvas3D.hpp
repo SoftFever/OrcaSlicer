@@ -463,7 +463,6 @@ private:
     bool m_moving_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
-    bool m_regenerate_volumes;
     bool m_moving;
     bool m_tab_down;
     ECursorType m_cursor_type;
@@ -652,7 +651,6 @@ public:
     Linef3 mouse_ray(const Point& mouse_pos);
 
     void set_mouse_as_dragging() { m_mouse.dragging = true; }
-    void disable_regenerate_volumes() { m_regenerate_volumes = false; }
     void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
