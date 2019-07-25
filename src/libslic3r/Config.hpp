@@ -434,7 +434,7 @@ public:
     static ConfigOptionType static_type() { return coFloats; }
     ConfigOptionType        type()  const override { return static_type(); }
     ConfigOption*           clone() const override { return new ConfigOptionFloatsTempl(*this); }
-    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { vectors_equal(this->values, rhs.values); }
+    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { return vectors_equal(this->values, rhs.values); }
     bool 					operator==(const ConfigOption &rhs) const override {
         if (rhs.type() != this->type())
             throw std::runtime_error("ConfigOptionFloatsTempl: Comparing incompatible types");
