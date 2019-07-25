@@ -217,7 +217,7 @@ protected:
 class PrintBase
 {
 public:
-	PrintBase() { this->restart(); }
+	PrintBase() : m_placeholder_parser(&m_full_print_config) { this->restart(); }
     inline virtual ~PrintBase() {}
 
     virtual PrinterTechnology technology() const noexcept = 0;
@@ -240,7 +240,7 @@ public:
         // Some data was changed, which in turn invalidated already calculated steps.
         APPLY_STATUS_INVALIDATED,
     };
-    virtual ApplyStatus     apply(const Model &model, const DynamicPrintConfig &config) = 0;
+    virtual ApplyStatus     apply(const Model &model, DynamicPrintConfig config) = 0;
     const Model&            model() const { return m_model; }
 
     struct TaskParams {
@@ -316,7 +316,7 @@ public:
     virtual bool               finished() const = 0;
 
     const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
-    PlaceholderParser&         placeholder_parser() { return m_placeholder_parser; }
+    const DynamicPrintConfig&  full_print_config() const { return m_full_print_config; }
 
     virtual std::string        output_filename(const std::string &filename_base = std::string()) const = 0;
     // If the filename_base is set, it is used as the input for the template processing. In that case the path is expected to be the directory (may be empty).
@@ -326,6 +326,8 @@ public:
 protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;
+
+    PlaceholderParser&     placeholder_parser() { return m_placeholder_parser; }
 
     tbb::mutex&            state_mutex() const { return m_state_mutex; }
     std::function<void()>  cancel_callback() { return m_cancel_callback; }
@@ -341,6 +343,7 @@ protected:
     void                   update_object_placeholders(DynamicConfig &config, const std::string &default_ext) const;
 
 	Model                                   m_model;
+	DynamicPrintConfig						m_full_print_config;
 
 private:
     tbb::atomic<CancelStatus>               m_cancel_status;

@@ -94,14 +94,6 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
     config.set_key_value("second", new ConfigOptionInt(timeinfo->tm_sec));
 }
 
-// Ignore this key by the placeholder parser.
-static inline bool placeholder_parser_ignore(const ConfigDef *def, const std::string &opt_key)
-{
-    const ConfigOptionDef *opt_def = def->get(opt_key);
-    assert(opt_def != nullptr);
-    return (opt_def->multiline && boost::ends_with(opt_key, "_gcode")) || opt_key == "post_process";
-}
-
 static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConfig &config_new, const std::string &opt_key)
 {
 	const ConfigOption *opt_old = config_old.option(opt_key);
@@ -119,7 +111,7 @@ std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig
     const ConfigDef *def = rhs.def();
     std::vector<std::string> diff_keys;
     for (const t_config_option_key &opt_key : rhs.keys())
-        if (! placeholder_parser_ignore(def, opt_key) && ! opts_equal(m_config, rhs, opt_key))
+        if (! opts_equal(m_config, rhs, opt_key))
             diff_keys.emplace_back(opt_key);
     return diff_keys;
 }
@@ -135,8 +127,6 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
     const ConfigDef *def = rhs.def();
     bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
-        if (placeholder_parser_ignore(def, opt_key))
-            continue;
         if (! opts_equal(m_config, rhs, opt_key)) {
             // Store a copy of the config option.
             // Convert FloatOrPercent values to floats first.
@@ -155,7 +145,6 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vector<std::string> &keys)
 {
     for (const t_config_option_key &opt_key : keys) {
-        assert(! placeholder_parser_ignore(rhs.def(), opt_key));
         // Store a copy of the config option.
         // Convert FloatOrPercent values to floats first.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.
@@ -165,6 +154,11 @@ void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vec
             new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
             opt_rhs->clone());
     }
+}
+
+void PlaceholderParser::apply_config(DynamicPrintConfig &&rhs)
+{
+	m_config += std::move(rhs);
 }
 
 void PlaceholderParser::apply_env_variables()

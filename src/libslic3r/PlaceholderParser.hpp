@@ -19,6 +19,7 @@ public:
     std::vector<std::string> config_diff(const DynamicPrintConfig &rhs);
     // Return true if modified.
     bool apply_config(const DynamicPrintConfig &config);
+    void apply_config(DynamicPrintConfig &&config);
     // To be called on the values returned by PlaceholderParser::config_diff().
     // The keys should already be valid.
     void apply_only(const DynamicPrintConfig &config, const std::vector<std::string> &keys);
