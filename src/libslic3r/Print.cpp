@@ -502,7 +502,10 @@ void Print::config_diffs(
 	        const ConfigOption *opt_old = m_config.option(opt_key);
 	        assert(opt_old != nullptr);
 	        const ConfigOption *opt_new = new_full_config.option(opt_key);
-	        assert(opt_new != nullptr);
+			// assert(opt_new != nullptr);
+			if (opt_new == nullptr)
+				//FIXME This may happen when executing some test cases.
+				continue;
 	        const ConfigOption *opt_new_filament = std::binary_search(extruder_retract_keys.begin(), extruder_retract_keys.end(), opt_key) ? new_full_config.option(filament_prefix + opt_key) : nullptr;
 	        if (opt_new_filament != nullptr && ! opt_new_filament->is_nil()) {
 	        	// An extruder retract override is available at some of the filament presets.
@@ -575,12 +578,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     // which should be stopped if print_diff is not empty.
     if (! full_config_diff.empty() || ! placeholder_parser_overrides.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
-		PlaceholderParser &pp = this->placeholder_parser();
-		pp.apply_config(std::move(placeholder_parser_overrides));
+		m_placeholder_parser.apply_config(std::move(placeholder_parser_overrides));
         // Set the profile aliases for the PrintBase::output_filename()
-		pp.set("print_preset",    new_full_config.option("print_settings_id")->clone());
-		pp.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
-		pp.set("printer_preset",  new_full_config.option("printer_settings_id")->clone());
+		m_placeholder_parser.set("print_preset",    new_full_config.option("print_settings_id")->clone());
+		m_placeholder_parser.set("filament_preset", new_full_config.option("filament_settings_id")->clone());
+		m_placeholder_parser.set("printer_preset",  new_full_config.option("printer_settings_id")->clone());
 	    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
 	    m_config.apply_only(new_full_config, print_diff, true);
 	    m_config.apply(filament_overrides);

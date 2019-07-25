@@ -327,8 +327,6 @@ protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;
 
-    PlaceholderParser&     placeholder_parser() { return m_placeholder_parser; }
-
     tbb::mutex&            state_mutex() const { return m_state_mutex; }
     std::function<void()>  cancel_callback() { return m_cancel_callback; }
 	void				   call_cancel_callback() { m_cancel_callback(); }
@@ -344,6 +342,7 @@ protected:
 
 	Model                                   m_model;
 	DynamicPrintConfig						m_full_print_config;
+    PlaceholderParser                       m_placeholder_parser;
 
 private:
     tbb::atomic<CancelStatus>               m_cancel_status;
@@ -357,8 +356,6 @@ private:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
     mutable tbb::mutex                      m_state_mutex;
-
-    PlaceholderParser                       m_placeholder_parser;
 };
 
 template<typename PrintStepEnum, const size_t COUNT>
