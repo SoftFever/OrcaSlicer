@@ -398,18 +398,8 @@ void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom
         std::string filename = m_custom_model.empty() ? resources_dir() + "/models/" + key + "_bed.stl" : m_custom_model;
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
         {
-            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
-            if (key == "mk2")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 7.5, -0.03);
-            else if (key == "mk3")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 5.5, 2.43);
-            else if (key == "sl1")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 0.0, -0.03);
-
-            m_model.center_around(offset);
+            // move the model a bit down to avoid z-fighting with the texture quad
+            m_model.set_offset(-0.03 * Vec3d::UnitZ());
 
             // update extended bounding box
             calc_bounding_boxes();
