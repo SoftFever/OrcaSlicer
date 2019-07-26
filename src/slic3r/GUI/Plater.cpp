@@ -4719,7 +4719,7 @@ void Plater::paste_from_clipboard()
     if (!can_paste_from_clipboard())
         return;
 
-    this->take_snapshot(_(L("Paste From Clipboard")));
+    Plater::TakeSnapshot snapshot(this, _(L("Paste From Clipboard")));
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
