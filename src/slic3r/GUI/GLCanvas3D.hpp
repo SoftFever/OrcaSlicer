@@ -662,7 +662,6 @@ private:
     void _rectangular_selection_picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
-    void _render_axes() const;
     void _render_objects() const;
     void _render_selection() const;
 #if ENABLE_RENDER_SELECTION_CENTER

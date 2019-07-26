@@ -1561,19 +1561,10 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
-    // textured bed needs to be rendered after objects if the texture is transparent
-    bool early_bed_render = m_bed.is_custom() || (theta <= 90.0f);
-    if (early_bed_render)
-        _render_bed(theta);
-
     _render_objects();
     _render_sla_slices();
     _render_selection();
-
-    _render_axes();
-
-    if (!early_bed_render)
-        _render_bed(theta);
+    _render_bed(theta);
 
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -3904,11 +3895,6 @@ void GLCanvas3D::_render_bed(float theta) const
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
     m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor);
-}
-
-void GLCanvas3D::_render_axes() const
-{
-    m_bed.render_axes();
 }
 
 void GLCanvas3D::_render_objects() const

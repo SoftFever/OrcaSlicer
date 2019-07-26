@@ -266,6 +266,8 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor) const
 {
     m_scale_factor = scale_factor;
 
+    render_axes();
+
     switch (m_type)
     {
     case MK2:
@@ -290,12 +292,6 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor) const
         break;
     }
     }
-}
-
-void Bed3D::render_axes() const
-{
-    if (!m_shape.empty())
-        m_axes.render();
 }
 
 void Bed3D::calc_bounding_boxes() const
@@ -391,6 +387,12 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
     }
 
     return type;
+}
+
+void Bed3D::render_axes() const
+{
+    if (!m_shape.empty())
+        m_axes.render();
 }
 
 void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const
@@ -598,9 +600,7 @@ void Bed3D::render_default(bool bottom) const
     {
         bool has_model = !m_model.get_filename().empty();
 
-        glsafe(::glEnable(GL_LIGHTING));
-        glsafe(::glDisable(GL_DEPTH_TEST));
-
+        glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -615,11 +615,7 @@ void Bed3D::render_default(bool bottom) const
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
         }
 
-        glsafe(::glDisable(GL_LIGHTING));
-
         // draw grid
-        // we need depth test for grid, otherwise it would disappear when looking the object from below
-        glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glLineWidth(3.0f * m_scale_factor));
         if (has_model && !bottom)
             glsafe(::glColor4f(0.75f, 0.75f, 0.75f, 1.0f));

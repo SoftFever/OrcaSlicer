@@ -111,13 +111,13 @@ public:
     Point point_projection(const Point& point) const;
 
     void render(GLCanvas3D& canvas, float theta, float scale_factor) const;
-    void render_axes() const;
 
 private:
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     EType detect_type(const Pointfs& shape) const;
+    void render_axes() const;
     void render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const;
     void render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const;
     void render_model(const std::string& filename) const;
