@@ -2808,10 +2808,12 @@ ModeButton::ModeButton( wxWindow *          parent,
                         const wxString&     mode        /* = wxEmptyString*/,
                         const wxSize&       size        /* = wxDefaultSize*/,
                         const wxPoint&      pos         /* = wxDefaultPosition*/) :
-    ScalableButton(parent, id, icon_name, mode, size, pos)
+    ScalableButton(parent, id, icon_name, mode, size, pos, wxBU_EXACTFIT)
 {
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
     m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
+
+    SetBitmapMargins(3, 0);
 
     //button events
     Bind(wxEVT_BUTTON,          &ModeButton::OnButton, this);
@@ -2841,6 +2843,7 @@ void ModeButton::focus_button(const bool focus)
                              Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
+    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : wxSYS_COLOUR_BTNSHADOW));
 
     Refresh();
     Update();
@@ -2851,7 +2854,7 @@ void ModeButton::focus_button(const bool focus)
 // ModeSizer
 // ----------------------------------------------------------------------------
 
-ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
+ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
     wxFlexGridSizer(3, 0, hgap)
 {
     SetFlexibleDirection(wxHORIZONTAL);
@@ -2869,15 +2872,8 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
     
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-#ifdef __WXOSX__
-        wxSize sz = parent->GetTextExtent(button.first);
-        // set default width for ModeButtons to correct rendering on OnFocus under OSX
-        sz.x += 2 * em_unit(parent);
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first, sz));
-#else
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
-#endif // __WXOSX__
-        
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
+
         m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, int(m_mode_btns.size() - 1)));
         Add(m_mode_btns.back());
     }

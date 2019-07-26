@@ -238,7 +238,7 @@ public:
     wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
     void                create_freq_settings_popupmenu(wxMenu *parent_menu);
 
-    void                update_opt_keys(t_config_option_keys& t_optopt_keys);
+    void                update_opt_keys(t_config_option_keys& t_optopt_keys, const bool is_object);
 
     void                load_subobject(ModelVolumeType type);
     void                load_part(ModelObject* model_object, std::vector<std::pair<wxString, bool>> &volumes_info, ModelVolumeType type);
@@ -266,7 +266,7 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
-    SettingsBundle      get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_layers_range_settings);
+    SettingsBundle      get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_object_settings);
 
     void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();
