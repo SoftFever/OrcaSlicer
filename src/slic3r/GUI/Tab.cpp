@@ -914,14 +914,20 @@ void Tab::update_preset_description_line()
 {
 	const Preset* parent = m_presets->get_selected_preset_parent();
 	const Preset& preset = m_presets->get_edited_preset();
-			
-	wxString description_line = preset.is_default ?
-		_(L("It's a default preset.")) : preset.is_system ?
-		_(L("It's a system preset.")) : 
-		wxString::Format(_(L("Current preset is inherited from %s")), (parent == nullptr ? 
-													_(L("default preset"))+"." : 
-													":\n\t" + parent->name));
-	
+
+	wxString description_line;
+
+	if (preset.is_default) {
+		description_line = _(L("This is a default preset."));
+	} else if (preset.is_system) {
+		description_line = _(L("This is a system preset."));
+	} else if (parent == nullptr) {
+		description_line = _(L("Current preset is inherited from the default preset."));
+	} else {
+		description_line = wxString::Format(
+			_(L("Current preset is inherited from:\n\t%s")), GUI::from_u8(parent->name));
+	}
+
 	if (preset.is_default || preset.is_system)
 		description_line += "\n\t" + _(L("It can't be deleted or modified.")) + 
 							"\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one.")) + 
