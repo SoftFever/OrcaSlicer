@@ -197,7 +197,11 @@ public:
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
-    const Slic3r::UndoRedo::Stack& undo_redo_stack() const;
+    // For the memory statistics. 
+    const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
+    // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
+    void enter_gizmos_stack();
+    void leave_gizmos_stack();
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);

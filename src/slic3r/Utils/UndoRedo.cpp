@@ -490,6 +490,21 @@ public:
 	// Initially enable Undo / Redo stack to occupy maximum 10% of the total system physical memory.
 	StackImpl() : m_memory_limit(std::min(Slic3r::total_physical_memory() / 10, size_t(1 * 16384 * 65536 / UNDO_REDO_DEBUG_LOW_MEM_FACTOR))), m_active_snapshot_time(0), m_current_time(0) {}
 
+	void clear() {
+		m_objects.clear();
+		m_shared_ptr_to_object_id.clear();
+		m_snapshots.clear();
+		m_active_snapshot_time = 0;
+		m_current_time = 0;
+		m_selection.clear();
+	}
+
+	bool empty() const {
+		assert(m_objects.empty() == m_snapshots.empty());
+		assert(! m_objects.empty() || (m_current_time == 0 && m_active_snapshot_time == 0));
+		return m_snapshots.empty();
+	}
+
 	void set_memory_limit(size_t memsize) { m_memory_limit = memsize; }
 	size_t get_memory_limit() const { return m_memory_limit; }
 
@@ -1020,6 +1035,9 @@ void StackImpl::release_least_recently_used()
 // Wrappers of the private implementation.
 Stack::Stack() : pimpl(new StackImpl()) {}
 Stack::~Stack() {}
+void Stack::clear() { pimpl->clear(); }
+bool Stack::empty() const { return pimpl->empty(); }
+
 void Stack::set_memory_limit(size_t memsize) { pimpl->set_memory_limit(memsize); }
 size_t Stack::get_memory_limit() const { return pimpl->get_memory_limit(); }
 size_t Stack::memsize() const { return pimpl->memsize(); }
