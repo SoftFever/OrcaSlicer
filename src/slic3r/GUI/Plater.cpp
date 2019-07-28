@@ -718,7 +718,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new ModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
+    p->mode_sizer = new ModeSizer(p->scrolled);
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
@@ -1335,12 +1335,7 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
-    Slic3r::UndoRedo::Stack 	undo_redo_stack;
-    int                         m_prevent_snapshots = 0;     /* Used for avoid of excess "snapshoting". 
-                                                              * Like for "delete selected" or "set numbers of copies"
-                                                              * we should call tack_snapshot just ones 
-                                                              * instead of calls for each action separately
-                                                              * */
+
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
     wxPanel* current_panel{ nullptr };
@@ -1785,9 +1780,16 @@ struct Plater::priv
     void split_volume();
     void scale_selection_to_fit_print_volume();
 
+    // Return the active Undo/Redo stack. It may be either the main stack or the Gimzo stack.
+    Slic3r::UndoRedo::Stack& undo_redo_stack() { assert(m_undo_redo_stack_active != nullptr); return *m_undo_redo_stack_active; }
+    Slic3r::UndoRedo::Stack& undo_redo_stack_main() { return m_undo_redo_stack_main; }
+    void enter_gizmos_stack();
+    void leave_gizmos_stack();
+
 	void take_snapshot(const std::string& snapshot_name);
 	void take_snapshot(const wxString& snapshot_name) { this->take_snapshot(std::string(snapshot_name.ToUTF8().data())); }
     int  get_active_snapshot_index();
+
     void undo();
     void redo();
     void undo_redo_to(size_t time_to_load);
@@ -1889,7 +1891,15 @@ private:
     void update_after_undo_redo(bool temp_snapshot_was_taken = false);
 
     // path to project file stored with no extension
-    wxString m_project_filename;
+    wxString 					m_project_filename;
+    Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
+    Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
+    Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
+    int                         m_prevent_snapshots = 0;     /* Used for avoid of excess "snapshoting". 
+                                                              * Like for "delete selected" or "set numbers of copies"
+                                                              * we should call tack_snapshot just ones 
+                                                              * instead of calls for each action separately
+                                                              * */
     std::string m_last_fff_printer_profile_name;
     std::string m_last_sla_printer_profile_name;
 };
@@ -3712,10 +3722,32 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 	}
 }
 
+void Plater::priv::enter_gizmos_stack()
+{
+	assert(m_undo_redo_stack_active == &m_undo_redo_stack_main);
+	if (m_undo_redo_stack_active == &m_undo_redo_stack_main) {
+		m_undo_redo_stack_active = &m_undo_redo_stack_gizmos;
+		assert(m_undo_redo_stack_active->empty());
+		// Take the initial snapshot of the gizmos.
+		// Not localized on purpose, the text will never be shown to the user.
+		this->take_snapshot(std::string("Gizmos-Initial"));
+	}
+}
+
+void Plater::priv::leave_gizmos_stack()
+{
+	assert(m_undo_redo_stack_active == &m_undo_redo_stack_gizmos);
+	if (m_undo_redo_stack_active == &m_undo_redo_stack_gizmos) {
+		assert(! m_undo_redo_stack_active->empty());
+		m_undo_redo_stack_active->clear();
+		m_undo_redo_stack_active = &m_undo_redo_stack_main;
+	}
+}
+
 int Plater::priv::get_active_snapshot_index()
 {
-    const size_t active_snapshot_time = this->undo_redo_stack.active_snapshot_time();
-    const std::vector<UndoRedo::Snapshot>& ss_stack = this->undo_redo_stack.snapshots();
+    const size_t active_snapshot_time = this->undo_redo_stack().active_snapshot_time();
+    const std::vector<UndoRedo::Snapshot>& ss_stack = this->undo_redo_stack().snapshots();
     const auto it = std::lower_bound(ss_stack.begin(), ss_stack.end(), UndoRedo::Snapshot(active_snapshot_time));
     return it - ss_stack.begin();
 }
@@ -3746,32 +3778,32 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
         model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
         model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
-    this->undo_redo_stack.take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
-    this->undo_redo_stack.release_least_recently_used();
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), snapshot_data);
+    this->undo_redo_stack().release_least_recently_used();
     // Save the last active preset name of a particular printer technology.
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
-	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
+	BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot taken: " << snapshot_name << ", Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack().memsize()) << log_memory_info();
 }
 
 void Plater::priv::undo()
 {
-	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack.snapshots();
-	auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack.active_snapshot_time()));
+	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack().snapshots();
+	auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
 	if (-- it_current != snapshots.begin())
 		this->undo_redo_to(it_current);
 }
 
 void Plater::priv::redo()
 { 
-	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack.snapshots();
-	auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack.active_snapshot_time()));
+	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack().snapshots();
+	auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
 	if (++ it_current != snapshots.end())
 		this->undo_redo_to(it_current);
 }
 
 void Plater::priv::undo_redo_to(size_t time_to_load)
 {
-	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack.snapshots();
+	const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack().snapshots();
 	auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(time_to_load));
 	assert(it_current != snapshots.end());
 	this->undo_redo_to(it_current);
@@ -3779,7 +3811,7 @@ void Plater::priv::undo_redo_to(size_t time_to_load)
 
 void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
-	bool 				temp_snapshot_was_taken 	= this->undo_redo_stack.temp_snapshot_active();
+	bool 				temp_snapshot_was_taken 	= this->undo_redo_stack().temp_snapshot_active();
 	PrinterTechnology 	new_printer_technology 		= it_snapshot->snapshot_data.printer_technology;
 	bool 				printer_technology_changed 	= this->printer_technology != new_printer_technology;
 	if (printer_technology_changed) {
@@ -3799,6 +3831,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
                 model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
                 model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
     }
+    const int layer_range_idx = it_snapshot->snapshot_data.layer_range_idx;
     // Flags made of Snapshot::Flags enum values.
     unsigned int new_flags = it_snapshot->snapshot_data.flags;
 	UndoRedo::SnapshotData top_snapshot_data;
@@ -3824,9 +3857,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     // Do the jump in time.
-    if (it_snapshot->timestamp < this->undo_redo_stack.active_snapshot_time() ?
-		this->undo_redo_stack.undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), top_snapshot_data, it_snapshot->timestamp) :
-		this->undo_redo_stack.redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), it_snapshot->timestamp)) {
+    if (it_snapshot->timestamp < this->undo_redo_stack().active_snapshot_time() ?
+		this->undo_redo_stack().undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), top_snapshot_data, it_snapshot->timestamp) :
+		this->undo_redo_stack().redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), it_snapshot->timestamp)) {
 		if (printer_technology_changed) {
 			// Switch to the other printer technology. Switch to the last printer active for that particular technology.
 		    AppConfig *app_config = wxGetApp().app_config;
@@ -3858,7 +3891,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
                                                       new_selected_layerroot_on_sidebar ? ObjectList::SELECTION_MODE::smLayerRoot : 
                                                                                           ObjectList::SELECTION_MODE::smUndef);
         if (new_selected_settings_on_sidebar || new_selected_layer_on_sidebar)
-            this->sidebar->obj_list()->set_selected_layers_range_idx(it_snapshot->snapshot_data.layer_range_idx);
+            this->sidebar->obj_list()->set_selected_layers_range_idx(layer_range_idx);
 
         this->update_after_undo_redo(temp_snapshot_was_taken);
 		// Enable layer editing after the Undo / Redo jump.
@@ -3876,9 +3909,9 @@ void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
 	//if (temp_snapshot_was_taken)
 	// Release the old snapshots always, as it may have happened, that some of the triangle meshes got deserialized from the snapshot, while some
 	// triangle meshes may have gotten released from the scene or the background processing, therefore now being calculated into the Undo / Redo stack size.
-		this->undo_redo_stack.release_least_recently_used();
+		this->undo_redo_stack().release_least_recently_used();
 	//YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
-    this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack.selection_deserialized().mode), this->undo_redo_stack.selection_deserialized().volumes_and_instances);
+    this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances);
     this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo();
 
     wxGetApp().obj_list()->update_after_undo_redo();
@@ -3893,7 +3926,7 @@ void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
 	//FIXME what about the state of the manipulators?
 	//FIXME what about the focus? Cursor in the side panel?
 
-    BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot reloaded. Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack.memsize()) << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Undo / Redo snapshot reloaded. Undo / Redo stack memory: " << Slic3r::format_memsize_MB(this->undo_redo_stack().memsize()) << log_memory_info();
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
@@ -4452,7 +4485,7 @@ void Plater::undo_to(int selection)
     }
     
     const int idx = p->get_active_snapshot_index() - selection - 1;
-    p->undo_redo_to(p->undo_redo_stack.snapshots()[idx].timestamp);
+    p->undo_redo_to(p->undo_redo_stack().snapshots()[idx].timestamp);
 }
 void Plater::redo_to(int selection)
 {
@@ -4462,11 +4495,11 @@ void Plater::redo_to(int selection)
     }
     
     const int idx = p->get_active_snapshot_index() + selection + 1;
-    p->undo_redo_to(p->undo_redo_stack.snapshots()[idx].timestamp);
+    p->undo_redo_to(p->undo_redo_stack().snapshots()[idx].timestamp);
 }
 bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** out_text)
 {
-    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
+    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -(++idx) : idx);
 
     if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
@@ -4479,7 +4512,7 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
 
 void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text)
 {
-    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack.snapshots();
+    const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -1 : 0);
 
     if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
@@ -4718,7 +4751,7 @@ void Plater::paste_from_clipboard()
     if (!can_paste_from_clipboard())
         return;
 
-    this->take_snapshot(_(L("Paste From Clipboard")));
+    Plater::TakeSnapshot snapshot(this, _(L("Paste From Clipboard")));
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
@@ -4784,9 +4817,11 @@ bool Plater::can_copy_to_clipboard() const
     return true;
 }
 
-bool Plater::can_undo() const { return p->undo_redo_stack.has_undo_snapshot(); }
-bool Plater::can_redo() const { return p->undo_redo_stack.has_redo_snapshot(); }
-const UndoRedo::Stack& Plater::undo_redo_stack() const { return p->undo_redo_stack; }
+bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
+bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
+const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
+void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
+void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_running(wxGetApp().plater()->is_background_process_running())

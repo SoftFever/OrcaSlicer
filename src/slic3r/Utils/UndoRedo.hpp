@@ -71,7 +71,8 @@ struct Snapshot
 
 // Excerpt of Slic3r::GUI::Selection for serialization onto the Undo / Redo stack.
 struct Selection : public Slic3r::ObjectBase {
-	unsigned char							mode;
+	void clear() { mode = 0; volumes_and_instances.clear(); }
+	unsigned char							mode = 0;
 	std::vector<std::pair<size_t, size_t>>	volumes_and_instances;
 	template<class Archive> void serialize(Archive &ar) { ar(mode, volumes_and_instances); }
 };
@@ -85,6 +86,9 @@ public:
 	// The first "New Project" snapshot shall not be removed.
 	Stack();
 	~Stack();
+
+	void clear();
+	bool empty() const;
 
 	// Set maximum memory threshold. If the threshold is exceeded, least recently used snapshots are released.
 	void set_memory_limit(size_t memsize);

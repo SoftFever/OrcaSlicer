@@ -1566,9 +1566,9 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 #endif
 }
 
-void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
+void ObjectList::update_opt_keys(t_config_option_keys& opt_keys, const bool is_object)
 {
-    auto full_current_opts = get_options(false);
+    auto full_current_opts = get_options(!is_object);
     for (int i = opt_keys.size()-1; i >= 0; --i)
         if (find(full_current_opts.begin(), full_current_opts.end(), opt_keys[i]) == full_current_opts.end())
             opt_keys.erase(opt_keys.begin() + i);
@@ -2161,16 +2161,15 @@ void ObjectList::part_selection_changed()
     panel.Thaw();
 }
 
-SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_layers_range_settings)
+SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* config, const bool is_object_settings)
 {
     auto opt_keys = config->keys();
     if (opt_keys.empty())
         return SettingsBundle();
 
-    update_opt_keys(opt_keys); // update options list according to print technology
+    update_opt_keys(opt_keys, is_object_settings); // update options list according to print technology
 
-    if (opt_keys.size() == 1 && opt_keys[0] == "extruder" ||
-        is_layers_range_settings && opt_keys.size() == 2)
+    if (opt_keys.empty())
         return SettingsBundle();
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
@@ -2201,24 +2200,15 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     if (!parent_item)
         return ret;
 
-    const bool is_layers_range_settings = m_objects_model->GetItemType(parent_item) == itLayer;
-    SettingsBundle cat_options = get_item_settings_bundle(config, is_layers_range_settings);
+    const bool is_object_settings = m_objects_model->GetItemType(parent_item) == itObject;
+    SettingsBundle cat_options = get_item_settings_bundle(config, is_object_settings);
     if (cat_options.empty())
         return ret;
 
     std::vector<std::string> categories;
     categories.reserve(cat_options.size());
     for (auto& cat : cat_options)
-    {
-        if (cat.second.size() == 1 &&
-            (cat.second[0] == "extruder" || is_layers_range_settings && cat.second[0] == "layer_height"))
-            continue;
-
         categories.push_back(cat.first);
-    }
-
-    if (categories.empty())
-        return ret;
 
     if (m_objects_model->GetItemType(parent_item) & itInstance)
         parent_item = m_objects_model->GetTopParent(parent_item);
@@ -2803,26 +2793,35 @@ void ObjectList::update_selections_on_canvas()
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
-        selection.clear();
+        selection.remove_all();
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
-    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, int instance_idx, bool as_single_selection)
+    std::vector<unsigned int> volume_idxs;
+    Selection::EMode mode = Selection::Volume;
+    auto add_to_selection = [this, &volume_idxs](const wxDataViewItem& item, const Selection& selection, int instance_idx, Selection::EMode& mode)
     {
         const ItemType& type = m_objects_model->GetItemType(item);
         const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
         if (type == itVolume) {
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            selection.add_volume(obj_idx, vol_idx, std::max(instance_idx, 0), as_single_selection);
+            std::vector<unsigned int> idxs = selection.get_volume_idxs_from_volume(obj_idx, std::max(instance_idx, 0), vol_idx);
+            volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
         else if (type == itInstance) {
             const int inst_idx = m_objects_model->GetInstanceIdByItem(item);
-            selection.add_instance(obj_idx, inst_idx, as_single_selection);
+            mode = Selection::Instance;
+            std::vector<unsigned int> idxs = selection.get_volume_idxs_from_instance(obj_idx, inst_idx);
+            volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
         else
-            selection.add_object(obj_idx, as_single_selection);
+        {
+            mode = Selection::Instance;
+            std::vector<unsigned int> idxs = selection.get_volume_idxs_from_object(obj_idx);
+            volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
+        }
     };
 
     // stores current instance idx before to clear the selection
@@ -2831,21 +2830,38 @@ void ObjectList::update_selections_on_canvas()
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
         if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
-            add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, true);
+            add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, mode);
         else
-            add_to_selection(item, selection, instance_idx, true);
-
-        wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
-        wxGetApp().plater()->canvas3D()->render();
-        return;
+            add_to_selection(item, selection, instance_idx, mode);
     }
-    
-    wxDataViewItemArray sels;
-    GetSelections(sels);
+    else
+    {
+        wxDataViewItemArray sels;
+        GetSelections(sels);
 
-    selection.clear();
-    for (auto item: sels)
-        add_to_selection(item, selection, instance_idx, false);
+        for (auto item : sels)
+        {
+            add_to_selection(item, selection, instance_idx, mode);
+        }
+    }
+
+    if (selection.contains_all_volumes(volume_idxs))
+    {
+        // remove
+        volume_idxs = selection.get_missing_volume_idxs_from(volume_idxs);
+        if (volume_idxs.size() > 0)
+        {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Remove from list")));
+            selection.remove_volumes(mode, volume_idxs);
+        }
+    }
+    else
+    {
+        // add
+        volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Add from list")));
+        selection.add_volumes(mode, volume_idxs, sel_cnt == 1);
+    }
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
     wxGetApp().plater()->canvas3D()->render();
