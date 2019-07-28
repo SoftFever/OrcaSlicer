@@ -1491,89 +1491,114 @@ void TabPrint::OnActivate()
 	Tab::OnActivate();
 }
 
-void TabFilament::add_overrides_page()
+static void check_line(const bool is_checked, ConfigOptionsGroupShp optgroup, const std::string& opt_key, int opt_index)
 {
-    PageShp page = add_options_page(_(L("Overrides")), "wrench");
+    Field* field = optgroup->get_fieldc(opt_key, opt_index);
+    if (field != nullptr) {
+        field->toggle(is_checked);
+        if (is_checked)
+            field->set_last_meaningful_value();
+        else
+            field->set_na_value();
+    }
+};
 
-    const DynamicPrintConfig& printer_cfg = wxGetApp().preset_bundle->printers.default_preset().config;
+void TabFilament::add_filament_overrides_page()
+{
+    PageShp page = add_options_page(_(L("Filament Overrides")), "wrench");
 
-    ConfigOptionsGroupShp optgroup = page->new_optgroup(_(L("Retraction"/*Overrides"*/)));
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(_(L("Retraction")));
 
-    auto append_single_option_line = [printer_cfg, optgroup, this](const std::string& opt_key, int opt_index)
+    auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
     {
-        const std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
-        const Option& option = Option(*printer_cfg.def()->get(opt_key), opt_id);
+        Line line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
 
-        Line line = optgroup->create_single_option_line(option);
-
-        line.near_label_widget = [optgroup, opt_id](wxWindow* parent) {
+        line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
             wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
-            check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_id](wxCommandEvent& evt)
-                {
-                    Field* field = optgroup->get_field(opt_id);
-                    if (field != nullptr)
-                        field->toggle(evt.IsChecked());
-                }, check_box->GetId());
+            check_box->Bind(wxEVT_CHECKBOX, [this, optgroup, opt_key, opt_index](wxCommandEvent& evt) {
+                check_line(evt.IsChecked(), optgroup, opt_key, opt_index);
+            }, check_box->GetId());
+
+            m_overrides_options[opt_key] = check_box;
             return check_box;
         };
 
         optgroup->append_line(line);
-
-        Field* field = optgroup->get_field(opt_id);
-        if (field != nullptr)
-            field->toggle(false);
     };
 
     int extruder_idx = 0; // #ys_FIXME
 
-    append_single_option_line("retract_length", extruder_idx);
-    append_single_option_line("retract_lift", extruder_idx);
+    append_single_option_line("filament_retract_length", extruder_idx);
+    append_single_option_line("filament_retract_lift", extruder_idx);
 
     Line line = { _(L("Only lift Z")), "" };
 
-    std::vector<std::string> opt_ids;
-    opt_ids.reserve(2);
-    for (const std::string& opt_key : { "retract_lift_above", "retract_lift_below" })
-    {
-        const std::string opt_id = extruder_idx == -1 ? opt_key : opt_key + "#" + std::to_string(extruder_idx);
-        opt_ids.push_back(opt_id);
-        const Option& option = Option(*printer_cfg.def()->get(opt_key), opt_id);
+    std::vector<std::string> opt_keys = { "filament_retract_lift_above", "filament_retract_lift_below" };
+    for (const std::string& opt_key : opt_keys)
+        line.append_option(optgroup->get_option(opt_key));
 
-        line.append_option(option);
-    }
-
-    line.near_label_widget = [optgroup, opt_ids](wxWindow* parent) {
+    line.near_label_widget = [this, optgroup, opt_keys, extruder_idx](wxWindow* parent) {
         wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
-        check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_ids](wxCommandEvent& evt)
-            {
-                Field* field = nullptr;
-                for (const std::string& opt_id : opt_ids) {
-                    field = optgroup->get_field(opt_id);
-                    if (field != nullptr)
-                        field->toggle(evt.IsChecked());
-                }
-            }, check_box->GetId());
+        check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_keys, extruder_idx](wxCommandEvent& evt) {
+            const bool is_checked = evt.IsChecked();
+            for (const std::string& opt_key : opt_keys)
+                check_line(is_checked, optgroup, opt_key, extruder_idx);
+        }, check_box->GetId());
+
+        for (const std::string& opt_key : opt_keys)
+            m_overrides_options[opt_key] = check_box;
+
         return check_box;
     };
 
     optgroup->append_line(line);
 
-    Field* field = nullptr;
-    for (const std::string& opt_id : opt_ids) {
-        field = optgroup->get_field(opt_id);
-        if (field != nullptr)
-            field->toggle(false);
-    }
+    append_single_option_line("filament_retract_speed", extruder_idx);
+    append_single_option_line("filament_deretract_speed", extruder_idx);
+    append_single_option_line("filament_retract_restart_extra", extruder_idx);
+    append_single_option_line("filament_retract_before_travel", extruder_idx);
+    append_single_option_line("filament_retract_layer_change", extruder_idx);
+    append_single_option_line("filament_wipe", extruder_idx);
+    append_single_option_line("filament_retract_before_wipe", extruder_idx);
+}
 
-    append_single_option_line("retract_speed", extruder_idx);
-    append_single_option_line("deretract_speed", extruder_idx);
-    append_single_option_line("retract_restart_extra", extruder_idx);
-    append_single_option_line("retract_before_travel", extruder_idx);
-    append_single_option_line("retract_layer_change", extruder_idx);
-    append_single_option_line("wipe", extruder_idx);
-    append_single_option_line("retract_before_wipe", extruder_idx);
+void TabFilament::update_filament_overrides_page()
+{
+    const auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [](const PageShp page) {return page->title() == _(L("Filament Overrides")); });
+    if (page_it == m_pages.end())
+        return;
+    PageShp page = *page_it;
+
+    const auto og_it = std::find_if(page->m_optgroups.begin(), page->m_optgroups.end(), [](const ConfigOptionsGroupShp og) {return og->title == _(L("Retraction")); });
+    if (og_it == page->m_optgroups.end())
+        return;
+    ConfigOptionsGroupShp optgroup = *og_it;
+
+    std::vector<std::string> opt_keys = {   "filament_retract_length", 
+                                            "filament_retract_lift", 
+                                            "filament_retract_lift_above", "filament_retract_lift_below",
+                                            "filament_retract_speed",
+                                            "filament_deretract_speed",
+                                            "filament_retract_restart_extra",
+                                            "filament_retract_before_travel",
+                                            "filament_retract_layer_change",
+                                            "filament_wipe",
+                                            "filament_retract_before_wipe"
+                                        };
+
+    int extruder_idx = 0; // #ys_FIXME
+
+    for (const std::string& opt_key : opt_keys)
+    {
+        Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
+        if (field != nullptr) {
+            const bool is_checked = !m_config->option(opt_key)->is_nil();
+            m_overrides_options[opt_key]->SetValue(is_checked);
+            field->toggle(is_checked);
+        }
+    }
 }
 
 void TabFilament::build()
@@ -1674,7 +1699,7 @@ void TabFilament::build()
 		optgroup->append_line(line);
 
 
-    add_overrides_page();
+    add_filament_overrides_page();
 
 
         const int gcode_field_height = 15; // 150
@@ -1744,7 +1769,7 @@ void TabFilament::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-//	Freeze();
+
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1759,7 +1784,9 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-//    Thaw();
+
+    update_filament_overrides_page();
+
     m_update_cnt--;
 
     if (m_update_cnt == 0)

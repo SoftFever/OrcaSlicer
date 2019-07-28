@@ -255,6 +255,7 @@ void TextCtrl::BUILD() {
 				m_opt.default_value->getFloat() :
 				m_opt.get_default_value<ConfigOptionPercents>()->get_at(m_opt_idx);
 		text_value = double_to_string(val);
+        m_last_meaningful_value = text_value;
 		break;
 	}
 	case coString:			
@@ -324,24 +325,7 @@ void TextCtrl::BUILD() {
         }
         propagate_value();
 	}), temp->GetId());
-    /*
-        temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
-        {
-#ifdef __WXGTK__
-            if (bChangedValueEvent)
-#endif //__WXGTK__
-            if(is_defined_input_value()) 
-                on_change_field();
-        }), temp->GetId());
 
-#ifdef __WXGTK__
-        // to correct value updating on GTK we should:
-        // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
-        // and prevent value updating on wxEVT_KEY_DOWN
-        temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
-        temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
-#endif //__WXGTK__
-*/
 	// select all text using Ctrl+A
 	temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
 	{
@@ -360,6 +344,18 @@ void TextCtrl::propagate_value()
         on_change_field();
     else
         on_kill_focus();
+}
+
+void TextCtrl::set_last_meaningful_value()
+{
+    dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(m_last_meaningful_value));
+    propagate_value();
+}
+
+void TextCtrl::set_na_value()
+{
+    dynamic_cast<wxTextCtrl*>(window)->SetValue("nan");
+    propagate_value();
 }
 
 boost::any& TextCtrl::get_value()
@@ -408,6 +404,8 @@ void CheckBox::BUILD() {
 							m_opt.get_default_value<ConfigOptionBools>()->get_at(m_opt_idx) : 
     						false;
 
+    m_last_meaningful_value = static_cast<unsigned char>(check_value);
+
 	// Set Label as a string of at least one space simbol to correct system scaling of a CheckBox 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(" "), wxDefaultPosition, size); 
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -415,12 +413,47 @@ void CheckBox::BUILD() {
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
-	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
+        m_is_na_val = false;
+	    on_change_field();
+	}), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(check_value ? "true" : "false")); 
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
+}
+
+void CheckBox::set_value(const boost::any& value, bool change_event)
+{
+    m_disable_change_event = !change_event;
+    if (m_opt.nullable) {
+        m_is_na_val = boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
+        if (!m_is_na_val)
+            m_last_meaningful_value = value;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0);
+    }
+    else
+        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
+    m_disable_change_event = false;
+}
+
+void CheckBox::set_last_meaningful_value()
+{
+    if (m_opt.nullable) {
+        m_is_na_val = false;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0);
+        on_change_field();
+    }
+}
+
+void CheckBox::set_na_value()
+{
+    if (m_opt.nullable) {
+        m_is_na_val = true;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(false);
+        on_change_field();
+    }
 }
 
 boost::any& CheckBox::get_value()
@@ -430,7 +463,7 @@ boost::any& CheckBox::get_value()
 	if (m_opt.type == coBool)
 		m_value = static_cast<bool>(value);
 	else
-		m_value = static_cast<unsigned char>(value);
+		m_value = m_is_na_val ? ConfigOptionBoolsNullable::nil_value() : static_cast<unsigned char>(value);
  	return m_value;
 }
 
