@@ -29,6 +29,7 @@ PrintConfigDef::PrintConfigDef()
     this->init_common_params();
     assign_printer_technology_to_unknown(this->options, ptAny);
     this->init_fff_params();
+    this->init_extruder_retract_keys();
     assign_printer_technology_to_unknown(this->options, ptFFF);
     this->init_sla_params();
     assign_printer_technology_to_unknown(this->options, ptSLA);
@@ -2252,6 +2253,24 @@ void PrintConfigDef::init_fff_params()
     	default: assert(false);
     	}
     }
+}
+
+void PrintConfigDef::init_extruder_retract_keys()
+{
+	m_extruder_retract_keys = {
+		"deretract_speed",
+		"retract_before_travel",
+		"retract_before_wipe",
+		"retract_layer_change",
+		"retract_length",
+		"retract_lift",
+		"retract_lift_above",
+		"retract_lift_below",
+		"retract_restart_extra",
+		"retract_speed",
+		"wipe"
+	};
+	assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
 
 void PrintConfigDef::init_sla_params()

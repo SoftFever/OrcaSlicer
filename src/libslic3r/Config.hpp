@@ -129,6 +129,19 @@ public:
     virtual bool 				nullable()		const { return false; }
     // A scalar is nil, or all values of a vector are nil.
     virtual bool 				is_nil() 		const { return false; }
+    // Is this option overridden by another option?
+    // An option overrides another option if it is not nil and not equal.
+    virtual bool 				overriden_by(const ConfigOption *rhs) const {
+    	assert(! this->nullable() && ! rhs->nullable());
+    	return *this != *rhs;
+    }
+    // Apply an override option, possibly a nullable one.
+    virtual bool 				apply_override(const ConfigOption *rhs) { 
+    	if (*this == *rhs) 
+    		return false; 
+    	*this = *rhs; 
+    	return true;
+    }
 };
 
 typedef ConfigOption*       ConfigOptionPtr;
@@ -309,6 +322,62 @@ public:
     bool operator==(const std::vector<T> &rhs) const { return this->values == rhs; }
     bool operator!=(const std::vector<T> &rhs) const { return this->values != rhs; }
 
+    // Is this option overridden by another option?
+    // An option overrides another option if it is not nil and not equal.
+    bool overriden_by(const ConfigOption *rhs) const override {
+        if (this->nullable())
+        	throw std::runtime_error("Cannot override a nullable ConfigOption.");
+        if (rhs->type() != this->type())
+            throw std::runtime_error("ConfigOptionVector.overriden_by() applied to different types.");
+    	auto rhs_vec = static_cast<const ConfigOptionVector<T>*>(rhs);
+    	if (! rhs->nullable())
+    		// Overridding a non-nullable object with another non-nullable object.
+    		return this->values != rhs_vec->values;
+    	size_t i = 0;
+    	size_t cnt = std::min(this->size(), rhs_vec->size());
+    	for (; i < cnt; ++ i)
+    		if (! rhs_vec->is_nil(i) && this->values[i] != rhs_vec->values[i])
+    			return true;
+    	for (; i < rhs_vec->size(); ++ i)
+    		if (! rhs_vec->is_nil(i))
+    			return true;
+    	return false;
+    }
+    // Apply an override option, possibly a nullable one.
+    bool apply_override(const ConfigOption *rhs) override {
+        if (this->nullable())
+        	throw std::runtime_error("Cannot override a nullable ConfigOption.");
+		if (rhs->type() != this->type())
+			throw std::runtime_error("ConfigOptionVector.apply_override() applied to different types.");
+		auto rhs_vec = static_cast<const ConfigOptionVector<T>*>(rhs);
+		if (! rhs->nullable()) {
+    		// Overridding a non-nullable object with another non-nullable object.
+    		if (this->values != rhs_vec->values) {
+    			this->values = rhs_vec->values;
+    			return true;
+    		}
+    		return false;
+    	}
+    	size_t i = 0;
+    	size_t cnt = std::min(this->size(), rhs_vec->size());
+    	bool   modified = false;
+    	for (; i < cnt; ++ i)
+    		if (! rhs_vec->is_nil(i) && this->values[i] != rhs_vec->values[i]) {
+    			this->values[i] = rhs_vec->values[i];
+    			modified = true;
+    		}
+    	for (; i < rhs_vec->size(); ++ i)
+    		if (! rhs_vec->is_nil(i)) {
+    			if (this->values.empty())
+    				this->values.resize(i + 1);
+    			else
+    				this->values.resize(i + 1, this->values.front());
+    			this->values[i] = rhs_vec->values[i];
+    			modified = true;
+    		}
+    	return false;
+    }
+
 private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive & ar) { ar(this->values); }
@@ -365,7 +434,7 @@ public:
     static ConfigOptionType static_type() { return coFloats; }
     ConfigOptionType        type()  const override { return static_type(); }
     ConfigOption*           clone() const override { return new ConfigOptionFloatsTempl(*this); }
-    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { vectors_equal(this->values, rhs.values); }
+    bool                    operator==(const ConfigOptionFloatsTempl &rhs) const { return vectors_equal(this->values, rhs.values); }
     bool 					operator==(const ConfigOption &rhs) const override {
         if (rhs.type() != this->type())
             throw std::runtime_error("ConfigOptionFloatsTempl: Comparing incompatible types");
@@ -1596,7 +1665,7 @@ public:
 
     // Allow DynamicConfig to be instantiated on ints own without a definition.
     // If the definition is not defined, the method requiring the definition will throw NoDefinitionException.
-    const ConfigDef*        def() const override { return nullptr; };
+    const ConfigDef*        def() const override { return nullptr; }
     template<class T> T*    opt(const t_config_option_key &opt_key, bool create = false)
         { return dynamic_cast<T*>(this->option(opt_key, create)); }
     template<class T> const T* opt(const t_config_option_key &opt_key) const

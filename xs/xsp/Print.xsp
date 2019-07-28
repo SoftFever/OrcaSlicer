@@ -75,7 +75,7 @@ _constant()
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = const_cast<GCodeConfig*>(static_cast<const GCodeConfig*>(&THIS->config())); %};
     Ref<PlaceholderParser> placeholder_parser()
-        %code%{ RETVAL = &THIS->placeholder_parser(); %};
+        %code%{ RETVAL = const_cast<PlaceholderParser*>(&THIS->placeholder_parser()); %};
     Ref<ExtrusionEntityCollection> skirt()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
