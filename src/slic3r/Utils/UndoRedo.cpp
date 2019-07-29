@@ -854,7 +854,7 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 	model.update_links_bottom_up_recursive();
 	m_selection.volumes_and_instances.clear();
 	this->load_mutable_object<Selection>(m_selection.id(), m_selection);
-    gizmos.reset_all_states();
+    //gizmos.reset_all_states(); FIXME: is this really necessary? It is quite unpleasant for the gizmo undo/redo substack
     this->load_mutable_object<Slic3r::GUI::GLGizmosManager>(gizmos.id(), gizmos);
     // Sort the volumes so that we may use binary search.
 	std::sort(m_selection.volumes_and_instances.begin(), m_selection.volumes_and_instances.end());
