@@ -1585,12 +1585,14 @@ void TabFilament::update_filament_overrides_page()
     for (const std::string& opt_key : opt_keys)
     {
         bool is_checked = opt_key=="filament_retract_length" ? true : have_retract_length;
+        m_overrides_options[opt_key]->Enable(is_checked);
+
+        is_checked &= !m_config->option(opt_key)->is_nil();
+        m_overrides_options[opt_key]->SetValue(is_checked);
+
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
-        if (field != nullptr) {
-            is_checked &= !m_config->option(opt_key)->is_nil();
-            m_overrides_options[opt_key]->SetValue(is_checked);
+        if (field != nullptr)
             field->toggle(is_checked);
-        }
     }
 }
 
