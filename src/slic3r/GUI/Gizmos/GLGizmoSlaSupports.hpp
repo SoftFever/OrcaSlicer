@@ -28,7 +28,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ObjectID m_current_mesh_object_id = 0;
+    ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
     mutable float m_z_shift = 0.f;
@@ -105,8 +105,8 @@ private:
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
-    Vec3f m_dragged_point_initial_pos = Vec3f::Zero(); //undo/redo
-    float m_old_point_head_diameter = 0.f; // undo/redo
+    CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
+    float m_old_point_head_diameter = 0.;   // the same
     float m_minimal_point_distance = 20.f;
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo

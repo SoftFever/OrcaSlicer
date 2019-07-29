@@ -64,7 +64,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
         return;
     }
 
-    if (m_model_object != model_object) {
+    if (m_model_object != model_object || m_model_object_id != model_object->id()) {
         m_model_object = model_object;
         m_print_object_idx = -1;
     }
@@ -105,7 +105,8 @@ void GLGizmoSlaSupports::on_render() const
     // If current m_model_object does not match selection, ask GLCanvas3D to turn us off
     if (m_state == On
      && (m_model_object != selection.get_model()->objects[selection.get_object_idx()]
-      || m_active_instance != selection.get_instance_idx())) {
+      || m_active_instance != selection.get_instance_idx()
+      || m_model_object_id != m_model_object->id())) {
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
@@ -390,7 +391,7 @@ bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_current_mesh_object_id) || m_its == nullptr);
+        && ((m_model_object->id() != m_model_object_id) || m_its == nullptr);
 }
 
 
@@ -407,7 +408,7 @@ void GLGizmoSlaSupports::update_mesh()
     m_its = &m_mesh->its;
 
     // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_current_mesh_object_id != m_model_object->id() || (m_AABB.m_left == NULL && m_AABB.m_right == NULL))
+    if (m_model_object_id != m_model_object->id() || (m_AABB.m_left == NULL && m_AABB.m_right == NULL))
     {
         m_AABB.deinit();
         m_AABB.init(
@@ -415,7 +416,7 @@ void GLGizmoSlaSupports::update_mesh()
             MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
     }
 
-    m_current_mesh_object_id = m_model_object->id();
+    m_model_object_id = m_model_object->id();
     disable_editing_mode();
 }
 
@@ -1080,24 +1081,13 @@ void GLGizmoSlaSupports::on_set_state()
 {
     // m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
-    const ModelObject* old_model_object = m_model_object;
     m_model_object = nullptr;
     for (const auto mo : wxGetApp().model().objects) {
-        if (mo->id() == m_current_mesh_object_id) {
+        if (mo->id() == m_model_object_id) {
             m_model_object = mo;
             break;
         }
     }
-
-
-    // If ModelObject pointer really changed, invalidate mesh and do everything
-    // as if the gizmo was switched from Off state
-    /*if (m_model_object == nullptr || old_model_object != m_model_object) {
-        m_mesh = nullptr;
-        m_its = nullptr;
-        if (m_state == On)
-            m_old_state = Off;
-    }*/
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         if (is_mesh_update_necessary())
@@ -1150,23 +1140,27 @@ void GLGizmoSlaSupports::on_start_dragging()
     if (m_hover_id != -1) {
         select_point(NoPoints);
         select_point(m_hover_id);
-        m_dragged_point_initial_pos = m_editing_cache[m_hover_id].support_point.pos;
+        m_point_before_drag = m_editing_cache[m_hover_id];
     }
+    else
+        m_point_before_drag = CacheEntry();
 }
 
 
 void GLGizmoSlaSupports::on_stop_dragging()
 {
-    Vec3f backup = m_editing_cache[m_hover_id].support_point.pos;
+    if (m_hover_id != -1) {
+        CacheEntry backup = m_editing_cache[m_hover_id];
 
-    if (backup != Vec3f::Zero() // some point was touched
-     && backup != m_dragged_point_initial_pos) // and it was moved, not just selected
-    {
-        m_editing_cache[m_hover_id].support_point.pos = m_dragged_point_initial_pos;
-        wxGetApp().plater()->take_snapshot(_(L("Move support point")));
-        m_editing_cache[m_hover_id].support_point.pos = backup;
-        m_dragged_point_initial_pos = Vec3f::Zero();
+        if (m_point_before_drag.support_point.pos != Vec3f::Zero() // some point was touched
+         && backup.support_point.pos != m_point_before_drag.support_point.pos) // and it was moved, not just selected
+        {
+            m_editing_cache[m_hover_id] = m_point_before_drag;
+            wxGetApp().plater()->take_snapshot(_(L("Move support point")));
+            m_editing_cache[m_hover_id] = backup;
+        }
     }
+    m_point_before_drag = CacheEntry();
 }
 
 
@@ -1175,7 +1169,7 @@ void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 {
     ar(m_clipping_plane_distance,
        m_clipping_plane_normal,
-       m_current_mesh_object_id,
+       m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
        m_editing_cache
@@ -1188,7 +1182,7 @@ void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
 {
     ar(m_clipping_plane_distance,
        m_clipping_plane_normal,
-       m_current_mesh_object_id,
+       m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
        m_editing_cache
