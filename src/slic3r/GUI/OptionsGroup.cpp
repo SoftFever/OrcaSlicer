@@ -565,10 +565,13 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         {
         case coPercents:
         case coFloats: {
-            double val = opt->type == coFloats ?
-                        config.option<ConfigOptionFloatsNullable>(opt_key)->get_at(idx) :
-                        config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
-            ret = double_to_string(val);
+            if (config.option(opt_key)->is_nil())
+                ret = _(L("N/A"));
+            else {
+                double val = opt->type == coFloats ?
+                            config.option<ConfigOptionFloatsNullable>(opt_key)->get_at(idx) :
+                            config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
+                ret = double_to_string(val); }
             }
             break;
         case coBools:

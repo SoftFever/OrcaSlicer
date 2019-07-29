@@ -1497,33 +1497,35 @@ void TabPrint::OnActivate()
 	Tab::OnActivate();
 }
 
-static void check_line(const bool is_checked, ConfigOptionsGroupShp optgroup, const std::string& opt_key, int opt_index)
-{
-    Field* field = optgroup->get_fieldc(opt_key, opt_index);
-    if (field != nullptr) {
-        field->toggle(is_checked);
-        if (is_checked)
-            field->set_last_meaningful_value();
-        else
-            field->set_na_value();
-    }
-};
-
 void TabFilament::add_filament_overrides_page()
 {
     PageShp page = add_options_page(_(L("Filament Overrides")), "wrench");
-
     ConfigOptionsGroupShp optgroup = page->new_optgroup(_(L("Retraction")));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
     {
-        Line line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
+        Line line {"",""};
+        if (opt_key == "filament_retract_lift_above" || opt_key == "filament_retract_lift_below") {
+            Option opt = optgroup->get_option(opt_key);
+            opt.opt.label = opt.opt.full_label;
+            line = optgroup->create_single_option_line(opt);
+        }
+        else
+            line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
 
         line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
             wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
             check_box->Bind(wxEVT_CHECKBOX, [this, optgroup, opt_key, opt_index](wxCommandEvent& evt) {
-                check_line(evt.IsChecked(), optgroup, opt_key, opt_index);
+                const bool is_checked = evt.IsChecked();
+                Field* field = optgroup->get_fieldc(opt_key, opt_index);
+                if (field != nullptr) {
+                    field->toggle(is_checked);
+                    if (is_checked)
+                        field->set_last_meaningful_value();
+                    else
+                        field->set_na_value();
+                }
             }, check_box->GetId());
 
             m_overrides_options[opt_key] = check_box;
@@ -1533,41 +1535,21 @@ void TabFilament::add_filament_overrides_page()
         optgroup->append_line(line);
     };
 
-    int extruder_idx = 0; // #ys_FIXME
+    const int extruder_idx = 0; // #ys_FIXME
 
-    append_single_option_line("filament_retract_length", extruder_idx);
-    append_single_option_line("filament_retract_lift", extruder_idx);
-
-    Line line = { _(L("Only lift Z")), "" };
-
-    std::vector<std::string> opt_keys = { "filament_retract_lift_above", "filament_retract_lift_below" };
-    for (const std::string& opt_key : opt_keys)
-        line.append_option(optgroup->get_option(opt_key));
-
-    line.near_label_widget = [this, optgroup, opt_keys, extruder_idx](wxWindow* parent) {
-        wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
-
-        check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_keys, extruder_idx](wxCommandEvent& evt) {
-            const bool is_checked = evt.IsChecked();
-            for (const std::string& opt_key : opt_keys)
-                check_line(is_checked, optgroup, opt_key, extruder_idx);
-        }, check_box->GetId());
-
-        for (const std::string& opt_key : opt_keys)
-            m_overrides_options[opt_key] = check_box;
-
-        return check_box;
-    };
-
-    optgroup->append_line(line);
-
-    append_single_option_line("filament_retract_speed", extruder_idx);
-    append_single_option_line("filament_deretract_speed", extruder_idx);
-    append_single_option_line("filament_retract_restart_extra", extruder_idx);
-    append_single_option_line("filament_retract_before_travel", extruder_idx);
-    append_single_option_line("filament_retract_layer_change", extruder_idx);
-    append_single_option_line("filament_wipe", extruder_idx);
-    append_single_option_line("filament_retract_before_wipe", extruder_idx);
+    for (const std::string opt_key : {  "filament_retract_length",
+                                        "filament_retract_lift",
+                                        "filament_retract_lift_above",
+                                        "filament_retract_lift_below",
+                                        "filament_retract_speed",
+                                        "filament_deretract_speed",
+                                        "filament_retract_restart_extra",
+                                        "filament_retract_before_travel",
+                                        "filament_retract_layer_change",
+                                        "filament_wipe",
+                                        "filament_retract_before_wipe"
+                                     })
+        append_single_option_line(opt_key, extruder_idx);
 }
 
 void TabFilament::update_filament_overrides_page()
@@ -1584,7 +1566,8 @@ void TabFilament::update_filament_overrides_page()
 
     std::vector<std::string> opt_keys = {   "filament_retract_length", 
                                             "filament_retract_lift", 
-                                            "filament_retract_lift_above", "filament_retract_lift_below",
+                                            "filament_retract_lift_above", 
+                                            "filament_retract_lift_below",
                                             "filament_retract_speed",
                                             "filament_deretract_speed",
                                             "filament_retract_restart_extra",
@@ -1594,13 +1577,17 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_retract_before_wipe"
                                         };
 
-    int extruder_idx = 0; // #ys_FIXME
+    const int extruder_idx = 0; // #ys_FIXME
+
+    const bool have_retract_length = m_config->option("filament_retract_length")->is_nil() ? false : 
+                                     m_config->opt_float("filament_retract_length", extruder_idx) > 0;
 
     for (const std::string& opt_key : opt_keys)
     {
+        bool is_checked = opt_key=="filament_retract_length" ? true : have_retract_length;
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
         if (field != nullptr) {
-            const bool is_checked = !m_config->option(opt_key)->is_nil();
+            is_checked &= !m_config->option(opt_key)->is_nil();
             m_overrides_options[opt_key]->SetValue(is_checked);
             field->toggle(is_checked);
         }

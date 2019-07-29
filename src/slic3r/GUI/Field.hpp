@@ -290,14 +290,7 @@ public:
         dynamic_cast<wxTextCtrl*>(window)->SetValue(wxString(value));
 		m_disable_change_event = false;
     }
-	virtual void	set_value(const boost::any& value, bool change_event = false) {
-		m_disable_change_event = !change_event;
-		dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
-        if (boost::any_cast<wxString>(value) != "nan")
-            m_last_meaningful_value = value;
-		m_disable_change_event = false;
-    }
-
+	virtual void	set_value(const boost::any& value, bool change_event = false) override;
     virtual void    set_last_meaningful_value() override;
     virtual void	set_na_value() override;
 

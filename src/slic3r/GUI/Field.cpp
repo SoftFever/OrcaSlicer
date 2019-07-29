@@ -136,6 +136,8 @@ bool Field::is_matched(const std::string& string, const std::string& pattern)
 	return std::regex_match(string, regex_pattern);
 }
 
+static wxString na_value() { return _(L("N/A")); }
+
 void Field::get_value_by_opt_type(wxString& str)
 {
 	switch (m_opt.type) {
@@ -165,7 +167,9 @@ void Field::get_value_by_opt_type(wxString& str)
             val = 0.0;
         else
         {
-            if (!str.ToCDouble(&val))
+            if (m_opt.nullable && str == na_value())
+                val = ConfigOptionFloatsNullable::nil_value();
+            else if (!str.ToCDouble(&val))
             {
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
@@ -346,6 +350,19 @@ void TextCtrl::propagate_value()
         on_kill_focus();
 }
 
+void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
+    m_disable_change_event = !change_event;
+    if (m_opt.nullable) {
+        const bool m_is_na_val = boost::any_cast<wxString>(value) == na_value();
+        if (!m_is_na_val)
+            m_last_meaningful_value = value;
+        dynamic_cast<wxTextCtrl*>(window)->SetValue(m_is_na_val ? na_value() : boost::any_cast<wxString>(value));
+    }
+    else
+        dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
+    m_disable_change_event = false;
+}
+
 void TextCtrl::set_last_meaningful_value()
 {
     dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(m_last_meaningful_value));
@@ -354,7 +371,7 @@ void TextCtrl::set_last_meaningful_value()
 
 void TextCtrl::set_na_value()
 {
-    dynamic_cast<wxTextCtrl*>(window)->SetValue("nan");
+    dynamic_cast<wxTextCtrl*>(window)->SetValue(na_value());
     propagate_value();
 }
 
