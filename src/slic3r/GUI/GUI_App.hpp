@@ -143,7 +143,9 @@ public:
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
-    wxString        current_language_code() { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+    wxString        current_language_code() const { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
+    wxString      	current_language_code_safe() const;
 
     virtual bool OnExceptionInMainLoop();
 

@@ -974,9 +974,36 @@ int GUI_App::extruders_edited_cnt() const
            preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 }
 
+wxString GUI_App::current_language_code_safe() const
+{
+	// Translate the language code to a code, for which Prusa Research maintains translations.
+	wxString language_code = this->current_language_code();
+	size_t   idx_underscore = language_code.find(language_code);
+	if (idx_underscore != wxString::npos)
+		language_code = language_code.substr(0, idx_underscore);
+	const std::map<wxString, wxString> mapping {
+		{ "cs", 	"cs_CZ", },
+		{ "de", 	"de_DE", },
+		{ "es", 	"es_ES", },
+		{ "fr", 	"fr_FR", },
+		{ "it", 	"it_IT", },
+		{ "ja", 	"ja_JP", },
+		{ "ko", 	"ko_KR", },
+		{ "pl", 	"pl_PL", },
+		{ "uk", 	"uk_UA", },
+		{ "zh", 	"zh_CN", },
+	};
+	auto it = mapping.find(language_code);
+	if (it != mapping.end())
+		language_code = it->second;
+	else
+		language_code = "en_US";
+	return language_code;
+}
+
 void GUI_App::open_web_page_localized(const std::string &http_address)
 {
-    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code());
+    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
 }
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)

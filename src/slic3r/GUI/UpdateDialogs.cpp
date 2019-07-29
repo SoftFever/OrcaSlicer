@@ -55,7 +55,7 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Changelog && Download")), url_wx);
 		content_sizer->Add(link);
 	} else {
-		const auto lang_code = wxGetApp().current_language_code().ToStdString();
+		const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
 		const std::string url_log = (boost::format(URL_CHANGELOG) % lang_code).str();
 		const wxString url_log_wx = from_u8(url_log);
@@ -100,7 +100,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	const auto lang_code = wxGetApp().current_language_code().ToStdString();
+	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
 	auto *versions = new wxBoxSizer(wxVERTICAL);
 	for (const auto &update : updates) {
