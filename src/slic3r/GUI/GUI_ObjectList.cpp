@@ -32,7 +32,7 @@ SettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
     { L("Support material")     , { "support_material", "support_material_auto", "support_material_threshold", 
                                     "support_material_pattern", "support_material_buildplate_only",
                                     "support_material_spacing" } },
-    { L("Extruders")            , { "wipe_into_infill", "wipe_into_objects" } }
+    { L("Wipe options")            , { "wipe_into_infill", "wipe_into_objects" } }
 };
 
 // pt_SLA
@@ -87,6 +87,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
         CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(nullptr, "funnel");
 //         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
 //         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
         CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
@@ -560,6 +561,7 @@ void ObjectList::msw_rescale_icons()
         CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
         CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
         CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(nullptr, "funnel");
 //         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
 //         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
         CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
