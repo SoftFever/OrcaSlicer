@@ -2377,12 +2377,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_UNDO));
         break;
 
-#ifdef __APPLE__
-        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
-#else /* __APPLE__ */
+        case WXK_BACK:
         case WXK_DELETE:
-#endif /* __APPLE__ */
-                            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+             post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
 		default:            evt.Skip();
         }
     } else if (evt.HasModifiers()) {
@@ -2390,11 +2387,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     } else {
         switch (keyCode)
         {
-#ifdef __APPLE__
-        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
-#else /* __APPLE__ */
+        case WXK_BACK:
 		case WXK_DELETE:
-#endif /* __APPLE__ */
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
         case WXK_ESCAPE: { deselect_all(); break; }
