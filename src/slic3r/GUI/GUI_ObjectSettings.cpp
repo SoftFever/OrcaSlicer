@@ -61,6 +61,7 @@ ObjectSettings::ObjectSettings(wxWindow* parent) :
     m_og->sizer->Add(m_settings_list_sizer, 1, wxEXPAND | wxLEFT, 5);
 
     m_bmp_delete = ScalableBitmap(parent, "cross");
+    m_bmp_delete_focus = ScalableBitmap(parent, "cross_focus");
 }
 
 bool ObjectSettings::update_settings_list()
@@ -92,6 +93,9 @@ bool ObjectSettings::update_settings_list()
 			auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
             btn->SetToolTip(_(L("Remove parameter")));
 
+            btn->SetBitmapFocus(m_bmp_delete_focus.bmp());
+            btn->SetBitmapHover(m_bmp_delete_focus.bmp());
+
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
                 wxGetApp().plater()->take_snapshot(wxString::Format(_(L("Delete Option %s")), opt_key));
 				config->erase(opt_key);
@@ -122,6 +126,8 @@ bool ObjectSettings::update_settings_list()
                 if (ctrl == nullptr)
                     return;
                 ctrl->SetBitmap_(m_bmp_delete);
+                ctrl->SetBitmapFocus(m_bmp_delete_focus.bmp()); 
+                ctrl->SetBitmapHover(m_bmp_delete_focus.bmp());
             };
 
             const bool is_extruders_cat = cat.first == "Extruders";
@@ -166,6 +172,7 @@ void ObjectSettings::UpdateAndShow(const bool show)
 void ObjectSettings::msw_rescale()
 {
     m_bmp_delete.msw_rescale();
+    m_bmp_delete_focus.msw_rescale();
 
     for (auto group : m_og_settings)
         group->msw_rescale();
