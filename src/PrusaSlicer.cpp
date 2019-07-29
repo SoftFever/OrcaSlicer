@@ -94,7 +94,7 @@ int CLI::run(int argc, char **argv)
         PrinterTechnology other_printer_technology = get_printer_technology(config);
         if (printer_technology == ptUnknown) {
             printer_technology = other_printer_technology;
-        } else if (printer_technology != other_printer_technology) {
+        } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
             boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
             return 1;
         }
@@ -114,7 +114,7 @@ int CLI::run(int argc, char **argv)
             PrinterTechnology other_printer_technology = get_printer_technology(m_print_config);
             if (printer_technology == ptUnknown) {
                 printer_technology = other_printer_technology;
-            } else if (printer_technology != other_printer_technology) {
+            } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
                 boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
                 return 1;
             }
