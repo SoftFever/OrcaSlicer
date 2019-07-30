@@ -195,8 +195,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.width = field_width - mirror_btn_width;//field_width/*50*/;
 
     // Load bitmaps to be used for the mirroring buttons:
-    m_mirror_bitmap_on  = ScalableBitmap(parent, "mirroring_on.png");
-    m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off.png");
+    m_mirror_bitmap_on  = ScalableBitmap(parent, "mirroring_on");
+    m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off");
     m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
 
     static const char axes[] = { 'X', 'Y', 'Z' };
@@ -208,7 +208,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         // We will add a button to toggle mirroring to each axis:
         auto mirror_button = [this, mirror_btn_width, axis_idx, label](wxWindow* parent) {
             wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
-            auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off.png", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+            auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
             btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
 
             m_mirror_buttons[axis_idx].first = btn;
@@ -334,7 +334,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         else if (option_name == "Position") {
             // Add drop to bed button
             auto drop_to_bed_button = [=](wxWindow* parent) {
-                auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed.png"));
+                auto btn = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed"));
                 btn->SetToolTip(_(L("Drop to bed")));
                 m_drop_to_bed_button = btn;
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
