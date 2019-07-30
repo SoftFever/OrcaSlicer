@@ -450,7 +450,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
-        m_bmp = create_scaled_bitmap(nullptr, "layers");    // FIXME: pass window ptr
+        m_bmp = create_scaled_bitmap(nullptr, "edit_layers_all");    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
 
@@ -484,7 +484,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
-    m_bmp = create_scaled_bitmap(nullptr, "layers_white");    // FIXME: pass window ptr
+    m_bmp = create_scaled_bitmap(nullptr, "edit_layers_some");    // FIXME: pass window ptr
 
 #ifdef __WXGTK__
     // it's necessary on GTK because of control have to know if this item will be container

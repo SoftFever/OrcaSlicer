@@ -1293,7 +1293,7 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_layers_editing(wxMenu* menu) 
 {
     return append_menu_item(menu, wxID_ANY, _(L("Edit Layers")), "",
-        [this](wxCommandEvent&) { layers_editing(); }, "layers", menu);
+        [this](wxCommandEvent&) { layers_editing(); }, "edit_layers_all", menu);
 }
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
