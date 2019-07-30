@@ -14,20 +14,20 @@
 
 namespace Slic3r {
 
-ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
-    self(new wxStatusBar(parent ? parent : GUI::wxGetApp().mainframe,
-                         id == -1? wxID_ANY : id)),
-    m_timer(new wxTimer(self)),
-    m_prog (new wxGauge(self,
-                       wxGA_HORIZONTAL,
-                       100,
-                       wxDefaultPosition,
-                       wxDefaultSize)),
-    m_cancelbutton(new wxButton(self,
-                               -1,
-                               _(L("Cancel")),
-                               wxDefaultPosition,
-                               wxDefaultSize))
+ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id)
+    : self{new wxStatusBar(parent ? parent : GUI::wxGetApp().mainframe,
+                           id == -1 ? wxID_ANY : id)}
+    , m_prog{new wxGauge(self,
+                         wxGA_HORIZONTAL,
+                         100,
+                         wxDefaultPosition,
+                         wxDefaultSize)}
+    , m_cancelbutton{new wxButton(self,
+                                  -1,
+                                  _(L("Cancel")),
+                                  wxDefaultPosition,
+                                  wxDefaultSize)}
+    , m_timer{new wxTimer(self)}
 {
     m_prog->Hide();
     m_cancelbutton->Hide();
