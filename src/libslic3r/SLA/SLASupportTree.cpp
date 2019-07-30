@@ -83,6 +83,42 @@ const unsigned SupportConfig::max_bridges_on_pillar = 3;
 using Coordf = double;
 using Portion = std::tuple<double, double>;
 
+// Set this to true to enable full parallelism in this module.
+// Only the well tested parts will be concurrent if this is set to false.
+const constexpr bool USE_FULL_CONCURRENCY = false;
+
+template<bool> struct _ccr {};
+
+template<> struct _ccr<true>
+{
+    using Mutex = SpinMutex;
+
+    template<class It, class Fn>
+    static inline void enumerate(It from, It to, Fn fn)
+    {
+        using TN = size_t;
+        auto iN  = to - from;
+        TN   N   = iN < 0 ? 0 : TN(iN);
+
+        tbb::parallel_for(TN(0), N, [from, fn](TN n) { fn(*(from + n), n); });
+    }
+};
+
+template<> struct _ccr<false>
+{
+    struct Mutex { inline void lock() {} inline void unlock() {} };
+
+    template<class It, class Fn>
+    static inline void enumerate(It from, It to, Fn fn)
+    {
+        for (auto it = from; it != to; ++it) fn(*it, it - from);
+    }
+};
+
+using ccr = _ccr<USE_FULL_CONCURRENCY>;
+using ccr_seq = _ccr<false>;
+using ccr_par = _ccr<true>;
+
 inline Portion make_portion(double a, double b) {
     return std::make_tuple(a, b);
 }
@@ -677,6 +713,7 @@ struct Pad {
         }
 
         tmesh.translate(0, 0, float(zlevel));
+        tmesh.require_shared_vertices();
     }
 
     bool empty() const { return tmesh.facets_count() == 0; }
@@ -735,63 +772,84 @@ ClusteredPoints cluster(
 // The support pad is considered an auxiliary geometry and is not part of the
 // merged mesh. It can be retrieved using a dedicated method (pad())
 class SLASupportTree::Impl {
-    std::map<unsigned, Head> m_heads;
+    // For heads it is beneficial to use the same IDs as for the support points.
+    std::vector<Head> m_heads;
+    std::vector<size_t> m_head_indices;
+    
     std::vector<Pillar> m_pillars;
     std::vector<Junction> m_junctions;
     std::vector<Bridge> m_bridges;
     std::vector<CompactBridge> m_compact_bridges;
     Controller m_ctl;
-
+    
     Pad m_pad;
+    
+    using Mutex = ccr::Mutex;
+    
+    mutable Mutex m_mutex;
     mutable TriangleMesh meshcache; mutable bool meshcache_valid = false;
     mutable double model_height = 0; // the full height of the model
+    
 public:
     double ground_level = 0;
-
+    
     Impl() = default;
     inline Impl(const Controller& ctl): m_ctl(ctl) {}
-
+    
     const Controller& ctl() const { return m_ctl; }
-
-    template<class...Args> Head& add_head(unsigned id, Args&&... args) {
-        auto el = m_heads.emplace(std::piecewise_construct,
-                            std::forward_as_tuple(id),
-                            std::forward_as_tuple(std::forward<Args>(args)...));
-        el.first->second.id = id;
+    
+    template<class...Args> Head& add_head(unsigned id, Args&&... args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        m_heads.emplace_back(std::forward<Args>(args)...);
+        m_heads.back().id = id;
+        
+        if (id >= m_head_indices.size()) m_head_indices.resize(id + 1);
+        m_head_indices[id] = m_heads.size() - 1;
+        
         meshcache_valid = false;
-        return el.first->second;
+        return m_heads.back();
     }
-
-    template<class...Args> Pillar& add_pillar(unsigned headid, Args&&... args) {
-        auto it = m_heads.find(headid);
-        assert(it != m_heads.end());
-        Head& head = it->second;
+    
+    template<class...Args> Pillar& add_pillar(unsigned headid, Args&&... args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        
+        assert(headid < m_head_indices.size());
+        Head &head = m_heads[m_head_indices[headid]];
+        
         m_pillars.emplace_back(head, std::forward<Args>(args)...);
         Pillar& pillar = m_pillars.back();
         pillar.id = long(m_pillars.size() - 1);
         head.pillar_id = pillar.id;
         pillar.start_junction_id = head.id;
         pillar.starts_from_head = true;
+        
         meshcache_valid = false;
         return m_pillars.back();
     }
-
-    void increment_bridges(const Pillar& pillar) {
+    
+    void increment_bridges(const Pillar& pillar)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
-
-        if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size())
+        
+        if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size()) 
             m_pillars[size_t(pillar.id)].bridges++;
     }
-
-    void increment_links(const Pillar& pillar) {
+    
+    void increment_links(const Pillar& pillar)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
-
+        
         if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size())
-            m_pillars[size_t(pillar.id)].links++;
+            m_pillars[size_t(pillar.id)].links++;        
     }
-
+    
     template<class...Args> Pillar& add_pillar(Args&&...args)
     {
+        std::lock_guard<Mutex> lk(m_mutex);
         m_pillars.emplace_back(std::forward<Args>(args)...);
         Pillar& pillar = m_pillars.back();
         pillar.id = long(m_pillars.size() - 1);
@@ -799,161 +857,175 @@ public:
         meshcache_valid = false;
         return m_pillars.back();
     }
-
-    const Head& pillar_head(long pillar_id) const {
+    
+    const Head& pillar_head(long pillar_id) const
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         assert(pillar_id >= 0 && pillar_id < long(m_pillars.size()));
+        
         const Pillar& p = m_pillars[size_t(pillar_id)];
         assert(p.starts_from_head && p.start_junction_id >= 0);
-        auto it = m_heads.find(unsigned(p.start_junction_id));
-        assert(it != m_heads.end());
-        return it->second;
+        assert(size_t(p.start_junction_id) < m_head_indices.size());
+        
+        return m_heads[m_head_indices[p.start_junction_id]];
     }
-
-    const Pillar& head_pillar(unsigned headid) const {
-        auto it = m_heads.find(headid);
-        assert(it != m_heads.end());
-        const Head& h = it->second;
+    
+    const Pillar& head_pillar(unsigned headid) const
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        assert(headid < m_head_indices.size());
+        
+        const Head& h = m_heads[m_head_indices[headid]];
         assert(h.pillar_id >= 0 && h.pillar_id < long(m_pillars.size()));
-        return pillar(h.pillar_id);
+        
+        return m_pillars[size_t(h.pillar_id)];
     }
-
-    template<class...Args> const Junction& add_junction(Args&&... args) {
+    
+    template<class...Args> const Junction& add_junction(Args&&... args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         m_junctions.emplace_back(std::forward<Args>(args)...);
         m_junctions.back().id = long(m_junctions.size() - 1);
         meshcache_valid = false;
         return m_junctions.back();
     }
-
-    template<class...Args> const Bridge& add_bridge(Args&&... args) {
+    
+    template<class...Args> const Bridge& add_bridge(Args&&... args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         m_bridges.emplace_back(std::forward<Args>(args)...);
         m_bridges.back().id = long(m_bridges.size() - 1);
         meshcache_valid = false;
         return m_bridges.back();
     }
-
-    template<class...Args>
-    const CompactBridge& add_compact_bridge(Args&&...args) {
+    
+    template<class...Args> const CompactBridge& add_compact_bridge(Args&&...args)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         m_compact_bridges.emplace_back(std::forward<Args>(args)...);
         m_compact_bridges.back().id = long(m_compact_bridges.size() - 1);
         meshcache_valid = false;
         return m_compact_bridges.back();
     }
-
-    const std::map<unsigned, Head>& heads() const { return m_heads; }
-    Head& head(unsigned idx) {
+    
+    Head &head(unsigned id)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        assert(id < m_head_indices.size());
+        
         meshcache_valid = false;
-        auto it = m_heads.find(idx);
-        assert(it != m_heads.end());
-        return it->second;
+        return m_heads[m_head_indices[id]];
     }
-    const std::vector<Pillar>& pillars() const { return m_pillars; }
-    const std::vector<Bridge>& bridges() const { return m_bridges; }
-    const std::vector<Junction>& junctions() const { return m_junctions; }
-    const std::vector<CompactBridge>& compact_bridges() const {
-        return m_compact_bridges;
+    
+    inline size_t pillarcount() const {
+        std::lock_guard<Mutex> lk(m_mutex);
+        return m_pillars.size();
     }
-
-    template<class T> inline const Pillar& pillar(T id) const {
-        static_assert(std::is_integral<T>::value, "Invalid index type");
+    
+    template<class T> inline IntegerOnly<T, const Pillar&> pillar(T id) const
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
         assert(id >= 0 && size_t(id) < m_pillars.size() &&
                size_t(id) < std::numeric_limits<size_t>::max());
+        
         return m_pillars[size_t(id)];
     }
-
-    const Pad& create_pad(const TriangleMesh& object_supports,
-                          const ExPolygons& modelbase,
-                          const PoolConfig& cfg) {
+    
+    const Pad &create_pad(const TriangleMesh &object_supports,
+                          const ExPolygons &  modelbase,
+                          const PoolConfig &  cfg)
+    {
         m_pad = Pad(object_supports, modelbase, ground_level, cfg);
         return m_pad;
     }
-
-    void remove_pad() {
-        m_pad = Pad();
-    }
-
+    
+    void remove_pad() { m_pad = Pad(); }
+    
     const Pad& pad() const { return m_pad; }
-
+    
     // WITHOUT THE PAD!!!
-    const TriangleMesh& merged_mesh() const {
-        if(meshcache_valid) return meshcache;
-
+    const TriangleMesh &merged_mesh() const
+    {
+        if (meshcache_valid) return meshcache;
+        
         Contour3D merged;
-
-        for(auto& headel : heads()) {
-            if(m_ctl.stopcondition()) break;
-            if(headel.second.is_valid())
-                merged.merge(headel.second.mesh);
+        
+        for (auto &head : m_heads) {
+            if (m_ctl.stopcondition()) break;
+            if (head.is_valid()) merged.merge(head.mesh);
         }
-
-        for(auto& stick : pillars()) {
-            if(m_ctl.stopcondition()) break;
+        
+        for (auto &stick : m_pillars) {
+            if (m_ctl.stopcondition()) break;
             merged.merge(stick.mesh);
             merged.merge(stick.base);
         }
-
-        for(auto& j : junctions()) {
-            if(m_ctl.stopcondition()) break;
+        
+        for (auto &j : m_junctions) {
+            if (m_ctl.stopcondition()) break;
             merged.merge(j.mesh);
         }
-
-        for(auto& cb : compact_bridges()) {
-            if(m_ctl.stopcondition()) break;
+        
+        for (auto &cb : m_compact_bridges) {
+            if (m_ctl.stopcondition()) break;
             merged.merge(cb.mesh);
         }
-
-        for(auto& bs : bridges()) {
-            if(m_ctl.stopcondition()) break;
+        
+        for (auto &bs : m_bridges) {
+            if (m_ctl.stopcondition()) break;
             merged.merge(bs.mesh);
         }
-
-        if(m_ctl.stopcondition()) {
+        
+        if (m_ctl.stopcondition()) {
             // In case of failure we have to return an empty mesh
             meshcache = TriangleMesh();
             return meshcache;
         }
-
+        
         meshcache = mesh(merged);
-
+        
         // The mesh will be passed by const-pointer to TriangleMeshSlicer,
         // which will need this.
         if (!meshcache.empty()) meshcache.require_shared_vertices();
-
-        // TODO: Is this necessary?
-        //meshcache.repair();
-
-        BoundingBoxf3&& bb = meshcache.bounding_box();
-        model_height = bb.max(Z) - bb.min(Z);
-
+        
+        BoundingBoxf3 &&bb = meshcache.bounding_box();
+        model_height       = bb.max(Z) - bb.min(Z);
+        
         meshcache_valid = true;
         return meshcache;
     }
-
+    
     // WITH THE PAD
-    double full_height() const {
-        if(merged_mesh().empty() && !pad().empty())
+    double full_height() const
+    {
+        if (merged_mesh().empty() && !pad().empty())
             return get_pad_fullheight(pad().cfg);
-
+        
         double h = mesh_height();
-        if(!pad().empty()) h += sla::get_pad_elevation(pad().cfg);
+        if (!pad().empty()) h += sla::get_pad_elevation(pad().cfg);
         return h;
     }
-
+    
     // WITHOUT THE PAD!!!
-    double mesh_height() const {
-        if(!meshcache_valid) merged_mesh();
+    double mesh_height() const
+    {
+        if (!meshcache_valid) merged_mesh();
         return model_height;
     }
     
     // Intended to be called after the generation is fully complete
-    void clear_support_data() {
+    void merge_and_cleanup()
+    {
         merged_mesh(); // in case the mesh is not generated, it should be...
-        m_heads.clear();
-        m_pillars.clear();
-        m_junctions.clear();
-        m_bridges.clear();
-        m_compact_bridges.clear();
+        
+        // Doing clear() does not garantee to release the memory.
+        m_heads = {};
+        m_head_indices = {};
+        m_pillars = {};
+        m_junctions = {};
+        m_bridges = {};
+        m_compact_bridges = {};
     }
-
 };
 
 // This function returns the position of the centroid in the input 'clust'
@@ -1122,11 +1194,10 @@ class SLASupportTree::Algorithm {
         // Now a and b vectors are perpendicular to v and to each other.
         // Together they define the plane where we have to iterate with the
         // given angles in the 'phis' vector
-        tbb::parallel_for(size_t(0), phis.size(),
-                          [&phis, &hits, &m, sd, r_pin, r_back, s, a, b, c]
-                          (size_t i)
+        ccr_par::enumerate(phis.begin(), phis.end(),
+                           [&hits, &m, sd, r_pin, r_back, s, a, b, c]
+                           (double phi, size_t i)
         {
-            double& phi = phis[i];
             double sinphi = std::sin(phi);
             double cosphi = std::cos(phi);
 
@@ -1225,12 +1296,11 @@ class SLASupportTree::Algorithm {
 
         // Hit results
         std::array<HitResult, SAMPLES> hits;
-
-        tbb::parallel_for(size_t(0), phis.size(),
-                          [&m, &phis, a, b, sd, dir, r, s, ins_check, &hits]
-                          (size_t i)
+        
+        ccr_par::enumerate(phis.begin(), phis.end(),
+                           [&m, a, b, sd, dir, r, s, ins_check, &hits]
+                           (double phi, size_t i)
         {
-            double& phi = phis[i];
             double sinphi = std::sin(phi);
             double cosphi = std::cos(phi);
 
@@ -1458,7 +1528,7 @@ class SLASupportTree::Algorithm {
 
             if(nearest_id >= 0) {
                 auto nearpillarID = unsigned(nearest_id);
-                if(nearpillarID < m_result.pillars().size()) {
+                if(nearpillarID < m_result.pillarcount()) {
                     if(!connect_to_nearpillar(head, nearpillarID)) {
                         nearest_id = -1;    // continue searching
                         spindex.remove(ne); // without the current pillar
@@ -1646,46 +1716,52 @@ public:
         using libnest2d::opt::initvals;
         using libnest2d::opt::GeneticOptimizer;
         using libnest2d::opt::StopCriteria;
-
-        for(unsigned i = 0, fidx = 0; i < filtered_indices.size(); ++i)
+        
+        ccr::Mutex mutex;
+        auto addfn = [&mutex](PtIndices &container, unsigned val) {
+            std::lock_guard<ccr::Mutex> lk(mutex);
+            container.emplace_back(val);
+        };
+        
+        ccr::enumerate(filtered_indices.begin(), filtered_indices.end(),
+                       [this, &nmls, addfn](unsigned fidx, size_t i)
         {
             m_thr();
-
-            fidx = filtered_indices[i];
+            
             auto n = nmls.row(i);
-
+            
             // for all normals we generate the spherical coordinates and
             // saturate the polar angle to 45 degrees from the bottom then
             // convert back to standard coordinates to get the new normal.
             // Then we just create a quaternion from the two normals
             // (Quaternion::FromTwoVectors) and apply the rotation to the
             // arrow head.
-
+            
             double z       = n(2);
             double r       = 1.0; // for normalized vector
             double polar   = std::acos(z / r);
             double azimuth = std::atan2(n(1), n(0));
-
+            
             // skip if the tilt is not sane
             if(polar >= PI - m_cfg.normal_cutoff_angle) {
-
+                
                 // We saturate the polar angle to 3pi/4
                 polar = std::max(polar, 3*PI / 4);
-
+                
                 // save the head (pinpoint) position
                 Vec3d hp = m_points.row(fidx);
-
+                
                 double w = m_cfg.head_width_mm +
                            m_cfg.head_back_radius_mm +
                            2*m_cfg.head_front_radius_mm;
-
+                
                 double pin_r = double(m_support_pts[fidx].head_front_radius);
-
+                
                 // Reassemble the now corrected normal
                 auto nn = Vec3d(std::cos(azimuth) * std::sin(polar),
                                 std::sin(azimuth) * std::sin(polar),
                                 std::cos(polar)).normalized();
-
+                
                 // check available distance
                 EigenMesh3D::hit_result t
                     = pinhead_mesh_intersect(hp, // touching point
@@ -1693,37 +1769,37 @@ public:
                                              pin_r,
                                              m_cfg.head_back_radius_mm,
                                              w);
-
+                
                 if(t.distance() <= w) {
-
+                    
                     // Let's try to optimize this angle, there might be a
                     // viable normal that doesn't collide with the model
                     // geometry and its very close to the default.
-
+                    
                     StopCriteria stc;
                     stc.max_iterations = m_cfg.optimizer_max_iterations;
                     stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
                     stc.stop_score = w; // space greater than w is enough
                     GeneticOptimizer solver(stc);
                     solver.seed(0); // we want deterministic behavior
-
+                    
                     auto oresult = solver.optimize_max(
                         [this, pin_r, w, hp](double plr, double azm)
-                    {
-                        auto n = Vec3d(std::cos(azm) * std::sin(plr),
-                                       std::sin(azm) * std::sin(plr),
-                                       std::cos(plr)).normalized();
+                        {
+                            auto n = Vec3d(std::cos(azm) * std::sin(plr),
+                                           std::sin(azm) * std::sin(plr),
+                                           std::cos(plr)).normalized();
 
-                        double score = pinhead_mesh_intersect( hp, n, pin_r,
-                                          m_cfg.head_back_radius_mm, w);
+                            double score = pinhead_mesh_intersect(
+                                hp, n, pin_r, m_cfg.head_back_radius_mm, w);
 
-                        return score;
-                    },
-                    initvals(polar, azimuth), // start with what we have
-                    bound(3*PI/4, PI),  // Must not exceed the tilt limit
-                    bound(-PI, PI)      // azimuth can be a full search
-                    );
-
+                            return score;
+                        },
+                        initvals(polar, azimuth), // start with what we have
+                        bound(3*PI/4, PI),  // Must not exceed the tilt limit
+                        bound(-PI, PI)      // azimuth can be a full search
+                        );
+                    
                     if(oresult.score > w) {
                         polar = std::get<0>(oresult.optimum);
                         azimuth = std::get<1>(oresult.optimum);
@@ -1733,25 +1809,25 @@ public:
                         t = oresult.score;
                     }
                 }
-
+                
                 // save the verified and corrected normal
                 m_support_nmls.row(fidx) = nn;
-
+                
                 if (t.distance() > w) {
                     // Check distance from ground, we might have zero elevation.
                     if (hp(Z) + w * nn(Z) < m_result.ground_level) {
-                        m_iheadless.emplace_back(fidx);
+                        addfn(m_iheadless, fidx);
                     } else {
                         // mark the point for needing a head.
-                        m_iheads.emplace_back(fidx);
+                        addfn(m_iheads, fidx);
                     }
                 } else if (polar >= 3 * PI / 4) {
                     // Headless supports do not tilt like the headed ones
                     // so the normal should point almost to the ground.
-                    m_iheadless.emplace_back(fidx);
+                    addfn(m_iheadless, fidx);
                 }
             }
-        }
+        });
 
         m_thr();
     }
@@ -1939,11 +2015,17 @@ public:
         };
 
         std::vector<unsigned> modelpillars;
+        ccr::Mutex mutex;
 
         // TODO: connect these to the ground pillars if possible
-        for(auto item : m_iheads_onmodel) { m_thr();
-            unsigned idx = item.first;
-            EigenMesh3D::hit_result hit = item.second;
+        ccr::enumerate(m_iheads_onmodel.begin(), m_iheads_onmodel.end(),
+                       [this, routedown, &modelpillars, &mutex]
+                       (const std::pair<unsigned, EigenMesh3D::hit_result> &el,
+                        size_t)
+        {
+            m_thr();
+            unsigned idx = el.first;
+            EigenMesh3D::hit_result hit = el.second;
 
             auto& head = m_result.head(idx);
             Vec3d hjp = head.junction_point();
@@ -1952,7 +2034,7 @@ public:
             // Search nearby pillar
             // /////////////////////////////////////////////////////////////////
 
-            if(search_pillar_and_connect(head)) { head.transform(); continue; }
+            if(search_pillar_and_connect(head)) { head.transform(); return; }
 
             // /////////////////////////////////////////////////////////////////
             // Try straight path
@@ -1974,7 +2056,7 @@ public:
             }
 
             if(std::isinf(tdown)) { // we heave found a route to the ground
-                routedown(head, head.dir, d); continue;
+                routedown(head, head.dir, d); return;
             }
 
             // /////////////////////////////////////////////////////////////////
@@ -2036,7 +2118,7 @@ public:
             }
 
             if(std::isinf(tdown)) { // we heave found a route to the ground
-                routedown(head, bridgedir, d); continue;
+                routedown(head, bridgedir, d); return;
             }
 
             // /////////////////////////////////////////////////////////////////
@@ -2079,8 +2161,9 @@ public:
                 pill.base = tailhead.mesh;
 
                 // Experimental: add the pillar to the index for cascading
+                std::lock_guard<ccr::Mutex> lk(mutex);
                 modelpillars.emplace_back(unsigned(pill.id));
-                continue;
+                return;
             }
 
             // We have failed to route this head.
@@ -2088,7 +2171,7 @@ public:
                     << "Failed to route model facing support point."
                     << " ID: " << idx;
             head.invalidate();
-        }
+        });
 
         for(auto pillid : modelpillars) {
             auto& pillar = m_result.pillar(pillid);
@@ -2175,8 +2258,8 @@ public:
                 
                 // Search for the pair amongst the remembered pairs
                 if(pairs.find(hashval) != pairs.end()) continue;
-
-                const Pillar& neighborpillar = m_result.pillars()[re.second];
+                
+                const Pillar& neighborpillar = m_result.pillar(re.second);
 
                 // this neighbor is occupied, skip
                 if(neighborpillar.links >= neighbors) continue;
@@ -2212,7 +2295,7 @@ public:
         // lonely pillars. One or even two additional pillar might get inserted
         // depending on the length of the lonely pillar.
         
-        size_t pillarcount = m_result.pillars().size();
+        size_t pillarcount = m_result.pillarcount();
         
         // Again, go through all pillars, this time in the whole support tree
         // not just the index.
@@ -2364,6 +2447,8 @@ public:
             m_result.add_compact_bridge(sp, ej, n, R, !std::isinf(dist));
         }
     }
+    
+    void merge_result() { m_result.merge_and_cleanup(); }
 };
 
 bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
@@ -2372,9 +2457,9 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                               const Controller &ctl)
 {
     if(support_points.empty()) return false;
-
+    
     Algorithm alg(cfg, mesh, support_points, *m_impl, ctl.cancelfn);
-
+    
     // Let's define the individual steps of the processing. We can experiment
     // later with the ordering and the dependencies between them.
     enum Steps {
@@ -2386,55 +2471,58 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         ROUTING_NONGROUND,
         CASCADE_PILLARS,
         HEADLESS,
+        MERGE_RESULT,
         DONE,
         ABORT,
         NUM_STEPS
         //...
     };
-
+    
     // Collect the algorithm steps into a nice sequence
     std::array<std::function<void()>, NUM_STEPS> program = {
         [] () {
             // Begin...
             // Potentially clear up the shared data (not needed for now)
         },
-
+        
         std::bind(&Algorithm::filter, &alg),
-
+        
         std::bind(&Algorithm::add_pinheads, &alg),
-
+        
         std::bind(&Algorithm::classify, &alg),
-
+        
         std::bind(&Algorithm::routing_to_ground, &alg),
-
+        
         std::bind(&Algorithm::routing_to_model, &alg),
-
+        
         std::bind(&Algorithm::interconnect_pillars, &alg),
-
+        
         std::bind(&Algorithm::routing_headless, &alg),
-
+        
+        std::bind(&Algorithm::merge_result, &alg),
+        
         [] () {
             // Done
         },
-
+        
         [] () {
             // Abort
         }
     };
-
+    
     Steps pc = BEGIN;
-
+    
     if(cfg.ground_facing_only) {
         program[ROUTING_NONGROUND] = []() {
             BOOST_LOG_TRIVIAL(info)
-                    << "Skipping model-facing supports as requested.";
+                << "Skipping model-facing supports as requested.";
         };
         program[HEADLESS] = []() {
             BOOST_LOG_TRIVIAL(info) << "Skipping headless stick generation as"
                                        " requested.";
         };
     }
-
+    
     // Let's define a simple automaton that will run our program.
     auto progress = [&ctl, &pc] () {
         static const std::array<std::string, NUM_STEPS> stepstr {
@@ -2446,10 +2534,11 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             "Routing supports to model surface",
             "Interconnecting pillars",
             "Processing small holes",
+            "Merging support mesh",
             "Done",
             "Abort"
         };
-
+        
         static const std::array<unsigned, NUM_STEPS> stepstate {
             0,
             10,
@@ -2458,13 +2547,14 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             60,
             70,
             80,
-            90,
+            85,
+            99,
             100,
             0
         };
-
+        
         if(ctl.stopcondition()) pc = ABORT;
-
+        
         switch(pc) {
         case BEGIN: pc = FILTER; break;
         case FILTER: pc = PINHEADS; break;
@@ -2473,20 +2563,22 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         case ROUTING_GROUND: pc = ROUTING_NONGROUND; break;
         case ROUTING_NONGROUND: pc = CASCADE_PILLARS; break;
         case CASCADE_PILLARS: pc = HEADLESS; break;
-        case HEADLESS: pc = DONE; break;
+        case HEADLESS: pc = MERGE_RESULT; break;
+        case MERGE_RESULT: pc = DONE; break;
         case DONE:
         case ABORT: break;
         default: ;
         }
+        
         ctl.statuscb(stepstate[pc], stepstr[pc]);
     };
-
+    
     // Just here we run the computation...
     while(pc < DONE) {
         progress();
         program[pc]();
     }
-
+    
     return pc == ABORT;
 }
 
@@ -2504,44 +2596,40 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
     outmesh.merge(get_pad());
 }
 
-std::vector<ExPolygons> SLASupportTree::slice(float layerh, float init_layerh) const
+std::vector<ExPolygons> SLASupportTree::slice(
+    const std::vector<float> &heights, float cr) const
 {
-    if(init_layerh < 0) init_layerh = layerh;
-    auto& stree = get();
-
-    const auto modelh = float(stree.full_height());
-    auto gndlvl = float(this->m_impl->ground_level);
-    const Pad& pad = m_impl->pad();
-    if(!pad.empty()) gndlvl -= float(get_pad_elevation(pad.cfg));
-
-    std::vector<float> heights;
-    heights.reserve(size_t(modelh/layerh) + 1);
-
-    for(float h = gndlvl + init_layerh; h < gndlvl + modelh; h += layerh) {
-        heights.emplace_back(h);
+    const TriangleMesh &sup_mesh = m_impl->merged_mesh();
+    const TriangleMesh &pad_mesh = get_pad();
+    
+    std::vector<ExPolygons> sup_slices;
+    if (!sup_mesh.empty()) { 
+        TriangleMeshSlicer sup_slicer(&sup_mesh);
+        sup_slicer.slice(heights, cr, &sup_slices, m_impl->ctl().cancelfn);
     }
-
-    TriangleMesh fullmesh = m_impl->merged_mesh();
-    fullmesh.merge(get_pad());
-    if (!fullmesh.empty()) fullmesh.require_shared_vertices();
-    TriangleMeshSlicer slicer(&fullmesh);
-    std::vector<ExPolygons> ret;
-    slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
-
-    return ret;
-}
-
-std::vector<ExPolygons> SLASupportTree::slice(const std::vector<float> &heights,
-                                     float cr) const
-{
-    TriangleMesh fullmesh = m_impl->merged_mesh();
-    fullmesh.merge(get_pad());
-    if (!fullmesh.empty()) fullmesh.require_shared_vertices();
-    TriangleMeshSlicer slicer(&fullmesh);
-    std::vector<ExPolygons> ret;
-    slicer.slice(heights, cr, &ret, get().ctl().cancelfn);
-
-    return ret;
+    
+    auto bb = pad_mesh.bounding_box();
+    auto maxzit = std::upper_bound(heights.begin(), heights.end(), bb.max.z());
+    
+    auto padgrid = reserve_vector<float>(heights.end() - maxzit);
+    std::copy(heights.begin(), maxzit, std::back_inserter(padgrid));
+    
+    std::vector<ExPolygons> pad_slices;
+    if (!pad_mesh.empty()) { 
+        TriangleMeshSlicer pad_slicer(&pad_mesh);
+        pad_slicer.slice(padgrid, cr, &pad_slices, m_impl->ctl().cancelfn);
+    }
+    
+    size_t len = std::min(heights.size(), pad_slices.size());
+    len = std::min(len, sup_slices.size());
+    
+    for (size_t i = 0; i < len; ++i) {
+        std::copy(pad_slices[i].begin(), pad_slices[i].end(),
+                  std::back_inserter(sup_slices[i]));
+        pad_slices[i] = {}; 
+    }
+    
+    return sup_slices;
 }
 
 const TriangleMesh &SLASupportTree::add_pad(const ExPolygons& modelbase,
@@ -2568,16 +2656,6 @@ SLASupportTree::SLASupportTree(const std::vector<SupportPoint> &points,
 {
     m_impl->ground_level = emesh.ground_level() - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
-    m_impl->clear_support_data();
-}
-
-SLASupportTree::SLASupportTree(const SLASupportTree &c):
-    m_impl(new Impl(*c.m_impl)) {}
-
-SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
-{
-    m_impl = make_unique<Impl>(*c.m_impl);
-    return *this;
 }
 
 SLASupportTree::~SLASupportTree() {}

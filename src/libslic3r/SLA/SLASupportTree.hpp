@@ -171,9 +171,9 @@ public:
                    const EigenMesh3D& em,
                    const SupportConfig& cfg = {},
                    const Controller& ctl = {});
-
-    SLASupportTree(const SLASupportTree&);
-    SLASupportTree& operator=(const SLASupportTree&);
+    
+    SLASupportTree(const SLASupportTree&) = delete;
+    SLASupportTree& operator=(const SLASupportTree&) = delete;
 
     ~SLASupportTree();
 
@@ -182,9 +182,6 @@ public:
     const TriangleMesh& merged_mesh() const;
 
     void merged_mesh_with_pad(TriangleMesh&) const;
-
-    /// Get the sliced 2d layers of the support geometry.
-    std::vector<ExPolygons> slice(float layerh, float init_layerh = -1.0) const;
 
     std::vector<ExPolygons> slice(const std::vector<float> &,
                                   float closing_radius) const;
