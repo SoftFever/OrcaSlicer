@@ -928,12 +928,14 @@ void SLAPrint::process()
         double d = ostepd * OBJ_STEP_LEVELS[slaposSupportTree] / 100.0;
         double init = m_report_status.status();
 
-        ctl.statuscb = [this, d, init](unsigned st, const std::string&)
+        ctl.statuscb = [this, d, init](unsigned st, const std::string &logmsg)
         {
             double current = init + st * d;
             if(std::round(m_report_status.status()) < std::round(current))
                 m_report_status(*this, current,
-                                OBJ_STEP_LABELS(slaposSupportTree));
+                                OBJ_STEP_LABELS(slaposSupportTree),
+                                SlicingStatus::DEFAULT,
+                                logmsg);
 
         };
 
@@ -1914,11 +1916,17 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
     return final_path;
 }
 
-void SLAPrint::StatusReporter::operator()(
-        SLAPrint &p, double st, const std::string &msg, unsigned flags)
+void SLAPrint::StatusReporter::operator()(SLAPrint &         p,
+                                          double             st,
+                                          const std::string &msg,
+                                          unsigned           flags,
+                                          const std::string &logmsg)
 {
     m_st = st;
-    BOOST_LOG_TRIVIAL(info) << st << "% " << msg << log_memory_info();
+    BOOST_LOG_TRIVIAL(info)
+        << st << "% " << msg << (logmsg.empty() ? "" : ": ") << logmsg
+        << log_memory_info();
+    
     p.set_status(int(std::round(st)), msg, flags);
 }
 

@@ -447,15 +447,20 @@ private:
 
     // Estimated print time, material consumed.
     SLAPrintStatistics                      m_print_statistics;
-
-    class StatusReporter {
+    
+    class StatusReporter
+    {
         double m_st = 0;
+        
     public:
-        void operator() (SLAPrint& p, double st, const std::string& msg,
-                         unsigned flags = SlicingStatus::DEFAULT);
+        void operator()(SLAPrint &         p,
+                        double             st,
+                        const std::string &msg,
+                        unsigned           flags = SlicingStatus::DEFAULT,
+                        const std::string &logmsg = "");
+        
         double status() const { return m_st; }
     } m_report_status;
-
 
 	friend SLAPrintObject;
 };
