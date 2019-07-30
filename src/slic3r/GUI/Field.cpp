@@ -342,9 +342,40 @@ void TextCtrl::BUILD() {
     window = dynamic_cast<wxWindow*>(temp);
 }	
 
+bool TextCtrl::value_was_changed()
+{
+    if (m_value.empty())
+        return true;
+
+    boost::any val = m_value;
+    wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+    // update m_value!
+    get_value_by_opt_type(ret_str);
+
+    switch (m_opt.type) {
+    case coInt:
+        return boost::any_cast<int>(m_value) != boost::any_cast<int>(val);
+    case coPercent:
+    case coPercents:
+    case coFloats:
+    case coFloat: {
+        if (m_opt.nullable && std::isnan(boost::any_cast<double>(m_value)) && 
+                              std::isnan(boost::any_cast<double>(val)))
+            return false;
+        return boost::any_cast<double>(m_value) != boost::any_cast<double>(val);
+    }
+    case coString:
+    case coStrings:
+    case coFloatOrPercent:
+        return boost::any_cast<std::string>(m_value) != boost::any_cast<std::string>(val);
+    default:
+        return true;
+    }
+}
+
 void TextCtrl::propagate_value()
 {
-    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type))
+    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type) && value_was_changed())
         on_change_field();
     else
         on_kill_focus();

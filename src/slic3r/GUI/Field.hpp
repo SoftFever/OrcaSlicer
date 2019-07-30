@@ -281,6 +281,7 @@ public:
 	~TextCtrl() {}
 
     void BUILD();
+    bool value_was_changed();
     // Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
     void propagate_value();
     wxWindow* window {nullptr};
