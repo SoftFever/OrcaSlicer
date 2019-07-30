@@ -1579,7 +1579,7 @@ void TabFilament::update_filament_overrides_page()
 
     const int extruder_idx = 0; // #ys_FIXME
 
-    const bool have_retract_length = m_config->option("filament_retract_length")->is_nil() ? false : 
+    const bool have_retract_length = m_config->option("filament_retract_length")->is_nil() ||
                                      m_config->opt_float("filament_retract_length", extruder_idx) > 0;
 
     for (const std::string& opt_key : opt_keys)
