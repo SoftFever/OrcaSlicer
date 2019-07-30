@@ -17,16 +17,13 @@ class Bed_2D : public wxPanel
 	Vec2d		m_shift = Vec2d::Zero();
 	Vec2d		m_pos = Vec2d::Zero();
 
-    Point		to_pixels(Vec2d point, int height);
-    void		repaint();
-    void		set_pos(Vec2d pos);
+    Point		to_pixels(const Vec2d& point, int height);
+    void		set_pos(const Vec2d& pos);
 
 public:
-    Bed_2D(wxWindow* parent);
-	~Bed_2D() {}
+    explicit Bed_2D(wxWindow* parent);
 
-	std::vector<Vec2d>		m_bed_shape;
-		
+    void repaint(const std::vector<Vec2d>& shape);
 };
 
 

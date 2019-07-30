@@ -18,10 +18,9 @@ wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -
 #ifdef __APPLE__
     m_user_drawn_background = false;
 #endif /*__APPLE__*/
-    Bind(wxEVT_PAINT, ([this](wxPaintEvent &/* e */) { repaint(); }));
-    Bind(wxEVT_SIZE, ([this](wxSizeEvent & /* e */) { Refresh(); }));
 }
-void Bed_2D::repaint()
+
+void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 {
 	wxAutoBufferedPaintDC dc(this);
 	auto cw = GetSize().GetWidth();
@@ -41,7 +40,7 @@ void Bed_2D::repaint()
 		dc.DrawRectangle(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
 	}
 
-    if (m_bed_shape.empty())
+    if (shape.empty())
         return;
 
     // reduce size to have some space around the drawn shape
@@ -52,10 +51,9 @@ void Bed_2D::repaint()
 	auto ccenter = cbb.center();
 
 	// get bounding box of bed shape in G - code coordinates
-	auto bed_shape = m_bed_shape;
-	auto bed_polygon = Polygon::new_scale(m_bed_shape);
-	auto bb = BoundingBoxf(m_bed_shape);
-	bb.merge(Vec2d(0, 0));  // origin needs to be in the visible area
+    auto bed_polygon = Polygon::new_scale(shape);
+    auto bb = BoundingBoxf(shape);
+    bb.merge(Vec2d(0, 0));  // origin needs to be in the visible area
 	auto bw = bb.size()(0);
 	auto bh = bb.size()(1);
 	auto bcenter = bb.center();
@@ -73,8 +71,8 @@ void Bed_2D::repaint()
 	// draw bed fill
 	dc.SetBrush(wxBrush(wxColour(255, 255, 255), wxBRUSHSTYLE_SOLID));
 	wxPointList pt_list;
-	for (auto pt: m_bed_shape)
-	{
+    for (auto pt : shape)
+    {
         Point pt_pix = to_pixels(pt, ch);
         pt_list.push_back(new wxPoint(pt_pix(0), pt_pix(1)));
 	}
@@ -155,13 +153,13 @@ void Bed_2D::repaint()
 
 
 // convert G - code coordinates into pixels
-Point Bed_2D::to_pixels(Vec2d point, int height)
+Point Bed_2D::to_pixels(const Vec2d& point, int height)
 {
 	auto p = point * m_scale_factor + m_shift;
     return Point(p(0) + Border, height - p(1) + Border);
 }
 
-void Bed_2D::set_pos(Vec2d pos)
+void Bed_2D::set_pos(const Vec2d& pos)
 {
 	m_pos = pos;
 	Refresh();

@@ -158,32 +158,6 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
-#if !ENABLE_TEXTURES_FROM_SVG
-    class Shader
-    {
-        GLShader* m_shader;
-
-    public:
-        Shader();
-        ~Shader();
-
-        bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
-
-        bool is_initialized() const;
-
-        bool start_using() const;
-        void stop_using() const;
-
-        void set_uniform(const std::string& name, float value) const;
-        void set_uniform(const std::string& name, const float* matrix) const;
-
-        const GLShader* get_shader() const;
-
-    private:
-        void _reset();
-    };
-#endif // !ENABLE_TEXTURES_FROM_SVG
-
     class LayersEditing
     {
     public:
@@ -688,7 +662,6 @@ private:
     void _rectangular_selection_picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
-    void _render_axes() const;
     void _render_objects() const;
     void _render_selection() const;
 #if ENABLE_RENDER_SELECTION_CENTER

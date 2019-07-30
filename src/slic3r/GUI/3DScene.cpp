@@ -1736,13 +1736,7 @@ bool GLBed::on_init_from_file(const std::string& filename)
 
     m_filename = filename;
 
-    ModelObject* model_object = model.objects.front();
-    model_object->center_around_origin();
-
-    TriangleMesh mesh = model.mesh();
-    mesh.repair();
-
-    m_volume.indexed_vertex_array.load_mesh(mesh);
+    m_volume.indexed_vertex_array.load_mesh(model.mesh());
 
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);

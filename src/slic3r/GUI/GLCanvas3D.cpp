@@ -116,87 +116,6 @@ void Size::set_scale_factor(int scale_factor)
     m_scale_factor = scale_factor;
 }
 
-#if !ENABLE_TEXTURES_FROM_SVG
-GLCanvas3D::Shader::Shader()
-    : m_shader(nullptr)
-{
-}
-
-GLCanvas3D::Shader::~Shader()
-{
-    _reset();
-}
-
-bool GLCanvas3D::Shader::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
-{
-    if (is_initialized())
-        return true;
-
-    m_shader = new GLShader();
-    if (m_shader != nullptr)
-    {
-        if (!m_shader->load_from_file(fragment_shader_filename.c_str(), vertex_shader_filename.c_str()))
-        {
-            std::cout << "Compilaton of shader failed:" << std::endl;
-            std::cout << m_shader->last_error << std::endl;
-            _reset();
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool GLCanvas3D::Shader::is_initialized() const
-{
-    return (m_shader != nullptr);
-}
-
-bool GLCanvas3D::Shader::start_using() const
-{
-    if (is_initialized())
-    {
-        m_shader->enable();
-        return true;
-    }
-    else
-        return false;
-}
-
-void GLCanvas3D::Shader::stop_using() const
-{
-    if (m_shader != nullptr)
-        m_shader->disable();
-}
-
-void GLCanvas3D::Shader::set_uniform(const std::string& name, float value) const
-{
-    if (m_shader != nullptr)
-        m_shader->set_uniform(name.c_str(), value);
-}
-
-void GLCanvas3D::Shader::set_uniform(const std::string& name, const float* matrix) const
-{
-    if (m_shader != nullptr)
-        m_shader->set_uniform(name.c_str(), matrix);
-}
-
-const GLShader* GLCanvas3D::Shader::get_shader() const
-{
-    return m_shader;
-}
-
-void GLCanvas3D::Shader::_reset()
-{
-    if (m_shader != nullptr)
-    {
-        m_shader->release();
-        delete m_shader;
-        m_shader = nullptr;
-    }
-}
-#endif // !ENABLE_TEXTURES_FROM_SVG
-
 GLCanvas3D::LayersEditing::LayersEditing()
     : m_enabled(false)
     , m_z_texture_id(0)
@@ -383,7 +302,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename, false, true))
+        if (!m_tooltip_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
             return;
     }
 
@@ -415,7 +334,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename, false, true))
+        if (!m_reset_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
             return;
     }
 
@@ -1642,19 +1561,10 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
-    // textured bed needs to be rendered after objects if the texture is transparent
-    bool early_bed_render = m_bed.is_custom() || (theta <= 90.0f);
-    if (early_bed_render)
-        _render_bed(theta);
-
     _render_objects();
     _render_sla_slices();
     _render_selection();
-
-    _render_axes();
-
-    if (!early_bed_render)
-        _render_bed(theta);
+    _render_bed(theta);
 
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -3986,16 +3896,7 @@ void GLCanvas3D::_render_bed(float theta) const
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-#if ENABLE_TEXTURES_FROM_SVG
-    m_bed.render(const_cast<GLCanvas3D*>(this), theta, scale_factor);
-#else
-    m_bed.render(theta, scale_factor);
-#endif // ENABLE_TEXTURES_FROM_SVG
-}
-
-void GLCanvas3D::_render_axes() const
-{
-    m_bed.render_axes();
+    m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor);
 }
 
 void GLCanvas3D::_render_objects() const
