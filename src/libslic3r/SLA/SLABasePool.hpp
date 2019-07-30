@@ -41,6 +41,9 @@ void breakstick_holes(ExPolygon &poly,
                       double     stick_width,
                       double     penetration = 0.0);
 
+Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
+                      ThrowOnCancel throw_on_cancel = [](){});
+
 struct PoolConfig {
     double min_wall_thickness_mm = 2;
     double min_wall_height_mm = 5;

@@ -591,8 +591,7 @@ inline Point centroid(const Polygon& poly) {
 /// with explicit bridges. Bridges are generated from each shape's centroid
 /// to the center of the "scene" which is the centroid calculated from the shape
 /// centroids (a star is created...)
-Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
-                      ThrowOnCancel throw_on_cancel = [](){})
+Polygons concave_hull(const Polygons& polys, double maxd_mm, ThrowOnCancel thr)
 {
     namespace bgi = boost::geometry::index;
     using SpatElement = std::pair<Point, unsigned>;
@@ -600,7 +599,7 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
 
     if(polys.empty()) return Polygons();
     
-    const double max_dist = scaled(max_dist_mm);
+    const double max_dist = scaled(maxd_mm);
 
     Polygons punion = unify(polys);   // could be redundant
 
@@ -624,10 +623,10 @@ Polygons concave_hull(const Polygons& polys, double max_dist_mm = 50,
     idx = 0;
     std::transform(centroids.begin(), centroids.end(),
                    std::back_inserter(punion),
-                   [&centroids, &ctrindex, cc, max_dist, &idx, throw_on_cancel]
+                   [&centroids, &ctrindex, cc, max_dist, &idx, thr]
                    (const Point& c)
     {
-        throw_on_cancel();
+        thr();
         double dx = x(c) - x(cc), dy = y(c) - y(cc);
         double l = std::sqrt(dx * dx + dy * dy);
         double nx = dx / l, ny = dy / l;

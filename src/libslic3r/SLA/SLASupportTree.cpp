@@ -618,15 +618,25 @@ struct Pad {
                 }
             }
             
+            ExPolygons concaveh = offset_ex(
+                concave_hull(basep, pcfg.max_merge_distance_mm, thr),
+                scaled<float>(pcfg.min_wall_thickness_mm));
+            
             // Punching the breaksticks across the offsetted polygon perimeters
-            ExPolygons pad_stickholes; pad_stickholes.reserve(modelbase.size());
+            auto pad_stickholes = reserve_vector<ExPolygon>(modelbase.size());
             for(auto& poly : modelbase_offs) {
                 
+                bool overlap = false;
+                for (const ExPolygon &p : concaveh)
+                    overlap = overlap || poly.overlaps(p);
+                
+                auto bb = poly.contour.bounding_box();
+                bb.offset(scaled<float>(pcfg.min_wall_thickness_mm));
+                
                 std::vector<BoxIndexEl> qres =
-                    bindex.query(poly.contour.bounding_box(),
-                                 BoxIndex::qtIntersects);
-                    
-                if (!qres.empty()) {
+                    bindex.query(bb, BoxIndex::qtIntersects);
+                
+                if (!qres.empty() || overlap) {
                     
                     // The model silhouette polygon 'poly' HAS an intersection
                     // with the support silhouettes. Include this polygon

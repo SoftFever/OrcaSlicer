@@ -321,6 +321,9 @@ template<class T, class O = T>
 using ScaledCoordOnly = enable_if_t<is_scaled_coord<T>::value, O>;
 
 template<class T, class O = T>
+using IntegerOnly = enable_if_t<std::is_integral<T>::value, O>;
+
+template<class T, class O = T>
 using ArithmeticOnly = enable_if_t<std::is_arithmetic<T>::value, O>;
 
 // Semantics are the following:
@@ -382,6 +385,13 @@ inline constexpr Eigen::Matrix<Tout, N, EigenArgs...>
 unscaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v) noexcept
 {
     return v.template cast<Tout>() * SCALING_FACTOR;
+}
+
+template<class T> inline std::vector<T> reserve_vector(size_t capacity)
+{
+    std::vector<T> ret;
+    ret.reserve(capacity);
+    return ret;
 }
 
 } // namespace Slic3r
