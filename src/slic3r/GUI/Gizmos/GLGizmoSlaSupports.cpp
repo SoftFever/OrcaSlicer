@@ -1031,13 +1031,18 @@ RENDER_AGAIN:
     if (remove_selected || remove_all) {
         force_refresh = false;
         m_parent.set_as_dirty();
+        bool was_in_editing = m_editing_mode;
+        if (! was_in_editing)
+            switch_to_editing_mode();
         if (remove_all) {
-            if (!m_editing_mode)
-                switch_to_editing_mode();
             select_point(AllPoints);
             delete_selected_points(true); // true - delete regardless of locked status
-            editing_mode_apply_changes();
         }
+        if (remove_selected)
+            delete_selected_points(false); // leave locked points
+        if (! was_in_editing)
+            editing_mode_apply_changes();
+
         if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;
@@ -1172,7 +1177,8 @@ void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
-       m_editing_cache
+       m_editing_cache,
+       m_selection_empty
     );
 }
 
@@ -1185,7 +1191,8 @@ void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
-       m_editing_cache
+       m_editing_cache,
+       m_selection_empty
     );
 }
 
