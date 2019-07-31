@@ -2824,7 +2824,7 @@ void ObjectList::update_selections_on_canvas()
         else
         {
             mode = Selection::Instance;
-            single_selection = false;
+            single_selection &= (obj_idx != selection.get_object_idx());
             std::vector<unsigned int> idxs = selection.get_volume_idxs_from_object(obj_idx);
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
