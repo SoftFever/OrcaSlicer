@@ -3509,7 +3509,10 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             int instance_idx = selection.get_instance_idx();
             evt.Enable(instance_idx != -1);
             if (instance_idx != -1)
+            {
                 evt.Check(model.objects[selection.get_object_idx()]->instances[instance_idx]->printable);
+                view3D->set_as_dirty();
+            }
             }, menu_item_printable->GetId());
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }

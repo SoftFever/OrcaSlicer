@@ -231,6 +231,9 @@ public:
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
     static const float DISABLED_COLOR[4];
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    static const float NON_PRINTABLE_COLOR[4];
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     static const float MODEL_COLOR[4][4];
     static const float SLA_SUPPORT_COLOR[4];
     static const float SLA_PAD_COLOR[4];
@@ -294,6 +297,10 @@ public:
     bool                selected;
     // Is this object disabled from selection?
     bool                disabled;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // Is this object printable?
+    bool                printable;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // Whether or not this volume is active for rendering
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()

@@ -1382,13 +1382,14 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWind
 wxMenuItem* ObjectList::append_menu_item_printable(wxMenu* menu, wxWindow* parent)
 {
     return append_menu_check_item(menu, wxID_ANY, _(L("Printable")), "", [this](wxCommandEvent&) {
-        int instance_idx = wxGetApp().plater()->canvas3D()->get_selection().get_instance_idx();
-        if (instance_idx != -1)
-        {
-            int obj_idx = wxGetApp().plater()->get_selected_object_idx();
-            (*m_objects)[obj_idx]->instances[instance_idx]->printable = !(*m_objects)[obj_idx]->instances[instance_idx]->printable;
-
-        }
+        wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state();
+//        int instance_idx = wxGetApp().plater()->canvas3D()->get_selection().get_instance_idx();
+//        if (instance_idx != -1)
+//        {
+//            int obj_idx = wxGetApp().plater()->get_selected_object_idx();
+//            (*m_objects)[obj_idx]->instances[instance_idx]->printable = !(*m_objects)[obj_idx]->instances[instance_idx]->printable;
+//
+//        }
         }, menu);
 }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
