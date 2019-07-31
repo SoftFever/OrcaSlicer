@@ -44,6 +44,9 @@ enum FileType
 
     FT_INI,
     FT_SVG,
+
+    FT_TEX,
+
     FT_PNGZIP,
 
     FT_SIZE,

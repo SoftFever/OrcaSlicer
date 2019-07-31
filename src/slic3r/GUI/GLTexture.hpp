@@ -48,6 +48,13 @@ namespace GUI {
         };
 
     public:
+        enum ECompressionType : unsigned char
+        {
+            None,
+            SingleThreaded,
+            MultiThreaded
+        };
+
         struct UV
         {
             float u;
@@ -75,7 +82,7 @@ namespace GUI {
         GLTexture();
         virtual ~GLTexture();
 
-        bool load_from_file(const std::string& filename, bool use_mipmaps, bool compress);
+        bool load_from_file(const std::string& filename, bool use_mipmaps, ECompressionType compression_type, bool apply_anisotropy);
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
         // meanings of states: (std::pair<int, bool>)
         // first field (int):
@@ -101,11 +108,8 @@ namespace GUI {
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
 
-    protected:
-        unsigned int generate_mipmaps(wxImage& image, bool compress);
-
     private:
-        bool load_from_png(const std::string& filename, bool use_mipmaps, bool compress);
+        bool load_from_png(const std::string& filename, bool use_mipmaps, ECompressionType compression_type, bool apply_anisotropy);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
 
         friend class Compressor;

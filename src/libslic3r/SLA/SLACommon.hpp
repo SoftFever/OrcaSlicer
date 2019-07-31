@@ -24,36 +24,50 @@ enum class PointsStatus {
     UserModified    // User has done some edits.
 };
 
-struct SupportPoint {
+struct SupportPoint
+{
     Vec3f pos;
     float head_front_radius;
-    bool is_new_island;
+    bool  is_new_island;
 
-    SupportPoint() :
-    pos(Vec3f::Zero()), head_front_radius(0.f), is_new_island(false) {}
+    SupportPoint()
+        : pos(Vec3f::Zero()), head_front_radius(0.f), is_new_island(false)
+    {}
 
-    SupportPoint(float pos_x, float pos_y, float pos_z, float head_radius, bool new_island) :
-    pos(pos_x, pos_y, pos_z), head_front_radius(head_radius), is_new_island(new_island) {}
+    SupportPoint(float pos_x,
+                 float pos_y,
+                 float pos_z,
+                 float head_radius,
+                 bool  new_island)
+        : pos(pos_x, pos_y, pos_z)
+        , head_front_radius(head_radius)
+        , is_new_island(new_island)
+    {}
 
-    SupportPoint(Vec3f position, float head_radius, bool new_island) :
-    pos(position), head_front_radius(head_radius), is_new_island(new_island) {}
+    SupportPoint(Vec3f position, float head_radius, bool new_island)
+        : pos(position)
+        , head_front_radius(head_radius)
+        , is_new_island(new_island)
+    {}
 
-    SupportPoint(Eigen::Matrix<float, 5, 1, Eigen::DontAlign> data) :
-    pos(data(0), data(1), data(2)), head_front_radius(data(3)), is_new_island(data(4) != 0.f) {}
+    SupportPoint(Eigen::Matrix<float, 5, 1, Eigen::DontAlign> data)
+        : pos(data(0), data(1), data(2))
+        , head_front_radius(data(3))
+        , is_new_island(data(4) != 0.f)
+    {}
 
-    bool operator==(const SupportPoint& sp) const { return (pos==sp.pos) && head_front_radius==sp.head_front_radius && is_new_island==sp.is_new_island; }
-    bool operator!=(const SupportPoint& sp) const { return !(sp == (*this)); }
+    bool operator==(const SupportPoint &sp) const
+    {
+        return (pos == sp.pos) && head_front_radius == sp.head_front_radius &&
+               is_new_island == sp.is_new_island;
+    }
+    bool operator!=(const SupportPoint &sp) const { return !(sp == (*this)); }
 
-	template<class Archive> void serialize(Archive &ar) { ar(pos, head_front_radius, is_new_island); }
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(pos, head_front_radius, is_new_island);
+    }
 };
-
-/// An index-triangle structure for libIGL functions. Also serves as an
-/// alternative (raw) input format for the SLASupportTree
-/*struct EigenMesh3D {
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F;
-    double ground_level = 0;
-};*/
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree
@@ -160,9 +174,6 @@ public:
         return squared_distance(p, i, c);
     }
 };
-
-
-
 
 } // namespace sla
 } // namespace Slic3r

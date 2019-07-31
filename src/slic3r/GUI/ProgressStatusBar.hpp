@@ -25,9 +25,9 @@ namespace Slic3r {
 class ProgressStatusBar 
 {
     wxStatusBar *self;      // we cheat! It should be the base class but: perl!
-    wxTimer *m_timer;
     wxGauge *m_prog;
     wxButton *m_cancelbutton;
+    std::unique_ptr<wxTimer> m_timer;
 public:
 
     /// Cancel callback function type

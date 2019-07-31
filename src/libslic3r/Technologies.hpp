@@ -32,13 +32,4 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
 
-//====================
-// 1.42.0.alpha7 techs
-//====================
-#define ENABLE_1_42_0_ALPHA7 1
-
-// Printbed textures generated from svg files
-#define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
-
-
 #endif // _technologies_h_

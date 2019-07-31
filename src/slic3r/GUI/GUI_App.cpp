@@ -67,9 +67,12 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
         /* FT_MODEL */   "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
         /* FT_PROJECT */ "Project files (*.3mf, *.amf)|*.3mf;*.3MF;*.amf;*.AMF",
 
-        /* FT_INI */   "INI files (*.ini)|*.ini;*.INI",
-        /* FT_SVG */   "SVG files (*.svg)|*.svg;*.SVG",
-        /* FT_PNGZIP */"Masked SLA files (*.sl1)|*.sl1;*.SL1",
+        /* FT_INI */     "INI files (*.ini)|*.ini;*.INI",
+        /* FT_SVG */     "SVG files (*.svg)|*.svg;*.SVG",
+
+        /* FT_TEX */     "Texture (*.png, *.svg)|*.png;*.PNG;*.svg;*.SVG",
+
+        /* FT_PNGZIP */  "Masked SLA files (*.sl1)|*.sl1;*.SL1",
     };
 
 	std::string out = defaults[file_type];
