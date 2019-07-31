@@ -2804,7 +2804,8 @@ void ObjectList::update_selections_on_canvas()
 
     std::vector<unsigned int> volume_idxs;
     Selection::EMode mode = Selection::Volume;
-    auto add_to_selection = [this, &volume_idxs](const wxDataViewItem& item, const Selection& selection, int instance_idx, Selection::EMode& mode)
+    bool single_selection = sel_cnt == 1;
+    auto add_to_selection = [this, &volume_idxs, &single_selection](const wxDataViewItem& item, const Selection& selection, int instance_idx, Selection::EMode& mode)
     {
         const ItemType& type = m_objects_model->GetItemType(item);
         const int obj_idx = m_objects_model->GetObjectIdByItem(item);
@@ -2823,6 +2824,7 @@ void ObjectList::update_selections_on_canvas()
         else
         {
             mode = Selection::Instance;
+            single_selection = false;
             std::vector<unsigned int> idxs = selection.get_volume_idxs_from_object(obj_idx);
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
@@ -2864,7 +2866,7 @@ void ObjectList::update_selections_on_canvas()
         // add
         volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Add from list")));
-        selection.add_volumes(mode, volume_idxs, sel_cnt == 1);
+        selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
