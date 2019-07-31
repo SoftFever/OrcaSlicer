@@ -798,17 +798,19 @@ void ObjectList::show_context_menu()
 
 void ObjectList::copy()
 {
-    if (m_selection_mode & smLayer)
-        fill_layer_config_ranges_cache();
-    else
+    // if (m_selection_mode & smLayer)
+    //     fill_layer_config_ranges_cache();
+    // else {
+    //     m_layer_config_ranges_cache.clear();
         wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
+    // }
 }
 
 void ObjectList::paste()
 {
-    if (!m_layer_config_ranges_cache.empty())
-        paste_layers_into_list();
-    else
+    // if (!m_layer_config_ranges_cache.empty())
+    //     paste_layers_into_list();
+    // else
         wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
 }
 
@@ -2927,6 +2929,7 @@ void ObjectList::select_item_all_children()
 // update selection mode for non-multiple selection
 void ObjectList::update_selection_mode()
 {
+    m_selected_layers_range_idx=-1;
     // All items are unselected 
     if (!GetSelection())
     {
