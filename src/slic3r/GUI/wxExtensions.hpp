@@ -158,7 +158,7 @@ DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 
 
 // ----------------------------------------------------------------------------
-// ObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
+// ObjectDataViewModelNode: a node inside ObjectDataViewModel
 // ----------------------------------------------------------------------------
 
 enum ItemType {
@@ -251,6 +251,10 @@ public:
 			ObjectDataViewModelNode *child = m_children[i];
 			delete child;
 		}
+#ifndef NDEBUG
+		// Indicate that the object was deleted.
+		m_idx = -2;
+#endif /* NDEBUG */
 	}
 
 	bool IsContainer() const
@@ -260,6 +264,7 @@ public:
 
 	ObjectDataViewModelNode* GetParent()
 	{
+		assert(m_parent == nullptr || m_parent->valid());
 		return m_parent;
 	}
 	MyObjectTreeModelNodePtrArray& GetChildren()
@@ -346,6 +351,11 @@ public:
 	bool        update_settings_digest(const std::vector<std::string>& categories);
     int         volume_type() const { return int(m_volume_type); }
     void        msw_rescale();
+
+#ifndef NDEBUG
+	bool 		valid();
+#endif /* NDEBUG */
+
 private:
     friend class ObjectDataViewModel;
 };

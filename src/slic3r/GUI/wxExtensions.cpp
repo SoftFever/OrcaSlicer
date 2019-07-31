@@ -496,6 +496,15 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     set_action_icon();
 }
 
+#ifndef NDEBUG
+bool ObjectDataViewModelNode::valid()
+{
+	// Verify that the object was not deleted yet.
+	assert(m_idx >= -1);
+	return m_idx >= -1;
+}
+#endif /* NDEBUG */
+
 void ObjectDataViewModelNode::set_action_icon()
 {
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
@@ -1417,6 +1426,7 @@ wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const
 		return wxDataViewItem(0);
 
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+	assert(node != nullptr && node->valid());
 
 	// objects nodes has no parent too
     if (node->m_type == itObject)
