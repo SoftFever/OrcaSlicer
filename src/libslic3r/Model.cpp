@@ -644,9 +644,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->sla_points_status           = rhs.sla_points_status;
     this->layer_config_ranges         = rhs.layer_config_ranges;    // #ys_FIXME_experiment
     this->layer_height_profile        = rhs.layer_height_profile;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     this->printable                   = rhs.printable;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;

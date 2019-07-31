@@ -225,9 +225,7 @@ public:
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     wxMenuItem*         append_menu_item_printable(wxMenu* menu, wxWindow* parent);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void                append_menu_items_osx(wxMenu* menu);
     wxMenuItem*         append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const ;
