@@ -843,8 +843,6 @@ public:
     ~LockButton() {}
 
     void    OnButton(wxCommandEvent& event);
-    void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
-    void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
     bool    IsLocked() const                { return m_is_pushed; }
     void    SetLock(bool lock);
@@ -856,16 +854,16 @@ public:
     void    msw_rescale();
 
 protected:
-    void    enter_button(const bool enter);
+    void    update_button_bitmaps();
 
 private:
     bool        m_is_pushed = false;
     bool        m_disabled = false;
 
-    ScalableBitmap    m_bmp_lock_on;
-    ScalableBitmap    m_bmp_lock_off;
-    ScalableBitmap    m_bmp_unlock_on;
-    ScalableBitmap    m_bmp_unlock_off;
+    ScalableBitmap    m_bmp_lock_closed;
+    ScalableBitmap    m_bmp_lock_closed_f;
+    ScalableBitmap    m_bmp_lock_open;
+    ScalableBitmap    m_bmp_lock_open_f;
 };
 
 
