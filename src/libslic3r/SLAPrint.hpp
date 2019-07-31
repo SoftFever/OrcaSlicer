@@ -349,7 +349,7 @@ public:
 
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
-    ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
+    ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
     void                set_task(const TaskParams &params) override;
     void                process() override;
     void                finalize() override;

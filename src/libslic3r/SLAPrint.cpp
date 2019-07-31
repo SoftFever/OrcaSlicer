@@ -145,14 +145,13 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     return instances;
 }
 
-SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConfig &config_in)
+SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig config)
 {
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
 
-    // Make a copy of the config, normalize it.
-    DynamicPrintConfig config(config_in);
+    // Normalize the config.
     config.option("sla_print_settings_id",    true);
     config.option("sla_material_settings_id", true);
     config.option("printer_settings_id",      true);
@@ -162,7 +161,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     t_config_option_keys printer_diff  = m_printer_config.diff(config);
     t_config_option_keys material_diff = m_material_config.diff(config);
     t_config_option_keys object_diff   = m_default_object_config.diff(config);
-    t_config_option_keys placeholder_parser_diff = this->placeholder_parser().config_diff(config);
+    t_config_option_keys placeholder_parser_diff = m_placeholder_parser.config_diff(config);
 
     // Do not use the ApplyStatus as we will use the max function when updating apply_status.
     unsigned int apply_status = APPLY_STATUS_UNCHANGED;
@@ -187,12 +186,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     // only to generate the output file name.
     if (! placeholder_parser_diff.empty()) {
         // update_apply_status(this->invalidate_step(slapsRasterize));
-        PlaceholderParser &pp = this->placeholder_parser();
-        pp.apply_config(config);
+        m_placeholder_parser.apply_config(config);
         // Set the profile aliases for the PrintBase::output_filename()
-        pp.set("print_preset",    config.option("sla_print_settings_id")->clone());
-        pp.set("material_preset", config.option("sla_material_settings_id")->clone());
-        pp.set("printer_preset",  config.option("printer_settings_id")->clone());
+        m_placeholder_parser.set("print_preset",    config.option("sla_print_settings_id")->clone());
+        m_placeholder_parser.set("material_preset", config.option("sla_material_settings_id")->clone());
+        m_placeholder_parser.set("printer_preset",  config.option("printer_settings_id")->clone());
     }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
@@ -459,6 +457,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     check_model_ids_equal(m_model, model);
 #endif /* _DEBUG */
 
+    m_full_print_config = std::move(config);
     return static_cast<ApplyStatus>(apply_status);
 }
 

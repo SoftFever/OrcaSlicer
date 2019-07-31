@@ -296,7 +296,7 @@ public:
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
 
-    ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
+    ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
@@ -368,6 +368,13 @@ protected:
     bool                invalidate_step(PrintStep step);
 
 private:
+	void 				config_diffs(
+		const DynamicPrintConfig &new_full_config, 
+		t_config_option_keys &print_diff, t_config_option_keys &object_diff, t_config_option_keys &region_diff, 
+		t_config_option_keys &full_config_diff, 
+		DynamicPrintConfig &placeholder_parser_overrides,
+		DynamicPrintConfig &filament_overrides) const;
+
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();

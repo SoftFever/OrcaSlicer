@@ -337,6 +337,11 @@ class TabFilament : public Tab
 {
 	ogStaticText*	m_volumetric_speed_description_line;
 	ogStaticText*	m_cooling_description_line;
+
+    void            add_filament_overrides_page();
+    void            update_filament_overrides_page();
+
+    std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
 	TabFilament(wxNotebook* parent) : 
 // 		Tab(parent, _(L("Filament Settings")), L("filament")) {}

@@ -217,7 +217,7 @@ protected:
 class PrintBase
 {
 public:
-	PrintBase() { this->restart(); }
+	PrintBase() : m_placeholder_parser(&m_full_print_config) { this->restart(); }
     inline virtual ~PrintBase() {}
 
     virtual PrinterTechnology technology() const noexcept = 0;
@@ -240,7 +240,7 @@ public:
         // Some data was changed, which in turn invalidated already calculated steps.
         APPLY_STATUS_INVALIDATED,
     };
-    virtual ApplyStatus     apply(const Model &model, const DynamicPrintConfig &config) = 0;
+    virtual ApplyStatus     apply(const Model &model, DynamicPrintConfig config) = 0;
     const Model&            model() const { return m_model; }
 
     struct TaskParams {
@@ -316,7 +316,7 @@ public:
     virtual bool               finished() const = 0;
 
     const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
-    PlaceholderParser&         placeholder_parser() { return m_placeholder_parser; }
+    const DynamicPrintConfig&  full_print_config() const { return m_full_print_config; }
 
     virtual std::string        output_filename(const std::string &filename_base = std::string()) const = 0;
     // If the filename_base is set, it is used as the input for the template processing. In that case the path is expected to be the directory (may be empty).
@@ -341,6 +341,8 @@ protected:
     void                   update_object_placeholders(DynamicConfig &config, const std::string &default_ext) const;
 
 	Model                                   m_model;
+	DynamicPrintConfig						m_full_print_config;
+    PlaceholderParser                       m_placeholder_parser;
 
 private:
     tbb::atomic<CancelStatus>               m_cancel_status;
@@ -354,8 +356,6 @@ private:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
     mutable tbb::mutex                      m_state_mutex;
-
-    PlaceholderParser                       m_placeholder_parser;
 };
 
 template<typename PrintStepEnum, const size_t COUNT>
