@@ -108,11 +108,15 @@ public:
         ar(m_current);
 
         GLGizmoBase* curr = get_current();
-        if (curr != nullptr)
-        {
-            curr->set_state(GLGizmoBase::On);
-            curr->load(ar);
-        }
+		for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
+			GLGizmoBase* gizmo = it->second;
+			if (gizmo != nullptr) {
+				gizmo->set_hover_id(-1);
+				gizmo->set_state((it->second == curr) ? GLGizmoBase::On : GLGizmoBase::Off);
+				if (gizmo == curr)
+					gizmo->load(ar);
+			}
+		}
     }
 
     template<class Archive>

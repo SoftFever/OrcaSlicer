@@ -1497,6 +1497,105 @@ void TabPrint::OnActivate()
 	Tab::OnActivate();
 }
 
+void TabFilament::add_filament_overrides_page()
+{
+    PageShp page = add_options_page(_(L("Filament Overrides")), "wrench");
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(_(L("Retraction")));
+
+    auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
+    {
+        Line line {"",""};
+        if (opt_key == "filament_retract_lift_above" || opt_key == "filament_retract_lift_below") {
+            Option opt = optgroup->get_option(opt_key);
+            opt.opt.label = opt.opt.full_label;
+            line = optgroup->create_single_option_line(opt);
+        }
+        else
+            line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
+
+        line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
+            wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
+
+            check_box->Bind(wxEVT_CHECKBOX, [this, optgroup, opt_key, opt_index](wxCommandEvent& evt) {
+                const bool is_checked = evt.IsChecked();
+                Field* field = optgroup->get_fieldc(opt_key, opt_index);
+                if (field != nullptr) {
+                    field->toggle(is_checked);
+                    if (is_checked)
+                        field->set_last_meaningful_value();
+                    else
+                        field->set_na_value();
+                }
+            }, check_box->GetId());
+
+            m_overrides_options[opt_key] = check_box;
+            return check_box;
+        };
+
+        optgroup->append_line(line);
+    };
+
+    const int extruder_idx = 0; // #ys_FIXME
+
+    for (const std::string opt_key : {  "filament_retract_length",
+                                        "filament_retract_lift",
+                                        "filament_retract_lift_above",
+                                        "filament_retract_lift_below",
+                                        "filament_retract_speed",
+                                        "filament_deretract_speed",
+                                        "filament_retract_restart_extra",
+                                        "filament_retract_before_travel",
+                                        "filament_retract_layer_change",
+                                        "filament_wipe",
+                                        "filament_retract_before_wipe"
+                                     })
+        append_single_option_line(opt_key, extruder_idx);
+}
+
+void TabFilament::update_filament_overrides_page()
+{
+    const auto page_it = std::find_if(m_pages.begin(), m_pages.end(), [](const PageShp page) {return page->title() == _(L("Filament Overrides")); });
+    if (page_it == m_pages.end())
+        return;
+    PageShp page = *page_it;
+
+    const auto og_it = std::find_if(page->m_optgroups.begin(), page->m_optgroups.end(), [](const ConfigOptionsGroupShp og) {return og->title == _(L("Retraction")); });
+    if (og_it == page->m_optgroups.end())
+        return;
+    ConfigOptionsGroupShp optgroup = *og_it;
+
+    std::vector<std::string> opt_keys = {   "filament_retract_length", 
+                                            "filament_retract_lift", 
+                                            "filament_retract_lift_above", 
+                                            "filament_retract_lift_below",
+                                            "filament_retract_speed",
+                                            "filament_deretract_speed",
+                                            "filament_retract_restart_extra",
+                                            "filament_retract_before_travel",
+                                            "filament_retract_layer_change",
+                                            "filament_wipe",
+                                            "filament_retract_before_wipe"
+                                        };
+
+    const int extruder_idx = 0; // #ys_FIXME
+
+    const bool have_retract_length = m_config->option("filament_retract_length")->is_nil() ||
+                                     m_config->opt_float("filament_retract_length", extruder_idx) > 0;
+
+    for (const std::string& opt_key : opt_keys)
+    {
+        bool is_checked = opt_key=="filament_retract_length" ? true : have_retract_length;
+        m_overrides_options[opt_key]->Enable(is_checked);
+
+        is_checked &= !m_config->option(opt_key)->is_nil();
+        m_overrides_options[opt_key]->SetValue(is_checked);
+
+        Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
+        if (field != nullptr)
+            field->toggle(is_checked);
+    }
+}
+
 void TabFilament::build()
 {
 	m_presets = &m_preset_bundle->filaments;
@@ -1594,10 +1693,14 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
+
+    add_filament_overrides_page();
+
+
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 
-        page = add_options_page(_(L("Custom G-code")), "cog");
+    page = add_options_page(_(L("Custom G-code")), "cog");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
@@ -1661,7 +1764,7 @@ void TabFilament::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-//	Freeze();
+
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1676,7 +1779,9 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-//    Thaw();
+
+    update_filament_overrides_page();
+
     m_update_cnt--;
 
     if (m_update_cnt == 0)

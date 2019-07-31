@@ -1829,25 +1829,12 @@ void GCode::apply_print_config(const PrintConfig &print_config)
     m_config.apply(print_config);
 }
 
-void GCode::append_full_config(const Print& print, std::string& str)
+void GCode::append_full_config(const Print &print, std::string &str)
 {
-    const StaticPrintConfig *configs[] = { static_cast<const GCodeConfig*>(&print.config()), &print.default_object_config(), &print.default_region_config() };
-    for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
-        const StaticPrintConfig *cfg = configs[i];
-        for (const std::string &key : cfg->keys())
-            if (key != "compatible_printers")
-                str += "; " + key + " = " + cfg->opt_serialize(key) + "\n";
-    }
-    const DynamicConfig &full_config = print.placeholder_parser().config();
-	for (const char *key : {
-		"print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
-		"printer_model", "printer_variant", 
-	    "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
-		"compatible_prints_condition_cummulative", "compatible_printers_condition_cummulative", "inherits_cummulative" }) {
-		const ConfigOption *opt = full_config.option(key);
-		if (opt != nullptr)
-			str += std::string("; ") + key + " = " + opt->serialize() + "\n";
-	}
+	const DynamicPrintConfig &cfg = print.full_print_config();
+    for (const std::string &key : cfg.keys())
+        if (key != "compatible_prints" && key != "compatible_printers" && ! cfg.option(key)->is_nil())
+            str += "; " + key + " = " + cfg.opt_serialize(key) + "\n";
 }
 
 void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)

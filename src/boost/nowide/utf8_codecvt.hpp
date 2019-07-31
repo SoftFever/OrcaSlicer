@@ -102,7 +102,7 @@ protected:
         #ifndef BOOST_NOWIDE_DO_LENGTH_MBSTATE_CONST
         return from - save_from;
         #else
-        return save_max - max;
+        return int(save_max - max);
         #endif
     }
 

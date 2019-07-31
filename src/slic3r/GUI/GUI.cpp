@@ -148,6 +148,13 @@ void config_wizard(int reason)
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 {
 	try{
+
+        if (config.def()->get(opt_key)->type == coBools && config.def()->get(opt_key)->nullable) {
+            ConfigOptionBoolsNullable* vec_new = new ConfigOptionBoolsNullable{ boost::any_cast<unsigned char>(value) };
+            config.option<ConfigOptionBoolsNullable>(opt_key)->set_at(vec_new, opt_index, 0);
+            return;
+        }
+
 		switch (config.def()->get(opt_key)->type) {
 		case coFloatOrPercent:{
 			std::string str = boost::any_cast<std::string>(value);
