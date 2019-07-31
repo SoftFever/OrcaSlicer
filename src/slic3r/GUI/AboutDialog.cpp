@@ -106,6 +106,9 @@ void CopyrightsDialog::fill_entries()
                               "2001-2016 Expat maintainers"                 , "http://www.libexpat.org/" },
         { "AVRDUDE"         , "2018  Free Software Foundation, Inc."        , "http://savannah.nongnu.org/projects/avrdude" },
         { "Shinyprofiler"   , "2007-2010 Aidin Abedi"                       , "http://code.google.com/p/shinyprofiler/" },
+        { "Real-Time DXT1/DXT5 C compression library"   
+                                    , "Based on original by fabian \"ryg\" giesen v1.04. "
+                              "Custom version, modified by Yann Collet"     , "https://github.com/Cyan4973/RygsDXTc" },
         { "Icons for STL and GCODE files."
                             , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" }
     };
