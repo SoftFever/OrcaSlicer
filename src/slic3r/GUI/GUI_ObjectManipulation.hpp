@@ -135,11 +135,11 @@ private:
     void update_mirror_buttons_visibility();
 
     // change values 
-    void change_position_value(int axis, double value);
-    void change_rotation_value(int axis, double value);
-    void change_scale_value(int axis, double value);
-    void change_size_value(int axis, double value);
-    void do_scale(int axis, const Vec3d &scale) const;
+    void change_position_value(int axis, double value, const std::string& snapshot_name);
+    void change_rotation_value(int axis, double value, const std::string& snapshot_name);
+    void change_scale_value(int axis, double value,  const std::string& snapshot_name);
+    void change_size_value(int axis, double value, const std::string& snapshot_name);
+    void do_scale(int axis, const Vec3d &scale, const std::string& snapshot_name) const;
 
     void on_change(t_config_option_key opt_key, const boost::any& value);
     void on_fill_empty_value(const std::string& opt_key);
