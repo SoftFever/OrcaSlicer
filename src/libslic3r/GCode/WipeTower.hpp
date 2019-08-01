@@ -134,7 +134,7 @@ public:
             m_filpar[idx].cooling_final_speed     = cooling_final_speed;
         }
 
-        m_filpar[idx].filament_area = (M_PI/4.f) * pow(filament_diameter, 2); // all extruders are assumed to have the same filament diameter at this point
+        m_filpar[idx].filament_area = float((M_PI/4.f) * pow(filament_diameter, 2)); // all extruders are assumed to have the same filament diameter at this point
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
         if (max_volumetric_speed != 0.f)

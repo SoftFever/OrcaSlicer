@@ -72,6 +72,8 @@ PresetBundle::PresetBundle() :
     this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values = { "" };
     this->filaments.default_preset().compatible_printers_condition();
     this->filaments.default_preset().inherits();
+	// Set all the nullable values to nils.
+	this->filaments.default_preset().config.null_nullables();
 
     this->sla_materials.default_preset().config.optptr("sla_material_settings_id", true);
     this->sla_materials.default_preset().compatible_printers_condition();

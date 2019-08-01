@@ -107,7 +107,8 @@ private:
     float m_new_point_head_diameter;        // Size of a new point.
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same
-    float m_minimal_point_distance = 20.f;
+    float m_minimal_point_distance_stash = 0.f; // and again
+    float m_density_stash = 0.f;                // and again
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 

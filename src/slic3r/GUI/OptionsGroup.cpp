@@ -202,7 +202,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
                 // so we need a horizontal sizer to arrange these things
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT, 7);
+                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
                 sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
             }
         }
@@ -372,30 +372,10 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 
 		auto option = m_options.at(opt_id).opt;
 
-		// get value
-//!		auto field_value = get_value(opt_id);
-		if (option.gui_flags.compare("serialized")==0) {
-			if (opt_index != -1) {
-				// 		die "Can't set serialized option indexed value" ;
-			}
-			change_opt_value(*m_config, opt_key, value);
-		}
-		else {
-			if (opt_index == -1) {
-				// change_opt_value(*m_config, opt_key, field_value);
-				//!? why field_value?? in this case changed value will be lose! No?
-				change_opt_value(*m_config, opt_key, value);
-			}
-			else {
-				change_opt_value(*m_config, opt_key, value, opt_index);
-// 				auto value = m_config->get($opt_key);
-// 				$value->[$opt_index] = $field_value;
-// 				$self->config->set($opt_key, $value);
-			}
-		}
+		change_opt_value(*m_config, opt_key, value, opt_index == -1 ? 0 : opt_index);
 	}
 
-	OptionsGroup::on_change_OG(opt_id, value); //!? Why doing this
+	OptionsGroup::on_change_OG(opt_id, value); 
 }
 
 void ConfigOptionsGroup::back_to_initial_value(const std::string& opt_key)
@@ -578,6 +558,34 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	boost::any ret;
 	wxString text_value = wxString("");
 	const ConfigOptionDef* opt = config.def()->get(opt_key);
+
+    if (opt->nullable)
+    {
+        switch (opt->type)
+        {
+        case coPercents:
+        case coFloats: {
+            if (config.option(opt_key)->is_nil())
+                ret = _(L("N/A"));
+            else {
+                double val = opt->type == coFloats ?
+                            config.option<ConfigOptionFloatsNullable>(opt_key)->get_at(idx) :
+                            config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
+                ret = double_to_string(val); }
+            }
+            break;
+        case coBools:
+            ret = config.option<ConfigOptionBoolsNullable>(opt_key)->values[idx];
+            break;
+        case coInts:
+            ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
+            break;
+        default:
+            break;
+        }
+        return ret;
+    }
+
 	switch (opt->type) {
 	case coFloatOrPercent:{
 		const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key);

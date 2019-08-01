@@ -210,6 +210,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             wxSize btn_size(em_unit(parent) * mirror_btn_width, em_unit(parent) * mirror_btn_width);
             auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, btn_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
             btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
+            btn->SetBitmapDisabled_(m_mirror_bitmap_hidden);
 
             m_mirror_buttons[axis_idx].first = btn;
             m_mirror_buttons[axis_idx].second = mbShown;
@@ -286,6 +287,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
                 btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Reset scale")));
                     change_scale_value(0, 100.);
                     change_scale_value(1, 100.);
                     change_scale_value(2, 100.);
@@ -323,7 +325,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                     selection.synchronize_unselected_volumes();
                     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-                    canvas->do_rotate(L("Set Rotation"));
+                    canvas->do_rotate(L("Reset Rotation"));
 
                     UpdateAndShow(true);
                 });
@@ -350,6 +352,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                         const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
                         Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
 
+                        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Drop to bed")));
                         change_position_value(0, diff.x());
                         change_position_value(1, diff.y());
                         change_position_value(2, diff.z());
@@ -646,13 +649,13 @@ void ObjectManipulation::update_mirror_buttons_visibility()
     wxGetApp().CallAfter([this, new_states]{
         for (int i=0; i<3; ++i) {
             if (new_states[i] != m_mirror_buttons[i].second) {
-                const wxBitmap* bmp;
+                const ScalableBitmap* bmp;
                 switch (new_states[i]) {
-                    case mbHidden : bmp = &m_mirror_bitmap_hidden.bmp(); m_mirror_buttons[i].first->Enable(false); break;
-                    case mbShown  : bmp = &m_mirror_bitmap_off.bmp(); m_mirror_buttons[i].first->Enable(true); break;
-                    case mbActive : bmp = &m_mirror_bitmap_on.bmp(); m_mirror_buttons[i].first->Enable(true); break;
+                    case mbHidden : bmp = &m_mirror_bitmap_hidden; m_mirror_buttons[i].first->Enable(false); break;
+                    case mbShown  : bmp = &m_mirror_bitmap_off; m_mirror_buttons[i].first->Enable(true); break;
+                    case mbActive : bmp = &m_mirror_bitmap_on; m_mirror_buttons[i].first->Enable(true); break;
                 }
-                m_mirror_buttons[i].first->SetBitmap(*bmp);
+                m_mirror_buttons[i].first->SetBitmap_(*bmp);
                 m_mirror_buttons[i].second = new_states[i];
             }
         }
@@ -924,6 +927,9 @@ void ObjectManipulation::msw_rescale()
     m_reset_scale_button->msw_rescale();
     m_reset_rotation_button->msw_rescale();
     m_drop_to_bed_button->msw_rescale();
+
+    for (int id = 0; id < 3; ++id)
+        m_mirror_buttons[id].first->msw_rescale();
 
     get_og()->msw_rescale();
 }

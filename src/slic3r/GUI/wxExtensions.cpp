@@ -513,6 +513,15 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     init_container();
 }
 
+#ifndef NDEBUG
+bool ObjectDataViewModelNode::valid()
+{
+	// Verify that the object was not deleted yet.
+	assert(m_idx >= -1);
+	return m_idx >= -1;
+}
+#endif /* NDEBUG */
+
 void ObjectDataViewModelNode::set_action_icon()
 {
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
@@ -1457,6 +1466,7 @@ wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const
 		return wxDataViewItem(0);
 
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+	assert(node != nullptr && node->valid());
 
 	// objects nodes has no parent too
     if (node->m_type == itObject)
@@ -2783,21 +2793,20 @@ LockButton::LockButton( wxWindow *parent,
                         const wxSize& size /*= wxDefaultSize*/):
                         wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
 {
-    m_bmp_lock_on      = ScalableBitmap(this, "one_layer_lock_on.png");
-    m_bmp_lock_off     = ScalableBitmap(this, "one_layer_lock_off.png");
-    m_bmp_unlock_on    = ScalableBitmap(this, "one_layer_unlock_on.png");
-    m_bmp_unlock_off   = ScalableBitmap(this, "one_layer_unlock_off.png");
+    m_bmp_lock_closed   = ScalableBitmap(this, "lock_closed");
+    m_bmp_lock_closed_f = ScalableBitmap(this, "lock_closed_f");
+    m_bmp_lock_open     = ScalableBitmap(this, "lock_open");
+    m_bmp_lock_open_f   = ScalableBitmap(this, "lock_open_f");
 
 #ifdef __WXMSW__
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
-    SetBitmap(m_bmp_unlock_on.bmp());
-    SetBitmapDisabled(m_bmp_lock_on.bmp());
+    SetBitmap(m_bmp_lock_open.bmp());
+    SetBitmapDisabled(m_bmp_lock_open.bmp());
+    SetBitmapHover(m_bmp_lock_closed_f.bmp());
 
     //button events
-    Bind(wxEVT_BUTTON,          &LockButton::OnButton, this);
-    Bind(wxEVT_ENTER_WINDOW,    &LockButton::OnEnterBtn, this);
-    Bind(wxEVT_LEAVE_WINDOW,    &LockButton::OnLeaveBtn, this);
+    Bind(wxEVT_BUTTON, &LockButton::OnButton, this);
 }
 
 void LockButton::OnButton(wxCommandEvent& event)
@@ -2806,7 +2815,7 @@ void LockButton::OnButton(wxCommandEvent& event)
         return;
 
     m_is_pushed = !m_is_pushed;
-    enter_button(true);
+    update_button_bitmaps();
 
     event.Skip();
 }
@@ -2814,23 +2823,21 @@ void LockButton::OnButton(wxCommandEvent& event)
 void LockButton::SetLock(bool lock)
 {
     m_is_pushed = lock;
-    enter_button(true);
+    update_button_bitmaps();
 }
 
 void LockButton::msw_rescale()
 {
-    m_bmp_lock_on   .msw_rescale();
-    m_bmp_lock_off  .msw_rescale();
-    m_bmp_unlock_on .msw_rescale();
-    m_bmp_unlock_off.msw_rescale();
+    m_bmp_lock_closed.msw_rescale();
+    m_bmp_lock_closed_f.msw_rescale();
+    m_bmp_lock_open.msw_rescale();
+    m_bmp_lock_open_f.msw_rescale();
 }
 
-void LockButton::enter_button(const bool enter)
+void LockButton::update_button_bitmaps()
 {
-    const wxBitmap& icon = m_is_pushed ?
-        enter ? m_bmp_lock_off.bmp() : m_bmp_lock_on.bmp() :
-        enter ? m_bmp_unlock_off.bmp() : m_bmp_unlock_on.bmp();
-    SetBitmap(icon);
+    SetBitmap(m_is_pushed ? m_bmp_lock_closed.bmp() : m_bmp_lock_open.bmp());
+    SetBitmapHover(m_is_pushed ? m_bmp_lock_closed_f.bmp() : m_bmp_lock_open_f.bmp());
 
     Refresh();
     Update();
@@ -2999,6 +3006,13 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 #endif // __WXMSW__
 
     SetBitmap(create_scaled_bitmap(parent, icon_name));
+
+    if (size != wxDefaultSize)
+    {
+        const int em = em_unit(parent);
+        m_width = size.x/em;
+        m_height= size.y/em;
+    }
 }
 
 
@@ -3025,11 +3039,24 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
     m_current_icon_name = bmp.name();
 }
 
+void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
+{
+    SetBitmapDisabled(bmp.bmp());
+    m_disabled_icon_name = bmp.name();
+}
+
 void ScalableButton::msw_rescale()
 {
-    const wxBitmap bmp = create_scaled_bitmap(m_parent, m_current_icon_name);
+    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name));
+    if (!m_disabled_icon_name.empty())
+        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name));
 
-    SetBitmap(bmp);
+    if (m_width > 0 || m_height>0)
+    {
+        const int em = em_unit(m_parent);
+        wxSize size(m_width * em, m_height * em);
+        SetMinSize(size);
+    }
 }
 
 

@@ -900,6 +900,10 @@ RENDER_AGAIN:
         ImGui::SameLine(diameter_slider_left);
         ImGui::PushItemWidth(window_width - diameter_slider_left);
 
+        // Following is a nasty way to:
+        //  - save the initial value of the slider before one starts messing with it
+        //  - keep updating the head radius during sliding so it is continuosly refreshed in 3D scene
+        //  - take correct undo/redo snapshot after the user is done with moving the slider
         float initial_value = m_new_point_head_diameter;
         ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
         if (ImGui::IsItemClicked()) {
@@ -960,20 +964,35 @@ RENDER_AGAIN:
         float density = static_cast<const ConfigOptionInt*>(opts[0])->value;
         float minimal_point_distance = static_cast<const ConfigOptionFloat*>(opts[1])->value;
 
-        bool value_changed = ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
-        if (value_changed)
-            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
+        ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
+        bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
+        bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
+        bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
 
         m_imgui->text(m_desc.at("points_density"));
         ImGui::SameLine(settings_sliders_left);
 
-        if (ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%")) {
-            value_changed = true;
+        ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%");
+        slider_clicked |= ImGui::IsItemClicked();
+        slider_edited |= ImGui::IsItemEdited();
+        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+
+        if (slider_clicked) { // stash the values of the settings so we know what to revert to after undo
+            m_minimal_point_distance_stash = minimal_point_distance;
+            m_density_stash = density;
+        }
+        if (slider_edited) {
+            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
             m_model_object->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
         }
-
-        if (value_changed) // Update side panel
+        if (slider_released) {
+            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = m_minimal_point_distance_stash;
+            m_model_object->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)m_density_stash;
+            wxGetApp().plater()->take_snapshot(_(L("Support parameter change")));
+            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
+            m_model_object->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
             wxGetApp().obj_list()->update_and_show_object_settings_item();
+        }
 
         bool generate = m_imgui->button(m_desc.at("auto_generate"));
 

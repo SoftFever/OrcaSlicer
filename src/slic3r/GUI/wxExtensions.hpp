@@ -161,7 +161,7 @@ DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 
 
 // ----------------------------------------------------------------------------
-// ObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
+// ObjectDataViewModelNode: a node inside ObjectDataViewModel
 // ----------------------------------------------------------------------------
 
 enum ItemType {
@@ -259,6 +259,10 @@ public:
 			ObjectDataViewModelNode *child = m_children[i];
 			delete child;
 		}
+#ifndef NDEBUG
+		// Indicate that the object was deleted.
+		m_idx = -2;
+#endif /* NDEBUG */
 	}
 
 	void init_container();
@@ -269,6 +273,7 @@ public:
 
 	ObjectDataViewModelNode* GetParent()
 	{
+		assert(m_parent == nullptr || m_parent->valid());
 		return m_parent;
 	}
 	MyObjectTreeModelNodePtrArray& GetChildren()
@@ -357,6 +362,11 @@ public:
 	bool        update_settings_digest(const std::vector<std::string>& categories);
     int         volume_type() const { return int(m_volume_type); }
     void        msw_rescale();
+
+#ifndef NDEBUG
+	bool 		valid();
+#endif /* NDEBUG */
+
 private:
     friend class ObjectDataViewModel;
 };
@@ -859,8 +869,6 @@ public:
     ~LockButton() {}
 
     void    OnButton(wxCommandEvent& event);
-    void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
-    void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
     bool    IsLocked() const                { return m_is_pushed; }
     void    SetLock(bool lock);
@@ -872,16 +880,16 @@ public:
     void    msw_rescale();
 
 protected:
-    void    enter_button(const bool enter);
+    void    update_button_bitmaps();
 
 private:
     bool        m_is_pushed = false;
     bool        m_disabled = false;
 
-    ScalableBitmap    m_bmp_lock_on;
-    ScalableBitmap    m_bmp_lock_off;
-    ScalableBitmap    m_bmp_unlock_on;
-    ScalableBitmap    m_bmp_unlock_off;
+    ScalableBitmap    m_bmp_lock_closed;
+    ScalableBitmap    m_bmp_lock_closed_f;
+    ScalableBitmap    m_bmp_lock_open;
+    ScalableBitmap    m_bmp_lock_open_f;
 };
 
 
@@ -912,12 +920,16 @@ public:
     ~ScalableButton() {}
 
     void SetBitmap_(const ScalableBitmap& bmp);
+    void SetBitmapDisabled_(const ScalableBitmap &bmp);
 
     void    msw_rescale();
 
 private:
     wxWindow*       m_parent;
     std::string     m_current_icon_name = "";
+    std::string     m_disabled_icon_name = "";
+    int             m_width {-1}; // should be multiplied to em_unit
+    int             m_height{-1}; // should be multiplied to em_unit
 };
 
 

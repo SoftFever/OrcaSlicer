@@ -411,6 +411,7 @@ void MainFrame::init_menubar()
             }, wxID_FILE1, wxID_FILE9);
 
         std::vector<std::string> recent_projects = wxGetApp().app_config->get_recent_projects();
+        std::reverse(recent_projects.begin(), recent_projects.end());
         for (const std::string& project : recent_projects)
         {
             m_recent_projects.AddFileToHistory(from_u8(project));

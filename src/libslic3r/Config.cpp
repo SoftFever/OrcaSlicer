@@ -211,25 +211,35 @@ std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 
 ConfigOption* ConfigOptionDef::create_empty_option() const
 {
-    switch (this->type) {
-    case coFloat:           return new ConfigOptionFloat();
-    case coFloats:          return new ConfigOptionFloats();
-    case coInt:             return new ConfigOptionInt();
-    case coInts:            return new ConfigOptionInts();
-    case coString:          return new ConfigOptionString();
-    case coStrings:         return new ConfigOptionStrings();
-    case coPercent:         return new ConfigOptionPercent();
-    case coPercents:        return new ConfigOptionPercents();
-    case coFloatOrPercent:  return new ConfigOptionFloatOrPercent();
-    case coPoint:           return new ConfigOptionPoint();
-    case coPoints:          return new ConfigOptionPoints();
-    case coPoint3:          return new ConfigOptionPoint3();
-//    case coPoint3s:         return new ConfigOptionPoint3s();
-    case coBool:            return new ConfigOptionBool();
-    case coBools:           return new ConfigOptionBools();
-    case coEnum:            return new ConfigOptionEnumGeneric(this->enum_keys_map);
-    default:                throw std::runtime_error(std::string("Unknown option type for option ") + this->label);
-    }
+	if (this->nullable) {
+	    switch (this->type) {
+	    case coFloats:          return new ConfigOptionFloatsNullable();
+	    case coInts:            return new ConfigOptionIntsNullable();
+	    case coPercents:        return new ConfigOptionPercentsNullable();
+	    case coBools:           return new ConfigOptionBoolsNullable();
+	    default:                throw std::runtime_error(std::string("Unknown option type for nullable option ") + this->label);
+	    }
+	} else {
+	    switch (this->type) {
+	    case coFloat:           return new ConfigOptionFloat();
+	    case coFloats:          return new ConfigOptionFloats();
+	    case coInt:             return new ConfigOptionInt();
+	    case coInts:            return new ConfigOptionInts();
+	    case coString:          return new ConfigOptionString();
+	    case coStrings:         return new ConfigOptionStrings();
+	    case coPercent:         return new ConfigOptionPercent();
+	    case coPercents:        return new ConfigOptionPercents();
+	    case coFloatOrPercent:  return new ConfigOptionFloatOrPercent();
+	    case coPoint:           return new ConfigOptionPoint();
+	    case coPoints:          return new ConfigOptionPoints();
+	    case coPoint3:          return new ConfigOptionPoint3();
+	//    case coPoint3s:         return new ConfigOptionPoint3s();
+	    case coBool:            return new ConfigOptionBool();
+	    case coBools:           return new ConfigOptionBools();
+	    case coEnum:            return new ConfigOptionEnumGeneric(this->enum_keys_map);
+	    default:                throw std::runtime_error(std::string("Unknown option type for option ") + this->label);
+	    }
+	}
 }
 
 ConfigOption* ConfigOptionDef::create_default_option() const
@@ -252,6 +262,13 @@ ConfigOptionDef* ConfigDef::add(const t_config_option_key &opt_key, ConfigOption
     opt->serialization_key_ordinal = ++ serialization_key_ordinal_last;
     this->by_serialization_key_ordinal[opt->serialization_key_ordinal] = opt;
     return opt;
+}
+
+ConfigOptionDef* ConfigDef::add_nullable(const t_config_option_key &opt_key, ConfigOptionType type)
+{
+	ConfigOptionDef *def = this->add(opt_key, type);
+	def->nullable = true;
+	return def;
 }
 
 std::string ConfigOptionDef::nocli = "~~~noCLI";
@@ -642,6 +659,17 @@ void ConfigBase::save(const std::string &file) const
     c.close();
 }
 
+// Set all the nullable values to nils.
+void ConfigBase::null_nullables()
+{
+    for (const std::string &opt_key : this->keys()) {
+        ConfigOption *opt = this->optptr(opt_key, false);
+        assert(opt != nullptr);
+        if (opt->nullable())
+        	opt->deserialize("nil");
+    }
+}
+
 bool DynamicConfig::operator==(const DynamicConfig &rhs) const
 {
     auto it1     = this->options.begin();
@@ -653,6 +681,19 @@ bool DynamicConfig::operator==(const DynamicConfig &rhs) const
 			// key or value differ
 			return false;
     return it1 == it1_end && it2 == it2_end;
+}
+
+// Remove options with all nil values, those are optional and it does not help to hold them.
+size_t DynamicConfig::remove_nil_options()
+{
+	size_t cnt_removed = 0;
+	for (auto it = options.begin(); it != options.end();)
+		if (it->second->is_nil()) {
+			it = options.erase(it);
+			++ cnt_removed;
+		} else
+			++ it;
+	return cnt_removed;
 }
 
 ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool create)
@@ -838,18 +879,22 @@ CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionVector<Slic3r::Vec2d>)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionVector<unsigned char>)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloat)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloats)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloatsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionInt)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionInts)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionIntsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionString)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionStrings)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercent)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercents)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPercentsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionFloatOrPercent)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoint)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoints)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionPoint3)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionBool)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionBools)
+CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionBoolsNullable)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigOptionEnumGeneric)
 CEREAL_REGISTER_TYPE(Slic3r::ConfigBase)
 CEREAL_REGISTER_TYPE(Slic3r::DynamicConfig)
@@ -868,17 +913,21 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVectorBase, Slic3r::Con
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVectorBase, Slic3r::ConfigOptionVector<unsigned char>)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<double>, Slic3r::ConfigOptionFloat)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<double>, Slic3r::ConfigOptionFloats)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<double>, Slic3r::ConfigOptionFloatsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<int>, Slic3r::ConfigOptionInt)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<int>, Slic3r::ConfigOptionInts)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<int>, Slic3r::ConfigOptionIntsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<std::string>, Slic3r::ConfigOptionString)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<std::string>, Slic3r::ConfigOptionStrings)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloat, Slic3r::ConfigOptionPercent)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloats, Slic3r::ConfigOptionPercents)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionFloats, Slic3r::ConfigOptionPercentsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionPercent, Slic3r::ConfigOptionFloatOrPercent)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<Slic3r::Vec2d>, Slic3r::ConfigOptionPoint)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<Slic3r::Vec2d>, Slic3r::ConfigOptionPoints)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<Slic3r::Vec3d>, Slic3r::ConfigOptionPoint3)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionSingle<bool>, Slic3r::ConfigOptionBool)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<unsigned char>, Slic3r::ConfigOptionBools)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionVector<unsigned char>, Slic3r::ConfigOptionBoolsNullable)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigOptionInt, Slic3r::ConfigOptionEnumGeneric)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::ConfigBase, Slic3r::DynamicConfig)

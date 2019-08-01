@@ -4406,6 +4406,12 @@ void Plater::reslice()
 {
     // Stop arrange and (or) optimize rotation tasks.
     this->stop_jobs();
+
+    if (printer_technology() == ptSLA) {
+        for (auto& object : model().objects)
+            if (object->sla_points_status == sla::PointsStatus::NoPoints)
+                object->sla_points_status = sla::PointsStatus::Generating;
+    }
     
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState

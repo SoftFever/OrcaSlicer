@@ -27,10 +27,13 @@ namespace GUI {
 
 void GLTexture::Compressor::reset()
 {
-    // force compression completion, if any
-    m_abort_compressing = true;
-    // wait for compression completion, if any
-    while (m_is_compressing) {}
+    if (m_is_compressing)
+    {
+        // force compression completion, if any
+        m_abort_compressing = true;
+        // wait for compression completion, if any
+        while (m_is_compressing) {}
+    }
 
     m_levels.clear();
 }
@@ -42,8 +45,6 @@ void GLTexture::Compressor::add_level(unsigned int w, unsigned int h, const std:
 
 void GLTexture::Compressor::start_compressing()
 {
-    m_is_compressing = true;
-    m_abort_compressing = false;
     std::thread t(&GLTexture::Compressor::compress, this);
     t.detach();
 }
@@ -96,6 +97,9 @@ bool GLTexture::Compressor::all_compressed_data_sent_to_gpu() const
 void GLTexture::Compressor::compress()
 {
     // reference: https://github.com/Cyan4973/RygsDXTc
+
+    m_is_compressing = true;
+    m_abort_compressing = false;
 
     for (Level& level : m_levels)
     {

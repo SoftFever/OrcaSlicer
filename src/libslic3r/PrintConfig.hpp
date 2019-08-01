@@ -185,10 +185,18 @@ public:
 
     static void handle_legacy(t_config_option_key &opt_key, std::string &value);
 
+    // Options defining the extruder retract properties. These keys are sorted lexicographically.
+    // The extruder retract keys could be overidden by the same values defined at the Filament level
+    // (then the key is further prefixed with the "filament_" prefix).
+    const std::vector<std::string>& extruder_retract_keys() const { return m_extruder_retract_keys; }
+
 private:
     void init_common_params();
     void init_fff_params();
+    void init_extruder_retract_keys();
     void init_sla_params();
+
+    std::vector<std::string> 	m_extruder_retract_keys;
 };
 
 // The one and only global definition of SLic3r configuration options.
