@@ -450,6 +450,16 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 // ObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
+void ObjectDataViewModelNode::init_container()
+{
+#ifdef __WXGTK__
+    // it's necessary on GTK because of control have to know if this item will be container
+    // in another case you couldn't to add subitem for this item
+    // it will be produce "segmentation fault"
+    m_container = true;
+#endif  //__WXGTK__
+}
+
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
     m_type(type),
@@ -472,13 +482,8 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_name = _(L("Layers"));
     }
 
-#ifdef __WXGTK__
-    // it's necessary on GTK because of control have to know if this item will be container
-    // in another case you couldn't to add subitem for this item
-    // it will be produce "segmentation fault"
     if (type & (itInstanceRoot | itLayerRoot))
-        m_container = true;
-#endif  //__WXGTK__
+        init_container();
 }
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
@@ -504,14 +509,8 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
     m_bmp = create_scaled_bitmap(nullptr, "edit_layers_some");    // FIXME: pass window ptr
 
-#ifdef __WXGTK__
-    // it's necessary on GTK because of control have to know if this item will be container
-    // in another case you couldn't to add subitem for this item
-    // it will be produce "segmentation fault"
-    m_container = true;
-#endif  //__WXGTK__
-
     set_action_icon();
+    init_container();
 }
 
 void ObjectDataViewModelNode::set_action_icon()
@@ -519,6 +518,13 @@ void ObjectDataViewModelNode::set_action_icon()
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);    // FIXME: pass window ptr
+}
+
+void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
+{
+    m_printable = printable;
+    m_printable_icon = m_printable == piUndef ? m_empty_bmp :
+                       create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
@@ -574,17 +580,20 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
 {
     switch (col)
     {
-    case 0: {
+    case colPrint:
+        m_printable_icon << variant;
+        return true;
+    case colName: {
         DataViewBitmapText data;
         data << variant;
         m_bmp = data.GetBitmap();
         m_name = data.GetText();
         return true; }
-    case 1: {
+    case colExtruder: {
         const wxString & val = variant.GetString();
         m_extruder = val == "0" ? _(L("default")) : val;
         return true; }
-    case 2:
+    case colEditing:
         m_action_icon << variant;
         return true;
     default:
@@ -744,26 +753,49 @@ static bool append_root_node(ObjectDataViewModelNode *parent_node,
     return false;
 }
 
-wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
+wxDataViewItem ObjectDataViewModel::AddRoot(const wxDataViewItem &parent_item, ItemType root_type)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return wxDataViewItem(0);
 
     // get InstanceRoot node
-    ObjectDataViewModelNode *inst_root_node { nullptr };
+    ObjectDataViewModelNode *root_node { nullptr };
+    const bool appended = append_root_node(parent_node, &root_node, root_type);
+    if (!root_node) return wxDataViewItem(0);
 
-    const bool appended = append_root_node(parent_node, &inst_root_node, itInstanceRoot);
-    const wxDataViewItem inst_root_item((void*)inst_root_node);
-    if (!inst_root_node) return wxDataViewItem(0);
+    const wxDataViewItem root_item((void*)root_node);
 
     if (appended)
-        ItemAdded(parent_item, inst_root_item);// notify control
+        ItemAdded(parent_item, root_item);// notify control
+    return root_item;
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceRoot(const wxDataViewItem &parent_item)
+{
+    return AddRoot(parent_item, itInstanceRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
+{
+    const std::vector<bool> print_indicator(num, true);
+    
+    return wxDataViewItem((void*)AddInstanceChild(parent_item, print_indicator));
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& parent_item,
+                                                     const std::vector<bool>& print_indicator)
+{
+    const wxDataViewItem inst_root_item = AddInstanceRoot(parent_item);
+    if (!inst_root_item) return wxDataViewItem(0);
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
 
     // Add instance nodes
     ObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
-    while (counter < num) {
+    while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
+        instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
         inst_root_node->Append(instance_node);
         // notify control
         const wxDataViewItem instance_item((void*)instance_node);
@@ -776,20 +808,7 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &paren
 
 wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_item)
 {
-    ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
-    if (!parent_node) return wxDataViewItem(0);
-
-    // get LayerRoot node
-    ObjectDataViewModelNode *layer_root_node{ nullptr };
-    const bool appended = append_root_node(parent_node, &layer_root_node, itLayerRoot);
-    if (!layer_root_node) return wxDataViewItem(0);
-
-    const wxDataViewItem layer_root_item((void*)layer_root_node);
-
-    if (appended)
-        ItemAdded(parent_item, layer_root_item);// notify control
-
-    return layer_root_item;
+    return AddRoot(parent_item, itLayerRoot);
 }
 
 wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
@@ -1356,13 +1375,16 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 	switch (col)
 	{
-	case 0:
+	case colPrint:
+		variant << node->m_printable_icon;
+		break;
+	case colName:
         variant << DataViewBitmapText(node->m_name, node->m_bmp);
 		break;
-	case 1:
+	case colExtruder:
 		variant = node->m_extruder;
 		break;
-	case 2:
+	case colEditing:
 		variant << node->m_action_icon;
 		break;
 	default:
@@ -1425,7 +1447,7 @@ bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 
     // disable extruder selection for the non "itObject|itVolume" item
-    return !(col == 1 && node->m_extruder.IsEmpty());
+    return !(col == colExtruder && node->m_extruder.IsEmpty());
 }
 
 wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const
@@ -1773,7 +1795,7 @@ bool BitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value
 
     // The icon can't be edited so get its old value and reuse it.
     wxVariant valueOld;
-    GetView()->GetModel()->GetValue(valueOld, m_item, 0); 
+    GetView()->GetModel()->GetValue(valueOld, m_item, colName); 
     
     DataViewBitmapText bmpText;
     bmpText << valueOld;

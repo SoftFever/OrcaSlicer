@@ -175,6 +175,21 @@ enum ItemType {
     itLayer         = 64,
 };
 
+enum ColumnNumber
+{
+    colName         = 0,    // item name
+    colPrint           ,    // printable property
+    colExtruder        ,    // extruder selection
+    colEditing         ,    // item editing
+};
+
+enum PrintIndicator
+{
+    piUndef         = 0,    // no print indicator
+    piPrintable        ,    // printable
+    piUnprintable      ,    // unprintable
+};
+
 class ObjectDataViewModelNode;
 WX_DEFINE_ARRAY_PTR(ObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
 
@@ -194,6 +209,8 @@ class ObjectDataViewModelNode
     bool					        m_container = false;
     wxString				        m_extruder = "default";
     wxBitmap				        m_action_icon;
+    PrintIndicator                  m_printable {piUndef};
+    wxBitmap				        m_printable_icon;
 
     std::string                     m_action_icon_name = "";
     Slic3r::ModelVolumeType         m_volume_type;
@@ -206,14 +223,8 @@ public:
         m_type(itObject),
         m_extruder(extruder)
     {
-#ifdef __WXGTK__
-        // it's necessary on GTK because of control have to know if this item will be container
-        // in another case you couldn't to add subitem for this item
-        // it will be produce "segmentation fault"
-        m_container = true;
-#endif  //__WXGTK__
-
         set_action_icon();
+        init_container();
 	}
 
 	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
@@ -227,15 +238,9 @@ public:
         m_idx       (idx),
         m_extruder  (extruder)
     {
-        m_bmp = bmp;		
-#ifdef __WXGTK__
-        // it's necessary on GTK because of control have to know if this item will be container
-        // in another case you couldn't to add subitem for this item
-        // it will be produce "segmentation fault"
-        m_container = true;
-#endif  //__WXGTK__
-
+        m_bmp = bmp;
         set_action_icon();
+        init_container();
     }
 
 	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
@@ -256,6 +261,7 @@ public:
 		}
 	}
 
+	void init_container();
 	bool IsContainer() const
 	{
 		return m_container;
@@ -344,6 +350,8 @@ public:
 
 	// Set action icons for node
     void        set_action_icon();
+	// Set printable icon for node
+    void        set_printable_icon(PrintIndicator printable);
 
     void        update_settings_digest_bitmaps();
 	bool        update_settings_digest(const std::vector<std::string>& categories);
@@ -383,6 +391,7 @@ public:
                                     const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
+    wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, const std::vector<bool>& print_indicator);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
     wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item, 
                                     const t_layer_height_range& layer_range,
@@ -472,6 +481,10 @@ public:
                               const bool is_marked = false);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
+
+private:
+    wxDataViewItem AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
+    wxDataViewItem AddInstanceRoot(const wxDataViewItem& parent_item);
 };
 
 // ----------------------------------------------------------------------------
