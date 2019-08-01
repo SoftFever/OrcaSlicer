@@ -286,11 +286,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
                 btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-                    wxGetApp().plater()->take_snapshot(_(L("Reset scale")));
-                    // the empty strings prevent taking another three snapshots
-                    change_scale_value(0, 100., std::string());
-                    change_scale_value(1, 100., std::string());
-                    change_scale_value(2, 100., std::string());
+                    change_scale_value(0, 100.);
+                    change_scale_value(1, 100.);
+                    change_scale_value(2, 100.);
                 });
             return sizer;
             };
@@ -325,7 +323,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                     selection.synchronize_unselected_volumes();
                     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-                    canvas->do_rotate(L("Reset Rotation"));
+                    canvas->do_rotate(L("Set Rotation"));
 
                     UpdateAndShow(true);
                 });
@@ -352,11 +350,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                         const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
                         Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
 
-                        // Take an undo/redo snapshot and prevent change_position_value from doing it three times.
-                        wxGetApp().plater()->take_snapshot(_(L("Drop to bed")));
-                        change_position_value(0, diff.x(), std::string());
-                        change_position_value(1, diff.y(), std::string());
-                        change_position_value(2, diff.z(), std::string());
+                        change_position_value(0, diff.x());
+                        change_position_value(1, diff.y());
+                        change_position_value(2, diff.z());
                     }
                 });
             return sizer;
@@ -701,7 +697,7 @@ void ObjectManipulation::reset_settings_value()
 //    m_dirty = true;
 }
 
-void ObjectManipulation::change_position_value(int axis, double value, const std::string& snapshot_name)
+void ObjectManipulation::change_position_value(int axis, double value)
 {
     if (std::abs(m_cache.position_rounded(axis) - value) < EPSILON)
         return;
@@ -713,14 +709,14 @@ void ObjectManipulation::change_position_value(int axis, double value, const std
     Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
-    canvas->do_move(snapshot_name);
+    canvas->do_move(L("Set Position"));
 
     m_cache.position = position;
 	m_cache.position_rounded(axis) = DBL_MAX;
     this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::change_rotation_value(int axis, double value, const std::string& snapshot_name)
+void ObjectManipulation::change_rotation_value(int axis, double value)
 {
     if (std::abs(m_cache.rotation_rounded(axis) - value) < EPSILON)
         return;
@@ -744,14 +740,14 @@ void ObjectManipulation::change_rotation_value(int axis, double value, const std
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
 		transformation_type);
-    canvas->do_rotate(snapshot_name);
+    canvas->do_rotate(L("Set Orientation"));
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
     this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::change_scale_value(int axis, double value, const std::string& snapshot_name)
+void ObjectManipulation::change_scale_value(int axis, double value)
 {
     if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON)
         return;
@@ -759,7 +755,7 @@ void ObjectManipulation::change_scale_value(int axis, double value, const std::s
     Vec3d scale = m_cache.scale;
 	scale(axis) = value;
 
-    this->do_scale(axis, scale, snapshot_name);
+    this->do_scale(axis, scale);
 
     m_cache.scale = scale;
 	m_cache.scale_rounded(axis) = DBL_MAX;
@@ -767,7 +763,7 @@ void ObjectManipulation::change_scale_value(int axis, double value, const std::s
 }
 
 
-void ObjectManipulation::change_size_value(int axis, double value, const std::string& snapshot_name)
+void ObjectManipulation::change_size_value(int axis, double value)
 {
     if (std::abs(m_cache.size_rounded(axis) - value) < EPSILON)
         return;
@@ -785,14 +781,14 @@ void ObjectManipulation::change_size_value(int axis, double value, const std::st
             selection.get_unscaled_instance_bounding_box().size() :
             wxGetApp().model().objects[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
 
-    this->do_scale(axis, 100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)), snapshot_name);
+    this->do_scale(axis, 100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 
     m_cache.size = size;
 	m_cache.size_rounded(axis) = DBL_MAX;
 	this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::do_scale(int axis, const Vec3d &scale, const std::string& snapshot_name) const
+void ObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 {
     Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     Vec3d scaling_factor = scale;
@@ -809,7 +805,7 @@ void ObjectManipulation::do_scale(int axis, const Vec3d &scale, const std::strin
 
     selection.start_dragging();
     selection.scale(scaling_factor * 0.01, transformation_type);
-    wxGetApp().plater()->canvas3D()->do_scale(snapshot_name);
+    wxGetApp().plater()->canvas3D()->do_scale(L("Set Scale"));
 }
 
 void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any& value)
@@ -837,13 +833,13 @@ void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any
     double new_value = boost::any_cast<double>(m_og->get_value(opt_key));
 
     if (boost::starts_with(opt_key, "position_"))
-        change_position_value(axis, new_value, L("Set Position"));
+        change_position_value(axis, new_value);
     else if (boost::starts_with(opt_key, "rotation_"))
-        change_rotation_value(axis, new_value, L("Set Orientation"));
+        change_rotation_value(axis, new_value);
     else if (boost::starts_with(opt_key, "scale_"))
-        change_scale_value(axis, new_value, L("Set Scale"));
+        change_scale_value(axis, new_value);
     else if (boost::starts_with(opt_key, "size_"))
-        change_size_value(axis, new_value, L("Set Scale"));
+        change_size_value(axis, new_value);
 }
 
 void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
