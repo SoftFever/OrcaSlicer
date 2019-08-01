@@ -32,6 +32,7 @@ namespace GUI {
 
         public:
             explicit Compressor(GLTexture& texture) : m_texture(texture), m_is_compressing(false), m_abort_compressing(false) {}
+            ~Compressor() { reset(); }
 
             void reset();
 
