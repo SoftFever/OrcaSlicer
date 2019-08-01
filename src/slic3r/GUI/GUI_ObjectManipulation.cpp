@@ -286,6 +286,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 sizer->Add(btn, wxBU_EXACTFIT);
                 btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Reset scale")));
                     change_scale_value(0, 100.);
                     change_scale_value(1, 100.);
                     change_scale_value(2, 100.);
@@ -323,7 +324,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
                     selection.synchronize_unselected_volumes();
                     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-                    canvas->do_rotate(L("Set Rotation"));
+                    canvas->do_rotate(L("Reset Rotation"));
 
                     UpdateAndShow(true);
                 });
@@ -350,6 +351,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                         const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
                         Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
 
+                        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Drop to bed")));
                         change_position_value(0, diff.x());
                         change_position_value(1, diff.y());
                         change_position_value(2, diff.z());
