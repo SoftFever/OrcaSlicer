@@ -904,12 +904,16 @@ public:
     ~ScalableButton() {}
 
     void SetBitmap_(const ScalableBitmap& bmp);
+    void SetBitmapDisabled_(const ScalableBitmap &bmp);
 
     void    msw_rescale();
 
 private:
     wxWindow*       m_parent;
     std::string     m_current_icon_name = "";
+    std::string     m_disabled_icon_name = "";
+    int             m_width {-1}; // should be multiplied to em_unit
+    int             m_height{-1}; // should be multiplied to em_unit
 };
 
 
