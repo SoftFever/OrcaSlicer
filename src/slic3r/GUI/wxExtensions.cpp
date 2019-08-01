@@ -2966,6 +2966,13 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 #endif // __WXMSW__
 
     SetBitmap(create_scaled_bitmap(parent, icon_name));
+
+    if (size != wxDefaultSize)
+    {
+        const int em = em_unit(parent);
+        m_width = size.x/em;
+        m_height= size.y/em;
+    }
 }
 
 
@@ -2992,11 +2999,24 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
     m_current_icon_name = bmp.name();
 }
 
+void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
+{
+    SetBitmapDisabled(bmp.bmp());
+    m_disabled_icon_name = bmp.name();
+}
+
 void ScalableButton::msw_rescale()
 {
-    const wxBitmap bmp = create_scaled_bitmap(m_parent, m_current_icon_name);
+    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name));
+    if (!m_disabled_icon_name.empty())
+        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name));
 
-    SetBitmap(bmp);
+    if (m_width > 0 || m_height>0)
+    {
+        const int em = em_unit(m_parent);
+        wxSize size(m_width * em, m_height * em);
+        SetMinSize(size);
+    }
 }
 
 
