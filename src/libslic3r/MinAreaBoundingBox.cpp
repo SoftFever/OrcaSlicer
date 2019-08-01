@@ -1,6 +1,11 @@
 #include "MinAreaBoundingBox.hpp"
 
 #include <libslic3r/ExPolygon.hpp>
+
+#if defined(_MSC_VER) && defined(__clang__)
+#define BOOST_NO_CXX17_HDR_STRING_VIEW
+#endif
+
 #include <boost/rational.hpp>
 
 #include <libslic3r/Int128.hpp>

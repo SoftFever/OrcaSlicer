@@ -52,8 +52,14 @@ if (SLIC3R_GUI)
     add_definitions(-DSLIC3R_GUI)
 endif ()
 
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    set(IS_CLANG_CL TRUE)
+else ()
+    set(IS_CLANG_CL FALSE)
+endif ()
+
 if (MSVC)
-    if (SLIC3R_MSVC_COMPILE_PARALLEL)
+    if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
 	   add_compile_options(/MP)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
@@ -148,7 +154,7 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder" )
 
@@ -167,7 +173,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATC
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options(-Wno-unknown-pragmas)
     endif()
-
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)

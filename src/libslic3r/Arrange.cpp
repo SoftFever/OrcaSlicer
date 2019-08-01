@@ -12,6 +12,11 @@
 #include <ClipperUtils.hpp>
 
 #include <boost/geometry/index/rtree.hpp>
+
+#if defined(_MSC_VER) && defined(__clang__)
+#define BOOST_NO_CXX17_HDR_STRING_VIEW
+#endif
+
 #include <boost/multiprecision/integer.hpp>
 #include <boost/rational.hpp>
 
