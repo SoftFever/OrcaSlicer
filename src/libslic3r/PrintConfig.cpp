@@ -422,6 +422,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "bottom-fill-pattern|external-fill-pattern|solid-fill-pattern";
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values = def_top_fill_pattern->enum_values;
+    def->enum_labels = def_top_fill_pattern->enum_labels;
     def->aliases = def_top_fill_pattern->aliases;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
