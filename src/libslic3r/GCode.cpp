@@ -1,4 +1,5 @@
 #include "libslic3r.h"
+#include "I18N.hpp"
 #include "GCode.hpp"
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
@@ -35,6 +36,11 @@
 #include <assert.h>
 
 namespace Slic3r {
+
+//! macro used to mark string used at localization,
+//! return same string
+#define L(s) (s)
+#define _(s) Slic3r::I18N::translate(s)
 
 // Only add a newline in case the current G-code does not end with a newline.
 static inline void check_add_eol(std::string &gcode)
@@ -405,7 +411,8 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
 	assert(m_layer_idx >= 0 && size_t(m_layer_idx) <= m_tool_changes.size());
     if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
 		if (m_layer_idx < (int)m_tool_changes.size()) {
-			assert(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size());
+			if (! (size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
+                throw std::runtime_error("Wipe tower generation failed, possibly due to empty first layer.");
 			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
 		}
         m_brim_done = true;
@@ -436,6 +443,14 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     size_t idx_object_layer  = 0;
     size_t idx_support_layer = 0;
     while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
+        // Let's make sure that the last layer is not empty, so we don't build on top of it.
+        if (! layers_to_print.empty()
+         && (! layers_to_print.back().object_layer  || ! layers_to_print.back().object_layer->has_extrusions())
+         && (! layers_to_print.back().support_layer || ! layers_to_print.back().support_layer->has_extrusions()))
+            throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+                                     _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
+                                     std::to_string(layers_to_print.back().print_z()));
+
         LayerToPrint layer_to_print;
         layer_to_print.object_layer  = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer ++] : nullptr;
         layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer ++] : nullptr;
@@ -448,6 +463,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                 -- idx_object_layer;
             }
         }
+
         layers_to_print.emplace_back(layer_to_print);
     }
 
