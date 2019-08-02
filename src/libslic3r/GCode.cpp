@@ -443,14 +443,6 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     size_t idx_object_layer  = 0;
     size_t idx_support_layer = 0;
     while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
-        // Let's make sure that the last layer is not empty, so we don't build on top of it.
-        if (! layers_to_print.empty()
-         && (! layers_to_print.back().object_layer  || ! layers_to_print.back().object_layer->has_extrusions())
-         && (! layers_to_print.back().support_layer || ! layers_to_print.back().support_layer->has_extrusions()))
-            throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
-                                     _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
-                                     std::to_string(layers_to_print.back().print_z()));
-
         LayerToPrint layer_to_print;
         layer_to_print.object_layer  = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer ++] : nullptr;
         layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer ++] : nullptr;
@@ -463,6 +455,16 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                 -- idx_object_layer;
             }
         }
+
+        // Let's make sure that the last layer is not empty, so we don't build on top of it.
+        if (! layers_to_print.empty()
+         && ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
+          || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions()))
+         && (! layers_to_print.back().object_layer  || ! layers_to_print.back().object_layer->has_extrusions())
+         && (! layers_to_print.back().support_layer || ! layers_to_print.back().support_layer->has_extrusions()))
+            throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
+                                     _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
+                                     std::to_string(layers_to_print.back().print_z()));
 
         layers_to_print.emplace_back(layer_to_print);
     }
