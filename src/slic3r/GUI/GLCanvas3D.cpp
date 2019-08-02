@@ -1529,7 +1529,7 @@ void GLCanvas3D::render()
     }
 
     m_camera.apply_view_matrix();
-    m_camera.apply_projection(_max_bounding_box(true));
+    m_camera.apply_projection(_max_bounding_box(true, true));
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -3273,7 +3273,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 void GLCanvas3D::set_camera_zoom(double zoom)
 {
     const Size& cnv_size = get_canvas_size();
-    m_camera.set_zoom(zoom, _max_bounding_box(false), cnv_size.get_width(), cnv_size.get_height());
+    m_camera.set_zoom(zoom, _max_bounding_box(false, false), cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
 
@@ -3699,9 +3699,20 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     m_dirty = false;
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_bed_model) const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
+
+    // The following is a workaround for gizmos not being taken in account when calculating the tight camera frustrum
+    // A better solution would ask the gizmo manager for the bounding box of the current active gizmo, if any
+    if (include_gizmos && m_gizmos.is_running())
+    {
+        BoundingBoxf3 sel_bb = m_selection.get_bounding_box();
+        Vec3d sel_bb_center = sel_bb.center();
+        Vec3d extend_by = sel_bb.max_size() * Vec3d::Ones();
+        bb.merge(BoundingBoxf3(sel_bb_center - extend_by, sel_bb_center + extend_by));
+    }
+
     bb.merge(m_bed.get_bounding_box(include_bed_model));
     return bb;
 }

@@ -652,7 +652,7 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
+    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
     void _zoom_to_box(const BoundingBoxf3& box);
 
