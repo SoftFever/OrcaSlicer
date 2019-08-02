@@ -1755,7 +1755,19 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
+    // If last two Instances of object is selected, show the message about impossible action
+    bool show_msg = false;
+    if (type & itInstance) { 
+        wxDataViewItemArray instances;
+        m_objects_model->GetChildren(m_objects_model->GetParent(item), instances);
+        if (instances.Count() == 2 && IsSelected(instances[0]) && IsSelected(instances[1]))
+            show_msg = true;
+    }
+
     m_objects_model->Delete(item);
+
+    if (show_msg)
+        Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -1838,7 +1850,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last solid part from object.")));
             return false;
         }
 
@@ -1857,7 +1869,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last intance from object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
             return false;
         }
 
@@ -2404,6 +2416,8 @@ void ObjectList::remove()
 
     for (auto& item : sels)
     {
+        if (m_objects_model->InvalidItem(item)) // item can be deleted for this moment (like last 2 Instances or Volumes)
+            continue;
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
@@ -3150,33 +3164,6 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 }
 
-/* #lm_FIXME_delete_after_testing
-void ObjectList::update_settings_items()
-{
-    m_prevent_canvas_selection_update = true;
-    wxDataViewItemArray sel;
-    GetSelections(sel); // stash selection
-
-    wxDataViewItemArray items;
-    m_objects_model->GetChildren(wxDataViewItem(0), items);
-
-    for (auto& item : items) {        
-        const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
-        select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
-
-        // If settings item was deleted from the list, 
-        // it's need to be deleted from selection array, if it was there
-        if (settings_item != m_objects_model->GetSettingsItem(item) && 
-            sel.Index(settings_item) != wxNOT_FOUND) {
-            sel.Remove(settings_item);
-        }
-    }
-
-    // restore selection:
-    SetSelections(sel);
-    m_prevent_canvas_selection_update = false;
-}
-*/
 void ObjectList::update_and_show_object_settings_item()
 {
     const wxDataViewItem item = GetSelection();
