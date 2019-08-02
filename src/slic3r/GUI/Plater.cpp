@@ -1175,10 +1175,10 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                 if (ps.estimated_silent_print_time != "N/A") {
                     new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
-                    for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
+                    for (int i = (int)ps.estimated_silent_color_print_times.size() - 1; i >= 0; --i)
                     {
                         new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
-                        info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
+                        info_text += wxString::Format("\n%s", ps.estimated_silent_color_print_times[i]);
                     }
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);

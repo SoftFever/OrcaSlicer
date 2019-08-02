@@ -1138,9 +1138,9 @@ void GCode::_do_export(Print &print, FILE *file)
     print.m_print_statistics.clear();
     print.m_print_statistics.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
     print.m_print_statistics.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
-    print.m_print_statistics.estimated_normal_color_print_times = m_normal_time_estimator.get_color_times_dhms();
+    print.m_print_statistics.estimated_normal_color_print_times = m_normal_time_estimator.get_color_times_dhms(true);
     if (m_silent_time_estimator_enabled)
-        print.m_print_statistics.estimated_silent_color_print_times = m_silent_time_estimator.get_color_times_dhms();
+        print.m_print_statistics.estimated_silent_color_print_times = m_silent_time_estimator.get_color_times_dhms(true);
 
     std::vector<Extruder> extruders = m_writer.extruders();
     if (! extruders.empty()) {
