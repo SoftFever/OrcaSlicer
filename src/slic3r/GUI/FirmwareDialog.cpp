@@ -354,7 +354,7 @@ bool FirmwareDialog::priv::check_model_id()
 	// Therefore, regretably, so far the check cannot be used and we just return true here.
 	// TODO: Rewrite Serial using more platform-native code.
 	return true;
-	
+
 	// if (hex_file.model_id.empty()) {
 	// 	// No data to check against, assume it's ok
 	// 	return true;
