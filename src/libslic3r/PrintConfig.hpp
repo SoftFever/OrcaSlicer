@@ -52,6 +52,14 @@ enum FilamentType {
 };
 */
 
+enum SLAMaterial {
+    slamTough,
+    slamFlex,
+    slamCasting,
+    slamDental,
+    slamHeatResistant,
+};
+
 enum SLADisplayOrientation {
     sladoLandscape,
     sladoPortrait

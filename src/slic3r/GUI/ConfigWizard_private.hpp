@@ -96,7 +96,7 @@ struct Bundle
     const std::string& vendor_id() const { return vendor_profile->id; }
 };
 
-struct BundleMap: std::unordered_map<std::string, Bundle>
+struct BundleMap: std::unordered_map<std::string /* = vendor ID */, Bundle>
 {
     static BundleMap load();
 
@@ -277,11 +277,7 @@ struct PageUpdate: ConfigWizardPage
 
 struct PageVendors: ConfigWizardPage
 {
-    // std::vector<PrinterPicker*> pickers;
-
     PageVendors(ConfigWizard *parent);
-
-    // void on_vendor_pick(size_t i);
 };
 
 struct PageFirmware: ConfigWizardPage
@@ -318,6 +314,8 @@ struct PageTemperatures: ConfigWizardPage
     PageTemperatures(ConfigWizard *parent);
     virtual void apply_custom_config(DynamicPrintConfig &config);
 };
+
+typedef std::map<std::string /* = vendor ID */, PagePrinters*> Pages3rdparty;
 
 
 class ConfigWizardIndex: public wxPanel
@@ -412,7 +410,7 @@ struct ConfigWizard::priv
     PageCustom       *page_custom = nullptr;
     PageUpdate       *page_update = nullptr;
     PageVendors      *page_vendors = nullptr;   // XXX: ?
-    std::map<std::string, PagePrinters*> pages_3rdparty;
+    Pages3rdparty     pages_3rdparty;
 
     // Custom setup pages
     PageFirmware     *page_firmware = nullptr;

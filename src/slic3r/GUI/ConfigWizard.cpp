@@ -235,7 +235,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
             auto *cbox = new Checkbox(variants_panel, label, model_id, variant.name);
             i == 0 ? cboxes.push_back(cbox) : cboxes_alt.push_back(cbox);
 
-            bool enabled = appconfig.get_variant(vendor.id, model_id, variant.name);
+            const bool enabled = appconfig.get_variant(vendor.id, model_id, variant.name);
             cbox->SetValue(enabled);
 
             variants_sizer->Add(cbox, 0, wxBOTTOM, 3);
@@ -731,10 +731,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
 PageVendors::PageVendors(ConfigWizard *parent)
     : ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
 {
-
-
-    // FIXME: persistence: this doesn't reload choices
-
+    const AppConfig &appconfig = this->wizard_p()->appconfig_new;
 
     append_text(wxString::Format(_(L("Pick another vendor supported by %s: (FIXME: this text)")), SLIC3R_APP_NAME));
 
@@ -749,6 +746,16 @@ PageVendors::PageVendors(ConfigWizard *parent)
         cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
             wizard_p()->on_3rdparty_install(vendor, cbox->IsChecked());
         });
+
+        const auto &vendors = appconfig.vendors();
+        const bool enabled = vendors.find(pair.first) != vendors.end();
+        if (enabled) {
+            cbox->SetValue(true);
+
+            auto pair = wizard_p()->pages_3rdparty.find(vendor->id);
+            wxCHECK_RET(pair != wizard_p()->pages_3rdparty.end(), "Internal error: 3rd party vendor printers page not created");
+            pair->second->install = true;
+        }
 
         append(cbox);
     }
@@ -866,18 +873,18 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
         char buf[64];
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
-		config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
-	};
+        config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
+    };
 
     set_extrusion_width("support_material_extrusion_width",   0.35);
-	set_extrusion_width("top_infill_extrusion_width",		  0.40);
-	set_extrusion_width("first_layer_extrusion_width",		  0.42);
+    set_extrusion_width("top_infill_extrusion_width",		  0.40);
+    set_extrusion_width("first_layer_extrusion_width",		  0.42);
 
-	set_extrusion_width("extrusion_width",					  0.45);
-	set_extrusion_width("perimeter_extrusion_width",		  0.45);
-	set_extrusion_width("external_perimeter_extrusion_width", 0.45);
-	set_extrusion_width("infill_extrusion_width",			  0.45);
-	set_extrusion_width("solid_infill_extrusion_width",       0.45);
+    set_extrusion_width("extrusion_width",					  0.45);
+    set_extrusion_width("perimeter_extrusion_width",		  0.45);
+    set_extrusion_width("external_perimeter_extrusion_width", 0.45);
+    set_extrusion_width("infill_extrusion_width",			  0.45);
+    set_extrusion_width("solid_infill_extrusion_width",       0.45);
 }
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent)
@@ -1114,7 +1121,7 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
 
     const ssize_t item_hover_new = pos.y / item_height();
 
-	if (item_hover_new < ssize_t(items.size()) && item_hover_new != item_hover) {
+    if (item_hover_new < ssize_t(items.size()) && item_hover_new != item_hover) {
         item_hover = item_hover_new;
         Refresh();
     }
@@ -1176,19 +1183,11 @@ const std::string& Materials::get_filament_vendor(const Preset &preset)
 
 const std::string& Materials::get_material_type(Preset &preset)
 {
-    // XXX: The initial_layer_height is of a float type and contains no string to reference,
-    // and so here we serialize it into an ad-hoc option initial_layer_height_str, which is then referenced
-
-    const auto *opt_str = preset.config.opt<ConfigOptionString>("initial_layer_height_str");
-    if (opt_str == nullptr) {
-        const auto *opt = preset.config.opt<ConfigOptionFloat>("initial_layer_height");
-        if (opt == nullptr) { return UNKNOWN; }
-
-        auto *new_opt_str = new ConfigOptionString(opt->serialize());
-        preset.config.set_key_value("initial_layer_height_str", new_opt_str);
-        return new_opt_str->value;
+    const auto *opt = preset.config.opt<ConfigOptionString>("material_type");
+    if (opt != nullptr) {
+        return opt->value;
     } else {
-        return opt_str->value;
+        return UNKNOWN;
     }
 }
 
@@ -1366,11 +1365,16 @@ void ConfigWizard::priv::load_vendors()
     // apply defaults from vendor profiles if there are no selections yet.
     // bundle.init_materials_selection(*app_config);
 
-    // XXX: ?
-    // wxCHECK_RET(app_config->has_section(AppConfig::SECTION_FILAMENTS) && app_config->has_section(AppConfig::SECTION_MATERIALS),
-    //     "Failed to initialize default material selections");
-    appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
-    appconfig_new.set_section(AppConfig::SECTION_MATERIALS, app_config->get_section(AppConfig::SECTION_MATERIALS));
+    // TODO: load up sane defaults if no previous data in AppConfig
+    //  as per the design doc:
+    //      - all f/m for installed printers if prev Slicer version
+    //      - default f/m set from bundle + default for each printer from bundle if fresh install
+    if (app_config->has_section(AppConfig::SECTION_FILAMENTS)) {
+        appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
+    }
+    if (app_config->has_section(AppConfig::SECTION_MATERIALS)) {
+        appconfig_new.set_section(AppConfig::SECTION_MATERIALS, app_config->get_section(AppConfig::SECTION_MATERIALS));
+    }
 }
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
@@ -1437,6 +1441,10 @@ void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool i
     auto it = pages_3rdparty.find(vendor->id);
     wxCHECK_RET(it != pages_3rdparty.end(), "Internal error: GUI page not found for 3rd party vendor profile");
     PagePrinters *page = it->second;
+
+    if (page->install && !install) {
+        page->select_all(false);
+    }
     page->install = install;
     page->Layout();
 
@@ -1525,7 +1533,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     // The default is the first selected printer model (one with at least 1 variant selected).
     // The default is only applied by load_presets() if the user doesn't have a (visible) printer
     // selected already.
-// TODO
+// TODO:
     // const auto vendor_prusa = bundle.vendors.find("PrusaResearch");
     // const auto config_prusa = enabled_vendors.find("PrusaResearch");
     // if (vendor_prusa != bundle.vendors.end() && config_prusa != enabled_vendors.end()) {
@@ -1617,13 +1625,14 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
     p->add_page(p->page_custom   = new PageCustom(this));
     p->add_page(p->page_update   = new PageUpdate(this));
-    p->add_page(p->page_vendors  = new PageVendors(this));
     p->add_page(p->page_firmware = new PageFirmware(this));
     p->add_page(p->page_bed      = new PageBedShape(this));
     p->add_page(p->page_diams    = new PageDiameters(this));
     p->add_page(p->page_temps    = new PageTemperatures(this));
 
-    p->create_3rdparty_pages();
+    // Pages for 3rd party vendors
+    p->create_3rdparty_pages();   // Needs to ne done _before_ creating PageVendors
+    p->add_page(p->page_vendors = new PageVendors(this));
 
     p->any_sla_selected = p->page_msla->any_selected();
     p->any_fff_selected = p->page_fff->any_selected();

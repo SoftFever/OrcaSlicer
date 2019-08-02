@@ -2401,6 +2401,18 @@ void PrintConfigDef::init_sla_params()
 
 
     // SLA Material settings.
+    def = this->add("material_type", coString);
+    def->label = L("SLA material type");
+    def->tooltip = L("SLA material type");
+    def->gui_type = "f_enum_open";   // TODO: ???
+    def->gui_flags = "show_value";
+    def->enum_values.push_back("Tough");
+    def->enum_values.push_back("Flexible");
+    def->enum_values.push_back("Casting");
+    def->enum_values.push_back("Dental");
+    def->enum_values.push_back("Heat-resistant");
+    def->set_default_value(new ConfigOptionString("Tough"));
+
     def = this->add("initial_layer_height", coFloat);
     def->label = L("Initial layer height");
     def->tooltip = L("Initial layer height");

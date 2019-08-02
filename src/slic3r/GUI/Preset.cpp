@@ -531,6 +531,7 @@ const std::vector<std::string>& Preset::sla_material_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
+            "material_type",
             "initial_layer_height",
             "exposure_time",
             "initial_exposure_time",
