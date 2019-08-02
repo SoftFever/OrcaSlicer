@@ -353,6 +353,8 @@ void Serial::set_baud_rate(unsigned baud_rate)
 	}
 }
 
+
+/*
 void Serial::set_DTR(bool on)
 {
 	auto handle = native_handle();
@@ -495,6 +497,7 @@ std::string Serial::printer_format_line(const std::string &line, unsigned line_n
 
 	return (boost::format("N%1% %2%*%3%\n") % line_num_str % line % checksum).str();
 }
+*/
 
 
 } // namespace Utils
