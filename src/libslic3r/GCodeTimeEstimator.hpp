@@ -350,12 +350,12 @@ namespace Slic3r {
         std::vector<float> get_color_times() const;
 
         // Returns the estimated time, in format DDd HHh MMm SSs, for each color
-        // If include_absolute==true the strings will be formatted as: "absolute time (relative time)"
-        std::vector<std::string> get_color_times_dhms(bool include_absolute) const;
+        // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
+        std::vector<std::string> get_color_times_dhms(bool include_remaining) const;
 
         // Returns the estimated time, in minutes (integer), for each color
-        // If include_absolute==true the strings will be formatted as: "absolute time (relative time)"
-        std::vector<std::string> get_color_times_minutes(bool include_absolute) const;
+        // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
+        std::vector<std::string> get_color_times_minutes(bool include_remaining) const;
 
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;

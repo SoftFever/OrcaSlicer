@@ -694,38 +694,39 @@ namespace Slic3r {
         return m_color_times;
     }
 
-    std::vector<std::string> GCodeTimeEstimator::get_color_times_dhms(bool include_absolute) const
+    std::vector<std::string> GCodeTimeEstimator::get_color_times_dhms(bool include_remaining) const
     {
         std::vector<std::string> ret;
         float total_time = 0.0f;
         for (float t : m_color_times)
         {
-            total_time += t;
-            std::string time = "";
-            if (include_absolute)
-                time += _get_time_dhms(total_time) + " (";
-            time += _get_time_dhms(t);
-            if (include_absolute)
+            std::string time = _get_time_dhms(t);
+            if (include_remaining)
+            {
+                time += " (";
+                time += _get_time_dhms(m_time - total_time);
                 time += ")";
+            }
+            total_time += t;
             ret.push_back(time);
         }
         return ret;
     }
 
-    std::vector<std::string> GCodeTimeEstimator::get_color_times_minutes(bool include_absolute) const
+    std::vector<std::string> GCodeTimeEstimator::get_color_times_minutes(bool include_remaining) const
     {
         std::vector<std::string> ret;
         float total_time = 0.0f;
         for (float t : m_color_times)
         {
-            total_time += t;
-            std::string time = "";
-            if (include_absolute)
-                time += _get_time_minutes(total_time) + " (";
-            time += _get_time_minutes(t);
-            if (include_absolute)
+            std::string time = _get_time_minutes(t);
+            if (include_remaining)
+            {
+                time += " (";
+                time += _get_time_minutes(m_time - total_time);
                 time += ")";
-            ret.push_back(time);
+            }
+            total_time += t;
         }
         return ret;
     }
