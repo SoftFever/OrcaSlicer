@@ -1657,8 +1657,8 @@ void ObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const Slic3r
 }
 
 wxDataViewItem ObjectDataViewModel::SetPrintableState(
+    PrintIndicator  printable,
     int             obj_idx,
-    PrintIndicator  printable/* = piUndef*/,
     int             subobj_idx /* = -1*/,
     ItemType        subobj_type/* = itInstance*/)
 {
@@ -1673,6 +1673,7 @@ wxDataViewItem ObjectDataViewModel::SetPrintableState(
     if (!node)
         return wxDataViewItem(0);
     node->set_printable_icon(printable);
+    ItemChanged(item);
 
     return item;
 }

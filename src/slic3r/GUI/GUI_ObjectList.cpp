@@ -752,8 +752,8 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 #endif // __WXOSX__
     const wxString title = col->GetTitle();
 
-    if (title == " ");
-        // show_context_menu();
+    if (title == " ")
+        toggle_printable_state(item);
     else if (title == _("Editing"))
         show_context_menu();
     else if (title == _("Name"))
@@ -2276,7 +2276,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
         select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), print_idicator));
     }
     else
-        m_objects_model->SetPrintableState(obj_idx, model_object->instances[0]->is_printable() ? piPrintable : piUnprintable);
+        m_objects_model->SetPrintableState(model_object->instances[0]->is_printable() ? piPrintable : piUnprintable, obj_idx);
 
     // add settings to the object, if it has those
     add_settings_item(item, &model_object->config);
@@ -3623,11 +3623,23 @@ void ObjectList::update_printable_state(int obj_idx, int instance_idx)
     }
     else
     {
-        m_objects_model->SetPrintableState(obj_idx, piUndef);
+        m_objects_model->SetPrintableState(piUndef, obj_idx);
         printable = object->instances[instance_idx]->printable ? piPrintable : piUnprintable;
     }
 
-    select_item(m_objects_model->SetPrintableState(obj_idx, printable, instance_idx));
+    m_objects_model->SetPrintableState(printable, obj_idx, instance_idx);
+}
+
+void ObjectList::toggle_printable_state(wxDataViewItem item)
+{
+    const ItemType type = m_objects_model->GetItemType(item);
+    if (!(type&(itObject|itInstance/*|itVolume*/)))
+        return;
+
+    wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state();
+
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 ModelObject* ObjectList::object(const int obj_idx) const

@@ -349,7 +349,9 @@ public:
     void msw_rescale();
 
     void update_after_undo_redo();
+    //update printable state for item from objects model
     void update_printable_state(int obj_idx, int instance_idx);
+    void toggle_printable_state(wxDataViewItem item);
 
 private:
 #ifdef __WXOSX__
