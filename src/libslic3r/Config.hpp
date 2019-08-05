@@ -375,7 +375,7 @@ public:
     			this->values[i] = rhs_vec->values[i];
     			modified = true;
     		}
-    	return false;
+        return modified;
     }
 
 private:
