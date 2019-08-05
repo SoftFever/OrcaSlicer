@@ -1242,6 +1242,8 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
     for (auto& used : m_used_filament_length) // reset used filament stats
         used = 0.f;
 
+    m_old_temperature = -1; // reset last temperature written in the gcode
+
     std::vector<WipeTower::ToolChangeResult> layer_result;
 	for (auto layer : m_plan)
 	{

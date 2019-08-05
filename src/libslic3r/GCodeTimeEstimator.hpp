@@ -346,14 +346,16 @@ namespace Slic3r {
         // Returns the estimated time, in minutes (integer)
         std::string get_time_minutes() const;
 
-       // Returns the estimated time, in seconds, for each color
+        // Returns the estimated time, in seconds, for each color
         std::vector<float> get_color_times() const;
 
         // Returns the estimated time, in format DDd HHh MMm SSs, for each color
-        std::vector<std::string> get_color_times_dhms() const;
+        // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
+        std::vector<std::string> get_color_times_dhms(bool include_remaining) const;
 
         // Returns the estimated time, in minutes (integer), for each color
-        std::vector<std::string> get_color_times_minutes() const;
+        // If include_remaining==true the strings will be formatted as: "time for color (remaining time at color start)"
+        std::vector<std::string> get_color_times_minutes(bool include_remaining) const;
 
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;

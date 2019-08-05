@@ -78,8 +78,13 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                 zs.emplace_back(layer->print_z);
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
-            if (! object->layers().empty())
-                object_bottom_z = object->layers().front()->print_z - object->layers().front()->height;
+
+            // Find first object layer that is not empty and save its print_z
+            for (const Layer* layer : object->layers())
+                if (layer->has_extrusions()) {
+                    object_bottom_z = layer->print_z - layer->height;
+                    break;
+                }
         }
         this->initialize_layers(zs);
     }
@@ -324,6 +329,7 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
 						m_layer_tools[j].has_wipe_tower = true;
 					} else {
 						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
+                        //LayerTools &lt_prev  = m_layer_tools[j];
                         LayerTools &lt_next  = m_layer_tools[j + 1];
                         assert(! m_layer_tools[j - 1].extruders.empty() && ! lt_next.extruders.empty());
                         // FIXME: Following assert tripped when running combine_infill.t. I decided to comment it out for now.

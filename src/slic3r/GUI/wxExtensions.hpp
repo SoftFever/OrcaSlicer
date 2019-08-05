@@ -367,6 +367,7 @@ public:
 #ifndef NDEBUG
 	bool 		valid();
 #endif /* NDEBUG */
+    bool        invalid() const { return m_idx < -1; }
 
 private:
     friend class ObjectDataViewModel;
@@ -430,6 +431,7 @@ public:
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
+    bool InvalidItem(const wxDataViewItem& item);
 
 	// helper method for wxLog
 

@@ -494,7 +494,7 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
 
-    take_snapshot(wxString::Format(_(L("Rename %s")), volume_id < 0 ? _(L("Object")) : _(L("Sub-object"))));
+    take_snapshot(volume_id < 0 ? _(L("Rename Object")) : _(L("Rename Sub-object")));
 
     if (m_objects_model->GetItemType(item) & itObject) {
         (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToUTF8().data();
@@ -1049,8 +1049,10 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     wxArrayInt selections;
     wxDataViewItem item = GetSelection();
 
+    const ItemType item_type = m_objects_model->GetItemType(item);
+
     settings_menu_hierarchy settings_menu;
-    const bool is_part = m_objects_model->GetItemType(item) & (itVolume | itLayer);
+    const bool is_part = item_type & (itVolume | itLayer);
     get_options_menu(settings_menu, is_part);
     std::vector< std::pair<std::string, std::string> > *settings_list = nullptr;
 
@@ -1127,7 +1129,10 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     }
 #endif
 
-    take_snapshot(wxString::Format(_(L("Add Settings for %s")), is_part ? _(L("Sub-object")) : _(L("Object"))));
+    const wxString snapshot_text =  item_type & itLayer   ? _(L("Add Settings for Layers")) :
+                                    item_type & itVolume  ? _(L("Add Settings for Sub-object")) :
+                                                            _(L("Add Settings for Object"));
+    take_snapshot(snapshot_text);
 
     std::vector <std::string> selected_options;
     selected_options.reserve(selection_cnt);
@@ -1159,7 +1164,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 
 
     // Add settings item for object/sub-object and show them 
-    if (!(m_objects_model->GetItemType(item) & (itObject | itVolume | itLayer)))
+    if (!(item_type & (itObject | itVolume | itLayer)))
         item = m_objects_model->GetTopParent(item);
     show_settings(add_settings_item(item, m_config));
 }
@@ -1169,11 +1174,13 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     std::vector<std::string> options = get_options_for_bundle(bundle_name);
     wxDataViewItem item = GetSelection();
 
+    ItemType item_type = m_objects_model->GetItemType(item);
+
     /* Because of we couldn't edited layer_height for ItVolume from settings list,
      * correct options according to the selected item type :
      * remove "layer_height" option
      */
-    if ((m_objects_model->GetItemType(item) & itVolume) && bundle_name == _("Layers and Perimeters")) {
+    if ((item_type & itVolume) && bundle_name == _("Layers and Perimeters")) {
         const auto layer_height_it = std::find(options.begin(), options.end(), "layer_height");
         if (layer_height_it != options.end())
             options.erase(layer_height_it);
@@ -1185,7 +1192,10 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     assert(m_config);
     auto opt_keys = m_config->keys();
 
-    take_snapshot(wxString::Format(_(L("Add Settings Bundle for %s")), m_objects_model->GetItemType(item) & (itVolume|itLayer) ? _(L("Sub-object")) : _(L("Object"))));
+    const wxString snapshot_text = item_type & itLayer  ? _(L("Add Settings Bundle for Layers")) :
+                                   item_type & itVolume ? _(L("Add Settings Bundle for Sub-object")) :
+                                                          _(L("Add Settings Bundle for Object"));
+    take_snapshot(snapshot_text);
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     for (auto& opt_key : options)
@@ -1202,7 +1212,7 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     }
 
     // Add settings item for object/sub-object and show them 
-    if (!(m_objects_model->GetItemType(item) & (itObject | itVolume | itLayer)))
+    if (!(item_type & (itObject | itVolume | itLayer)))
         item = m_objects_model->GetTopParent(item);
     show_settings(add_settings_item(item, m_config));
 }
@@ -1217,26 +1227,6 @@ void ObjectList::show_settings(const wxDataViewItem settings_item)
     // update object selection on Plater
     if (!m_prevent_canvas_selection_update)
         update_selections_on_canvas();
-/*    auto item = GetSelection();
-    if (item) {
-        if (m_objects_model->GetItemType(item) == itInstance)
-            item = m_objects_model->GetTopParent(item);
-        const auto settings_item = m_objects_model->IsSettingsItem(item) ? item : m_objects_model->GetSettingsItem(item);
-        select_item(settings_item ? settings_item :
-            m_objects_model->AddSettingsChild(item));
-
-        // update object selection on Plater
-        if (!m_prevent_canvas_selection_update)
-            update_selections_on_canvas();
-    }
-    else { 
-        //# ys_FIXME ??? use case ???
-        auto panel = wxGetApp().sidebar().scrolled_panel();
-        panel->Freeze();
-        wxGetApp().obj_settings()->UpdateAndShow(true);
-        panel->Thaw();
-    }
-    */
 }
 
 wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type) {
@@ -1778,7 +1768,19 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     if (type & itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
         m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
+    // If last two Instances of object is selected, show the message about impossible action
+    bool show_msg = false;
+    if (type & itInstance) { 
+        wxDataViewItemArray instances;
+        m_objects_model->GetChildren(m_objects_model->GetParent(item), instances);
+        if (instances.Count() == 2 && IsSelected(instances[0]) && IsSelected(instances[1]))
+            show_msg = true;
+    }
+
     m_objects_model->Delete(item);
+
+    if (show_msg)
+        Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -1861,7 +1863,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last solid part from object.")));
             return false;
         }
 
@@ -1880,7 +1882,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last intance from object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
             return false;
         }
 
@@ -2435,6 +2437,8 @@ void ObjectList::remove()
 
     for (auto& item : sels)
     {
+        if (m_objects_model->InvalidItem(item)) // item can be deleted for this moment (like last 2 Instances or Volumes)
+            continue;
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
@@ -3181,33 +3185,6 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 }
 
-/* #lm_FIXME_delete_after_testing
-void ObjectList::update_settings_items()
-{
-    m_prevent_canvas_selection_update = true;
-    wxDataViewItemArray sel;
-    GetSelections(sel); // stash selection
-
-    wxDataViewItemArray items;
-    m_objects_model->GetChildren(wxDataViewItem(0), items);
-
-    for (auto& item : items) {        
-        const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
-        select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
-
-        // If settings item was deleted from the list, 
-        // it's need to be deleted from selection array, if it was there
-        if (settings_item != m_objects_model->GetSettingsItem(item) && 
-            sel.Index(settings_item) != wxNOT_FOUND) {
-            sel.Remove(settings_item);
-        }
-    }
-
-    // restore selection:
-    SetSelections(sel);
-    m_prevent_canvas_selection_update = false;
-}
-*/
 void ObjectList::update_and_show_object_settings_item()
 {
     const wxDataViewItem item = GetSelection();
