@@ -738,18 +738,16 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
     wxDataViewColumn* col;
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
-    if (!item)
 #ifdef __WXOSX__ // temporary workaround for OSX 
-        // after Yosemite OS X version, HitTest return undefined item
-        item = GetSelection();
-    if (item)
-        show_context_menu();
-    else
-        printf("undefined item\n");
-    return;
-#else
-        return;
+                 // after Yosemite OS X version, HitTest return undefined item
+    if (!item) item = GetSelection();
 #endif // __WXOSX__
+
+    if (!item) {
+        printf("undefined item\n");
+        return;
+    }
+
     const wxString title = col->GetTitle();
 
     if (title == " ")
