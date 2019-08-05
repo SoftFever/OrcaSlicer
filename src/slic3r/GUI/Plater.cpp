@@ -2302,7 +2302,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
-    if (new_model != nullptr) {
+    if (new_model != nullptr && new_model->objects.size() > 1) {
         wxMessageDialog dlg(q, _(L(
                 "Multiple objects were loaded for a multi-material printer.\n"
                 "Instead of considering them as multiple objects, should I consider\n"

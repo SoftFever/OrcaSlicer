@@ -81,7 +81,7 @@ public:
         assert(vertices_and_normals_interleaved_VBO_id == 0);
         assert(triangle_indices_VBO_id == 0);
         assert(quad_indices_VBO_id == 0);
-        assert(rhs.vertices_and_normals_interleaved == 0);
+        assert(rhs.vertices_and_normals_interleaved_VBO_id == 0);
         assert(rhs.triangle_indices_VBO_id == 0);
         assert(rhs.quad_indices_VBO_id == 0);
         this->vertices_and_normals_interleaved 		 = rhs.vertices_and_normals_interleaved;
@@ -99,7 +99,7 @@ public:
         assert(vertices_and_normals_interleaved_VBO_id == 0);
         assert(triangle_indices_VBO_id == 0);
         assert(quad_indices_VBO_id == 0);
-        assert(rhs.vertices_and_normals_interleaved == 0);
+        assert(rhs.vertices_and_normals_interleaved_VBO_id == 0);
         assert(rhs.triangle_indices_VBO_id == 0);
         assert(rhs.quad_indices_VBO_id == 0);
         this->vertices_and_normals_interleaved 		 = std::move(rhs.vertices_and_normals_interleaved);
