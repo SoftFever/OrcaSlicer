@@ -13,9 +13,13 @@
 	#include <unistd.h>
 	#include <sys/types.h>
 	#include <sys/param.h>
+    #include <sys/resource.h>
 	#ifdef BSD
 		#include <sys/sysctl.h>
 	#endif
+    #ifdef __APPLE__
+        #include <mach/mach.h>
+    #endif
 #endif
 
 #include <boost/log/core.hpp>
@@ -432,7 +436,6 @@ std::string format_memsize_MB(size_t n)
 }
 
 #ifdef WIN32
-
 #ifndef PROCESS_MEMORY_COUNTERS_EX
     // MingW32 doesn't have this struct in psapi.h
     typedef struct _PROCESS_MEMORY_COUNTERS_EX {
@@ -464,12 +467,51 @@ std::string log_memory_info()
     }
     return out;
 }
+#elif defined(__linux__) or defined(__APPLE__)
+std::string log_memory_info()
+{
+    std::string out = " Unable to get current memory usage.";
 
+    // Get current memory usage.
+#ifdef __APPLE__
+    struct mach_task_basic_info info;
+    mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+    if ( task_info( mach_task_self( ), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount ) == KERN_SUCCESS )
+        out = " Memory usage: resident: " + format_memsize_MB((size_t)info.resident_size);
+#else // i.e. __linux__
+
+    size_t tSize = 0, resident = 0, share = 0;
+    std::ifstream buffer("/proc/self/statm");
+    if (buffer) {
+        if ((buffer >> tSize >> resident >> share)) {
+            size_t page_size = (size_t)sysconf(_SC_PAGE_SIZE); // in case x86-64 is configured to use 2MB pages
+            size_t rss = resident * page_size;
+            out = " Memory usage: resident: " + format_memsize_MB(rss);
+            out += " shared: " + format_memsize_MB(share * page_size);
+            out += " private: " + format_memsize_MB(rss - share * page_size);
+        }
+    }
+#endif
+    // Now get peak memory usage.
+    rusage memory_info;
+    if (getrusage(RUSAGE_SELF, &memory_info) != 0)
+        out += " Could not get peak memory usage.";
+    else {
+        size_t peak_mem_usage = (size_t)memory_info.ru_maxrss;
+        #ifdef __linux
+            peak_mem_usage *= 1024L;// getrusage returns the value in kB on linux
+        #endif
+        out += " Peak Memory Usage: " + format_memsize_MB(peak_mem_usage);
+    }
+
+    return out;
+}
 #else
 std::string log_memory_info()
 {
     return std::string();
 }
+
 #endif
 
 // Returns the size of physical memory (RAM) in bytes.
