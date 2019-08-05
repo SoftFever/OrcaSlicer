@@ -22,10 +22,10 @@ namespace Slic3r {
 namespace GUI {
 
 const double Camera::DefaultDistance = 1000.0;
-double Camera::FrustrumMinZSize = 50.0;
+double Camera::FrustrumMinZRange = 50.0;
+double Camera::FrustrumMinNearZ = 100.0;
 double Camera::FrustrumZMargin = 10.0;
-double Camera::FovMinDeg = 0.5;
-double Camera::FovMaxDeg = 75.0;
+double Camera::MaxFovDeg = 60.0;
 
 Camera::Camera()
     : phi(45.0f)
@@ -186,7 +186,8 @@ void Camera::apply_view_matrix() const
 
 void Camera::apply_projection(const BoundingBoxf3& box) const
 {
-    m_distance = DefaultDistance;
+    set_distance(DefaultDistance);
+
     double w = 0.0;
     double h = 0.0;
 
@@ -194,15 +195,14 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
     {
         m_frustrum_zs = calc_tight_frustrum_zs_around(box);
 
-        w = (double)m_viewport[2];
-        h = (double)m_viewport[3];
+        w = 0.5 * (double)m_viewport[2];
+        h = 0.5 * (double)m_viewport[3];
 
-        double two_zoom = 2.0 * m_zoom;
-        if (two_zoom != 0.0)
+        if (m_zoom != 0.0)
         {
-            double inv_two_zoom = 1.0 / two_zoom;
-            w *= inv_two_zoom;
-            h *= inv_two_zoom;
+            double inv_zoom = 1.0 / m_zoom;
+            w *= inv_zoom;
+            h *= inv_zoom;
         }
 
         switch (m_type)
@@ -226,21 +226,16 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
 
         if (m_type == Perspective)
         {
-            double fov_rad = 2.0 * std::atan(h / m_frustrum_zs.first);
-            double fov_deg = Geometry::rad2deg(fov_rad);
+            double fov_deg = Geometry::rad2deg(2.0 * std::atan(h / m_frustrum_zs.first));
 
             // adjust camera distance to keep fov in a limited range
-            if (fov_deg > FovMaxDeg + 0.001)
+            if (fov_deg > MaxFovDeg)
             {
-                double new_near_z = h / ::tan(0.5 * Geometry::deg2rad(FovMaxDeg));
-                m_distance += (new_near_z - m_frustrum_zs.first);
-                apply_view_matrix();
-            }
-            else if (fov_deg < FovMinDeg - 0.001)
-            {
-                double new_near_z = h / ::tan(0.5 * Geometry::deg2rad(FovMinDeg));
-                m_distance += (new_near_z - m_frustrum_zs.first);
-                apply_view_matrix();
+                double delta_z = h / ::tan(0.5 * Geometry::deg2rad(MaxFovDeg)) - m_frustrum_zs.first;
+                if (delta_z > 0.001)
+                    set_distance(m_distance + delta_z);
+                else
+                    break;
             }
             else
                 break;
@@ -328,42 +323,50 @@ void Camera::debug_render() const
 
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
 {
-    std::pair<double, double> ret = std::make_pair(DBL_MAX, -DBL_MAX);
+    std::pair<double, double> ret;
 
-    Vec3d bb_min = box.min;
-    Vec3d bb_max = box.max;
-
-    // box vertices in world space
-    std::vector<Vec3d> vertices;
-    vertices.reserve(8);
-    vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
-    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
-    vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
-
-    // set the Z range in eye coordinates (negative Zs are in front of the camera)
-    for (const Vec3d& v : vertices)
+    while (true)
     {
-        double z = -(m_view_matrix * v)(2);
-        ret.first = std::min(ret.first, z);
-        ret.second = std::max(ret.second, z);
-    }
+        ret = std::make_pair(DBL_MAX, -DBL_MAX);
 
-    // apply margin
-    ret.first -= FrustrumZMargin;
-    ret.second += FrustrumZMargin;
+        // box vertices in world space
+        std::vector<Vec3d> vertices;
+        vertices.reserve(8);
+        vertices.push_back(box.min);
+        vertices.emplace_back(box.max(0), box.min(1), box.min(2));
+        vertices.emplace_back(box.max(0), box.max(1), box.min(2));
+        vertices.emplace_back(box.min(0), box.max(1), box.min(2));
+        vertices.emplace_back(box.min(0), box.min(1), box.max(2));
+        vertices.emplace_back(box.max(0), box.min(1), box.max(2));
+        vertices.push_back(box.max);
+        vertices.emplace_back(box.min(0), box.max(1), box.max(2));
 
-    // ensure min size
-    if (ret.second - ret.first < FrustrumMinZSize)
-    {
-        double mid_z = 0.5 * (ret.first + ret.second);
-        double half_size = 0.5 * FrustrumMinZSize;
-        ret.first = mid_z - half_size;
-        ret.second = mid_z + half_size;
+        // set the Z range in eye coordinates (negative Zs are in front of the camera)
+        for (const Vec3d& v : vertices)
+        {
+            double z = -(m_view_matrix * v)(2);
+            ret.first = std::min(ret.first, z);
+            ret.second = std::max(ret.second, z);
+        }
+
+        // apply margin
+        ret.first -= FrustrumZMargin;
+        ret.second += FrustrumZMargin;
+
+        // ensure min size
+        if (ret.second - ret.first < FrustrumMinZRange)
+        {
+            double mid_z = 0.5 * (ret.first + ret.second);
+            double half_size = 0.5 * FrustrumMinZRange;
+            ret.first = mid_z - half_size;
+            ret.second = mid_z + half_size;
+        }
+
+        if (ret.first >= FrustrumMinNearZ)
+            break;
+
+        // ensure min Near Z
+        set_distance(m_distance + FrustrumMinNearZ - ret.first);
     }
 
     return ret;
@@ -385,21 +388,19 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     Vec3d up = get_dir_up();
     Vec3d forward = get_dir_forward();
 
-    Vec3d bb_min = box.min;
-    Vec3d bb_max = box.max;
     Vec3d bb_center = box.center();
 
     // box vertices in world space
     std::vector<Vec3d> vertices;
     vertices.reserve(8);
-    vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
-    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
-    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
-    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
-    vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
+    vertices.push_back(box.min);
+    vertices.emplace_back(box.max(0), box.min(1), box.min(2));
+    vertices.emplace_back(box.max(0), box.max(1), box.min(2));
+    vertices.emplace_back(box.min(0), box.max(1), box.min(2));
+    vertices.emplace_back(box.min(0), box.min(1), box.max(2));
+    vertices.emplace_back(box.max(0), box.min(1), box.max(2));
+    vertices.push_back(box.max);
+    vertices.emplace_back(box.min(0), box.max(1), box.max(2));
 
     double max_x = 0.0;
     double max_y = 0.0;
@@ -428,6 +429,12 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     max_y *= margin_factor;
 
     return std::min((double)canvas_w / (2.0 * max_x), (double)canvas_h / (2.0 * max_y));
+}
+
+void Camera::set_distance(double distance) const
+{
+    m_distance = distance;
+    apply_view_matrix();
 }
 
 } // GUI

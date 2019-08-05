@@ -1723,7 +1723,7 @@ void Print::_make_wipe_tower()
                     break;
                 lt.has_support = true;
                 // Insert the new support layer.
-                double height    = lt.print_z - m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z;
+                double height    = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
                 //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
                 it_layer = m_objects.front()->insert_support_layer(it_layer, -1, height, lt.print_z, lt.print_z - 0.5 * height);
                 ++ it_layer;

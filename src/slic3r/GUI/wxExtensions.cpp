@@ -1325,6 +1325,18 @@ int ObjectDataViewModel::GetRowByItem(const wxDataViewItem& item) const
     return -1;
 }
 
+bool ObjectDataViewModel::InvalidItem(const wxDataViewItem& item)
+{
+    if (!item)
+        return true;
+
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node || node->invalid()) 
+        return true;
+
+    return false;
+}
+
 wxString ObjectDataViewModel::GetName(const wxDataViewItem &item) const
 {
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();

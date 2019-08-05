@@ -694,22 +694,39 @@ namespace Slic3r {
         return m_color_times;
     }
 
-    std::vector<std::string> GCodeTimeEstimator::get_color_times_dhms() const
+    std::vector<std::string> GCodeTimeEstimator::get_color_times_dhms(bool include_remaining) const
     {
         std::vector<std::string> ret;
+        float total_time = 0.0f;
         for (float t : m_color_times)
         {
-            ret.push_back(_get_time_dhms(t));
+            std::string time = _get_time_dhms(t);
+            if (include_remaining)
+            {
+                time += " (";
+                time += _get_time_dhms(m_time - total_time);
+                time += ")";
+            }
+            total_time += t;
+            ret.push_back(time);
         }
         return ret;
     }
 
-    std::vector<std::string> GCodeTimeEstimator::get_color_times_minutes() const
+    std::vector<std::string> GCodeTimeEstimator::get_color_times_minutes(bool include_remaining) const
     {
         std::vector<std::string> ret;
+        float total_time = 0.0f;
         for (float t : m_color_times)
         {
-            ret.push_back(_get_time_minutes(t));
+            std::string time = _get_time_minutes(t);
+            if (include_remaining)
+            {
+                time += " (";
+                time += _get_time_minutes(m_time - total_time);
+                time += ")";
+            }
+            total_time += t;
         }
         return ret;
     }

@@ -10,10 +10,10 @@ namespace GUI {
 struct Camera
 {
     static const double DefaultDistance;
-    static double FrustrumMinZSize;
+    static double FrustrumMinZRange;
+    static double FrustrumMinNearZ;
     static double FrustrumZMargin;
-    static double FovMinDeg;
-    static double FovMaxDeg;
+    static double MaxFovDeg;
 
     enum EType : unsigned char
     {
@@ -101,6 +101,7 @@ private:
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const;
+    void set_distance(double distance) const;
 };
 
 } // GUI
