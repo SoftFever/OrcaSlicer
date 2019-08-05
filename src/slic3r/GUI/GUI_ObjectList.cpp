@@ -2273,6 +2273,8 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
 
         select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), print_idicator));
     }
+    else
+        m_objects_model->SetPrintableState(obj_idx, model_object->instances[0]->is_printable() ? piPrintable : piUnprintable);
 
     // add settings to the object, if it has those
     add_settings_item(item, &model_object->config);
@@ -3630,6 +3632,25 @@ void ObjectList::update_after_undo_redo()
     update_selections();
 
     m_prevent_canvas_selection_update = false;
+}
+
+void ObjectList::update_printable_state(int obj_idx, int instance_idx)
+{
+    ModelObject* object = (*m_objects)[obj_idx];
+    PrintIndicator printable = piUndef;
+
+    if (object->instances.size() == 1)
+    {
+        printable = object->instances[0]->printable ? piPrintable : piUnprintable;
+        instance_idx = -1;
+    }
+    else
+    {
+        m_objects_model->SetPrintableState(obj_idx, piUndef);
+        printable = object->instances[instance_idx]->printable ? piPrintable : piUnprintable;
+    }
+
+    select_item(m_objects_model->SetPrintableState(obj_idx, printable, instance_idx));
 }
 
 ModelObject* ObjectList::object(const int obj_idx) const

@@ -1479,6 +1479,8 @@ void Selection::toggle_instance_printable_state()
                 if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == instance_idx))
                     volume->printable = instance->printable;
             }
+
+            wxGetApp().obj_list()->update_printable_state(obj_idx, instance_idx);
         }
     }
 }

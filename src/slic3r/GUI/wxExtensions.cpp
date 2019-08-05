@@ -799,12 +799,28 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
 
     ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
 
+    const bool just_created = inst_root_node->GetChildren().Count() == 0;
+
     // Add instance nodes
     ObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
     while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
-        instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
+
+        // if InstanceRoot item is just created and start to adding Instances
+        if (just_created && counter == 0) 
+        {
+            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+
+            // use object's printable state to first instance 
+            instance_node->set_printable_icon(obj_node->IsPrintable());
+
+            // and set printable state for object_node to piUndef
+            obj_node->set_printable_icon(piUndef);
+            ItemChanged(parent_item);
+        }
+        else 
+            instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
         inst_root_node->Append(instance_node);
         // notify control
         const wxDataViewItem instance_item((void*)instance_node);
@@ -915,11 +931,13 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             ItemDeleted(parent, item);
 
             ObjectDataViewModelNode *last_instance_node = node_parent->GetNthChild(0);
+            PrintIndicator last_instance_printable = last_instance_node->IsPrintable();
             node_parent->GetChildren().Remove(last_instance_node);
             delete last_instance_node;
             ItemDeleted(parent, wxDataViewItem(last_instance_node));
 
             ObjectDataViewModelNode *obj_node = node_parent->GetParent();
+            obj_node->set_printable_icon(last_instance_printable);
             obj_node->GetChildren().Remove(node_parent);
             delete node_parent;
             ret_item = wxDataViewItem(obj_node);
@@ -1041,9 +1059,12 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     const int inst_cnt = inst_root_node->GetChildCount();
     const bool delete_inst_root_item = inst_cnt - num < 2 ? true : false;
 
+    PrintIndicator last_inst_printable = piUndef;
+
     int stop = delete_inst_root_item ? 0 : inst_cnt - num;
     for (int i = inst_cnt - 1; i >= stop;--i) {
         ObjectDataViewModelNode *last_instance_node = inst_root_node->GetNthChild(i);
+        if (i==0) last_inst_printable = last_instance_node->IsPrintable();
         inst_root_node->GetChildren().Remove(last_instance_node);
         delete last_instance_node;
         ItemDeleted(inst_root_item, wxDataViewItem(last_instance_node));
@@ -1052,7 +1073,9 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     if (delete_inst_root_item) {
         ret_item = parent_item;
         parent_node->GetChildren().Remove(inst_root_node);
+        parent_node->set_printable_icon(last_inst_printable);
         ItemDeleted(parent_item, inst_root_item);
+        ItemChanged(parent_item);
 #ifndef __WXGTK__
         if (parent_node->GetChildCount() == 0)
             parent_node->m_container = false;
@@ -1619,6 +1642,27 @@ void ObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const Slic3r
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
     node->SetBitmap(*m_volume_bmps[int(type)]);
     ItemChanged(item);
+}
+
+wxDataViewItem ObjectDataViewModel::SetPrintableState(
+    int             obj_idx,
+    PrintIndicator  printable/* = piUndef*/,
+    int             subobj_idx /* = -1*/,
+    ItemType        subobj_type/* = itInstance*/)
+{
+    wxDataViewItem item = wxDataViewItem(0);
+    if (subobj_idx < 0)
+        item = GetItemById(obj_idx);
+    else
+        item =  subobj_type&itInstance ? GetItemByInstanceId(obj_idx, subobj_idx) :
+                GetItemByVolumeId(obj_idx, subobj_idx);
+
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node)
+        return wxDataViewItem(0);
+    node->set_printable_icon(printable);
+
+    return item;
 }
 
 void ObjectDataViewModel::Rescale()

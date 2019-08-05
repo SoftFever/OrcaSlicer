@@ -349,6 +349,7 @@ public:
     void msw_rescale();
 
     void update_after_undo_redo();
+    void update_printable_state(int obj_idx, int instance_idx);
 
 private:
 #ifdef __WXOSX__

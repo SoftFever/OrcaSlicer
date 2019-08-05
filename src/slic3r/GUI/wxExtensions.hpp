@@ -324,6 +324,7 @@ public:
 	void			SetIdx(const int& idx);
 	int             GetIdx() const                  { return m_idx; }
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
+    PrintIndicator  IsPrintable() const             { return m_printable; }
 
 	// use this function only for childrens
 	void AssignAllVal(ObjectDataViewModelNode& from_node)
@@ -482,6 +483,10 @@ public:
     void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
     void    SetWarningBitmap(wxBitmap* bitmap)                          { m_warning_bmp = bitmap; }
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
+    wxDataViewItem SetPrintableState( int obj_idx,
+                                      PrintIndicator printable = piUndef,
+                                      int subobj_idx = -1, 
+                                      ItemType subobj_type = itInstance);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
