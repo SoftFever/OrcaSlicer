@@ -1767,7 +1767,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     m_objects_model->Delete(item);
 
     if (show_msg)
-        Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
+        Slic3r::GUI::show_error(nullptr, _(L("Last instance of an object cannot be deleted.")));
 }
 
 void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
@@ -1869,7 +1869,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("From Object List You can't delete the last intance from object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("Last instance of an object cannot be deleted.")));
             return false;
         }
 
