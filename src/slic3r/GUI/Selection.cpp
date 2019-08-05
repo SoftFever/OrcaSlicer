@@ -100,6 +100,7 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
     update_valid();
 }
 
+// Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
     if (!m_arrow.init())
