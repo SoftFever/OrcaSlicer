@@ -101,6 +101,17 @@ struct Incompat
 		, vendor(std::move(vendor))
 	{}
 
+	void remove() {
+		// Remove the bundle file
+		fs::remove(bundle);
+
+		// Look for an installed index and remove it too if any
+		const fs::path installed_idx = bundle.replace_extension("idx");
+		if (fs::exists(installed_idx)) {
+			fs::remove(installed_idx);
+		}
+	}
+
 	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
 		os << "Incompat(" << self.bundle.string() << ')';
 		return os;
@@ -383,25 +394,6 @@ Updates PresetUpdater::priv::get_config_updates() const
 			continue;
 		}
 
-		// Load 'installed' idx, if any.
-		// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
-		// for bookkeeping to remember a cancelled update and not offer it again.
-		if (fs::exists(bundle_path_idx)) {
-			Index existing_idx;
-			try {
-				existing_idx.load(bundle_path_idx);
-
-				const auto existing_recommended = existing_idx.recommended();
-				if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
-					// The user has already seen (and presumably rejected) this update
-					BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
-					continue;
-				}
-			} catch (const std::exception & /* err */) {
-				BOOST_LOG_TRIVIAL(error) << boost::format("Could nto load installed index %1%") % bundle_path_idx;
-			}
-		}
-
 		const auto ver_current = idx.find(vp.config_version);
 		const bool ver_current_found = ver_current != idx.end();
 
@@ -423,6 +415,25 @@ Updates PresetUpdater::priv::get_config_updates() const
 			updates.incompats.emplace_back(std::move(bundle_path), *ver_current, vp.name);
 		} else if (recommended->config_version > vp.config_version) {
 			// Config bundle update situation
+
+			// Load 'installed' idx, if any.
+			// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
+			// for bookkeeping to remember a cancelled update and not offer it again.
+			if (fs::exists(bundle_path_idx)) {
+				Index existing_idx;
+				try {
+					existing_idx.load(bundle_path_idx);
+
+					const auto existing_recommended = existing_idx.recommended();
+					if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
+						// The user has already seen (and presumably rejected) this update
+						BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
+						continue;
+					}
+				} catch (const std::exception &err) {
+					BOOST_LOG_TRIVIAL(error) << boost::format("Could not load installed index at `%1%`: %2%") % bundle_path_idx % err.what();
+				}
+			}
 
 			// Check if the update is already present in a snapshot
 			const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
@@ -485,12 +496,11 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
 		BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% incompatible bundles") % updates.incompats.size();
 
-		for (const auto &incompat : updates.incompats) {
+		for (auto &incompat : updates.incompats) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
-			fs::remove(incompat.bundle);
+			incompat.remove();
 		}
-	}
-	else if (updates.updates.size() > 0) {
+	} else if (updates.updates.size() > 0) {
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
 			SnapshotDB::singleton().take_snapshot(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE);
