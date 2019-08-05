@@ -2271,7 +2271,9 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
         for (int i = 0; i < model_object->instances.size(); ++i)
             print_idicator[i] = model_object->instances[i]->is_printable();
 
-        select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), print_idicator));
+        const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
+        m_objects_model->AddInstanceChild(object_item, print_idicator);
+        Expand(m_objects_model->GetInstanceRootItem(object_item));
     }
     else
         m_objects_model->SetPrintableState(model_object->instances[0]->is_printable() ? piPrintable : piUnprintable, obj_idx);
@@ -3317,7 +3319,8 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
     }
 
     // Add new object to the object_list
-    add_object_to_list(m_objects->size() - 1);
+    const size_t new_obj_indx = static_cast<size_t>(m_objects->size() - 1);
+    add_object_to_list(new_obj_indx);
 
     for (std::set<int>::const_reverse_iterator it = inst_idxs.rbegin(); it != inst_idxs.rend(); ++it)
     {
@@ -3325,11 +3328,17 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
         del_subobject_from_object(obj_idx, *it, itInstance);
         delete_instance_from_list(obj_idx, *it);
     }
+
+    std::vector<size_t> object_idxs = { new_obj_indx };
+    // update printable state for new volumes on canvas3D
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
 }
 
 void ObjectList::instances_to_separated_objects(const int obj_idx)
 {
     const int inst_cnt = (*m_objects)[obj_idx]->instances.size();
+
+    std::vector<size_t> object_idxs;
 
     for (int i = inst_cnt-1; i > 0 ; i--)
     {
@@ -3344,12 +3353,17 @@ void ObjectList::instances_to_separated_objects(const int obj_idx)
         }
 
         // Add new object to the object_list
-        add_object_to_list(m_objects->size() - 1);
+        const size_t new_obj_indx = static_cast<size_t>(m_objects->size() - 1);
+        add_object_to_list(new_obj_indx);
+        object_idxs.push_back(new_obj_indx);
 
         // delete current instance from the initial object
         del_subobject_from_object(obj_idx, i, itInstance);
         delete_instance_from_list(obj_idx, i);
     }
+
+    // update printable state for new volumes on canvas3D
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
 }
 
 void ObjectList::split_instances()

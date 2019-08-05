@@ -812,8 +812,9 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
         {
             ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
 
-            // use object's printable state to first instance 
-            instance_node->set_printable_icon(obj_node->IsPrintable());
+            // use object's printable state to first instance, if it was defined
+            instance_node->set_printable_icon(obj_node->IsPrintable() != piUndef ? obj_node->IsPrintable() :
+                                              print_indicator[counter] ? piPrintable : piUnprintable        );
 
             // and set printable state for object_node to piUndef
             obj_node->set_printable_icon(piUndef);
