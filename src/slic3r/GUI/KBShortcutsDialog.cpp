@@ -6,23 +6,23 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")), 
+    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")),
      wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
     m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
 
     // fonts
     const wxFont& font = wxGetApp().normal_font();
-    const wxFont& bold_font = wxGetApp().bold_font();   
+    const wxFont& bold_font = wxGetApp().bold_font();
     SetFont(font);
 
     wxFont head_font = bold_font;
@@ -78,17 +78,17 @@ KBShortcutsDialog::KBShortcutsDialog()
             grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL);
         }
     }
-  
+
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
 
     this->SetEscapeId(wxID_OK);
     this->Bind(wxEVT_BUTTON, &KBShortcutsDialog::onCloseDialog, this, wxID_OK);
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 15);
-    
+
     this->Bind(wxEVT_LEFT_DOWN, &KBShortcutsDialog::onCloseDialog, this);
 
-	SetSizer(main_sizer);
-	main_sizer->SetSizeHints(this);
+    SetSizer(main_sizer);
+    main_sizer->SetSizeHints(this);
 }
 
 void KBShortcutsDialog::fill_shortcuts()
@@ -132,6 +132,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.reserve(20);
 
     plater_shortcuts.push_back(Shortcut("A",        L("Arrange")));
+    plater_shortcuts.push_back(Shortcut("Shift+A",  L("Arrange selection")));
     plater_shortcuts.push_back(Shortcut(ctrl+"A",   L("Select All objects")));
     plater_shortcuts.push_back(Shortcut("Del",      L("Delete selected")));
     plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete All")));
@@ -163,10 +164,10 @@ void KBShortcutsDialog::fill_shortcuts()
 
 //     Shortcuts gizmo_shortcuts;
 //     gizmo_shortcuts.reserve(2);
-// 
+//
 //     gizmo_shortcuts.push_back(Shortcut("Shift+",    L("Press to snap by 5% in Gizmo Scale\n or by 1mm in Gizmo Move")));
 //     gizmo_shortcuts.push_back(Shortcut(alt,         L("Press to scale or rotate selected objects around their own center")));
-// 
+//
 //     m_full_shortcuts.push_back(std::make_pair(_(L("Gizmo Shortcuts")), std::make_pair(gizmo_shortcuts, 1)));
 
 

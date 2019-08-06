@@ -18,6 +18,7 @@
 #include <limits>
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
+#include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
 //! macro used to mark string used at localization,
@@ -1168,7 +1169,7 @@ std::string Print::validate() const
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;
             for (const PrintObject *object : m_objects) {
-                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();      // #ys_FIXME_experiment
+                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
                 if (has_custom_layering) {
                     layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
                     break;
@@ -1247,6 +1248,20 @@ std::string Print::validate() const
                 return L("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
+		auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+        	if (extrusion_width_min == 0) {
+        		// Default "auto-generated" extrusion width is always valid.
+        	} else if (extrusion_width_min <= layer_height) {
+        		err_msg = (boost::format(L("%1%=%2% mm is too low to be printable at a layer height %3% mm")) % opt_key % extrusion_width_min % layer_height).str();
+				return false;
+			} else if (extrusion_width_max >= max_nozzle_diameter * 2.) {
+				err_msg = (boost::format(L("Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm")) % opt_key % extrusion_width_max % max_nozzle_diameter).str();
+				return false;
+			}
+			return true;
+		};
         for (PrintObject *object : m_objects) {
             if (object->config().raft_layers > 0 || object->config().support_material.value) {
 				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
@@ -1290,8 +1305,24 @@ std::string Print::validate() const
                 return L("First layer height can't be greater than nozzle diameter");
             
             // validate layer_height
-            if (object->config().layer_height.value > min_nozzle_diameter)
+            double layer_height = object->config().layer_height.value;
+            if (layer_height > min_nozzle_diameter)
                 return L("Layer height can't be greater than nozzle diameter");
+
+            // Validate extrusion widths.
+            for (const char *opt_key : { "extrusion_width", "support_material_extrusion_width" }) {
+            	std::string err_msg;
+            	if (! validate_extrusion_width(object->config(), opt_key, layer_height, err_msg))
+            		return err_msg;
+            }
+            for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" }) {
+				for (size_t i = 0; i < object->region_volumes.size(); ++ i)
+            		if (! object->region_volumes[i].empty()) {
+		            	std::string err_msg;
+		            	if (! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
+		            		return err_msg;
+            		}
+            }
         }
     }
 
