@@ -137,6 +137,7 @@ struct AMFParserContext
         NODE_TYPE_MIRRORX,              // amf/constellation/instance/mirrorx
         NODE_TYPE_MIRRORY,              // amf/constellation/instance/mirrory
         NODE_TYPE_MIRRORZ,              // amf/constellation/instance/mirrorz
+        NODE_TYPE_PRINTABLE,            // amf/constellation/instance/mirrorz
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
@@ -145,7 +146,8 @@ struct AMFParserContext
             : deltax_set(false), deltay_set(false), deltaz_set(false)
             , rx_set(false), ry_set(false), rz_set(false)
             , scalex_set(false), scaley_set(false), scalez_set(false)
-            , mirrorx_set(false), mirrory_set(false), mirrorz_set(false) {}
+            , mirrorx_set(false), mirrory_set(false), mirrorz_set(false)
+            , printable(true) {}
         // Shift in the X axis.
         float deltax;
         bool  deltax_set;
@@ -178,6 +180,8 @@ struct AMFParserContext
         bool  mirrory_set;
         float mirrorz;
         bool  mirrorz_set;
+        // printable property
+        bool  printable;
 
         bool anything_set() const { return deltax_set || deltay_set || deltaz_set ||
                                            rx_set || ry_set || rz_set ||
@@ -321,6 +325,8 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_MIRRORY;
             else if (strcmp(name, "mirrorz") == 0)
                 node_type_new = NODE_TYPE_MIRRORZ;
+            else if (strcmp(name, "printable") == 0)
+                node_type_new = NODE_TYPE_PRINTABLE;
         }
         else if (m_path[2] == NODE_TYPE_LAYER_CONFIG && strcmp(name, "range") == 0) {
             assert(m_object);
@@ -397,7 +403,8 @@ void AMFParserContext::characters(const XML_Char *s, int len)
                 m_path.back() == NODE_TYPE_SCALE ||
                 m_path.back() == NODE_TYPE_MIRRORX ||
                 m_path.back() == NODE_TYPE_MIRRORY ||
-                m_path.back() == NODE_TYPE_MIRRORZ)
+                m_path.back() == NODE_TYPE_MIRRORZ ||
+                m_path.back() == NODE_TYPE_PRINTABLE)
                 m_value[0].append(s, len);
             break;
         case 6:
@@ -505,6 +512,11 @@ void AMFParserContext::endElement(const char * /* name */)
         assert(m_instance);
         m_instance->mirrorz = float(atof(m_value[0].c_str()));
         m_instance->mirrorz_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_PRINTABLE:
+        assert(m_instance);
+        m_instance->printable = bool(atoi(m_value[0].c_str()));
         m_value[0].clear();
         break;
 
@@ -685,6 +697,7 @@ void AMFParserContext::endDocument()
                 mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));
                 mi->set_scaling_factor(Vec3d(instance.scalex_set ? (double)instance.scalex : 1.0, instance.scaley_set ? (double)instance.scaley : 1.0, instance.scalez_set ? (double)instance.scalez : 1.0));
                 mi->set_mirror(Vec3d(instance.mirrorx_set ? (double)instance.mirrorx : 1.0, instance.mirrory_set ? (double)instance.mirrory : 1.0, instance.mirrorz_set ? (double)instance.mirrorz : 1.0));
+                mi->printable = instance.printable;
         }
     }
 }
@@ -1037,6 +1050,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                     "      <mirrorx>%lf</mirrorx>\n"
                     "      <mirrory>%lf</mirrory>\n"
                     "      <mirrorz>%lf</mirrorz>\n"
+                    "      <printable>%d</printable>\n"
                     "    </instance>\n",
                     object_id,
                     instance->get_offset(X),
@@ -1050,7 +1064,8 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                     instance->get_scaling_factor(Z),
                     instance->get_mirror(X),
                     instance->get_mirror(Y),
-                    instance->get_mirror(Z));
+                    instance->get_mirror(Z),
+                    instance->printable);
 
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);

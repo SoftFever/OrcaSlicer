@@ -71,6 +71,7 @@ const char* V2_ATTR = "v2";
 const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
+const char* PRINTABLE_ATTR = "printable";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -129,6 +130,12 @@ int get_attribute_value_int(const char** attributes, unsigned int attributes_siz
 {
     const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
     return (text != nullptr) ? ::atoi(text) : 0;
+}
+
+bool get_attribute_value_bool(const char** attributes, unsigned int attributes_size, const char* attribute_key)
+{
+    const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
+    return (text != nullptr) ? (bool)::atoi(text) : true;
 }
 
 Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
@@ -428,7 +435,7 @@ namespace Slic3r {
         bool _handle_start_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_metadata();
 
-        bool _create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter);
+        bool _create_object_instance(int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter);
 
         void _apply_transform(ModelInstance& instance, const Transform3d& transform);
 
@@ -1367,8 +1374,9 @@ namespace Slic3r {
 
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
         Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        int printable = get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
 
-        return _create_object_instance(object_id, transform, 1);
+        return _create_object_instance(object_id, transform, printable, 1);
     }
 
     bool _3MF_Importer::_handle_end_item()
@@ -1396,7 +1404,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Importer::_create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter)
+    bool _3MF_Importer::_create_object_instance(int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter)
     {
         static const unsigned int MAX_RECURSIONS = 10;
 
@@ -1432,6 +1440,7 @@ namespace Slic3r {
                     add_error("Unable to add object instance");
                     return false;
                 }
+                instance->printable = printable;
 
                 m_instances.emplace_back(instance, transform);
             }
@@ -1441,7 +1450,7 @@ namespace Slic3r {
             // recursively process nested components
             for (const Component& component : it->second)
             {
-                if (!_create_object_instance(component.object_id, transform * component.transform, recur_counter + 1))
+                if (!_create_object_instance(component.object_id, transform * component.transform, printable, recur_counter + 1))
                     return false;
             }
         }
@@ -1655,10 +1664,12 @@ namespace Slic3r {
         {
             unsigned int id;
             Transform3d transform;
+            bool printable;
 
-            BuildItem(unsigned int id, const Transform3d& transform)
+            BuildItem(unsigned int id, const Transform3d& transform, const bool printable)
                 : id(id)
                 , transform(transform)
+                , printable(printable)
             {
             }
         };
@@ -1951,7 +1962,7 @@ namespace Slic3r {
             Transform3d t = instance->get_matrix();
             // instance_id is just a 1 indexed index in build_items.
             assert(instance_id == build_items.size() + 1);
-            build_items.emplace_back(instance_id, t);
+            build_items.emplace_back(instance_id, t, instance->printable);
 
             stream << "  </" << OBJECT_TAG << ">\n";
 
@@ -2059,7 +2070,7 @@ namespace Slic3r {
                         stream << " ";
                 }
             }
-            stream << "\" />\n";
+            stream << "\" printable =\"" << item.printable << "\" />\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
