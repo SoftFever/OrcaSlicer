@@ -1758,6 +1758,17 @@ void TabFilament::reload_config()
 	Tab::reload_config();
 }
 
+void TabFilament::update_volumetric_flow_preset_hints()
+{
+	wxString text;
+	try {
+		text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+	} catch (std::exception &ex) {
+		text = _(L("Volumetric flow hints not available\n\n")) + from_u8(ex.what());
+	}
+	m_volumetric_speed_description_line->SetText(text);
+}
+
 void TabFilament::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
@@ -1767,8 +1778,7 @@ void TabFilament::update()
 
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
-	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
-	m_volumetric_speed_description_line->SetText(text);
+	this->update_volumetric_flow_preset_hints();
     Layout();
 
 	bool cooling = m_config->opt_bool("cooling", 0);
@@ -1790,7 +1800,7 @@ void TabFilament::update()
 
 void TabFilament::OnActivate()
 {
-	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
+	this->update_volumetric_flow_preset_hints();
 	Tab::OnActivate();
 }
 
