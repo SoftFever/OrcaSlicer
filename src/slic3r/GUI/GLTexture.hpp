@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 
 class wxImage;
 
@@ -19,30 +20,34 @@ namespace GUI {
                 unsigned int h;
                 std::vector<unsigned char> src_data;
                 std::vector<unsigned char> compressed_data;
-                bool compressed;
                 bool sent_to_gpu;
 
-                Level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data) : w(w), h(h), src_data(data), compressed(false), sent_to_gpu(false) {}
+                Level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data) : w(w), h(h), src_data(data), sent_to_gpu(false) {}
             };
 
             GLTexture& m_texture;
             std::vector<Level> m_levels;
-            bool m_is_compressing;
-            bool m_abort_compressing;
+            std::thread m_thread;
+            // Does the caller want the background thread to stop?
+            // This atomic also works as a memory barrier for synchronizing the cancel event with the worker thread.
+            std::atomic<bool> m_abort_compressing;
+            // How many levels were compressed since the start of the background processing thread?
+            // This atomic also works as a memory barrier for synchronizing results of the worker thread with the calling thread.
+            std::atomic<unsigned int> m_num_levels_compressed;
 
         public:
-            explicit Compressor(GLTexture& texture) : m_texture(texture), m_is_compressing(false), m_abort_compressing(false) {}
+            explicit Compressor(GLTexture& texture) : m_texture(texture), m_abort_compressing(false), m_num_levels_compressed(0) {}
             ~Compressor() { reset(); }
 
             void reset();
 
-            void add_level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data);
+            void add_level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data) { m_levels.emplace_back(w, h, data); }
 
             void start_compressing();
 
             bool unsent_compressed_data_available() const;
             void send_compressed_data_to_gpu();
-            bool all_compressed_data_sent_to_gpu() const;
+            bool all_compressed_data_sent_to_gpu() const { return m_levels.empty(); }
 
         private:
             void compress();
