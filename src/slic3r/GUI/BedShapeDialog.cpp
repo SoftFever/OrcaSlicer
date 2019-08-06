@@ -212,7 +212,7 @@ wxPanel* BedShapePanel::init_texture_panel()
                 wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
                 if (lbl != nullptr)
                 {
-                    wxString tooltip_text = (m_custom_texture == NONE) ? _(L("")) : _(m_custom_texture);
+                    wxString tooltip_text = (m_custom_texture == NONE) ? "" : _(m_custom_texture);
                     wxToolTip* tooltip = lbl->GetToolTip();
                     if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
                         lbl->SetToolTip(tooltip_text);
@@ -280,7 +280,7 @@ wxPanel* BedShapePanel::init_model_panel()
                 wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
                 if (lbl != nullptr)
                 {
-                    wxString tooltip_text = (m_custom_model == NONE) ? _(L("")) : _(m_custom_model);
+                    wxString tooltip_text = (m_custom_model == NONE) ? "" : _(m_custom_model);
                     wxToolTip* tooltip = lbl->GetToolTip();
                     if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
                         lbl->SetToolTip(tooltip_text);

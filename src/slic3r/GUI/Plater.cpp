@@ -4536,7 +4536,7 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
         return;
     }
 
-    out_text = L("");
+    out_text = "";
 }
 
 void Plater::on_extruders_change(int num_extruders)
