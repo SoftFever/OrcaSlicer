@@ -287,8 +287,8 @@ bool MainFrame::can_send_gcode() const
     if (m_plater->model().objects.empty())
         return false;
 
-    const auto prin_host_opt =wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("print_host");
-    return prin_host_opt != nullptr && !prin_host_opt->value.empty();
+    const auto print_host_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("print_host");
+    return print_host_opt != nullptr && !print_host_opt->value.empty();
 }
 
 bool MainFrame::can_slice() const

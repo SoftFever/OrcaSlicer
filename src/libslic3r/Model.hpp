@@ -725,8 +725,6 @@ private:
 // all objects may share mutliple materials.
 class Model final : public ObjectBase
 {
-    static unsigned int s_auto_extruder_id;
-
 public:
     // Materials are owned by a model and referenced by objects through t_model_material_id.
     // Single material may be shared by multiple models.
@@ -795,14 +793,10 @@ public:
 
     void 		  print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
 
-    static unsigned int get_auto_extruder_id(unsigned int max_extruders);
-    static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
-    static void reset_auto_extruder_id();
-
     // Propose an output file name & path based on the first printable object's name and source input file's path.
-    std::string         propose_export_file_name_and_path() const;
+    std::string   propose_export_file_name_and_path() const;
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
-    std::string         propose_export_file_name_and_path(const std::string &new_extension) const;
+    std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };

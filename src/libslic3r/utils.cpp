@@ -13,9 +13,13 @@
 	#include <unistd.h>
 	#include <sys/types.h>
 	#include <sys/param.h>
+    #include <sys/resource.h>
 	#ifdef BSD
 		#include <sys/sysctl.h>
 	#endif
+    #ifdef __APPLE__
+        #include <mach/mach.h>
+    #endif
 #endif
 
 #include <boost/log/core.hpp>
@@ -431,46 +435,81 @@ std::string format_memsize_MB(size_t n)
     return out + "MB";
 }
 
-#ifdef WIN32
-
-#ifndef PROCESS_MEMORY_COUNTERS_EX
-    // MingW32 doesn't have this struct in psapi.h
-    typedef struct _PROCESS_MEMORY_COUNTERS_EX {
-      DWORD  cb;
-      DWORD  PageFaultCount;
-      SIZE_T PeakWorkingSetSize;
-      SIZE_T WorkingSetSize;
-      SIZE_T QuotaPeakPagedPoolUsage;
-      SIZE_T QuotaPagedPoolUsage;
-      SIZE_T QuotaPeakNonPagedPoolUsage;
-      SIZE_T QuotaNonPagedPoolUsage;
-      SIZE_T PagefileUsage;
-      SIZE_T PeakPagefileUsage;
-      SIZE_T PrivateUsage;
-    } PROCESS_MEMORY_COUNTERS_EX, *PPROCESS_MEMORY_COUNTERS_EX;
-#endif /* PROCESS_MEMORY_COUNTERS_EX */
-
-std::string log_memory_info()
+// Returns platform-specific string to be used as log output or parsed in SysInfoDialog.
+// The latter parses the string with (semi)colons as separators, it should look about as
+// "desc1: value1; desc2: value2" or similar (spaces should not matter).
+std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+#ifdef WIN32
+    #ifndef PROCESS_MEMORY_COUNTERS_EX
+        // MingW32 doesn't have this struct in psapi.h
+        typedef struct _PROCESS_MEMORY_COUNTERS_EX {
+          DWORD  cb;
+          DWORD  PageFaultCount;
+          SIZE_T PeakWorkingSetSize;
+          SIZE_T WorkingSetSize;
+          SIZE_T QuotaPeakPagedPoolUsage;
+          SIZE_T QuotaPagedPoolUsage;
+          SIZE_T QuotaPeakNonPagedPoolUsage;
+          SIZE_T QuotaNonPagedPoolUsage;
+          SIZE_T PagefileUsage;
+          SIZE_T PeakPagefileUsage;
+          SIZE_T PrivateUsage;
+        } PROCESS_MEMORY_COUNTERS_EX, *PPROCESS_MEMORY_COUNTERS_EX;
+    #endif /* PROCESS_MEMORY_COUNTERS_EX */
+
+
         HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ::GetCurrentProcessId());
         if (hProcess != nullptr) {
             PROCESS_MEMORY_COUNTERS_EX pmc;
             if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
-				out = " WorkingSet: " + format_memsize_MB(pmc.WorkingSetSize) + " PrivateBytes: " + format_memsize_MB(pmc.PrivateUsage) + " Pagefile(peak): " + format_memsize_MB(pmc.PagefileUsage) + "(" + format_memsize_MB(pmc.PeakPagefileUsage) + ")";
+                out = " WorkingSet: " + format_memsize_MB(pmc.WorkingSetSize) + "; PrivateBytes: " + format_memsize_MB(pmc.PrivateUsage) + "; Pagefile(peak): " + format_memsize_MB(pmc.PagefileUsage) + "(" + format_memsize_MB(pmc.PeakPagefileUsage) + ")";
+            else
+                out += " Used memory: N/A";
             CloseHandle(hProcess);
         }
+#elif defined(__linux__) or defined(__APPLE__)
+        // Get current memory usage.
+    #ifdef __APPLE__
+        struct mach_task_basic_info info;
+        mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+        out += " Resident memory: ";
+        if ( task_info( mach_task_self( ), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount ) == KERN_SUCCESS )
+            out += format_memsize_MB((size_t)info.resident_size);
+        else
+            out += "N/A";
+    #else // i.e. __linux__
+        size_t tSize = 0, resident = 0, share = 0;
+        std::ifstream buffer("/proc/self/statm");
+        if (buffer && (buffer >> tSize >> resident >> share)) {
+            size_t page_size = (size_t)sysconf(_SC_PAGE_SIZE); // in case x86-64 is configured to use 2MB pages
+            size_t rss = resident * page_size;
+            out += " Resident memory: " + format_memsize_MB(rss);
+            out += "; Shared memory: " + format_memsize_MB(share * page_size);
+            out += "; Private memory: " + format_memsize_MB(rss - share * page_size);
+        }
+        else
+            out += " Used memory: N/A";
+    #endif
+        // Now get peak memory usage.
+        out += "; Peak memory usage: ";
+        rusage memory_info;
+        if (getrusage(RUSAGE_SELF, &memory_info) == 0)
+        {
+            size_t peak_mem_usage = (size_t)memory_info.ru_maxrss;
+            #ifdef __linux__
+                peak_mem_usage *= 1024;// getrusage returns the value in kB on linux
+            #endif
+            out += format_memsize_MB(peak_mem_usage);
+        }
+        else
+            out += "N/A";
+#endif
     }
     return out;
 }
-
-#else
-std::string log_memory_info()
-{
-    return std::string();
-}
-#endif
 
 // Returns the size of physical memory (RAM) in bytes.
 // http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system

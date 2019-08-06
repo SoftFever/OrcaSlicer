@@ -579,11 +579,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
 
     if (print->config().remaining_times.value) {
-        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode";
+        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode" << log_memory_info();
         m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
         m_normal_time_estimator.reset();
         if (m_silent_time_estimator_enabled) {
-            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode";
+            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode" << log_memory_info();
             m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
             m_silent_time_estimator.reset();
         }
@@ -591,7 +591,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     // starts analyzer calculations
     if (m_enable_analyzer) {
-        BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data";
+        BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data" << log_memory_info();
         m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
     }
@@ -1838,7 +1838,8 @@ void GCode::process_layer(
         ", time estimator memory: " <<
             format_memsize_MB(m_normal_time_estimator.memory_used() + m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0) <<
         ", analyzer memory: " <<
-            format_memsize_MB(m_analyzer.memory_used());
+            format_memsize_MB(m_analyzer.memory_used()) <<
+        log_memory_info();
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)

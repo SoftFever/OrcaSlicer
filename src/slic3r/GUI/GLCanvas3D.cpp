@@ -1234,10 +1234,9 @@ bool GLCanvas3D::init()
         return false;
     }
 
-//    // on linux the gl context is not valid until the canvas is not shown on screen
-//    // we defer the geometry finalization of volumes until the first call to render()
-//    if (!m_volumes.empty())
-//        m_volumes.finalize_geometry();
+    // on linux the gl context is not valid until the canvas is not shown on screen
+    // we defer the geometry finalization of volumes until the first call to render()
+    m_volumes.finalize_geometry(true);
 
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
@@ -1708,7 +1707,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.push_back(i);
         }
     }
-    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_initialized);
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -1896,7 +1895,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
                 if (it->new_geometry()) {
                     // New volume.
-                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by);
+                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
 					update_object_list = true;
                 } else {
@@ -1969,7 +1968,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                 if (!instances[istep].empty())
-                    m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp);
+                    m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_initialized);
         }
 
 		// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
@@ -2009,7 +2008,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 depth = (900.f/w) * (float)(extruders_count - 1);
             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                 1000, x, y, w, depth, (float)height, a, !print->is_step_done(psWipeTower),
-                brim_spacing * 4.5f);
+                brim_spacing * 4.5f, m_initialized);
             if (volume_idx_wipe_tower_old != -1)
                 map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
         }
@@ -2946,7 +2945,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Moving())
     {
         m_mouse.position = pos.cast<double>();
-        std::string tooltip = L("");
+        std::string tooltip = "";
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
@@ -3234,7 +3233,7 @@ void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_typ
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     m_selection.flattening_rotate(normal);
-    do_rotate(L("")); // avoid taking another snapshot
+    do_rotate(""); // avoid taking another snapshot
 }
 
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
@@ -3637,14 +3636,14 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
-        std::string new_additional_tooltip = L("");
+        std::string new_additional_tooltip = "";
         if (can_undo)
             wxGetApp().plater()->undo_redo_topmost_string_getter(true, new_additional_tooltip);
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {
             m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
-            set_tooltip(L(""));
+            set_tooltip("");
         }
         return can_undo;
     };
@@ -3666,14 +3665,14 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
-        std::string new_additional_tooltip = L("");
+        std::string new_additional_tooltip = "";
         if (can_redo)
             wxGetApp().plater()->undo_redo_topmost_string_getter(false, new_additional_tooltip);
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {
             m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
-            set_tooltip(L(""));
+            set_tooltip("");
         }
         return can_redo;
     };
@@ -4539,6 +4538,7 @@ void GLCanvas3D::_load_print_toolpaths()
 
         _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
+    volume.indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
@@ -4604,7 +4604,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
 
     // Maximum size of an allocation block: 32MB / sizeof(float)
-    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start" << m_volumes.log_memory_info() << log_memory_info();
 
     //FIXME Improve the heuristics for a grain size.
     size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
@@ -4710,16 +4710,22 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	            }
 	        }
         }
+        for (GLVolume *vol : vols)
+        	// Ideally one would call vol->indexed_vertex_array.finalize() here to move the buffers to the OpenGL driver,
+        	// but this code runs in parallel and the OpenGL driver is not thread safe.
+            vol->indexed_vertex_array.shrink_to_fit();
     });
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results";
+    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
     // Remove empty volumes from the newly added volumes.
     m_volumes.volumes.erase(
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
+        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
 void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
@@ -4776,7 +4782,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
     ctxt.wipe_tower_pos = Vec2f(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start" << m_volumes.log_memory_info() << log_memory_info();
 
     //FIXME Improve the heuristics for a grain size.
     size_t          n_items = print->wipe_tower_data().tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
@@ -4874,16 +4880,20 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                 vol_new.indexed_vertex_array.reserve(ctxt.alloc_size_reserve());
             }
         }
+        for (GLVolume *vol : vols)
+            vol->indexed_vertex_array.shrink_to_fit();
     });
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results";
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
     // Remove empty volumes from the newly added volumes.
     m_volumes.volumes.erase(
         std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
         m_volumes.volumes.end());
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
+        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
 static inline int hex_digit_to_int(const char c)
@@ -4896,6 +4906,8 @@ static inline int hex_digit_to_int(const char c)
 
 void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
+    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - start" << m_volumes.log_memory_info() << log_memory_info();
+
     // helper functions to select data in dependence of the extrusion view type
     struct Helper
     {
@@ -5011,6 +5023,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
     if (filters.empty())
         return;
 
+    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - create volumes" << m_volumes.log_memory_info() << log_memory_info();
+
     // creates a new volume for each filter
     for (Filter& filter : filters)
     {
@@ -5041,6 +5055,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
         }
     }
 
+    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - populate volumes" << m_volumes.log_memory_info() << log_memory_info();
+
     // populates volumes
     for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
     {
@@ -5058,6 +5074,12 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
         }
     }
+
+    // finalize volumes and sends geometry to gpu
+    for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
+        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - end" << m_volumes.log_memory_info() << log_memory_info();
 }
 
 void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
@@ -5102,6 +5124,10 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
 
         return;
     }
+
+    // finalize volumes and sends geometry to gpu
+    for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
+		m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
 bool GLCanvas3D::_travel_paths_by_type(const GCodePreviewData& preview_data)
@@ -5330,6 +5356,7 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
+        volume->indexed_vertex_array.finalize_geometry(m_initialized);
     }
 }
 
@@ -5357,6 +5384,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 
             _3DScene::point3_to_verts(position.position, position.width, position.height, *volume);
         }
+        volume->indexed_vertex_array.finalize_geometry(m_initialized);
     }
 }
 
@@ -5382,7 +5410,7 @@ void GLCanvas3D::_load_fff_shells()
             instance_ids[i] = i;
         }
 
-        m_volumes.load_object(model_obj, object_id, instance_ids, "object");
+        m_volumes.load_object(model_obj, object_id, instance_ids, "object", m_initialized);
 
         ++object_id;
     }
@@ -5404,7 +5432,7 @@ void GLCanvas3D::_load_fff_shells()
             if (!print->is_step_done(psWipeTower))
                 depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1);
             m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                !print->is_step_done(psWipeTower), brim_spacing * 4.5f);
+                !print->is_step_done(psWipeTower), brim_spacing * 4.5f, m_initialized);
         }
     }
 }
