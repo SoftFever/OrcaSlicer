@@ -2849,6 +2849,9 @@ void ObjectList::update_selections_on_canvas()
         wxDataViewItemArray sels;
         GetSelections(sels);
 
+        // clear selection before adding new elements 
+        selection.clear(); //OR remove_all()? 
+
         for (auto item : sels)
         {
             add_to_selection(item, selection, instance_idx, mode);
