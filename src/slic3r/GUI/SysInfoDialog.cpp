@@ -58,21 +58,19 @@ std::string get_mem_info(bool format_as_html)
     std::string b_end    = format_as_html ? "</b>" : "";
     std::string line_end = format_as_html ? "<br>" : "\n";
 
-    const Slic3r::UndoRedo::Stack &stack = wxGetApp().plater()->undo_redo_stack_main();
-    out << b_start << "RAM size reserved for the Undo / Redo stack [MB]: "  << b_end << Slic3r::format_memsize_MB(stack.get_memory_limit()) << line_end;
-    out << b_start << "RAM size occupied by the Undo / Redo stack  [MB]: "  << b_end << Slic3r::format_memsize_MB(stack.memsize()) << line_end << line_end;
-
-#ifdef _WIN32
-   	HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ::GetCurrentProcessId());
-    if (hProcess != nullptr) {
-        PROCESS_MEMORY_COUNTERS_EX pmc;
-        if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
-			out << b_start << "WorkingSet     [MB]: "   << b_end << format_memsize_MB(pmc.WorkingSetSize) << line_end
-				<< b_start << "PrivateBytes   [MB]: " << b_end << format_memsize_MB(pmc.PrivateUsage) << line_end
-				<< b_start << "Pagefile(peak) [MB]: " << b_end << format_memsize_MB(pmc.PagefileUsage) << "(" << format_memsize_MB(pmc.PeakPagefileUsage) << ")" << line_end;
-        CloseHandle(hProcess);
+    std::string mem_info_str = log_memory_info(true);
+    std::istringstream mem_info(mem_info_str);
+    std::string value;
+    while (std::getline(mem_info, value, ':')) {
+        out << b_start << (value+": ") << b_end;
+        std::getline(mem_info, value, ';');
+        out << value << line_end;
     }
-#endif
+
+    const Slic3r::UndoRedo::Stack &stack = wxGetApp().plater()->undo_redo_stack_main();
+    out << b_start << "RAM size reserved for the Undo / Redo stack: "  << b_end << Slic3r::format_memsize_MB(stack.get_memory_limit()) << line_end;
+    out << b_start << "RAM size occupied by the Undo / Redo stack: "  << b_end << Slic3r::format_memsize_MB(stack.memsize()) << line_end << line_end;
+
     return out.str();
 }
 

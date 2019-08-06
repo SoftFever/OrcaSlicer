@@ -2928,7 +2928,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Moving())
     {
         m_mouse.position = pos.cast<double>();
-        std::string tooltip = L("");
+        std::string tooltip = "";
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
@@ -3216,7 +3216,7 @@ void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_typ
         wxGetApp().plater()->take_snapshot(_(snapshot_type));
 
     m_selection.flattening_rotate(normal);
-    do_rotate(L("")); // avoid taking another snapshot
+    do_rotate(""); // avoid taking another snapshot
 }
 
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
@@ -3619,14 +3619,14 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
-        std::string new_additional_tooltip = L("");
+        std::string new_additional_tooltip = "";
         if (can_undo)
             wxGetApp().plater()->undo_redo_topmost_string_getter(true, new_additional_tooltip);
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {
             m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
-            set_tooltip(L(""));
+            set_tooltip("");
         }
         return can_undo;
     };
@@ -3648,14 +3648,14 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
-        std::string new_additional_tooltip = L("");
+        std::string new_additional_tooltip = "";
         if (can_redo)
             wxGetApp().plater()->undo_redo_topmost_string_getter(false, new_additional_tooltip);
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {
             m_undoredo_toolbar.set_additional_tooltip(id, new_additional_tooltip);
-            set_tooltip(L(""));
+            set_tooltip("");
         }
         return can_redo;
     };
