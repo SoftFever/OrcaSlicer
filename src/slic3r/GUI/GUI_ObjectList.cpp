@@ -186,7 +186,18 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
-    Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
+    Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { 
+#ifdef __WXGTK__
+	// On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
+	// So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
+	// event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
+	// which seems to be working as of now.
+	this->CallAfter([this](){ this->EnsureVisible(this->GetCurrentItem()); });
+#else
+	this->EnsureVisible(this->GetCurrentItem());
+#endif
+	e.Skip();
+	}));
 }
 
 ObjectList::~ObjectList()
@@ -1017,6 +1028,11 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
 	return empty;
 }
 
+static bool improper_category(const std::string& category, const int extruders_cnt)
+{
+    return category.empty() || (extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options" ));
+}
+
 void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
 {
     auto options = get_options(is_part);
@@ -1028,8 +1044,8 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
     {
         auto const opt = config.def()->get(option);
         auto category = opt->category;
-        if (category.empty() ||
-            (category == "Extruders" && extruders_cnt == 1)) continue;
+        if (improper_category(category, extruders_cnt))
+            continue;
 
         const std::string& label = !opt->full_label.empty() ? opt->full_label : opt->label;
         std::pair<std::string, std::string> option_label(option, label);
@@ -1548,7 +1564,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     const int extruders_cnt = extruders_count();
 
     for (auto& it : bundle) {
-        if (it.first.empty() || it.first == "Extruders" && extruders_cnt == 1) 
+        if (improper_category(it.first, extruders_cnt)) 
             continue;
 
         append_menu_item(menu, wxID_ANY, _(it.first), "",
@@ -1561,7 +1577,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
                                              m_freq_settings_fff : m_freq_settings_sla;
 
     for (auto& it : bundle_quick) {
-        if (it.first.empty() || it.first == "Extruders" && extruders_cnt == 1) 
+        if (improper_category(it.first, extruders_cnt))
             continue;
 
         append_menu_item(menu, wxID_ANY, wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)), "",
@@ -2195,7 +2211,7 @@ SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* co
     for (auto& opt_key : opt_keys)
     {
         auto category = config->def()->get(opt_key)->category;
-        if (category.empty() || (category == "Extruders" && extruders_cnt == 1)) 
+        if (improper_category(category, extruders_cnt))
             continue;
 
         std::vector< std::string > new_category;
@@ -2477,13 +2493,13 @@ void ObjectList::del_layer_range(const t_layer_height_range& range)
     select_item(selectable_item);
 }
 
-double get_min_layer_height(const int extruder_idx)
+static double get_min_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     return config.opt_float("min_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
 }
 
-double get_max_layer_height(const int extruder_idx)
+static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     return config.opt_float("max_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);

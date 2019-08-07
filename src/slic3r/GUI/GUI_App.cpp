@@ -986,6 +986,7 @@ wxString GUI_App::current_language_code_safe() const
 		language_code = language_code.substr(0, idx_underscore);
 	const std::map<wxString, wxString> mapping {
 		{ "cs", 	"cs_CZ", },
+		{ "sk", 	"cs_CZ", },
 		{ "de", 	"de_DE", },
 		{ "es", 	"es_ES", },
 		{ "fr", 	"fr_FR", },
