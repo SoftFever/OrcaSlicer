@@ -302,7 +302,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             render_color[0] = color[0];
             render_color[1] = color[1];
             render_color[2] = color[2];
-	        render_color[3] = picking_checksum_alpha_channel(render_color[0], render_color[1], render_color[2]);
+	        render_color[3] = color[3];
         }
         else {
             render_color[3] = 1.f;
