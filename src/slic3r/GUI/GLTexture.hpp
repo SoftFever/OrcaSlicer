@@ -1,9 +1,11 @@
 #ifndef slic3r_GLTexture_hpp_
 #define slic3r_GLTexture_hpp_
 
+#include <atomic>
 #include <string>
 #include <vector>
 #include <thread>
+#include <atomic>
 
 class wxImage;
 
