@@ -3753,6 +3753,19 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
     }
 }
 
+static inline unsigned char picking_checksum(unsigned char red, unsigned char green, unsigned char blue)
+{
+	// 8 bit hash for the color
+	unsigned char b = ((((37 * red) + green) & 0x0ff) * 37 + blue) & 0x0ff;
+	// Increase enthropy by a bit reversal
+	b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+	b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+	b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+	// Flip every second bit to increase the enthropy even more.
+	b ^= 0x55;
+	return b;
+}
+
 void GLCanvas3D::_picking_pass() const
 {
     if (m_picking_enabled && !m_mouse.dragging && (m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)))
@@ -3794,9 +3807,9 @@ void GLCanvas3D::_picking_pass() const
         if (inside)
         {
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            if (((color[0] | color[1] | color[2] | color[3]) & 0x7) == 0)
+            if (picking_checksum(color[0], color[1], color[2]) == color[3])
             	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-            	volume_id = (color[0] >> 3) + (color[1] << (5 - 3)) + (color[2] << (10 - 3)) + (color[3] << (15 - 3));
+            	volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
@@ -3846,8 +3859,8 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
             {
                 std::array<GLubyte, 4> data;
             	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                bool valid() const { return ((data[0] | data[1] | data[2] | data[3]) & 0x7) == 0; }
-                int id() const { return (data[0] >> 3) + (data[1] << (5 - 3)) + (data[2] << (10 - 3)) + (data[3] << (15 - 3)); }
+                bool valid() const { return picking_checksum(data[0], data[1], data[2]) == data[3]; }
+                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
             };
 
             std::vector<Pixel> frame(px_count);
@@ -4054,10 +4067,10 @@ void GLCanvas3D::_render_volumes_for_picking() const
 	        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries)) {
 		        // Object picking mode. Render the object with a color encoding the object index.
 		        unsigned int id = volume.second.first;
-		        unsigned int r = (id & (0x0000001F << 0)) << 3;
-		        unsigned int g = (id & (0x0000001F << 5)) >> (5 - 3);
-		        unsigned int b = (id & (0x0000001F << 10)) >> (10 - 3);
-		        unsigned int a = (id & (0x0000001F << 15)) >> (15 - 3);
+		        unsigned int r = (id & (0x000000FF << 0)) << 0;
+		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
+		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
+		        unsigned int a = picking_checksum(r, g, b);
 		        glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
 	            volume.first->render();
 	        }
