@@ -106,9 +106,9 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 {
     const double scaleFactor = scale_(line_spacing) / density_adjusted;
 
-    // tolerance (in scaled units) - note: clamp the maximum tolerance
-    // as there's no benefit to reduce the definition with large nozzles
-    const double tolerance = std::min(line_spacing, 0.4) / 2 / unscale<double>(scaleFactor);
+    // tolerance in scaled units. clamp the maximum tolerance as there's
+    // no processing-speed benefit to do so beyond a certain point
+    const double tolerance = std::min(line_spacing, FillGyroid::PatternTolerance) / 2 / unscale<double>(scaleFactor);
 
  //scale factor for 5% : 8 712 388
  // 1z = 10^-6 mm ?
@@ -158,7 +158,7 @@ void FillGyroid::_fill_surface_single(
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * 2.44);
+    double      density_adjusted = std::max(0., params.density * DensityAdjust);
     // Distance between the gyroid waves in scaled coordinates.
     coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 

@@ -20,6 +20,12 @@ public:
     // speed in default configuration (degrees)
     static constexpr float CorrectionAngle = -45.;
 
+    // Density adjustment to have a good %of weight.
+    static constexpr double DensityAdjust = 2.44;
+
+    // Gyroid upper resolution tolerance (mm^-2)
+    static constexpr double PatternTolerance = 0.4;
+
 
 protected:
     virtual void _fill_surface_single(
