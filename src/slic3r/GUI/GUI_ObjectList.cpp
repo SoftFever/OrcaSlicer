@@ -3669,7 +3669,13 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
         ModelObject* object = (*m_objects)[obj_idx];
 
         // get object's printable and change it
-        bool printable = !m_objects_model->IsPrintable(item);
+        const bool printable = !m_objects_model->IsPrintable(item);
+
+        const wxString snapshot_text = wxString::Format("%s %s", 
+                                                        printable ? _(L("Set Printable")) : _(L("Set Unprintable")), 
+                                                        object->name);
+        take_snapshot(snapshot_text);
+
         // set printable value for all instances in object
         for (auto inst : object->instances)
             inst->printable = printable;
