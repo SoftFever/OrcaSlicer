@@ -3628,18 +3628,22 @@ void ObjectList::update_after_undo_redo()
     m_objects_model->DeleteAll();
 
     size_t obj_idx = 0;
+    std::vector<size_t> obj_idxs;
+    obj_idxs.reserve(m_objects->size());
     while (obj_idx < m_objects->size()) {
         add_object_to_list(obj_idx, false);
+        obj_idxs.push_back(obj_idx);
         ++obj_idx;
     }
-
-#ifndef __WXOSX__ 
-//    selection_changed();
-#endif /* __WXOSX__ */
 
     update_selections();
 
     m_prevent_canvas_selection_update = false;
+
+    // update printable states on canvas
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 void ObjectList::update_printable_state(int obj_idx, int instance_idx)
@@ -3665,7 +3669,13 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
         ModelObject* object = (*m_objects)[obj_idx];
 
         // get object's printable and change it
-        bool printable = !m_objects_model->IsPrintable(item);
+        const bool printable = !m_objects_model->IsPrintable(item);
+
+        const wxString snapshot_text = wxString::Format("%s %s", 
+                                                        printable ? _(L("Set Printable")) : _(L("Set Unprintable")), 
+                                                        object->name);
+        take_snapshot(snapshot_text);
+
         // set printable value for all instances in object
         for (auto inst : object->instances)
             inst->printable = printable;
