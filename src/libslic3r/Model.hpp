@@ -643,7 +643,7 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
-    bool is_printable() const { return printable && (print_volume_state == PVS_Inside); }
+    bool is_printable() const { return object->printable && printable && (print_volume_state == PVS_Inside); }
 
     // Getting the input polygon for arrange
     arrangement::ArrangePolygon get_arrange_polygon() const;
