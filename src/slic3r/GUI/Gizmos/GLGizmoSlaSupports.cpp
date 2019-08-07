@@ -422,9 +422,9 @@ void GLGizmoSlaSupports::update_mesh()
 
 
 
-// Unprojects the mouse position on the mesh and return the hit point and normal of the facet.
-// The function throws if no intersection if found.
-std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
+// Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
+// Return false if no intersection was found, true otherwise.
+bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     if (m_its == nullptr)
@@ -457,7 +457,7 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
         MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
         MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
         point1.cast<float>(), (point2-point1).cast<float>(), hits))
-        throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
+        return false; // no intersection found
 
     std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
 
@@ -481,14 +481,12 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     if (i==hits.size() || (hits.size()-i) % 2 != 0) {
         // All hits are either clipped, or there is an odd number of unclipped
         // hits - meaning the nearest must be from inside the mesh.
-        throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
+        return false;
     }
 
     // Calculate and return both the point and the facet normal.
-    return std::make_pair(
-            result,
-            a.cross(b)
-        );
+    pos_and_normal = std::make_pair(result, a.cross(b));
+    return true;
 }
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
@@ -526,16 +524,15 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             // If there is some selection, don't add new point and deselect everything instead.
             if (m_selection_empty) {
-                try {
-                    std::pair<Vec3f, Vec3f> pos_and_normal = unproject_on_mesh(mouse_position); // don't create anything if this throws
+                std::pair<Vec3f, Vec3f> pos_and_normal;
+                if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
                     wxGetApp().plater()->take_snapshot(_(L("Add support point")));
                     m_editing_cache.emplace_back(sla::SupportPoint(pos_and_normal.first, m_new_point_head_diameter/2.f, false), false, pos_and_normal.second);
                     m_parent.set_as_dirty();
                     m_wait_for_up_event = true;
                 }
-                catch (...) {   // not clicked on object
+                else
                     return false;
-                }
             }
             else
                 select_point(NoPoints);
@@ -739,10 +736,8 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
     else {
         if (m_hover_id != -1 && (! m_editing_cache[m_hover_id].support_point.is_new_island || !m_lock_unique_islands)) {
             std::pair<Vec3f, Vec3f> pos_and_normal;
-            try {
-                pos_and_normal = unproject_on_mesh(data.mouse_pos.cast<double>());
-            }
-            catch (...) { return; }
+            if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
+                return;
             m_editing_cache[m_hover_id].support_point.pos = pos_and_normal.first;
             m_editing_cache[m_hover_id].support_point.is_new_island = false;
             m_editing_cache[m_hover_id].normal = pos_and_normal.second;
