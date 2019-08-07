@@ -3645,18 +3645,10 @@ void ObjectList::update_after_undo_redo()
 void ObjectList::update_printable_state(int obj_idx, int instance_idx)
 {
     ModelObject* object = (*m_objects)[obj_idx];
-    PrintIndicator printable = piUndef;
 
+    const PrintIndicator printable = object->instances[instance_idx]->printable ? piPrintable : piUnprintable;
     if (object->instances.size() == 1)
-    {
-        printable = object->instances[0]->printable ? piPrintable : piUnprintable;
         instance_idx = -1;
-    }
-    else
-    {
-        m_objects_model->SetPrintableState(piUndef, obj_idx);
-        printable = object->instances[instance_idx]->printable ? piPrintable : piUnprintable;
-    }
 
     m_objects_model->SetPrintableState(printable, obj_idx, instance_idx);
 }
@@ -3667,7 +3659,26 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
     if (!(type&(itObject|itInstance/*|itVolume*/)))
         return;
 
-    wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state();
+    if (type & itObject)
+    {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        ModelObject* object = (*m_objects)[obj_idx];
+
+        // get object's printable and change it
+        bool printable = !m_objects_model->IsPrintable(item);
+        // set printable value for all instances in object
+        for (auto inst : object->instances)
+            inst->printable = printable;
+
+        // update printable state on canvas
+        std::vector<size_t> obj_idxs = {(size_t)obj_idx};
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+
+        // update printable state in ObjectList
+        m_objects_model->SetObjectPrintableState(printable ? piPrintable : piUnprintable , item);
+    }
+    else
+        wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state(); 
 
     // update scene
     wxGetApp().plater()->update();

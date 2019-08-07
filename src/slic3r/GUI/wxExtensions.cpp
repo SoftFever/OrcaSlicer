@@ -806,22 +806,8 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
     size_t counter = 0;
     while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
+        instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
 
-        // if InstanceRoot item is just created and start to adding Instances
-        if (just_created && counter == 0) 
-        {
-            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
-
-            // use object's printable state to first instance, if it was defined
-            instance_node->set_printable_icon(obj_node->IsPrintable() != piUndef ? obj_node->IsPrintable() :
-                                              print_indicator[counter] ? piPrintable : piUnprintable        );
-
-            // and set printable state for object_node to piUndef
-            obj_node->set_printable_icon(piUndef);
-            ItemChanged(parent_item);
-        }
-        else 
-            instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
         inst_root_node->Append(instance_node);
         // notify control
         const wxDataViewItem instance_item((void*)instance_node);
@@ -829,7 +815,62 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
         ++counter;
     }
 
+    // update object_node printable property
+    UpdateObjectPrintable(parent_item);
+
     return wxDataViewItem((void*)instance_node);
+}
+
+void ObjectDataViewModel::UpdateObjectPrintable(wxDataViewItem parent_item)
+{
+    const wxDataViewItem inst_root_item = GetInstanceRootItem(parent_item);
+    if (!inst_root_item) 
+        return;
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
+
+    const size_t child_cnt = inst_root_node->GetChildren().Count();
+    PrintIndicator obj_pi = piUnprintable;
+    for (size_t i=0; i < child_cnt; i++)
+        if (inst_root_node->GetNthChild(i)->IsPrintable() & piPrintable) {
+            obj_pi = piPrintable;
+            break;
+        }
+    // and set printable state for object_node to piUndef
+    ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+    obj_node->set_printable_icon(obj_pi);
+    ItemChanged(parent_item);
+}
+
+// update printable property for all instances from object
+void ObjectDataViewModel::UpdateInstancesPrintable(wxDataViewItem parent_item)
+{
+    const wxDataViewItem inst_root_item = GetInstanceRootItem(parent_item);
+    if (!inst_root_item) 
+        return;
+
+    ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+    const PrintIndicator obj_pi = obj_node->IsPrintable();
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
+    const size_t child_cnt = inst_root_node->GetChildren().Count();
+
+    for (size_t i=0; i < child_cnt; i++)
+    {
+        ObjectDataViewModelNode* inst_node = inst_root_node->GetNthChild(i);
+        // and set printable state for object_node to piUndef
+        inst_node->set_printable_icon(obj_pi);
+        ItemChanged(wxDataViewItem((void*)inst_node));
+    }
+}
+
+bool ObjectDataViewModel::IsPrintable(const wxDataViewItem& item) const
+{
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node)
+        return false;
+
+    return node->IsPrintable() == piPrintable;
 }
 
 wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_item)
@@ -950,6 +991,9 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             ItemDeleted(ret_item, wxDataViewItem(node_parent));
             return ret_item;
         }
+
+        if (node->m_type & itInstance)
+            UpdateObjectPrintable(wxDataViewItem(node_parent->GetParent()));
 
         // if there was last layer item, delete this one and layers root item
         if (node_parent->GetChildCount() == 0 && node_parent->m_type == itLayerRoot)
@@ -1082,6 +1126,9 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
             parent_node->m_container = false;
 #endif //__WXGTK__
     }
+
+    // update object_node printable property
+    UpdateObjectPrintable(parent_item);
 
     return ret_item;
 }
@@ -1676,7 +1723,25 @@ wxDataViewItem ObjectDataViewModel::SetPrintableState(
     node->set_printable_icon(printable);
     ItemChanged(item);
 
+    if (subobj_idx >= 0)
+        UpdateObjectPrintable(GetItemById(obj_idx));
+
     return item;
+}
+
+wxDataViewItem ObjectDataViewModel::SetObjectPrintableState(
+    PrintIndicator  printable,
+    wxDataViewItem  obj_item)
+{
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)obj_item.GetID();
+    if (!node)
+        return wxDataViewItem(0);
+    node->set_printable_icon(printable);
+    ItemChanged(obj_item);
+
+    UpdateInstancesPrintable(obj_item);
+
+    return obj_item;
 }
 
 void ObjectDataViewModel::Rescale()
