@@ -286,7 +286,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     glsafe(::glTranslated(0.0, 0.0, m_z_shift));
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
-    float render_color[3];
+    float render_color[4];
     size_t cache_size = m_editing_mode ? m_editing_cache.size() : m_normal_cache.size();
     for (size_t i = 0; i < cache_size; ++i)
     {
@@ -298,12 +298,14 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
         // First decide about the color of the point.
         if (picking) {
-            std::array<float, 3> color = picking_color_component(i);
+            std::array<float, 4> color = picking_color_component(i);
             render_color[0] = color[0];
             render_color[1] = color[1];
             render_color[2] = color[2];
+	        render_color[3] = picking_checksum_alpha_channel(render_color[0], render_color[1], render_color[2]);
         }
         else {
+            render_color[3] = 1.f;
             if ((m_hover_id == i && m_editing_mode)) { // ignore hover state unless editing mode is active
                 render_color[0] = 0.f;
                 render_color[1] = 1.0f;
@@ -320,7 +322,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                     for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
             }
         }
-        glsafe(::glColor3fv(render_color));
+        glsafe(::glColor4fv(render_color));
         float render_color_emissive[4] = { 0.5f * render_color[0], 0.5f * render_color[1], 0.5f * render_color[2], 1.f};
         glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
 

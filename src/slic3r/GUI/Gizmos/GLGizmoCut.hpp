@@ -11,7 +11,7 @@ class GLGizmoCut : public GLGizmoBase
 {
     static const double Offset;
     static const double Margin;
-    static const std::array<float, 3> GrabberColor;
+    static const std::array<float, 4> GrabberColor;
 
     mutable double m_cut_z;
     double m_start_z;

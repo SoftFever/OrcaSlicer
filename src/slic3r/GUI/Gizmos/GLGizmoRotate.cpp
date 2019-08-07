@@ -155,7 +155,7 @@ void GLGizmoRotate::on_render() const
     transform_to_local(selection);
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
 
     render_circle();
 
@@ -166,7 +166,7 @@ void GLGizmoRotate::on_render() const
         render_reference_radius();
     }
 
-    glsafe(::glColor3fv(m_highlight_color));
+    glsafe(::glColor4fv(m_highlight_color));
 
     if (m_hover_id != -1)
         render_angle();
@@ -287,14 +287,14 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
-    glsafe(::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
 
-    ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 4 * sizeof(float));
     render_grabbers(box);
 }
 
@@ -306,8 +306,8 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
-    float color[3];
-    ::memcpy((void*)color, (const void*)m_grabbers[0].color, 3 * sizeof(float));
+    float color[4];
+    ::memcpy((void*)color, (const void*)m_grabbers[0].color, 4 * sizeof(float));
     if (!picking && (m_hover_id != -1))
     {
         color[0] = 1.0f - color[0];
@@ -318,7 +318,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (!picking)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor3fv(color));
+    glsafe(::glColor4fv(color));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
