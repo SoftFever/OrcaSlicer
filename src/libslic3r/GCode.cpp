@@ -442,7 +442,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer  = 0;
     size_t idx_support_layer = 0;
-    double last_extrusion_z = 0.;
+    const LayerToPrint* last_extrusion_layer = nullptr;
     while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
         LayerToPrint layer_to_print;
         layer_to_print.object_layer  = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer ++] : nullptr;
@@ -457,18 +457,25 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             }
         }
 
+        layers_to_print.emplace_back(layer_to_print);
+
         // In case there are extrusions on this layer, check there is a layer to lay it on.
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
          || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions())) {
-            if (layer_to_print.print_z() - layer_to_print.layer()->height - EPSILON > last_extrusion_z)
+            double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
+                                       ? object.config().support_material_contact_distance
+                                       : 0.;
+            double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
+                                    + layer_to_print.layer()->height
+                                    + support_contact_z;
+
+            if (layer_to_print.print_z() > maximal_print_z + EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
                                          _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
                                          std::to_string(layers_to_print.back().print_z()));
-            // Stash last print_z with extrusions.
-            last_extrusion_z = layer_to_print.print_z();
+            // Remember last layer with extrusions.
+            last_extrusion_layer = &layers_to_print.back();
         }
-
-        layers_to_print.emplace_back(layer_to_print);
     }
 
     return layers_to_print;
