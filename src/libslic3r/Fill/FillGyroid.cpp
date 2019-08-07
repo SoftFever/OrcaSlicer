@@ -152,7 +152,9 @@ void FillGyroid::_fill_surface_single(
     ExPolygon                       &expolygon, 
     Polylines                       &polylines_out)
 {
-    expolygon.rotate(-this->angle);
+    float infill_angle = this->angle + (CorrectionAngle * 2*M_PI) / 360.;
+    if(abs(infill_angle) >= EPSILON)
+        expolygon.rotate(-infill_angle);
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
@@ -228,9 +230,11 @@ void FillGyroid::_fill_surface_single(
     }
 
     // new paths must be rotated back
-    for (Polylines::iterator it = polylines_out.begin() + polylines_out_first_idx;
-         it != polylines_out.end(); ++it) {
-        it->rotate(this->angle);
+    if(abs(infill_angle) >= EPSILON) {
+        for (Polylines::iterator it = polylines_out.begin() + polylines_out_first_idx;
+             it != polylines_out.end(); ++it) {
+            it->rotate(infill_angle);
+        }
     }
 }
 
