@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <thread>
-#include <atomic>
 
 class wxImage;
 
