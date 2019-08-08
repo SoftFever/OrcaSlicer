@@ -161,7 +161,7 @@ void PrintObject::make_perimeters()
         const PrintRegion &region = *m_print->regions()[region_id];
         if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
             continue;
-        
+
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size() - 1),
@@ -2379,7 +2379,7 @@ void PrintObject::discover_horizontal_shells()
                     if (new_internal_solid.empty()) {
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
-                        // layers, use different strategies according to configured infill density:
+                        // layers, use different strategies according to configured infill density:
                         if (region_config.fill_density.value == 0) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid

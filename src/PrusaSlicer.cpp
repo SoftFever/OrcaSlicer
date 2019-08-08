@@ -60,8 +60,21 @@ PrinterTechnology get_printer_technology(const DynamicConfig &config)
 
 int CLI::run(int argc, char **argv) 
 {
+#ifdef _WIN32
 	// Switch boost::filesystem to utf8.
-    boost::nowide::nowide_filesystem();
+    try {
+        boost::nowide::nowide_filesystem();
+    } catch (const std::runtime_error& ex) {
+        std::string caption = std::string(SLIC3R_APP_NAME) + " Error";
+        std::string text = std::string("An error occured while setting up locale.\n") + SLIC3R_APP_NAME + " will now terminate.\n\n" + ex.what();
+    #ifdef SLIC3R_GUI
+        if (m_actions.empty())
+            MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
+    #endif
+        boost::nowide::cerr << text.c_str() << std::endl;
+        return 1;
+    }
+#endif
 
 	if (! this->setup(argc, argv))
 		return 1;
