@@ -33,7 +33,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 
@@ -91,15 +90,6 @@ unsigned get_logging_level()
     default: return 1;
     }
 }
-
-// Force set_logging_level(<=error) after loading of the DLL.
-// Switch boost::filesystem to utf8.
-static struct RunOnInit {
-    RunOnInit() { 
-        boost::nowide::nowide_filesystem();
-        set_logging_level(1);
-    }
-} g_RunOnInit;
 
 void trace(unsigned int level, const char *message)
 {
