@@ -454,12 +454,12 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
     }
 
     //try to link to nearest point if possible
-    for (int idx1 = 0; idx1 < polylines_connected.size(); idx1++) {
+    for (size_t idx1 = 0; idx1 < polylines_connected.size(); idx1++) {
         size_t min_idx = 0;
         coordf_t min_length = 0;
         bool switch_id1 = false;
         bool switch_id2 = false;
-        for (int idx2 = idx1 + 1; idx2 < polylines_connected.size(); idx2++) {
+        for (size_t idx2 = idx1 + 1; idx2 < polylines_connected.size(); idx2++) {
             double last_first = polylines_connected[idx1].last_point().distance_to_square(polylines_connected[idx2].first_point());
             double first_first = polylines_connected[idx1].first_point().distance_to_square(polylines_connected[idx2].first_point());
             double first_last = polylines_connected[idx1].first_point().distance_to_square(polylines_connected[idx2].last_point());
