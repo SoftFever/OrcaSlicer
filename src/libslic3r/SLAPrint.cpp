@@ -761,7 +761,7 @@ void SLAPrint::process()
         for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs)
             po.m_slice_index.emplace_back(h, unscaled<float>(h) - lh / 2.f, lh);
 
-        // Just get the first record that is form the model:
+        // Just get the first record that is from the model:
         auto slindex_it =
                 po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
 
