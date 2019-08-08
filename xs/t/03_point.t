@@ -44,7 +44,7 @@ ok !$point->coincides_with($point2), 'coincides_with';
 
 {
     my $line = Slic3r::Line->new([50,50], [125,-25]);
-    is +Slic3r::Point->new(100,0)->distance_to_line($line),  0, 'distance_to_line()';
+    cmp_ok(abs(Slic3r::Point->new(100,0)->distance_to_line($line)), '<=',  4e-15, 'distance_to_line()');
 }
 
 {
