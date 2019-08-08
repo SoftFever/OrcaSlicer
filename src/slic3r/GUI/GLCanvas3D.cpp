@@ -2126,8 +2126,7 @@ void GLCanvas3D::load_sla_preview()
     if ((m_canvas != nullptr) && (print != nullptr))
     {
         _set_current();
-        // Reload the SLA support structures into GLVolumes.
-		this->reload_scene(true, true);
+        _load_sla_shells();
         _update_sla_shells_outside_state();
         _show_warning_texture_if_needed(WarningTexture::SlaSupportsOutside);
     }
@@ -5424,6 +5423,58 @@ void GLCanvas3D::_load_fff_shells()
                 !print->is_step_done(psWipeTower), brim_spacing * 4.5f, m_initialized);
         }
     }
+}
+
+// While it looks like we can call 
+// this->reload_scene(true, true)
+// the two functions are quite different:
+// 1) This function only loads objects, for which the step slaposSliceSupports already finished. Therefore objects outside of the print bed never load.
+// 2) This function loads object mesh with the relative scaling correction (the "relative_correction" parameter) was applied,
+// 	  therefore the mesh may be slightly larger or smaller than the mesh shown in the 3D scene.
+void GLCanvas3D::_load_sla_shells()
+{
+    const SLAPrint* print = this->sla_print();
+    if (print->objects().empty())
+        // nothing to render, return
+        return;
+
+    auto add_volume = [this](const SLAPrintObject &object, int volume_id, const SLAPrintObject::Instance& instance,
+        const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
+        m_volumes.volumes.emplace_back(new GLVolume(color));
+        GLVolume& v = *m_volumes.volumes.back();
+        v.indexed_vertex_array.load_mesh(mesh);
+        v.indexed_vertex_array.finalize_geometry(this->m_initialized);
+        v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
+        v.composite_id.volume_id = volume_id;
+        v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
+        v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
+        v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
+        v.set_convex_hull(mesh.convex_hull_3d());
+    };
+
+    // adds objects' volumes 
+    for (const SLAPrintObject* obj : print->objects())
+        if (obj->is_step_done(slaposSliceSupports)) {
+            unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
+            for (const SLAPrintObject::Instance& instance : obj->instances()) {
+                add_volume(*obj, 0, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
+                // Set the extruder_id and volume_id to achieve the same color as in the 3D scene when
+                // through the update_volumes_colors_by_extruder() call.
+                m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();
+                if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
+                    add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
+                if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
+                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
+            }
+            double shift_z = obj->get_current_elevation();
+            for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
+                GLVolume& v = *m_volumes.volumes[i];
+                // apply shift z
+                v.set_sla_shift_z(shift_z);
+            }
+        }
+
+    update_volumes_colors_by_extruder();
 }
 
 void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& preview_data)
