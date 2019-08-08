@@ -91,6 +91,15 @@ unsigned get_logging_level()
     }
 }
 
+// Force set_logging_level(<=error) after loading of the DLL.
+// This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
+// to perform unit and integration tests.
+static struct RunOnInit {
+    RunOnInit() { 
+        set_logging_level(1);
+    }
+} g_RunOnInit;
+
 void trace(unsigned int level, const char *message)
 {
     boost::log::trivial::severity_level severity = level_to_boost(level);
