@@ -834,6 +834,11 @@ static wxString support_combo_value_for_config(const DynamicPrintConfig &config,
                                                     _("Everywhere"));
 }
 
+static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
+{
+	return config.opt_bool("pad_enable") ? (config.opt_bool("pad_zero_elevation") ? _("Around object") : _("Below object")) : _("None");
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     if (wxGetApp().plater() == nullptr) {
@@ -852,6 +857,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             (opt_key == "support_material" || opt_key == "support_material_auto" || opt_key == "support_material_buildplate_only") :
             (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
         og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
+
+	if (! is_fff && (opt_key == "pad_enable" || opt_key == "pad_zero_elevation"))
+		og_freq_chng_params->set_value("pad", pad_combo_value_for_config(*m_config));
 
     if (opt_key == "brim_width")
     {
@@ -987,6 +995,8 @@ void Tab::update_frequently_changed_parameters()
     if (!og_freq_chng_params) return;
 
     og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
+    if (! is_fff)
+    	og_freq_chng_params->set_value("pad", pad_combo_value_for_config(*m_config));
 
     const std::string updated_value_key = is_fff ? "fill_density" : "pad_enable";
 
