@@ -2342,6 +2342,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     // automatic selection of added objects
     if (!obj_idxs.empty() && (view3D != nullptr))
     {
+        // update printable state for new volumes on canvas3D
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+
         Selection& selection = view3D->get_canvas3d()->get_selection();
         selection.clear();
         for (size_t idx : obj_idxs)
@@ -3506,6 +3509,9 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         sidebar->obj_list()->append_menu_item_instance_to_object(menu, q);
         menu->AppendSeparator();
 
+        wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
+        menu->AppendSeparator();
+
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
             [this](wxCommandEvent&) { reload_from_disk(); });
 
@@ -3513,6 +3519,17 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->export_stl(false, true); });
 
         menu->AppendSeparator();
+
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            const Selection& selection = get_selection();
+            int instance_idx = selection.get_instance_idx();
+            evt.Enable(instance_idx != -1);
+            if (instance_idx != -1)
+            {
+                evt.Check(model.objects[selection.get_object_idx()]->instances[instance_idx]->printable);
+                view3D->set_as_dirty();
+            }
+            }, menu_item_printable->GetId());
     }
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);

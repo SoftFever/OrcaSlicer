@@ -316,6 +316,8 @@ public:
     bool                selected;
     // Is this object disabled from selection?
     bool                disabled;
+    // Is this object printable?
+    bool                printable;
     // Whether or not this volume is active for rendering
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()

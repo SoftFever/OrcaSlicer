@@ -336,6 +336,8 @@ public:
     // returns the list of idxs of the volumes contained in the given list but not in the selection
     std::vector<unsigned int> get_unselected_volume_idxs_from(const std::vector<unsigned int>& volume_idxs) const;
 
+    void toggle_instance_printable_state();
+
 private:
     void update_valid();
     void update_type();

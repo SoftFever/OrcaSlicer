@@ -213,6 +213,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , extruder_id(0)
     , selected(false)
     , disabled(false)
+    , printable(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -268,6 +269,13 @@ void GLVolume::set_render_color()
             set_render_color(OUTSIDE_COLOR, 4);
         else
             set_render_color(color, 4);
+    }
+
+    if (!printable)
+    {
+        render_color[0] /= 4;
+        render_color[1] /= 4;
+        render_color[2] /= 4;
     }
 
     if (force_transparent)

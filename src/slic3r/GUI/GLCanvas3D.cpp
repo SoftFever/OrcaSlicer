@@ -1319,6 +1319,23 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         _set_warning_texture(WarningTexture::SomethingNotShown, false);
 }
 
+void GLCanvas3D::update_instance_printable_state_for_objects(std::vector<size_t>& object_idxs)
+{
+    for (size_t obj_idx : object_idxs)
+    {
+        ModelObject* model_object = m_model->objects[obj_idx];
+        for (int inst_idx = 0; inst_idx < model_object->instances.size(); inst_idx++)
+        {
+            ModelInstance* instance = model_object->instances[inst_idx];
+
+            for (GLVolume* volume : m_volumes.volumes)
+            {
+                if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == inst_idx))
+                    volume->printable = instance->printable;
+            }
+        }
+    }
+}
 
 void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
@@ -3747,6 +3764,7 @@ void GLCanvas3D::_picking_pass() const
         // Better to use software ray - casting on a bounding - box hierarchy.
 
         if (m_multisample_allowed)
+        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
             glsafe(::glDisable(GL_MULTISAMPLE));
 
         glsafe(::glDisable(GL_BLEND));
@@ -3776,7 +3794,9 @@ void GLCanvas3D::_picking_pass() const
         if (inside)
         {
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3])
+            	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
+            	volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
@@ -3799,6 +3819,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
     if (m_picking_enabled)
     {
         if (m_multisample_allowed)
+        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
             glsafe(::glDisable(GL_MULTISAMPLE));
 
         glsafe(::glDisable(GL_BLEND));
@@ -3824,6 +3845,8 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
             struct Pixel
             {
                 std::array<GLubyte, 4> data;
+            	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
+                bool valid() const { return picking_checksum_alpha_channel(data[0], data[1], data[2]) == data[3]; }
                 int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
             };
 
@@ -3834,17 +3857,15 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
             tbb::parallel_for(tbb::blocked_range<size_t>(0, frame.size(), (size_t)width),
                 [this, &frame, &idxs, &mutex](const tbb::blocked_range<size_t>& range) {
                 for (size_t i = range.begin(); i < range.end(); ++i)
-                {
-                    int volume_id = frame[i].id();
-                    if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
-                    {
-                        mutex.lock();
-                        idxs.insert(volume_id);
-                        mutex.unlock();
-                    }
-                }
-            }
-            );
+                	if (frame[i].valid()) {
+                    	int volume_id = frame[i].id();
+                    	if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size())) {
+                        	mutex.lock();
+                        	idxs.insert(volume_id);
+                        	mutex.unlock();
+                    	}
+                	}
+            });
 #else
             std::vector<GLubyte> frame(4 * px_count);
             glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
@@ -4023,42 +4044,27 @@ void GLCanvas3D::_render_volumes_for_picking() const
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
     const Transform3d& view_matrix = m_camera.get_view_matrix();
-    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Opaque, view_matrix);
-    for (const GLVolumeWithIdAndZ& volume : to_render)
-    {
-        // Object picking mode. Render the object with a color encoding the object index.
-        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
-        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
-        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
-        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
-
-        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
-            volume.first->render();
-    }
-
-    to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Transparent, view_matrix);
-    for (const GLVolumeWithIdAndZ& volume : to_render)
-    {
-        // Object picking mode. Render the object with a color encoding the object index.
-        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
-        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
-        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
-        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
-
-        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
-            volume.first->render();
-    }
+    for (size_t type = 0; type < 2; ++ type) {
+	    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::Opaque : GLVolumeCollection::Transparent, view_matrix);
+	    for (const GLVolumeWithIdAndZ& volume : to_render)
+	        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries)) {
+		        // Object picking mode. Render the object with a color encoding the object index.
+		        unsigned int id = volume.second.first;
+		        unsigned int r = (id & (0x000000FF << 0)) << 0;
+		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
+		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
+		        unsigned int a = picking_checksum_alpha_channel(r, g, b);
+		        glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
+	            volume.first->render();
+	        }
+	}
 
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisable(GL_BLEND));
 
     glsafe(::glEnable(GL_CULL_FACE));
 }
