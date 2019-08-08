@@ -24,7 +24,7 @@ public:
     static constexpr double DensityAdjust = 2.44;
 
     // Gyroid upper resolution tolerance (mm^-2)
-    static constexpr double PatternTolerance = 0.4;
+    static constexpr double PatternTolerance = 0.2;
 
 
 protected:

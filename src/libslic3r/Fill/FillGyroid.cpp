@@ -108,10 +108,10 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 
     // tolerance in scaled units. clamp the maximum tolerance as there's
     // no processing-speed benefit to do so beyond a certain point
-    const double tolerance = std::min(line_spacing, FillGyroid::PatternTolerance) / 2 / unscale<double>(scaleFactor);
+    const double tolerance = std::min(line_spacing / 2, FillGyroid::PatternTolerance) / unscale<double>(scaleFactor);
 
- //scale factor for 5% : 8 712 388
- // 1z = 10^-6 mm ?
+    //scale factor for 5% : 8 712 388
+    // 1z = 10^-6 mm ?
     const double z     = gridZ / scaleFactor;
     const double z_sin = sin(z);
     const double z_cos = cos(z);
