@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "slic3r/Utils/Semver.hpp"
+#include "libslic3r/Semver.hpp"
 #include "MsgDialog.hpp"
 
 class wxBoxSizer;

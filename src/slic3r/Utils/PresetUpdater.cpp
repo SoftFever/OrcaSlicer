@@ -124,25 +124,12 @@ struct Updates
 	std::vector<Update> updates;
 };
 
-static Semver get_slic3r_version()
-{
-	auto res = Semver::parse(SLIC3R_VERSION);
-
-	if (! res) {
-		const char *error = "Could not parse Slic3r version string: " SLIC3R_VERSION;
-		BOOST_LOG_TRIVIAL(error) << error;
-		throw std::runtime_error(error);
-	}
-
-	return *res;
-}
 
 wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
 
 
 struct PresetUpdater::priv
 {
-	const Semver ver_slic3r;
 	std::vector<Index> index_db;
 
 	bool enabled_version_check;
@@ -170,8 +157,7 @@ struct PresetUpdater::priv
 };
 
 PresetUpdater::priv::priv()
-	: ver_slic3r(get_slic3r_version())
-	, cache_path(fs::path(Slic3r::data_dir()) / "cache")
+	: cache_path(fs::path(Slic3r::data_dir()) / "cache")
 	, rsrc_path(fs::path(resources_dir()) / "profiles")
 	, vendor_path(fs::path(Slic3r::data_dir()) / "vendor")
 	, cancel(false)
@@ -594,8 +580,8 @@ void PresetUpdater::slic3r_update_notify()
 
 	if (ver_online) {
 		// Only display the notification if the version available online is newer AND if we haven't seen it before
-		if (*ver_online > p->ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
-			GUI::MsgUpdateSlic3r notification(p->ver_slic3r, *ver_online);
+		if (*ver_online > Slic3r::SEMVER && (! ver_online_seen || *ver_online_seen < *ver_online)) {
+			GUI::MsgUpdateSlic3r notification(Slic3r::SEMVER, *ver_online);
 			notification.ShowModal();
 			if (notification.disable_version_check()) {
 				app_config->set("version_check", "0");
