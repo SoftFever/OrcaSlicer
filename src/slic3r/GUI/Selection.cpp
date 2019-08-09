@@ -1475,7 +1475,14 @@ void Selection::toggle_instance_printable_state()
         if ((0 <= instance_idx) && (instance_idx < (int)model_object->instances.size()))
         {
             ModelInstance* instance = model_object->instances[instance_idx];
-            instance->printable = !instance->printable;
+            const bool printable = !instance->printable;
+
+            wxString snapshot_text = model_object->instances.size() == 1 ? wxString::Format("%s %s",
+                                     printable ? _(L("Set Printable")) : _(L("Set Unprintable")), model_object->name) :
+                                     printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance"));
+            wxGetApp().plater()->take_snapshot(snapshot_text);
+
+            instance->printable = printable;
 
             for (GLVolume* volume : *m_volumes)
             {

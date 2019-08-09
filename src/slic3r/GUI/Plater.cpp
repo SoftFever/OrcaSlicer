@@ -2646,7 +2646,6 @@ void Plater::priv::reset()
 
 void Plater::priv::mirror(Axis axis)
 {
-    this->take_snapshot(_(L("Mirror")));
     view3D->mirror_selection(axis);
 }
 
