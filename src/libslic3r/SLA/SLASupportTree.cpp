@@ -713,7 +713,7 @@ struct Pad {
         }
 
         tmesh.translate(0, 0, float(zlevel));
-        tmesh.require_shared_vertices();
+        if (!tmesh.empty()) tmesh.require_shared_vertices();
     }
 
     bool empty() const { return tmesh.facets_count() == 0; }
@@ -2626,10 +2626,10 @@ std::vector<ExPolygons> SLASupportTree::slice(
     }
 
     size_t len = grid.size();
-    for (const Slices slv : slices) { len = std::min(len, slv.size()); }
+    for (const Slices &slv : slices) { len = std::min(len, slv.size()); }
 
     // Either the support or the pad or both has to be non empty
-    assert(!slices.empty());
+    if (slices.empty()) return {};
 
     Slices &mrg = slices.front();
 
