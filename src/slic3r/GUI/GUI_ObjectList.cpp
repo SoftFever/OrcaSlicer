@@ -2636,6 +2636,9 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     ranges[new_range] = config;
 
     wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
+    // To avoid update selection after deleting of a selected item (under GTK)
+    // set m_prevent_list_events to true
+    m_prevent_list_events = true;
     m_objects_model->DeleteChildren(root_item);
 
     if (root_item.IsOk())
