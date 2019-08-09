@@ -1310,19 +1310,15 @@ std::string Print::validate() const
                 return L("Layer height can't be greater than nozzle diameter");
 
             // Validate extrusion widths.
-            for (const char *opt_key : { "extrusion_width", "support_material_extrusion_width" }) {
-            	std::string err_msg;
-            	if (! validate_extrusion_width(object->config(), opt_key, layer_height, err_msg))
-            		return err_msg;
-            }
-            for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" }) {
+            std::string err_msg;
+            if (! validate_extrusion_width(object->config(), "extrusion_width", layer_height, err_msg))
+            	return err_msg;
+            if ((object->config().support_material || object->config().raft_layers > 0) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
+            	return err_msg;
+            for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
 				for (size_t i = 0; i < object->region_volumes.size(); ++ i)
-            		if (! object->region_volumes[i].empty()) {
-		            	std::string err_msg;
-		            	if (! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
-		            		return err_msg;
-            		}
-            }
+            		if (! object->region_volumes[i].empty() && ! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
+		            	return err_msg;
         }
     }
 
