@@ -2921,7 +2921,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
-                    m_selection.add(volume_idx);
+                    /* m_selection.add(volume_idx); // #et_FIXME_if_needed
+                     * To avoid extra "Add-Selection" snapshots,
+                     * call add() with check_for_already_contained=true
+                     * */
+                    m_selection.add(volume_idx, true, true); 
                     m_gizmos.refresh_on_off_state();
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data();
