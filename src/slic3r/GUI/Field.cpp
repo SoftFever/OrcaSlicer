@@ -393,6 +393,12 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
     else
         dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
     m_disable_change_event = false;
+
+    if (!change_event) {
+        wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+        // update m_value to correct work of next value_was_changed()
+        get_value_by_opt_type(ret_str);
+    }
 }
 
 void TextCtrl::set_last_meaningful_value()
@@ -410,7 +416,7 @@ void TextCtrl::set_na_value()
 boost::any& TextCtrl::get_value()
 {
 	wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-	// modifies ret_string!
+	// update m_value
 	get_value_by_opt_type(ret_str);
 
 	return m_value;
