@@ -354,7 +354,7 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
         ImGui::Selectable(item_text, i < hovered);
 
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(item_text);
+            ImGui::SetTooltip("%s", item_text);
             hovered = i;
             is_hovered = true;
         }
