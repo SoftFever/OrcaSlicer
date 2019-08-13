@@ -729,10 +729,15 @@ void Tab::update_mode()
     m_mode_sizer->SetMode(m_mode);
 
     update_visibility();
+
+    update_changed_tree_ui();
 }
 
 void Tab::update_visibility()
 {
+    if (m_mode == comUndef) // if mode isn't set for this moment
+        m_mode = wxGetApp().get_mode();
+
     Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
 
     for (auto page : m_pages)
@@ -741,8 +746,6 @@ void Tab::update_visibility()
 
     Layout();
     Thaw();
-
-    update_changed_tree_ui();
 }
 
 void Tab::msw_rescale()

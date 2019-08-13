@@ -218,7 +218,7 @@ protected:
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
     bool                m_complited { false };
-    ConfigOptionMode    m_mode = comSimple;
+    ConfigOptionMode    m_mode = comUndef;
 
 public:
 	PresetBundle*		m_preset_bundle;
