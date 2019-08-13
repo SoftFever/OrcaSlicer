@@ -371,6 +371,7 @@ public:
 	wxButton*	m_serial_test_btn = nullptr;
 	ScalableButton*	m_print_host_test_btn = nullptr;
 	ScalableButton*	m_printhost_browse_btn = nullptr;
+	ScalableButton*	m_reset_to_filament_color = nullptr;
 
 	size_t		m_extruders_count;
 	size_t		m_extruders_count_old = 0;
