@@ -467,7 +467,10 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                                        : 0.;
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                                     + layer_to_print.layer()->height
-                                    + support_contact_z;
+                                    + std::max(0., support_contact_z);
+            // Negative support_contact_z is not taken into account, it can result in false positives in cases
+            // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
+
 
             if (layer_to_print.print_z() > maximal_print_z + EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
