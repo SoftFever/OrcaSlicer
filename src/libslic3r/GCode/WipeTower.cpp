@@ -22,6 +22,7 @@ TODO LIST
 #include <numeric>
 
 #include "Analyzer.hpp"
+#include "BoundingBox.hpp"
 
 #if defined(__linux) || defined(__GNUC__ )
 #include <strings.h>
@@ -470,6 +471,83 @@ private:
 
 
 
+WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool) :
+    m_semm(config.single_extruder_multi_material.value),
+    m_wipe_tower_pos(config.wipe_tower_x, config.wipe_tower_y),
+    m_wipe_tower_width(config.wipe_tower_width),
+    m_wipe_tower_rotation_angle(config.wipe_tower_rotation_angle),
+    m_y_shift(0.f),
+    m_z_pos(0.f),
+    m_is_first_layer(false),
+    m_bridging(config.wipe_tower_bridging),
+    m_gcode_flavor(config.gcode_flavor),
+    m_current_tool(initial_tool),
+    wipe_volumes(wiping_matrix)
+{
+    // If this is a single extruder MM printer, we will use all the SE-specific config values.
+    // Otherwise, the defaults will be used to turn off the SE stuff.
+    if (m_semm) {
+        m_cooling_tube_retraction = config.cooling_tube_retraction;
+        m_cooling_tube_length = config.cooling_tube_length;
+        m_parking_pos_retraction = config.parking_pos_retraction;
+        m_extra_loading_move = config.extra_loading_move;
+        m_set_extruder_trimpot = config.high_current_on_filament_swap;
+    }
+    // Calculate where the priming lines should be - very naive test not detecting parallelograms or custom shapes
+    const std::vector<Vec2d>& bed_points = config.bed_shape.values;
+    m_bed_shape = (bed_points.size() == 4 ? RectangularBed : CircularBed);
+    m_bed_width = BoundingBoxf(bed_points).size().x();
+}
+
+
+
+void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
+{
+    //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
+    m_filpar.push_back(FilamentParameters());
+
+    m_filpar[idx].material = config.filament_type.get_at(idx);
+    m_filpar[idx].temperature = config.temperature.get_at(idx);
+    m_filpar[idx].first_layer_temperature = config.first_layer_temperature.get_at(idx);
+
+    // If this is a single extruder MM printer, we will use all the SE-specific config values.
+    // Otherwise, the defaults will be used to turn off the SE stuff.
+    if (m_semm) {
+        m_filpar[idx].loading_speed           = config.filament_loading_speed.get_at(idx);
+        m_filpar[idx].loading_speed_start     = config.filament_loading_speed_start.get_at(idx);
+        m_filpar[idx].unloading_speed         = config.filament_unloading_speed.get_at(idx);
+        m_filpar[idx].unloading_speed_start   = config.filament_unloading_speed_start.get_at(idx);
+        m_filpar[idx].delay                   = config.filament_toolchange_delay.get_at(idx);
+        m_filpar[idx].cooling_moves           = config.filament_cooling_moves.get_at(idx);
+        m_filpar[idx].cooling_initial_speed   = config.filament_cooling_initial_speed.get_at(idx);
+        m_filpar[idx].cooling_final_speed     = config.filament_cooling_final_speed.get_at(idx);
+    }
+
+    m_filpar[idx].filament_area = float((M_PI/4.f) * pow(config.filament_diameter.get_at(idx), 2)); // all extruders are assumed to have the same filament diameter at this point
+    float nozzle_diameter = config.nozzle_diameter.get_at(idx);
+    m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
+
+    float max_vol_speed = config.filament_max_volumetric_speed.get_at(idx);
+    if (max_vol_speed!= 0.f)
+        m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
+
+    m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
+
+    if (m_semm) {
+        std::istringstream stream{config.filament_ramming_parameters.get_at(idx)};
+        float speed = 0.f;
+        stream >> m_filpar[idx].ramming_line_width_multiplicator >> m_filpar[idx].ramming_step_multiplicator;
+        m_filpar[idx].ramming_line_width_multiplicator /= 100;
+        m_filpar[idx].ramming_step_multiplicator /= 100;
+        while (stream >> speed)
+            m_filpar[idx].ramming_speed.push_back(speed);
+    }
+
+    m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
+}
+
+
+
 // Returns gcode to prime the nozzles at the front edge of the print bed.
 std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 	// print_z of the first layer.
@@ -488,9 +566,11 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
     // therefore the homing position is shifted inside the bed by 0.2 in the firmware to [0.2, -2.0].
 //	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
 
-	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
-	box_coordinates cleaning_box(Vec2f(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
-
+    float prime_section_width = std::min(0.9f * m_bed_width / tools.size(), 60.f);
+    box_coordinates cleaning_box(Vec2f(0.02f * m_bed_width, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
+    // In case of a circular bed, place it so it goes across the diameter and hope it will fit
+    if (m_bed_shape == CircularBed)
+        cleaning_box.translate(-m_bed_width/2 + m_bed_width * 0.03f, -m_bed_width * 0.12f);
 
     std::vector<ToolChangeResult> results;
 
