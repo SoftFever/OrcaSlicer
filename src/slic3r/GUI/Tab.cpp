@@ -373,6 +373,8 @@ void Tab::update_labels_colour()
 //	Thaw();
 
     auto cur_item = m_treectrl->GetFirstVisibleItem();
+    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+        return;
     while (cur_item) {
         auto title = m_treectrl->GetItemText(cur_item);
         for (auto page : m_pages)
