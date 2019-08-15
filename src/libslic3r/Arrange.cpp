@@ -492,8 +492,11 @@ BedShapeHint::BedShapeHint(const Polyline &bed) {
         m_type = BedShapes::bsCircle;
         m_bed.circ = c;
     } else {
+        if (m_type == BedShapes::bsIrregular)
+             m_bed.polygon.Slic3r::Polyline::~Polyline();
+
         m_type = BedShapes::bsIrregular;
-        m_bed.polygon = bed;
+        ::new (&m_bed.polygon) Polyline(bed);
     }
 }
 

@@ -45,12 +45,12 @@ class BedShapeHint {
         Polyline    polygon;
         InfiniteBed infbed{};
         ~BedShape_u() {}
-        BedShape_u() {};
+        BedShape_u() {}
     } m_bed;
     
 public:
 
-    BedShapeHint(){};
+    BedShapeHint(){}
     
     /// Get a bed shape hint for arrange() from a naked Polyline.
     explicit BedShapeHint(const Polyline &polyl);
@@ -73,7 +73,7 @@ public:
     {
         if (m_type == BedShapes::bsIrregular)
             m_bed.polygon.Slic3r::Polyline::~Polyline();
-    };
+    }
 
     BedShapeHint(const BedShapeHint &cpy) { *this = cpy; }
     BedShapeHint(BedShapeHint &&cpy) { *this = std::move(cpy); }
