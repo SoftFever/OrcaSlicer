@@ -197,9 +197,6 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
-    // Disable linear advance for the wipe tower operations.
-    gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
-
     if (!tcr.priming) {
         // Move over the wipe tower.
         // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
