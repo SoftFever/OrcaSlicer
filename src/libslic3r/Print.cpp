@@ -1149,11 +1149,17 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        // make sure all extruders use same diameter filament and have the same nozzle diameter
+        // Make sure all extruders use same diameter filament and have the same nozzle diameter
+        // EPSILON comparison is used for nozzles and 10 % tolerance is used for filaments
+        double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders().front());
+        double first_filament_diam = m_config.filament_diameter.get_at(extruders().front());
         for (const auto& extruder_idx : extruders()) {
-            if (m_config.nozzle_diameter.get_at(extruder_idx) != m_config.nozzle_diameter.get_at(extruders().front())
-             || m_config.filament_diameter.get_at(extruder_idx) != m_config.filament_diameter.get_at(extruders().front()))
-                 return L("The wipe tower is only supported if all extruders have the same nozzle diameter and use filaments of the same diameter.");
+            double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
+            double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
+            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
+             || std::abs((filament_diam-first_filament_diam)/first_filament_diam) > 0.1)
+                 return L("The wipe tower is only supported if all extruders have the same nozzle diameter "
+                          "and use filaments of the same diameter.");
         }
 
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
@@ -1161,10 +1167,6 @@ std::string Print::validate() const
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         
-        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
-            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
-                return L("All extruders must have the same diameter for the Wipe Tower.");
-
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;

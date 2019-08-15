@@ -2047,14 +2047,17 @@ void TabPrinter::build_fff()
                                                                   "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
                                     auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
 
+                                    DynamicPrintConfig new_conf = *m_config;
                                     if (dialog->ShowModal() == wxID_YES) {
-                                        DynamicPrintConfig new_conf = *m_config;
                                         for (size_t i = 1; i < nozzle_diameters.size(); i++)
                                             nozzle_diameters[i] = frst_diam;
 
                                         new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
-                                        load_config(new_conf);
                                     }
+                                    else
+                                        new_conf.set_key_value("single_extruder_multi_material", new ConfigOptionBool(false));
+
+                                    load_config(new_conf);
                                     break;
                                 }
                             }
@@ -2502,7 +2505,8 @@ void TabPrinter::build_unregular_pages()
                     // if value was changed
                     if (fabs(nozzle_diameters[extruder_idx == 0 ? 1 : 0] - new_nd) > EPSILON)
                     {
-                        const wxString msg_text = _(L("Do you want to change the diameter for all extruders?"));
+                        const wxString msg_text = _(L("This is a single extruder multimaterial printer, diameters of all extruders "
+                                                      "will be set to the new value. Do you want to proceed?"));
                         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
 
                         DynamicPrintConfig new_conf = *m_config;
