@@ -206,8 +206,8 @@ void Field::get_value_by_opt_type(wxString& str)
                 const wxString msg_text = wxString::Format(_(L("Do you mean %s%% instead of %s %s?\n"
                     "Select YES if you want to change this value to %s%%, \n"
                     "or NO if you are sure that %s %s is a correct value.")), stVal, stVal, sidetext, stVal, stVal, sidetext);
-                auto dialog = new wxMessageDialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
-                if (dialog->ShowModal() == wxID_YES) {
+                wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
+                if (dialog.ShowModal() == wxID_YES) {
                     set_value(wxString::Format("%s%%", stVal), false/*true*/);
                     str += "%%";
                 }
