@@ -1616,6 +1616,9 @@ void ObjectList::load_subobject(ModelVolumeType type)
 
 
     changed_object(obj_idx);
+    if (type == ModelVolumeType::MODEL_PART)
+        // update printable state on canvas
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     wxDataViewItem sel_item;
     for (const auto& volume : volumes_info )
@@ -1739,6 +1742,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
     changed_object(obj_idx);
+    if (type == ModelVolumeType::MODEL_PART)
+        // update printable state on canvas
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
     select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
@@ -3351,9 +3357,8 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
         delete_instance_from_list(obj_idx, *it);
     }
 
-    std::vector<size_t> object_idxs = { new_obj_indx };
     // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
 }
 
 void ObjectList::instances_to_separated_objects(const int obj_idx)
@@ -3684,8 +3689,7 @@ void ObjectList::toggle_printable_state(wxDataViewItem item)
             inst->printable = printable;
 
         // update printable state on canvas
-        std::vector<size_t> obj_idxs = {(size_t)obj_idx};
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
         // update printable state in ObjectList
         m_objects_model->SetObjectPrintableState(printable ? piPrintable : piUnprintable , item);

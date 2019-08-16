@@ -1319,22 +1319,25 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         _set_warning_texture(WarningTexture::SomethingNotShown, false);
 }
 
+void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx)
+{
+    ModelObject* model_object = m_model->objects[obj_idx];
+    for (int inst_idx = 0; inst_idx < model_object->instances.size(); inst_idx++)
+    {
+        ModelInstance* instance = model_object->instances[inst_idx];
+
+        for (GLVolume* volume : m_volumes.volumes)
+        {
+            if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == inst_idx))
+                volume->printable = instance->printable;
+        }
+    }
+}
+
 void GLCanvas3D::update_instance_printable_state_for_objects(std::vector<size_t>& object_idxs)
 {
     for (size_t obj_idx : object_idxs)
-    {
-        ModelObject* model_object = m_model->objects[obj_idx];
-        for (int inst_idx = 0; inst_idx < model_object->instances.size(); inst_idx++)
-        {
-            ModelInstance* instance = model_object->instances[inst_idx];
-
-            for (GLVolume* volume : m_volumes.volumes)
-            {
-                if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == inst_idx))
-                    volume->printable = instance->printable;
-            }
-        }
-    }
+        update_instance_printable_state_for_object(obj_idx);
 }
 
 void GLCanvas3D::set_config(const DynamicPrintConfig* config)
