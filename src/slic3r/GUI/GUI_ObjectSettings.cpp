@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "I18N.hpp"
+#include "Tab.hpp"
 
 #include <wx/wupdlock.h>
 
@@ -117,7 +118,8 @@ bool ObjectSettings::update_settings_list()
             optgroup->label_width = 15;
             optgroup->sidetext_width = 5.5;
 
-            optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
+            optgroup->m_on_change = [this, config](const t_config_option_key& opt_id, const boost::any& value) {
+                                    this->update_config_values(config);
                                     wxGetApp().obj_list()->changed_object(); };
 
             // call back for rescaling of the extracolumn control
@@ -152,8 +154,10 @@ bool ObjectSettings::update_settings_list()
             m_og_settings.push_back(optgroup);
         }
 
-        if (!categories.empty())
+        if (!categories.empty()) {
             objects_model->UpdateSettingsDigest(item, categories);
+            update_config_values(config);
+        }
     }
     else
     {
@@ -162,6 +166,33 @@ bool ObjectSettings::update_settings_list()
     } 
             
     return true;
+}
+
+void ObjectSettings::update_config_values(DynamicPrintConfig*config)
+{
+    auto load_config = [this, config]()
+    {
+        for (auto og : m_og_settings)
+            og->reload_config();
+        update_config_values(config);
+    };
+
+    auto get_field = [this](const t_config_option_key & opt_key)
+    {
+        Field* field = nullptr;
+        for (auto og : m_og_settings) {
+            field = og->get_fieldc(opt_key, -1);
+            if (field != nullptr)
+                return field;
+        }
+        return field;
+    };
+
+    ConfigManipulation config_manipulation(parent(), load_config, get_field, nullptr);
+
+    wxGetApp().plater()->printer_technology() == ptFFF       ? 
+        config_manipulation.update_print_fff_options(config) :
+        config_manipulation.update_print_sla_options(config) ;
 }
 
 void ObjectSettings::UpdateAndShow(const bool show)
