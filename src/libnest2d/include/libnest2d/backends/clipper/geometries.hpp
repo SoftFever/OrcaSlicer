@@ -337,7 +337,15 @@ merge(const TMultiShape<PolygonImpl>& shapes)
 //#define DISABLE_BOOST_SERIALIZE
 //#define DISABLE_BOOST_UNSERIALIZE
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
 // All other operators and algorithms are implemented with boost
 #include <libnest2d/utils/boost_alg.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif // CLIPPER_BACKEND_HPP

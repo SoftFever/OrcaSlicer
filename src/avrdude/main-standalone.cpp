@@ -38,6 +38,10 @@ struct ArgvUtf8 : std::vector<char*>
 	}
 };
 
+#endif
+
+#ifdef _MSC_VER
+
 int wmain(int argc_w, wchar_t *argv_w[])
 {
 	ArgvUtf8 argv_utf8(argc_w, argv_w);

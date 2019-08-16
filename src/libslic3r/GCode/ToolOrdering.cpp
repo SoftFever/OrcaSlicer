@@ -101,23 +101,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->collect_extruder_statistics(prime_multi_material);
 }
 
-
-LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z)
-{
-    auto it_layer_tools = std::lower_bound(m_layer_tools.begin(), m_layer_tools.end(), LayerTools(print_z - EPSILON));
-    assert(it_layer_tools != m_layer_tools.end());
-    coordf_t dist_min = std::abs(it_layer_tools->print_z - print_z);
-	for (++ it_layer_tools; it_layer_tools != m_layer_tools.end(); ++it_layer_tools) {
-        coordf_t d = std::abs(it_layer_tools->print_z - print_z);
-        if (d >= dist_min)
-            break;
-        dist_min = d;
-    }
-    -- it_layer_tools;
-    assert(dist_min < EPSILON);
-    return *it_layer_tools;
-}
-
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
 {
     sort_remove_duplicates(zs);
@@ -156,7 +139,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
         // What extruders are required to print this object layer?
         for (size_t region_id = 0; region_id < object.region_volumes.size(); ++ region_id) {
-			const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
+            const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
             if (layerm == nullptr)
                 continue;
             const PrintRegion &region = *object.print()->regions()[region_id];
@@ -336,10 +319,10 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
                         // If it is a bug, it's likely not critical, because this code is unchanged for a long time. It might
                         // still be worth looking into it more and decide if it is a bug or an obsolete assert.
                         //assert(lt_prev.extruders.back() == lt_next.extruders.front());
-						lt_extra.has_wipe_tower = true;
+                        lt_extra.has_wipe_tower = true;
                         lt_extra.extruders.push_back(lt_next.extruders.front());
-						lt_extra.wipe_tower_partitions = lt_next.wipe_tower_partitions;
-					}
+                        lt_extra.wipe_tower_partitions = lt_next.wipe_tower_partitions;
+                    }
                 }
             }
             break;
@@ -381,7 +364,7 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
         // Reorder m_all_printing_extruders in the sequence they will be primed, the last one will be m_first_printing_extruder.
         // Then set m_first_printing_extruder to the 1st extruder primed.
         m_all_printing_extruders.erase(
-            std::remove_if(m_all_printing_extruders.begin(), m_all_printing_extruders.end(), 
+            std::remove_if(m_all_printing_extruders.begin(), m_all_printing_extruders.end(),
                 [ this ](const unsigned int eid) { return eid == m_first_printing_extruder; }),
             m_all_printing_extruders.end());
         m_all_printing_extruders.emplace_back(m_first_printing_extruder);
@@ -629,6 +612,6 @@ const std::vector<int>* WipingExtrusions::get_extruder_overrides(const Extrusion
 
     return &(entity_map_it->second);
 }
-    
+
 
 } // namespace Slic3r
