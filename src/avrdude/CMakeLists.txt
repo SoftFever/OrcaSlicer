@@ -74,6 +74,10 @@ if (MSVC)
         windows/unistd.cpp
         windows/getopt.c
     )
+elseif (MINGW)
+    set(AVRDUDE_SOURCES ${AVRDUDE_SOURCES}
+        windows/utf8.c
+    )
 endif()
 
 add_executable(avrdude-conf-gen conf-generate.cpp)
@@ -98,5 +102,7 @@ target_link_libraries(avrdude-slic3r avrdude)
 
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)
-    target_include_directories(avrdude SYSTEM PRIVATE windows)    # So that sources find the getopt.h windows drop-in
+    if(MSVC)
+        target_include_directories(avrdude SYSTEM PRIVATE windows)    # So that sources find the getopt.h windows drop-in
+    endif(MSVC)
 endif()

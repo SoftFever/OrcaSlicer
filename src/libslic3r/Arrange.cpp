@@ -133,8 +133,18 @@ protected:
     PConfig   m_pconf; // Placement configuration
     TBin      m_bin;
     double    m_bin_area;
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
     SpatIndex m_rtree; // spatial index for the normal (bigger) objects
     SpatIndex m_smallsrtree;    // spatial index for only the smaller items
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
     double    m_norm;           // A coefficient to scale distances
     MultiPolygon m_merged_pile; // The already merged pile (vector of items)
     Box          m_pilebb;      // The bounding box of the merged pile.

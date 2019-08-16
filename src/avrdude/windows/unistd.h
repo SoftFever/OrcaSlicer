@@ -63,7 +63,7 @@ extern "C" {
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(__clang__)
 #include <stdint.h>
 struct timezone;
 struct timeval;

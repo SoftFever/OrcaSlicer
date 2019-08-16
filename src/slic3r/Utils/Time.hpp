@@ -2,7 +2,7 @@
 #define slic3r_Utils_Time_hpp_
 
 #include <string>
-#include <time.h>
+#include <ctime>
 
 namespace Slic3r {
 namespace Utils {
