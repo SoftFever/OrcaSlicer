@@ -16,7 +16,7 @@
 // For geometry algorithms with native Clipper types (no copies and conversions)
 #include <libnest2d/backends/clipper/geometries.hpp>
 
-#define SLAPRINT_DO_BENCHMARK
+// #define SLAPRINT_DO_BENCHMARK
 
 #ifdef SLAPRINT_DO_BENCHMARK
 #include <libnest2d/tools/benchmark.h>
@@ -954,20 +954,20 @@ void SLAPrint::process()
         throw_if_canceled();
 
         // Create the unified mesh
-        // auto rc = SlicingStatus::RELOAD_SCENE;
+        auto rc = SlicingStatus::RELOAD_SCENE;
 
         // This is to prevent "Done." being displayed during merged_mesh()
-        // m_report_status(*this, -1, L("Visualizing supports"));
-        // po.m_supportdata->support_tree_ptr->merged_mesh();
+        m_report_status(*this, -1, L("Visualizing supports"));
+        po.m_supportdata->support_tree_ptr->merged_mesh();
 
         BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
                                  << po.m_supportdata->support_points.size();
 
         // Check the mesh for later troubleshooting.
-//        if(po.support_mesh().empty())
-//            BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
+        if(po.support_mesh().empty())
+            BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
 
-//        m_report_status(*this, -1, L("Visualizing supports"), rc);
+        m_report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // This step generates the sla base pad
@@ -975,10 +975,6 @@ void SLAPrint::process()
         // this step can only go after the support tree has been created
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
-
-        std::cout << "Should only merge mesh after this" << std::endl;
-        po.m_supportdata->support_tree_ptr->merged_mesh();
-        m_report_status(*this, -1, L("Visualizing supports"), SlicingStatus::RELOAD_SCENE);
 
         if(po.m_config.pad_enable.getBool())
         {
@@ -1494,10 +1490,7 @@ void SLAPrint::process()
     {
         unsigned incr = 0;
         for (SLAPrintObject *po : m_objects) {
-
-            for (SLAPrintObjectStep currentstep : steps) {
-
-                Benchmark bench;
+            for (SLAPrintObjectStep step : steps) {
 
                 // Cancellation checking. Each step will check for
                 // cancellation on its own and return earlier gracefully.
@@ -1507,17 +1500,17 @@ void SLAPrint::process()
 
                 st += incr * ostepd;
 
-                if (po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-                    m_report_status(*this, st, OBJ_STEP_LABELS(currentstep));
+                if (po->m_stepmask[step] && po->set_started(step)) {
+                    m_report_status(*this, st, OBJ_STEP_LABELS(step));
                     bench.start();
-                    pobj_program[currentstep](*po);
+                    pobj_program[step](*po);
                     bench.stop();
-                    step_times[currentstep] += bench.getElapsedSec();
+                    step_times[step] += bench.getElapsedSec();
                     throw_if_canceled();
-                    po->set_done(currentstep);
+                    po->set_done(step);
                 }
 
-                incr = OBJ_STEP_LEVELS[currentstep];
+                incr = OBJ_STEP_LEVELS[step];
             }
         }
     };
@@ -1525,14 +1518,12 @@ void SLAPrint::process()
     apply_steps_on_objects(level1_obj_steps);
     apply_steps_on_objects(level2_obj_steps);
 
-    SLAPrintStep printsteps[] = { slapsMergeSlicesAndEval, slapsRasterize };
-
     // this would disable the rasterization step
     // std::fill(m_stepmask.begin(), m_stepmask.end(), false);
 
     double pstd = (100 - max_objstatus) / 100.0;
     st = max_objstatus;
-    for(SLAPrintStep currentstep : printsteps) {
+    for(SLAPrintStep currentstep : print_steps) {
         throw_if_canceled();
 
         if (m_stepmask[currentstep] && set_started(currentstep)) {

@@ -948,8 +948,6 @@ public:
     {
         if (meshcache_valid) return meshcache;
 
-        std::cout << "merging mesh" << std::endl;
-
         Contour3D merged;
 
         for (auto &head : m_heads) {
@@ -2450,7 +2448,7 @@ public:
         }
     }
 
-    void merge_result() { /*m_result.merge_and_cleanup();*/ }
+    void merge_result() { m_result.merge_and_cleanup(); }
 };
 
 bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
