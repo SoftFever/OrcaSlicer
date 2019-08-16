@@ -104,15 +104,15 @@ void GLGizmoMove3D::on_render() const
 
     // x axis
     m_grabbers[0].center = Vec3d(box.max(0) + Offset, center(1), center(2));
-    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 4 * sizeof(float));
 
     // y axis
     m_grabbers[1].center = Vec3d(center(0), box.max(1) + Offset, center(2));
-    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[1], 4 * sizeof(float));
 
     // z axis
     m_grabbers[2].center = Vec3d(center(0), center(1), box.max(2) + Offset);
-    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[2], 4 * sizeof(float));
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
@@ -123,7 +123,7 @@ void GLGizmoMove3D::on_render() const
         {
             if (m_grabbers[i].enabled)
             {
-                glsafe(::glColor3fv(AXES_COLOR[i]));
+                glsafe(::glColor4fv(AXES_COLOR[i]));
                 ::glBegin(GL_LINES);
                 ::glVertex3dv(center.data());
                 ::glVertex3dv(m_grabbers[i].center.data());
@@ -142,7 +142,7 @@ void GLGizmoMove3D::on_render() const
     else
     {
         // draw axis
-        glsafe(::glColor3fv(AXES_COLOR[m_hover_id]));
+        glsafe(::glColor4fv(AXES_COLOR[m_hover_id]));
         ::glBegin(GL_LINES);
         ::glVertex3dv(center.data());
         ::glVertex3dv(m_grabbers[m_hover_id].center.data());
@@ -220,19 +220,20 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
 
-    float color[3];
-    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 3 * sizeof(float));
+    float color[4];
+    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 4 * sizeof(float));
     if (!picking && (m_hover_id != -1))
     {
         color[0] = 1.0f - color[0];
         color[1] = 1.0f - color[1];
         color[2] = 1.0f - color[2];
+        color[3] = color[3];
     }
 
     if (!picking)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor3fv(color));
+    glsafe(::glColor4fv(color));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2)));
     if (axis == X)

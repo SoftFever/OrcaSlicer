@@ -575,6 +575,16 @@ std::string SLAPrint::output_filename(const std::string &filename_base) const
 }
 
 namespace {
+
+bool is_zero_elevation(const SLAPrintObjectConfig &c) {
+    bool en_implicit = c.support_object_elevation.getFloat() <= EPSILON &&
+                       c.pad_enable.getBool() && c.supports_enable.getBool();
+    bool en_explicit = c.pad_zero_elevation.getBool() &&
+                       c.supports_enable.getBool();
+
+    return en_implicit || en_explicit;
+}
+
 // Compile the argument for support creation from the static print config.
 sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     sla::SupportConfig scfg;
@@ -583,7 +593,8 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.head_back_radius_mm = 0.5*c.support_pillar_diameter.getFloat();
     scfg.head_penetration_mm = c.support_head_penetration.getFloat();
     scfg.head_width_mm = c.support_head_width.getFloat();
-    scfg.object_elevation_mm = c.support_object_elevation.getFloat();
+    scfg.object_elevation_mm = is_zero_elevation(c) ?
+                                   0. : c.support_object_elevation.getFloat();
     scfg.bridge_slope = c.support_critical_angle.getFloat() * PI / 180.0 ;
     scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
     scfg.max_pillar_link_distance_mm = c.support_max_pillar_link_distance.getFloat();
@@ -609,8 +620,7 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
 sla::PoolConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c) {
     sla::PoolConfig::EmbedObject ret;
 
-    ret.enabled = c.support_object_elevation.getFloat() <= EPSILON &&
-                  c.pad_enable.getBool() && c.supports_enable.getBool();
+    ret.enabled = is_zero_elevation(c);
 
     if(ret.enabled) {
         ret.object_gap_mm        = c.pad_object_gap.getFloat();
@@ -667,7 +677,9 @@ std::string SLAPrint::validate() const
         double elv = cfg.object_elevation_mm;
 
         if(supports_en && elv > EPSILON && elv < pinhead_width )
-            return L("Elevation is too low for object.");
+            return L(
+                "Elevation is too low for object. Use the \"Pad around "
+                "obect\" feature to print the object without elevation.");
 
         sla::PoolConfig::EmbedObject builtinpad = builtin_pad_cfg(po->config());
         if(supports_en && builtinpad.enabled &&
@@ -755,7 +767,7 @@ void SLAPrint::process()
         for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs)
             po.m_slice_index.emplace_back(h, unscaled<float>(h) - lh / 2.f, lh);
 
-        // Just get the first record that is form the model:
+        // Just get the first record that is from the model:
         auto slindex_it =
                 po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
 
@@ -885,7 +897,7 @@ void SLAPrint::process()
 
         // If the zero elevation mode is engaged, we have to filter out all the
         // points that are on the bottom of the object
-        if (po.config().support_object_elevation.getFloat() <= EPSILON) {
+        if (is_zero_elevation(po.config())) {
             double gnd       = po.m_supportdata->emesh.ground_level();
             auto & pts       = po.m_supportdata->support_points;
             double tolerance = po.config().pad_enable.getBool()
@@ -1668,6 +1680,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_wall_thickness"
             || opt_key == "supports_enable"
             || opt_key == "support_object_elevation"
+            || opt_key == "pad_zero_elevation"
             || opt_key == "slice_closing_radius") {
             steps.emplace_back(slaposObjectSlice);
         } else if (
@@ -1740,7 +1753,10 @@ bool SLAPrintObject::invalidate_all_steps()
 }
 
 double SLAPrintObject::get_elevation() const {
-    bool   en  = m_config.supports_enable.getBool();
+    if (is_zero_elevation(m_config)) return 0.;
+
+    bool en = m_config.supports_enable.getBool();
+
     double ret = en ? m_config.support_object_elevation.getFloat() : 0.;
 
     if(m_config.pad_enable.getBool()) {
@@ -1757,8 +1773,10 @@ double SLAPrintObject::get_elevation() const {
 
 double SLAPrintObject::get_current_elevation() const
 {
+    if (is_zero_elevation(m_config)) return 0.;
+
     bool has_supports = is_step_done(slaposSupportTree);
-    bool has_pad = is_step_done(slaposBasePool);
+    bool has_pad      = is_step_done(slaposBasePool);
 
     if(!has_supports && !has_pad)
         return 0;

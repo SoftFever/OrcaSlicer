@@ -21,11 +21,11 @@ class ModelObject;
 
 namespace GUI {
 
-static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
-static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
-static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
-static const float AXES_COLOR[3][3] = { { 0.75f, 0.0f, 0.0f }, { 0.0f, 0.75f, 0.0f }, { 0.0f, 0.0f, 0.75f } };
-static const float CONSTRAINED_COLOR[3] = { 0.5f, 0.5f, 0.5f };
+static const float DEFAULT_BASE_COLOR[4] = { 0.625f, 0.625f, 0.625f, 1.0f };
+static const float DEFAULT_DRAG_COLOR[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+static const float DEFAULT_HIGHLIGHT_COLOR[4] = { 1.0f, 0.38f, 0.0f, 1.0f };
+static const float AXES_COLOR[][4] = { { 0.75f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.75f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.75f, 1.0f } };
+static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 
 
@@ -48,7 +48,7 @@ protected:
 
         Vec3d center;
         Vec3d angles;
-        float color[3];
+        float color[4];
         bool enabled;
         bool dragging;
 
@@ -94,9 +94,9 @@ protected:
     unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
-    float m_base_color[3];
-    float m_drag_color[3];
-    float m_highlight_color[3];
+    float m_base_color[4];
+    float m_drag_color[4];
+    float m_highlight_color[4];
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
 
@@ -166,7 +166,7 @@ protected:
 
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)
-    std::array<float, 3> picking_color_component(unsigned int id) const;
+    std::array<float, 4> picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
@@ -174,6 +174,10 @@ protected:
     void set_tooltip(const std::string& tooltip) const;
     std::string format(float value, unsigned int decimals) const;
 };
+
+// Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
+// were not interpolated by alpha blending or multi sampling.
+extern unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue);
 
 } // namespace GUI
 } // namespace Slic3r

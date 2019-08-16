@@ -482,6 +482,8 @@ public:
 
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
+    void update_instance_printable_state_for_object(size_t obj_idx);
+    void update_instance_printable_state_for_objects(std::vector<size_t>& object_idxs);
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
@@ -652,7 +654,7 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box(bool include_bed_model) const;
+    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
     void _zoom_to_box(const BoundingBoxf3& box);
 
@@ -721,6 +723,8 @@ private:
     void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
     void _load_fff_shells();
+    // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
+	void _load_sla_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();

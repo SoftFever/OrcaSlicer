@@ -78,8 +78,13 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                 zs.emplace_back(layer->print_z);
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
-            if (! object->layers().empty())
-                object_bottom_z = object->layers().front()->print_z - object->layers().front()->height;
+
+            // Find first object layer that is not empty and save its print_z
+            for (const Layer* layer : object->layers())
+                if (layer->has_extrusions()) {
+                    object_bottom_z = layer->print_z - layer->height;
+                    break;
+                }
         }
         this->initialize_layers(zs);
     }
@@ -303,10 +308,11 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
                     LayerTools lt_new(0.5f * (lt.print_z + lt_object.print_z));
                     // Find the 1st layer above lt_new.
                     for (j = i + 1; j < m_layer_tools.size() && m_layer_tools[j].print_z < lt_new.print_z - EPSILON; ++ j);
-                    if (std::abs(m_layer_tools[j].print_z - lt_new.print_z) < EPSILON) {
-                        m_layer_tools[j].has_wipe_tower = true;
-                    } else {
-                        LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
+					if (std::abs(m_layer_tools[j].print_z - lt_new.print_z) < EPSILON) {
+						m_layer_tools[j].has_wipe_tower = true;
+					} else {
+						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
+                        //LayerTools &lt_prev  = m_layer_tools[j];
                         LayerTools &lt_next  = m_layer_tools[j + 1];
                         assert(! m_layer_tools[j - 1].extruders.empty() && ! lt_next.extruders.empty());
                         // FIXME: Following assert tripped when running combine_infill.t. I decided to comment it out for now.

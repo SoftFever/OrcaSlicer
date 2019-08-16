@@ -44,6 +44,9 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
+wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
+
 class wxDialog;
 void    edit_tooltip(wxString& tooltip);
 void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
@@ -173,6 +176,21 @@ enum ItemType {
     itLayer         = 64,
 };
 
+enum ColumnNumber
+{
+    colName         = 0,    // item name
+    colPrint           ,    // printable property
+    colExtruder        ,    // extruder selection
+    colEditing         ,    // item editing
+};
+
+enum PrintIndicator
+{
+    piUndef         = 0,    // no print indicator
+    piPrintable        ,    // printable
+    piUnprintable      ,    // unprintable
+};
+
 class ObjectDataViewModelNode;
 WX_DEFINE_ARRAY_PTR(ObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
 
@@ -192,6 +210,8 @@ class ObjectDataViewModelNode
     bool					        m_container = false;
     wxString				        m_extruder = "default";
     wxBitmap				        m_action_icon;
+    PrintIndicator                  m_printable {piUndef};
+    wxBitmap				        m_printable_icon;
 
     std::string                     m_action_icon_name = "";
     Slic3r::ModelVolumeType         m_volume_type;
@@ -204,15 +224,9 @@ public:
         m_type(itObject),
         m_extruder(extruder)
     {
-#ifdef __WXGTK__
-        // it's necessary on GTK because of control have to know if this item will be container
-        // in another case you couldn't to add subitem for this item
-        // it will be produce "segmentation fault"
-        m_container = true;
-#endif  //__WXGTK__
-
         set_action_icon();
-    }
+        init_container();
+	}
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const wxString& sub_obj_name,
@@ -226,14 +240,8 @@ public:
         m_extruder  (extruder)
     {
         m_bmp = bmp;
-#ifdef __WXGTK__
-        // it's necessary on GTK because of control have to know if this item will be container
-        // in another case you couldn't to add subitem for this item
-        // it will be produce "segmentation fault"
-        m_container = true;
-#endif  //__WXGTK__
-
         set_action_icon();
+        init_container();
     }
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
@@ -258,10 +266,11 @@ public:
 #endif /* NDEBUG */
     }
 
-    bool IsContainer() const
-    {
-        return m_container;
-    }
+	void init_container();
+	bool IsContainer() const
+	{
+		return m_container;
+	}
 
     ObjectDataViewModelNode* GetParent()
     {
@@ -313,9 +322,10 @@ public:
     const wxBitmap& GetBitmap() const               { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
-    void			SetIdx(const int& idx);
-    int             GetIdx() const                  { return m_idx; }
-    t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
+	void			SetIdx(const int& idx);
+	int             GetIdx() const                  { return m_idx; }
+	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
+    PrintIndicator  IsPrintable() const             { return m_printable; }
 
     // use this function only for childrens
     void AssignAllVal(ObjectDataViewModelNode& from_node)
@@ -347,6 +357,8 @@ public:
 
     // Set action icons for node
     void        set_action_icon();
+	// Set printable icon for node
+    void        set_printable_icon(PrintIndicator printable);
 
     void        update_settings_digest_bitmaps();
     bool        update_settings_digest(const std::vector<std::string>& categories);
@@ -356,6 +368,7 @@ public:
 #ifndef NDEBUG
     bool 		valid();
 #endif /* NDEBUG */
+    bool        invalid() const { return m_idx < -1; }
 
 private:
     friend class ObjectDataViewModel;
@@ -391,6 +404,7 @@ public:
                                     const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
+    wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, const std::vector<bool>& print_indicator);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
     wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item,
                                     const t_layer_height_range& layer_range,
@@ -418,6 +432,7 @@ public:
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
+    bool InvalidItem(const wxDataViewItem& item);
 
     // helper method for wxLog
 
@@ -468,9 +483,17 @@ public:
     void    UpdateSettingsDigest(   const wxDataViewItem &item,
                                     const std::vector<std::string>& categories);
 
+    bool    IsPrintable(const wxDataViewItem &item) const;
+    void    UpdateObjectPrintable(wxDataViewItem parent_item);
+    void    UpdateInstancesPrintable(wxDataViewItem parent_item);
+
     void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
     void    SetWarningBitmap(wxBitmap* bitmap)                          { m_warning_bmp = bitmap; }
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
+    wxDataViewItem SetPrintableState( PrintIndicator printable, int obj_idx,
+                                      int subobj_idx = -1, 
+                                      ItemType subobj_type = itInstance);
+    wxDataViewItem SetObjectPrintableState(PrintIndicator printable, wxDataViewItem obj_item);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
@@ -480,6 +503,10 @@ public:
                               const bool is_marked = false);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
+
+private:
+    wxDataViewItem AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
+    wxDataViewItem AddInstanceRoot(const wxDataViewItem& parent_item);
 };
 
 // ----------------------------------------------------------------------------

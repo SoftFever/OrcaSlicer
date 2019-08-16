@@ -27,49 +27,57 @@ namespace GUI {
 
 void GLTexture::Compressor::reset()
 {
-    if (m_is_compressing)
-    {
-        // force compression completion, if any
+	if (m_thread.joinable()) {
         m_abort_compressing = true;
-        // wait for compression completion, if any
-        while (m_is_compressing) {}
-    }
-
-    m_levels.clear();
-}
-
-void GLTexture::Compressor::add_level(unsigned int w, unsigned int h, const std::vector<unsigned char>& data)
-{
-    m_levels.emplace_back(w, h, data);
+		m_thread.join();
+	    m_levels.clear();
+	    m_num_levels_compressed = 0;
+	    m_abort_compressing = false;
+	}
+	assert(m_levels.empty());
+	assert(m_abort_compressing == false);
+	assert(m_num_levels_compressed == 0);
 }
 
 void GLTexture::Compressor::start_compressing()
 {
-    std::thread t(&GLTexture::Compressor::compress, this);
-    t.detach();
+	// The worker thread should be stopped already.
+	assert(! m_thread.joinable());
+	assert(! m_levels.empty());
+	assert(m_abort_compressing == false);
+	assert(m_num_levels_compressed == 0);
+	if (! m_levels.empty()) {
+		std::thread thrd(&GLTexture::Compressor::compress, this);
+    	m_thread = std::move(thrd);
+    }
 }
 
 bool GLTexture::Compressor::unsent_compressed_data_available() const
 {
-    for (const Level& level : m_levels)
-    {
-        if (!level.sent_to_gpu && level.compressed)
+	if (m_levels.empty())
+		return false;
+	// Querying the atomic m_num_levels_compressed value synchronizes processor caches, so that the dat of m_levels modified by the worker thread are accessible to the calling thread.
+	unsigned int num_compressed = m_num_levels_compressed;
+	for (unsigned int i = 0; i < num_compressed; ++ i)
+        if (! m_levels[i].sent_to_gpu && ! m_levels[i].compressed_data.empty())
             return true;
-    }
-
     return false;
 }
 
 void GLTexture::Compressor::send_compressed_data_to_gpu()
 {
     // this method should be called inside the main thread of Slicer or a new OpenGL context (sharing resources) would be needed
+	if (m_levels.empty())
+		return;
 
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.m_id));
-    for (int i = 0; i < (int)m_levels.size(); ++i)
+	// Querying the atomic m_num_levels_compressed value synchronizes processor caches, so that the dat of m_levels modified by the worker thread are accessible to the calling thread.
+	int num_compressed = (int)m_num_levels_compressed;
+    for (int i = 0; i < num_compressed; ++ i)
     {
         Level& level = m_levels[i];
-        if (!level.sent_to_gpu && level.compressed)
+        if (! level.sent_to_gpu && ! level.compressed_data.empty())
         {
             glsafe(::glCompressedTexSubImage2D(GL_TEXTURE_2D, (GLint)i, 0, 0, (GLsizei)level.w, (GLsizei)level.h, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)level.compressed_data.size(), (const GLvoid*)level.compressed_data.data()));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, i));
@@ -77,29 +85,21 @@ void GLTexture::Compressor::send_compressed_data_to_gpu()
             level.sent_to_gpu = true;
             // we are done with the compressed data, we can discard it
             level.compressed_data.clear();
-            level.compressed = false;
         }
     }
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-}
 
-bool GLTexture::Compressor::all_compressed_data_sent_to_gpu() const
-{
-    for (const Level& level : m_levels)
-    {
-        if (!level.sent_to_gpu)
-            return false;
-    }
-
-    return true;
+    if (num_compressed == (unsigned int)m_levels.size())
+    	// Finalize the worker thread, close it.
+    	this->reset();
 }
 
 void GLTexture::Compressor::compress()
 {
     // reference: https://github.com/Cyan4973/RygsDXTc
 
-    m_is_compressing = true;
-    m_abort_compressing = false;
+    assert(m_num_levels_compressed == 0);
+    assert(m_abort_compressing == false);
 
     for (Level& level : m_levels)
     {
@@ -115,11 +115,8 @@ void GLTexture::Compressor::compress()
 
         // we are done with the source data, we can discard it
         level.src_data.clear();
-        level.compressed = true;
+        ++ m_num_levels_compressed;
     }
-
-    m_is_compressing = false;
-    m_abort_compressing = false;
 }
 
 GLTexture::Quad_UVs GLTexture::FullTextureUVs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };

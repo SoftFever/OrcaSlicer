@@ -100,6 +100,7 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
     update_valid();
 }
 
+// Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
 bool Selection::init()
 {
     if (!m_arrow.init())
@@ -1459,6 +1460,39 @@ std::vector<unsigned int> Selection::get_unselected_volume_idxs_from(const std::
     }
 
     return idxs;
+}
+
+void Selection::toggle_instance_printable_state()
+{
+    int instance_idx = get_instance_idx();
+    if (instance_idx == -1)
+        return;
+
+    int obj_idx = get_object_idx();
+    if ((0 <= obj_idx) && (obj_idx < (int)m_model->objects.size()))
+    {
+        ModelObject* model_object = m_model->objects[obj_idx];
+        if ((0 <= instance_idx) && (instance_idx < (int)model_object->instances.size()))
+        {
+            ModelInstance* instance = model_object->instances[instance_idx];
+            const bool printable = !instance->printable;
+
+            wxString snapshot_text = model_object->instances.size() == 1 ? wxString::Format("%s %s",
+                                     printable ? _(L("Set Printable")) : _(L("Set Unprintable")), model_object->name) :
+                                     printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance"));
+            wxGetApp().plater()->take_snapshot(snapshot_text);
+
+            instance->printable = printable;
+
+            for (GLVolume* volume : *m_volumes)
+            {
+                if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == instance_idx))
+                    volume->printable = instance->printable;
+            }
+
+            wxGetApp().obj_list()->update_printable_state(obj_idx, instance_idx);
+        }
+    }
 }
 
 void Selection::update_valid()

@@ -176,6 +176,7 @@ Preview::Preview(
     , m_checkbox_retractions(nullptr)
     , m_checkbox_unretractions(nullptr)
     , m_checkbox_shells(nullptr)
+    , m_checkbox_legend(nullptr)
     , m_config(config)
     , m_process(process)
     , m_gcode_preview_data(gcode_preview_data)
@@ -252,6 +253,9 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Unretractions")));
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
 
+    m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
+    m_checkbox_legend->SetValue(true);
+
     wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
     top_sizer->Add(m_double_slider_sizer, 0, wxEXPAND, 0);
@@ -270,6 +274,8 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     bottom_sizer->Add(m_checkbox_unretractions, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
     bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL, 5);
+    bottom_sizer->AddSpacer(20);
+    bottom_sizer->Add(m_checkbox_legend, 0, wxEXPAND | wxALL, 5);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
@@ -442,6 +448,7 @@ void Preview::bind_event_handlers()
     m_checkbox_retractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
     m_checkbox_shells->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
+    m_checkbox_legend->Bind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
 }
 
 void Preview::unbind_event_handlers()
@@ -453,6 +460,7 @@ void Preview::unbind_event_handlers()
     m_checkbox_retractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_retractions, this);
     m_checkbox_unretractions->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_unretractions, this);
     m_checkbox_shells->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_shells, this);
+    m_checkbox_legend->Unbind(wxEVT_CHECKBOX, &Preview::on_checkbox_legend, this);
 }
 
 void Preview::show_hide_ui_elements(const std::string& what)
@@ -464,6 +472,7 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_checkbox_retractions->Enable(enable);
     m_checkbox_unretractions->Enable(enable);
     m_checkbox_shells->Enable(enable);
+    m_checkbox_legend->Enable(enable);
 
     enable = (what != "none");
     m_label_view_type->Enable(enable);
@@ -476,6 +485,7 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_checkbox_retractions->Show(visible);
     m_checkbox_unretractions->Show(visible);
     m_checkbox_shells->Show(visible);
+    m_checkbox_legend->Show(visible);
     m_label_view_type->Show(visible);
     m_choice_view_type->Show(visible);
 }
@@ -540,6 +550,12 @@ void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
     m_gcode_preview_data->shell.is_visible = m_checkbox_shells->IsChecked();
     refresh_print();
+}
+
+void Preview::on_checkbox_legend(wxCommandEvent& evt)
+{
+    m_canvas->enable_legend_texture(m_checkbox_legend->IsChecked());
+    m_canvas_widget->Refresh();
 }
 
 void Preview::update_view_type()
@@ -701,6 +717,11 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         const int new_pos = key == 'U' ? m_slider->GetHigherValue() + 1 : m_slider->GetHigherValue() - 1;
         m_slider->SetHigherValue(new_pos);
 		if (event.ShiftDown() || m_slider->is_one_layer()) m_slider->SetLowerValue(m_slider->GetHigherValue());
+    }
+    else if (key == 'L') {
+        m_checkbox_legend->SetValue(!m_checkbox_legend->GetValue());
+        auto evt = wxCommandEvent();
+        on_checkbox_legend(evt);
     }
     else if (key == 'S')
         m_slider->ChangeOneLayerLock();

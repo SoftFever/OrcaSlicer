@@ -12,6 +12,7 @@
 #include "libslic3r/GCode/Analyzer.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,15 +75,19 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     }
 }
 
-void GLIndexedVertexArray::finalize_geometry() const
+void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
 {
     assert(this->vertices_and_normals_interleaved_VBO_id == 0);
     assert(this->triangle_indices_VBO_id == 0);
     assert(this->quad_indices_VBO_id == 0);
 
-    this->shrink_to_fit();
+	if (! opengl_initialized) {
+		// Shrink the data vectors to conserve memory in case the data cannot be transfered to the OpenGL driver yet.
+		this->shrink_to_fit();
+		return;
+	}
 
-    if (! empty()) {
+    if (! this->vertices_and_normals_interleaved.empty()) {
         glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
         glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved.size() * 4, this->vertices_and_normals_interleaved.data(), GL_STATIC_DRAW));
@@ -124,13 +129,8 @@ void GLIndexedVertexArray::release_geometry()
 
 void GLIndexedVertexArray::render() const
 {
-    if (this->vertices_and_normals_interleaved_VBO_id == 0)
-    {
-        // sends data to gpu, if not done yet
-        finalize_geometry();
-        if (this->vertices_and_normals_interleaved_VBO_id == 0)
-            return;
-    }
+    assert(this->vertices_and_normals_interleaved_VBO_id != 0);
+    assert(this->triangle_indices_VBO_id != 0 || this->quad_indices_VBO_id != 0);
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
     glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
@@ -161,13 +161,8 @@ void GLIndexedVertexArray::render(
     const std::pair<size_t, size_t>& tverts_range,
     const std::pair<size_t, size_t>& qverts_range) const
 {
-    if (this->vertices_and_normals_interleaved_VBO_id == 0)
-    {
-        // sends data to gpu, if not done yet
-        finalize_geometry();
-        if (this->vertices_and_normals_interleaved_VBO_id == 0)
-            return;
-    }
+    assert(this->vertices_and_normals_interleaved_VBO_id != 0);
+    assert(this->triangle_indices_VBO_id != 0 || this->quad_indices_VBO_id != 0);
 
     // Render using the Vertex Buffer Objects.
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
@@ -218,6 +213,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , extruder_id(0)
     , selected(false)
     , disabled(false)
+    , printable(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -273,6 +269,13 @@ void GLVolume::set_render_color()
             set_render_color(OUTSIDE_COLOR, 4);
         else
             set_render_color(color, 4);
+    }
+
+    if (!printable)
+    {
+        render_color[0] /= 4;
+        render_color[1] /= 4;
+        render_color[2] /= 4;
     }
 
     if (force_transparent)
@@ -415,30 +418,32 @@ bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -
 bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposBasePool); }
 
 std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject* model_object,
+    const ModelObject       *model_object,
     int                      obj_idx,
-    const std::vector<int>& instance_idxs,
-    const std::string& color_by)
+    const std::vector<int>  &instance_idxs,
+    const std::string       &color_by,
+    bool 					 opengl_initialized)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
     return volumes_idx;
 }
 
 int GLVolumeCollection::load_object_volume(
-    const ModelObject* model_object,
-    int                             obj_idx,
-    int                             volume_idx,
-    int                             instance_idx,
-    const std::string& color_by)
+    const ModelObject   *model_object,
+    int                  obj_idx,
+    int                  volume_idx,
+    int                  instance_idx,
+    const std::string   &color_by,
+    bool 				 opengl_initialized)
 {
-    const ModelVolume* model_volume = model_object->volumes[volume_idx];
-    const int            extruder_id = model_volume->extruder_id();
-    const ModelInstance* instance = model_object->instances[instance_idx];
-    const TriangleMesh& mesh = model_volume->mesh();
-    float color[4];
+    const ModelVolume   *model_volume = model_object->volumes[volume_idx];
+    const int            extruder_id  = model_volume->extruder_id();
+    const ModelInstance *instance 	  = model_object->instances[instance_idx];
+    const TriangleMesh  &mesh 		  = model_volume->mesh();
+    float 				 color[4];
     memcpy(color, GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
     /*    if (model_volume->is_support_blocker()) {
             color[0] = 1.0f;
@@ -455,6 +460,7 @@ int GLVolumeCollection::load_object_volume(
     GLVolume& v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
     v.indexed_vertex_array.load_mesh(mesh);
+    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
@@ -475,13 +481,14 @@ int GLVolumeCollection::load_object_volume(
 // This function produces volumes for multiple instances in a single shot,
 // as some object specific mesh conversions may be expensive.
 void GLVolumeCollection::load_object_auxiliary(
-    const SLAPrintObject* print_object,
+    const SLAPrintObject 		   *print_object,
     int                             obj_idx,
     // pairs of <instance_idx, print_instance_idx>
     const std::vector<std::pair<size_t, size_t>>& instances,
     SLAPrintObjectStep              milestone,
     // Timestamp of the last change of the milestone
-    size_t                          timestamp)
+    size_t                          timestamp,
+    bool 				 			opengl_initialized)
 {
     assert(print_object->is_step_done(milestone));
     Transform3d  mesh_trafo_inv = print_object->trafo().inverse();
@@ -495,6 +502,7 @@ void GLVolumeCollection::load_object_auxiliary(
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
         v.indexed_vertex_array.load_mesh(mesh);
+	    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -511,7 +519,7 @@ void GLVolumeCollection::load_object_auxiliary(
 }
 
 int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width)
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized)
 {
     if (depth < 0.01f)
         return int(this->volumes.size() - 1);
@@ -564,6 +572,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.indexed_vertex_array.load_mesh(mesh);
+    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
     v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
@@ -821,6 +830,27 @@ std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) c
         print_zs.erase(print_zs.begin() + k, print_zs.end());
 
     return print_zs;
+}
+
+size_t GLVolumeCollection::cpu_memory_used() const 
+{
+	size_t memsize = sizeof(*this) + this->volumes.capacity() * sizeof(GLVolume);
+	for (const GLVolume *volume : this->volumes)
+		memsize += volume->cpu_memory_used();
+	return memsize;
+}
+
+size_t GLVolumeCollection::gpu_memory_used() const 
+{
+	size_t memsize = 0;
+	for (const GLVolume *volume : this->volumes)
+		memsize += volume->gpu_memory_used();
+	return memsize;
+}
+
+std::string GLVolumeCollection::log_memory_info() const 
+{ 
+	return " (GLVolumeCollection RAM: " + format_memsize_MB(this->cpu_memory_used()) + " GPU: " + format_memsize_MB(this->gpu_memory_used()) + " Both: " + format_memsize_MB(this->gpu_memory_used()) + ")";
 }
 
 // caller is responsible for supplying NO lines with zero length
@@ -1598,6 +1628,7 @@ bool GLArrow::on_init()
     triangles.emplace_back(7, 13, 6);
 
     m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
+	m_volume.indexed_vertex_array.finalize_geometry(true);
     return true;
 }
 
@@ -1711,6 +1742,7 @@ bool GLCurvedArrow::on_init()
     triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
     m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles));
+	m_volume.indexed_vertex_array.finalize_geometry(true);
     return true;
 }
 
@@ -1737,6 +1769,7 @@ bool GLBed::on_init_from_file(const std::string& filename)
     m_filename = filename;
 
     m_volume.indexed_vertex_array.load_mesh(model.mesh());
+	m_volume.indexed_vertex_array.finalize_geometry(true);
 
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);

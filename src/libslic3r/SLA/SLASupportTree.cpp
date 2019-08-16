@@ -713,7 +713,7 @@ struct Pad {
         }
 
         tmesh.translate(0, 0, float(zlevel));
-        tmesh.require_shared_vertices();
+        if (!tmesh.empty()) tmesh.require_shared_vertices();
     }
 
     bool empty() const { return tmesh.facets_count() == 0; }
@@ -2597,39 +2597,51 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
 }
 
 std::vector<ExPolygons> SLASupportTree::slice(
-    const std::vector<float> &heights, float cr) const
+    const std::vector<float> &grid, float cr) const
 {
     const TriangleMesh &sup_mesh = m_impl->merged_mesh();
     const TriangleMesh &pad_mesh = get_pad();
 
-    std::vector<ExPolygons> sup_slices;
+    using Slices = std::vector<ExPolygons>;
+    auto slices = reserve_vector<Slices>(2);
+
     if (!sup_mesh.empty()) {
+        slices.emplace_back();
+
         TriangleMeshSlicer sup_slicer(&sup_mesh);
-        sup_slicer.slice(heights, cr, &sup_slices, m_impl->ctl().cancelfn);
+        sup_slicer.slice(grid, cr, &slices.back(), m_impl->ctl().cancelfn);
     }
 
-    auto bb = pad_mesh.bounding_box();
-    auto maxzit = std::upper_bound(heights.begin(), heights.end(), bb.max.z());
-
-    auto padgrid = reserve_vector<float>(heights.end() - maxzit);
-    std::copy(heights.begin(), maxzit, std::back_inserter(padgrid));
-
-    std::vector<ExPolygons> pad_slices;
     if (!pad_mesh.empty()) {
+        slices.emplace_back();
+
+        auto bb = pad_mesh.bounding_box();
+        auto maxzit = std::upper_bound(grid.begin(), grid.end(), bb.max.z());
+
+        auto padgrid = reserve_vector<float>(grid.end() - maxzit);
+        std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
+
         TriangleMeshSlicer pad_slicer(&pad_mesh);
-        pad_slicer.slice(padgrid, cr, &pad_slices, m_impl->ctl().cancelfn);
+        pad_slicer.slice(padgrid, cr, &slices.back(), m_impl->ctl().cancelfn);
     }
 
-    size_t len = std::min(heights.size(), pad_slices.size());
-    len = std::min(len, sup_slices.size());
+    size_t len = grid.size();
+    for (const Slices &slv : slices) { len = std::min(len, slv.size()); }
 
-    for (size_t i = 0; i < len; ++i) {
-        std::copy(pad_slices[i].begin(), pad_slices[i].end(),
-                  std::back_inserter(sup_slices[i]));
-        pad_slices[i] = {};
+    // Either the support or the pad or both has to be non empty
+    if (slices.empty()) return {};
+
+    Slices &mrg = slices.front();
+
+    for (auto it = std::next(slices.begin()); it != slices.end(); ++it) {
+        for (size_t i = 0; i < len; ++i) {
+            Slices &slv = *it;
+            std::copy(slv[i].begin(), slv[i].end(), std::back_inserter(mrg[i]));
+            slv[i] = {}; // clear and delete
+        }
     }
 
-    return sup_slices;
+    return mrg;
 }
 
 const TriangleMesh &SLASupportTree::add_pad(const ExPolygons& modelbase,

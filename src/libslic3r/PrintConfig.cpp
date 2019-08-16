@@ -422,6 +422,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "bottom-fill-pattern|external-fill-pattern|solid-fill-pattern";
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values = def_top_fill_pattern->enum_values;
+    def->enum_labels = def_top_fill_pattern->enum_labels;
     def->aliases = def_top_fill_pattern->aliases;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
@@ -2675,14 +2676,14 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(50.0));
 
     // This is disabled on the UI. I hope it will never be enabled.
-    def = this->add("pad_edge_radius", coFloat);
-    def->label = L("Pad edge radius");
-    def->category = L("Pad");
-//     def->tooltip = L("");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1.0));
+//    def = this->add("pad_edge_radius", coFloat);
+//    def->label = L("Pad edge radius");
+//    def->category = L("Pad");
+////     def->tooltip = L("");
+//    def->sidetext = L("mm");
+//    def->min = 0;
+//    def->mode = comAdvanced;
+//    def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("pad_wall_slope", coFloat);
     def->label = L("Pad wall slope");
@@ -2694,6 +2695,13 @@ void PrintConfigDef::init_sla_params()
     def->max = 90;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45.0));
+
+    def = this->add("pad_zero_elevation", coBool);
+    def->label = L("Pad around object");
+    def->category = L("Pad");
+    def->tooltip = L("Create pad around object and ignore the support elevation");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("pad_object_gap", coFloat);
     def->label = L("Pad object gap");

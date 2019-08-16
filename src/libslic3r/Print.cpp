@@ -18,6 +18,7 @@
 #include <limits>
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
+#include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
 //! macro used to mark string used at localization,
@@ -1148,11 +1149,17 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        // make sure all extruders use same diameter filament and have the same nozzle diameter
+        // Make sure all extruders use same diameter filament and have the same nozzle diameter
+        // EPSILON comparison is used for nozzles and 10 % tolerance is used for filaments
+        double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders().front());
+        double first_filament_diam = m_config.filament_diameter.get_at(extruders().front());
         for (const auto& extruder_idx : extruders()) {
-            if (m_config.nozzle_diameter.get_at(extruder_idx) != m_config.nozzle_diameter.get_at(extruders().front())
-             || m_config.filament_diameter.get_at(extruder_idx) != m_config.filament_diameter.get_at(extruders().front()))
-                 return L("The wipe tower is only supported if all extruders have the same nozzle diameter and use filaments of the same diameter.");
+            double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
+            double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
+            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
+             || std::abs((filament_diam-first_filament_diam)/first_filament_diam) > 0.1)
+                 return L("The wipe tower is only supported if all extruders have the same nozzle diameter "
+                          "and use filaments of the same diameter.");
         }
 
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
@@ -1160,15 +1167,11 @@ std::string Print::validate() const
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         
-        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
-            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
-                return L("All extruders must have the same diameter for the Wipe Tower.");
-
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;
             for (const PrintObject *object : m_objects) {
-                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();      // #ys_FIXME_experiment
+                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
                 if (has_custom_layering) {
                     layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
                     break;
@@ -1247,6 +1250,20 @@ std::string Print::validate() const
                 return L("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
+		auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+        	if (extrusion_width_min == 0) {
+        		// Default "auto-generated" extrusion width is always valid.
+        	} else if (extrusion_width_min <= layer_height) {
+        		err_msg = (boost::format(L("%1%=%2% mm is too low to be printable at a layer height %3% mm")) % opt_key % extrusion_width_min % layer_height).str();
+				return false;
+			} else if (extrusion_width_max >= max_nozzle_diameter * 2.) {
+				err_msg = (boost::format(L("Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm")) % opt_key % extrusion_width_max % max_nozzle_diameter).str();
+				return false;
+			}
+			return true;
+		};
         for (PrintObject *object : m_objects) {
             if (object->config().raft_layers > 0 || object->config().support_material.value) {
 				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
@@ -1290,8 +1307,20 @@ std::string Print::validate() const
                 return L("First layer height can't be greater than nozzle diameter");
             
             // validate layer_height
-            if (object->config().layer_height.value > min_nozzle_diameter)
+            double layer_height = object->config().layer_height.value;
+            if (layer_height > min_nozzle_diameter)
                 return L("Layer height can't be greater than nozzle diameter");
+
+            // Validate extrusion widths.
+            std::string err_msg;
+            if (! validate_extrusion_width(object->config(), "extrusion_width", layer_height, err_msg))
+            	return err_msg;
+            if ((object->config().support_material || object->config().raft_layers > 0) && ! validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg))
+            	return err_msg;
+            for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
+				for (size_t i = 0; i < object->region_volumes.size(); ++ i)
+            		if (! object->region_volumes[i].empty() && ! validate_extrusion_width(this->get_region(i)->config(), opt_key, layer_height, err_msg))
+		            	return err_msg;
         }
     }
 
@@ -1723,7 +1752,7 @@ void Print::_make_wipe_tower()
                     break;
                 lt.has_support = true;
                 // Insert the new support layer.
-                double height    = lt.print_z - m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z;
+                double height    = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
                 //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
                 it_layer = m_objects.front()->insert_support_layer(it_layer, -1, height, lt.print_z, lt.print_z - 0.5 * height);
                 ++ it_layer;

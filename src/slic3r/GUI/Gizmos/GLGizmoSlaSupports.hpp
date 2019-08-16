@@ -32,7 +32,7 @@ private:
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
     mutable float m_z_shift = 0.f;
-    std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
+    bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
 

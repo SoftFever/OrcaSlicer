@@ -218,7 +218,7 @@ protected:
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
     bool                m_complited { false };
-    ConfigOptionMode    m_mode = comSimple;
+    ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -340,6 +340,7 @@ class TabFilament : public Tab
 
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
+	void 			update_volumetric_flow_preset_hints();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
