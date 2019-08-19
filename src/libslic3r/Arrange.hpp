@@ -39,6 +39,9 @@ enum BedShapes {
 class BedShapeHint {
     BedShapes m_type = BedShapes::bsInfinite;
     
+    // The union neither calls constructors nor destructors of its members.
+    // The only member with non-trivial constructor / destructor is the polygon,
+    // a placement new / delete needs to be called over it.
     union BedShape_u {  // TODO: use variant from cpp17?
         CircleBed   circ;
         BoundingBox box;
@@ -80,6 +83,12 @@ public:
 
     BedShapeHint &operator=(const BedShapeHint &cpy)
     {
+    	if (m_type != cpy.m_type) {
+    		if (m_type == bsIrregular)
+             	m_bed.polygon.Slic3r::Polyline::~Polyline();
+    		else if (cpy.m_type == bsIrregular)
+    			::new (&m_bed.polygon) Polyline();
+        }
         m_type = cpy.m_type;
         switch(m_type) {
         case bsBox: m_bed.box = cpy.m_bed.box; break;
@@ -94,6 +103,12 @@ public:
 
     BedShapeHint& operator=(BedShapeHint &&cpy)
     {
+		if (m_type != cpy.m_type) {
+			if (m_type == bsIrregular)
+				m_bed.polygon.Slic3r::Polyline::~Polyline();
+			else if (cpy.m_type == bsIrregular)
+				::new (&m_bed.polygon) Polyline();
+		}
         m_type = cpy.m_type;
         switch(m_type) {
         case bsBox: m_bed.box = std::move(cpy.m_bed.box); break;
