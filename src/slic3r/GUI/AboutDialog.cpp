@@ -110,7 +110,9 @@ void CopyrightsDialog::fill_entries()
                                     , "Based on original by fabian \"ryg\" giesen v1.04. "
                               "Custom version, modified by Yann Collet"     , "https://github.com/Cyan4973/RygsDXTc" },
         { "Icons for STL and GCODE files."
-                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" }
+                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" },
+        { "AppImage packaging for Linux using AppImageKit"
+                            , "2004-2019 Simon Peter and contributors"      , "https://appimage.org/" }
     };
 }
 
