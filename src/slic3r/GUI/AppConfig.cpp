@@ -15,8 +15,12 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/exceptions.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
+
+#include <wx/string.h>
+#include "I18N.hpp"
 
 namespace Slic3r {
 
@@ -58,7 +62,7 @@ void AppConfig::set_defaults()
     if (!get("use_legacy_opengl").empty())
         erase("", "use_legacy_opengl");
 
-#if __APPLE__
+#ifdef __APPLE__
     if (get("use_retina_opengl").empty())
         set("use_retina_opengl", "1");
 #endif
@@ -90,7 +94,14 @@ void AppConfig::load()
     namespace pt = boost::property_tree;
     pt::ptree tree;
     boost::nowide::ifstream ifs(AppConfig::config_path());
-    pt::read_ini(ifs, tree);
+    try {
+        pt::read_ini(ifs, tree);
+    } catch (pt::ptree_error& ex) {
+        // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+        throw std::runtime_error(wxString::Format(_(L("Error parsing config file, it is probably corrupted. "
+            "Try to manualy delete the file. Your user profiles will not be affected.\n\n%s\n\n%s")),
+            AppConfig::config_path(), ex.what()).ToStdString());
+    }
 
     // 2) Parse the property_tree, extract the sections and key / value pairs.
     for (const auto &section : tree) {
