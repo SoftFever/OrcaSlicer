@@ -86,7 +86,7 @@ add_executable(avrdude-conf-gen conf-generate.cpp)
 add_custom_command(
     DEPENDS avrdude-conf-gen ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
-    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf > avrdude-slic3r.conf.h
+    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf avrdude-slic3r.conf.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
