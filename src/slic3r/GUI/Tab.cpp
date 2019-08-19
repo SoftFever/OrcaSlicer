@@ -1621,24 +1621,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
 
-        optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-            this->update_dirty();
-            this->on_value_change(opt_key, value);
-
-            if (opt_key == "filament_colour")
-            {
-                const Preset& printer_preset = m_preset_bundle->printers.get_edited_preset();
-                const std::vector<std::string>& colors = static_cast<const ConfigOptionStrings*>(
-                                                         printer_preset.config.option("extruder_colour"))->values;
-                for (const std::string& color : colors)
-                    if (color.empty()) {
-                        // update scene
-                        wxGetApp().plater()->update();
-                        break;
-                    }
-            }
-        };
-
         optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
         Line line = { _(L("Extruder")), "" };
         line.append_option(optgroup->get_option("first_layer_temperature"));
