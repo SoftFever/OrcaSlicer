@@ -12,6 +12,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/Tesselate.hpp"
 
@@ -1110,6 +1111,11 @@ void GLGizmoSlaSupports::on_set_state()
             break;
         }
     }
+
+    if (m_state == m_old_state)
+        return;
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo on/off")));
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));

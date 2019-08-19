@@ -76,6 +76,8 @@ private:
     EType m_current;
     EType m_hover;
 
+    void activate_gizmo(EType type);
+
     float m_overlay_icons_size;
     float m_overlay_scale;
     float m_overlay_border;
@@ -112,18 +114,13 @@ public:
 
         m_serializing = true;
 
+        EType current = m_current;
         ar(m_current);
+        //std::swap(current, m_current); // undo the deserialization, let activate_gizmo do the change
+        //activate_gizmo(current);
 
-        GLGizmoBase* curr = get_current();
-/*		for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
-			GLGizmoBase* gizmo = it->second;
-			if (gizmo != nullptr) {
-				gizmo->set_hover_id(-1);
-				gizmo->set_state((it->second == curr) ? GLGizmoBase::On : GLGizmoBase::Off);
-				if (gizmo == curr)
-					gizmo->load(ar);
-			}
-        }*/
+        if (m_current != Undefined)
+            m_gizmos[m_current]->load(ar);
     }
 
     template<class Archive>
@@ -134,9 +131,8 @@ public:
 
         ar(m_current);
 
-        /*GLGizmoBase* curr = get_current();
-        if (curr != nullptr)
-            curr->save(ar);*/
+        if (m_current != Undefined && !m_gizmos.empty())
+            m_gizmos[m_current]->save(ar);
     }
 
     bool is_enabled() const { return m_enabled; }

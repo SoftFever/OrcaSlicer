@@ -151,8 +151,7 @@ void GLGizmosManager::refresh_on_off_state()
     {
         if (!gizmo->is_activable())
         {
-            gizmo->set_state(GLGizmoBase::Off);
-            m_current = Undefined;
+            activate_gizmo(Undefined);
         }
     }
 }
@@ -165,7 +164,7 @@ void GLGizmosManager::reset_all_states()
     if (m_serializing)
         return;
 
-    m_current = Undefined;
+    activate_gizmo(Undefined);
     m_hover = Undefined;
 }
 
@@ -256,8 +255,9 @@ bool GLGizmosManager::is_running() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = get_current();
-    return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
+    //GLGizmoBase* curr = get_current();
+    //return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
+    return m_current != Undefined;
 }
 
 bool GLGizmosManager::handle_shortcut(int key)
@@ -280,13 +280,11 @@ bool GLGizmosManager::handle_shortcut(int key)
         if (gizmo->is_activable() && ((it_key == key - 64) || (it_key == key - 96)))
         {
             if (m_current == idx) {
-                gizmo->set_state(GLGizmoBase::Off);
-                m_current = Undefined;
+                activate_gizmo(Undefined);
                 handled = true;
             }
             else if (m_current != idx) {
-                gizmo->set_state(GLGizmoBase::On);
-                m_current = (EType)idx;
+                activate_gizmo((EType)idx);
                 handled = true;
             }
         }
@@ -953,7 +951,7 @@ void GLGizmosManager::do_render_overlay() const
         float u_right = u_left + u_icon_size;
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-        if (gizmo->get_state() == GLGizmoBase::On) {
+        if (idx == m_current) {
             float toolbar_top = (float)cnv_h - m_parent.get_view_toolbar_height();
             gizmo->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top);
         }
@@ -1042,8 +1040,12 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
         if (gizmo->is_activable() && inside)
         {
             if (m_hover == idx) {
-                gizmo->set_state(m_current == idx ? GLGizmoBase::Off : GLGizmoBase::On);
-                m_current = (EType)(m_current == idx ? Undefined : idx);
+                if (m_current == idx)
+                    activate_gizmo(Undefined);
+                else
+                    activate_gizmo((EType)idx);
+                //gizmo->set_state(m_current == idx ? GLGizmoBase::Off : GLGizmoBase::On);
+                //m_current = (EType)(m_current == idx ? Undefined : idx);
             }
         }
         top_y += scaled_stride_y;
@@ -1084,6 +1086,21 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
     }
 
     return name;
+}
+
+void GLGizmosManager::activate_gizmo(EType type)
+{
+    if (m_gizmos.empty() || m_current == type)
+        return;
+
+    if (m_current != Undefined)
+        m_gizmos[m_current]->set_state(GLGizmoBase::Off);
+
+    if (type != Undefined)
+        m_gizmos[type]->set_state(GLGizmoBase::On);
+
+    m_current = type;
+
 }
 
 bool GLGizmosManager::overlay_contains_mouse(const Vec2d& mouse_pos) const
