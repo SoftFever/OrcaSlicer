@@ -54,25 +54,27 @@ public:
 
     enum EType : unsigned char
     {
-        Undefined,
         Move,
         Scale,
         Rotate,
         Flatten,
         Cut,
         SlaSupports,
-        Num_Types
+        Undefined
     };
 
 private:
     GLCanvas3D& m_parent;
     bool m_enabled;
     typedef std::map<EType, GLGizmoBase*> GizmosMap;
-    GizmosMap m_gizmos;
+//    GizmosMap m_gizmos;
+    typedef std::vector<GLGizmoBase*> Gizmos;
+    Gizmos m_gizmos;
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
     EType m_current;
+    EType m_hover;
 
     float m_overlay_icons_size;
     float m_overlay_scale;
@@ -113,7 +115,7 @@ public:
         ar(m_current);
 
         GLGizmoBase* curr = get_current();
-		for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
+/*		for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
 			GLGizmoBase* gizmo = it->second;
 			if (gizmo != nullptr) {
 				gizmo->set_hover_id(-1);
@@ -121,7 +123,7 @@ public:
 				if (gizmo == curr)
 					gizmo->load(ar);
 			}
-		}
+        }*/
     }
 
     template<class Archive>
@@ -132,9 +134,9 @@ public:
 
         ar(m_current);
 
-        GLGizmoBase* curr = get_current();
+        /*GLGizmoBase* curr = get_current();
         if (curr != nullptr)
-            curr->save(ar);
+            curr->save(ar);*/
     }
 
     bool is_enabled() const { return m_enabled; }
