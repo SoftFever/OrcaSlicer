@@ -1,4 +1,4 @@
-﻿#ifndef slic3r_MainFrame_hpp_
+#ifndef slic3r_MainFrame_hpp_
 #define slic3r_MainFrame_hpp_
 
 #include "libslic3r/PrintConfig.hpp"
