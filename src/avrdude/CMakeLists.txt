@@ -100,6 +100,9 @@ add_dependencies(avrdude gen_conf_h)
 add_executable(avrdude-slic3r main-standalone.cpp)
 target_link_libraries(avrdude-slic3r avrdude)
 
+encoding_check(avrdude)
+encoding_check(avrdude-slic3r)
+
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)
     if(MSVC)
