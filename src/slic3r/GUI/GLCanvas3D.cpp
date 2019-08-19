@@ -2474,6 +2474,13 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     evt.SetY(evt.GetY() * scale);
 #endif
 
+#ifdef __WXMSW__
+	// For some reason the Idle event is not being generated after the mouse scroll event in case of scrolling with the two fingers on the touch pad,
+	// if the event is not allowed to be passed further.
+	// https://github.com/prusa3d/PrusaSlicer/issues/2750
+	evt.Skip();
+#endif /* __WXMSW__ */
+
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled())
     {
