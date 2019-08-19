@@ -609,10 +609,12 @@ void Bed3D::render_default(bool bottom) const
         if (!has_model && !bottom)
         {
             // draw background
+            glsafe(::glDepthMask(GL_FALSE));
             glsafe(::glColor4f(0.35f, 0.35f, 0.35f, 0.4f));
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+            glsafe(::glDepthMask(GL_TRUE));
         }
 
         // draw grid
