@@ -1,5 +1,6 @@
 project(PrusaSlicer-native)
 
+add_subdirectory(build-utils)
 add_subdirectory(admesh)
 add_subdirectory(avrdude)
 # boost/nowide

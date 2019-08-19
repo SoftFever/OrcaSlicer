@@ -1,4 +1,4 @@
-﻿#include "OptionsGroup.hpp"
+#include "OptionsGroup.hpp"
 #include "ConfigExceptions.hpp"
 
 #include <utility>

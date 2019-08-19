@@ -163,6 +163,8 @@ endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
+encoding_check(libslic3r_gui)
+
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui ${GLEW_LIBRARIES})
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)

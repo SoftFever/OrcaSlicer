@@ -139,6 +139,7 @@ add_library(libslic3r STATIC
     PrintConfig.hpp
     PrintObject.cpp
     PrintRegion.cpp
+    Semver.cpp
     SLAPrint.cpp
     SLAPrint.hpp
     SLA/SLAAutoSupports.hpp
@@ -185,6 +186,8 @@ add_library(libslic3r STATIC
     SLA/SLARasterWriter.hpp
     SLA/SLARasterWriter.cpp
 )
+
+encoding_check(libslic3r)
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)

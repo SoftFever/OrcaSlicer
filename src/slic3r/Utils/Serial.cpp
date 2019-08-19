@@ -6,6 +6,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <exception>
 #include <stdexcept>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -71,13 +72,10 @@ void parse_hardware_id(const std::string &hardware_id, SerialPortInfo &spi)
 	std::regex pattern("USB\\\\.*VID_([[:xdigit:]]+)&PID_([[:xdigit:]]+).*");
 	std::smatch matches;
 	if (std::regex_match(hardware_id, matches, pattern)) {
-		try {
-			vid = std::stoul(matches[1].str(), 0, 16);
-			pid = std::stoul(matches[2].str(), 0, 16);
-			spi.id_vendor = vid;
-			spi.id_product = pid;
-		}
-		catch (...) {}
+		vid = std::stoul(matches[1].str(), 0, 16);
+		pid = std::stoul(matches[2].str(), 0, 16);
+		spi.id_vendor = vid;
+		spi.id_product = pid;
 	}
 }
 #endif

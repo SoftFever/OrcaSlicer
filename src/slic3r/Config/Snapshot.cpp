@@ -366,7 +366,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	// Snapshot header.
 	snapshot.time_captured 			 = Slic3r::Utils::get_current_time_utc();
 	snapshot.id 					 = Slic3r::Utils::format_time_ISO8601Z(snapshot.time_captured);
-	snapshot.slic3r_version_captured = *Semver::parse(SLIC3R_VERSION);     // XXX:  have Semver Slic3r version
+	snapshot.slic3r_version_captured = Slic3r::SEMVER;
 	snapshot.comment 				 = comment;
 	snapshot.reason 				 = reason;
 	// Active presets at the time of the snapshot.
