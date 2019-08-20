@@ -35,6 +35,10 @@ using Slic3r::GUI::Config::Snapshot;
 using Slic3r::GUI::Config::SnapshotDB;
 
 
+
+// FIXME: Incompat bundle resolution doesn't deal with inherited user presets
+
+
 namespace Slic3r {
 
 
@@ -624,11 +628,17 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 		const auto res = dlg.ShowModal();
 		if (res == wxID_REPLACE) {
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
+
+			// This effectively removes the incompatible bundles:
+			// (snapshot is taken beforehand)
 			p->perform_updates(std::move(updates));
+
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
+
 			if (! wizard.run(GUI::wxGetApp().preset_bundle, this)) {
 				return R_INCOMPAT_EXIT;
 			}
+
 			GUI::wxGetApp().load_current_presets();
 			return R_INCOMPAT_CONFIGURED;
 		} else {
