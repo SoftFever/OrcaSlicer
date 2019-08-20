@@ -2412,12 +2412,44 @@ void PrintConfigDef::init_sla_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionInt(10));
 
+    def = this->add("exposure_time_min", coFloat);
+    def->label = L("Minimum exposure time");
+    def->tooltip = L("Minimum exposure time");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("exposure_time_max", coFloat);
+    def->label = L("Maximum exposure time");
+    def->tooltip = L("Maximum exposure time");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(100));
+
     def = this->add("exposure_time", coFloat);
     def->label = L("Exposure time");
     def->tooltip = L("Exposure time");
     def->sidetext = L("s");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(10));
+
+    def = this->add("initial_exposure_time_min", coFloat);
+    def->label = L("Minimum initial exposure time");
+    def->tooltip = L("Minimum initial exposure time");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("initial_exposure_time_max", coFloat);
+    def->label = L("Maximum initial exposure time");
+    def->tooltip = L("Maximum initial exposure time");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(150));
 
     def = this->add("initial_exposure_time", coFloat);
     def->label = L("Initial exposure time");

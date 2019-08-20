@@ -500,7 +500,8 @@ const std::vector<std::string>& Preset::sla_material_options()
     if (s_opts.empty()) {
         s_opts = {
             "initial_layer_height",
-            "exposure_time", "initial_exposure_time",
+            "exposure_time_min", "exposure_time_max", "exposure_time",
+            "initial_exposure_time_min", "initial_exposure_time_max", "initial_exposure_time",
             "material_correction",
             "material_notes",
             "default_sla_material_profile",
