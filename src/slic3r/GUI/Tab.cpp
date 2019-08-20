@@ -2558,7 +2558,33 @@ void TabPrinter::build_unregular_pages()
             optgroup->append_single_option_line("retract_restart_extra_toolchange", extruder_idx);
 
             optgroup = page->new_optgroup(_(L("Preview")));
-            optgroup->append_single_option_line("extruder_colour", extruder_idx);
+
+            auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
+                add_scaled_button(parent, &m_reset_to_filament_color, "undo", 
+                                  _(L("Reset to Filament Color")), wxBU_LEFT | wxBU_EXACTFIT);
+                ScalableButton* btn = m_reset_to_filament_color;
+                btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(btn);
+
+                btn->Bind(wxEVT_BUTTON, [this, extruder_idx](wxCommandEvent& e)
+                {
+                    std::vector<std::string> colors = static_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"))->values;
+                    colors[extruder_idx] = "";
+                        
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("extruder_colour", new ConfigOptionStrings(colors));
+                    load_config(new_conf);
+
+                    update_dirty();
+                    update();
+                });
+
+                return sizer;
+            };
+            line = optgroup->create_single_option_line("extruder_colour", extruder_idx);
+            line.append_widget(reset_to_filament_color);
+            optgroup->append_line(line);
 
 #ifdef __WXMSW__
         layout_page(page);

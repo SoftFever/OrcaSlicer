@@ -1033,11 +1033,12 @@ void ColourPicker::BUILD()
 	// Validate the color
 	wxString clr_str(m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx));
 	wxColour clr(clr_str);
-	if (! clr.IsOk()) {
+	if (clr_str.IsEmpty() || !clr.IsOk()) {
 		clr = wxTransparentColour;
 	}
 
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// 	// recast as a wxWindow to fit the calling convention
@@ -1048,15 +1049,57 @@ void ColourPicker::BUILD()
 	temp->SetToolTip(get_tooltip_text(clr_str));
 }
 
+void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
+{
+    field->SetColour(wxTransparentColour);
+
+    wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
+    wxBitmap bmp = btn->GetBitmap();
+    wxMemoryDC dc(bmp);
+    dc.SetTextForeground(*wxWHITE);
+    dc.SetFont(wxGetApp().normal_font());
+
+    const wxRect rect = wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight());
+    dc.DrawLabel("undef", rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+
+    dc.SelectObject(wxNullBitmap);
+    btn->SetBitmapLabel(bmp);
+}
+
+void ColourPicker::set_value(const boost::any& value, bool change_event)
+{
+    m_disable_change_event = !change_event;
+    const wxString clr_str(boost::any_cast<wxString>(value));
+    auto field = dynamic_cast<wxColourPickerCtrl*>(window);
+
+    wxColour clr(clr_str);
+    if (clr_str.IsEmpty() || !clr.IsOk())
+        set_undef_value(field);
+    else
+        field->SetColour(clr);
+
+    m_disable_change_event = false;
+}
+
 boost::any& ColourPicker::get_value()
 {
-// 	boost::any m_value;
-
 	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
-	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
-	m_value = clr_str.ToStdString();
-
+    if (colour == wxTransparentColour)
+        m_value = std::string("");
+    else {
+		auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
+		m_value = clr_str.ToStdString();
+    }
 	return m_value;
+}
+
+void ColourPicker::msw_rescale()
+{
+    Field::msw_rescale();
+
+    wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
+    if (field->GetColour() == wxTransparentColour)
+        set_undef_value(field);
 }
 
 void PointCtrl::BUILD()

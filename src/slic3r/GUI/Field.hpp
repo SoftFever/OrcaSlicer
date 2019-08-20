@@ -404,6 +404,8 @@ public:
 
 class ColourPicker : public Field {
 	using Field::Field;
+
+    void            set_undef_value(wxColourPickerCtrl* field);
 public:
 	ColourPicker(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	ColourPicker(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
@@ -417,13 +419,9 @@ public:
 		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(value);
 		m_disable_change_event = false;
 	 	}
-	void			set_value(const boost::any& value, bool change_event = false) {
-		m_disable_change_event = !change_event;
-		dynamic_cast<wxColourPickerCtrl*>(window)->SetColour(boost::any_cast<wxString>(value));
-		m_disable_change_event = false;
-	}
-
+	void			set_value(const boost::any& value, bool change_event = false) override;
 	boost::any&		get_value() override;
+    void            msw_rescale() override;
 
 	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
