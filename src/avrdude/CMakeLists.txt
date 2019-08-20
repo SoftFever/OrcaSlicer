@@ -85,13 +85,13 @@ add_executable(avrdude-conf-gen conf-generate.cpp)
 # Config file embedding
 add_custom_command(
     DEPENDS avrdude-conf-gen ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
-    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf avrdude-slic3r.conf.h
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
+    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_custom_target(gen_conf_h
-   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
+   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/avrdude-slic3r.conf.h
 )
 
 add_library(avrdude STATIC ${AVRDUDE_SOURCES})
@@ -102,6 +102,9 @@ target_link_libraries(avrdude-slic3r avrdude)
 
 encoding_check(avrdude)
 encoding_check(avrdude-slic3r)
+
+# Make avrdude-slic3r.conf.h includable:
+target_include_directories(avrdude SYSTEM PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)

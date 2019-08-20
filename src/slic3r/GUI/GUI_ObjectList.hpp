@@ -358,6 +358,7 @@ private:
 //    void OnChar(wxKeyEvent& event);
 #endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
+    void list_manipulation();
 
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);

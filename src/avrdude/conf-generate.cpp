@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
         std::cerr << "Cannot read file: " << filename_in << std::endl;
     }
 
-    std::fstream output(filename_out, std::ios::out | std::ios::trunc | std::ios::binary);
+    std::fstream output(filename_out, std::ios::out | std::ios::trunc);
     if (!output.good()) {
         std::cerr << "Cannot open output file: " << filename_out << std::endl;
     }

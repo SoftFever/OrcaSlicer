@@ -1098,14 +1098,22 @@ class SLAMaterialConfig : public StaticPrintConfig
     STATIC_PRINT_CONFIG_CACHE(SLAMaterialConfig)
 public:
     ConfigOptionFloat                       initial_layer_height;
+    ConfigOptionFloat                       exposure_time_min;
+    ConfigOptionFloat                       exposure_time_max;
     ConfigOptionFloat                       exposure_time;
+    ConfigOptionFloat                       initial_exposure_time_min;
+    ConfigOptionFloat                       initial_exposure_time_max;
     ConfigOptionFloat                       initial_exposure_time;
     ConfigOptionFloats                      material_correction;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(initial_layer_height);
+        OPT_PTR(exposure_time_min);
+        OPT_PTR(exposure_time_max);
         OPT_PTR(exposure_time);
+        OPT_PTR(initial_exposure_time_min);
+        OPT_PTR(initial_exposure_time_max);
         OPT_PTR(initial_exposure_time);
         OPT_PTR(material_correction);
     }

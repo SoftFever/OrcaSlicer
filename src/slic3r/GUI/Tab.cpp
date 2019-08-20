@@ -2558,7 +2558,33 @@ void TabPrinter::build_unregular_pages()
             optgroup->append_single_option_line("retract_restart_extra_toolchange", extruder_idx);
 
             optgroup = page->new_optgroup(_(L("Preview")));
-            optgroup->append_single_option_line("extruder_colour", extruder_idx);
+
+            auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
+                add_scaled_button(parent, &m_reset_to_filament_color, "undo", 
+                                  _(L("Reset to Filament Color")), wxBU_LEFT | wxBU_EXACTFIT);
+                ScalableButton* btn = m_reset_to_filament_color;
+                btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(btn);
+
+                btn->Bind(wxEVT_BUTTON, [this, extruder_idx](wxCommandEvent& e)
+                {
+                    std::vector<std::string> colors = static_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"))->values;
+                    colors[extruder_idx] = "";
+                        
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("extruder_colour", new ConfigOptionStrings(colors));
+                    load_config(new_conf);
+
+                    update_dirty();
+                    update();
+                });
+
+                return sizer;
+            };
+            line = optgroup->create_single_option_line("extruder_colour", extruder_idx);
+            line.append_widget(reset_to_filament_color);
+            optgroup->append_line(line);
 
 #ifdef __WXMSW__
         layout_page(page);
@@ -3588,7 +3614,11 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_layer_height");
 
     optgroup = page->new_optgroup(_(L("Exposure")));
+    optgroup->append_single_option_line("exposure_time_min");
+    optgroup->append_single_option_line("exposure_time_max");
     optgroup->append_single_option_line("exposure_time");
+    optgroup->append_single_option_line("initial_exposure_time_min");
+    optgroup->append_single_option_line("initial_exposure_time_max");
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
@@ -3653,10 +3683,58 @@ void TabSLAMaterial::reload_config()
     Tab::reload_config();
 }
 
+
+namespace {
+
+enum e_cmp {EQUAL = 1, SMALLER = 2, GREATER = 4, SMALLER_EQ = 3, GREATER_EQ = 5};
+
+void bound_check(Tab &tb, e_cmp cmp, const char *id, const char *boundid)
+{
+    double bound = tb.m_config->opt_float(boundid);
+    double value = tb.m_config->opt_float(id);
+
+    auto boundlabel = tb.m_config->def()->get(boundid)->label;
+    auto valuelabel = tb.m_config->def()->get(id)->label;
+
+    double ddiff = value - bound;
+    int diff = ddiff < 0 ? SMALLER : (std::abs(ddiff) < EPSILON ? EQUAL : GREATER);
+
+    if ((cmp | diff) != cmp) {
+        wxString fmt;
+        
+        switch (cmp) {
+        case EQUAL:      fmt = _(L("%s should be equal to %s")); break;
+        case SMALLER:    fmt = _(L("%s should be smaller than %s")); break;
+        case GREATER:    fmt = _(L("%s should be greater than %s")); break;
+        case SMALLER_EQ: fmt = _(L("%s should be smaller or equal to %s")); break;
+        case GREATER_EQ: fmt = _(L("%s should be greater or equal to %s")); break;
+        }
+        
+        wxString msg_text = wxString::Format(fmt, valuelabel, boundlabel);
+
+        wxMessageDialog dialog(tb.parent(), msg_text,
+                               _(L("Value outside bounds")),
+                               wxICON_WARNING | wxOK);
+
+        DynamicPrintConfig new_conf = *tb.m_config;
+        if (dialog.ShowModal() == wxID_OK)
+            new_conf.set_key_value(id, new ConfigOptionFloat(bound));
+
+        tb.load_config(new_conf);
+    }
+};
+
+}
+
 void TabSLAMaterial::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return;
+
+    bound_check(*this, e_cmp::GREATER_EQ, "exposure_time", "exposure_time_min");
+    bound_check(*this, e_cmp::SMALLER_EQ, "exposure_time", "exposure_time_max");
+    bound_check(*this, e_cmp::GREATER_EQ, "initial_exposure_time", "initial_exposure_time_min");
+    bound_check(*this, e_cmp::SMALLER_EQ, "initial_exposure_time", "initial_exposure_time_max");
 
 // #ys_FIXME. Just a template for this function
 //     m_update_cnt++;
