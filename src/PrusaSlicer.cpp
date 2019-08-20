@@ -60,7 +60,6 @@ PrinterTechnology get_printer_technology(const DynamicConfig &config)
 
 int CLI::run(int argc, char **argv)
 {
-#ifdef _WIN32
 	// Switch boost::filesystem to utf8.
     try {
         boost::nowide::nowide_filesystem();
@@ -74,12 +73,12 @@ int CLI::run(int argc, char **argv)
         	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
     #ifdef SLIC3R_GUI
         if (m_actions.empty())
+        	// Empty actions means Slicer is executed in the GUI mode. Show a GUI message.
             MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
     #endif
         boost::nowide::cerr << text.c_str() << std::endl;
         return 1;
     }
-#endif
 
 	if (! this->setup(argc, argv))
 		return 1;

@@ -293,6 +293,20 @@ bool GUI_App::on_init_inner()
                 config_wizard_startup(app_conf_exists);
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
+                const GLCanvas3DManager::GLInfo &glinfo = GLCanvas3DManager::get_gl_info();
+                if (! glinfo.is_version_greater_or_equal_to(2, 0)) {
+                	// Complain about the OpenGL version.
+                	wxString message = wxString::Format(
+                		_(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+                			"while OpenGL version %s, render %s, vendor %s was detected.")), wxString(glinfo.get_version()), wxString(glinfo.get_renderer()), wxString(glinfo.get_vendor()));
+                	message += "\n";
+                	message += _(L("You may need to update your graphics card driver."));
+#ifdef _WIN32
+                	message += "\n";
+                	message += _(L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter."));
+#endif
+                	wxMessageBox(message, wxString("PrusaSlicer - ") + _(L("Unsupported OpenGL version")), wxOK | wxICON_ERROR);
+                }
             });
         }
     });
