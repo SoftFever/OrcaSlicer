@@ -183,7 +183,8 @@ public:
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
-    void export_toolpaths_to_obj();
+    bool has_toolpaths_to_export() const;
+    void export_toolpaths_to_obj() const;
     void reslice();
     void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);

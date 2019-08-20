@@ -247,7 +247,7 @@ bool MainFrame::can_export_model() const
 
 bool MainFrame::can_export_toolpaths() const
 {
-    return (m_plater != nullptr) && (m_plater->printer_technology() == ptFFF) && m_plater->is_preview_shown() && m_plater->is_preview_loaded();
+    return (m_plater != nullptr) && (m_plater->printer_technology() == ptFFF) && m_plater->is_preview_shown() && m_plater->is_preview_loaded() && m_plater->has_toolpaths_to_export();
 }
 
 bool MainFrame::can_export_supports() const

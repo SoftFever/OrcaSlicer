@@ -4434,7 +4434,12 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     }
 }
 
-void Plater::export_toolpaths_to_obj()
+bool Plater::has_toolpaths_to_export() const
+{
+    return  p->preview->get_canvas3d()->has_toolpaths_to_export();
+}
+
+void Plater::export_toolpaths_to_obj() const
 {
     if ((printer_technology() != ptFFF) || !is_preview_loaded())
         return;
@@ -4442,9 +4447,8 @@ void Plater::export_toolpaths_to_obj()
     wxString path = p->get_export_file(FT_OBJ);
     if (path.empty()) 
         return;
-
+    
     wxBusyCursor wait;
-
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 

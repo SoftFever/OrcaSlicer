@@ -564,6 +564,7 @@ public:
     // Return CPU, GPU and total memory log line.
     std::string         log_memory_info() const;
 
+    bool                has_toolpaths_to_export() const;
     // Export the geometry of the GLVolumes toolpaths of this collection into the file with the given path, in obj format 
     void                export_toolpaths_to_obj(const char* filename) const;
 
