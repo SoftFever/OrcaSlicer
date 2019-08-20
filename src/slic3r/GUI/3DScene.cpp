@@ -908,9 +908,11 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
         std::vector<int>   quad_indices;
 
         if (!volume->indexed_vertex_array.vertices_and_normals_interleaved.empty())
+            // data are in CPU memory
             vertices_and_normals_interleaved = volume->indexed_vertex_array.vertices_and_normals_interleaved;
         else if ((volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id != 0) && (volume->indexed_vertex_array.vertices_and_normals_interleaved_size != 0))
         {
+            // data are in GPU memory
             vertices_and_normals_interleaved = std::vector<float>(volume->indexed_vertex_array.vertices_and_normals_interleaved_size, 0.0f);
 
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, volume->indexed_vertex_array.vertices_and_normals_interleaved_VBO_id));
@@ -921,9 +923,19 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
             continue;
 
         if (!volume->indexed_vertex_array.triangle_indices.empty())
-            triangle_indices = volume->indexed_vertex_array.triangle_indices;
+        {
+            // data are in CPU memory
+            size_t size = std::min(volume->indexed_vertex_array.triangle_indices.size(), volume->tverts_range.second - volume->tverts_range.first);
+            if (size != 0)
+            {
+                std::vector<int>::const_iterator it_begin = volume->indexed_vertex_array.triangle_indices.begin() + volume->tverts_range.first;
+                std::vector<int>::const_iterator it_end = volume->indexed_vertex_array.triangle_indices.begin() + volume->tverts_range.first + size;
+                std::copy(it_begin, it_end, std::back_inserter(triangle_indices));
+            }
+        }
         else if ((volume->indexed_vertex_array.triangle_indices_VBO_id != 0) && (volume->indexed_vertex_array.triangle_indices_size != 0))
         {
+            // data are in GPU memory
             size_t size = std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first);
             if (size != 0)
             {
@@ -936,9 +948,19 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
         }
 
         if (!volume->indexed_vertex_array.quad_indices.empty())
-            quad_indices = volume->indexed_vertex_array.quad_indices;
-        if ((volume->indexed_vertex_array.quad_indices_VBO_id != 0) && (volume->indexed_vertex_array.quad_indices_size != 0))
         {
+            // data are in CPU memory
+            size_t size = std::min(volume->indexed_vertex_array.quad_indices.size(), volume->qverts_range.second - volume->qverts_range.first);
+            if (size != 0)
+            {
+                std::vector<int>::const_iterator it_begin = volume->indexed_vertex_array.quad_indices.begin() + volume->qverts_range.first;
+                std::vector<int>::const_iterator it_end = volume->indexed_vertex_array.quad_indices.begin() + volume->qverts_range.first + size;
+                std::copy(it_begin, it_end, std::back_inserter(quad_indices));
+            }
+        }
+        else if ((volume->indexed_vertex_array.quad_indices_VBO_id != 0) && (volume->indexed_vertex_array.quad_indices_size != 0))
+        {
+            // data are in GPU memory
             size_t size = std::min(volume->indexed_vertex_array.quad_indices_size, volume->qverts_range.second - volume->qverts_range.first);
             if (size != 0)
             {
