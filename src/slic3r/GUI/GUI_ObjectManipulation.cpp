@@ -153,8 +153,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     auto manifold_warning_icon = [this](wxWindow* parent) {
         m_fix_throught_netfab_bitmap = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
-        auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(m_fix_throught_netfab_bitmap);
+//         auto sizer = new wxBoxSizer(wxHORIZONTAL);
+//         sizer->Add(m_fix_throught_netfab_bitmap);
 
         if (is_windows10())
             m_fix_throught_netfab_bitmap->Bind(wxEVT_CONTEXT_MENU, [this](wxCommandEvent &e)
@@ -167,17 +167,19 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 update_warning_icon_state(wxGetApp().obj_list()->get_mesh_errors_list());
             });
 
-        return sizer;
+//         return sizer;
+        return m_fix_throught_netfab_bitmap;
     };
 
-    line.append_widget(manifold_warning_icon);
+ //   line.append_widget(manifold_warning_icon);
+    line.near_label_widget = manifold_warning_icon;
     def.label = "";
     def.gui_type = "legend";
     def.tooltip = L("Object name");
 #ifdef __APPLE__
-    def.width = 19;
+    def.width = 20;
 #else
-    def.width = 21;
+    def.width = 22;
 #endif
     def.set_default_value(new ConfigOptionString{ " " });
     line.append_option(Option(def, "object_name"));
@@ -392,10 +394,19 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // call back for a rescale of button "Set uniform scale"
     m_og->rescale_near_label_widget = [this](wxWindow* win) {
+        // rescale lock icon
         auto *ctrl = dynamic_cast<LockButton*>(win);
-        if (ctrl == nullptr)
+        if (ctrl != nullptr) {
+            ctrl->msw_rescale();
             return;
-        ctrl->msw_rescale();
+        }
+
+        if (win == m_fix_throught_netfab_bitmap)
+            return;
+
+        // rescale "place" of the empty icon (to correct layout of the "Size" and "Scale")
+        if (dynamic_cast<wxStaticBitmap*>(win) != nullptr)
+            win->SetMinSize(create_scaled_bitmap(m_parent, "one_layer_lock_on.png").GetSize());
     };
 }
  
@@ -685,6 +696,7 @@ void ObjectManipulation::emulate_kill_focus()
 void ObjectManipulation::update_warning_icon_state(const wxString& tooltip)
 {
     m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp.bmp());
+    m_fix_throught_netfab_bitmap->SetMinSize(tooltip.IsEmpty() ? wxSize(0,0) : m_manifold_warning_bmp.bmp().GetSize());
     m_fix_throught_netfab_bitmap->SetToolTip(tooltip);
 }
 
@@ -919,7 +931,10 @@ void ObjectManipulation::msw_rescale()
 {
     msw_rescale_word_local_combo(m_word_local_combo);
     m_manifold_warning_bmp.msw_rescale();
-    m_fix_throught_netfab_bitmap->SetBitmap(m_manifold_warning_bmp.bmp());
+
+    const wxString& tooltip = m_fix_throught_netfab_bitmap->GetToolTipText();
+    m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp.bmp());
+    m_fix_throught_netfab_bitmap->SetMinSize(tooltip.IsEmpty() ? wxSize(0, 0) : m_manifold_warning_bmp.bmp().GetSize());
 
     m_mirror_bitmap_on.msw_rescale();
     m_mirror_bitmap_off.msw_rescale();
