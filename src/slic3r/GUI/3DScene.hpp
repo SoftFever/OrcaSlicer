@@ -439,7 +439,7 @@ public:
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
 
-    void                set_range(coordf_t low, coordf_t high);
+    void                set_range(double low, double high);
 
     void                render() const;
     void                render(int color_id, int detection_id, int worldmatrix_id) const;

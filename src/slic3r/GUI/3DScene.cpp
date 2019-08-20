@@ -872,7 +872,7 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
 
     for (const GLVolume* volume : this->volumes)
     {
-        if (!volume->is_extrusion_path)
+        if (!volume->is_active || !volume->is_extrusion_path)
             continue;
 
         std::vector<float> vertices_and_normals_interleaved;
@@ -896,22 +896,30 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
             triangle_indices = volume->indexed_vertex_array.triangle_indices;
         else if ((volume->indexed_vertex_array.triangle_indices_VBO_id != 0) && (volume->indexed_vertex_array.triangle_indices_size != 0))
         {
-            triangle_indices = std::vector<int>(volume->indexed_vertex_array.triangle_indices_size, 0);
+            size_t size = std::min(volume->indexed_vertex_array.triangle_indices_size, volume->tverts_range.second - volume->tverts_range.first);
+            if (size != 0)
+            {
+                triangle_indices = std::vector<int>(size, 0);
 
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id));
-            glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, triangle_indices.size() * sizeof(int), triangle_indices.data()));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.triangle_indices_VBO_id));
+                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, volume->tverts_range.first * sizeof(int), size * sizeof(int), triangle_indices.data()));
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+            }
         }
 
         if (!volume->indexed_vertex_array.quad_indices.empty())
             quad_indices = volume->indexed_vertex_array.quad_indices;
         if ((volume->indexed_vertex_array.quad_indices_VBO_id != 0) && (volume->indexed_vertex_array.quad_indices_size != 0))
         {
-            quad_indices = std::vector<int>(volume->indexed_vertex_array.quad_indices_size, 0);
+            size_t size = std::min(volume->indexed_vertex_array.quad_indices_size, volume->qverts_range.second - volume->qverts_range.first);
+            if (size != 0)
+            {
+                quad_indices = std::vector<int>(size, 0);
 
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id));
-            glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, quad_indices.size() * sizeof(int), quad_indices.data()));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, volume->indexed_vertex_array.quad_indices_VBO_id));
+                glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, volume->qverts_range.first * sizeof(int), size * sizeof(int), quad_indices.data()));
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+            }
         }
 
         if (triangle_indices.empty() && quad_indices.empty())
