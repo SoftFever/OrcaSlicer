@@ -729,29 +729,26 @@ void MainFrame::quick_slice(const int qs)
 
     // select input file
     if (!(qs & qsReslice)) {
-        auto dlg = new wxFileDialog(this, _(L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):")),
+        wxFileDialog dlg(this, _(L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):")),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-        if (dlg->ShowModal() != wxID_OK) {
-            dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
             return;
-        }
-        input_file = dlg->GetPath();
-        dlg->Destroy();
+        input_file = dlg.GetPath();
         if (!(qs & qsExportSVG))
             m_qs_last_input_file = input_file;
     }
     else {
         if (m_qs_last_input_file.IsEmpty()) {
-            auto dlg = new wxMessageDialog(this, _(L("No previously sliced file.")),
+            wxMessageDialog dlg(this, _(L("No previously sliced file.")),
                 _(L("Error")), wxICON_ERROR | wxOK);
-            dlg->ShowModal();
+            dlg.ShowModal();
             return;
         }
         if (std::ifstream(m_qs_last_input_file.ToUTF8().data())) {
-            auto dlg = new wxMessageDialog(this, _(L("Previously sliced file ("))+m_qs_last_input_file+_(L(") not found.")),
+            wxMessageDialog dlg(this, _(L("Previously sliced file ("))+m_qs_last_input_file+_(L(") not found.")),
                 _(L("File Not Found")), wxICON_ERROR | wxOK);
-            dlg->ShowModal();
+            dlg.ShowModal();
             return;
         }
         input_file = m_qs_last_input_file;
@@ -785,30 +782,24 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-        auto dlg = new wxFileDialog(this, wxString::Format(_(L("Save %s file as:")) , qs & qsExportSVG ? _(L("SVG")) : _(L("G-code")) ),
+        wxFileDialog dlg(this, wxString::Format(_(L("Save %s file as:")) , qs & qsExportSVG ? _(L("SVG")) : _(L("G-code")) ),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if (dlg->ShowModal() != wxID_OK) {
-            dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
             return;
-        }
-        output_file = dlg->GetPath();
-        dlg->Destroy();
+        output_file = dlg.GetPath();
         if (!(qs & qsExportSVG))
             m_qs_last_output_file = output_file;
         wxGetApp().app_config->update_last_output_dir(get_dir_name(output_file));
     } 
     else if (qs & qsExportPNG) {
-        auto dlg = new wxFileDialog(this, _(L("Save zip file as:")),
+        wxFileDialog dlg(this, _(L("Save zip file as:")),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)),
             get_base_name(output_file), "*.sl1", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if (dlg->ShowModal() != wxID_OK) {
-            dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
             return;
-        }
-        output_file = dlg->GetPath();
-        dlg->Destroy();
+        output_file = dlg.GetPath();
     }
 
     // show processbar dialog
@@ -854,28 +845,22 @@ void MainFrame::repair_stl()
 {
     wxString input_file;
     {
-        auto dlg = new wxFileDialog(this, _(L("Select the STL file to repair:")),
+        wxFileDialog dlg(this, _(L("Select the STL file to repair:")),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-        if (dlg->ShowModal() != wxID_OK) {
-            dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
             return;
-        }
-        input_file = dlg->GetPath();
-        dlg->Destroy();
+        input_file = dlg.GetPath();
     }
 
     wxString output_file = input_file;
     {
-        auto dlg = new wxFileDialog( this, L("Save OBJ file (less prone to coordinate errors than STL) as:"), 
+        wxFileDialog dlg( this, L("Save OBJ file (less prone to coordinate errors than STL) as:"),
                                         get_dir_name(output_file), get_base_name(output_file, ".obj"),
                                         file_wildcards(FT_OBJ), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if (dlg->ShowModal() != wxID_OK) {
-            dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
             return;
-        }
-        output_file = dlg->GetPath();
-        dlg->Destroy();
+        output_file = dlg.GetPath();
     }
 
     auto tmesh = new Slic3r::TriangleMesh();
@@ -896,14 +881,13 @@ void MainFrame::export_config()
         return;
     }
     // Ask user for the file name for the config file.
-    auto dlg = new wxFileDialog(this, _(L("Save configuration as:")),
+    wxFileDialog dlg(this, _(L("Save configuration as:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
         file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxString file;
-    if (dlg->ShowModal() == wxID_OK)
-        file = dlg->GetPath();
-    dlg->Destroy();
+    if (dlg.ShowModal() == wxID_OK)
+        file = dlg.GetPath();
     if (!file.IsEmpty()) {
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         m_last_config = file;
@@ -916,13 +900,12 @@ void MainFrame::load_config_file()
 {
     if (!wxGetApp().check_unsaved_changes())
         return;
-    auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
+    wxFileDialog dlg(this, _(L("Select configuration to load:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         "config.ini", "INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	wxString file;
-	if (dlg->ShowModal() == wxID_OK) 
-		file = dlg->GetPath();
-    dlg->Destroy();
+    if (dlg.ShowModal() == wxID_OK)
+        file = dlg.GetPath();
 	if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         m_last_config = file;
@@ -953,14 +936,13 @@ void MainFrame::export_configbundle()
         return;
     }
     // Ask user for a file name.
-    auto dlg = new wxFileDialog(this, _(L("Save presets bundle as:")),
+    wxFileDialog dlg(this, _(L("Save presets bundle as:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         SLIC3R_APP_KEY "_config_bundle.ini",
         file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxString file;
-    if (dlg->ShowModal() == wxID_OK)
-        file = dlg->GetPath();
-    dlg->Destroy();
+    if (dlg.ShowModal() == wxID_OK)
+        file = dlg.GetPath();
     if (!file.IsEmpty()) {
         // Export the config bundle.
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
@@ -980,15 +962,12 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     if (!wxGetApp().check_unsaved_changes())
         return;
     if (file.IsEmpty()) {
-        auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
+        wxFileDialog dlg(this, _(L("Select configuration to load:")),
             !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
             "config.ini", file_wildcards(FT_INI), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		if (dlg->ShowModal() != wxID_OK) {
-			dlg->Destroy();
-			return;
-		}
-        file = dlg->GetPath();
-		dlg->Destroy();
+        if (dlg.ShowModal() != wxID_OK)
+            return;
+        file = dlg.GetPath();
 	}
 
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
