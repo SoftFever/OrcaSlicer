@@ -113,6 +113,11 @@ public:
         return (*this);
     }
 
+    WipeTowerWriter&            disable_linear_advance() {
+        m_gcode += (m_gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
+        return *this;
+    }
+
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
 	// is asked to suppres output of some lines, which look like extrusions.
@@ -817,6 +822,8 @@ void WipeTower::toolchange_Unload(
             sum_of_depths += tch.required_depth;
         }
     }
+
+    writer.disable_linear_advance();
 
     // now the ramming itself:
     while (i < m_filpar[m_current_tool].ramming_speed.size())
