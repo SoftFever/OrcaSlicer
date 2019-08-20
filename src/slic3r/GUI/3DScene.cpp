@@ -25,6 +25,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <boost/nowide/cstdio.hpp>
+
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
 
