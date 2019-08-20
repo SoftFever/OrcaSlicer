@@ -1764,6 +1764,11 @@ struct Plater::priv
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
     void select_next_view_3D();
+
+    bool is_preview_shown() const { return current_panel == preview; }
+    bool is_preview_loaded() const { return preview->is_loaded(); }
+    bool is_view3D_shown() const { return current_panel == view3D; }
+
     void reset_all_gizmos();
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -2458,6 +2463,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         case FT_AMF:
         case FT_3MF:
         case FT_GCODE:
+        case FT_OBJ:
             wildcard = file_wildcards(file_type);
         break;
         default:
@@ -2506,6 +2512,12 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         {
             output_file.replace_extension("3mf");
             dlg_title = _(L("Save file as:"));
+            break;
+        }
+        case FT_OBJ:
+        {
+            output_file.replace_extension("obj");
+            dlg_title = _(L("Export OBJ file:"));
             break;
         }
         default: break;
@@ -4097,6 +4109,10 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 
 void Plater::select_view_3D(const std::string& name) { p->select_view_3D(name); }
 
+bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
+bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }
+bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
+
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
 
@@ -4418,6 +4434,20 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
         // Failure
         p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting 3MF file %s")), path));
     }
+}
+
+void Plater::export_toolpaths_to_obj()
+{
+    if ((printer_technology() != ptFFF) || !is_preview_loaded())
+        return;
+
+    wxString path = p->get_export_file(FT_OBJ);
+    if (path.empty()) 
+        return;
+
+    wxBusyCursor wait;
+
+    p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
 void Plater::reslice()

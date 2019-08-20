@@ -156,6 +156,10 @@ public:
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
 
+    bool is_preview_shown() const;
+    bool is_preview_loaded() const;
+    bool is_view3D_shown() const;
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
@@ -179,6 +183,7 @@ public:
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+    void export_toolpaths_to_obj();
     void reslice();
     void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);

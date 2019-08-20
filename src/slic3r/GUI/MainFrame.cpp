@@ -245,6 +245,11 @@ bool MainFrame::can_export_model() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+bool MainFrame::can_export_toolpaths() const
+{
+    return (m_plater != nullptr) && (m_plater->printer_technology() == ptFFF) && m_plater->is_preview_shown() && m_plater->is_preview_loaded();
+}
+
 bool MainFrame::can_export_supports() const
 {
     if ((m_plater == nullptr) || (m_plater->printer_technology() != ptSLA) || m_plater->model().objects.empty())
@@ -471,12 +476,16 @@ void MainFrame::init_menubar()
         append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, menu_icon("export_plater"), nullptr,
             [this](){return can_export_model(); }, this);
-        append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL including supports")) + dots, _(L("Export current plate as STL including supports")),
+        append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL &including supports")) + dots, _(L("Export current plate as STL including supports")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, menu_icon("export_plater"), nullptr,
             [this](){return can_export_supports(); }, this);
         append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, menu_icon("export_plater"), nullptr,
             [this](){return can_export_model(); }, this);
+        export_menu->AppendSeparator();
+        append_menu_item(export_menu, wxID_ANY, _(L("Export &toolpaths as OBJ")) + dots, _(L("Export toolpaths as OBJ")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_toolpaths_to_obj(); }, menu_icon("export_plater"), nullptr,
+            [this]() {return can_export_toolpaths(); }, this);
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export &Config")) +dots +"\tCtrl+E", _(L("Export current configuration to file")),
             [this](wxCommandEvent&) { export_config(); }, menu_icon("export_config"));

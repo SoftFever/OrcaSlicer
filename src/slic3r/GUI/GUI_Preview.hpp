@@ -130,6 +130,8 @@ public:
 
     void update_view_type();
 
+    bool is_loaded() const { return m_loaded; }
+
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
 
