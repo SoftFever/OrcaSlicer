@@ -134,7 +134,11 @@ ObjectList::ObjectList(wxWindow* parent) :
         selection_changed();
 #ifndef __WXMSW__
         set_tooltip_for_item(get_mouse_position_in_control());
-#endif //__WXMSW__        
+#endif //__WXMSW__
+
+#ifndef __WXOSX__
+        list_manipulation();
+#endif //__WXOSX__
     });
 
 #ifdef __WXOSX__
@@ -169,7 +173,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
-        set_tooltip_for_item(/*event.GetPosition()*/get_mouse_position_in_control());
+        set_tooltip_for_item(get_mouse_position_in_control());
         event.Skip();
     });
 #endif //__WXMSW__
@@ -330,28 +334,34 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
      * Just this->SetToolTip(tooltip) => has no effect.
      */
 
-    if (!item)
+    if (!item || GetSelectedItemsCount() > 1)
     {
         GetMainWindow()->SetToolTip(""); // hide tooltip
         return;
     }
 
-    if (col->GetTitle() == _(L("Editing")) && GetSelectedItemsCount()<2)
-        GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
-    else if (col->GetTitle() == _("Name"))
-    {
-#ifdef __WXMSW__
-        if (pt.x < 2 * wxGetApp().em_unit() || pt.x > 4 * wxGetApp().em_unit()) {
-            GetMainWindow()->SetToolTip(""); // hide tooltip
-            return;
-        }
+    wxString tooltip = "";
+
+    if (col->GetTitle() == _(L("Editing")))
+#ifdef __WXOSX__
+        tooltip = _(L("Right button click the icon to change the object settings"));
+#else
+        tooltip = _(L("Click the icon to change the object settings"));
 #endif //__WXMSW__
+    else if (col->GetTitle() == " ")
+#ifdef __WXOSX__
+        tooltip = _(L("Right button click the icon to change the object printable property"));
+#else
+        tooltip = _(L("Click the icon to change the object printable property"));
+#endif //__WXMSW__
+    else if (col->GetTitle() == _("Name") && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
+    {
         int obj_idx, vol_idx;
         get_selected_item_indexes(obj_idx, vol_idx, item);
-        GetMainWindow()->SetToolTip(get_mesh_errors_list(obj_idx, vol_idx));
+        tooltip = get_mesh_errors_list(obj_idx, vol_idx);
     }
-    else
-        GetMainWindow()->SetToolTip(""); // hide tooltip
+    
+    GetMainWindow()->SetToolTip(tooltip);
 }
 
 wxPoint ObjectList::get_mouse_position_in_control()
@@ -744,6 +754,11 @@ void ObjectList::OnChar(wxKeyEvent& event)
 #endif /* __WXOSX__ */
 
 void ObjectList::OnContextMenu(wxDataViewEvent&)
+{
+    list_manipulation();
+}
+
+void ObjectList::list_manipulation()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
