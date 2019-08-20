@@ -68,7 +68,7 @@ int CLI::run(int argc, char **argv)
         std::string text = std::string("An error occured while setting up locale.\n") + (
 #if !defined(_WIN32) && !defined(__APPLE__)
         	// likely some linux system
-        	"You may need to reconfigure the missing locales, likely by running the \"locale-gen\"" and \"dpkg-reconfigure locales\" commands.\n"
+            "You may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n"
 #endif
         	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
     #if defined(_WIN32) && defined(SLIC3R_GUI)
