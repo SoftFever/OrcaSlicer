@@ -71,7 +71,7 @@ int CLI::run(int argc, char **argv)
         	"You may need to reconfigure the missing locales, likely by running the \"locale-gen\"" and \"dpkg-reconfigure locales\" commands.\n"
 #endif
         	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
-    #ifdef SLIC3R_GUI
+    #if defined(_WIN32) && defined(SLIC3R_GUI)
         if (m_actions.empty())
         	// Empty actions means Slicer is executed in the GUI mode. Show a GUI message.
             MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
