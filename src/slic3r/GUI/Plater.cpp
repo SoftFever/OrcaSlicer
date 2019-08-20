@@ -296,11 +296,11 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
             data->SetChooseFull(1);
             data->SetColour(clr);
 
-            auto dialog = new wxColourDialog(this, data);
-            dialog->CenterOnParent();
-            if (dialog->ShowModal() == wxID_OK)
+            wxColourDialog dialog(this, data);
+            dialog.CenterOnParent();
+            if (dialog.ShowModal() == wxID_OK)
             {
-                colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
+                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("extruder_colour", colors);
@@ -309,7 +309,6 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
                 wxGetApp().plater()->on_config_change(cfg_new);
             }
-            dialog->Destroy();
         });
     }
 
@@ -2523,15 +2522,14 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         default: break;
     }
 
-    wxFileDialog* dlg = new wxFileDialog(q, dlg_title,
+    wxFileDialog dlg(q, dlg_title,
         from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (dlg->ShowModal() != wxID_OK) {
+    if (dlg.ShowModal() != wxID_OK)
         return wxEmptyString;
-    }
 
-    wxString out_path = dlg->GetPath();
+    wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 

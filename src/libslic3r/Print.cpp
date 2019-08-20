@@ -1762,15 +1762,7 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTower wipe_tower(
-        m_config.single_extruder_multi_material.value,
-        float(m_config.wipe_tower_x.value),     float(m_config.wipe_tower_y.value), 
-        float(m_config.wipe_tower_width.value),
-        float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
-        float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging),
-        m_config.high_current_on_filament_swap.value, m_config.gcode_flavor, wipe_volumes,
-        m_wipe_tower_data.tool_ordering.first_extruder());
+    WipeTower wipe_tower(m_config, wipe_volumes, m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
@@ -1779,22 +1771,7 @@ void Print::_make_wipe_tower()
     for (size_t i = 0; i < number_of_extruders; ++ i)
 
         wipe_tower.set_extruder(
-            i, 
-            m_config.filament_type.get_at(i),
-            m_config.temperature.get_at(i),
-            m_config.first_layer_temperature.get_at(i),
-			(float)m_config.filament_loading_speed.get_at(i),
-			(float)m_config.filament_loading_speed_start.get_at(i),
-			(float)m_config.filament_unloading_speed.get_at(i),
-			(float)m_config.filament_unloading_speed_start.get_at(i),
-			(float)m_config.filament_toolchange_delay.get_at(i),
-            m_config.filament_cooling_moves.get_at(i),
-			(float)m_config.filament_cooling_initial_speed.get_at(i),
-			(float)m_config.filament_cooling_final_speed.get_at(i),
-            m_config.filament_ramming_parameters.get_at(i),
-            (float)m_config.filament_max_volumetric_speed.get_at(i),
-            (float)m_config.nozzle_diameter.get_at(i),
-            (float)m_config.filament_diameter.get_at(i));
+            i, m_config);
 
     m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
         wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));

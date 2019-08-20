@@ -126,7 +126,16 @@ static void generic_exception_handle()
 
     try {
         throw;
-    } catch (const std::exception &ex) {
+    } catch (const std::bad_alloc& ex) {
+        // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
+        // and terminate the app so it is at least certain to happen now.
+        wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
+                              "be glad if you reported it.\n\nThe application will now terminate.")), SLIC3R_APP_NAME);
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _(L("Fatal error")), wxOK | wxICON_ERROR);
+        BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
+        std::terminate();
+    } catch (const std::exception& ex) {
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
