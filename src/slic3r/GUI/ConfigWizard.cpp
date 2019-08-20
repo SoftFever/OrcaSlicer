@@ -25,11 +25,16 @@
 #include "PresetBundle.hpp"
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
+#include "slic3r/Config/Snapshot.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
+
+
+using Config::Snapshot;
+using Config::SnapshotDB;
 
 
 // Printer model picker GUI control
@@ -1025,15 +1030,33 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     // Decide whether to create snapshot based on run_reason and the reset profile checkbox
     bool snapshot = true;
+    Snapshot::Reason snapshot_reason = Snapshot::SNAPSHOT_UPGRADE;
     switch (run_reason) {
-        case ConfigWizard::RR_DATA_EMPTY:    snapshot = false; break;
-        case ConfigWizard::RR_DATA_LEGACY:   snapshot = true; break;
-        case ConfigWizard::RR_DATA_INCOMPAT: snapshot = false; break;      // In this case snapshot is done by PresetUpdater with the appropriate reason
-        case ConfigWizard::RR_USER:          snapshot = page_welcome->reset_user_profile(); break;
+        case ConfigWizard::RR_DATA_EMPTY:
+            snapshot = false;
+            break;
+        case ConfigWizard::RR_DATA_LEGACY:
+            snapshot = true;
+            break;
+        case ConfigWizard::RR_DATA_INCOMPAT:
+            // In this case snapshot has already been taken by
+            // PresetUpdater with the appropriate reason
+            snapshot = false;
+            break;
+        case ConfigWizard::RR_USER:
+            snapshot = page_welcome->reset_user_profile();
+            snapshot_reason = Snapshot::SNAPSHOT_USER;
+            break;
     }
+
+    if (snapshot) {
+        SnapshotDB::singleton().take_snapshot(*app_config, snapshot_reason);
+    }
+
     if (install_bundles.size() > 0) {
         // Install bundles from resources.
-        updater->install_bundles_rsrc(std::move(install_bundles), snapshot);
+        // Don't create snapshot - we've already done that above if applicable.
+        updater->install_bundles_rsrc(std::move(install_bundles), false);
     } else {
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resources";
     }
