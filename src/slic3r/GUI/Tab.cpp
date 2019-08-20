@@ -3699,16 +3699,17 @@ void bound_check(Tab &tb, e_cmp cmp, const char *id, const char *boundid)
     double ddiff = value - bound;
     int diff = ddiff < 0 ? SMALLER : (std::abs(ddiff) < EPSILON ? EQUAL : GREATER);
 
-    wxString fmt;
-    switch (cmp) {
-    case EQUAL:      fmt = _(L("%s should be equal to %s")); break;
-    case SMALLER:    fmt = _(L("%s should be smaller than %s")); break;
-    case GREATER:    fmt = _(L("%s should be greater than %s")); break;
-    case SMALLER_EQ: fmt = _(L("%s should be smaller or equal to %s")); break;
-    case GREATER_EQ: fmt = _(L("%s should be greater or equal to %s")); break;
-    }
-
     if ((cmp | diff) != cmp) {
+        wxString fmt;
+        
+        switch (cmp) {
+        case EQUAL:      fmt = _(L("%s should be equal to %s")); break;
+        case SMALLER:    fmt = _(L("%s should be smaller than %s")); break;
+        case GREATER:    fmt = _(L("%s should be greater than %s")); break;
+        case SMALLER_EQ: fmt = _(L("%s should be smaller or equal to %s")); break;
+        case GREATER_EQ: fmt = _(L("%s should be greater or equal to %s")); break;
+        }
+        
         wxString msg_text = wxString::Format(fmt, valuelabel, boundlabel);
 
         wxMessageDialog dialog(tb.parent(), msg_text,
