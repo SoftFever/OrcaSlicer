@@ -98,9 +98,10 @@ void AppConfig::load()
         pt::read_ini(ifs, tree);
     } catch (pt::ptree_error& ex) {
         // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-        throw std::runtime_error(wxString::Format(_(L("Error parsing config file, it is probably corrupted. "
-            "Try to manualy delete the file. Your user profiles will not be affected.\n\n%s\n\n%s")),
-            AppConfig::config_path(), ex.what()).ToStdString());
+        throw std::runtime_error(
+        	_utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    "Try to manualy delete the file to recover from the error. Your user profiles will not be affected.")) + 
+        	"\n\n" + AppConfig::config_path() + "\n\n" + ex.what());
     }
 
     // 2) Parse the property_tree, extract the sections and key / value pairs.

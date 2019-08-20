@@ -390,7 +390,7 @@ namespace Slic3r {
         fclose(out);
         in.close();
 
-        if (rename_file(path_tmp, filename) != 0)
+        if (rename_file(path_tmp, filename))
             throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
 

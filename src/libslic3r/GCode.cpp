@@ -607,7 +607,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         m_analyzer.reset();
     }
 
-    if (rename_file(path_tmp, path) != 0)
+    if (rename_file(path_tmp, path))
         throw std::runtime_error(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
