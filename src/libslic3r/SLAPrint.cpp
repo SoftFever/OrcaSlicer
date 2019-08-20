@@ -692,19 +692,19 @@ std::string SLAPrint::validate() const
         }
     }
 
-    double expt_max = m_material_config.exposure_time_max.getFloat();
-    double expt_min = m_material_config.exposure_time_min.getFloat();
+    double expt_max = m_printer_config.max_exposure_time.getFloat();
+    double expt_min = m_printer_config.min_exposure_time.getFloat();
     double expt_cur = m_material_config.exposure_time.getFloat();
 
     if (expt_cur < expt_min || expt_cur > expt_max)
-        return L("Exposition time is out of predefined bounds.");
+        return L("Exposition time is out of printer profile bounds.");
 
-    double iexpt_max = m_material_config.initial_exposure_time_max.getFloat();
-    double iexpt_min = m_material_config.initial_exposure_time_min.getFloat();
+    double iexpt_max = m_printer_config.max_initial_exposure_time.getFloat();
+    double iexpt_min = m_printer_config.min_initial_exposure_time.getFloat();
     double iexpt_cur = m_material_config.initial_exposure_time.getFloat();
 
     if (iexpt_cur < iexpt_min || iexpt_cur > iexpt_max)
-        return L("Initial exposition time is out of predefined bounds.");
+        return L("Initial exposition time is out of printer profile bounds.");
 
     return "";
 }
@@ -1600,11 +1600,11 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     // Cache the plenty of parameters, which influence the final rasterization only,
     // or they are only notes not influencing the rasterization step.
     static std::unordered_set<std::string> steps_rasterize = {
-        "exposure_time_min",
-        "exposure_time_max",
+        "min_exposure_time",
+        "max_exposure_time",
         "exposure_time",
-        "initial_exposure_time_min",
-        "initial_exposure_time_max",
+        "min_initial_exposure_time",
+        "max_initial_exposure_time",
         "initial_exposure_time",
         "display_width",
         "display_height",
