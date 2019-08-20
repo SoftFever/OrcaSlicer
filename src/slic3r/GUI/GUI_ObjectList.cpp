@@ -2306,14 +2306,14 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     {
         std::vector<bool> print_idicator(model_object->instances.size());
         for (int i = 0; i < model_object->instances.size(); ++i)
-            print_idicator[i] = model_object->instances[i]->is_printable();
+            print_idicator[i] = model_object->instances[i]->printable;
 
         const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
         m_objects_model->AddInstanceChild(object_item, print_idicator);
         Expand(m_objects_model->GetInstanceRootItem(object_item));
     }
     else
-        m_objects_model->SetPrintableState(model_object->instances[0]->is_printable() ? piPrintable : piUnprintable, obj_idx);
+        m_objects_model->SetPrintableState(model_object->instances[0]->printable ? piPrintable : piUnprintable, obj_idx);
 
     // add settings to the object, if it has those
     add_settings_item(item, &model_object->config);

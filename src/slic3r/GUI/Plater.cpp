@@ -290,7 +290,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
             auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
             wxColour clr(colors->values[extruder_idx]);
             if (!clr.IsOk())
-                clr = wxTransparentColour;
+                clr = wxColour(0,0,0); // Don't set alfa to transparence
 
             auto data = new wxColourData();
             data->SetChooseFull(1);
