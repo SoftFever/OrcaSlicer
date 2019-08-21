@@ -173,7 +173,9 @@ namespace Slic3r {
     const std::string GCodeTimeEstimator::Normal_Last_M73_Output_Placeholder_Tag = "; _TE_NORMAL_LAST_M73_OUTPUT_PLACEHOLDER";
     const std::string GCodeTimeEstimator::Silent_Last_M73_Output_Placeholder_Tag = "; _TE_SILENT_LAST_M73_OUTPUT_PLACEHOLDER";
 
-    const std::string GCodeTimeEstimator::Color_Change_Tag = "_TE_COLOR_CHANGE";
+    // temporary human readable form to use until not removed from gcode by the new post-process method
+    const std::string GCodeTimeEstimator::Color_Change_Tag = "PRINT_COLOR_CHANGE";
+//    const std::string GCodeTimeEstimator::Color_Change_Tag = "_TE_COLOR_CHANGE";
 
     GCodeTimeEstimator::GCodeTimeEstimator(EMode mode)
         : m_mode(mode)
