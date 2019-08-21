@@ -262,8 +262,14 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_regions.size() * 3);
-    for (const PrintRegion *region : m_regions)
-        region->collect_object_printing_extruders(extruders);
+    std::vector<unsigned char> region_used(m_regions.size(), false);
+    for (const PrintObject *object : m_objects)
+		for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : object->region_volumes)
+        	if (! volumes_per_region.empty())
+        		region_used[&volumes_per_region - &object->region_volumes.front()] = true;
+    for (size_t idx_region = 0; idx_region < m_regions.size(); ++ idx_region)
+    	if (region_used[idx_region])
+        	m_regions[idx_region]->collect_object_printing_extruders(extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -273,17 +279,24 @@ std::vector<unsigned int> Print::support_material_extruders() const
 {
     std::vector<unsigned int> extruders;
     bool support_uses_current_extruder = false;
+    auto num_extruders = (unsigned int)m_config.nozzle_diameter.size();
 
     for (PrintObject *object : m_objects) {
         if (object->has_support_material()) {
+        	assert(object->config().support_material_extruder >= 0);
             if (object->config().support_material_extruder == 0)
                 support_uses_current_extruder = true;
-            else
-                extruders.push_back(object->config().support_material_extruder - 1);
+            else {
+            	unsigned int i = (unsigned int)object->config().support_material_extruder - 1;
+                extruders.emplace_back((i >= num_extruders) ? 0 : i);
+            }
+        	assert(object->config().support_material_interface_extruder >= 0);
             if (object->config().support_material_interface_extruder == 0)
                 support_uses_current_extruder = true;
-            else
-                extruders.push_back(object->config().support_material_interface_extruder - 1);
+            else {
+            	unsigned int i = (unsigned int)object->config().support_material_interface_extruder - 1;
+                extruders.emplace_back((i >= num_extruders) ? 0 : i);
+            }
         }
     }
 
