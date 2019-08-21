@@ -437,6 +437,18 @@ inline Circle to_lnCircle(const CircleBed& circ) {
 }
 
 // Get the type of bed geometry from a simple vector of points.
+void BedShapeHint::reset(BedShapes type)
+{
+    if (m_type != type) {
+        if (m_type == bsIrregular)
+            m_bed.polygon.Slic3r::Polyline::~Polyline();
+        else if (type == bsIrregular)
+            ::new (&m_bed.polygon) Polyline();
+    }
+    
+    m_type = type;
+}
+
 BedShapeHint::BedShapeHint(const Polyline &bed) {
     auto x = [](const Point& p) { return p(X); };
     auto y = [](const Point& p) { return p(Y); };
@@ -511,14 +523,44 @@ BedShapeHint::BedShapeHint(const Polyline &bed) {
     }
 }
 
+BedShapeHint &BedShapeHint::operator=(BedShapeHint &&cpy)
+{
+    reset(cpy.m_type);
+    
+    switch(m_type) {
+    case bsBox: m_bed.box = std::move(cpy.m_bed.box); break;
+    case bsCircle: m_bed.circ = std::move(cpy.m_bed.circ); break;
+    case bsIrregular: m_bed.polygon = std::move(cpy.m_bed.polygon); break;
+    case bsInfinite: m_bed.infbed = std::move(cpy.m_bed.infbed); break;
+    case bsUnknown: break;
+    }
+    
+    return *this;
+}
+
+BedShapeHint &BedShapeHint::operator=(const BedShapeHint &cpy)
+{
+    reset(cpy.m_type);
+    
+    switch(m_type) {
+    case bsBox: m_bed.box = cpy.m_bed.box; break;
+    case bsCircle: m_bed.circ = cpy.m_bed.circ; break;
+    case bsIrregular: m_bed.polygon = cpy.m_bed.polygon; break;
+    case bsInfinite: m_bed.infbed = cpy.m_bed.infbed; break;
+    case bsUnknown: break;
+    }
+    
+    return *this;
+}
+
 template<class BinT> // Arrange for arbitrary bin type
 void _arrange(
-    std::vector<Item> &           shapes,
-    std::vector<Item> &           excludes,
-    const BinT &                  bin,
-    coord_t                       minobjd,
-    std::function<void(unsigned)> prind,
-    std::function<bool()>         stopfn)
+        std::vector<Item> &           shapes,
+        std::vector<Item> &           excludes,
+        const BinT &                  bin,
+        coord_t                       minobjd,
+        std::function<void(unsigned)> prind,
+        std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = minobjd - 2 * scaled(0.1 + EPSILON);
