@@ -60,21 +60,25 @@ PrinterTechnology get_printer_technology(const DynamicConfig &config)
 
 int CLI::run(int argc, char **argv)
 {
-#ifdef _WIN32
 	// Switch boost::filesystem to utf8.
     try {
         boost::nowide::nowide_filesystem();
     } catch (const std::runtime_error& ex) {
         std::string caption = std::string(SLIC3R_APP_NAME) + " Error";
-        std::string text = std::string("An error occured while setting up locale.\n") + SLIC3R_APP_NAME + " will now terminate.\n\n" + ex.what();
-    #ifdef SLIC3R_GUI
+        std::string text = std::string("An error occured while setting up locale.\n") + (
+#if !defined(_WIN32) && !defined(__APPLE__)
+        	// likely some linux system
+            "You may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n"
+#endif
+        	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
+    #if defined(_WIN32) && defined(SLIC3R_GUI)
         if (m_actions.empty())
+        	// Empty actions means Slicer is executed in the GUI mode. Show a GUI message.
             MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
     #endif
         boost::nowide::cerr << text.c_str() << std::endl;
         return 1;
     }
-#endif
 
 	if (! this->setup(argc, argv))
 		return 1;
@@ -426,7 +430,7 @@ int CLI::run(int argc, char **argv)
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
                             sla_print.export_raster(outfile_final);
                         }
-                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final) != 0) {
+                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
                             boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
                             return 1;
                         }

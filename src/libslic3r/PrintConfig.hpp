@@ -1131,6 +1131,10 @@ public:
     ConfigOptionFloat                       fast_tilt_time;
     ConfigOptionFloat                       slow_tilt_time;
     ConfigOptionFloat                       area_fill;
+    ConfigOptionFloat                       min_exposure_time;
+    ConfigOptionFloat                       max_exposure_time;
+    ConfigOptionFloat                       min_initial_exposure_time;
+    ConfigOptionFloat                       max_initial_exposure_time;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -1150,6 +1154,10 @@ protected:
         OPT_PTR(fast_tilt_time);
         OPT_PTR(slow_tilt_time);
         OPT_PTR(area_fill);
+        OPT_PTR(min_exposure_time);
+        OPT_PTR(max_exposure_time);
+        OPT_PTR(min_initial_exposure_time);
+        OPT_PTR(max_initial_exposure_time);
     }
 };
 
