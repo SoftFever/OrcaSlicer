@@ -127,6 +127,8 @@ add_library(libslic3r STATIC
     Point.hpp
     Polygon.cpp
     Polygon.hpp
+    PolygonTrimmer.cpp
+    PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
     PolylineCollection.cpp
