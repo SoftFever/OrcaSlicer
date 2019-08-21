@@ -1525,6 +1525,8 @@ void GCode::process_layer(
     {
         // add tag for analyzer
         gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
+        // add tag for time estimator
+        gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
         gcode += "M600\n";
     }
 
