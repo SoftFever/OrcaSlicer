@@ -1258,7 +1258,7 @@ std::string Print::validate() const
         	} else if (extrusion_width_min <= layer_height) {
         		err_msg = (boost::format(L("%1%=%2% mm is too low to be printable at a layer height %3% mm")) % opt_key % extrusion_width_min % layer_height).str();
 				return false;
-			} else if (extrusion_width_max >= max_nozzle_diameter * 2.) {
+			} else if (extrusion_width_max >= max_nozzle_diameter * 3.) {
 				err_msg = (boost::format(L("Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm")) % opt_key % extrusion_width_max % max_nozzle_diameter).str();
 				return false;
 			}
