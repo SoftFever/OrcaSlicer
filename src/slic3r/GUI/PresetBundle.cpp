@@ -763,8 +763,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 }
             }
             // Load the configs into this->filaments and make them active.
-            this->filament_presets.clear();
-            for (size_t i = 0; i < configs.size(); ++ i) {
+            this->filament_presets = std::vector<std::string>(configs.size());
+            // To avoid incorrect selection of the first filament preset (means a value of Preset->m_idx_selected) 
+            // in a case when next added preset take a place of previosly selected preset,
+            // we should add presets from last to first
+            for (int i = (int)configs.size()-1; i >= 0; i--) {
                 DynamicPrintConfig &cfg = configs[i];
                 // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
                 cfg.opt_string("compatible_printers_condition", true) = compatible_printers_condition_values[i + 1];
@@ -789,7 +792,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         new_name, std::move(cfg), i == 0);
                     loaded->save();
                 }
-                this->filament_presets.emplace_back(loaded->name);
+                this->filament_presets[i] = loaded->name;
             }
         }
         // 4) Load the project config values (the per extruder wipe matrix etc).
