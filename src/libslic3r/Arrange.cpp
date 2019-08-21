@@ -148,8 +148,9 @@ protected:
     double    m_norm;           // A coefficient to scale distances
     MultiPolygon m_merged_pile; // The already merged pile (vector of items)
     Box          m_pilebb;      // The bounding box of the merged pile.
-    ItemGroup m_remaining; // Remaining items (m_items at the beginning)
-    ItemGroup m_items;     // The items to be packed
+    ItemGroup m_remaining;      // Remaining items
+    ItemGroup m_items;          // allready packed items
+    size_t    m_item_count = 0; // Number of all items to be packed
     
     template<class T> ArithmeticOnly<T, double> norm(T val)
     {
@@ -167,7 +168,6 @@ protected:
         const double bin_area = m_bin_area;
         const SpatIndex& spatindex = m_rtree;
         const SpatIndex& smalls_spatindex = m_smallsrtree;
-        const ItemGroup& remaining = m_remaining;
         
         // We will treat big items (compared to the print bed) differently
         auto isBig = [bin_area](double a) {
@@ -209,8 +209,8 @@ protected:
         } compute_case;
         
         bool bigitems = isBig(item.area()) || spatindex.empty();
-        if(bigitems && !remaining.empty()) compute_case = BIG_ITEM;
-        else if (bigitems && remaining.empty()) compute_case = LAST_BIG_ITEM;
+        if(bigitems && !m_remaining.empty()) compute_case = BIG_ITEM;
+        else if (bigitems && m_remaining.empty()) compute_case = LAST_BIG_ITEM;
         else compute_case = SMALL_ITEM;
         
         switch (compute_case) {
@@ -235,7 +235,7 @@ protected:
             // The smalles distance from the arranged pile center:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
             double bindist = norm(pl::distance(ibb.center(), bincenter));
-            dist = 0.8 * dist + 0.2*bindist;
+            dist = 0.8 * dist + 0.2 * bindist;
 
             // Prepare a variable for the alignment score.
             // This will indicate: how well is the candidate item
@@ -267,29 +267,24 @@ protected:
                     if(ascore < alignment_score) alignment_score = ascore;
                 }
             }
-
+            
             density = std::sqrt(norm(fullbb.width()) * norm(fullbb.height()));
-
+            double R = double(m_remaining.size()) / m_item_count;
+            
             // The final mix of the score is the balance between the
             // distance from the full pile center, the pack density and
             // the alignment with the neighbors
             if (result.empty())
-                score = 0.5 * dist + 0.5 * density;
+                score = 0.50 * dist + 0.50 * density;
             else
-                score = 0.40 * dist + 0.40 * density + 0.2 * alignment_score;
+                score = R * 0.60 * dist +
+                        (1.0 - R) * 0.20 * density +
+                        0.20 * alignment_score;
             
             break;
         }
         case LAST_BIG_ITEM: {
-            auto mp = m_merged_pile;
-            mp.emplace_back(item.transformedShape());
-            auto chull = sl::convexHull(mp);
-    
-            placers::EdgeCache<clppr::Polygon> ec(chull);
-            
-            double circ  = norm(ec.circumference());
-            double bcirc = 2.0 * norm(fullbb.width() + fullbb.height());
-            score = 0.5 * circ + 0.5 * bcirc;
+            score = norm(pl::distance(ibb.center(), m_pilebb.center()));
             break;
         }
         case SMALL_ITEM: {
@@ -355,9 +350,11 @@ public:
         m_pck.configure(m_pconf);
     }
     
-    template<class...Args> inline void operator()(Args&&...args) {
-        m_rtree.clear(); /*m_preload_idx.clear();*/
-        m_pck.execute(std::forward<Args>(args)...);
+    template<class It> inline void operator()(It from, It to) {
+        m_rtree.clear();
+        m_item_count += size_t(to - from);
+        m_pck.execute(from, to);
+        m_item_count = 0;
     }
     
     inline void preload(std::vector<Item>& fixeditems) {
@@ -376,6 +373,7 @@ public:
         }
 
         m_pck.configure(m_pconf);
+        m_item_count += fixeditems.size();
     }
 };
 

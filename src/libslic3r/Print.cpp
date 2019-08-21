@@ -262,8 +262,14 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_regions.size() * 3);
-    for (const PrintRegion *region : m_regions)
-        region->collect_object_printing_extruders(extruders);
+    std::vector<unsigned char> region_used(m_regions.size(), false);
+    for (const PrintObject *object : m_objects)
+		for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : object->region_volumes)
+        	if (! volumes_per_region.empty())
+        		region_used[&volumes_per_region - &object->region_volumes.front()] = true;
+    for (size_t idx_region = 0; idx_region < m_regions.size(); ++ idx_region)
+    	if (region_used[idx_region])
+        	m_regions[idx_region]->collect_object_printing_extruders(extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -273,17 +279,24 @@ std::vector<unsigned int> Print::support_material_extruders() const
 {
     std::vector<unsigned int> extruders;
     bool support_uses_current_extruder = false;
+    auto num_extruders = (unsigned int)m_config.nozzle_diameter.size();
 
     for (PrintObject *object : m_objects) {
         if (object->has_support_material()) {
+        	assert(object->config().support_material_extruder >= 0);
             if (object->config().support_material_extruder == 0)
                 support_uses_current_extruder = true;
-            else
-                extruders.push_back(object->config().support_material_extruder - 1);
+            else {
+            	unsigned int i = (unsigned int)object->config().support_material_extruder - 1;
+                extruders.emplace_back((i >= num_extruders) ? 0 : i);
+            }
+        	assert(object->config().support_material_interface_extruder >= 0);
             if (object->config().support_material_interface_extruder == 0)
                 support_uses_current_extruder = true;
-            else
-                extruders.push_back(object->config().support_material_interface_extruder - 1);
+            else {
+            	unsigned int i = (unsigned int)object->config().support_material_interface_extruder - 1;
+                extruders.emplace_back((i >= num_extruders) ? 0 : i);
+            }
         }
     }
 
@@ -577,6 +590,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
     // which should be stopped if print_diff is not empty.
+    size_t num_extruders = m_config.nozzle_diameter.size();
+    bool   num_extruders_changed = false;
     if (! full_config_diff.empty() || ! placeholder_parser_overrides.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
 		m_placeholder_parser.apply_config(std::move(placeholder_parser_overrides));
@@ -592,6 +607,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    // Handle changes to regions config defaults
 	    m_default_region_config.apply_only(new_full_config, region_diff, true);
         m_full_print_config = std::move(new_full_config);
+        if (num_extruders != m_config.nozzle_diameter.size()) {
+        	num_extruders = m_config.nozzle_diameter.size();
+        	num_extruders_changed = true;
+        }
     }
     
     class LayerRanges
@@ -768,7 +787,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         print_object_status.emplace(PrintObjectStatus(print_object));
 
     // 3) Synchronize ModelObjects & PrintObjects.
-    size_t num_extruders = m_config.nozzle_diameter.size();
     for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
         ModelObject &model_object = *m_model.objects[idx_model_object];
         auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
@@ -815,7 +833,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             bool object_config_changed = model_object.config != model_object_new.config;
 			if (object_config_changed)
 				static_cast<DynamicPrintConfig&>(model_object.config) = static_cast<const DynamicPrintConfig&>(model_object_new.config);
-            if (! object_diff.empty() || object_config_changed) {
+            if (! object_diff.empty() || object_config_changed || num_extruders_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
                 for (auto it = range.first; it != range.second; ++ it) {
@@ -1144,7 +1162,12 @@ std::string Print::validate() const
         // #4043
         if (total_copies_count > 1 && ! m_config.complete_objects.value)
             return L("The Spiral Vase option can only be used when printing a single object.");
-        if (m_regions.size() > 1)
+        assert(m_objects.size() == 1);
+        size_t num_regions = 0;
+        for (const std::vector<std::pair<t_layer_height_range, int>> &volumes_per_region : m_objects.front()->region_volumes)
+        	if (! volumes_per_region.empty())
+        		++ num_regions;
+        if (num_regions > 1)
             return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
