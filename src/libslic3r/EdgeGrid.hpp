@@ -65,6 +65,145 @@ public:
 	std::vector<std::pair<ContourEdge, ContourEdge>> intersecting_edges() const;
 	bool 											 has_intersecting_edges() const;
 
+	template<typename FUNCTION> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, FUNCTION func) const
+	{
+		// End points of the line segment.
+		p1(0) -= m_bbox.min(0);
+		p1(1) -= m_bbox.min(1);
+		p2(0) -= m_bbox.min(0);
+		p2(1) -= m_bbox.min(1);
+		// Get the cells of the end points.
+		coord_t ix = p1(0) / m_resolution;
+		coord_t iy = p1(1) / m_resolution;
+		coord_t ixb = p2(0) / m_resolution;
+		coord_t iyb = p2(1) / m_resolution;
+		assert(ix >= 0 && size_t(ix) < m_cols);
+		assert(iy >= 0 && size_t(iy) < m_rows);
+		assert(ixb >= 0 && size_t(ixb) < m_cols);
+		assert(iyb >= 0 && size_t(iyb) < m_rows);
+		// Account for the end points.
+		func(iy, ix);
+		if (ix == ixb && iy == iyb)
+			// Both ends fall into the same cell.
+			return;
+		// Raster the centeral part of the line.
+		coord_t dx = std::abs(p2(0) - p1(0));
+		coord_t dy = std::abs(p2(1) - p1(1));
+		if (p1(0) < p2(0)) {
+			int64_t ex = int64_t((ix + 1)*m_resolution - p1(0)) * int64_t(dy);
+			if (p1(1) < p2(1)) {
+				// x positive, y positive
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
+				do {
+					assert(ix <= ixb && iy <= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix += 1;
+					}
+					else if (ex == ey) {
+						ex = int64_t(dy) * m_resolution;
+						ey = int64_t(dx) * m_resolution;
+						ix += 1;
+						iy += 1;
+					}
+					else {
+						assert(ex > ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy += 1;
+					}
+					func(iy, ix);
+				} while (ix != ixb || iy != iyb);
+			}
+			else {
+				// x positive, y non positive
+				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
+				do {
+					assert(ix <= ixb && iy >= iyb);
+					if (ex <= ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix += 1;
+					}
+					else {
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy -= 1;
+					}
+					func(iy, ix);
+				} while (ix != ixb || iy != iyb);
+			}
+		}
+		else {
+			int64_t ex = int64_t(p1(0) - ix*m_resolution) * int64_t(dy);
+			if (p1(1) < p2(1)) {
+				// x non positive, y positive
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
+				do {
+					assert(ix >= ixb && iy <= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix -= 1;
+					}
+					else {
+						assert(ex >= ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy += 1;
+					}
+					func(iy, ix);
+				} while (ix != ixb || iy != iyb);
+			}
+			else {
+				// x non positive, y non positive
+				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
+				do {
+					assert(ix >= ixb && iy >= iyb);
+					if (ex < ey) {
+						ey -= ex;
+						ex = int64_t(dy) * m_resolution;
+						ix -= 1;
+					}
+					else if (ex == ey) {
+						// The lower edge of a grid cell belongs to the cell.
+						// Handle the case where the ray may cross the lower left corner of a cell in a general case,
+						// or a left or lower edge in a degenerate case (horizontal or vertical line).
+						if (dx > 0) {
+							ex = int64_t(dy) * m_resolution;
+							ix -= 1;
+						}
+						if (dy > 0) {
+							ey = int64_t(dx) * m_resolution;
+							iy -= 1;
+						}
+					}
+					else {
+						assert(ex > ey);
+						ex -= ey;
+						ey = int64_t(dx) * m_resolution;
+						iy -= 1;
+					}
+					func(iy, ix);
+				} while (ix != ixb || iy != iyb);
+			}
+		}
+	}
+
+	std::pair<std::vector<std::pair<size_t, size_t>>::const_iterator, std::vector<std::pair<size_t, size_t>>::const_iterator> cell_data_range(coord_t row, coord_t col) const
+	{
+		const EdgeGrid::Grid::Cell &cell = m_cells[row * m_cols + col];
+		return std::make_pair(m_cell_data.begin() + cell.begin, m_cell_data.begin() + cell.end);
+	}
+
+	std::pair<const Slic3r::Point&, const Slic3r::Point&> segment(const std::pair<size_t, size_t> &contour_and_segment_idx) const
+	{
+		const Slic3r::Points &ipts = *m_contours[contour_and_segment_idx.first];
+		size_t ipt = contour_and_segment_idx.second;
+		return std::pair<const Slic3r::Point&, const Slic3r::Point&>(ipts[ipt], ipts[(ipt + 1 == ipts.size()) ? 0 : ipt + 1]);
+	}
+
 protected:
 	struct Cell {
 		Cell() : begin(0), end(0) {}
