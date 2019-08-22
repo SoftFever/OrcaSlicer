@@ -168,13 +168,26 @@ bool ObjectSettings::update_settings_list()
     return true;
 }
 
-void ObjectSettings::update_config_values(DynamicPrintConfig*config)
+void ObjectSettings::update_config_values(DynamicPrintConfig* config)
 {
-    auto load_config = [this, config]()
+    const auto objects_model        = wxGetApp().obj_list()->GetModel();
+    const auto item                 = wxGetApp().obj_list()->GetSelection();
+    const auto printer_technology   = wxGetApp().plater()->printer_technology();
+    const bool is_object_settings   = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
+
+    // update config values according to configuration hierarchy
+    DynamicPrintConfig  main_config   = printer_technology == ptFFF ?
+                                        wxGetApp().preset_bundle->prints.get_edited_preset().config :
+                                        wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+
+    auto load_config = [this, config, &main_config]()
     {
+        // load checked values from main_config to config
+        config->apply_only(main_config, config->keys(), true);
+
         for (auto og : m_og_settings)
-            og->reload_config();
-        update_config_values(config);
+            og->reload_config();        // load new config values to accorded fields
+        update_config_values(config);   // next config che
     };
 
     auto get_field = [this](const t_config_option_key & opt_key)
@@ -188,11 +201,25 @@ void ObjectSettings::update_config_values(DynamicPrintConfig*config)
         return field;
     };
 
-    ConfigManipulation config_manipulation(parent(), load_config, get_field, nullptr);
+    ConfigManipulation config_manipulation(load_config, get_field, nullptr, config);
 
-    wxGetApp().plater()->printer_technology() == ptFFF       ? 
-        config_manipulation.update_print_fff_options(config) :
-        config_manipulation.update_print_sla_options(config) ;
+    if (!is_object_settings)
+    {
+        const int obj_idx = objects_model->GetObjectIdByItem(item);
+        assert(obj_idx >= 0);
+        DynamicPrintConfig* obj_config = &wxGetApp().model().objects[obj_idx]->config;
+
+        main_config.apply(*obj_config, true);
+        printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
+                                        config_manipulation.update_print_sla_config(&main_config) ;
+    }
+
+    main_config.apply(*config, true);
+    printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
+                                    config_manipulation.update_print_sla_config(&main_config) ;
+
+    printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&main_config) :
+                                    config_manipulation.toggle_print_sla_options(&main_config) ;
 }
 
 void ObjectSettings::UpdateAndShow(const bool show)

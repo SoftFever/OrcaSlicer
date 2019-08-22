@@ -447,33 +447,36 @@ class ConfigManipulation
 {
     bool                is_msg_dlg_already_exist{ false };
     bool                support_material_overhangs_queried {false};
-    wxWindow*           msg_parent {nullptr};
 
+    // function to loading of changed configuration 
     std::function<void()>                                       load_config = nullptr;
     std::function<Field* (const std::string&)>                  get_field = nullptr;
-    std::function<void(const std::string&, const boost::any&)>  on_value_change = nullptr;
+    // callback to propagation of changed value, if needed 
+    std::function<void(const std::string&, const boost::any&)>  cb_value_change = nullptr;
+    DynamicPrintConfig*                                         local_config = nullptr;
 
-    wxWindow*           parent() const  { return msg_parent;}
 public:
-    ConfigManipulation( wxWindow* msg_parent, 
-                        std::function<void()> load_config,
+    ConfigManipulation( std::function<void()> load_config,
                         std::function<Field*(const std::string&)> get_field,
-                        std::function<void(const std::string&, const boost::any&)>  on_value_change) :
-                        msg_parent(msg_parent), 
-                        load_config(load_config),
-                        get_field(get_field),
-                        on_value_change(on_value_change) {}
+                        std::function<void(const std::string&, const boost::any&)>  cb_value_change,
+                        DynamicPrintConfig* local_config = nullptr) :
+        load_config(load_config),
+        get_field(get_field),
+        cb_value_change(cb_value_change),
+        local_config(local_config) {}
 
     ~ConfigManipulation() {
         load_config = nullptr;
         get_field = nullptr;
-        on_value_change = nullptr;
+        cb_value_change = nullptr;
     }
 
-    bool    is_modified(DynamicPrintConfig* config, DynamicPrintConfig* new_config);
-    void    load_new(DynamicPrintConfig* config, DynamicPrintConfig* new_config);
-    void    update_print_fff_options(DynamicPrintConfig* config);
-    void    update_print_sla_options(DynamicPrintConfig* config);
+    void    apply(DynamicPrintConfig* config, DynamicPrintConfig* new_config);
+    void    toggle_field(const std::string& field_key, const bool toggle);
+    void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false);
+    void    toggle_print_fff_options(DynamicPrintConfig* config);
+    void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);
+    void    toggle_print_sla_options(DynamicPrintConfig* config);
 };
 
 } // GUI
