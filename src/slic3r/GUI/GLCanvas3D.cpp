@@ -3403,6 +3403,16 @@ void GLCanvas3D::msw_rescale()
     m_warning_texture.msw_rescale(*this);
 }
 
+bool GLCanvas3D::has_toolpaths_to_export() const
+{
+    return m_volumes.has_toolpaths_to_export();
+}
+
+void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
+{
+    m_volumes.export_toolpaths_to_obj(filename);
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;

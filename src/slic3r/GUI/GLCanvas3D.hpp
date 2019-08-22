@@ -644,6 +644,9 @@ public:
     void get_undoredo_toolbar_additional_tooltip(unsigned int item_id, std::string& text) { return m_undoredo_toolbar.get_additional_tooltip(item_id, text); }
     void set_undoredo_toolbar_additional_tooltip(unsigned int item_id, const std::string& text) { m_undoredo_toolbar.set_additional_tooltip(item_id, text); }
 
+    bool has_toolpaths_to_export() const;
+    void export_toolpaths_to_obj(const char* filename) const;
+
 private:
     bool _is_shown_on_screen() const;
 
