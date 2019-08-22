@@ -87,6 +87,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/LambdaObjectDialog.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
+    GUI/ConfigManipulation.cpp
+    GUI/ConfigManipulation.hpp
     GUI/Field.cpp
     GUI/Field.hpp
     GUI/OptionsGroup.cpp

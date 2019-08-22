@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "I18N.hpp"
-#include "Tab.hpp"
+#include "ConfigManipulation.hpp"
 
 #include <wx/wupdlock.h>
 
@@ -184,17 +184,18 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
     {
         // load checked values from main_config to config
         config->apply_only(main_config, config->keys(), true);
-
+        // Initialize UI components with the config values.
         for (auto og : m_og_settings)
-            og->reload_config();        // load new config values to accorded fields
-        update_config_values(config);   // next config che
+            og->reload_config();
+        // next config check
+        update_config_values(config);
     };
 
-    auto get_field = [this](const t_config_option_key & opt_key)
+    auto get_field = [this](const t_config_option_key & opt_key, int opt_index)
     {
         Field* field = nullptr;
         for (auto og : m_og_settings) {
-            field = og->get_fieldc(opt_key, -1);
+            field = og->get_fieldc(opt_key, opt_index);
             if (field != nullptr)
                 return field;
         }
