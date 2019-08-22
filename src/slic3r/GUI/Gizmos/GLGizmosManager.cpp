@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
 #include <wx/glcanvas.h>
@@ -464,6 +465,11 @@ ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
     return ClippingPlane::ClipsNothing();
 }
 
+bool GLGizmosManager::wants_reslice_supports_on_undo() const
+{
+    return (m_current == SlaSupports
+        && dynamic_cast<const GLGizmoSlaSupports*>(m_gizmos.at(SlaSupports))->has_backend_supports());
+}
 
 void GLGizmosManager::render_current_gizmo() const
 {
@@ -870,10 +876,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
     return processed;
 }
 
-void GLGizmosManager::update_after_undo_redo()
+void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
 {
     update_data();
     m_serializing = false;
+    if (m_current == SlaSupports
+     && snapshot.snapshot_data.flags & UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS)
+        dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports])->reslice_SLA_supports();
 }
 
 void GLGizmosManager::reset()
