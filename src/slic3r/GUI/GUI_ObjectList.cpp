@@ -1972,12 +1972,14 @@ void ObjectList::split()
     DynamicPrintConfig&	config = printer_config();
 	const ConfigOption *nozzle_dmtrs_opt = config.option("nozzle_diameter", false);
 	const auto nozzle_dmrs_cnt = (nozzle_dmtrs_opt == nullptr) ? size_t(1) : dynamic_cast<const ConfigOptionFloats*>(nozzle_dmtrs_opt)->values.size();
-    if (volume->split(nozzle_dmrs_cnt) == 1) {
+    if (!volume->is_splittable()) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
     }
 
     take_snapshot(_(L("Split to Parts")));
+
+    volume->split(nozzle_dmrs_cnt);
 
     wxBusyCursor wait;
 
