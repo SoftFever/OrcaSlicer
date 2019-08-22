@@ -157,6 +157,10 @@ private:
 
     int         m_selected_row = 0;
     wxDataViewItem m_last_selected_item {nullptr};
+#ifdef __WXMSW__
+    // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+    int 	    m_last_selected_column = -1;
+#endif /* __MSW__ */
 
 #if 0
     SettingsBundle m_freq_settings_fff;
@@ -366,6 +370,10 @@ private:
     bool can_drop(const wxDataViewItem& item) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
+#ifdef __WXMSW__
+    // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+	void OnEditingStarted(wxDataViewEvent &event);
+#endif /* __WXMSW__ */
     void OnEditingDone(wxDataViewEvent &event);
 
     void show_multi_selection_menu();

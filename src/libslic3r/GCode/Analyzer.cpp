@@ -25,6 +25,7 @@ const std::string GCodeAnalyzer::Extrusion_Role_Tag = "_ANALYZER_EXTR_ROLE:";
 const std::string GCodeAnalyzer::Mm3_Per_Mm_Tag = "_ANALYZER_MM3_PER_MM:";
 const std::string GCodeAnalyzer::Width_Tag = "_ANALYZER_WIDTH:";
 const std::string GCodeAnalyzer::Height_Tag = "_ANALYZER_HEIGHT:";
+const std::string GCodeAnalyzer::Color_Change_Tag = "_ANALYZER_COLOR_CHANGE";
 
 const double GCodeAnalyzer::Default_mm3_per_mm = 0.0;
 const float GCodeAnalyzer::Default_Width = 0.0f;
@@ -240,11 +241,6 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
             {
                 switch (::atoi(&cmd[1]))
                 {
-                case 600: // Set color change
-                    {
-                        _processM600(line);
-                        break;
-                    }
                 case 82: // Set extruder to absolute mode
                     {
                         _processM82(line);
@@ -517,12 +513,6 @@ void GCodeAnalyzer::_reset_cached_position()
     }
 }
 
-void GCodeAnalyzer::_processM600(const GCodeReader::GCodeLine& line)
-{
-    m_state.cur_cp_color_id++;
-    _set_cp_color_id(m_state.cur_cp_color_id);
-}
-
 void GCodeAnalyzer::_processT(const std::string& cmd)
 {
     if (cmd.length() > 1)
@@ -579,6 +569,14 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
         return true;
     }
 
+    // color change tag
+    pos = comment.find(Color_Change_Tag);
+    if (pos != comment.npos)
+    {
+        _process_color_change_tag();
+        return true;
+    }
+
     return false;
 }
 
@@ -606,6 +604,12 @@ void GCodeAnalyzer::_process_width_tag(const std::string& comment, size_t pos)
 void GCodeAnalyzer::_process_height_tag(const std::string& comment, size_t pos)
 {
     _set_height((float)::strtod(comment.substr(pos + Height_Tag.length()).c_str(), nullptr));
+}
+
+void GCodeAnalyzer::_process_color_change_tag()
+{
+    m_state.cur_cp_color_id++;
+    _set_cp_color_id(m_state.cur_cp_color_id);
 }
 
 void GCodeAnalyzer::_set_units(GCodeAnalyzer::EUnits units)
@@ -945,12 +949,12 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
             polyline = Polyline3();
 
             // add both vertices of the move
-            polyline.append(Vec3crd(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z())));
-            polyline.append(Vec3crd(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
+            polyline.append(Vec3crd((int)scale_(move.start_position.x()), (int)scale_(move.start_position.y()), (int)scale_(move.start_position.z())));
+            polyline.append(Vec3crd((int)scale_(move.end_position.x()), (int)scale_(move.end_position.y()), (int)scale_(move.end_position.z())));
         }
         else
             // append end vertex of the move to current polyline
-            polyline.append(Vec3crd(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
+            polyline.append(Vec3crd((int)scale_(move.end_position.x()), (int)scale_(move.end_position.y()), (int)scale_(move.end_position.z())));
 
         // update current values
         position = move.end_position;
@@ -994,7 +998,7 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_da
             cancel_callback();
 
         // store position
-        Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
+        Vec3crd position((int)scale_(move.start_position.x()), (int)scale_(move.start_position.y()), (int)scale_(move.start_position.z()));
         preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 
@@ -1021,7 +1025,7 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
             cancel_callback();
 
         // store position
-        Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
+        Vec3crd position((int)scale_(move.start_position.x()), (int)scale_(move.start_position.y()), (int)scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 

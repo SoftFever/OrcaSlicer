@@ -7,6 +7,7 @@
 #include "Line.hpp"
 #include "MultiPoint.hpp"
 #include "Polyline.hpp"
+#include "Polygon.hpp"
 
 namespace Slic3r {
 

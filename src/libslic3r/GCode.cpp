@@ -1522,7 +1522,13 @@ void GCode::process_layer(
 
     // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
     if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
+    {
+        // add tag for analyzer
+        gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
+        // add tag for time estimator
+        gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
         gcode += "M600\n";
+    }
 
 
     // Extrude skirt at the print_z of the raft layers and normal object layers
