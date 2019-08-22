@@ -280,8 +280,8 @@ bool GLGizmosManager::handle_shortcut(int key)
     if (m_parent.get_selection().is_empty())
         return false;
 
-    EType old_current = m_current;
     bool handled = false;
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
@@ -294,23 +294,32 @@ bool GLGizmosManager::handle_shortcut(int key)
             if ((it->second->get_state() == GLGizmoBase::On))
             {
                 it->second->set_state(GLGizmoBase::Off);
-                m_current = Undefined;
+                if (it->second->get_state() == GLGizmoBase::Off) {
+                    m_current = Undefined;
+                }
                 handled = true;
             }
             else if ((it->second->get_state() == GLGizmoBase::Off))
             {
-                it->second->set_state(GLGizmoBase::On);
-                m_current = it->first;
+                // Before turning anything on, turn everything else off to see if
+                // nobody refuses. Only then activate the gizmo.
+                bool can_open = true;
+                for (GizmosMap::iterator i = m_gizmos.begin(); i != m_gizmos.end(); ++i) {
+                    if (i->first != it->first) {
+                        if (m_current == i->first && i->second->get_state() != GLGizmoBase::Off ) {
+                            i->second->set_state(GLGizmoBase::Off);
+                            if (i->second->get_state() != GLGizmoBase::Off)
+                                can_open = false;
+                        }
+                    }
+                }
+                if (can_open) {
+                    it->second->set_state(GLGizmoBase::On);
+                    m_current = it->first;
+                }
                 handled = true;
             }
         }
-    }
-
-    if (handled && (old_current != Undefined) && (old_current != m_current))
-    {
-        GizmosMap::const_iterator it = m_gizmos.find(old_current);
-        if (it != m_gizmos.end())
-            it->second->set_state(GLGizmoBase::Off);
     }
 
     return handled;
@@ -1098,8 +1107,11 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
         {
             if ((gizmo->get_state() == GLGizmoBase::On))
             {
-                gizmo->set_state(GLGizmoBase::Hover);
-                m_current = Undefined;
+                gizmo->set_state(GLGizmoBase::Off);
+                if (gizmo->get_state() == GLGizmoBase::Off) {
+                    gizmo->set_state(GLGizmoBase::Hover);
+                    m_current = Undefined;
+                }
             }
             else if ((gizmo->get_state() == GLGizmoBase::Hover) && could_activate)
             {

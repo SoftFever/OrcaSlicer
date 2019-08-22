@@ -1127,19 +1127,23 @@ void GLGizmoSlaSupports::on_set_state()
         m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-        wxGetApp().CallAfter([this]() {
-            // Following is called through CallAfter, because otherwise there was a problem
-            // on OSX with the wxMessageDialog being shown several times when clicked into.
-            if (m_model_object) {
-                if (m_editing_mode && unsaved_changes()) {
-                    wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points?")) + "\n",
-                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+        bool will_ask = m_model_object && m_editing_mode && unsaved_changes();
+        if (will_ask) {
+            wxGetApp().CallAfter([this]() {
+                // Following is called through CallAfter, because otherwise there was a problem
+                // on OSX with the wxMessageDialog being shown several times when clicked into.
+                wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually "
+                    "edited support points?")) + "\n",_(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
                     if (dlg.ShowModal() == wxID_YES)
                         editing_mode_apply_changes();
                     else
                         editing_mode_discard_changes();
-                }
-            }
+            });
+            // refuse to be turned off so the gizmo is active when the CallAfter is executed
+            m_state = m_old_state;
+        }
+        else {
+            // we are actually shutting down
             m_parent.toggle_model_objects_visibility(true);
             disable_editing_mode(); // so it is not active next time the gizmo opens
             m_normal_cache.clear();
@@ -1149,7 +1153,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_its = nullptr;
             m_tms.reset();
             m_supports_tms.reset();
-        });
+        }
     }
     m_old_state = m_state;
 }
