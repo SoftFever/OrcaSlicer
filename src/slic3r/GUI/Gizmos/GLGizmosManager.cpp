@@ -1065,34 +1065,57 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     float scaled_stride_y = scaled_icons_size + scaled_gap_y;
     float top_y = 0.5f * (cnv_h - height) + scaled_border;
 
-    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    auto inside = [scaled_border, scaled_icons_size, &mouse_pos](float top_y) {
+        return (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+    };
+
+    bool could_activate = true;
+    for (std::pair<const GLGizmosManager::EType, GLGizmoBase*> &type_and_gizmo : m_gizmos)
     {
-        if ((it->second == nullptr) || !it->second->is_selectable())
+        GLGizmoBase *gizmo = type_and_gizmo.second;
+        if ((gizmo == nullptr) || !gizmo->is_selectable())
             continue;
 
-        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-        if (it->second->is_activable() && inside)
-        {
-            if ((it->second->get_state() == GLGizmoBase::On))
-            {
-                it->second->set_state(GLGizmoBase::Hover);
-                m_current = Undefined;
-            }
-            else if ((it->second->get_state() == GLGizmoBase::Hover))
-            {
-                it->second->set_state(GLGizmoBase::On);
-                m_current = it->first;
+        if (! (gizmo->is_activable() && inside(top_y))) {
+            gizmo->set_state(GLGizmoBase::Off);
+            if (gizmo->get_state() != GLGizmoBase::Off) {
+                // Gizmo refused to leave it's active state. Don't try to select
+                could_activate = false;
             }
         }
-        else
-            it->second->set_state(GLGizmoBase::Off);
 
         top_y += scaled_stride_y;
     }
 
-    GizmosMap::iterator it = m_gizmos.find(m_current);
-    if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
-        it->second->set_state(GLGizmoBase::On);
+    top_y = 0.5f * (cnv_h - height) + scaled_border;
+    for (std::pair<const GLGizmosManager::EType, GLGizmoBase*> &type_and_gizmo : m_gizmos)
+    {
+        GLGizmoBase *gizmo = type_and_gizmo.second;
+        if ((gizmo == nullptr) || !gizmo->is_selectable())
+            continue;
+
+        if (gizmo->is_activable() && inside(top_y))
+        {
+            if ((gizmo->get_state() == GLGizmoBase::On))
+            {
+                gizmo->set_state(GLGizmoBase::Hover);
+                m_current = Undefined;
+            }
+            else if ((gizmo->get_state() == GLGizmoBase::Hover) && could_activate)
+            {
+                gizmo->set_state(GLGizmoBase::On);
+                m_current = type_and_gizmo.first;
+            }
+        }
+
+        top_y += scaled_stride_y;
+    }
+
+    if (could_activate) {
+        GizmosMap::iterator it = m_gizmos.find(m_current);
+        if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
+            it->second->set_state(GLGizmoBase::On);
+    }
 }
 
 std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
