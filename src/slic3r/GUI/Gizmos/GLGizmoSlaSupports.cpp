@@ -1100,6 +1100,9 @@ std::string GLGizmoSlaSupports::on_get_name() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
+    if (m_state == Hover)
+        return;
+
     // m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
     m_model_object = nullptr;
@@ -1111,6 +1114,7 @@ void GLGizmoSlaSupports::on_set_state()
     }
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
         if (is_mesh_update_necessary())
             update_mesh();
 
@@ -1144,8 +1148,9 @@ void GLGizmoSlaSupports::on_set_state()
         }
         else {
             // we are actually shutting down
-            m_parent.toggle_model_objects_visibility(true);
             disable_editing_mode(); // so it is not active next time the gizmo opens
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
+            m_parent.toggle_model_objects_visibility(true);
             m_normal_cache.clear();
             m_clipping_plane_distance = 0.f;
             // Release triangle mesh slicer and the AABB spatial search structure.

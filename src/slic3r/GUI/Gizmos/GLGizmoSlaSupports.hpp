@@ -101,6 +101,8 @@ private:
     void update_cache_entry_normal(unsigned int i) const;
     bool unsaved_changes() const;
 
+    EState m_no_hover_state = Off;
+    EState m_no_hover_old_state = Off;
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).

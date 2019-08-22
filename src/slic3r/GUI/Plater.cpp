@@ -3863,6 +3863,9 @@ void Plater::priv::undo_redo_to(size_t time_to_load)
 
 void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
+    // Make sure that no updating function calls take_snapshot until we are done.
+    SuppressSnapshots snapshot_supressor(q);
+
     bool 				temp_snapshot_was_taken 	= this->undo_redo_stack().temp_snapshot_active();
     PrinterTechnology 	new_printer_technology 		= it_snapshot->snapshot_data.printer_technology;
     bool 				printer_technology_changed 	= this->printer_technology != new_printer_technology;
