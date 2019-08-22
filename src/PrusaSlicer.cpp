@@ -7,8 +7,8 @@
     #include <Windows.h>
     #include <wchar.h>
     #ifdef SLIC3R_GUI
-    extern "C" 
-    { 
+    extern "C"
+    {
         // Let the NVIDIA and AMD know we want to use their graphics card
         // on a dual graphics card system.
         __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -54,14 +54,31 @@ using namespace Slic3r;
 
 PrinterTechnology get_printer_technology(const DynamicConfig &config)
 {
-	const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+    const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
     return (opt == nullptr) ? ptUnknown : opt->value;
 }
 
-int CLI::run(int argc, char **argv) 
+int CLI::run(int argc, char **argv)
 {
 	// Switch boost::filesystem to utf8.
-    boost::nowide::nowide_filesystem();
+    try {
+        boost::nowide::nowide_filesystem();
+    } catch (const std::runtime_error& ex) {
+        std::string caption = std::string(SLIC3R_APP_NAME) + " Error";
+        std::string text = std::string("An error occured while setting up locale.\n") + (
+#if !defined(_WIN32) && !defined(__APPLE__)
+        	// likely some linux system
+        	"You may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n"
+#endif
+        	SLIC3R_APP_NAME " will now terminate.\n\n") + ex.what();
+    #if defined(_WIN32) && defined(SLIC3R_GUI)
+        if (m_actions.empty())
+        	// Empty actions means Slicer is executed in the GUI mode. Show a GUI message.
+            MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
+    #endif
+        boost::nowide::cerr << text.c_str() << std::endl;
+        return 1;
+    }
 
 	if (! this->setup(argc, argv))
 		return 1;
@@ -71,14 +88,14 @@ int CLI::run(int argc, char **argv)
 
     bool							start_gui			= m_actions.empty() &&
         // cutting transformations are setting an "export" action.
-		std::find(m_transforms.begin(), m_transforms.end(), "cut") == m_transforms.end() &&
-		std::find(m_transforms.begin(), m_transforms.end(), "cut_x") == m_transforms.end() &&
-		std::find(m_transforms.begin(), m_transforms.end(), "cut_y") == m_transforms.end();
+        std::find(m_transforms.begin(), m_transforms.end(), "cut") == m_transforms.end() &&
+        std::find(m_transforms.begin(), m_transforms.end(), "cut_x") == m_transforms.end() &&
+        std::find(m_transforms.begin(), m_transforms.end(), "cut_y") == m_transforms.end();
     PrinterTechnology				printer_technology	= get_printer_technology(m_extra_config);
-	const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
-    
+    const std::vector<std::string> &load_configs		= m_config.option<ConfigOptionStrings>("load", true)->values;
+
     // load config files supplied via --load
-	for (auto const &file : load_configs) {
+    for (auto const &file : load_configs) {
         if (! boost::filesystem::exists(file)) {
             if (m_config.opt_bool("ignore_nonexistent_config")) {
                 continue;
@@ -104,7 +121,7 @@ int CLI::run(int argc, char **argv)
         }
         m_print_config.apply(config);
     }
-        
+
     // Read input file(s) if any.
     for (const std::string &file : m_input_files) {
         if (! boost::filesystem::exists(file)) {
@@ -140,21 +157,21 @@ int CLI::run(int argc, char **argv)
     m_print_config.normalize();
 
     if (printer_technology == ptUnknown)
-		printer_technology = std::find(m_actions.begin(), m_actions.end(), "export_sla") == m_actions.end() ? ptFFF : ptSLA;
+        printer_technology = std::find(m_actions.begin(), m_actions.end(), "export_sla") == m_actions.end() ? ptFFF : ptSLA;
 
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
 //    SLAFullPrintConfig sla_print_config;
     fff_print_config.apply(m_print_config, true);
 //    sla_print_config.apply(m_print_config, true);
-    
+
     // Loop through transform options.
     for (auto const &opt_key : m_transforms) {
         if (opt_key == "merge") {
             Model m;
             for (auto &model : m_models)
-				for (ModelObject *o : model.objects)
-					m.add_object(*o);
+                for (ModelObject *o : model.objects)
+                    m.add_object(*o);
             // Rearrange instances unless --dont-arrange is supplied
             if (! m_config.opt_bool("dont_arrange")) {
                 m.add_default_instances();
@@ -166,8 +183,8 @@ int CLI::run(int argc, char **argv)
                     this->has_print_action() ? &bb : nullptr
                 );
             }
-			m_models.clear();
-			m_models.emplace_back(std::move(m));
+            m_models.clear();
+            m_models.emplace_back(std::move(m));
         } else if (opt_key == "duplicate") {
             const BoundingBoxf &bb = fff_print_config.bed_shape.values;
             for (auto &model : m_models) {
@@ -196,11 +213,11 @@ int CLI::run(int argc, char **argv)
                 // this affects instances:
                 model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
                 // this affects volumes:
-				//FIXME Vojtech: Who knows why the complete model should be aligned with Z as a single rigid body?
+                //FIXME Vojtech: Who knows why the complete model should be aligned with Z as a single rigid body?
                 //model.align_to_ground();
                 BoundingBoxf3 bbox;
                 for (ModelObject *model_object : model.objects)
-					// We are interested into the Z span only, therefore it is sufficient to measure the bounding box of the 1st instance only.
+                    // We are interested into the Z span only, therefore it is sufficient to measure the bounding box of the 1st instance only.
                     bbox.merge(model_object->instance_bounding_box(0, false));
                 for (ModelObject *model_object : model.objects)
                     for (ModelInstance *model_instance : model_object->instances)
@@ -211,7 +228,7 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models) {
                 BoundingBoxf3 bb = model.bounding_box();
                 // this affects volumes:
-				model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
+                model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
             }
         } else if (opt_key == "dont_arrange") {
             // do nothing - this option alters other transform options
@@ -249,8 +266,8 @@ int CLI::run(int argc, char **argv)
             std::vector<Model> new_models;
             for (auto &model : m_models) {
                 model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0
-				size_t num_objects = model.objects.size();
-				for (size_t i = 0; i < num_objects; ++ i) {
+                size_t num_objects = model.objects.size();
+                for (size_t i = 0; i < num_objects; ++ i) {
 
 #if 0
                     if (opt_key == "cut_x") {
@@ -261,15 +278,15 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-					model.objects.front()->cut(0, m_config.opt_float("cut"), true, true, true);
+                    model.objects.front()->cut(0, m_config.opt_float("cut"), true, true, true);
 #endif
-					model.delete_object(size_t(0));
+                    model.delete_object(size_t(0));
                 }
             }
-            
+
             // TODO: copy less stuff around using pointers
             m_models = new_models;
-            
+
             if (m_actions.empty())
                 m_actions.push_back("export_stl");
         }
@@ -279,7 +296,7 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models) {
                 TriangleMesh mesh = model.mesh();
                 mesh.repair();
-            
+
                 TriangleMeshPtrs meshes = mesh.cut_by_grid(m_config.option<ConfigOptionPoint>("cut_grid")->value);
                 size_t i = 0;
                 for (TriangleMesh* m : meshes) {
@@ -290,10 +307,10 @@ int CLI::run(int argc, char **argv)
                     delete m;
                 }
             }
-            
+
             // TODO: copy less stuff around using pointers
             m_models = new_models;
-            
+
             if (m_actions.empty())
                 m_actions.push_back("export_stl");
         }
@@ -307,7 +324,7 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-			// Models are repaired by default.
+            // Models are repaired by default.
             //for (auto &model : m_models)
             //    model.repair();
         } else {
@@ -315,7 +332,7 @@ int CLI::run(int argc, char **argv)
             return 1;
         }
     }
-    
+
     // loop through action options
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
@@ -358,14 +375,14 @@ int CLI::run(int argc, char **argv)
                 boost::nowide::cerr << "error: cannot export SLA slices for a SLA configuration" << std::endl;
                 return 1;
             }
-			// Make a copy of the model if the current action is not the last action, as the model may be
-			// modified by the centering and such.
-			Model model_copy;
-			bool  make_copy = &opt_key != &m_actions.back();
+            // Make a copy of the model if the current action is not the last action, as the model may be
+            // modified by the centering and such.
+            Model model_copy;
+            bool  make_copy = &opt_key != &m_actions.back();
             for (Model &model_in : m_models) {
-				if (make_copy)
-					model_copy = model_in;
-				Model &model = make_copy ? model_copy : model_in;
+                if (make_copy)
+                    model_copy = model_in;
+                Model &model = make_copy ? model_copy : model_in;
                 // If all objects have defined instances, their relative positions will be
                 // honored when printing (they will be only centered, unless --dont-arrange
                 // is supplied); if any object has no instances, it will get a default one
@@ -385,7 +402,7 @@ int CLI::run(int argc, char **argv)
                 if (! m_config.opt_bool("dont_arrange")) {
                     //FIXME make the min_object_distance configurable.
                     model.arrange_objects(fff_print.config().min_object_distance());
-					model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
+                    model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
                 }
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)
@@ -399,40 +416,40 @@ int CLI::run(int argc, char **argv)
                 }
                 if (print->empty())
                     boost::nowide::cout << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
-                else 
+                else
                     try {
                         std::string outfile_final;
-						print->process();
+                        print->process();
                         if (printer_technology == ptFFF) {
                             // The outfile is processed by a PlaceholderParser.
                             outfile = fff_print.export_gcode(outfile, nullptr);
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
-							outfile = sla_print.output_filepath(outfile);
+                            outfile = sla_print.output_filepath(outfile);
                             // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
                             outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
-							sla_print.export_raster(outfile_final);
+                            sla_print.export_raster(outfile_final);
                         }
-                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final) != 0) {
-							boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                        if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final)) {
+                            boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
                             return 1;
                         }
                         boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
-						boost::nowide::cerr << ex.what() << std::endl;
-                        return 1;                        
+                        boost::nowide::cerr << ex.what() << std::endl;
+                        return 1;
                     }
 /*
                 print.center = ! m_config.has("center")
                     && ! m_config.has("align_xy")
                     && ! m_config.opt_bool("dont_arrange");
                 print.set_model(model);
-                
+
                 // start chronometer
                 typedef std::chrono::high_resolution_clock clock_;
                 typedef std::chrono::duration<double, std::ratio<1> > second_;
                 std::chrono::time_point<clock_> t0{ clock_::now() };
-                
+
                 const std::string outfile = this->output_filepath(model, IO::Gcode);
                 try {
                     print.export_gcode(outfile);
@@ -441,7 +458,7 @@ int CLI::run(int argc, char **argv)
                     return 1;
                 }
                 boost::nowide::cout << "G-code exported to " << outfile << std::endl;
-                
+
                 // output some statistics
                 double duration { std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
                 boost::nowide::cout << std::fixed << std::setprecision(0)
@@ -458,45 +475,45 @@ int CLI::run(int argc, char **argv)
             return 1;
         }
     }
-    
-	if (start_gui) {
+
+    if (start_gui) {
 #ifdef SLIC3R_GUI
 // #ifdef USE_WX
-		GUI::GUI_App *gui = new GUI::GUI_App();
+        GUI::GUI_App *gui = new GUI::GUI_App();
 //		gui->autosave = m_config.opt_string("autosave");
-		GUI::GUI_App::SetInstance(gui);
-		gui->CallAfter([gui, this, &load_configs] {
-			if (!gui->initialized()) {
-				return;
-			}
+        GUI::GUI_App::SetInstance(gui);
+        gui->CallAfter([gui, this, &load_configs] {
+            if (!gui->initialized()) {
+                return;
+            }
 #if 0
-			// Load the cummulative config over the currently active profiles.
-			//FIXME if multiple configs are loaded, only the last one will have an effect.
-			// We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
-			// As of now only the full configs are supported here.
-			if (!m_print_config.empty())
-				gui->mainframe->load_config(m_print_config);
+            // Load the cummulative config over the currently active profiles.
+            //FIXME if multiple configs are loaded, only the last one will have an effect.
+            // We need to decide what to do about loading of separate presets (just print preset, just filament preset etc).
+            // As of now only the full configs are supported here.
+            if (!m_print_config.empty())
+                gui->mainframe->load_config(m_print_config);
 #endif
-			if (! load_configs.empty())
-				// Load the last config to give it a name at the UI. The name of the preset may be later
-				// changed by loading an AMF or 3MF.
-				//FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
-				gui->mainframe->load_config_file(load_configs.back());
-			// If loading a 3MF file, the config is loaded from the last one.
-			if (! m_input_files.empty())
-				gui->plater()->load_files(m_input_files, true, true);
-			if (! m_extra_config.empty())
-				gui->mainframe->load_config(m_extra_config);
-		});
-		return wxEntry(argc, argv);
+            if (! load_configs.empty())
+                // Load the last config to give it a name at the UI. The name of the preset may be later
+                // changed by loading an AMF or 3MF.
+                //FIXME this is not strictly correct, as one may pass a print/filament/printer profile here instead of a full config.
+                gui->mainframe->load_config_file(load_configs.back());
+            // If loading a 3MF file, the config is loaded from the last one.
+            if (! m_input_files.empty())
+                gui->plater()->load_files(m_input_files, true, true);
+            if (! m_extra_config.empty())
+                gui->mainframe->load_config(m_extra_config);
+        });
+        return wxEntry(argc, argv);
 #else /* SLIC3R_GUI */
-		// No GUI support. Just print out a help.
-		this->print_help(false);
-		// If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
-		return (argc == 0) ? 0 : 1;
+        // No GUI support. Just print out a help.
+        this->print_help(false);
+        // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
+        return (argc == 0) ? 0 : 1;
 #endif /* SLIC3R_GUI */
     }
-    
+
     return 0;
 }
 
@@ -544,18 +561,18 @@ bool CLI::setup(int argc, char **argv)
     // If any option is unsupported, print usage and abort immediately.
     t_config_option_keys opt_order;
     if (! m_config.read_cli(argc, argv, &m_input_files, &opt_order)) {
-		// Separate error message reported by the CLI parser from the help.
-		boost::nowide::cerr << std::endl;
+        // Separate error message reported by the CLI parser from the help.
+        boost::nowide::cerr << std::endl;
         this->print_help();
-		return false;
+        return false;
     }
-	// Parse actions and transform options.
-	for (auto const &opt_key : opt_order) {
-		if (cli_actions_config_def.has(opt_key))
-			m_actions.emplace_back(opt_key);
-		else if (cli_transform_config_def.has(opt_key))
-			m_transforms.emplace_back(opt_key);
-	}
+    // Parse actions and transform options.
+    for (auto const &opt_key : opt_order) {
+        if (cli_actions_config_def.has(opt_key))
+            m_actions.emplace_back(opt_key);
+        else if (cli_transform_config_def.has(opt_key))
+            m_transforms.emplace_back(opt_key);
+    }
 
     {
         const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("loglevel");
@@ -568,15 +585,15 @@ bool CLI::setup(int argc, char **argv)
         for (const std::pair<t_config_option_key, ConfigOptionDef> &optdef : *options)
             m_config.optptr(optdef.first, true);
 
-	set_data_dir(m_config.opt_string("datadir"));
+    set_data_dir(m_config.opt_string("datadir"));
 
-	return true;
+    return true;
 }
 
-void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const 
+void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const
 {
     boost::nowide::cout
-		<< SLIC3R_BUILD_ID << " " << "based on Slic3r"
+        << SLIC3R_BUILD_ID << " " << "based on Slic3r"
 #ifdef SLIC3R_GUI
         << " (with GUI support)"
 #else /* SLIC3R_GUI */
@@ -588,20 +605,20 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
         << std::endl
         << "Actions:" << std::endl;
     cli_actions_config_def.print_cli_help(boost::nowide::cout, false);
-    
+
     boost::nowide::cout
         << std::endl
         << "Transform options:" << std::endl;
         cli_transform_config_def.print_cli_help(boost::nowide::cout, false);
-    
+
     boost::nowide::cout
         << std::endl
         << "Other options:" << std::endl;
         cli_misc_config_def.print_cli_help(boost::nowide::cout, false);
-    
+
     if (include_print_options) {
         boost::nowide::cout << std::endl;
-		print_config_def.print_cli_help(boost::nowide::cout, true, [printer_technology](const ConfigOptionDef &def)
+        print_config_def.print_cli_help(boost::nowide::cout, true, [printer_technology](const ConfigOptionDef &def)
             { return printer_technology == ptAny || def.printer_technology == ptAny || printer_technology == def.printer_technology; });
     } else {
         boost::nowide::cout
@@ -618,14 +635,14 @@ bool CLI::export_models(IO::ExportFormat format)
         switch (format) {
             case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr); break;
             case IO::OBJ: success = Slic3r::store_obj(path.c_str(), &model);          break;
-			case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
-			case IO::TMF: success = Slic3r::store_3mf(path.c_str(), &model, nullptr); break;
+            case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
+            case IO::TMF: success = Slic3r::store_3mf(path.c_str(), &model, nullptr); break;
             default: assert(false); break;
         }
         if (success)
-			std::cout << "File exported to " << path << std::endl;
+            std::cout << "File exported to " << path << std::endl;
         else {
-			std::cerr << "File export to " << path << " failed" << std::endl;
+            std::cerr << "File export to " << path << " failed" << std::endl;
             return false;
         }
     }
@@ -639,12 +656,12 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
         case IO::AMF: ext = ".zip.amf"; break;
         case IO::OBJ: ext = ".obj"; break;
         case IO::STL: ext = ".stl"; break;
-		case IO::TMF: ext = ".3mf"; break;
+        case IO::TMF: ext = ".3mf"; break;
         default: assert(false); break;
     };
     auto proposed_path = boost::filesystem::path(model.propose_export_file_name_and_path(ext));
     // use --output when available
-	std::string cmdline_param = m_config.opt_string("output");
+    std::string cmdline_param = m_config.opt_string("output");
     if (! cmdline_param.empty()) {
         // if we were supplied a directory, use it and append our automatically generated filename
         boost::filesystem::path cmdline_path(cmdline_param);
@@ -656,20 +673,20 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
     return proposed_path.string();
 }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW32__)
 extern "C" {
-	__declspec(dllexport) int __stdcall slic3r_main(int argc, wchar_t **argv)
-	{
-		// Convert wchar_t arguments to UTF8.
-		std::vector<std::string> 	argv_narrow;
-		std::vector<char*>			argv_ptrs(argc + 1, nullptr);
-		for (size_t i = 0; i < argc; ++ i)
-			argv_narrow.emplace_back(boost::nowide::narrow(argv[i]));
-		for (size_t i = 0; i < argc; ++ i)
-			argv_ptrs[i] = const_cast<char*>(argv_narrow[i].data());
-		// Call the UTF8 main.
-		return CLI().run(argc, argv_ptrs.data());
-	}
+    __declspec(dllexport) int __stdcall slic3r_main(int argc, wchar_t **argv)
+    {
+        // Convert wchar_t arguments to UTF8.
+        std::vector<std::string> 	argv_narrow;
+        std::vector<char*>			argv_ptrs(argc + 1, nullptr);
+        for (size_t i = 0; i < argc; ++ i)
+            argv_narrow.emplace_back(boost::nowide::narrow(argv[i]));
+        for (size_t i = 0; i < argc; ++ i)
+            argv_ptrs[i] = const_cast<char*>(argv_narrow[i].data());
+        // Call the UTF8 main.
+        return CLI().run(argc, argv_ptrs.data());
+    }
 }
 #else /* _MSC_VER */
 int main(int argc, char **argv)

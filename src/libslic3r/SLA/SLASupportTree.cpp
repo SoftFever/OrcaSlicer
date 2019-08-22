@@ -85,7 +85,7 @@ using Portion = std::tuple<double, double>;
 
 // Set this to true to enable full parallelism in this module.
 // Only the well tested parts will be concurrent if this is set to false.
-const constexpr bool USE_FULL_CONCURRENCY = false;
+const constexpr bool USE_FULL_CONCURRENCY = true;
 
 template<bool> struct _ccr {};
 
@@ -1194,7 +1194,7 @@ class SLASupportTree::Algorithm {
         // Now a and b vectors are perpendicular to v and to each other.
         // Together they define the plane where we have to iterate with the
         // given angles in the 'phis' vector
-        ccr_par::enumerate(phis.begin(), phis.end(),
+        ccr_seq::enumerate(phis.begin(), phis.end(),
                            [&hits, &m, sd, r_pin, r_back, s, a, b, c]
                            (double phi, size_t i)
         {
@@ -1297,7 +1297,7 @@ class SLASupportTree::Algorithm {
         // Hit results
         std::array<HitResult, SAMPLES> hits;
 
-        ccr_par::enumerate(phis.begin(), phis.end(),
+        ccr_seq::enumerate(phis.begin(), phis.end(),
                            [&m, a, b, sd, dir, r, s, ins_check, &hits]
                            (double phi, size_t i)
         {
@@ -2588,7 +2588,7 @@ SLASupportTree::SLASupportTree(double gnd_lvl): m_impl(new Impl()) {
 
 const TriangleMesh &SLASupportTree::merged_mesh() const
 {
-    return get().merged_mesh();
+    return m_impl->merged_mesh();
 }
 
 void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {

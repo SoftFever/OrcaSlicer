@@ -13,13 +13,13 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 if(DEFINED ENV{SLIC3R_STATIC})
-	set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
+        set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
 else()
-	if (MSVC OR MINGW OR APPLE)
-		set(SLIC3R_STATIC_INITIAL 1)
-	else()
-		set(SLIC3R_STATIC_INITIAL 0)
-	endif()
+        if (MSVC OR MINGW OR APPLE)
+                set(SLIC3R_STATIC_INITIAL 1)
+        else()
+                set(SLIC3R_STATIC_INITIAL 0)
+        endif()
 endif()
 
 option(SLIC3R_STATIC 			"Compile PrusaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
@@ -52,14 +52,30 @@ if (SLIC3R_GUI)
     add_definitions(-DSLIC3R_GUI)
 endif ()
 
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    set(IS_CLANG_CL TRUE)
+
+    # clang-cl can interpret SYSTEM header paths if -imsvc is used
+    set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
+        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
+else ()
+    set(IS_CLANG_CL FALSE)
+endif ()
+
 if (MSVC)
-    if (SLIC3R_MSVC_COMPILE_PARALLEL)
-	   add_compile_options(/MP)
+    if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
+           add_compile_options(/MP)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
     add_compile_options(-bigobj -Zm520 /Zi)
+endif ()
+
+if (MINGW)
+    add_compile_options(-Wa,-mbig-obj)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH
@@ -101,17 +117,17 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
 if(WIN32)
-	if(NOT DEFINED WIN10SDK_PATH)
-		if(DEFINED ENV{WIN10SDK_PATH})
-			set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
-		endif()
-	endif()
-	if(DEFINED WIN10SDK_PATH AND NOT EXISTS "${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h")
-		message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
-		message("${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h was not found")
-		message("STL fixing by the Netfabb service will not be compiled")
-		unset(WIN10SDK_PATH)
-	endif()
+        if(NOT DEFINED WIN10SDK_PATH)
+                if(DEFINED ENV{WIN10SDK_PATH})
+                        set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
+                endif()
+        endif()
+        if(DEFINED WIN10SDK_PATH AND NOT EXISTS "${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h")
+                message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
+                message("${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h was not found")
+                message("STL fixing by the Netfabb service will not be compiled")
+                unset(WIN10SDK_PATH)
+        endif()
     if(WIN10SDK_PATH)
         message("Building with Win10 Netfabb STL fixing service support")
         add_definitions(-DHAS_WIN10SDK)
@@ -148,8 +164,10 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
+if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+    if (NOT MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
+    endif ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder" )
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
@@ -167,7 +185,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATC
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options(-Wno-unknown-pragmas)
     endif()
-
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -196,9 +213,12 @@ include_directories(${LIBDIR_BIN}/platform)
 include_directories(${LIBDIR}/clipper ${LIBDIR}/polypartition)
 
 if(WIN32)
-    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-endif()
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+    if(MSVC)
+        # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
+        add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 )
+    endif(MSVC)
+endif(WIN32)
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 
@@ -229,7 +249,7 @@ if(SLIC3R_STATIC)
     # set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 #set(Boost_DEBUG ON)
-# set(Boost_COMPILER "-vc120")
+# set(Boost_COMPILER "-mgw81")
 if(NOT WIN32)
     # boost::process was introduced first in version 1.64.0
     set(MINIMUM_BOOST_VERSION "1.64.0")
@@ -251,7 +271,7 @@ endif()
 if(TARGET Boost::system)
     message(STATUS "Boost::boost exists")
     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-    target_link_libraries(boost_libs INTERFACE 
+    target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well
         Boost::system
         Boost::filesystem

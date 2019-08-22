@@ -46,7 +46,7 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
     }
     double nozzle_diameter = m_print->config().nozzle_diameter.get_at(extruder-1);
     
-    return Flow::new_from_config_width(role, config_width, nozzle_diameter, layer_height, bridge ? (float)m_config.bridge_flow_ratio : 0.0);
+    return Flow::new_from_config_width(role, config_width, (float)nozzle_diameter, (float)layer_height, bridge ? (float)m_config.bridge_flow_ratio : 0.0f);
 }
 
 coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
@@ -64,16 +64,27 @@ coordf_t PrintRegion::bridging_height_avg(const PrintConfig &print_config) const
 void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_config, const PrintRegionConfig &region_config, std::vector<unsigned int> &object_extruders)
 {
     // These checks reflect the same logic used in the GUI for enabling/disabling extruder selection fields.
+    auto num_extruders = (int)print_config.nozzle_diameter.size();
+    auto emplace_extruder = [num_extruders, &object_extruders](int extruder_id) {
+    	int i = std::max(0, extruder_id - 1);
+        object_extruders.emplace_back((i >= num_extruders) ? 0 : i);
+    };
     if (region_config.perimeters.value > 0 || print_config.brim_width.value > 0)
-        object_extruders.emplace_back(region_config.perimeter_extruder - 1);
+    	emplace_extruder(region_config.perimeter_extruder);
     if (region_config.fill_density.value > 0)
-        object_extruders.emplace_back(region_config.infill_extruder - 1);
+    	emplace_extruder(region_config.infill_extruder);
     if (region_config.top_solid_layers.value > 0 || region_config.bottom_solid_layers.value > 0)
-        object_extruders.emplace_back(region_config.solid_infill_extruder - 1);
+    	emplace_extruder(region_config.solid_infill_extruder);
 }
 
 void PrintRegion::collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const
 {
+    auto num_extruders = (int)print()->config().nozzle_diameter.size();
+    // PrintRegion, if used by some PrintObject, shall have all the extruders set to an existing printer extruder.
+    // If not, then there must be something wrong with the Print::apply() function.
+    assert(this->config().perimeter_extruder    <= num_extruders);
+    assert(this->config().infill_extruder       <= num_extruders);
+    assert(this->config().solid_infill_extruder <= num_extruders);
     collect_object_printing_extruders(print()->config(), this->config(), object_extruders);
 }
 

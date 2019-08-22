@@ -290,17 +290,17 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
             auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
             wxColour clr(colors->values[extruder_idx]);
             if (!clr.IsOk())
-                clr = wxTransparentColour;
+                clr = wxColour(0,0,0); // Don't set alfa to transparence
 
             auto data = new wxColourData();
             data->SetChooseFull(1);
             data->SetColour(clr);
 
-            auto dialog = new wxColourDialog(this, data);
-            dialog->CenterOnParent();
-            if (dialog->ShowModal() == wxID_OK)
+            wxColourDialog dialog(this, data);
+            dialog.CenterOnParent();
+            if (dialog.ShowModal() == wxID_OK)
             {
-                colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
+                colors->values[extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("extruder_colour", colors);
@@ -309,7 +309,6 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
                 wxGetApp().plater()->on_config_change(cfg_new);
             }
-            dialog->Destroy();
         });
     }
 
@@ -2511,15 +2510,14 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         default: break;
     }
 
-    wxFileDialog* dlg = new wxFileDialog(q, dlg_title,
+    wxFileDialog dlg(q, dlg_title,
         from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (dlg->ShowModal() != wxID_OK) {
+    if (dlg.ShowModal() != wxID_OK)
         return wxEmptyString;
-    }
 
-    wxString out_path = dlg->GetPath();
+    wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
@@ -4604,6 +4602,30 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     bool update_scheduled = false;
     bool bed_shape_changed = false;
     for (auto opt_key : p->config->diff(config)) {
+        if (opt_key == "filament_colour")
+        {
+            update_scheduled = true; // update should be scheduled (for update 3DScene) #2738
+
+            /* There is a case, when we use filament_color instead of extruder_color (when extruder_color == "").
+             * Thus plater config option "filament_colour" should be filled with filament_presets values.
+             * Otherwise, on 3dScene will be used last edited filament color for all volumes with extruder_color == "".
+             */
+            const std::vector<std::string> filament_presets = wxGetApp().preset_bundle->filament_presets;
+            if (filament_presets.size() > 1 &&
+                p->config->option<ConfigOptionStrings>(opt_key)->values.size() != config.option<ConfigOptionStrings>(opt_key)->values.size())
+            {
+                const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
+                std::vector<std::string> filament_colors;
+                filament_colors.reserve(filament_presets.size());
+
+                for (const std::string& filament_preset : filament_presets)
+                    filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
+
+                p->config->option<ConfigOptionStrings>(opt_key)->values = filament_colors;
+                continue;
+            }
+        }
+        
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));

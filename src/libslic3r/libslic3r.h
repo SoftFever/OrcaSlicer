@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "Technologies.hpp"
+#include "Semver.hpp"
 
 typedef int32_t coord_t;
 typedef double  coordf_t;
@@ -91,6 +92,8 @@ inline std::string debug_out_path(const char *name, ...)
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
+
+extern Semver SEMVER;
 
 template<typename T, typename Q>
 inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }

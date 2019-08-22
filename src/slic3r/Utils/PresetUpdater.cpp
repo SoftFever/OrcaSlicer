@@ -35,6 +35,10 @@ using Slic3r::GUI::Config::Snapshot;
 using Slic3r::GUI::Config::SnapshotDB;
 
 
+
+// FIXME: Incompat bundle resolution doesn't deal with inherited user presets
+
+
 namespace Slic3r {
 
 
@@ -101,6 +105,17 @@ struct Incompat
 		, vendor(std::move(vendor))
 	{}
 
+	void remove() {
+		// Remove the bundle file
+		fs::remove(bundle);
+
+		// Look for an installed index and remove it too if any
+		const fs::path installed_idx = bundle.replace_extension("idx");
+		if (fs::exists(installed_idx)) {
+			fs::remove(installed_idx);
+		}
+	}
+
 	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
 		os << "Incompat(" << self.bundle.string() << ')';
 		return os;
@@ -113,25 +128,12 @@ struct Updates
 	std::vector<Update> updates;
 };
 
-static Semver get_slic3r_version()
-{
-	auto res = Semver::parse(SLIC3R_VERSION);
-
-	if (! res) {
-		const char *error = "Could not parse Slic3r version string: " SLIC3R_VERSION;
-		BOOST_LOG_TRIVIAL(error) << error;
-		throw std::runtime_error(error);
-	}
-
-	return *res;
-}
 
 wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
 
 
 struct PresetUpdater::priv
 {
-	const Semver ver_slic3r;
 	std::vector<Index> index_db;
 
 	bool enabled_version_check;
@@ -159,8 +161,7 @@ struct PresetUpdater::priv
 };
 
 PresetUpdater::priv::priv()
-	: ver_slic3r(get_slic3r_version())
-	, cache_path(fs::path(Slic3r::data_dir()) / "cache")
+	: cache_path(fs::path(Slic3r::data_dir()) / "cache")
 	, rsrc_path(fs::path(resources_dir()) / "profiles")
 	, vendor_path(fs::path(Slic3r::data_dir()) / "vendor")
 	, cancel(false)
@@ -383,25 +384,6 @@ Updates PresetUpdater::priv::get_config_updates() const
 			continue;
 		}
 
-		// Load 'installed' idx, if any.
-		// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
-		// for bookkeeping to remember a cancelled update and not offer it again.
-		if (fs::exists(bundle_path_idx)) {
-			Index existing_idx;
-			try {
-				existing_idx.load(bundle_path_idx);
-
-				const auto existing_recommended = existing_idx.recommended();
-				if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
-					// The user has already seen (and presumably rejected) this update
-					BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
-					continue;
-				}
-			} catch (const std::exception & /* err */) {
-				BOOST_LOG_TRIVIAL(error) << boost::format("Could nto load installed index %1%") % bundle_path_idx;
-			}
-		}
-
 		const auto ver_current = idx.find(vp.config_version);
 		const bool ver_current_found = ver_current != idx.end();
 
@@ -423,6 +405,25 @@ Updates PresetUpdater::priv::get_config_updates() const
 			updates.incompats.emplace_back(std::move(bundle_path), *ver_current, vp.name);
 		} else if (recommended->config_version > vp.config_version) {
 			// Config bundle update situation
+
+			// Load 'installed' idx, if any.
+			// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
+			// for bookkeeping to remember a cancelled update and not offer it again.
+			if (fs::exists(bundle_path_idx)) {
+				Index existing_idx;
+				try {
+					existing_idx.load(bundle_path_idx);
+
+					const auto existing_recommended = existing_idx.recommended();
+					if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
+						// The user has already seen (and presumably rejected) this update
+						BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
+						continue;
+					}
+				} catch (const std::exception &err) {
+					BOOST_LOG_TRIVIAL(error) << boost::format("Could not load installed index at `%1%`: %2%") % bundle_path_idx % err.what();
+				}
+			}
 
 			// Check if the update is already present in a snapshot
 			const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
@@ -485,12 +486,11 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
 		BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% incompatible bundles") % updates.incompats.size();
 
-		for (const auto &incompat : updates.incompats) {
+		for (auto &incompat : updates.incompats) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
-			fs::remove(incompat.bundle);
+			incompat.remove();
 		}
-	}
-	else if (updates.updates.size() > 0) {
+	} else if (updates.updates.size() > 0) {
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
 			SnapshotDB::singleton().take_snapshot(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE);
@@ -584,8 +584,8 @@ void PresetUpdater::slic3r_update_notify()
 
 	if (ver_online) {
 		// Only display the notification if the version available online is newer AND if we haven't seen it before
-		if (*ver_online > p->ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
-			GUI::MsgUpdateSlic3r notification(p->ver_slic3r, *ver_online);
+		if (*ver_online > Slic3r::SEMVER && (! ver_online_seen || *ver_online_seen < *ver_online)) {
+			GUI::MsgUpdateSlic3r notification(Slic3r::SEMVER, *ver_online);
 			notification.ShowModal();
 			if (notification.disable_version_check()) {
 				app_config->set("version_check", "0");
@@ -628,11 +628,17 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 		const auto res = dlg.ShowModal();
 		if (res == wxID_REPLACE) {
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
+
+			// This effectively removes the incompatible bundles:
+			// (snapshot is taken beforehand)
 			p->perform_updates(std::move(updates));
+
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
+
 			if (! wizard.run(GUI::wxGetApp().preset_bundle, this)) {
 				return R_INCOMPAT_EXIT;
 			}
+
 			GUI::wxGetApp().load_current_presets();
 			return R_INCOMPAT_CONFIGURED;
 		} else {

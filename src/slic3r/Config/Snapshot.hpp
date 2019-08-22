@@ -8,8 +8,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "libslic3r/Semver.hpp"
 #include "Version.hpp"
-#include "../Utils/Semver.hpp"
 
 namespace Slic3r { 
 

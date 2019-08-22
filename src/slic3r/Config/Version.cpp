@@ -15,7 +15,6 @@ namespace Slic3r {
 namespace GUI {
 namespace Config {
 
-static const Semver s_current_slic3r_semver(SLIC3R_VERSION);
 
 // Optimized lexicographic compare of two pre-release versions, ignoring the numeric suffix.
 static int compare_prerelease(const char *p1, const char *p2)
@@ -64,7 +63,7 @@ bool Version::is_slic3r_supported(const Semver &slic3r_version) const
 
 bool Version::is_current_slic3r_supported() const
 {
-	return this->is_slic3r_supported(s_current_slic3r_semver);
+	return this->is_slic3r_supported(Slic3r::SEMVER);
 }
 
 #if 0

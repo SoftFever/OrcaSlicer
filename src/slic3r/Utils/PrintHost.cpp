@@ -170,8 +170,6 @@ void PrintHostJobQueue::priv::bg_thread_main()
         }
     } catch (const std::exception &e) {
         emit_error(e.what());
-    } catch (...) {
-        emit_error("Unknown exception");
     }
 
     // Cleanup leftover files, if any

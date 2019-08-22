@@ -19,6 +19,10 @@ else ()
     message(FATAL_ERROR "Unsupported MSVC version")
 endif ()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    set(DEP_BOOST_TOOLSET "clang-win")
+endif ()
+
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_MSVC_GEN "Visual Studio ${DEP_VS_VER}")
     set(DEP_PLATFORM "Win32")

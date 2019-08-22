@@ -126,7 +126,16 @@ static void generic_exception_handle()
 
     try {
         throw;
-    } catch (const std::exception &ex) {
+    } catch (const std::bad_alloc& ex) {
+        // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
+        // and terminate the app so it is at least certain to happen now.
+        wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
+                              "be glad if you reported it.\n\nThe application will now terminate.")), SLIC3R_APP_NAME);
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _(L("Fatal error")), wxOK | wxICON_ERROR);
+        BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
+        std::terminate();
+    } catch (const std::exception& ex) {
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
@@ -284,6 +293,20 @@ bool GUI_App::on_init_inner()
                 config_wizard_startup(app_conf_exists);
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
+                const GLCanvas3DManager::GLInfo &glinfo = GLCanvas3DManager::get_gl_info();
+                if (! glinfo.is_version_greater_or_equal_to(2, 0)) {
+                	// Complain about the OpenGL version.
+                	wxString message = wxString::Format(
+                		_(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+                			"while OpenGL version %s, render %s, vendor %s was detected.")), wxString(glinfo.get_version()), wxString(glinfo.get_renderer()), wxString(glinfo.get_vendor()));
+                	message += "\n";
+                	message += _(L("You may need to update your graphics card driver."));
+#ifdef _WIN32
+                	message += "\n";
+                	message += _(L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter."));
+#endif
+                	wxMessageBox(message, wxString("PrusaSlicer - ") + _(L("Unsupported OpenGL version")), wxOK | wxICON_ERROR);
+                }
             });
         }
     });

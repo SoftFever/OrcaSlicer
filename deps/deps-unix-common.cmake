@@ -1,6 +1,12 @@
 
 # The unix common part expects DEP_CMAKE_OPTS to be set
 
+if (MINGW)
+    set(TBB_MINGW_WORKAROUND "-flifetime-dse=1")
+else ()
+    set(TBB_MINGW_WORKAROUND "")
+endif ()
+
 ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
@@ -8,6 +14,7 @@ ExternalProject_Add(dep_tbb
     CMAKE_ARGS
         -DTBB_BUILD_SHARED=OFF
         -DTBB_BUILD_TESTS=OFF
+        -DCMAKE_CXX_FLAGS=${TBB_MINGW_WORKAROUND}
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )

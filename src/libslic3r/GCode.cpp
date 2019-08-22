@@ -197,9 +197,6 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
-    // Disable linear advance for the wipe tower operations.
-    gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
-
     if (!tcr.priming) {
         // Move over the wipe tower.
         // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
@@ -474,8 +471,10 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
             if (layer_to_print.print_z() > maximal_print_z + EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
-                                         _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
-                                         std::to_string(layers_to_print.back().print_z()));
+                    _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
+                    std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
+                    "usually caused by negligibly small extrusions or by a faulty model. Try to repair "
+                    " the model or change its orientation on the bed.")));
             // Remember last layer with extrusions.
             last_extrusion_layer = &layers_to_print.back();
         }
@@ -608,7 +607,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         m_analyzer.reset();
     }
 
-    if (rename_file(path_tmp, path) != 0)
+    if (rename_file(path_tmp, path))
         throw std::runtime_error(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
@@ -2888,7 +2887,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 
     // Set the temperature if the wipe tower didn't (not needed for non-single extruder MM)
     if (m_config.single_extruder_multi_material && !m_config.wipe_tower) {
-        int temp = (m_layer_index == 0 ? m_config.first_layer_temperature.get_at(extruder_id) :
+        int temp = (m_layer_index <= 0 ? m_config.first_layer_temperature.get_at(extruder_id) :
                                          m_config.temperature.get_at(extruder_id));
 
         gcode += m_writer.set_temperature(temp, false);

@@ -76,9 +76,9 @@ void CopyrightsDialog::fill_entries()
 {
     m_entries = {
         { "wxWidgets"       , "2019 wxWidgets"                              , "https://www.wxwidgets.org/" },
-        { "OpenGL"          , "1997-2019 The Khronos™ Group Inc"            , "https://www.opengl.org/" },
+        { "OpenGL"          , "1997-2019 The Khronosâ„¢ Group Inc"            , "https://www.opengl.org/" },
         { "GNU gettext"     , "1998, 2019 Free Software Foundation, Inc."   , "https://www.gnu.org/software/gettext/" },
-        { "PoEdit"          , "2019 Václav Slavík"                          , "https://poedit.net/" },
+        { "PoEdit"          , "2019 VÃ¡clav SlavÃ­k"                          , "https://poedit.net/" },
         { "ImGUI"           , "2014-2019 Omar Cornut"                       , "https://github.com/ocornut/imgui" },
         { "Eigen"           , ""                                            , "http://eigen.tuxfamily.org" },
         { "ADMesh"          , "1995, 1996  Anthony D. Martin; "
@@ -110,7 +110,9 @@ void CopyrightsDialog::fill_entries()
                                     , "Based on original by fabian \"ryg\" giesen v1.04. "
                               "Custom version, modified by Yann Collet"     , "https://github.com/Cyan4973/RygsDXTc" },
         { "Icons for STL and GCODE files."
-                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" }
+                            , "Akira Yasuda"                                , "http://3dp0.com/icons-for-stl-and-gcode/" },
+        { "AppImage packaging for Linux using AppImageKit"
+                            , "2004-2019 Simon Peter and contributors"      , "https://appimage.org/" }
     };
 }
 

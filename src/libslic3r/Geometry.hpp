@@ -111,6 +111,29 @@ inline bool segment_segment_intersection(const Vec2d &p1, const Vec2d &v1, const
     return true;
 }
 
+
+inline int segments_could_intersect(
+	const Slic3r::Point &ip1, const Slic3r::Point &ip2, 
+	const Slic3r::Point &jp1, const Slic3r::Point &jp2)
+{
+	Vec2i64 iv   = (ip2 - ip1).cast<int64_t>();
+	Vec2i64 vij1 = (jp1 - ip1).cast<int64_t>();
+	Vec2i64 vij2 = (jp2 - ip1).cast<int64_t>();
+	int64_t tij1 = cross2(iv, vij1);
+	int64_t tij2 = cross2(iv, vij2);
+	int     sij1 = (tij1 > 0) ? 1 : ((tij1 < 0) ? -1 : 0); // signum
+	int     sij2 = (tij2 > 0) ? 1 : ((tij2 < 0) ? -1 : 0);
+	return sij1 * sij2;
+}
+
+inline bool segments_intersect(
+	const Slic3r::Point &ip1, const Slic3r::Point &ip2, 
+	const Slic3r::Point &jp1, const Slic3r::Point &jp2)
+{
+	return segments_could_intersect(ip1, ip2, jp1, jp2) <= 0 && 
+		   segments_could_intersect(jp1, jp2, ip1, ip2) <= 0;
+}
+
 Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);

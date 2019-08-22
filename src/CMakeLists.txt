@@ -1,5 +1,6 @@
 project(PrusaSlicer-native)
 
+add_subdirectory(build-utils)
 add_subdirectory(admesh)
 add_subdirectory(avrdude)
 # boost/nowide
@@ -47,7 +48,7 @@ if (SLIC3R_GUI)
             endif ()
         endif ()
     else ()
-        find_package(wxWidgets 3.1 REQUIRED COMPONENTS base core adv html gl)
+        find_package(wxWidgets 3.1 REQUIRED COMPONENTS html adv gl core base)
     endif ()
 
     if(UNIX)
@@ -55,6 +56,9 @@ if (SLIC3R_GUI)
     endif()
 
     include(${wxWidgets_USE_FILE})
+
+#    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
+    message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 
     add_subdirectory(slic3r)
 endif()
@@ -65,12 +69,18 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.manifest @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
-if (MSVC)
+if (WIN32)
     add_library(PrusaSlicer SHARED PrusaSlicer.cpp PrusaSlicer.hpp)
 else ()
     add_executable(PrusaSlicer PrusaSlicer.cpp PrusaSlicer.hpp)
 endif ()
-if (NOT MSVC)
+
+if (MINGW)
+    target_link_options(PrusaSlicer PUBLIC "-Wl,-allow-multiple-definition")
+    set_target_properties(PrusaSlicer PROPERTIES PREFIX "")
+endif (MINGW)
+
+if (NOT WIN32)
     # Binary name on unix like systems (OSX, Linux)
     set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
 endif ()
@@ -91,11 +101,12 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-    target_link_libraries(PrusaSlicer libslic3r_gui ${wxWidgets_LIBRARIES})
+#    target_link_libraries(PrusaSlicer ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
+target_link_libraries(PrusaSlicer libslic3r_gui ${wxWidgets_LIBRARIES})
 
     # Configure libcurl and its dependencies OpenSSL & zlib
     find_package(CURL REQUIRED)
-    if (NOT MSVC)
+    if (NOT WIN32)
         # Required by libcurl
         find_package(ZLIB REQUIRED)
     endif()
@@ -123,7 +134,7 @@ if (SLIC3R_GUI)
         target_link_options(PrusaSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
         target_link_libraries(PrusaSlicer user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
     elseif (MINGW)
-        target_link_libraries(PrusaSlicer -lopengl32)
+        target_link_libraries(PrusaSlicer opengl32 ws2_32 uxtheme setupapi)
     elseif (APPLE)
         target_link_libraries(PrusaSlicer "-framework OpenGL")
     else ()
@@ -133,10 +144,16 @@ endif ()
 
 # On Windows, a shim application is required to produce a console / non console version of the Slic3r application.
 # Also the shim may load the Mesa software OpenGL renderer if the default renderer does not support OpenGL 2.0 and higher.
-if (MSVC)
+if (WIN32)
+    if (MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -municode")
+    endif()
+
     add_executable(PrusaSlicer_app_gui WIN32 PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
     # Generate debug symbols even in release mode.
-    target_link_options(PrusaSlicer_app_gui PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+    if(MSVC)
+        target_link_options(PrusaSlicer_app_gui PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+    endif()
     target_compile_definitions(PrusaSlicer_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
     add_dependencies(PrusaSlicer_app_gui PrusaSlicer)
     set_target_properties(PrusaSlicer_app_gui PROPERTIES OUTPUT_NAME "prusa-slicer")
@@ -144,7 +161,9 @@ if (MSVC)
 
     add_executable(PrusaSlicer_app_console PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
     # Generate debug symbols even in release mode.
+    if (MSVC)
     target_link_options(PrusaSlicer_app_console PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+    endif ()
     target_compile_definitions(PrusaSlicer_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
     add_dependencies(PrusaSlicer_app_console PrusaSlicer)
     set_target_properties(PrusaSlicer_app_console PROPERTIES OUTPUT_NAME "prusa-slicer-console")
@@ -152,7 +171,7 @@ if (MSVC)
 endif ()
 
 # Link the resources dir to where Slic3r GUI expects it
-if (MSVC)
+if (WIN32)
     if (CMAKE_CONFIGURATION_TYPES)
         foreach (CONF ${CMAKE_CONFIGURATION_TYPES})
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}" WIN_CONF_OUTPUT_DIR)

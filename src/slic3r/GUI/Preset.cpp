@@ -500,7 +500,8 @@ const std::vector<std::string>& Preset::sla_material_options()
     if (s_opts.empty()) {
         s_opts = {
             "initial_layer_height",
-            "exposure_time", "initial_exposure_time",
+            "exposure_time",
+            "initial_exposure_time",
             "material_correction",
             "material_notes",
             "default_sla_material_profile",
@@ -526,6 +527,8 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "relative_correction",
             "absolute_correction",
             "gamma_correction",
+            "min_exposure_time", "max_exposure_time",
+            "min_initial_exposure_time", "max_initial_exposure_time",
             "print_host", "printhost_apikey", "printhost_cafile",
             "printer_notes",
             "inherits"
