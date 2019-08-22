@@ -528,8 +528,9 @@ void Model::convert_multipart_object(unsigned int max_extruders)
                 	copy_volume(object->add_volume(*v))->set_transformation(i->get_transformation() * trafo_volume);                    
             }
         }
-    // If there are more than one object, create a single instance
+
     object->add_instance();
+    object->instances[0]->set_offset(object->raw_mesh_bounding_box().center());
 
     this->clear_objects();
     this->objects.push_back(object);
