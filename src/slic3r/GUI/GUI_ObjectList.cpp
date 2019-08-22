@@ -17,6 +17,10 @@
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
 
+#ifdef __WXMSW__
+#include "wx/uiaction.h"
+#endif /* __WXMSW__ */
+
 namespace Slic3r
 {
 namespace GUI
@@ -119,6 +123,10 @@ ObjectList::ObjectList(wxWindow* parent) :
          * instead of real last clicked item.
          * So, let check last selected item in such strange way
          */
+#ifdef __WXMSW__
+		// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+		int new_selected_column = -1;
+#endif __WXMSW__
         if (wxGetKeyState(WXK_SHIFT))
         {
             wxDataViewItemArray sels;
@@ -128,8 +136,25 @@ ObjectList::ObjectList(wxWindow* parent) :
             else
                 m_last_selected_item = event.GetItem();
         }
-        else
-            m_last_selected_item = event.GetItem();
+        else {
+  	      	wxDataViewItem    new_selected_item  = event.GetItem();
+#ifdef __WXMSW__
+			// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+		    wxDataViewItem    item;
+		    wxDataViewColumn *col;
+		    this->HitTest(get_mouse_position_in_control(), item, col);
+		    new_selected_column = (col == nullptr) ? -1 : (int)col->GetModelColumn();
+	        if (new_selected_item == m_last_selected_item && m_last_selected_column != -1 && m_last_selected_column != new_selected_column) {
+	        	// Mouse clicked on another column of the active row. Simulate keyboard enter to enter the editing mode of the current column.
+	        	wxUIActionSimulator sim;
+				sim.Char(WXK_RETURN);
+	        }
+#endif __WXMSW__
+	        m_last_selected_item = new_selected_item;
+        }
+#ifdef __WXMSW__
+        m_last_selected_column = new_selected_column;
+#endif __WXMSW__
 
         selection_changed();
 #ifndef __WXMSW__
@@ -184,7 +209,10 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
-    Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,  &ObjectList::OnEditingDone,     this);
+#ifdef __WXMSW__
+    Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
+#endif /* __WXMSW__ */
+    Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
@@ -3541,6 +3569,15 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
         update_extruder_in_config(event.GetItem());
 }
 
+#ifdef __WXMSW__
+// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+// Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
+void ObjectList::OnEditingStarted(wxDataViewEvent &event)
+{
+	m_last_selected_column = -1;
+}
+#endif __WXMSW__
+
 void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
@@ -3553,6 +3590,12 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 			show_error(this, _(L("The supplied name is not valid;")) + "\n" +
 				             _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 		});
+
+#ifdef __WXMSW__
+	// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+	// Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
+	m_last_selected_column = -1;
+#endif __WXMSW__
 }
 
 void ObjectList::show_multi_selection_menu()
