@@ -19,6 +19,7 @@ public:
     static const std::string Mm3_Per_Mm_Tag;
     static const std::string Width_Tag;
     static const std::string Height_Tag;
+    static const std::string Color_Change_Tag;
 
     static const double Default_mm3_per_mm;
     static const float Default_Width;
@@ -177,9 +178,6 @@ private:
     // Repetier: Go to stored position
     void _processM402(const GCodeReader::GCodeLine& line);
 
-    // Set color change
-    void _processM600(const GCodeReader::GCodeLine& line);
-
     // Processes T line (Select Tool)
     void _processT(const std::string& command);
     void _processT(const GCodeReader::GCodeLine& line);
@@ -199,6 +197,9 @@ private:
 
     // Processes height tag
     void _process_height_tag(const std::string& comment, size_t pos);
+
+    // Processes color change tag
+    void _process_color_change_tag();
 
     void _set_units(EUnits units);
     EUnits _get_units() const;

@@ -22,6 +22,8 @@ namespace Slic3r {
         static const std::string Normal_Last_M73_Output_Placeholder_Tag;
         static const std::string Silent_Last_M73_Output_Placeholder_Tag;
 
+        static const std::string Color_Change_Tag;
+
         enum EMode : unsigned char
         {
             Normal,
@@ -425,14 +427,18 @@ namespace Slic3r {
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
 
-        // Set color change
-        void _processM600(const GCodeReader::GCodeLine& line);
-
         // Unload the current filament into the MK3 MMU2 unit at the end of print.
         void _processM702(const GCodeReader::GCodeLine& line);
 
         // Processes T line (Select Tool)
         void _processT(const GCodeReader::GCodeLine& line);
+
+        // Processes the tags
+        // Returns true if any tag has been processed
+        bool _process_tags(const GCodeReader::GCodeLine& line);
+
+        // Processes color change tag
+        void _process_color_change_tag();
 
         // Simulates firmware st_synchronize() call
         void _simulate_st_synchronize();
