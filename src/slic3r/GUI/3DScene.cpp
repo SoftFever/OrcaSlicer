@@ -2007,6 +2007,11 @@ bool _3DScene::init(wxGLCanvas* canvas)
     return s_canvas_mgr.init(canvas);
 }
 
+void _3DScene::destroy()
+{
+    s_canvas_mgr.destroy();
+}
+
 GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_canvas(canvas);

@@ -197,11 +197,7 @@ GLCanvas3DManager::GLCanvas3DManager()
 
 GLCanvas3DManager::~GLCanvas3DManager()
 {
-    if (m_context != nullptr)
-    {
-        delete m_context;
-        m_context = nullptr;
-    }
+	this->destroy();
 }
 
 bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
@@ -280,6 +276,15 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
         return (it->second != nullptr) ? init(*it->second) : false;
     else
         return false;
+}
+
+void GLCanvas3DManager::destroy()
+{
+    if (m_context != nullptr)
+    {
+        delete m_context;
+        m_context = nullptr;
+    }
 }
 
 GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)

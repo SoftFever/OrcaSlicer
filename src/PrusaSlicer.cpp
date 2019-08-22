@@ -48,6 +48,7 @@
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI.hpp"
     #include "slic3r/GUI/GUI_App.hpp"
+    #include "slic3r/GUI/3DScene.hpp"
 #endif /* SLIC3R_GUI */
 
 using namespace Slic3r;
@@ -505,7 +506,10 @@ int CLI::run(int argc, char **argv)
             if (! m_extra_config.empty())
                 gui->mainframe->load_config(m_extra_config);
         });
-        return wxEntry(argc, argv);
+        int result = wxEntry(argc, argv);
+        //FIXME this is a workaround for the PrusaSlicer 2.1 release.
+		_3DScene::destroy();
+        return result;
 #else /* SLIC3R_GUI */
         // No GUI support. Just print out a help.
         this->print_help(false);

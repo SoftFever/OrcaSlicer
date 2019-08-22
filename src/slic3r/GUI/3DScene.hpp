@@ -647,6 +647,7 @@ public:
     static void remove_all_canvases();
 
     static bool init(wxGLCanvas* canvas);
+    static void destroy();
 
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
