@@ -130,15 +130,12 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
     return std::pair<float, Point>(out_angle, out_shift);
 }
 
-
-
-
 /// cut poly between poly.point[idx_1] & poly.point[idx_1+1]
 /// add p1+-width to one part and p2+-width to the other one.
 /// add the "new" polyline to polylines (to part cut from poly)
 /// p1 & p2 have to be between poly.point[idx_1] & poly.point[idx_1+1]
 /// if idx_1 is ==0 or == size-1, then we don't need to create a new polyline.
-void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, Point p2) {
+static void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, Point p2) {
     //reorder points
     if (p1.distance_to_square(poly.points[idx_1]) > p2.distance_to_square(poly.points[idx_1])) {
         Point temp = p2;
@@ -166,7 +163,7 @@ void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, 
 }
 
 /// the poly is like a polygon but with first_point != last_point (already removed)
-void cut_polygon(Polyline &poly, size_t idx_1, Point p1, Point p2) {
+static void cut_polygon(Polyline &poly, size_t idx_1, Point p1, Point p2) {
     //reorder points
     if (p1.distance_to_square(poly.points[idx_1]) > p2.distance_to_square(poly.points[idx_1])) {
         Point temp = p2;
@@ -188,7 +185,7 @@ void cut_polygon(Polyline &poly, size_t idx_1, Point p1, Point p2) {
 /// it use equally_spaced_points with width/2 precision, so don't worry with pts_to_check number of points.
 /// it use the given polylines_blocker points, be sure to put enough of them to be reliable.
 /// complexity : N(pts_to_check.equally_spaced_points(width / 2)) x N(polylines_blocker.points)
-bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, const coordf_t width) {
+static bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, const coordf_t width) {
     //check if it's not too close to a polyline
     coordf_t min_dist_square = width * width * 0.9 - SCALED_EPSILON;
     Polyline better_polylines(pts_to_check);
@@ -209,7 +206,7 @@ bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, c
 /// width if the width of the extrusion
 /// polylines_blockers are the array of polylines to check if the path isn't blocked by something.
 /// complexity: N(polylines.points) + a collision check after that if we finded a path: N(2(p2-p1)/width) x N(polylines_blocker.points)
-Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const coord_t width, const Polylines &polylines_blockers, coord_t max_size = -1) {
+static Points get_frontier(Polylines &polylines, const Point& p1, const Point& p2, const coord_t width, const Polylines &polylines_blockers, coord_t max_size = -1) {
     for (size_t idx_poly = 0; idx_poly < polylines.size(); ++idx_poly) {
         Polyline &poly = polylines[idx_poly];
         if (poly.size() <= 1) continue;
@@ -414,7 +411,7 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
             const Point &last_point = pts_end.back();
             const Point &first_point = polyline.points.front();
             if (last_point.distance_to(first_point) < scale_(this->spacing) * 10) {
-                Points pts_frontier = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker, (coord_t)scale_(ideal_length) * 2);
+                Points pts_frontier = get_frontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker, (coord_t)scale_(ideal_length) * 2);
                 if (!pts_frontier.empty()) {
                     // The lines can be connected.
                     pts_end.insert(pts_end.end(), pts_frontier.begin(), pts_frontier.end());
@@ -439,7 +436,7 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
             const Point &first_point = polyline.points.front();
 
             Polylines before = polylines_frontier;
-            Points pts_frontier = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker);
+            Points pts_frontier = get_frontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker);
             if (!pts_frontier.empty()) {
                 // The lines can be connected.
                 pts_end.insert(pts_end.end(), pts_frontier.begin(), pts_frontier.end());
@@ -473,7 +470,7 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
             }
         }
         if (min_idx > idx1 && min_idx < polylines_connected.size()){
-            Points pts_frontier = getFrontier(polylines_frontier, 
+            Points pts_frontier = get_frontier(polylines_frontier, 
                 switch_id1 ? polylines_connected[idx1].first_point() : polylines_connected[idx1].last_point(), 
                 switch_id2 ? polylines_connected[min_idx].last_point() : polylines_connected[min_idx].first_point(),
                 scale_(this->spacing), polylines_blocker);
@@ -490,7 +487,7 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
 
     //try to create some loops if possible
     for (Polyline &polyline : polylines_connected) {
-        Points pts_frontier = getFrontier(polylines_frontier, polyline.last_point(), polyline.first_point(), scale_(this->spacing), polylines_blocker);
+        Points pts_frontier = get_frontier(polylines_frontier, polyline.last_point(), polyline.first_point(), scale_(this->spacing), polylines_blocker);
         if (!pts_frontier.empty()) {
             polyline.points.insert(polyline.points.end(), pts_frontier.begin(), pts_frontier.end());
             polyline.points.insert(polyline.points.begin(), polyline.points.back());
