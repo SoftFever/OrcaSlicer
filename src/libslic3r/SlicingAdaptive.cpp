@@ -27,8 +27,8 @@ void SlicingAdaptive::prepare()
 		nfaces_total += (*it_mesh)->stl.stats.number_of_facets;
 	m_faces.reserve(nfaces_total);
 	for (std::vector<const TriangleMesh*>::const_iterator it_mesh = m_meshes.begin(); it_mesh != m_meshes.end(); ++ it_mesh)
-		for (int i = 0; i < (*it_mesh)->stl.stats.number_of_facets; ++ i)
-			m_faces.push_back((*it_mesh)->stl.facet_start + i);
+		for (const stl_facet &face : (*it_mesh)->stl.facet_start)
+			m_faces.emplace_back(&face);
 
 	// 2) Sort faces lexicographically by their Z span.
 	std::sort(m_faces.begin(), m_faces.end(), [](const stl_facet *f1, const stl_facet *f2) {

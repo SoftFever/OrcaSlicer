@@ -17,6 +17,9 @@ struct SerialPortInfo {
 	std::string friendly_name;
 	bool        is_printer = false;
 
+	SerialPortInfo() {}
+	SerialPortInfo(std::string port) : port(port), friendly_name(std::move(port)) {}
+
 	bool id_match(unsigned id_vendor, unsigned id_product) const { return id_vendor == this->id_vendor && id_product == this->id_product; }
 };
 
@@ -43,6 +46,17 @@ public:
 	~Serial();
 
 	void set_baud_rate(unsigned baud_rate);
+
+	// The Serial implementation is currently in disarray and therefore commented out.
+	// The boost implementation seems to have several problems, such as lack of support
+	// for custom baud rates, few weird implementation bugs and a history of API breakages.
+	// It's questionable whether it solves more problems than causes. Probably not.
+	// TODO: Custom implementation not based on asio.
+	//
+	// As of now, this class is only kept for the purpose of rebooting AVR109,
+	// see FirmwareDialog::priv::avr109_reboot()
+
+/*
 	void set_DTR(bool on);
 
 	// Resets the line number both internally as well as with the firmware using M110
@@ -65,7 +79,7 @@ public:
 
 	// Same as above, but with internally-managed line number
 	size_t printer_write_line(const std::string &line);
-	
+
 	// Toggles DTR to reset the printer
 	void printer_reset();
 
@@ -73,6 +87,7 @@ public:
 	static std::string printer_format_line(const std::string &line, unsigned line_num);
 private:
 	unsigned m_line_num = 0;
+*/
 };
 
 

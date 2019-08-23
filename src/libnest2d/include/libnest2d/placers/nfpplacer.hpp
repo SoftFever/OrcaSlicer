@@ -103,14 +103,14 @@ Key hash(const _Item<S>& item) {
         while(deg > N) { ms++; deg -= N; }
         ls += int(deg);
         ret.push_back(char(ms)); ret.push_back(char(ls));
-        circ += seg.length();
+        circ += std::sqrt(seg.template sqlength<double>());
     }
 
     it = ctr.begin(); nx = std::next(it);
 
     while(nx != ctr.end()) {
         Segment seg(*it++, *nx++);
-        auto l = int(M * seg.length() / circ);
+        auto l = int(M * std::sqrt(seg.template sqlength<double>()) / circ);
         int ms = 'A', ls = 'A';
         while(l > N) { ms++; l -= N; }
         ls += l;
@@ -249,6 +249,11 @@ template<class RawShape> class EdgeCache {
     std::vector<ContourCache> holes_;
 
     double accuracy_ = 1.0;
+    
+    static double length(const Edge &e) 
+    { 
+        return std::sqrt(e.template sqlength<double>());
+    }
 
     void createCache(const RawShape& sh) {
         {   // For the contour
@@ -260,7 +265,7 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 contour_.emap.emplace_back(*(first++), *(next++));
-                contour_.full_distance += contour_.emap.back().length();
+                contour_.full_distance += length(contour_.emap.back());
                 contour_.distances.emplace_back(contour_.full_distance);
             }
         }
@@ -275,7 +280,7 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
-                hc.full_distance += hc.emap.back().length();
+                hc.full_distance += length(hc.emap.back());
                 hc.distances.emplace_back(hc.full_distance);
             }
 
@@ -576,8 +581,12 @@ public:
 
     static inline double overfit(const Box& bb, const Box& bin)
     {
-        auto wdiff = double(bb.width() - bin.width());
-        auto hdiff = double(bb.height() - bin.height());
+        auto Bw = bin.width();
+        auto Bh = bin.height();
+        auto mBw = -Bw;
+        auto mBh = -Bh;
+        auto wdiff = double(bb.width()) + mBw;
+        auto hdiff = double(bb.height()) + mBh;
         double diff = 0;
         if(wdiff > 0) diff += wdiff;
         if(hdiff > 0) diff += hdiff;
@@ -796,7 +805,6 @@ private:
             // optimize
             config_.object_function = prev_func;
         }
-
     }
 
     struct Optimum {
@@ -811,28 +819,13 @@ private:
 
     class Optimizer: public opt::TOptimizer<opt::Method::L_SUBPLEX> {
     public:
-        Optimizer() {
+        Optimizer(float accuracy = 1.f) {
             opt::StopCriteria stopcr;
-            stopcr.max_iterations = 200;
+            stopcr.max_iterations = unsigned(std::floor(1000 * accuracy));
             stopcr.relative_score_difference = 1e-20;
             this->stopcr_ = stopcr;
         }
     };
-
-    static Box boundingBox(const Box& pilebb, const Box& ibb ) {
-        auto& pminc = pilebb.minCorner();
-        auto& pmaxc = pilebb.maxCorner();
-        auto& iminc = ibb.minCorner();
-        auto& imaxc = ibb.maxCorner();
-        Vertex minc, maxc;
-
-        setX(minc, std::min(getX(pminc), getX(iminc)));
-        setY(minc, std::min(getY(pminc), getY(iminc)));
-
-        setX(maxc, std::max(getX(pmaxc), getX(imaxc)));
-        setY(maxc, std::max(getY(pmaxc), getY(imaxc)));
-        return Box(minc, maxc);
-    }
 
     using Edges = EdgeCache<RawShape>;
 
@@ -930,7 +923,7 @@ private:
                     _objfunc = [norm, binbb, pbb, ins_check](const Item& item)
                     {
                         auto ibb = item.boundingBox();
-                        auto fullbb = boundingBox(pbb, ibb);
+                        auto fullbb = sl::boundingBox(pbb, ibb);
 
                         double score = pl::distance(ibb.center(),
                                                     binbb.center());
@@ -1000,14 +993,15 @@ private:
 
                     auto& rofn = rawobjfunc;
                     auto& nfpoint = getNfpPoint;
+                    float accuracy = config_.accuracy;
 
                     __parallel::enumerate(
                                 cache.corners().begin(),
                                 cache.corners().end(),
-                                [&results, &item, &rofn, &nfpoint, ch]
+                                [&results, &item, &rofn, &nfpoint, ch, accuracy]
                                 (double pos, size_t n)
                     {
-                        Optimizer solver;
+                        Optimizer solver(accuracy);
 
                         Item itemcpy = item;
                         auto contour_ofn = [&rofn, &nfpoint, ch, &itemcpy]
@@ -1054,10 +1048,10 @@ private:
                         __parallel::enumerate(cache.corners(hidx).begin(),
                                       cache.corners(hidx).end(),
                                       [&results, &item, &nfpoint,
-                                       &rofn, ch, hidx]
+                                       &rofn, ch, hidx, accuracy]
                                       (double pos, size_t n)
                         {
-                            Optimizer solver;
+                            Optimizer solver(accuracy);
 
                             Item itmcpy = item;
                             auto hole_ofn =

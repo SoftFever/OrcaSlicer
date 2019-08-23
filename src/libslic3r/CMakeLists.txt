@@ -5,6 +5,10 @@ include(PrecompiledHeader)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
+if (MINGW)
+    add_compile_options(-Wa,-mbig-obj)
+endif ()
+
 add_library(libslic3r STATIC
     pchheader.cpp
     pchheader.hpp
@@ -70,7 +74,7 @@ add_library(libslic3r STATIC
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
     GCode/PostProcessor.cpp
-    GCode/PostProcessor.hpp    
+    GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
 #    GCode/PressureEqualizer.hpp
     GCode/PreviewData.cpp
@@ -81,9 +85,8 @@ add_library(libslic3r STATIC
     GCode/SpiralVase.hpp
     GCode/ToolOrdering.cpp
     GCode/ToolOrdering.hpp
+    GCode/WipeTower.cpp
     GCode/WipeTower.hpp
-    GCode/WipeTowerPrusaMM.cpp
-    GCode/WipeTowerPrusaMM.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -107,13 +110,15 @@ add_library(libslic3r STATIC
     Line.hpp
     Model.cpp
     Model.hpp
-    ModelArrange.hpp
-    ModelArrange.cpp
+    Arrange.hpp
+    Arrange.cpp
     MotionPlanner.cpp
     MotionPlanner.hpp
     MultiPoint.cpp
     MultiPoint.hpp
     MutablePriorityQueue.hpp
+    ObjectID.cpp
+    ObjectID.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
@@ -122,6 +127,8 @@ add_library(libslic3r STATIC
     Point.hpp
     Polygon.cpp
     Polygon.hpp
+    PolygonTrimmer.cpp
+    PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
     PolylineCollection.cpp
@@ -130,13 +137,11 @@ add_library(libslic3r STATIC
     Print.hpp
     PrintBase.cpp
     PrintBase.hpp
-    PrintExport.hpp
     PrintConfig.cpp
     PrintConfig.hpp
     PrintObject.cpp
     PrintRegion.cpp
-    Rasterizer/Rasterizer.hpp
-    Rasterizer/Rasterizer.cpp
+    Semver.cpp
     SLAPrint.cpp
     SLAPrint.hpp
     SLA/SLAAutoSupports.hpp
@@ -163,6 +168,11 @@ add_library(libslic3r STATIC
     MTUtils.hpp
     Zipper.hpp
     Zipper.cpp
+    MinAreaBoundingBox.hpp
+    MinAreaBoundingBox.cpp
+    miniz_extension.hpp
+    miniz_extension.cpp
+    SLA/SLACommon.hpp
     SLA/SLABoilerPlate.hpp
     SLA/SLABasePool.hpp
     SLA/SLABasePool.cpp
@@ -173,20 +183,27 @@ add_library(libslic3r STATIC
     SLA/SLARotfinder.cpp
     SLA/SLABoostAdapter.hpp
     SLA/SLASpatIndex.hpp
+    SLA/SLARaster.hpp
+    SLA/SLARaster.cpp
+    SLA/SLARasterWriter.hpp
+    SLA/SLARasterWriter.cpp
 )
+
+encoding_check(libslic3r)
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
 endif ()
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB)
-target_include_directories(libslic3r SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(libslic3r
     libnest2d
     admesh
+    cereal
+    libigl
     miniz
-    ${Boost_LIBRARIES}
+    boost_libs
     clipper
     nowide
     ${EXPAT_LIBRARIES}

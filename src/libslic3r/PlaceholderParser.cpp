@@ -62,7 +62,7 @@
 
 namespace Slic3r {
 
-PlaceholderParser::PlaceholderParser()
+PlaceholderParser::PlaceholderParser(const DynamicConfig *external_config) : m_external_config(external_config)
 {
     this->set("version", std::string(SLIC3R_VERSION));
     this->apply_env_variables();
@@ -94,14 +94,6 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
     config.set_key_value("second", new ConfigOptionInt(timeinfo->tm_sec));
 }
 
-// Ignore this key by the placeholder parser.
-static inline bool placeholder_parser_ignore(const ConfigDef *def, const std::string &opt_key)
-{
-    const ConfigOptionDef *opt_def = def->get(opt_key);
-    assert(opt_def != nullptr);
-    return (opt_def->multiline && boost::ends_with(opt_key, "_gcode")) || opt_key == "post_process";
-}
-
 static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConfig &config_new, const std::string &opt_key)
 {
 	const ConfigOption *opt_old = config_old.option(opt_key);
@@ -119,7 +111,7 @@ std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig
     const ConfigDef *def = rhs.def();
     std::vector<std::string> diff_keys;
     for (const t_config_option_key &opt_key : rhs.keys())
-        if (! placeholder_parser_ignore(def, opt_key) && ! opts_equal(m_config, rhs, opt_key))
+        if (! opts_equal(m_config, rhs, opt_key))
             diff_keys.emplace_back(opt_key);
     return diff_keys;
 }
@@ -135,8 +127,6 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
     const ConfigDef *def = rhs.def();
     bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
-        if (placeholder_parser_ignore(def, opt_key))
-            continue;
         if (! opts_equal(m_config, rhs, opt_key)) {
             // Store a copy of the config option.
             // Convert FloatOrPercent values to floats first.
@@ -155,7 +145,6 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vector<std::string> &keys)
 {
     for (const t_config_option_key &opt_key : keys) {
-        assert(! placeholder_parser_ignore(rhs.def(), opt_key));
         // Store a copy of the config option.
         // Convert FloatOrPercent values to floats first.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.
@@ -165,6 +154,11 @@ void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vec
             new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
             opt_rhs->clone());
     }
+}
+
+void PlaceholderParser::apply_config(DynamicPrintConfig &&rhs)
+{
+	m_config += std::move(rhs);
 }
 
 void PlaceholderParser::apply_env_variables()
@@ -181,6 +175,11 @@ void PlaceholderParser::apply_env_variables()
 }
 
 namespace spirit = boost::spirit;
+// Using an encoding, which accepts unsigned chars.
+// Don't use boost::spirit::ascii, as it crashes internally due to indexing with negative char values for UTF8 characters into some 7bit character classification tables.
+//namespace spirit_encoding = boost::spirit::ascii;
+//FIXME iso8859_1 is just a workaround for the problem above. Replace it with UTF8 support!
+namespace spirit_encoding = boost::spirit::iso8859_1;
 namespace qi = boost::spirit::qi;
 namespace px = boost::phoenix;
 
@@ -521,7 +520,6 @@ namespace client
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
             const std::string *subject  = nullptr;
-            const std::string *mask     = nullptr;
             if (lhs.type == TYPE_STRING) {
                 // One type is string, the other could be converted to string.
                 subject = &lhs.s();
@@ -563,7 +561,6 @@ namespace client
 
         static void ternary_op(expr &lhs, expr &rhs1, expr &rhs2)
         {
-            bool value = false;
             if (lhs.type != TYPE_BOOL)
                 lhs.throw_exception("Not a boolean expression");
             if (lhs.b())
@@ -610,6 +607,7 @@ namespace client
     }
 
     struct MyContext {
+    	const DynamicConfig     *external_config        = nullptr;
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
         size_t                   current_extruder_id    = 0;
@@ -630,6 +628,8 @@ namespace client
                 opt = config_override->option(opt_key);
             if (opt == nullptr)
                 opt = config->option(opt_key);
+            if (opt == nullptr && external_config != nullptr)
+                opt = external_config->option(opt_key);
             return opt;
         }
 
@@ -936,7 +936,7 @@ namespace client
     ///////////////////////////////////////////////////////////////////////////
     // Inspired by the C grammar rules https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
     template <typename Iterator>
-    struct macro_processor : qi::grammar<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit::ascii::space_type>
+    struct macro_processor : qi::grammar<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit_encoding::space_type>
     {
         macro_processor() : macro_processor::base_type(start)
         {
@@ -949,12 +949,12 @@ namespace client
             qi::lexeme_type             lexeme;
             qi::no_skip_type            no_skip;
             qi::real_parser<double, strict_real_policies_without_nan_inf> strict_double;
-            spirit::ascii::char_type    char_;
+            spirit_encoding::char_type  char_;
             utf8_char_skipper_parser    utf8char;
             spirit::bool_type           bool_;
             spirit::int_type            int_;
             spirit::double_type         double_;
-            spirit::ascii::string_type  string;
+            spirit_encoding::string_type string;
 			spirit::eoi_type			eoi;
 			spirit::repository::qi::iter_pos_type iter_pos;
             auto                        kw = spirit::repository::qi::distinct(qi::copy(alnum | '_'));
@@ -975,7 +975,7 @@ namespace client
             // depending on the context->just_boolean_expression flag. This way a single static expression parser
             // could serve both purposes.
             start = eps[px::bind(&MyContext::evaluate_full_macro, _r1, _a)] >
-                (       eps(_a==true) > text_block(_r1) [_val=_1]
+                (       (eps(_a==true) > text_block(_r1) [_val=_1])
                     |   conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean_to_string, _1, _val) ]
 				) > eoi;
             start.name("start");
@@ -1183,20 +1183,20 @@ namespace client
         }
 
         // Generic expression over expr<Iterator>.
-        typedef qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit::ascii::space_type> RuleExpression;
+        typedef qi::rule<Iterator, expr<Iterator>(const MyContext*), spirit_encoding::space_type> RuleExpression;
 
         // The start of the grammar.
-        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit::ascii::space_type> start;
+        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool>, spirit_encoding::space_type> start;
         // A free-form text.
-        qi::rule<Iterator, std::string(), spirit::ascii::space_type> text;
+        qi::rule<Iterator, std::string(), spirit_encoding::space_type> text;
         // A free-form text, possibly empty, possibly containing macro expansions.
-        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> text_block;
+        qi::rule<Iterator, std::string(const MyContext*), spirit_encoding::space_type> text_block;
         // Statements enclosed in curely braces {}
-        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> macro;
+        qi::rule<Iterator, std::string(const MyContext*), spirit_encoding::space_type> macro;
         // Legacy variable expansion of the original Slic3r, in the form of [scalar_variable] or [vector_variable_index].
-        qi::rule<Iterator, std::string(const MyContext*), spirit::ascii::space_type> legacy_variable_expansion;
+        qi::rule<Iterator, std::string(const MyContext*), spirit_encoding::space_type> legacy_variable_expansion;
         // Parsed identifier name.
-        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> identifier;
+        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit_encoding::space_type> identifier;
         // Ternary operator (?:) over logical_or_expression.
         RuleExpression conditional_expression;
         // Logical or over logical_and_expressions.
@@ -1214,16 +1214,16 @@ namespace client
         // Number literals, functions, braced expressions, variable references, variable indexing references.
         RuleExpression unary_expression;
         // Rule to capture a regular expression enclosed in //.
-        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit::ascii::space_type> regular_expression;
+        qi::rule<Iterator, boost::iterator_range<Iterator>(), spirit_encoding::space_type> regular_expression;
         // Evaluate boolean expression into bool.
-        qi::rule<Iterator, bool(const MyContext*), spirit::ascii::space_type> bool_expr_eval;
+        qi::rule<Iterator, bool(const MyContext*), spirit_encoding::space_type> bool_expr_eval;
         // Reference of a scalar variable, or reference to a field of a vector variable.
-        qi::rule<Iterator, expr<Iterator>(const MyContext*), qi::locals<OptWithPos<Iterator>, int>, spirit::ascii::space_type> scalar_variable_reference;
+        qi::rule<Iterator, expr<Iterator>(const MyContext*), qi::locals<OptWithPos<Iterator>, int>, spirit_encoding::space_type> scalar_variable_reference;
         // Rule to translate an identifier to a ConfigOption, or to fail.
-        qi::rule<Iterator, OptWithPos<Iterator>(const MyContext*), spirit::ascii::space_type> variable_reference;
+        qi::rule<Iterator, OptWithPos<Iterator>(const MyContext*), spirit_encoding::space_type> variable_reference;
 
-        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool, bool>, spirit::ascii::space_type> if_else_output;
-//        qi::rule<Iterator, std::string(const MyContext*), qi::locals<expr<Iterator>, bool, std::string>, spirit::ascii::space_type> switch_output;
+        qi::rule<Iterator, std::string(const MyContext*), qi::locals<bool, bool>, spirit_encoding::space_type> if_else_output;
+//        qi::rule<Iterator, std::string(const MyContext*), qi::locals<expr<Iterator>, bool, std::string>, spirit_encoding::space_type> switch_output;
 
         qi::symbols<char> keywords;
     };
@@ -1235,7 +1235,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
     typedef client::macro_processor<iterator_type> macro_processor;
 
     // Our whitespace skipper.
-    spirit::ascii::space_type   space;
+    spirit_encoding::space_type space;
     // Our grammar, statically allocated inside the method, meaning it will be allocated the first time
     // PlaceholderParser::process() runs.
     //FIXME this kind of initialization is not thread safe!
@@ -1245,7 +1245,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
     std::string::const_iterator end  = templ.end();
     // Accumulator for the processed template.
     std::string                 output;
-    bool res = phrase_parse(iter, end, macro_processor_instance(&context), space, output);
+    phrase_parse(iter, end, macro_processor_instance(&context), space, output);
 	if (!context.error_message.empty()) {
         if (context.error_message.back() != '\n' && context.error_message.back() != '\r')
             context.error_message += '\n';
@@ -1257,6 +1257,7 @@ static std::string process_macro(const std::string &templ, client::MyContext &co
 std::string PlaceholderParser::process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override) const
 {
     client::MyContext context;
+    context.external_config 	= this->external_config();
     context.config              = &this->config();
     context.config_override     = config_override;
     context.current_extruder_id = current_extruder_id;
@@ -1268,8 +1269,8 @@ std::string PlaceholderParser::process(const std::string &templ, unsigned int cu
 bool PlaceholderParser::evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override)
 {
     client::MyContext context;
-    context.config                  = &config;
-    context.config_override         = config_override;
+    context.config              = &config;
+    context.config_override     = config_override;
     // Let the macro processor parse just a boolean expression, not the full macro language.
     context.just_boolean_expression = true;
     return process_macro(templ, context) == "true";

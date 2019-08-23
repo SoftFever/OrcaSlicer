@@ -67,9 +67,12 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
         /* FT_MODEL */   "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
         /* FT_PROJECT */ "Project files (*.3mf, *.amf)|*.3mf;*.3MF;*.amf;*.AMF",
 
-        /* FT_INI */   "INI files (*.ini)|*.ini;*.INI",
-        /* FT_SVG */   "SVG files (*.svg)|*.svg;*.SVG",
-        /* FT_PNGZIP */"Masked SLA files (*.sl1)|*.sl1;*.SL1",
+        /* FT_INI */     "INI files (*.ini)|*.ini;*.INI",
+        /* FT_SVG */     "SVG files (*.svg)|*.svg;*.SVG",
+
+        /* FT_TEX */     "Texture (*.png, *.svg)|*.png;*.PNG;*.svg;*.SVG",
+
+        /* FT_PNGZIP */  "Masked SLA files (*.sl1)|*.sl1;*.SL1",
     };
 
 	std::string out = defaults[file_type];
@@ -123,7 +126,16 @@ static void generic_exception_handle()
 
     try {
         throw;
-    } catch (const std::exception &ex) {
+    } catch (const std::bad_alloc& ex) {
+        // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
+        // and terminate the app so it is at least certain to happen now.
+        wxString errmsg = wxString::Format(_(L("%s has encountered an error. It was likely caused by running out of memory. "
+                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
+                              "be glad if you reported it.\n\nThe application will now terminate.")), SLIC3R_APP_NAME);
+        wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _(L("Fatal error")), wxOK | wxICON_ERROR);
+        BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
+        std::terminate();
+    } catch (const std::exception& ex) {
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
@@ -140,6 +152,18 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 {}
+
+GUI_App::~GUI_App()
+{
+    if (app_config != nullptr)
+        delete app_config;
+
+    if (preset_bundle != nullptr)
+        delete preset_bundle;
+
+    if (preset_updater != nullptr)
+        delete preset_updater;
+}
 
 bool GUI_App::OnInit()
 {
@@ -158,7 +182,8 @@ bool GUI_App::on_init_inner()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-    SetAppName(SLIC3R_APP_KEY);
+    //SetAppName(SLIC3R_APP_KEY);
+    SetAppName(SLIC3R_APP_KEY "-alpha");
     SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
@@ -265,11 +290,23 @@ bool GUI_App::on_init_inner()
             }
 
             CallAfter([this] {
-                if (!config_wizard_startup(app_conf_exists)) {
-                    // Only notify if there was no wizard so as not to bother too much ...
-                    preset_updater->slic3r_update_notify();
-                }
+                config_wizard_startup(app_conf_exists);
+                preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
+                const GLCanvas3DManager::GLInfo &glinfo = GLCanvas3DManager::get_gl_info();
+                if (! glinfo.is_version_greater_or_equal_to(2, 0)) {
+                	// Complain about the OpenGL version.
+                	wxString message = wxString::Format(
+                		_(L("PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+                			"while OpenGL version %s, render %s, vendor %s was detected.")), wxString(glinfo.get_version()), wxString(glinfo.get_renderer()), wxString(glinfo.get_vendor()));
+                	message += "\n";
+                	message += _(L("You may need to update your graphics card driver."));
+#ifdef _WIN32
+                	message += "\n";
+                	message += _(L("As a workaround, you may run PrusaSlicer with a software rendered 3D graphics by running prusa-slicer.exe with the --sw_renderer parameter."));
+#endif
+                	wxMessageBox(message, wxString("PrusaSlicer - ") + _(L("Unsupported OpenGL version")), wxOK | wxICON_ERROR);
+                }
             });
         }
     });
@@ -524,7 +561,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     });
 }
 
-void GUI_App::load_project(wxWindow *parent, wxString& input_file)
+void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
@@ -536,7 +573,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file)
         input_file = dialog.GetPath();
 }
 
-void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
+void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
@@ -844,7 +881,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
-bool GUI_App::check_unsaved_changes()
+bool GUI_App::check_unsaved_changes(const wxString &header)
 {
     wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
@@ -858,8 +895,12 @@ bool GUI_App::check_unsaved_changes()
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
+    wxString message;
+    if (! header.empty())
+    	message = header + "\n\n";
+    message += _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?"));
     wxMessageDialog dialog(mainframe,
-        _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?")),
+        message,
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;
@@ -924,14 +965,19 @@ ObjectList* GUI_App::obj_list()
     return sidebar().obj_list();
 }
 
+ObjectLayers* GUI_App::obj_layers()
+{
+    return sidebar().obj_layers();
+}
+
 Plater* GUI_App::plater()
 {
     return plater_;
 }
 
-ModelObjectPtrs* GUI_App::model_objects()
+Model& GUI_App::model()
 {
-    return &plater_->model().objects;
+    return plater_->model();
 }
 
 wxNotebook* GUI_App::tab_panel() const
@@ -939,6 +985,7 @@ wxNotebook* GUI_App::tab_panel() const
     return mainframe->m_tabpanel;
 }
 
+// extruders count from selected printer preset
 int GUI_App::extruders_cnt() const
 {
     const Preset& preset = preset_bundle->printers.get_selected_preset();
@@ -946,9 +993,45 @@ int GUI_App::extruders_cnt() const
            preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 }
 
+// extruders count from edited printer preset
+int GUI_App::extruders_edited_cnt() const
+{
+    const Preset& preset = preset_bundle->printers.get_edited_preset();
+    return preset.printer_technology() == ptSLA ? 1 :
+           preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+}
+
+wxString GUI_App::current_language_code_safe() const
+{
+	// Translate the language code to a code, for which Prusa Research maintains translations.
+	wxString language_code = this->current_language_code();
+	size_t   idx_underscore = language_code.find(language_code);
+	if (idx_underscore != wxString::npos)
+		language_code = language_code.substr(0, idx_underscore);
+	const std::map<wxString, wxString> mapping {
+		{ "cs", 	"cs_CZ", },
+		{ "sk", 	"cs_CZ", },
+		{ "de", 	"de_DE", },
+		{ "es", 	"es_ES", },
+		{ "fr", 	"fr_FR", },
+		{ "it", 	"it_IT", },
+		{ "ja", 	"ja_JP", },
+		{ "ko", 	"ko_KR", },
+		{ "pl", 	"pl_PL", },
+		{ "uk", 	"uk_UA", },
+		{ "zh", 	"zh_CN", },
+	};
+	auto it = mapping.find(language_code);
+	if (it != mapping.end())
+		language_code = it->second;
+	else
+		language_code = "en_US";
+	return language_code;
+}
+
 void GUI_App::open_web_page_localized(const std::string &http_address)
 {
-    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code());
+    wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
 }
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)

@@ -72,6 +72,8 @@ PresetBundle::PresetBundle() :
     this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values = { "" };
     this->filaments.default_preset().compatible_printers_condition();
     this->filaments.default_preset().inherits();
+	// Set all the nullable values to nils.
+	this->filaments.default_preset().config.null_nullables();
 
     this->sla_materials.default_preset().config.optptr("sla_material_settings_id", true);
     this->sla_materials.default_preset().compatible_printers_condition();
@@ -761,8 +763,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 }
             }
             // Load the configs into this->filaments and make them active.
-            this->filament_presets.clear();
-            for (size_t i = 0; i < configs.size(); ++ i) {
+            this->filament_presets = std::vector<std::string>(configs.size());
+            // To avoid incorrect selection of the first filament preset (means a value of Preset->m_idx_selected) 
+            // in a case when next added preset take a place of previosly selected preset,
+            // we should add presets from last to first
+            for (int i = (int)configs.size()-1; i >= 0; i--) {
                 DynamicPrintConfig &cfg = configs[i];
                 // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
                 cfg.opt_string("compatible_printers_condition", true) = compatible_printers_condition_values[i + 1];
@@ -781,13 +786,13 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     if (i == 0)
                         suffix[0] = 0;
                     else
-                        sprintf(suffix, "%d", i);
+                        sprintf(suffix, "%d", (int)i);
                     std::string new_name = name + suffix;
                     loaded = &this->filaments.load_preset(this->filaments.path_from_name(new_name),
                         new_name, std::move(cfg), i == 0);
                     loaded->save();
                 }
-                this->filament_presets.emplace_back(loaded->name);
+                this->filament_presets[i] = loaded->name;
             }
         }
         // 4) Load the project config values (the per extruder wipe matrix etc).
@@ -837,7 +842,7 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
                     return preset_name_dst;
                 // Try to generate another name.
                 char buf[64];
-                sprintf(buf, " (%d)", i);
+                sprintf(buf, " (%d)", (int)i);
                 preset_name_dst = preset_name_src + buf + bundle_name;
             }
         }
@@ -1366,7 +1371,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
                 continue;
             c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
             for (const std::string &opt_key : preset.config.keys())
-                c << opt_key << " = " << preset.config.serialize(opt_key) << std::endl;
+                c << opt_key << " = " << preset.config.opt_serialize(opt_key) << std::endl;
         }
     }
 
@@ -1379,7 +1384,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
     for (size_t i = 0; i < this->filament_presets.size(); ++ i) {
         char suffix[64];
         if (i > 0)
-            sprintf(suffix, "_%d", i);
+            sprintf(suffix, "_%d", (int)i);
         else
             suffix[0] = 0;
         c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;

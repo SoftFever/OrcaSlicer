@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "Technologies.hpp"
+#include "Semver.hpp"
 
 typedef int32_t coord_t;
 typedef double  coordf_t;
@@ -48,9 +49,18 @@ typedef double  coordf_t;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
+
 #define SCALED_EPSILON scale_(EPSILON)
 
 #define SLIC3R_DEBUG_OUT_PATH_PREFIX "out/"
+
+#if defined(_MSC_VER) &&  _MSC_VER < 1900
+# define SLIC3R_CONSTEXPR
+# define SLIC3R_NOEXCEPT
+#else
+#define SLIC3R_CONSTEXPR constexpr
+#define SLIC3R_NOEXCEPT  noexcept
+#endif
 
 inline std::string debug_out_path(const char *name, ...)
 {
@@ -82,6 +92,8 @@ inline std::string debug_out_path(const char *name, ...)
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
+
+extern Semver SEMVER;
 
 template<typename T, typename Q>
 inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }

@@ -12,13 +12,13 @@ struct Polygon {
     inline Polygon() = default;
 
     inline explicit Polygon(const Path& cont): Contour(cont) {}
-    inline explicit Polygon(const Paths& holes):
-        Holes(holes) {}
+//    inline explicit Polygon(const Paths& holes):
+//        Holes(holes) {}
     inline Polygon(const Path& cont, const Paths& holes):
         Contour(cont), Holes(holes) {}
 
     inline explicit Polygon(Path&& cont): Contour(std::move(cont)) {}
-    inline explicit Polygon(Paths&& holes): Holes(std::move(holes)) {}
+//    inline explicit Polygon(Paths&& holes): Holes(std::move(holes)) {}
     inline Polygon(Path&& cont, Paths&& holes):
         Contour(std::move(cont)), Holes(std::move(holes)) {}
 };
@@ -42,7 +42,7 @@ inline IntPoint& operator -=(IntPoint& p, const IntPoint& pa ) {
     return p;
 }
 
-inline IntPoint operator -(IntPoint& p ) {
+inline IntPoint operator -(const IntPoint& p ) {
     IntPoint ret = p;
     ret.X = -ret.X;
     ret.Y = -ret.Y;

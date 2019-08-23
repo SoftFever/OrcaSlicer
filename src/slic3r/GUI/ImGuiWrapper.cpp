@@ -206,7 +206,7 @@ void ImGuiWrapper::new_frame()
     }
 
     if (m_font_texture == 0) {
-        init_font();
+        init_font(true);
     }
 
     ImGui::NewFrame();
@@ -233,9 +233,9 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
     return size;
 }
 
-void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
+void ImGuiWrapper::set_next_window_pos(float x, float y, int flag, float pivot_x, float pivot_y)
 {
-    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag);
+    ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag, ImVec2(pivot_x, pivot_y));
     ImGui::SetNextWindowSize(ImVec2(0.0, 0.0));
 }
 
@@ -326,9 +326,9 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     int selection_out = -1;
     bool res = false;
 
-    const char *selection_str = selection < options.size() ? options[selection].c_str() : "";
+    const char *selection_str = selection < (int)options.size() ? options[selection].c_str() : "";
     if (ImGui::BeginCombo("", selection_str)) {
-        for (int i = 0; i < options.size(); i++) {
+        for (int i = 0; i < (int)options.size(); i++) {
             if (ImGui::Selectable(options[i].c_str(), i == selection)) {
                 selection_out = i;
             }
@@ -340,6 +340,32 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
 
     selection = selection_out;
     return res;
+}
+
+bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool , int , const char**), int& hovered, int& selected)
+{
+    bool is_hovered = false;
+    ImGui::ListBoxHeader("", size);
+
+    int i=0;
+    const char* item_text;
+    while (items_getter(is_undo, i, &item_text))
+    {
+        ImGui::Selectable(item_text, i < hovered);
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s", item_text);
+            hovered = i;
+            is_hovered = true;
+        }
+
+        if (ImGui::IsItemClicked())
+            selected = i;
+        i++;
+    }
+
+    ImGui::ListBoxFooter();
+    return is_hovered;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
@@ -383,7 +409,7 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_font()
+void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
 
@@ -412,7 +438,10 @@ void ImGuiWrapper::init_font()
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    if (compress && GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
     io.Fonts->TexID = (ImTextureID)(intptr_t)m_font_texture;

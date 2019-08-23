@@ -240,7 +240,7 @@ TOKEN * string(char * text)
       return NULL; /* yyerror already called */
   }
 
-  len = strlen(text);
+  len = (int)strlen(text);
 
   tkn->value.type   = V_STR;
   tkn->value.string = (char *) malloc(len+1);
@@ -351,7 +351,7 @@ int read_config(const char * file)
 }
 
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
-extern YY_BUFFER_STATE yy_scan_bytes(char *base, size_t size);
+extern YY_BUFFER_STATE yy_scan_bytes(const char *base, size_t size);
 extern void yy_delete_buffer(YY_BUFFER_STATE b);
 
 int read_config_builtin()
@@ -363,7 +363,7 @@ int read_config_builtin()
 
   // Note: Can't use yy_scan_buffer, it's buggy (?), leads to fread from a null FILE*
   // and so unfortunatelly we have to use the copying variant here
-  YY_BUFFER_STATE buffer = yy_scan_bytes(avrdude_slic3r_conf, avrdude_slic3r_conf_size);
+  YY_BUFFER_STATE buffer = yy_scan_bytes((const char *)avrdude_slic3r_conf, avrdude_slic3r_conf_size);
   if (buffer == NULL) {
     avrdude_message(MSG_INFO, "%s: read_config_builtin: Failed to initialize parsing buffer\n", progname);
     return -1;

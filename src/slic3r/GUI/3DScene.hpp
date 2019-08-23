@@ -10,6 +10,7 @@
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
 
 #include <functional>
+#include <memory>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -55,7 +56,7 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        {}
     GLIndexedVertexArray(const GLIndexedVertexArray &rhs) :
         vertices_and_normals_interleaved(rhs.vertices_and_normals_interleaved),
         triangle_indices(rhs.triangle_indices),
@@ -63,7 +64,7 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        { assert(! rhs.has_VBOs()); }
     GLIndexedVertexArray(GLIndexedVertexArray &&rhs) :
         vertices_and_normals_interleaved(std::move(rhs.vertices_and_normals_interleaved)),
         triangle_indices(std::move(rhs.triangle_indices)),
@@ -71,17 +72,25 @@ public:
         vertices_and_normals_interleaved_VBO_id(0),
         triangle_indices_VBO_id(0),
         quad_indices_VBO_id(0)
-        { this->setup_sizes(); }
+        { assert(! rhs.has_VBOs()); }
+
+    ~GLIndexedVertexArray() { release_geometry(); }
 
     GLIndexedVertexArray& operator=(const GLIndexedVertexArray &rhs)
     {
         assert(vertices_and_normals_interleaved_VBO_id == 0);
         assert(triangle_indices_VBO_id == 0);
-        assert(triangle_indices_VBO_id == 0);
-        this->vertices_and_normals_interleaved = rhs.vertices_and_normals_interleaved;
-        this->triangle_indices                 = rhs.triangle_indices;
-        this->quad_indices                     = rhs.quad_indices;
-        this->setup_sizes();
+        assert(quad_indices_VBO_id == 0);
+        assert(rhs.vertices_and_normals_interleaved_VBO_id == 0);
+        assert(rhs.triangle_indices_VBO_id == 0);
+        assert(rhs.quad_indices_VBO_id == 0);
+        this->vertices_and_normals_interleaved 		 = rhs.vertices_and_normals_interleaved;
+        this->triangle_indices                 		 = rhs.triangle_indices;
+        this->quad_indices                     		 = rhs.quad_indices;
+        this->m_bounding_box                   		 = rhs.m_bounding_box;
+        this->vertices_and_normals_interleaved_size  = rhs.vertices_and_normals_interleaved_size;
+        this->triangle_indices_size                  = rhs.triangle_indices_size;
+        this->quad_indices_size                      = rhs.quad_indices_size;
         return *this;
     }
 
@@ -89,11 +98,17 @@ public:
     {
         assert(vertices_and_normals_interleaved_VBO_id == 0);
         assert(triangle_indices_VBO_id == 0);
-        assert(triangle_indices_VBO_id == 0);
-        this->vertices_and_normals_interleaved = std::move(rhs.vertices_and_normals_interleaved);
-        this->triangle_indices                 = std::move(rhs.triangle_indices);
-        this->quad_indices                     = std::move(rhs.quad_indices);
-        this->setup_sizes();
+        assert(quad_indices_VBO_id == 0);
+        assert(rhs.vertices_and_normals_interleaved_VBO_id == 0);
+        assert(rhs.triangle_indices_VBO_id == 0);
+        assert(rhs.quad_indices_VBO_id == 0);
+        this->vertices_and_normals_interleaved 		 = std::move(rhs.vertices_and_normals_interleaved);
+        this->triangle_indices                 		 = std::move(rhs.triangle_indices);
+        this->quad_indices                     		 = std::move(rhs.quad_indices);
+        this->m_bounding_box                   		 = std::move(rhs.m_bounding_box);
+        this->vertices_and_normals_interleaved_size  = rhs.vertices_and_normals_interleaved_size;
+        this->triangle_indices_size                  = rhs.triangle_indices_size;
+        this->quad_indices_size                      = rhs.quad_indices_size;
         return *this;
     }
 
@@ -104,19 +119,18 @@ public:
 
     // When the geometry data is loaded into the graphics card as Vertex Buffer Objects,
     // the above mentioned std::vectors are cleared and the following variables keep their original length.
-    size_t             vertices_and_normals_interleaved_size;
-    size_t             triangle_indices_size;
-    size_t             quad_indices_size;
+    size_t vertices_and_normals_interleaved_size{ 0 };
+    size_t triangle_indices_size{ 0 };
+    size_t quad_indices_size{ 0 };
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
-    // Zero if the VBOs are not used.
-    unsigned int       vertices_and_normals_interleaved_VBO_id;
-    unsigned int       triangle_indices_VBO_id;
-    unsigned int       quad_indices_VBO_id;
+    // Zero if the VBOs are not sent to GPU yet.
+    unsigned int       vertices_and_normals_interleaved_VBO_id{ 0 };
+    unsigned int       triangle_indices_VBO_id{ 0 };
+    unsigned int       quad_indices_VBO_id{ 0 };
 
-    void load_mesh_flat_shading(const TriangleMesh &mesh);
     void load_mesh_full_shading(const TriangleMesh &mesh);
-	void load_mesh(const TriangleMesh &mesh, bool use_VBOs) { use_VBOs ? this->load_mesh_full_shading(mesh) : this->load_mesh_flat_shading(mesh); }
+    void load_mesh(const TriangleMesh& mesh) { this->load_mesh_full_shading(mesh); }
 
     inline bool has_VBOs() const { return vertices_and_normals_interleaved_VBO_id != 0; }
 
@@ -127,14 +141,21 @@ public:
     }
 
     inline void push_geometry(float x, float y, float z, float nx, float ny, float nz) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->vertices_and_normals_interleaved.size() + 6 > this->vertices_and_normals_interleaved.capacity())
             this->vertices_and_normals_interleaved.reserve(next_highest_power_of_2(this->vertices_and_normals_interleaved.size() + 6));
-        this->vertices_and_normals_interleaved.push_back(nx);
-        this->vertices_and_normals_interleaved.push_back(ny);
-        this->vertices_and_normals_interleaved.push_back(nz);
-        this->vertices_and_normals_interleaved.push_back(x);
-        this->vertices_and_normals_interleaved.push_back(y);
-        this->vertices_and_normals_interleaved.push_back(z);
+        this->vertices_and_normals_interleaved.emplace_back(nx);
+        this->vertices_and_normals_interleaved.emplace_back(ny);
+        this->vertices_and_normals_interleaved.emplace_back(nz);
+        this->vertices_and_normals_interleaved.emplace_back(x);
+        this->vertices_and_normals_interleaved.emplace_back(y);
+        this->vertices_and_normals_interleaved.emplace_back(z);
+
+        this->vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
+        m_bounding_box.merge(Vec3f(x, y, z).cast<double>());
     };
 
     inline void push_geometry(double x, double y, double z, double nx, double ny, double nz) {
@@ -146,80 +167,82 @@ public:
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->triangle_indices.size() + 3 > this->vertices_and_normals_interleaved.capacity())
             this->triangle_indices.reserve(next_highest_power_of_2(this->triangle_indices.size() + 3));
-        this->triangle_indices.push_back(idx1);
-        this->triangle_indices.push_back(idx2);
-        this->triangle_indices.push_back(idx3);
+        this->triangle_indices.emplace_back(idx1);
+        this->triangle_indices.emplace_back(idx2);
+        this->triangle_indices.emplace_back(idx3);
+        this->triangle_indices_size = this->triangle_indices.size();
     };
 
     inline void push_quad(int idx1, int idx2, int idx3, int idx4) {
+        assert(this->vertices_and_normals_interleaved_VBO_id == 0);
+        if (this->vertices_and_normals_interleaved_VBO_id != 0)
+            return;
+
         if (this->quad_indices.size() + 4 > this->vertices_and_normals_interleaved.capacity())
             this->quad_indices.reserve(next_highest_power_of_2(this->quad_indices.size() + 4));
-        this->quad_indices.push_back(idx1);
-        this->quad_indices.push_back(idx2);
-        this->quad_indices.push_back(idx3);
-        this->quad_indices.push_back(idx4);
+        this->quad_indices.emplace_back(idx1);
+        this->quad_indices.emplace_back(idx2);
+        this->quad_indices.emplace_back(idx3);
+        this->quad_indices.emplace_back(idx4);
+        this->quad_indices_size = this->quad_indices.size();
     };
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
-    void finalize_geometry(bool use_VBOs);
+    void finalize_geometry(bool opengl_initialized);
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
-    // Render either using an immediate mode, or the VBOs.
+
     void render() const;
-    void render(const std::pair<size_t, size_t> &tverts_range, const std::pair<size_t, size_t> &qverts_range) const;
+    void render(const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
 
     // Is there any geometry data stored?
     bool empty() const { return vertices_and_normals_interleaved_size == 0; }
-
-    // Is this object indexed, or is it just a set of triangles?
-    bool indexed() const { return ! this->empty() && this->triangle_indices_size + this->quad_indices_size > 0; }
 
     void clear() {
         this->vertices_and_normals_interleaved.clear();
         this->triangle_indices.clear();
         this->quad_indices.clear();
-        this->setup_sizes();
+        this->m_bounding_box.reset();
+        vertices_and_normals_interleaved_size = 0;
+        triangle_indices_size = 0;
+        quad_indices_size = 0;
     }
 
     // Shrink the internal storage to tighly fit the data stored.
-    void shrink_to_fit() { 
-        if (! this->has_VBOs())
-            this->setup_sizes();
+    void shrink_to_fit() {
         this->vertices_and_normals_interleaved.shrink_to_fit();
         this->triangle_indices.shrink_to_fit();
         this->quad_indices.shrink_to_fit();
     }
 
-    BoundingBoxf3 bounding_box() const {
-        BoundingBoxf3 bbox;
-        if (! this->vertices_and_normals_interleaved.empty()) {
-            bbox.defined = true;
-            bbox.min(0) = bbox.max(0) = this->vertices_and_normals_interleaved[3];
-            bbox.min(1) = bbox.max(1) = this->vertices_and_normals_interleaved[4];
-            bbox.min(2) = bbox.max(2) = this->vertices_and_normals_interleaved[5];
-            for (size_t i = 9; i < this->vertices_and_normals_interleaved.size(); i += 6) {
-                const float *verts = this->vertices_and_normals_interleaved.data() + i;
-                bbox.min(0) = std::min<coordf_t>(bbox.min(0), verts[0]);
-                bbox.min(1) = std::min<coordf_t>(bbox.min(1), verts[1]);
-                bbox.min(2) = std::min<coordf_t>(bbox.min(2), verts[2]);
-                bbox.max(0) = std::max<coordf_t>(bbox.max(0), verts[0]);
-                bbox.max(1) = std::max<coordf_t>(bbox.max(1), verts[1]);
-                bbox.max(2) = std::max<coordf_t>(bbox.max(2), verts[2]);
-            }
-        }
-        return bbox;
+    const BoundingBoxf3& bounding_box() const { return m_bounding_box; }
+
+    // Return an estimate of the memory consumed by this class.
+    size_t cpu_memory_used() const { return sizeof(*this) + vertices_and_normals_interleaved.capacity() * sizeof(float) + triangle_indices.capacity() * sizeof(int) + quad_indices.capacity() * sizeof(int); }
+    // Return an estimate of the memory held by GPU vertex buffers.
+    size_t gpu_memory_used() const
+    {
+    	size_t memsize = 0;
+    	if (this->vertices_and_normals_interleaved_VBO_id != 0)
+    		memsize += this->vertices_and_normals_interleaved_size * 4;
+    	if (this->triangle_indices_VBO_id != 0)
+    		memsize += this->triangle_indices_size * 4;
+    	if (this->quad_indices_VBO_id != 0)
+    		memsize += this->quad_indices_size * 4;
+    	return memsize;
     }
+    size_t total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
 
 private:
-    inline void setup_sizes() {
-        vertices_and_normals_interleaved_size = this->vertices_and_normals_interleaved.size();
-        triangle_indices_size                 = this->triangle_indices.size();
-        quad_indices_size                     = this->quad_indices.size();
-    }
+    BoundingBoxf3 m_bounding_box;
 };
 
 class GLVolume {
@@ -243,30 +266,25 @@ public:
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
-    ~GLVolume();
 
 private:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
 
     // Shift in z required by sla supports+pad
-    double                m_sla_shift_z;
+    double        		  m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
     mutable bool          m_transformed_bounding_box_dirty;
-    // Pointer to convex hull of the original mesh, if any.
-    // This object may or may not own the convex hull instance based on m_convex_hull_owned
-    const TriangleMesh*   m_convex_hull;
-    bool                  m_convex_hull_owned;
+    // Convex hull of the volume, if any.
+    std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
     // Whether or not is needed to recalculate the transformed convex hull bounding box.
     mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
-    // Bounding box of this volume, in unscaled coordinates.
-    BoundingBoxf3       bounding_box;
     // Color of the triangles / quads held by this volume.
     float               color[4];
     // Color used to render this volume.
@@ -298,6 +316,8 @@ public:
     bool                selected;
     // Is this object disabled from selection?
     bool                disabled;
+    // Is this object printable?
+    bool                printable;
     // Whether or not this volume is active for rendering
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()
@@ -330,6 +350,9 @@ public:
     std::vector<coordf_t>       print_zs;
     // Offset into qverts & tverts, or offsets into indices stored into an OpenGL name_index_buffer.
     std::vector<size_t>         offsets;
+
+    // Bounding box of this volume, in unscaled coordinates.
+    const BoundingBoxf3& bounding_box() const { return this->indexed_vertex_array.bounding_box(); }
 
     void set_render_color(float r, float g, float b, float a);
     void set_render_color(const float* rgba, unsigned int size);
@@ -395,7 +418,9 @@ public:
     double get_sla_shift_z() const { return m_sla_shift_z; }
     void set_sla_shift_z(double z) { m_sla_shift_z = z; }
 
-    void set_convex_hull(const TriangleMesh *convex_hull, bool owned);
+    void set_convex_hull(std::shared_ptr<const TriangleMesh> convex_hull) { m_convex_hull = std::move(convex_hull); }
+    void set_convex_hull(const TriangleMesh &convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(convex_hull); }
+    void set_convex_hull(TriangleMesh &&convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(std::move(convex_hull)); }
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }
@@ -409,22 +434,32 @@ public:
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
     // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
+    // convex hull
+    const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
-    bool                indexed() const { return this->indexed_vertex_array.indexed(); }
 
-    void                set_range(coordf_t low, coordf_t high);
+    void                set_range(double low, double high);
+
     void                render() const;
-    void                render_VBOs(int color_id, int detection_id, int worldmatrix_id) const;
-    void                render_legacy() const;
+    void                render(int color_id, int detection_id, int worldmatrix_id) const;
 
-    void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
+    void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
+
+    // Return an estimate of the memory consumed by this class.
+    size_t 				cpu_memory_used() const { 
+    	//FIXME what to do wih m_convex_hull?
+    	return sizeof(*this) - sizeof(this->indexed_vertex_array) + this->indexed_vertex_array.cpu_memory_used() + this->print_zs.capacity() * sizeof(coordf_t) + this->offsets.capacity() * sizeof(size_t);
+    }
+    // Return an estimate of the memory held by GPU vertex buffers.
+    size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
+    size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;
@@ -459,42 +494,41 @@ public:
     ~GLVolumeCollection() { clear(); };
 
     std::vector<int> load_object(
-        const ModelObject       *model_object,
+        const ModelObject 		*model_object,
         int                      obj_idx,
-        const std::vector<int>  &instance_idxs,
-        const std::string       &color_by,
-        bool                     use_VBOs);
+        const std::vector<int>	&instance_idxs,
+        const std::string 		&color_by,
+        bool 					 opengl_initialized);
 
     int load_object_volume(
-        const ModelObject       *model_object,
-        int                      obj_idx,
-        int                      volume_idx,
-        int                      instance_idx,
-        const std::string       &color_by,
-        bool                     use_VBOs);
+        const ModelObject *model_object,
+        int                obj_idx,
+        int                volume_idx,
+        int                instance_idx,
+        const std::string &color_by,
+        bool 			   opengl_initialized);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(
         const SLAPrintObject           *print_object,
         int                             obj_idx,
         // pairs of <instance_idx, print_instance_idx>
-        const std::vector<std::pair<size_t, size_t>> &instances,
+        const std::vector<std::pair<size_t, size_t>>& instances,
         SLAPrintObjectStep              milestone,
         // Timestamp of the last change of the milestone
         size_t                          timestamp,
-        bool                            use_VBOs);
+        bool 			   				opengl_initialized);
 
     int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized);
 
     // Render the volumes by OpenGL.
-    void render_VBOs(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
-    void render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
     // and shrink the allocated data, possibly relasing it if it has been loaded into the VBOs.
-    void finalize_geometry(bool use_VBOs) { for (auto *v : volumes) v->finalize_geometry(use_VBOs); }
+    void finalize_geometry(bool opengl_initialized) { for (auto* v : volumes) v->finalize_geometry(opengl_initialized); }
     // Release the geometry data assigned to the volumes.
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }
@@ -522,6 +556,18 @@ public:
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs(bool active_only) const;
 
+    // Return an estimate of the memory consumed by this class.
+    size_t 				cpu_memory_used() const;
+    // Return an estimate of the memory held by GPU vertex buffers.
+    size_t 				gpu_memory_used() const;
+    size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
+    // Return CPU, GPU and total memory log line.
+    std::string         log_memory_info() const;
+
+    bool                has_toolpaths_to_export() const;
+    // Export the geometry of the GLVolumes toolpaths of this collection into the file with the given path, in obj format 
+    void                export_toolpaths_to_obj(const char* filename) const;
+
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
@@ -533,17 +579,17 @@ class GLModel
 {
 protected:
     GLVolume m_volume;
-    bool m_useVBOs;
     std::string m_filename;
 
 public:
     GLModel();
     virtual ~GLModel();
 
-    bool init(bool useVBOs) { return on_init(useVBOs); }
-    bool init_from_file(const std::string& filename, bool useVBOs) { return on_init_from_file(filename, useVBOs); }
+    // init() / init_from_file() shall be called with the OpenGL context active!
+    bool init() { return on_init(); }
+    bool init_from_file(const std::string& filename) { return on_init_from_file(filename); }
 
-    void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box.center()); }
+    void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box().center()); }
     void set_color(const float* color, unsigned int size);
 
     const Vec3d& get_offset() const;
@@ -554,25 +600,22 @@ public:
     void set_scale(const Vec3d& scale);
 
     const std::string& get_filename() const { return m_filename; }
-    const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box; }
+    const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box(); }
+    const BoundingBoxf3& get_transformed_bounding_box() const { return m_volume.transformed_bounding_box(); }
 
     void reset();
 
     void render() const; 
 
 protected:
-    virtual bool on_init(bool useVBOs) { return false; }
-    virtual bool on_init_from_file(const std::string& filename, bool useVBOs) { return false; }
-
-private:
-    void render_VBOs() const;
-    void render_legacy() const;
+    virtual bool on_init() { return false; }
+    virtual bool on_init_from_file(const std::string& filename) { return false; }
 };
 
 class GLArrow : public GLModel
 {
 protected:
-    virtual bool on_init(bool useVBOs);
+    bool on_init() override;
 };
 
 class GLCurvedArrow : public GLModel
@@ -583,13 +626,13 @@ public:
     explicit GLCurvedArrow(unsigned int resolution);
 
 protected:
-    virtual bool on_init(bool useVBOs);
+    bool on_init() override;
 };
 
 class GLBed : public GLModel
 {
 protected:
-    virtual bool on_init_from_file(const std::string& filename, bool useVBOs);
+    bool on_init_from_file(const std::string& filename) override;
 };
 
 class _3DScene
@@ -604,6 +647,7 @@ public:
     static void remove_all_canvases();
 
     static bool init(wxGLCanvas* canvas);
+    static void destroy();
 
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 

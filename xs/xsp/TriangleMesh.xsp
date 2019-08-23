@@ -46,7 +46,6 @@ TriangleMesh::ReadFromPerl(vertices, facets)
     SV* facets
     CODE:
         stl_file &stl = THIS->stl;
-        stl.error = 0;
         stl.stats.type = inmemory;
     
         // count facets and allocate memory
@@ -99,20 +98,18 @@ SV*
 TriangleMesh::vertices()
     CODE:
         if (!THIS->repaired) CONFESS("vertices() requires repair()");
-        
-        if (THIS->stl.v_shared == NULL)
-            stl_generate_shared_vertices(&(THIS->stl));
+        THIS->require_shared_vertices();
         
         // vertices
         AV* vertices = newAV();
-        av_extend(vertices, THIS->stl.stats.shared_vertices);
-        for (int i = 0; i < THIS->stl.stats.shared_vertices; i++) {
+        av_extend(vertices, THIS->its.vertices.size());
+        for (size_t i = 0; i < THIS->its.vertices.size(); i++) {
             AV* vertex = newAV();
             av_store(vertices, i, newRV_noinc((SV*)vertex));
             av_extend(vertex, 2);
-            av_store(vertex, 0, newSVnv(THIS->stl.v_shared[i](0)));
-            av_store(vertex, 1, newSVnv(THIS->stl.v_shared[i](1)));
-            av_store(vertex, 2, newSVnv(THIS->stl.v_shared[i](2)));
+            av_store(vertex, 0, newSVnv(THIS->its.vertices[i](0)));
+            av_store(vertex, 1, newSVnv(THIS->its.vertices[i](1)));
+            av_store(vertex, 2, newSVnv(THIS->its.vertices[i](2)));
         }
         
         RETVAL = newRV_noinc((SV*)vertices);
@@ -123,9 +120,7 @@ SV*
 TriangleMesh::facets()
     CODE:
         if (!THIS->repaired) CONFESS("facets() requires repair()");
-        
-        if (THIS->stl.v_shared == NULL)
-            stl_generate_shared_vertices(&(THIS->stl));
+        THIS->require_shared_vertices();
         
         // facets
         AV* facets = newAV();
@@ -134,9 +129,9 @@ TriangleMesh::facets()
             AV* facet = newAV();
             av_store(facets, i, newRV_noinc((SV*)facet));
             av_extend(facet, 2);
-            av_store(facet, 0, newSVnv(THIS->stl.v_indices[i].vertex[0]));
-            av_store(facet, 1, newSVnv(THIS->stl.v_indices[i].vertex[1]));
-            av_store(facet, 2, newSVnv(THIS->stl.v_indices[i].vertex[2]));
+            av_store(facet, 0, newSVnv(THIS->its.indices[i][0]));
+            av_store(facet, 1, newSVnv(THIS->its.indices[i][1]));
+            av_store(facet, 2, newSVnv(THIS->its.indices[i][2]));
         }
         
         RETVAL = newRV_noinc((SV*)facets);

@@ -15,6 +15,7 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 #define INTENSITY_AMBIENT    0.3
 
 uniform mat4 volume_world_matrix;
+uniform float object_max_z;
 
 // x = tainted, y = specular;
 varying vec2 intensity;
@@ -42,6 +43,12 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // Scaled to widths of the Z texture.
-    object_z = (volume_world_matrix * gl_Vertex).z;
+    if (object_max_z > 0.0)
+        // when rendering the overlay
+        object_z = object_max_z * gl_MultiTexCoord0.y;
+    else
+        // when rendering the volumes
+        object_z = (volume_world_matrix * gl_Vertex).z;
+        
     gl_Position = ftransform();
 }

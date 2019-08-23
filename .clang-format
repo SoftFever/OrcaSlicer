@@ -18,8 +18,8 @@ AllowShortLoopsOnASingleLine: true
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: Yes
-BinPackArguments: false
+AlwaysBreakTemplateDeclarations: false
+BinPackArguments: true
 BinPackParameters: false
 BraceWrapping:   
   AfterClass:      true
@@ -37,18 +37,18 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BreakBeforeBinaryOperators: All
+BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
-BreakBeforeTernaryOperators: true
+BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
 BreakConstructorInitializers: BeforeComma
 BreakAfterJavaFieldAnnotations: false
 BreakStringLiterals: true
-ColumnLimit:     75
+ColumnLimit:     78
 CommentPragmas:  '^ IWYU pragma:'
-CompactNamespaces: false
+CompactNamespaces: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4

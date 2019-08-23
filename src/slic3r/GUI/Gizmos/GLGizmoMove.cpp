@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoMove.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -10,13 +11,8 @@ namespace GUI {
 
 const double GLGizmoMove3D::Offset = 10.0;
 
-#if ENABLE_SVG_ICONS
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
@@ -52,12 +48,12 @@ std::string GLGizmoMove3D::on_get_name() const
     return (_(L("Move")) + " [M]").ToUTF8().data();
 }
 
-void GLGizmoMove3D::on_start_dragging(const Selection& selection)
+void GLGizmoMove3D::on_start_dragging()
 {
     if (m_hover_id != -1)
     {
         m_displacement = Vec3d::Zero();
-        const BoundingBoxf3& box = selection.get_bounding_box();
+        const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
         m_starting_box_bottom_center = box.center();
@@ -70,7 +66,7 @@ void GLGizmoMove3D::on_stop_dragging()
     m_displacement = Vec3d::Zero();
 }
 
-void GLGizmoMove3D::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoMove3D::on_update(const UpdateData& data)
 {
     if (m_hover_id == 0)
         m_displacement(0) = calc_projection(data);
@@ -80,8 +76,10 @@ void GLGizmoMove3D::on_update(const UpdateData& data, const Selection& selection
         m_displacement(2) = calc_projection(data);
 }
 
-void GLGizmoMove3D::on_render(const Selection& selection) const
+void GLGizmoMove3D::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
 
@@ -106,15 +104,15 @@ void GLGizmoMove3D::on_render(const Selection& selection) const
 
     // x axis
     m_grabbers[0].center = Vec3d(box.max(0) + Offset, center(1), center(2));
-    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 4 * sizeof(float));
 
     // y axis
     m_grabbers[1].center = Vec3d(center(0), box.max(1) + Offset, center(2));
-    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[1], 4 * sizeof(float));
 
     // z axis
     m_grabbers[2].center = Vec3d(center(0), center(1), box.max(2) + Offset);
-    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[2], 4 * sizeof(float));
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
@@ -125,7 +123,7 @@ void GLGizmoMove3D::on_render(const Selection& selection) const
         {
             if (m_grabbers[i].enabled)
             {
-                glsafe(::glColor3fv(AXES_COLOR[i]));
+                glsafe(::glColor4fv(AXES_COLOR[i]));
                 ::glBegin(GL_LINES);
                 ::glVertex3dv(center.data());
                 ::glVertex3dv(m_grabbers[i].center.data());
@@ -144,7 +142,7 @@ void GLGizmoMove3D::on_render(const Selection& selection) const
     else
     {
         // draw axis
-        glsafe(::glColor3fv(AXES_COLOR[m_hover_id]));
+        glsafe(::glColor4fv(AXES_COLOR[m_hover_id]));
         ::glBegin(GL_LINES);
         ::glVertex3dv(center.data());
         ::glVertex3dv(m_grabbers[m_hover_id].center.data());
@@ -157,20 +155,21 @@ void GLGizmoMove3D::on_render(const Selection& selection) const
     }
 }
 
-void GLGizmoMove3D::on_render_for_picking(const Selection& selection) const
+void GLGizmoMove3D::on_render_for_picking() const
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    const BoundingBoxf3& box = selection.get_bounding_box();
+    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
     render_grabbers_for_picking(box);
     render_grabber_extension(X, box, true);
     render_grabber_extension(Y, box, true);
     render_grabber_extension(Z, box, true);
 }
 
-void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
-{
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    const Selection& selection = m_parent.get_selection();
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
 
@@ -183,8 +182,8 @@ void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit,
     m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
 
     m_imgui->end();
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
@@ -221,19 +220,20 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
 
-    float color[3];
-    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 3 * sizeof(float));
+    float color[4];
+    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 4 * sizeof(float));
     if (!picking && (m_hover_id != -1))
     {
         color[0] = 1.0f - color[0];
         color[1] = 1.0f - color[1];
         color[2] = 1.0f - color[2];
+        color[3] = color[3];
     }
 
     if (!picking)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor3fv(color));
+    glsafe(::glColor4fv(color));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2)));
     if (axis == X)

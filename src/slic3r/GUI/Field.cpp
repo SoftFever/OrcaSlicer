@@ -113,11 +113,19 @@ wxString Field::get_tooltip_text(const wxString& default_string)
 	wxString tooltip_text("");
 	wxString tooltip = _(m_opt.tooltip);
     edit_tooltip(tooltip);
+
+    std::string opt_id = m_opt_id;
+    auto hash_pos = opt_id.find("#");
+    if (hash_pos != std::string::npos) {
+        opt_id.replace(hash_pos, 1,"[");
+        opt_id += "]";
+    }
+
 	if (tooltip.length() > 0)
         tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
-        (boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + default_string +
-        (boost::iends_with(m_opt_id, "_gcode") ? "" : "\n") + 
-        _(L("parameter name")) + "\t: " + m_opt_id;
+        (boost::iends_with(opt_id, "_gcode") ? "\n" : "") + default_string +
+        (boost::iends_with(opt_id, "_gcode") ? "" : "\n") + 
+        _(L("parameter name")) + "\t: " + opt_id;
 
 	return tooltip_text;
 }
@@ -127,6 +135,8 @@ bool Field::is_matched(const std::string& string, const std::string& pattern)
 	std::regex regex_pattern(pattern, std::regex_constants::icase); // use ::icase to make the matching case insensitive like /i in perl
 	return std::regex_match(string, regex_pattern);
 }
+
+static wxString na_value() { return _(L("N/A")); }
 
 void Field::get_value_by_opt_type(wxString& str)
 {
@@ -157,7 +167,9 @@ void Field::get_value_by_opt_type(wxString& str)
             val = 0.0;
         else
         {
-            if (!str.ToCDouble(&val))
+            if (m_opt.nullable && str == na_value())
+                val = ConfigOptionFloatsNullable::nil_value();
+            else if (!str.ToCDouble(&val))
             {
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
@@ -185,17 +197,18 @@ void Field::get_value_by_opt_type(wxString& str)
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            else if (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
-                     m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)
+            else if ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
+                     m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1) && 
+                     (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
             {
-                std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
-                const int nVal = int(val);
-                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %d %s?\n"
-                    "Select YES if you want to change this value to %d%%, \n"
-                    "or NO if you are sure that %d %s is a correct value.")), nVal, nVal, sidetext, nVal, nVal, sidetext);
-                auto dialog = new wxMessageDialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
-                if (dialog->ShowModal() == wxID_YES) {
-                    set_value(wxString::Format("%s%%", str), true);
+                const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
+                const wxString stVal = double_to_string(val, 2);
+                const wxString msg_text = wxString::Format(_(L("Do you mean %s%% instead of %s %s?\n"
+                    "Select YES if you want to change this value to %s%%, \n"
+                    "or NO if you are sure that %s %s is a correct value.")), stVal, stVal, sidetext, stVal, stVal, sidetext);
+                wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
+                if (dialog.ShowModal() == wxID_YES) {
+                    set_value(wxString::Format("%s%%", stVal), false/*true*/);
                     str += "%%";
                 }
             }
@@ -247,6 +260,7 @@ void TextCtrl::BUILD() {
 				m_opt.default_value->getFloat() :
 				m_opt.get_default_value<ConfigOptionPercents>()->get_at(m_opt_idx);
 		text_value = double_to_string(val);
+        m_last_meaningful_value = text_value;
 		break;
 	}
 	case coString:			
@@ -316,24 +330,7 @@ void TextCtrl::BUILD() {
         }
         propagate_value();
 	}), temp->GetId());
-    /*
-        temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
-        {
-#ifdef __WXGTK__
-            if (bChangedValueEvent)
-#endif //__WXGTK__
-            if(is_defined_input_value()) 
-                on_change_field();
-        }), temp->GetId());
 
-#ifdef __WXGTK__
-        // to correct value updating on GTK we should:
-        // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
-        // and prevent value updating on wxEVT_KEY_DOWN
-        temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
-        temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
-#endif //__WXGTK__
-*/
 	// select all text using Ctrl+A
 	temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
 	{
@@ -346,18 +343,80 @@ void TextCtrl::BUILD() {
     window = dynamic_cast<wxWindow*>(temp);
 }	
 
+bool TextCtrl::value_was_changed()
+{
+    if (m_value.empty())
+        return true;
+
+    boost::any val = m_value;
+    wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+    // update m_value!
+    get_value_by_opt_type(ret_str);
+
+    switch (m_opt.type) {
+    case coInt:
+        return boost::any_cast<int>(m_value) != boost::any_cast<int>(val);
+    case coPercent:
+    case coPercents:
+    case coFloats:
+    case coFloat: {
+        if (m_opt.nullable && std::isnan(boost::any_cast<double>(m_value)) && 
+                              std::isnan(boost::any_cast<double>(val)))
+            return false;
+        return boost::any_cast<double>(m_value) != boost::any_cast<double>(val);
+    }
+    case coString:
+    case coStrings:
+    case coFloatOrPercent:
+        return boost::any_cast<std::string>(m_value) != boost::any_cast<std::string>(val);
+    default:
+        return true;
+    }
+}
+
 void TextCtrl::propagate_value()
 {
-    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type))
+    if (is_defined_input_value<wxTextCtrl>(window, m_opt.type) && value_was_changed())
         on_change_field();
     else
         on_kill_focus();
 }
 
+void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
+    m_disable_change_event = !change_event;
+    if (m_opt.nullable) {
+        const bool m_is_na_val = boost::any_cast<wxString>(value) == na_value();
+        if (!m_is_na_val)
+            m_last_meaningful_value = value;
+        dynamic_cast<wxTextCtrl*>(window)->SetValue(m_is_na_val ? na_value() : boost::any_cast<wxString>(value));
+    }
+    else
+        dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
+    m_disable_change_event = false;
+
+    if (!change_event) {
+        wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+        // update m_value to correct work of next value_was_changed()
+        get_value_by_opt_type(ret_str);
+    }
+}
+
+void TextCtrl::set_last_meaningful_value()
+{
+    dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(m_last_meaningful_value));
+    propagate_value();
+}
+
+void TextCtrl::set_na_value()
+{
+    dynamic_cast<wxTextCtrl*>(window)->SetValue(na_value());
+    propagate_value();
+}
+
 boost::any& TextCtrl::get_value()
 {
 	wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-	// modifies ret_string!
+	// update m_value
 	get_value_by_opt_type(ret_str);
 
 	return m_value;
@@ -400,6 +459,8 @@ void CheckBox::BUILD() {
 							m_opt.get_default_value<ConfigOptionBools>()->get_at(m_opt_idx) : 
     						false;
 
+    m_last_meaningful_value = static_cast<unsigned char>(check_value);
+
 	// Set Label as a string of at least one space simbol to correct system scaling of a CheckBox 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(" "), wxDefaultPosition, size); 
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -407,12 +468,47 @@ void CheckBox::BUILD() {
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
-	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
+        m_is_na_val = false;
+	    on_change_field();
+	}), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(check_value ? "true" : "false")); 
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
+}
+
+void CheckBox::set_value(const boost::any& value, bool change_event)
+{
+    m_disable_change_event = !change_event;
+    if (m_opt.nullable) {
+        m_is_na_val = boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
+        if (!m_is_na_val)
+            m_last_meaningful_value = value;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0);
+    }
+    else
+        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
+    m_disable_change_event = false;
+}
+
+void CheckBox::set_last_meaningful_value()
+{
+    if (m_opt.nullable) {
+        m_is_na_val = false;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0);
+        on_change_field();
+    }
+}
+
+void CheckBox::set_na_value()
+{
+    if (m_opt.nullable) {
+        m_is_na_val = true;
+        dynamic_cast<wxCheckBox*>(window)->SetValue(false);
+        on_change_field();
+    }
 }
 
 boost::any& CheckBox::get_value()
@@ -422,7 +518,7 @@ boost::any& CheckBox::get_value()
 	if (m_opt.type == coBool)
 		m_value = static_cast<bool>(value);
 	else
-		m_value = static_cast<unsigned char>(value);
+		m_value = m_is_na_val ? ConfigOptionBoolsNullable::nil_value() : static_cast<unsigned char>(value);
  	return m_value;
 }
 
@@ -463,7 +559,16 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-    const int min_val = m_opt.min == INT_MIN ? 0: m_opt.min;
+    const int min_val = m_opt.min == INT_MIN 
+#ifdef __WXOSX__
+    // We will forcibly set the input value for SpinControl, since the value 
+    // inserted from the keyboard is not updated under OSX.
+    // So, we can't set min control value bigger then 0.
+    // Otherwise, it couldn't be possible to input from keyboard value 
+    // less then min_val.
+    || m_opt.min > 0 
+#endif
+    ? 0 : m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
@@ -535,6 +640,14 @@ void SpinCtrl::propagate_value()
     if (tmp_value == UNDEF_VALUE) {
         on_kill_focus();
 	} else {
+#ifdef __WXOSX__
+        // check input value for minimum
+        if (m_opt.min > 0 && tmp_value < m_opt.min) {
+            wxSpinCtrl* spin = static_cast<wxSpinCtrl*>(window);
+            spin->SetValue(m_opt.min);
+            spin->GetText()->SetInsertionPointEnd();
+        }
+#endif
         on_change_field();
     }
 }
@@ -815,7 +928,7 @@ boost::any& Choice::get_value()
 	wxString ret_str = field->GetValue();	
 
 	// options from right panel
-	std::vector <std::string> right_panel_options{ "support", "scale_unit" };
+	std::vector <std::string> right_panel_options{ "support", "pad", "scale_unit" };
 	for (auto rp_option: right_panel_options)
 		if (m_opt_id == rp_option)
 			return m_value = boost::any(ret_str);
@@ -920,11 +1033,12 @@ void ColourPicker::BUILD()
 	// Validate the color
 	wxString clr_str(m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx));
 	wxColour clr(clr_str);
-	if (! clr.IsOk()) {
+	if (clr_str.IsEmpty() || !clr.IsOk()) {
 		clr = wxTransparentColour;
 	}
 
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// 	// recast as a wxWindow to fit the calling convention
@@ -935,15 +1049,57 @@ void ColourPicker::BUILD()
 	temp->SetToolTip(get_tooltip_text(clr_str));
 }
 
+void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
+{
+    field->SetColour(wxTransparentColour);
+
+    wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
+    wxBitmap bmp = btn->GetBitmap();
+    wxMemoryDC dc(bmp);
+    dc.SetTextForeground(*wxWHITE);
+    dc.SetFont(wxGetApp().normal_font());
+
+    const wxRect rect = wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight());
+    dc.DrawLabel("undef", rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+
+    dc.SelectObject(wxNullBitmap);
+    btn->SetBitmapLabel(bmp);
+}
+
+void ColourPicker::set_value(const boost::any& value, bool change_event)
+{
+    m_disable_change_event = !change_event;
+    const wxString clr_str(boost::any_cast<wxString>(value));
+    auto field = dynamic_cast<wxColourPickerCtrl*>(window);
+
+    wxColour clr(clr_str);
+    if (clr_str.IsEmpty() || !clr.IsOk())
+        set_undef_value(field);
+    else
+        field->SetColour(clr);
+
+    m_disable_change_event = false;
+}
+
 boost::any& ColourPicker::get_value()
 {
-// 	boost::any m_value;
-
 	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
-	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
-	m_value = clr_str.ToStdString();
-
+    if (colour == wxTransparentColour)
+        m_value = std::string("");
+    else {
+		auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), colour.Red(), colour.Green(), colour.Blue());
+		m_value = clr_str.ToStdString();
+    }
 	return m_value;
+}
+
+void ColourPicker::msw_rescale()
+{
+    Field::msw_rescale();
+
+    wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
+    if (field->GetColour() == wxTransparentColour)
+        set_undef_value(field);
 }
 
 void PointCtrl::BUILD()

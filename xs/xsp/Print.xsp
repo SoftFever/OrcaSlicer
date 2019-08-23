@@ -70,10 +70,12 @@ _constant()
     Print();
     ~Print();
 
+    Ref<Model> model()
+        %code%{ RETVAL = const_cast<Model*>(&THIS->model()); %};
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = const_cast<GCodeConfig*>(static_cast<const GCodeConfig*>(&THIS->config())); %};
     Ref<PlaceholderParser> placeholder_parser()
-        %code%{ RETVAL = &THIS->placeholder_parser(); %};
+        %code%{ RETVAL = const_cast<PlaceholderParser*>(&THIS->placeholder_parser()); %};
     Ref<ExtrusionEntityCollection> skirt()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
@@ -100,7 +102,6 @@ _constant()
         %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
     Ref<PrintObject> get_object(int idx)
         %code%{ RETVAL = THIS->objects()[idx]; %};
-    void reload_object(int idx);
     size_t object_count()
         %code%{ RETVAL = THIS->objects().size(); %};
 
@@ -141,9 +142,8 @@ _constant()
             }
         %};
         
-    void add_model_object(ModelObject* model_object, int idx = -1);
-    bool apply_config_perl_tests_only(DynamicPrintConfig* config)
-        %code%{ RETVAL = THIS->apply_config_perl_tests_only(*config); %};
+    bool apply(Model *model, DynamicPrintConfig* config)
+        %code%{ RETVAL = THIS->apply(*model, *config); %};
     bool has_infinite_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 

@@ -377,7 +377,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	            // PresetBundle bundle;
 				on_progress(L("Loading repaired model"), 80);
 				DynamicPrintConfig config;
-				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &model);
+				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &model, false);
 			    boost::filesystem::remove(path_dst);
 				if (! loaded)
 	 				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
@@ -389,10 +389,10 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	 				throw std::runtime_error(L("Repaired 3MF file does not contain any volume"));
 				if (model.objects.front()->volumes.size() > 1)
 	 				throw std::runtime_error(L("Repaired 3MF file contains more than one volume"));
-	 			meshes_repaired.emplace_back(std::move(model.objects.front()->volumes.front()->mesh));
+	 			meshes_repaired.emplace_back(std::move(model.objects.front()->volumes.front()->mesh()));
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
-				volumes[i]->mesh = std::move(meshes_repaired[i]);
+				volumes[i]->set_mesh(std::move(meshes_repaired[i]));
 				volumes[i]->set_new_unique_id();
 			}
 			model_object.invalidate_bounding_box();

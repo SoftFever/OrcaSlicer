@@ -6,36 +6,42 @@
 
 int main(int argc, char const *argv[])
 {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <file> <symbol name>" << std::endl;
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <file> <symbol name> <output file>" << std::endl;
         return -1;
     }
 
-    const char* filename = argv[1];
+    const char* filename_in = argv[1];
     const char* symbol = argv[2];
+    const char* filename_out = argv[3];
 
     size_t size = 0;
-    std::fstream file(filename);
+    std::fstream file(filename_in, std::ios::in | std::ios::binary);
     if (!file.good()) {
-        std::cerr << "Cannot read file: " << filename << std::endl;
+        std::cerr << "Cannot read file: " << filename_in << std::endl;
     }
 
-    std::cout << "/* WARN: This file is auto-generated from `" << filename << "` */" << std::endl;
-    std::cout << "unsigned char " << symbol << "[] = {";
+    std::fstream output(filename_out, std::ios::out | std::ios::trunc);
+    if (!output.good()) {
+        std::cerr << "Cannot open output file: " << filename_out << std::endl;
+    }
+
+    output << "/* WARN: This file is auto-generated from `" << filename_in << "` */" << std::endl;
+    output << "const unsigned char " << symbol << "[] = {";
 
     char c;
-    std::cout << std::hex;
-    std::cout.fill('0');
+    output << std::hex;
+    output.fill('0');
     for (file.get(c); !file.eof(); size++, file.get(c)) {
-        if (size % 12 == 0) { std::cout << "\n    "; }
-        std::cout << "0x" << std::setw(2) << (unsigned)c << ", ";
+        if (size % 12 == 0) { output << "\n    "; }
+        output << "0x" << std::setw(2) << (unsigned)c << ", ";
     }
 
-    std::cout << "\n    0, 0\n};\n";
+    output << "\n    0, 0\n};\n";
 
-    std::cout << std::dec;
-    std::cout << "size_t " << symbol << "_size = " << size << ";" << std::endl;
-    std::cout << "size_t " << symbol << "_size_yy = " << size + 2 << ";" << std::endl;
+    output << std::dec;
+    output << "const size_t " << symbol << "_size = " << size << ";" << std::endl;
+    output << "const size_t " << symbol << "_size_yy = " << size + 2 << ";" << std::endl;
 
     return 0;
 }

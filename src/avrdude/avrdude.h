@@ -64,6 +64,8 @@ int avrdude_main(int argc, char * argv []);
 #include <windows.h>
 #include <unistd.h>
 
+#define strdup _strdup
+
 #ifdef UNICODE
 #error "UNICODE should not be defined for avrdude bits on Windows"
 #endif

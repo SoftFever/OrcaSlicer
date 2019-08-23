@@ -16,7 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <miniz.h>
+#include "miniz_extension.hpp"
 
 #if 0
 // Enable debugging and assert in this file.
@@ -44,7 +44,7 @@ namespace Slic3r
 
 struct AMFParserContext
 {
-    AMFParserContext(XML_Parser parser, DynamicPrintConfig *config, Model *model) :
+    AMFParserContext(XML_Parser parser, DynamicPrintConfig* config, Model* model) :
         m_version(0),
         m_parser(parser),
         m_model(*model), 
@@ -106,6 +106,9 @@ struct AMFParserContext
                                         // amf/material/metadata
         NODE_TYPE_OBJECT,               // amf/object
                                         // amf/object/metadata
+        NODE_TYPE_LAYER_CONFIG,         // amf/object/layer_config_ranges
+        NODE_TYPE_RANGE,                // amf/object/layer_config_ranges/range
+                                        // amf/object/layer_config_ranges/range/metadata
         NODE_TYPE_MESH,                 // amf/object/mesh
         NODE_TYPE_VERTICES,             // amf/object/mesh/vertices
         NODE_TYPE_VERTEX,               // amf/object/mesh/vertices/vertex
@@ -134,6 +137,7 @@ struct AMFParserContext
         NODE_TYPE_MIRRORX,              // amf/constellation/instance/mirrorx
         NODE_TYPE_MIRRORY,              // amf/constellation/instance/mirrory
         NODE_TYPE_MIRRORZ,              // amf/constellation/instance/mirrorz
+        NODE_TYPE_PRINTABLE,            // amf/constellation/instance/mirrorz
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
@@ -142,7 +146,8 @@ struct AMFParserContext
             : deltax_set(false), deltay_set(false), deltaz_set(false)
             , rx_set(false), ry_set(false), rz_set(false)
             , scalex_set(false), scaley_set(false), scalez_set(false)
-            , mirrorx_set(false), mirrory_set(false), mirrorz_set(false) {}
+            , mirrorx_set(false), mirrory_set(false), mirrorz_set(false)
+            , printable(true) {}
         // Shift in the X axis.
         float deltax;
         bool  deltax_set;
@@ -175,6 +180,8 @@ struct AMFParserContext
         bool  mirrory_set;
         float mirrorz;
         bool  mirrorz_set;
+        // printable property
+        bool  printable;
 
         bool anything_set() const { return deltax_set || deltay_set || deltaz_set ||
                                            rx_set || ry_set || rz_set ||
@@ -189,7 +196,7 @@ struct AMFParserContext
     };
 
     // Version of the amf file
-    unsigned int m_version;
+    unsigned int             m_version;
     // Current Expat XML parser instance.
     XML_Parser               m_parser;
     // Model to receive objects extracted from an AMF file.
@@ -260,7 +267,9 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 m_value[0] = get_attribute(atts, "type");
                 node_type_new = NODE_TYPE_METADATA;
             }
-        } else if (strcmp(name, "mesh") == 0) {
+        } else if (strcmp(name, "layer_config_ranges") == 0 && m_path[1] == NODE_TYPE_OBJECT)
+                node_type_new = NODE_TYPE_LAYER_CONFIG;
+        else if (strcmp(name, "mesh") == 0) {
             if (m_path[1] == NODE_TYPE_OBJECT)
                 node_type_new = NODE_TYPE_MESH;
         } else if (strcmp(name, "instance") == 0) {
@@ -316,6 +325,12 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_MIRRORY;
             else if (strcmp(name, "mirrorz") == 0)
                 node_type_new = NODE_TYPE_MIRRORZ;
+            else if (strcmp(name, "printable") == 0)
+                node_type_new = NODE_TYPE_PRINTABLE;
+        }
+        else if (m_path[2] == NODE_TYPE_LAYER_CONFIG && strcmp(name, "range") == 0) {
+            assert(m_object);
+            node_type_new = NODE_TYPE_RANGE;
         }
         break;
     case 4:
@@ -333,6 +348,10 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 }
             } else if (strcmp(name, "triangle") == 0)
                 node_type_new = NODE_TYPE_TRIANGLE;
+        }
+        else if (m_path[3] == NODE_TYPE_RANGE && strcmp(name, "metadata") == 0) {
+            m_value[0] = get_attribute(atts, "type");
+            node_type_new = NODE_TYPE_METADATA;
         }
         break;
     case 5:
@@ -384,7 +403,8 @@ void AMFParserContext::characters(const XML_Char *s, int len)
                 m_path.back() == NODE_TYPE_SCALE ||
                 m_path.back() == NODE_TYPE_MIRRORX ||
                 m_path.back() == NODE_TYPE_MIRRORY ||
-                m_path.back() == NODE_TYPE_MIRRORZ)
+                m_path.back() == NODE_TYPE_MIRRORZ ||
+                m_path.back() == NODE_TYPE_PRINTABLE)
                 m_value[0].append(s, len);
             break;
         case 6:
@@ -494,6 +514,11 @@ void AMFParserContext::endElement(const char * /* name */)
         m_instance->mirrorz_set = true;
         m_value[0].clear();
         break;
+    case NODE_TYPE_PRINTABLE:
+        assert(m_instance);
+        m_instance->printable = bool(atoi(m_value[0].c_str()));
+        m_value[0].clear();
+        break;
 
     // Object vertices:
     case NODE_TYPE_VERTEX:
@@ -522,7 +547,8 @@ void AMFParserContext::endElement(const char * /* name */)
     case NODE_TYPE_VOLUME:
     {
 		assert(m_object && m_volume);
-        stl_file &stl = m_volume->mesh.stl;
+		TriangleMesh  mesh;
+        stl_file	 &stl = mesh.stl;
         stl.stats.type = inmemory;
         stl.stats.number_of_facets = int(m_volume_facets.size() / 3);
         stl.stats.original_num_facets = stl.stats.number_of_facets;
@@ -533,8 +559,9 @@ void AMFParserContext::endElement(const char * /* name */)
                 memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
         }
         stl_get_size(&stl);
-        m_volume->mesh.repair();
-        m_volume->center_geometry();
+        mesh.repair();
+		m_volume->set_mesh(std::move(mesh));
+        m_volume->center_geometry_after_creation();
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -569,8 +596,13 @@ void AMFParserContext::endElement(const char * /* name */)
                         config = &m_material->config;
                     else if (m_path[1] == NODE_TYPE_OBJECT && m_object)
                         config = &m_object->config;
-                } else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume)
+                }
+                else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume)
                     config = &m_volume->config;
+                else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_RANGE && m_object && !m_object->layer_config_ranges.empty()) {
+                    auto it  = --m_object->layer_config_ranges.end();
+                    config = &it->second;
+                }
                 if (config)
                     config->set_deserialize(opt_key, m_value[1]);
             } else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "layer_height_profile") == 0) {
@@ -596,7 +628,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     if (end != nullptr)
 	                    *end = 0;
 
-                    point(coord_idx) = atof(p);
+                    point(coord_idx) = float(atof(p));
                     if (++coord_idx == 5) {
                         m_object->sla_support_points.push_back(sla::SupportPoint(point));
                         coord_idx = 0;
@@ -606,6 +638,16 @@ void AMFParserContext::endElement(const char * /* name */)
 					p = end + 1;
                 }
                 m_object->sla_points_status = sla::PointsStatus::UserModified;
+            }
+            else if (m_path.size() == 5 && m_path[1] == NODE_TYPE_OBJECT && m_path[3] == NODE_TYPE_RANGE && 
+                     m_object && strcmp(opt_key, "layer_height_range") == 0) {
+                // Parse object's layer_height_range, a semicolon separated doubles.
+                char* p = const_cast<char*>(m_value[1].c_str());
+                char* end = strchr(p, ';');
+                *end = 0;
+
+                const t_layer_height_range range = {double(atof(p)), double(atof(end + 1))};
+                m_object->layer_config_ranges[range];
             }
             else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
                 if (strcmp(opt_key, "modifier") == 0) {
@@ -655,6 +697,7 @@ void AMFParserContext::endDocument()
                 mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));
                 mi->set_scaling_factor(Vec3d(instance.scalex_set ? (double)instance.scalex : 1.0, instance.scaley_set ? (double)instance.scaley : 1.0, instance.scalez_set ? (double)instance.scalez : 1.0));
                 mi->set_mirror(Vec3d(instance.mirrorx_set ? (double)instance.mirrorx : 1.0, instance.mirrory_set ? (double)instance.mirrory : 1.0, instance.mirrorz_set ? (double)instance.mirrorz : 1.0));
+                mi->printable = instance.printable;
         }
     }
 }
@@ -692,8 +735,8 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
         }
         int done = feof(pFile);
         if (XML_Parse(parser, buff, len, done) == XML_STATUS_ERROR) {
-            printf("AMF parser: Parse error at line %ul:\n%s\n",
-                  XML_GetCurrentLineNumber(parser),
+            printf("AMF parser: Parse error at line %d:\n%s\n",
+                  (int)XML_GetCurrentLineNumber(parser),
                   XML_ErrorString(XML_GetErrorCode(parser)));
             break;
         }
@@ -712,37 +755,19 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
     return result;
 }
 
-namespace {
-void close_archive_reader(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_reader_end(arch);
-        if (f) fclose(f);
-    }
-}
-
-void close_archive_writer(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_writer_end(arch);
-        if (f) fclose(f);
-    }
-}
-}
-
-bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig* config, Model* model, unsigned int& version)
+bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if (stat.m_uncomp_size == 0)
     {
         printf("Found invalid size\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     XML_Parser parser = XML_ParserCreate(nullptr); // encoding
     if (!parser) {
         printf("Couldn't allocate memory for parser\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -755,7 +780,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (parser_buffer == nullptr)
     {
         printf("Unable to create buffer\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
@@ -763,39 +788,38 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
     if (res == 0)
     {
         printf("Error while reading model data to buffer\n");
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
         return false;
     }
 
     if (!XML_ParseBuffer(parser, (int)stat.m_uncomp_size, 1))
     {
-        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
-        close_archive_reader(&archive);
+        printf("Error (%s) while parsing xml file at line %d\n", XML_ErrorString(XML_GetErrorCode(parser)), (int)XML_GetCurrentLineNumber(parser));
+        close_zip_reader(&archive);
         return false;
     }
 
     ctx.endDocument();
 
-    version = ctx.m_version;
+    if (check_version && (ctx.m_version > VERSION_AMF))
+    {
+        std::string msg = "The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+        throw std::runtime_error(msg.c_str());
+    }
 
     return true;
 }
 
 // Load an AMF archive into a provided model.
-bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model)
+bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if ((path == nullptr) || (model == nullptr))
         return false;
 
-    unsigned int version = 0;
-
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    FILE * f = boost::nowide::fopen(path, "rb");
-    auto res = mz_bool(f == nullptr ? MZ_FALSE : MZ_TRUE);
-    res = res && mz_zip_reader_init_cfile(&archive, f, -1, 0);
-    if (res == MZ_FALSE)
+    if (!open_zip_reader(&archive, path))
     {
         printf("Unable to init zip reader\n");
         return false;
@@ -811,11 +835,20 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
         {
             if (boost::iends_with(stat.m_filename, ".amf"))
             {
-                if (!extract_model_from_archive(archive, stat, config, model, version))
+                try
                 {
-                    close_archive_reader(&archive);
-                    printf("Archive does not contain a valid model");
-                    return false;
+                    if (!extract_model_from_archive(archive, stat, config, model, check_version))
+                    {
+                        close_zip_reader(&archive);
+                        printf("Archive does not contain a valid model");
+                        return false;
+                    }
+                }
+                catch (const std::exception& e)
+                {
+                    // ensure the zip archive is closed and rethrow the exception
+                    close_zip_reader(&archive);
+                    throw e;
                 }
 
                 break;
@@ -834,13 +867,13 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
     }
 #endif // forward compatibility
 
-    close_archive_reader(&archive);
+    close_zip_reader(&archive);
     return true;
 }
 
 // Load an AMF file into a provided model.
 // If config is not a null pointer, updates it if the amf file/archive contains config data
-bool load_amf(const char *path, DynamicPrintConfig *config, Model *model)
+bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if (boost::iends_with(path, ".amf.xml"))
         // backward compatibility with older slic3r output
@@ -855,7 +888,7 @@ bool load_amf(const char *path, DynamicPrintConfig *config, Model *model)
         file.read(const_cast<char*>(zip_mask.data()), 2);
         file.close();
 
-        return (zip_mask == "PK") ? load_amf_archive(path, config, model) : load_amf_file(path, config, model);
+        return (zip_mask == "PK") ? load_amf_archive(path, config, model, check_version) : load_amf_file(path, config, model);
     }
     else
         return false;
@@ -874,10 +907,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
 
-    FILE *f = boost::nowide::fopen(export_path.c_str(), "wb");
-    auto res = mz_bool(f != nullptr && mz_zip_writer_init_cfile(&archive, f, 0));
-    if (res == 0)
-        return false;
+    if (!open_zip_writer(&archive, export_path)) return false;
 
     std::stringstream stream;
     // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
@@ -895,7 +925,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         std::string str_config = "\n";
         for (const std::string &key : config->keys())
             if (key != "compatible_printers")
-                str_config += "; " + key + " = " + config->serialize(key) + "\n";
+                str_config += "; " + key + " = " + config->opt_serialize(key) + "\n";
         stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(str_config) << "</metadata>\n";
     }
 
@@ -907,7 +937,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         for (const auto &attr : material.second->attributes)
             stream << "    <metadata type=\"" << attr.first << "\">" << attr.second << "</metadata>\n";
         for (const std::string &key : material.second->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << material.second->config.opt_serialize(key) << "</metadata>\n";
         stream << "  </material>\n";
     }
     std::string instances;
@@ -915,7 +945,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         ModelObject *object = model->objects[object_id];
         stream << "  <object id=\"" << object_id << "\">\n";
         for (const std::string &key : object->config.keys())
-            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
+            stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.opt_serialize(key) << "</metadata>\n";
         if (!object->name.empty())
             stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
         const std::vector<double> &layer_height_profile = object->layer_height_profile;
@@ -927,7 +957,30 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << ";" << layer_height_profile[i];
                 stream << "\n    </metadata>\n";
         }
-        //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
+
+        // Export layer height ranges including the layer range specific config overrides.
+        const t_layer_config_ranges& config_ranges = object->layer_config_ranges;
+        if (!config_ranges.empty())
+        {
+            // Store the layer config range as a single semicolon separated list.
+            stream << "    <layer_config_ranges>\n";
+            size_t layer_counter = 0;
+            for (auto range : config_ranges) {
+                stream << "      <range id=\"" << layer_counter << "\">\n";
+
+                stream << "        <metadata type=\"slic3r.layer_height_range\">";
+                stream << range.first.first << ";" << range.first.second << "</metadata>\n";
+
+                for (const std::string& key : range.second.keys())
+                    stream << "        <metadata type=\"slic3r." << key << "\">" << range.second.opt_serialize(key) << "</metadata>\n";
+
+                stream << "      </range>\n";
+                layer_counter++;
+            }
+
+            stream << "    </layer_config_ranges>\n";
+        }
+
 
         const std::vector<sla::SupportPoint>& sla_support_points = object->sla_support_points;
         if (!sla_support_points.empty()) {
@@ -947,23 +1000,23 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         int              num_vertices = 0;
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
-            if (! volume->mesh.repaired) 
+            if (! volume->mesh().repaired)
                 throw std::runtime_error("store_amf() requires repair()");
-            auto &stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
-                stl_generate_shared_vertices(&stl);
+			if (! volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_amf() requires shared vertices");
+            const indexed_triangle_set &its = volume->mesh().its;
             const Transform3d& matrix = volume->get_matrix();
-            for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
+            for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "             <x>" << v(0) << "</x>\n";
                 stream << "             <y>" << v(1) << "</y>\n";
                 stream << "             <z>" << v(2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-            num_vertices += stl.stats.shared_vertices;
+            num_vertices += (int)its.vertices.size();
         }
         stream << "      </vertices>\n";
         for (size_t i_volume = 0; i_volume < object->volumes.size(); ++i_volume) {
@@ -974,16 +1027,17 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             else
                 stream << "      <volume materialid=\"" << volume->material_id() << "\">\n";
             for (const std::string &key : volume->config.keys())
-                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.opt_serialize(key) << "</metadata>\n";
             if (!volume->name.empty())
                 stream << "        <metadata type=\"name\">" << xml_escape(volume->name) << "</metadata>\n";
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-            for (int i = 0; i < (int)volume->mesh.stl.stats.number_of_facets; ++i) {
+			const indexed_triangle_set &its = volume->mesh().its;
+            for (size_t i = 0; i < its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
-                stream << "          <v" << j + 1 << ">" << volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";
+                stream << "          <v" << j + 1 << ">" << its.indices[i][j] + vertices_offset << "</v" << j + 1 << ">\n";
                 stream << "        </triangle>\n";
             }
             stream << "      </volume>\n";
@@ -1007,6 +1061,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                     "      <mirrorx>%lf</mirrorx>\n"
                     "      <mirrory>%lf</mirrory>\n"
                     "      <mirrorz>%lf</mirrorz>\n"
+                    "      <printable>%d</printable>\n"
                     "    </instance>\n",
                     object_id,
                     instance->get_offset(X),
@@ -1020,7 +1075,8 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                     instance->get_scaling_factor(Z),
                     instance->get_mirror(X),
                     instance->get_mirror(Y),
-                    instance->get_mirror(Z));
+                    instance->get_mirror(Z),
+                    instance->printable);
 
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);
@@ -1039,20 +1095,19 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 
     if (!mz_zip_writer_add_mem(&archive, internal_amf_filename.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
     {
-        close_archive_writer(&archive);
-        if (f) fclose(f);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
     if (!mz_zip_writer_finalize_archive(&archive))
     {
-        close_archive_writer(&archive);
+        close_zip_writer(&archive);
         boost::filesystem::remove(export_path);
         return false;
     }
 
-    close_archive_writer(&archive);
+    close_zip_writer(&archive);
 
     return true;
 }

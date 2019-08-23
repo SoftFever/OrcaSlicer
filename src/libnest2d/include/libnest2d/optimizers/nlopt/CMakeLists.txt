@@ -48,7 +48,7 @@ else()
     target_link_libraries(nloptOptimizer INTERFACE Nlopt::Nlopt)
 endif()
 
-#target_sources( NloptOptimizer INTERFACE
+#target_sources( nloptOptimizer INTERFACE
 #${CMAKE_CURRENT_SOURCE_DIR}/simplex.hpp
 #${CMAKE_CURRENT_SOURCE_DIR}/subplex.hpp
 #${CMAKE_CURRENT_SOURCE_DIR}/genetic.hpp
@@ -57,5 +57,5 @@ endif()
 
 target_compile_definitions(nloptOptimizer INTERFACE LIBNEST2D_OPTIMIZER_NLOPT)
 
-# And finally plug the NloptOptimizer into libnest2d
-#target_link_libraries(libnest2d INTERFACE NloptOptimizer)
+# And finally plug the nloptOptimizer into libnest2d
+#target_link_libraries(libnest2d INTERFACE nloptOptimizer)

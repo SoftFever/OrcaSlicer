@@ -1,7 +1,6 @@
-
-
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoScale.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -13,13 +12,8 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-#if ENABLE_SVG_ICONS
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-#else
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
-    : GLGizmoBase(parent, sprite_id)
-#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
@@ -53,13 +47,18 @@ std::string GLGizmoScale3D::on_get_name() const
     return (_(L("Scale")) + " [S]").ToUTF8().data();
 }
 
-void GLGizmoScale3D::on_start_dragging(const Selection& selection)
+bool GLGizmoScale3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_wipe_tower();
+}
+
+void GLGizmoScale3D::on_start_dragging()
 {
     if (m_hover_id != -1)
     {
         m_starting.drag_position = m_grabbers[m_hover_id].center;
         m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
-        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : selection.get_bounding_box();
+        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
 
         const Vec3d& center = m_starting.box.center();
         m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
@@ -71,7 +70,7 @@ void GLGizmoScale3D::on_start_dragging(const Selection& selection)
     }
 }
 
-void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selection)
+void GLGizmoScale3D::on_update(const UpdateData& data)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_along_axis(X, data);
@@ -83,8 +82,10 @@ void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selectio
         do_scale_uniform(data);
 }
 
-void GLGizmoScale3D::on_render(const Selection& selection) const
+void GLGizmoScale3D::on_render() const
 {
+    const Selection& selection = m_parent.get_selection();
+
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
     bool single_selection = single_instance || single_volume;
@@ -136,7 +137,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
-            m_box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
+            m_box.merge(vol->bounding_box().transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
@@ -151,7 +152,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_box = v->bounding_box;
+        m_box = v->bounding_box();
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets
@@ -171,20 +172,20 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     // x axis
     m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
     m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
-    ::memcpy((void*)m_grabbers[0].color, (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color, (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (ctrl_down && (m_hover_id == 1)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (ctrl_down && (m_hover_id == 0)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[0], 4 * sizeof(float));
 
     // y axis
     m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
     m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
-    ::memcpy((void*)m_grabbers[2].color, (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color, (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (ctrl_down && (m_hover_id == 3)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color, (ctrl_down && (m_hover_id == 2)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[1], 4 * sizeof(float));
 
     // z axis
     m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
     m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
-    ::memcpy((void*)m_grabbers[4].color, (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color, (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[4].color, (ctrl_down && (m_hover_id == 5)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color, (ctrl_down && (m_hover_id == 4)) ? (const void*)CONSTRAINED_COLOR : (const void*)&AXES_COLOR[2], 4 * sizeof(float));
 
     // uniform
     m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
@@ -193,7 +194,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
     for (int i = 6; i < 10; ++i)
     {
-        ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
+        ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 4 * sizeof(float));
     }
 
     // sets grabbers orientation
@@ -213,20 +214,20 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         // draw connections
         if (m_grabbers[0].enabled && m_grabbers[1].enabled)
         {
-            glsafe(::glColor3fv(m_grabbers[0].color));
+            glsafe(::glColor4fv(m_grabbers[0].color));
             render_grabbers_connection(0, 1);
         }
         if (m_grabbers[2].enabled && m_grabbers[3].enabled)
         {
-            glsafe(::glColor3fv(m_grabbers[2].color));
+            glsafe(::glColor4fv(m_grabbers[2].color));
             render_grabbers_connection(2, 3);
         }
         if (m_grabbers[4].enabled && m_grabbers[5].enabled)
         {
-            glsafe(::glColor3fv(m_grabbers[4].color));
+            glsafe(::glColor4fv(m_grabbers[4].color));
             render_grabbers_connection(4, 5);
         }
-        glsafe(::glColor3fv(m_base_color));
+        glsafe(::glColor4fv(m_base_color));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
@@ -237,7 +238,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
         // draw connection
-        glsafe(::glColor3fv(m_grabbers[0].color));
+        glsafe(::glColor4fv(m_grabbers[0].color));
         render_grabbers_connection(0, 1);
         // draw grabbers
         m_grabbers[0].render(true, grabber_mean_size);
@@ -246,7 +247,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
         // draw connection
-        glsafe(::glColor3fv(m_grabbers[2].color));
+        glsafe(::glColor4fv(m_grabbers[2].color));
         render_grabbers_connection(2, 3);
         // draw grabbers
         m_grabbers[2].render(true, grabber_mean_size);
@@ -255,7 +256,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
         // draw connection
-        glsafe(::glColor3fv(m_grabbers[4].color));
+        glsafe(::glColor4fv(m_grabbers[4].color));
         render_grabbers_connection(4, 5);
         // draw grabbers
         m_grabbers[4].render(true, grabber_mean_size);
@@ -264,7 +265,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (m_hover_id >= 6)
     {
         // draw connection
-        glsafe(::glColor3fv(m_drag_color));
+        glsafe(::glColor4fv(m_drag_color));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
@@ -277,16 +278,16 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     }
 }
 
-void GLGizmoScale3D::on_render_for_picking(const Selection& selection) const
+void GLGizmoScale3D::on_render_for_picking() const
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-
-    render_grabbers_for_picking(selection.get_bounding_box());
+    render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
 
-void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
-{
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
+void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    const Selection& selection = m_parent.get_selection();
     bool single_instance = selection.is_single_full_instance();
     wxString label = _(L("Scale (%)"));
 
@@ -295,8 +296,8 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
     m_imgui->end();
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {

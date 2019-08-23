@@ -9,27 +9,21 @@ namespace GUI {
 
 class Bed_2D : public wxPanel
 {
+    static const int Border = 10;
+
 	bool		m_user_drawn_background = true;
 
-	bool		m_painted = false;
-	bool		m_interactive = false;
-	double		m_scale_factor;
+    double		m_scale_factor;
 	Vec2d		m_shift = Vec2d::Zero();
 	Vec2d		m_pos = Vec2d::Zero();
-	std::function<void(Vec2d)>	m_on_move = nullptr;
 
-	Point		to_pixels(Vec2d point);
-	Vec2d		to_units(Point point);
-	void		repaint();
-	void		mouse_event(wxMouseEvent event);
-	void		set_pos(Vec2d pos);
+    Point		to_pixels(const Vec2d& point, int height);
+    void		set_pos(const Vec2d& pos);
 
 public:
-    Bed_2D(wxWindow* parent);
-	~Bed_2D() {}
+    explicit Bed_2D(wxWindow* parent);
 
-	std::vector<Vec2d>		m_bed_shape;
-		
+    void repaint(const std::vector<Vec2d>& shape);
 };
 
 

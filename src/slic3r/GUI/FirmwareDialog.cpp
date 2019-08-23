@@ -5,10 +5,13 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 #include <boost/asio.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/optional.hpp>
+
+#if _WIN32
+	#include <regex>
+#endif
 
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
@@ -104,7 +107,7 @@ struct FirmwareDialog::priv
 
 	// GUI elements
 	wxComboBox *port_picker;
-	wxStaticText *port_autodetect;
+	wxStaticText *txt_port_autodetect;
 	wxFilePickerCtrl *hex_picker;
 	wxStaticText *txt_status;
 	wxGauge *progressbar;
@@ -131,6 +134,7 @@ struct FirmwareDialog::priv
 	// Data
 	std::vector<SerialPortInfo> ports;
 	optional<SerialPortInfo> port;
+	bool port_autodetect;
 	HexFile hex_file;
 
 	// This is a shared pointer holding the background AvrDude task
@@ -147,6 +151,7 @@ struct FirmwareDialog::priv
 		btn_flash_label_flashing(_(L("Cancel"))),
 		label_status_flashing(_(L("Flashing in progress. Please do not disconnect the printer!"))),
 		timer_pulse(q),
+		port_autodetect(false),
 		progress_tasks_done(0),
 		progress_tasks_bar(0),
 		user_cancelled(false),
@@ -158,7 +163,8 @@ struct FirmwareDialog::priv
 	void set_txt_status(const wxString &label);
 	void flashing_start(unsigned tasks);
 	void flashing_done(AvrDudeComplete complete);
-	void enable_port_picker(bool enable);
+	void set_autodetect(bool autodetect);
+	void update_flash_enabled();
 	void load_hex_file(const wxString &path);
 	void queue_event(AvrdudeEvent aevt, wxString message);
 
@@ -171,6 +177,7 @@ struct FirmwareDialog::priv
 	void prepare_mk2();
 	void prepare_mk3();
 	void prepare_avr109(Avr109Pid usb_pid);
+	bool get_serial_port();
 	void perform_upload();
 
 	void user_cancel();
@@ -211,8 +218,10 @@ void FirmwareDialog::priv::find_serial_ports()
 					idx = i;
 					break;
 				}
-			if (idx != -1)
+			if (idx != -1) {
 				port_picker->SetSelection(idx);
+				update_flash_enabled();
+			}
 		}
 	}
 }
@@ -277,20 +286,30 @@ void FirmwareDialog::priv::flashing_done(AvrDudeComplete complete)
 	}
 }
 
-void FirmwareDialog::priv::enable_port_picker(bool enable)
+void FirmwareDialog::priv::set_autodetect(bool autodetect)
 {
-	port_picker->Show(enable);
-	btn_rescan->Show(enable);
-	port_autodetect->Show(! enable);
+	port_autodetect = autodetect;
+
+	port_picker->Show(!autodetect);
+	btn_rescan->Show(!autodetect);
+	txt_port_autodetect->Show(autodetect);
 	q->Layout();
 	fit_no_shrink();
+}
+
+void FirmwareDialog::priv::update_flash_enabled()
+{
+	const bool hex_exists = wxFileExists(hex_picker->GetPath());
+	const bool port_valid = port_autodetect || get_serial_port();
+
+	btn_flash->Enable(hex_exists && port_valid);
 }
 
 void FirmwareDialog::priv::load_hex_file(const wxString &path)
 {
 	hex_file = HexFile(path.wx_str());
-	const bool auto_lookup = hex_file.device == HexFile::DEV_MM_CONTROL || hex_file.device == HexFile::DEV_CW1;
-	enable_port_picker(! auto_lookup);
+	const bool autodetect = hex_file.device == HexFile::DEV_MM_CONTROL || hex_file.device == HexFile::DEV_CW1;
+	set_autodetect(autodetect);
 }
 
 void FirmwareDialog::priv::queue_event(AvrdudeEvent aevt, wxString message)
@@ -335,7 +354,7 @@ bool FirmwareDialog::priv::check_model_id()
 	// Therefore, regretably, so far the check cannot be used and we just return true here.
 	// TODO: Rewrite Serial using more platform-native code.
 	return true;
-	
+
 	// if (hex_file.model_id.empty()) {
 	// 	// No data to check against, assume it's ok
 	// 	return true;
@@ -423,8 +442,7 @@ void FirmwareDialog::priv::avr109_lookup_port(Avr109Pid usb_pid)
 	auto ports = Utils::scan_serial_ports_extended();
 	ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
 		return port.id_vendor != USB_VID_PRUSA ||
-			port.id_product != usb_pid.boot &&
-			port.id_product != usb_pid.app;
+			(port.id_product != usb_pid.boot && port.id_product != usb_pid.app);
 	}), ports.end());
 
 	if (ports.size() == 0) {
@@ -553,6 +571,31 @@ void FirmwareDialog::priv::prepare_avr109(Avr109Pid usb_pid)
 }
 
 
+bool FirmwareDialog::priv::get_serial_port()
+{
+	const int selection = port_picker->GetSelection();
+	if (selection != wxNOT_FOUND) {
+		port = this->ports[selection];
+	} else {
+		// User has supplied a custom filename
+
+		std::string path_u8 = GUI::into_u8(port_picker->GetValue());
+#ifdef _WIN32
+		static const std::regex com_pattern("COM[0-9]+", std::regex::icase);
+		std::smatch matches;
+		if (std::regex_match(path_u8, matches, com_pattern)) {
+#else
+		if (fs::is_other(fs::path(path_u8))) {
+#endif
+			port = SerialPortInfo(std::move(path_u8));
+		} else {
+			port = boost::none;
+		}
+	}
+
+	return !!port;
+}
+
 void FirmwareDialog::priv::perform_upload()
 {
 	auto filename = hex_picker->GetPath();
@@ -560,14 +603,8 @@ void FirmwareDialog::priv::perform_upload()
 
 	load_hex_file(filename);  // Might already be loaded, but we want to make sure it's fresh
 
-	int selection = port_picker->GetSelection();
-	if (selection != wxNOT_FOUND) {
-		port = this->ports[selection];
-
-		// Verify whether the combo box list selection equals to the combo box edit value.
-		if (wxString::FromUTF8(port->friendly_name.data()) != port_picker->GetValue()) {
-			return;
-		}
+	if (!port_autodetect && !get_serial_port()) {
+		return;
 	}
 
 	const bool extra_verbose = false;   // For debugging
@@ -769,13 +806,13 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
 	p->port_picker = new wxComboBox(panel, wxID_ANY);
-	p->port_autodetect = new wxStaticText(panel, wxID_ANY, _(L("Autodetected")));
+	p->txt_port_autodetect = new wxStaticText(panel, wxID_ANY, _(L("Autodetected")));
 	p->btn_rescan = new wxButton(panel, wxID_ANY, _(L("Rescan")));
 	auto *port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(p->port_picker, 1, wxEXPAND | wxRIGHT, SPACING);
 	port_sizer->Add(p->btn_rescan, 0);
-	port_sizer->Add(p->port_autodetect, 1, wxEXPAND);
-	p->enable_port_picker(true);
+	port_sizer->Add(p->txt_port_autodetect, 1, wxEXPAND);
+	p->set_autodetect(false);
 
 	auto *label_progress = new wxStaticText(panel, wxID_ANY, _(L("Progress:")));
 	p->progressbar = new wxGauge(panel, wxID_ANY, 1, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL | wxGA_SMOOTH);
@@ -836,9 +873,12 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	p->hex_picker->Bind(wxEVT_FILEPICKER_CHANGED, [this](wxFileDirPickerEvent& evt) {
 		if (wxFileExists(evt.GetPath())) {
 			this->p->load_hex_file(evt.GetPath());
-			this->p->btn_flash->Enable();
 		}
+		p->update_flash_enabled();
 	});
+
+	p->port_picker->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) { p->update_flash_enabled(); });
+	p->port_picker->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { p->update_flash_enabled(); });
 
 	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [=](wxCollapsiblePaneEvent &evt) {
 		if (evt.GetCollapsed()) {

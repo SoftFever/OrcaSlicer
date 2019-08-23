@@ -157,6 +157,24 @@ wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string,
     return item;
 }
 
+wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler)
+{
+    if (id == wxID_ANY)
+        id = wxNewId();
+
+    wxMenuItem* item = menu->AppendCheckItem(id, string, description);
+
+#ifdef __WXMSW__
+    if (event_handler != nullptr && event_handler != menu)
+        event_handler->Bind(wxEVT_MENU, cb, id);
+    else
+#endif // __WXMSW__
+        menu->Bind(wxEVT_MENU, cb, id);
+
+    return item;
+}
+
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;
@@ -432,33 +450,90 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 // ObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
+void ObjectDataViewModelNode::init_container()
+{
+#ifdef __WXGTK__
+    // it's necessary on GTK because of control have to know if this item will be container
+    // in another case you couldn't to add subitem for this item
+    // it will be produce "segmentation fault"
+    m_container = true;
+#endif  //__WXGTK__
+}
+
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
     m_type(type),
     m_extruder(wxEmptyString)
 {
-    if (type == itSettings) {
+    if (type == itSettings)
         m_name = "Settings to modified";
-    }
-    else if (type == itInstanceRoot) {
+    else if (type == itInstanceRoot)
         m_name = _(L("Instances"));
-#ifdef __WXGTK__
-        m_container = true;
-#endif  //__WXGTK__
-    }
-    else if (type == itInstance) {
+    else if (type == itInstance)
+    {
         m_idx = parent->GetChildCount();
         m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
 
         set_action_icon();
     }
+    else if (type == itLayerRoot)
+    {
+        m_bmp = create_scaled_bitmap(nullptr, "edit_layers_all");    // FIXME: pass window ptr
+        m_name = _(L("Layers"));
+    }
+
+    if (type & (itInstanceRoot | itLayerRoot))
+        init_container();
 }
+
+ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
+                                                 const t_layer_height_range& layer_range,
+                                                 const int idx /*= -1 */, 
+                                                 const wxString& extruder) :
+    m_parent(parent),
+    m_type(itLayer),
+    m_idx(idx),
+    m_layer_range(layer_range),
+    m_extruder(extruder)
+{
+    const int children_cnt = parent->GetChildCount();
+    if (idx < 0)
+        m_idx = children_cnt;
+    else
+    {
+        // update indexes for another Laeyr Nodes
+        for (int i = m_idx; i < children_cnt; i++)
+            parent->GetNthChild(i)->SetIdx(i + 1);
+    }
+    const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
+    m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
+    m_bmp = create_scaled_bitmap(nullptr, "edit_layers_some");    // FIXME: pass window ptr
+
+    set_action_icon();
+    init_container();
+}
+
+#ifndef NDEBUG
+bool ObjectDataViewModelNode::valid()
+{
+	// Verify that the object was not deleted yet.
+	assert(m_idx >= -1);
+	return m_idx >= -1;
+}
+#endif /* NDEBUG */
 
 void ObjectDataViewModelNode::set_action_icon()
 {
-    m_action_icon_name = m_type == itObject ? "advanced_plus" : 
-                         m_type == itVolume ? "cog"           : "set_separate_obj";
+    m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
+                         m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);    // FIXME: pass window ptr
+}
+
+void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
+{
+    m_printable = printable;
+    m_printable_icon = m_printable == piUndef ? m_empty_bmp :
+                       create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
@@ -510,6 +585,32 @@ void ObjectDataViewModelNode::msw_rescale()
         update_settings_digest_bitmaps();
 }
 
+bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
+{
+    switch (col)
+    {
+    case colPrint:
+        m_printable_icon << variant;
+        return true;
+    case colName: {
+        DataViewBitmapText data;
+        data << variant;
+        m_bmp = data.GetBitmap();
+        m_name = data.GetText();
+        return true; }
+    case colExtruder: {
+        const wxString & val = variant.GetString();
+        m_extruder = val == "0" ? _(L("default")) : val;
+        return true; }
+    case colEditing:
+        m_action_icon << variant;
+        return true;
+    default:
+        printf("MyObjectTreeModel::SetValue: wrong column");
+    }
+    return false;
+}
+
 void ObjectDataViewModelNode::SetIdx(const int& idx)
 {
     m_idx = idx;
@@ -522,6 +623,22 @@ void ObjectDataViewModelNode::SetIdx(const int& idx)
 // ----------------------------------------------------------------------------
 // ObjectDataViewModel
 // ----------------------------------------------------------------------------
+
+static int get_root_idx(ObjectDataViewModelNode *parent_node, const ItemType root_type)
+{
+    // because of istance_root and layers_root are at the end of the list, so
+    // start locking from the end
+    for (int root_idx = parent_node->GetChildCount() - 1; root_idx >= 0; root_idx--)
+    {
+        // if there is SettingsItem or VolumeItem, then RootItems don't exist in current ObjectItem 
+        if (parent_node->GetNthChild(root_idx)->GetType() & (itSettings | itVolume))
+            break;
+        if (parent_node->GetNthChild(root_idx)->GetType() & root_type)
+            return root_idx;
+    }
+
+    return -1;
+}
 
 ObjectDataViewModel::ObjectDataViewModel()
 {
@@ -567,10 +684,10 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 
     wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
-    // because of istance_root is a last item of the object
-    int insert_position = root->GetChildCount() - 1;
-    if (insert_position < 0 || root->GetNthChild(insert_position)->m_type != itInstanceRoot)
-        insert_position = -1;
+    // get insertion position according to the existed Layers and/or Instances Items
+    int insert_position = get_root_idx(root, itLayerRoot);
+    if (insert_position < 0)
+        insert_position = get_root_idx(root, itInstanceRoot);
 
     const bool obj_errors = root->m_bmp.IsOk();
 
@@ -586,7 +703,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
-        if (insert_position > 0) insert_position++;
+        if (insert_position >= 0) insert_position++;
 	}
 
     const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
@@ -619,42 +736,86 @@ wxDataViewItem ObjectDataViewModel::AddSettingsChild(const wxDataViewItem &paren
     return child;
 }
 
-int get_istances_root_idx(ObjectDataViewModelNode *parent_node)
+/* return values:
+ * true     => root_node is created and added to the parent_root
+ * false    => root node alredy exists
+*/
+static bool append_root_node(ObjectDataViewModelNode *parent_node, 
+                             ObjectDataViewModelNode **root_node, 
+                             const ItemType root_type)
 {
-    // because of istance_root is a last item of the object
-    const int inst_root_idx = parent_node->GetChildCount()-1;
+    const int inst_root_id = get_root_idx(parent_node, root_type);
 
-    if (inst_root_idx < 0 || parent_node->GetNthChild(inst_root_idx)->GetType() == itInstanceRoot) 
-        return inst_root_idx;
+    *root_node = inst_root_id < 0 ?
+                new ObjectDataViewModelNode(parent_node, root_type) :
+                parent_node->GetNthChild(inst_root_id);
     
-    return -1;
+    if (inst_root_id < 0) {
+        if ((root_type&itInstanceRoot) ||
+            (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0)
+            parent_node->Append(*root_node);
+        else if (root_type&itLayerRoot)
+            parent_node->Insert(*root_node, static_cast<unsigned int>(get_root_idx(parent_node, itInstanceRoot)));
+        return true;
+    }
+
+    return false;
 }
 
-wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
+wxDataViewItem ObjectDataViewModel::AddRoot(const wxDataViewItem &parent_item, ItemType root_type)
 {
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return wxDataViewItem(0);
 
-    // Check and create/get instances root node
-    const int inst_root_id = get_istances_root_idx(parent_node);
+    // get InstanceRoot node
+    ObjectDataViewModelNode *root_node { nullptr };
+    const bool appended = append_root_node(parent_node, &root_node, root_type);
+    if (!root_node) return wxDataViewItem(0);
 
-    ObjectDataViewModelNode *inst_root_node = inst_root_id < 0 ? 
-                                                   new ObjectDataViewModelNode(parent_node, itInstanceRoot) :
-                                                   parent_node->GetNthChild(inst_root_id);
-    const wxDataViewItem inst_root_item((void*)inst_root_node);
+    const wxDataViewItem root_item((void*)root_node);
 
-    if (inst_root_id < 0) {
-        parent_node->Append(inst_root_node);
-        // notify control
-        ItemAdded(parent_item, inst_root_item);
-//         if (num == 1) num++;
-    }
+    if (appended)
+        ItemAdded(parent_item, root_item);// notify control
+    return root_item;
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceRoot(const wxDataViewItem &parent_item)
+{
+    return AddRoot(parent_item, itInstanceRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
+{
+    const std::vector<bool> print_indicator(num, true);
+    
+    return wxDataViewItem((void*)AddInstanceChild(parent_item, print_indicator));
+}
+
+wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& parent_item,
+                                                     const std::vector<bool>& print_indicator)
+{
+    const wxDataViewItem inst_root_item = AddInstanceRoot(parent_item);
+    if (!inst_root_item) return wxDataViewItem(0);
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
+
+    const bool just_created = inst_root_node->GetChildren().Count() == 0;
 
     // Add instance nodes
     ObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
-    while (counter < num) {
+    while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
+
+        // if InstanceRoot item is just created and start to adding Instances
+        if (just_created && counter == 0) {
+            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+            // use object's printable state to first instance
+            instance_node->set_printable_icon(obj_node->IsPrintable());
+        }
+        else
+            instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
+
         inst_root_node->Append(instance_node);
         // notify control
         const wxDataViewItem instance_item((void*)instance_node);
@@ -662,7 +823,106 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &paren
         ++counter;
     }
 
+    // update object_node printable property
+    UpdateObjectPrintable(parent_item);
+
     return wxDataViewItem((void*)instance_node);
+}
+
+void ObjectDataViewModel::UpdateObjectPrintable(wxDataViewItem parent_item)
+{
+    const wxDataViewItem inst_root_item = GetInstanceRootItem(parent_item);
+    if (!inst_root_item) 
+        return;
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
+
+    const size_t child_cnt = inst_root_node->GetChildren().Count();
+    PrintIndicator obj_pi = piUnprintable;
+    for (size_t i=0; i < child_cnt; i++)
+        if (inst_root_node->GetNthChild(i)->IsPrintable() & piPrintable) {
+            obj_pi = piPrintable;
+            break;
+        }
+    // and set printable state for object_node to piUndef
+    ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+    obj_node->set_printable_icon(obj_pi);
+    ItemChanged(parent_item);
+}
+
+// update printable property for all instances from object
+void ObjectDataViewModel::UpdateInstancesPrintable(wxDataViewItem parent_item)
+{
+    const wxDataViewItem inst_root_item = GetInstanceRootItem(parent_item);
+    if (!inst_root_item) 
+        return;
+
+    ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+    const PrintIndicator obj_pi = obj_node->IsPrintable();
+
+    ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
+    const size_t child_cnt = inst_root_node->GetChildren().Count();
+
+    for (size_t i=0; i < child_cnt; i++)
+    {
+        ObjectDataViewModelNode* inst_node = inst_root_node->GetNthChild(i);
+        // and set printable state for object_node to piUndef
+        inst_node->set_printable_icon(obj_pi);
+        ItemChanged(wxDataViewItem((void*)inst_node));
+    }
+}
+
+bool ObjectDataViewModel::IsPrintable(const wxDataViewItem& item) const
+{
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node)
+        return false;
+
+    return node->IsPrintable() == piPrintable;
+}
+
+wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_item)
+{
+    return AddRoot(parent_item, itLayerRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
+                                                   const t_layer_height_range& layer_range,
+                                                   const int extruder/* = 0*/, 
+                                                   const int index /* = -1*/)
+{
+    ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
+    if (!parent_node) return wxDataViewItem(0);
+
+    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+
+    // get LayerRoot node
+    ObjectDataViewModelNode *layer_root_node;
+    wxDataViewItem layer_root_item;
+
+    if (parent_node->GetType() & itLayerRoot) {
+        layer_root_node = parent_node;
+        layer_root_item = parent_item;
+    }
+    else {
+        const int root_idx = get_root_idx(parent_node, itLayerRoot);
+        if (root_idx < 0) return wxDataViewItem(0);
+        layer_root_node = parent_node->GetNthChild(root_idx);
+        layer_root_item = wxDataViewItem((void*)layer_root_node);
+    }
+
+    // Add layer node
+    ObjectDataViewModelNode *layer_node = new ObjectDataViewModelNode(layer_root_node, layer_range, index, extruder_str);
+    if (index < 0)
+        layer_root_node->Append(layer_node);
+    else
+        layer_root_node->Insert(layer_node, index);
+
+    // notify control
+    const wxDataViewItem layer_item((void*)layer_node);
+    ItemAdded(layer_root_item, layer_item);
+
+    return layer_item;
 }
 
 wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
@@ -679,10 +939,14 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
 	if (node_parent) {
-        if (node->m_type == itInstanceRoot)
+        if (node->m_type & (itInstanceRoot|itLayerRoot))
         {
-            for (int i = node->GetChildCount() - 1; i > 0; i--)
+            // node can be deleted by the Delete, let's check its type while we safely can
+            bool is_instance_root = (node->m_type & itInstanceRoot);
+
+            for (int i = node->GetChildCount() - 1; i >= (is_instance_root ? 1 : 0); i--)
                 Delete(wxDataViewItem(node->GetNthChild(i)));
+
             return parent;
         }
 
@@ -690,7 +954,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
         auto idx = node->GetIdx();
 
 
-        if (node->m_type == itVolume) {
+        if (node->m_type & (itVolume|itLayer)) {
             node_parent->m_volumes_cnt--;
             DeleteSettings(item);
         }
@@ -717,10 +981,31 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             ItemDeleted(parent, item);
 
             ObjectDataViewModelNode *last_instance_node = node_parent->GetNthChild(0);
+            PrintIndicator last_instance_printable = last_instance_node->IsPrintable();
             node_parent->GetChildren().Remove(last_instance_node);
             delete last_instance_node;
             ItemDeleted(parent, wxDataViewItem(last_instance_node));
 
+            ObjectDataViewModelNode *obj_node = node_parent->GetParent();
+            obj_node->set_printable_icon(last_instance_printable);
+            obj_node->GetChildren().Remove(node_parent);
+            delete node_parent;
+            ret_item = wxDataViewItem(obj_node);
+
+#ifndef __WXGTK__
+            if (obj_node->GetChildCount() == 0)
+                obj_node->m_container = false;
+#endif //__WXGTK__
+            ItemDeleted(ret_item, wxDataViewItem(node_parent));
+            return ret_item;
+        }
+
+        if (node->m_type & itInstance)
+            UpdateObjectPrintable(wxDataViewItem(node_parent->GetParent()));
+
+        // if there was last layer item, delete this one and layers root item
+        if (node_parent->GetChildCount() == 0 && node_parent->m_type == itLayerRoot)
+        {
             ObjectDataViewModelNode *obj_node = node_parent->GetParent();
             obj_node->GetChildren().Remove(node_parent);
             delete node_parent;
@@ -735,7 +1020,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
         }
 
         // if there is last volume item after deleting, delete this last volume too
-        if (node_parent->GetChildCount() <= 3)
+        if (node_parent->GetChildCount() <= 3) // 3??? #ys_FIXME
         {
             int vol_cnt = 0;
             int vol_idx = 0;
@@ -817,7 +1102,7 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     ObjectDataViewModelNode *parent_node = (ObjectDataViewModelNode*)parent_item.GetID();
     if (!parent_node) return ret_item;
 
-    const int inst_root_id = get_istances_root_idx(parent_node);
+    const int inst_root_id = get_root_idx(parent_node, itInstanceRoot);
     if (inst_root_id < 0) return ret_item;
 
     wxDataViewItemArray items;
@@ -827,9 +1112,12 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     const int inst_cnt = inst_root_node->GetChildCount();
     const bool delete_inst_root_item = inst_cnt - num < 2 ? true : false;
 
+    PrintIndicator last_inst_printable = piUndef;
+
     int stop = delete_inst_root_item ? 0 : inst_cnt - num;
     for (int i = inst_cnt - 1; i >= stop;--i) {
         ObjectDataViewModelNode *last_instance_node = inst_root_node->GetNthChild(i);
+        if (i==0) last_inst_printable = last_instance_node->IsPrintable();
         inst_root_node->GetChildren().Remove(last_instance_node);
         delete last_instance_node;
         ItemDeleted(inst_root_item, wxDataViewItem(last_instance_node));
@@ -838,12 +1126,17 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     if (delete_inst_root_item) {
         ret_item = parent_item;
         parent_node->GetChildren().Remove(inst_root_node);
+        parent_node->set_printable_icon(last_inst_printable);
         ItemDeleted(parent_item, inst_root_item);
+        ItemChanged(parent_item);
 #ifndef __WXGTK__
         if (parent_node->GetChildCount() == 0)
             parent_node->m_container = false;
 #endif //__WXGTK__
     }
+
+    // update object_node printable property
+    UpdateObjectPrintable(parent_item);
 
     return ret_item;
 }
@@ -974,28 +1267,67 @@ wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_id
     return wxDataViewItem(0);
 }
 
-wxDataViewItem ObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_idx)
+wxDataViewItem ObjectDataViewModel::GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type)
 {
     if (obj_idx >= m_objects.size() || obj_idx < 0) {
         printf("Error! Out of objects range.\n");
         return wxDataViewItem(0);
     }
 
-    auto instances_item = GetInstanceRootItem(wxDataViewItem(m_objects[obj_idx]));
-    if (!instances_item)
+    auto item = GetItemByType(wxDataViewItem(m_objects[obj_idx]), parent_type);
+    if (!item)
         return wxDataViewItem(0);
 
-    auto parent = (ObjectDataViewModelNode*)instances_item.GetID();;
+    auto parent = (ObjectDataViewModelNode*)item.GetID();
     for (size_t i = 0; i < parent->GetChildCount(); i++)
-        if (parent->GetNthChild(i)->m_idx == inst_idx)
+        if (parent->GetNthChild(i)->m_idx == sub_obj_idx)
             return wxDataViewItem(parent->GetNthChild(i));
 
     return wxDataViewItem(0);
 }
 
+wxDataViewItem ObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_idx)
+{
+    return GetItemById(obj_idx, inst_idx, itInstanceRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetItemByLayerId(int obj_idx, int layer_idx)
+{
+    return GetItemById(obj_idx, layer_idx, itLayerRoot);
+}
+
+wxDataViewItem ObjectDataViewModel::GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range)
+{
+    if (obj_idx >= m_objects.size() || obj_idx < 0) {
+        printf("Error! Out of objects range.\n");
+        return wxDataViewItem(0);
+    }
+
+    auto item = GetItemByType(wxDataViewItem(m_objects[obj_idx]), itLayerRoot);
+    if (!item)
+        return wxDataViewItem(0);
+
+    auto parent = (ObjectDataViewModelNode*)item.GetID();
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+        if (parent->GetNthChild(i)->m_layer_range == layer_range)
+            return wxDataViewItem(parent->GetNthChild(i));
+
+    return wxDataViewItem(0);
+}
+
+int  ObjectDataViewModel::GetItemIdByLayerRange(const int obj_idx, const t_layer_height_range& layer_range)
+{
+    wxDataViewItem item = GetItemByLayerRange(obj_idx, layer_range);
+    if (!item)
+        return -1;
+
+    return GetLayerIdByItem(item);
+}
+
 int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
 {
-	wxASSERT(item.IsOk());
+	if(!item.IsOk())
+        return -1;
 
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 	auto it = find(m_objects.begin(), m_objects.end(), node);
@@ -1030,13 +1362,28 @@ int ObjectDataViewModel::GetInstanceIdByItem(const wxDataViewItem& item) const
     return GetIdByItemAndType(item, itInstance);
 }
 
+int ObjectDataViewModel::GetLayerIdByItem(const wxDataViewItem& item) const 
+{
+    return GetIdByItemAndType(item, itLayer);
+}
+
+t_layer_height_range ObjectDataViewModel::GetLayerRangeByItem(const wxDataViewItem& item) const
+{
+    wxASSERT(item.IsOk());
+
+    ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node || node->m_type != itLayer)
+        return { 0.0f, 0.0f };
+    return node->GetLayerRange();
+}
+
 void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx)
 {
     wxASSERT(item.IsOk());
     type = itUndef;
 
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() <-1 || node->GetIdx() ==-1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot)))
+    if (!node || node->GetIdx() <-1 || node->GetIdx() == -1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/)))
         return;
 
     idx = node->GetIdx();
@@ -1044,9 +1391,10 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
 
     ObjectDataViewModelNode *parent_node = node->GetParent();
     if (!parent_node) return;
-    if (type == itInstance)
-        parent_node = node->GetParent()->GetParent();
-    if (!parent_node || parent_node->m_type != itObject) { type = itUndef; return; }
+
+    // get top parent (Object) node
+    while (parent_node->m_type != itObject)
+        parent_node = parent_node->GetParent();
 
     auto it = find(m_objects.begin(), m_objects.end(), parent_node);
     if (it != m_objects.end())
@@ -1093,6 +1441,18 @@ int ObjectDataViewModel::GetRowByItem(const wxDataViewItem& item) const
     return -1;
 }
 
+bool ObjectDataViewModel::InvalidItem(const wxDataViewItem& item)
+{
+    if (!item)
+        return true;
+
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node || node->invalid()) 
+        return true;
+
+    return false;
+}
+
 wxString ObjectDataViewModel::GetName(const wxDataViewItem &item) const
 {
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
@@ -1115,13 +1475,16 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 	switch (col)
 	{
-	case 0:
+	case colPrint:
+		variant << node->m_printable_icon;
+		break;
+	case colName:
         variant << DataViewBitmapText(node->m_name, node->m_bmp);
 		break;
-	case 1:
+	case colExtruder:
 		variant = node->m_extruder;
 		break;
-	case 2:
+	case colEditing:
 		variant << node->m_action_icon;
 		break;
 	default:
@@ -1184,7 +1547,7 @@ bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
 
     // disable extruder selection for the non "itObject|itVolume" item
-    return !(col == 1 && node->m_extruder.IsEmpty());
+    return !(col == colExtruder && node->m_extruder.IsEmpty());
 }
 
 wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const
@@ -1194,6 +1557,7 @@ wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const
 		return wxDataViewItem(0);
 
 	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+	assert(node != nullptr && node->valid());
 
 	// objects nodes has no parent too
     if (node->m_type == itObject)
@@ -1214,10 +1578,7 @@ wxDataViewItem ObjectDataViewModel::GetTopParent(const wxDataViewItem &item) con
 
     ObjectDataViewModelNode *parent_node = node->GetParent();
     while (parent_node->m_type != itObject)
-    {
-        node = parent_node;
-        parent_node = node->GetParent();
-    }
+        parent_node = parent_node->GetParent();
 
     return wxDataViewItem((void*)parent_node);
 }
@@ -1288,7 +1649,7 @@ ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
     if (!item.IsOk())
         return itUndef;
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    return node->m_type;
+    return node->m_type < 0 ? itUndef : node->m_type;
 }
 
 wxDataViewItem ObjectDataViewModel::GetItemByType(const wxDataViewItem &parent_item, ItemType type) const 
@@ -1318,6 +1679,11 @@ wxDataViewItem ObjectDataViewModel::GetInstanceRootItem(const wxDataViewItem &it
     return GetItemByType(item, itInstanceRoot);
 }
 
+wxDataViewItem ObjectDataViewModel::GetLayerRootItem(const wxDataViewItem &item) const
+{
+    return GetItemByType(item, itLayerRoot);
+}
+
 bool ObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const
 {
     if (!item.IsOk())
@@ -1344,6 +1710,46 @@ void ObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const Slic3r
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
     node->SetBitmap(*m_volume_bmps[int(type)]);
     ItemChanged(item);
+}
+
+wxDataViewItem ObjectDataViewModel::SetPrintableState(
+    PrintIndicator  printable,
+    int             obj_idx,
+    int             subobj_idx /* = -1*/,
+    ItemType        subobj_type/* = itInstance*/)
+{
+    wxDataViewItem item = wxDataViewItem(0);
+    if (subobj_idx < 0)
+        item = GetItemById(obj_idx);
+    else
+        item =  subobj_type&itInstance ? GetItemByInstanceId(obj_idx, subobj_idx) :
+                GetItemByVolumeId(obj_idx, subobj_idx);
+
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (!node)
+        return wxDataViewItem(0);
+    node->set_printable_icon(printable);
+    ItemChanged(item);
+
+    if (subobj_idx >= 0)
+        UpdateObjectPrintable(GetItemById(obj_idx));
+
+    return item;
+}
+
+wxDataViewItem ObjectDataViewModel::SetObjectPrintableState(
+    PrintIndicator  printable,
+    wxDataViewItem  obj_item)
+{
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)obj_item.GetID();
+    if (!node)
+        return wxDataViewItem(0);
+    node->set_printable_icon(printable);
+    ItemChanged(obj_item);
+
+    UpdateInstancesPrintable(obj_item);
+
+    return obj_item;
 }
 
 void ObjectDataViewModel::Rescale()
@@ -1530,7 +1936,7 @@ bool BitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value
 
     // The icon can't be edited so get its old value and reuse it.
     wxVariant valueOld;
-    GetView()->GetModel()->GetValue(valueOld, m_item, 0); 
+    GetView()->GetModel()->GetValue(valueOld, m_item, colName); 
     
     DataViewBitmapText bmpText;
     bmpText << valueOld;
@@ -1583,10 +1989,14 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     m_bmp_one_layer_unlock_off = ScalableBitmap(this, "one_layer_unlock_off.png");
     m_lock_icon_dim = m_bmp_one_layer_lock_on.bmp().GetSize().x;
 
+    m_bmp_revert               = ScalableBitmap(this, "undo");
+    m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
+
     m_selection = ssUndef;
 
     // slider events
     Bind(wxEVT_PAINT,       &DoubleSlider::OnPaint,    this);
+    Bind(wxEVT_CHAR,        &DoubleSlider::OnChar,     this);
     Bind(wxEVT_LEFT_DOWN,   &DoubleSlider::OnLeftDown, this);
     Bind(wxEVT_MOTION,      &DoubleSlider::OnMotion,   this);
     Bind(wxEVT_LEFT_UP,     &DoubleSlider::OnLeftUp,   this);
@@ -1636,6 +2046,9 @@ void DoubleSlider::msw_rescale()
     m_bmp_one_layer_unlock_on .msw_rescale();
     m_bmp_one_layer_unlock_off.msw_rescale();
     m_lock_icon_dim = m_bmp_one_layer_lock_on.bmp().GetSize().x;
+
+    m_bmp_revert.msw_rescale();
+    m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
 
     SLIDER_MARGIN = 4 + Slic3r::GUI::wxGetApp().em_unit();
 
@@ -1873,8 +2286,11 @@ void DoubleSlider::render()
     //draw color print ticks
     draw_ticks(dc);
 
-    //draw color print ticks
+    //draw lock/unlock
     draw_one_layer_icon(dc);
+
+    //draw revert bitmap (if it's shown)
+    draw_revert_icon(dc);
 }
 
 void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
@@ -2017,6 +2433,9 @@ void DoubleSlider::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord
 
 void DoubleSlider::draw_ticks(wxDC& dc)
 {
+    if (!m_is_enabled_tick_manipulation)
+        return;
+
     dc.SetPen(m_is_enabled_tick_manipulation ? DARK_GREY_PEN : LIGHT_GREY_PEN );
     int height, width;
     get_size(&width, &height);
@@ -2034,6 +2453,9 @@ void DoubleSlider::draw_ticks(wxDC& dc)
 
 void DoubleSlider::draw_colored_band(wxDC& dc)
 {
+    if (!m_is_enabled_tick_manipulation)
+        return;
+
     int height, width;
     get_size(&width, &height);
 
@@ -2101,6 +2523,24 @@ void DoubleSlider::draw_one_layer_icon(wxDC& dc)
     m_rect_one_layer_icon = wxRect(x_draw, y_draw, m_lock_icon_dim, m_lock_icon_dim);
 }
 
+void DoubleSlider::draw_revert_icon(wxDC& dc)
+{
+    if (m_ticks.empty() || !m_is_enabled_tick_manipulation)
+        return;
+
+    int width, height;
+    get_size(&width, &height);
+
+    wxCoord x_draw, y_draw;
+    is_horizontal() ? x_draw = width-2 : x_draw = 0.25*SLIDER_MARGIN;
+    is_horizontal() ? y_draw = 0.25*SLIDER_MARGIN: y_draw = height-2;
+
+    dc.DrawBitmap(m_bmp_revert.bmp(), x_draw, y_draw);
+
+    //update rect of the lock/unlock icon
+    m_rect_revert_icon = wxRect(x_draw, y_draw, m_revert_icon_dim, m_revert_icon_dim);
+}
+
 void DoubleSlider::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
 {
     const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, m_thumb_size.y);
@@ -2117,8 +2557,8 @@ int DoubleSlider::get_value_from_position(const wxCoord x, const wxCoord y)
     
     if (is_horizontal()) 
         return int(double(x - SLIDER_MARGIN) / step + 0.5);
-    else 
-        return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
+
+    return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
 }
 
 void DoubleSlider::detect_selected_slider(const wxPoint& pt)
@@ -2168,7 +2608,10 @@ void DoubleSlider::ChangeOneLayerLock()
 
 void DoubleSlider::OnLeftDown(wxMouseEvent& event)
 {
+    if (HasCapture())
+        return;
     this->CaptureMouse();
+
     wxClientDC dc(this);
     wxPoint pos = event.GetLogicalPosition(dc);
     if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation) {
@@ -2178,6 +2621,7 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
 
     m_is_left_down = true;
     if (is_point_in_rect(pos, m_rect_one_layer_icon)) {
+        // switch on/off one layer mode
         m_is_one_layer = !m_is_one_layer;
         if (!m_is_one_layer) {
             SetLowerValue(m_min_value);
@@ -2186,20 +2630,36 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
     }
+    else if (is_point_in_rect(pos, m_rect_revert_icon) && m_is_enabled_tick_manipulation) {
+        // discard all color changes
+        SetLowerValue(m_min_value);
+        SetHigherValue(m_max_value);
+
+        m_selection == ssLower ? correct_lower_value() : correct_higher_value();
+        if (!m_selection) m_selection = ssHigher;
+
+        m_ticks.clear();
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+    }
     else
         detect_selected_slider(pos);
 
-    if (!m_selection && m_is_enabled_tick_manipulation) {
-        const auto tick = is_point_near_tick(pos);
-        if (tick >= 0)
+    if (!m_selection) {
+        const int tick_val  = is_point_near_tick(pos);
+        /* Set current thumb position to the nearest tick (if it is)
+         * OR to a value corresponding to the mouse click
+         * */ 
+        const int mouse_val = tick_val >= 0 && m_is_enabled_tick_manipulation ? tick_val : 
+                              get_value_from_position(pos.x, pos.y);
+        if (mouse_val >= 0)
         {
-            if (abs(tick - m_lower_value) < abs(tick - m_higher_value)) {
-                SetLowerValue(tick);
+            if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
+                SetLowerValue(mouse_val);
                 correct_lower_value();
                 m_selection = ssLower;
             }
             else {
-                SetHigherValue(tick);
+                SetHigherValue(mouse_val);
                 correct_higher_value();
                 m_selection = ssHigher;
             }
@@ -2239,9 +2699,13 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
 
     const wxClientDC dc(this);
     const wxPoint pos = event.GetLogicalPosition(dc);
+
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
+    bool is_revert_icon_focused = false;
+
     if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
+        is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
@@ -2260,6 +2724,12 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     Refresh();
     Update();
     event.Skip();
+
+    // Set tooltips with information for each icon
+    const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
+                             m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
+                             is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
+    this->SetToolTip(tooltip);
 
     if (action)
     {
@@ -2366,9 +2836,9 @@ void DoubleSlider::OnWheel(wxMouseEvent& event)
 void DoubleSlider::OnKeyDown(wxKeyEvent &event)
 {
     const int key = event.GetKeyCode();
-    if (key == '+' || key == WXK_NUMPAD_ADD)
+    if (key == WXK_NUMPAD_ADD)
         action_tick(taAdd);
-    else if (key == '-' || key == 390 || key == WXK_DELETE || key == WXK_BACK)
+    else if (key == 390 || key == WXK_DELETE || key == WXK_BACK)
         action_tick(taDel);
     else if (is_horizontal())
     {
@@ -2387,6 +2857,8 @@ void DoubleSlider::OnKeyDown(wxKeyEvent &event)
         else if (key == WXK_UP || key == WXK_DOWN)
             move_current_thumb(key == WXK_UP);
     }
+
+    event.Skip(); // !Needed to have EVT_CHAR generated as well
 }
 
 void DoubleSlider::OnKeyUp(wxKeyEvent &event)
@@ -2398,9 +2870,20 @@ void DoubleSlider::OnKeyUp(wxKeyEvent &event)
     event.Skip();
 }
 
+void DoubleSlider::OnChar(wxKeyEvent& event)
+{
+    const int key = event.GetKeyCode();
+    if (key == '+')
+        action_tick(taAdd);
+    else if (key == '-')
+        action_tick(taDel);
+}
+
 void DoubleSlider::OnRightDown(wxMouseEvent& event)
 {
+    if (HasCapture()) return;
     this->CaptureMouse();
+
     const wxClientDC dc(this);
     detect_selected_slider(event.GetLogicalPosition(dc));
     if (!m_selection)
@@ -2441,27 +2924,29 @@ LockButton::LockButton( wxWindow *parent,
                         const wxSize& size /*= wxDefaultSize*/):
                         wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
 {
-    m_bmp_lock_on      = ScalableBitmap(this, "one_layer_lock_on.png");
-    m_bmp_lock_off     = ScalableBitmap(this, "one_layer_lock_off.png");
-    m_bmp_unlock_on    = ScalableBitmap(this, "one_layer_unlock_on.png");
-    m_bmp_unlock_off   = ScalableBitmap(this, "one_layer_unlock_off.png");
+    m_bmp_lock_closed   = ScalableBitmap(this, "lock_closed");
+    m_bmp_lock_closed_f = ScalableBitmap(this, "lock_closed_f");
+    m_bmp_lock_open     = ScalableBitmap(this, "lock_open");
+    m_bmp_lock_open_f   = ScalableBitmap(this, "lock_open_f");
 
 #ifdef __WXMSW__
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
-    SetBitmap(m_bmp_unlock_on.bmp());
-    SetBitmapDisabled(m_bmp_lock_on.bmp());
+    SetBitmap(m_bmp_lock_open.bmp());
+    SetBitmapDisabled(m_bmp_lock_open.bmp());
+    SetBitmapHover(m_bmp_lock_closed_f.bmp());
 
     //button events
-    Bind(wxEVT_BUTTON,          &LockButton::OnButton, this);
-    Bind(wxEVT_ENTER_WINDOW,    &LockButton::OnEnterBtn, this);
-    Bind(wxEVT_LEAVE_WINDOW,    &LockButton::OnLeaveBtn, this);
+    Bind(wxEVT_BUTTON, &LockButton::OnButton, this);
 }
 
 void LockButton::OnButton(wxCommandEvent& event)
 {
+    if (m_disabled)
+        return;
+
     m_is_pushed = !m_is_pushed;
-    enter_button(true);
+    update_button_bitmaps();
 
     event.Skip();
 }
@@ -2469,23 +2954,21 @@ void LockButton::OnButton(wxCommandEvent& event)
 void LockButton::SetLock(bool lock)
 {
     m_is_pushed = lock;
-    enter_button(true);
+    update_button_bitmaps();
 }
 
 void LockButton::msw_rescale()
 {
-    m_bmp_lock_on   .msw_rescale();
-    m_bmp_lock_off  .msw_rescale();
-    m_bmp_unlock_on .msw_rescale();
-    m_bmp_unlock_off.msw_rescale();
+    m_bmp_lock_closed.msw_rescale();
+    m_bmp_lock_closed_f.msw_rescale();
+    m_bmp_lock_open.msw_rescale();
+    m_bmp_lock_open_f.msw_rescale();
 }
 
-void LockButton::enter_button(const bool enter)
+void LockButton::update_button_bitmaps()
 {
-    const wxBitmap& icon = m_is_pushed ?
-        enter ? m_bmp_lock_off.bmp() : m_bmp_lock_on.bmp() :
-        enter ? m_bmp_unlock_off.bmp() : m_bmp_unlock_on.bmp();
-    SetBitmap(icon);
+    SetBitmap(m_is_pushed ? m_bmp_lock_closed.bmp() : m_bmp_lock_open.bmp());
+    SetBitmapHover(m_is_pushed ? m_bmp_lock_closed_f.bmp() : m_bmp_lock_open_f.bmp());
 
     Refresh();
     Update();
@@ -2503,10 +2986,12 @@ ModeButton::ModeButton( wxWindow *          parent,
                         const wxString&     mode        /* = wxEmptyString*/,
                         const wxSize&       size        /* = wxDefaultSize*/,
                         const wxPoint&      pos         /* = wxDefaultPosition*/) :
-    ScalableButton(parent, id, icon_name, mode, size, pos)
+    ScalableButton(parent, id, icon_name, mode, size, pos, wxBU_EXACTFIT)
 {
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
     m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
+
+    SetBitmapMargins(3, 0);
 
     //button events
     Bind(wxEVT_BUTTON,          &ModeButton::OnButton, this);
@@ -2536,6 +3021,7 @@ void ModeButton::focus_button(const bool focus)
                              Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
+    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : wxSYS_COLOUR_BTNSHADOW));
 
     Refresh();
     Update();
@@ -2546,7 +3032,7 @@ void ModeButton::focus_button(const bool focus)
 // ModeSizer
 // ----------------------------------------------------------------------------
 
-ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
+ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
     wxFlexGridSizer(3, 0, hgap)
 {
     SetFlexibleDirection(wxHORIZONTAL);
@@ -2564,16 +3050,9 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
     
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-#ifdef __WXOSX__
-        wxSize sz = parent->GetTextExtent(button.first);
-        // set default width for ModeButtons to correct rendering on OnFocus under OSX
-        sz.x += 2 * em_unit(parent);
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first, sz));
-#else
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
-#endif // __WXOSX__
-        
-        m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, m_mode_btns.size() - 1));
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
+
+        m_mode_btns.back()->Bind(wxEVT_BUTTON, std::bind(modebtnfn, std::placeholders::_1, int(m_mode_btns.size() - 1)));
         Add(m_mode_btns.back());
     }
 }
@@ -2658,6 +3137,13 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 #endif // __WXMSW__
 
     SetBitmap(create_scaled_bitmap(parent, icon_name));
+
+    if (size != wxDefaultSize)
+    {
+        const int em = em_unit(parent);
+        m_width = size.x/em;
+        m_height= size.y/em;
+    }
 }
 
 
@@ -2684,11 +3170,24 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
     m_current_icon_name = bmp.name();
 }
 
+void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
+{
+    SetBitmapDisabled(bmp.bmp());
+    m_disabled_icon_name = bmp.name();
+}
+
 void ScalableButton::msw_rescale()
 {
-    const wxBitmap bmp = create_scaled_bitmap(m_parent, m_current_icon_name);
+    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name));
+    if (!m_disabled_icon_name.empty())
+        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name));
 
-    SetBitmap(bmp);
+    if (m_width > 0 || m_height>0)
+    {
+        const int em = em_unit(m_parent);
+        wxSize size(m_width * em, m_height * em);
+        SetMinSize(size);
+    }
 }
 
 

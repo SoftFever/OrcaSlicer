@@ -1,0 +1,121 @@
+From a31ae4781a4afa60e21c70e5b4ae784bcd447c8a Mon Sep 17 00:00:00 2001
+From: tamasmeszaros <meszaros.q@gmail.com>
+Date: Thu, 6 Jun 2019 15:41:43 +0200
+Subject: [PATCH] prusa-slicer changes
+
+---
+ CMakeLists.txt                     | 44 +++++++++++++++++++++++++++++++++++---
+ Config.cmake.in                    |  2 ++
+ src/libqhull_r/qhull_r-exports.def |  2 ++
+ src/libqhull_r/user_r.h            |  2 +-
+ 4 files changed, 46 insertions(+), 4 deletions(-)
+ create mode 100644 Config.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 59dff41..20c2ec5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -61,7 +61,7 @@
+ # $DateTime: 2016/01/18 19:29:17 $$Author: bbarber $
+ 
+ project(qhull)
+-cmake_minimum_required(VERSION 2.6)
++cmake_minimum_required(VERSION 3.0)
+ 
+ # Define qhull_VERSION in CMakeLists.txt, Makefile, qhull-exports.def, qhull_p-exports.def, qhull_r-exports.def, qhull-warn.pri
+ set(qhull_VERSION2 "2015.2 2016/01/18")  # not used, See global.c, global_r.c, rbox.c, rbox_r.c
+@@ -610,10 +610,48 @@ add_test(NAME user_eg3
+ # Define install
+ # ---------------------------------------
+ 
+-install(TARGETS ${qhull_TARGETS_INSTALL}
++install(TARGETS ${qhull_TARGETS_INSTALL} EXPORT QhullTargets
+         RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+         LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
++        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
++        INCLUDES DESTINATION include)
++
++include(CMakePackageConfigHelpers)
++
++write_basic_package_version_file(
++    "${CMAKE_CURRENT_BINARY_DIR}/Qhull/QhullConfigVersion.cmake"
++    VERSION ${qhull_VERSION}
++    COMPATIBILITY AnyNewerVersion
++)
++
++export(EXPORT QhullTargets
++  FILE "${CMAKE_CURRENT_BINARY_DIR}/Qhull/QhullTargets.cmake"
++  NAMESPACE Qhull::
++)
++
++configure_file(Config.cmake.in
++  "${CMAKE_CURRENT_BINARY_DIR}/Qhull/QhullConfig.cmake"
++  @ONLY
++)
++
++set(ConfigPackageLocation lib/cmake/Qhull)
++install(EXPORT QhullTargets
++  FILE
++    QhullTargets.cmake
++  NAMESPACE
++    Qhull::
++  DESTINATION
++    ${ConfigPackageLocation}
++)
++install(
++  FILES
++    "${CMAKE_CURRENT_BINARY_DIR}/Qhull/QhullConfig.cmake"
++    "${CMAKE_CURRENT_BINARY_DIR}/Qhull/QhullConfigVersion.cmake"
++  DESTINATION
++    ${ConfigPackageLocation}
++  COMPONENT
++    Devel
++)
+ 
+ install(FILES ${libqhull_HEADERS}    DESTINATION ${INCLUDE_INSTALL_DIR}/libqhull)
+ install(FILES ${libqhull_DOC}        DESTINATION ${INCLUDE_INSTALL_DIR}/libqhull)
+diff --git a/Config.cmake.in b/Config.cmake.in
+new file mode 100644
+index 0000000..bc92bfe
+--- /dev/null
++++ b/Config.cmake.in
+@@ -0,0 +1,2 @@
++include("${CMAKE_CURRENT_LIST_DIR}/QhullTargets.cmake")
++
+diff --git a/src/libqhull_r/qhull_r-exports.def b/src/libqhull_r/qhull_r-exports.def
+index 325d57c..72f6ad0 100644
+--- a/src/libqhull_r/qhull_r-exports.def
++++ b/src/libqhull_r/qhull_r-exports.def
+@@ -185,6 +185,7 @@ qh_memsetup
+ qh_memsize
+ qh_memstatistics
+ qh_memtotal
++qh_memcheck
+ qh_merge_degenredundant
+ qh_merge_nonconvex
+ qh_mergecycle
+@@ -372,6 +373,7 @@ qh_settruncate
+ qh_setunique
+ qh_setvoronoi_all
+ qh_setzero
++qh_setendpointer
+ qh_sharpnewfacets
+ qh_skipfacet
+ qh_skipfilename
+diff --git a/src/libqhull_r/user_r.h b/src/libqhull_r/user_r.h
+index fc105b9..7cca65a 100644
+--- a/src/libqhull_r/user_r.h
++++ b/src/libqhull_r/user_r.h
+@@ -139,7 +139,7 @@ Code flags --
+    REALfloat =   1      all numbers are 'float' type
+              =   0      all numbers are 'double' type
+ */
+-#define REALfloat 0
++#define REALfloat 1
+ 
+ #if (REALfloat == 1)
+ #define realT float
+-- 
+2.16.2.windows.1
+

@@ -37,7 +37,6 @@ public:
     std::string     last_error;
 };
 
-#if ENABLE_TEXTURES_FROM_SVG
 class Shader
 {
     GLShader* m_shader;
@@ -66,7 +65,6 @@ public:
 private:
     void reset();
 };
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 }
 

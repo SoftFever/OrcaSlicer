@@ -18,9 +18,12 @@ extern void trace(unsigned int level, const char *message);
 // Format memory allocated, separate thousands by comma.
 extern std::string format_memsize_MB(size_t n);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
-// The string is non-empty only if the loglevel >= info (3).
-extern std::string log_memory_info();
+// The string is non-empty if the loglevel >= info (3) or ignore_loglevel==true.
+// Latter is used to get the memory info from SysInfoDialog.
+extern std::string log_memory_info(bool ignore_loglevel = false);
 extern void disable_multi_threading();
+// Returns the size of physical memory (RAM) in bytes.
+extern size_t total_physical_memory();
 
 // Set a path with GUI resource files.
 void set_var_dir(const std::string &path);
@@ -58,7 +61,7 @@ extern std::string normalize_utf8_nfc(const char *src);
 // Safely rename a file even if the target exists.
 // On Windows, the file explorer (or anti-virus or whatever else) often locks the file
 // for a short while, so the file may not be movable. Retry while we see recoverable errors.
-extern int rename_file(const std::string &from, const std::string &to);
+extern std::error_code rename_file(const std::string &from, const std::string &to);
 
 // Copy a file, adjust the access attributes, so that the target is writable.
 extern int copy_file(const std::string &from, const std::string &to);
@@ -167,10 +170,10 @@ template<class T> size_t next_highest_power_of_2(T v,
 extern std::string xml_escape(std::string text);
 
 
-#if defined __GNUC__ & __GNUC__ < 5
+#if defined __GNUC__ && __GNUC__ < 5 && !defined __clang__
 // Older GCCs don't have std::is_trivially_copyable
 // cf. https://gcc.gnu.org/onlinedocs/gcc-4.9.4/libstdc++/manual/manual/status.html#status.iso.2011
-#warning "GCC version < 5, faking std::is_trivially_copyable"
+// #warning "GCC version < 5, faking std::is_trivially_copyable"
 template<typename T> struct IsTriviallyCopyable { static constexpr bool value = true; };
 #else
 template<typename T> struct IsTriviallyCopyable : public std::is_trivially_copyable<T> {};
@@ -182,7 +185,7 @@ class ScopeGuard
 public:
     typedef std::function<void()> Closure;
 private:
-    bool committed;
+//    bool committed;
     Closure closure;
 
 public:

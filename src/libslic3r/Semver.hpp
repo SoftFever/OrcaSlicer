@@ -137,6 +137,11 @@ public:
 	Semver operator-(const Minor &b) const { Semver res(*this); return res -= b; }
 	Semver operator-(const Patch &b) const { Semver res(*this); return res -= b; }
 
+	// Stream output
+	friend std::ostream& operator<<(std::ostream& os, const Semver &self) {
+		os << self.to_string();
+		return os;
+	}
 private:
 	semver_t ver;
 

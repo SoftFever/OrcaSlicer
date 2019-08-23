@@ -11,13 +11,19 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/foreach.hpp>
+namespace pt = boost::property_tree;
+
 #include <expat.h>
 #include <Eigen/Dense>
-#include <miniz.h>
+#include "miniz_extension.hpp"
 
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
@@ -33,6 +39,7 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
+const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 
 const char* MODEL_TAG = "model";
@@ -64,6 +71,7 @@ const char* V2_ATTR = "v2";
 const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
+const char* PRINTABLE_ATTR = "printable";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -122,6 +130,12 @@ int get_attribute_value_int(const char** attributes, unsigned int attributes_siz
 {
     const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
     return (text != nullptr) ? ::atoi(text) : 0;
+}
+
+bool get_attribute_value_bool(const char** attributes, unsigned int attributes_size, const char* attribute_key)
+{
+    const char* text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
+    return (text != nullptr) ? (bool)::atoi(text) : true;
 }
 
 Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
@@ -187,24 +201,6 @@ bool is_valid_object_type(const std::string& type)
 }
 
 namespace Slic3r {
-
-namespace {
-void close_archive_reader(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_reader_end(arch);
-        if (f) fclose(f);
-    }
-}
-
-void close_archive_writer(mz_zip_archive *arch) {
-    if (arch) {
-        FILE *f = mz_zip_get_cfile(arch);
-        mz_zip_writer_end(arch);
-        if (f) fclose(f);
-    }
-}
-}
 
     // Base class with error messages management
     class _3MF_Base
@@ -349,10 +345,12 @@ void close_archive_writer(mz_zip_archive *arch) {
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
         typedef std::map<int, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
+        typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
 
         // Version of the 3mf file
         unsigned int m_version;
+        bool m_check_version;
 
         XML_Parser m_xml_parser;
         Model* m_model;
@@ -365,6 +363,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
+        IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
@@ -374,7 +373,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         _3MF_Importer();
         ~_3MF_Importer();
 
-        bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
+        bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, bool check_version);
 
     private:
         void _destroy_xml_parser();
@@ -383,6 +382,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         bool _load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
@@ -436,7 +436,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         bool _handle_start_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_metadata();
 
-        bool _create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter);
+        bool _create_object_instance(int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter);
 
         void _apply_transform(ModelInstance& instance, const Transform3d& transform);
 
@@ -466,6 +466,7 @@ void close_archive_writer(mz_zip_archive *arch) {
 
     _3MF_Importer::_3MF_Importer()
         : m_version(0)
+        , m_check_version(false)
         , m_xml_parser(nullptr)
         , m_model(nullptr)   
         , m_unit_factor(1.0f)
@@ -480,9 +481,10 @@ void close_archive_writer(mz_zip_archive *arch) {
         _destroy_xml_parser();
     }
 
-    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config)
+    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, bool check_version)
     {
         m_version = 0;
+        m_check_version = check_version;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object.reset();
@@ -494,6 +496,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
         m_layer_heights_profiles.clear();
+        m_layer_config_ranges.clear();
         m_sla_support_points.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
@@ -522,10 +525,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        FILE *f = boost::nowide::fopen(filename.c_str(), "rb");
-        auto res = mz_bool(f != nullptr && mz_zip_reader_init_cfile(&archive, f, -1, 0));
-        if (res == 0)
-        {
+        if (!open_zip_reader(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -546,12 +546,21 @@ void close_archive_writer(mz_zip_archive *arch) {
 
                 if (boost::algorithm::istarts_with(name, MODEL_FOLDER) && boost::algorithm::iends_with(name, MODEL_EXTENSION))
                 {
-                    // valid model name -> extract model
-                    if (!_extract_model_from_archive(archive, stat))
+                    try
                     {
-                        close_archive_reader(&archive);
-                        add_error("Archive does not contain a valid model");
-                        return false;
+                        // valid model name -> extract model
+                        if (!_extract_model_from_archive(archive, stat))
+                        {
+                            close_zip_reader(&archive);
+                            add_error("Archive does not contain a valid model");
+                            return false;
+                        }
+                    }
+                    catch (const std::exception& e)
+                    {
+                        // ensure the zip archive is closed and rethrow the exception
+                        close_zip_reader(&archive);
+                        throw e;
                     }
                 }
             }
@@ -567,8 +576,13 @@ void close_archive_writer(mz_zip_archive *arch) {
 
                 if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE))
                 {
-                    // extract slic3r lazer heights profile file
+                    // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
+                }
+                if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE))
+                {
+                    // extract slic3r layer config ranges file
+                    _extract_layer_config_ranges_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, SLA_SUPPORT_POINTS_FILE))
                 {
@@ -585,7 +599,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                     // extract slic3r model config file
                     if (!_extract_model_config_from_archive(archive, stat, model))
                     {
-                        close_archive_reader(&archive);
+                        close_zip_reader(&archive);
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
@@ -593,7 +607,7 @@ void close_archive_writer(mz_zip_archive *arch) {
             }
         }
 
-        close_archive_reader(&archive);
+        close_zip_reader(&archive);
 
         for (const IdToModelObjectMap::value_type& object : m_objects)
         {
@@ -612,6 +626,11 @@ void close_archive_writer(mz_zip_archive *arch) {
             IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
                 model_object->layer_height_profile = obj_layer_heights_profile->second;
+
+            // m_layer_config_ranges are indexed by a 1 based model object index.
+            IdToLayerConfigRangesMap::iterator obj_layer_config_ranges = m_layer_config_ranges.find(object.second + 1);
+            if (obj_layer_config_ranges != m_layer_config_ranges.end())
+                model_object->layer_config_ranges = obj_layer_config_ranges->second;
 
             // m_sla_support_points are indexed by a 1 based model object index.
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.second + 1);
@@ -696,7 +715,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -786,6 +805,66 @@ void close_archive_writer(mz_zip_archive *arch) {
                 }
 
                 m_layer_heights_profiles.insert(IdToLayerHeightsProfileMap::value_type(object_id, profile));
+            }
+        }
+    }
+
+    void _3MF_Importer::_extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading layer config ranges data to buffer");
+                return;
+            }
+
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree objects_tree;
+            pt::read_xml(iss, objects_tree);
+
+            for (const auto& object : objects_tree.get_child("objects"))
+            {
+                pt::ptree object_tree = object.second;
+                int obj_idx = object_tree.get<int>("<xmlattr>.id", -1);
+                if (obj_idx <= 0) {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+
+                IdToLayerConfigRangesMap::iterator object_item = m_layer_config_ranges.find(obj_idx);
+                if (object_item != m_layer_config_ranges.end()) {
+                    add_error("Found duplicated layer config range");
+                    continue;
+                }
+
+                t_layer_config_ranges config_ranges;
+
+                for (const auto& range : object_tree)
+                {
+                    if (range.first != "range")
+                        continue;
+                    pt::ptree range_tree = range.second;
+                    double min_z = range_tree.get<double>("<xmlattr>.min_z");
+                    double max_z = range_tree.get<double>("<xmlattr>.max_z");
+
+                    // get Z range information
+                    DynamicPrintConfig& config = config_ranges[{ min_z, max_z }];
+
+                    for (const auto& option : range_tree)
+                    {
+                        if (option.first != "option")
+                            continue;
+                        std::string opt_key = option.second.get<std::string>("<xmlattr>.opt_key");
+                        std::string value = option.second.data();
+
+                        config.set_deserialize(opt_key, value);
+                    }
+                }
+
+                if (!config_ranges.empty())
+                    m_layer_config_ranges.insert(IdToLayerConfigRangesMap::value_type(obj_idx, config_ranges));
             }
         }
     }
@@ -916,7 +995,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
         {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), XML_GetCurrentLineNumber(m_xml_parser));
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -1307,8 +1386,9 @@ void close_archive_writer(mz_zip_archive *arch) {
 
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
         Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        int printable = get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
 
-        return _create_object_instance(object_id, transform, 1);
+        return _create_object_instance(object_id, transform, printable, 1);
     }
 
     bool _3MF_Importer::_handle_end_item()
@@ -1331,12 +1411,20 @@ void close_archive_writer(mz_zip_archive *arch) {
     bool _3MF_Importer::_handle_end_metadata()
     {
         if (m_curr_metadata_name == SLIC3RPE_3MF_VERSION)
+        {
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
+
+            if (m_check_version && (m_version > VERSION_3MF))
+            {
+                std::string msg = "The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+                throw std::runtime_error(msg.c_str());
+            }
+        }
 
         return true;
     }
 
-    bool _3MF_Importer::_create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter)
+    bool _3MF_Importer::_create_object_instance(int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter)
     {
         static const unsigned int MAX_RECURSIONS = 10;
 
@@ -1372,6 +1460,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                     add_error("Unable to add object instance");
                     return false;
                 }
+                instance->printable = printable;
 
                 m_instances.emplace_back(instance, transform);
             }
@@ -1381,7 +1470,7 @@ void close_archive_writer(mz_zip_archive *arch) {
             // recursively process nested components
             for (const Component& component : it->second)
             {
-                if (!_create_object_instance(component.object_id, transform * component.transform, recur_counter + 1))
+                if (!_create_object_instance(component.object_id, transform * component.transform, printable, recur_counter + 1))
                     return false;
             }
         }
@@ -1473,7 +1562,7 @@ void close_archive_writer(mz_zip_archive *arch) {
             object->second.metadata.emplace_back(key, value);
         else if (type == VOLUME_TYPE)
         {
-            if (m_curr_config.volume_id < object->second.volumes.size())
+            if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
                 object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
         }
         else
@@ -1510,10 +1599,10 @@ void close_archive_writer(mz_zip_archive *arch) {
             }
 
             // splits volume out of imported geometry
-            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-            ModelVolume* volume = object.add_volume(TriangleMesh());
-            stl_file& stl = volume->mesh.stl;
-            stl.stats.type = inmemory;
+			TriangleMesh triangle_mesh;
+            stl_file    &stl             = triangle_mesh.stl;
+			unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
+			stl.stats.type = inmemory;
             stl.stats.number_of_facets = (uint32_t)triangles_count;
             stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
             stl_allocate(&stl);
@@ -1530,9 +1619,11 @@ void close_archive_writer(mz_zip_archive *arch) {
                 }
             }
 
-            stl_get_size(&stl);
-            volume->mesh.repair();
-            volume->center_geometry();
+			stl_get_size(&stl);
+			triangle_mesh.repair();
+
+			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+            volume->center_geometry_after_creation();
             volume->calculate_convex_hull();
 
             // apply volume's name and config data
@@ -1593,10 +1684,12 @@ void close_archive_writer(mz_zip_archive *arch) {
         {
             unsigned int id;
             Transform3d transform;
+            bool printable;
 
-            BuildItem(unsigned int id, const Transform3d& transform)
+            BuildItem(unsigned int id, const Transform3d& transform, const bool printable)
                 : id(id)
                 , transform(transform)
+                , printable(printable)
             {
             }
         };
@@ -1643,6 +1736,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
@@ -1659,10 +1753,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        FILE *f = boost::nowide::fopen(filename.c_str(), "wb");
-        auto res = mz_bool(f != nullptr && mz_zip_writer_init_cfile(&archive, f, 0));
-        if (res == 0)
-        {
+        if (!open_zip_writer(&archive, filename)) {
             add_error("Unable to open the file");
             return false;
         }
@@ -1671,7 +1762,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The content of this file is the same for each PrusaSlicer 3mf.
         if (!_add_content_types_file_to_archive(archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1681,7 +1772,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1691,7 +1782,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         IdToObjectDataMap objects_data;
         if (!_add_model_file_to_archive(archive, model, objects_data))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1701,7 +1792,17 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_height_profile_file_to_archive(archive, model))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
+        // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
+        // The index differes from the index of an object ID of an object instance of a 3MF file!
+        if (!_add_layer_config_ranges_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1711,7 +1812,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
@@ -1722,7 +1823,7 @@ void close_archive_writer(mz_zip_archive *arch) {
         {
             if (!_add_print_config_file_to_archive(archive, *config))
             {
-                close_archive_writer(&archive);
+                close_zip_writer(&archive);
                 boost::filesystem::remove(filename);
                 return false;
             }
@@ -1734,20 +1835,20 @@ void close_archive_writer(mz_zip_archive *arch) {
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, objects_data))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
         }
 
         if (!mz_zip_writer_finalize_archive(&archive))
         {
-            close_archive_writer(&archive);
+            close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             add_error("Unable to finalize the archive");
             return false;
         }
 
-        close_archive_writer(&archive);
+        close_zip_writer(&archive);
 
         return true;
     }
@@ -1881,7 +1982,7 @@ void close_archive_writer(mz_zip_archive *arch) {
             Transform3d t = instance->get_matrix();
             // instance_id is just a 1 indexed index in build_items.
             assert(instance_id == build_items.size() + 1);
-            build_items.emplace_back(instance_id, t);
+            build_items.emplace_back(instance_id, t, instance->printable);
 
             stream << "  </" << OBJECT_TAG << ">\n";
 
@@ -1903,29 +2004,28 @@ void close_archive_writer(mz_zip_archive *arch) {
             if (volume == nullptr)
                 continue;
 
+			if (!volume->mesh().repaired)
+				throw std::runtime_error("store_3mf() requires repair()");
+			if (!volume->mesh().has_shared_vertices())
+				throw std::runtime_error("store_3mf() requires shared vertices");
+
             volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
-            if (!volume->mesh.repaired)
-                volume->mesh.repair();
-
-            stl_file& stl = volume->mesh.stl;
-            if (stl.v_shared == nullptr)
-                stl_generate_shared_vertices(&stl);
-
-            if (stl.stats.shared_vertices == 0)
+            const indexed_triangle_set &its = volume->mesh().its;
+            if (its.vertices.empty())
             {
                 add_error("Found invalid mesh");
                 return false;
             }
 
-            vertices_count += stl.stats.shared_vertices;
+            vertices_count += (int)its.vertices.size();
 
             const Transform3d& matrix = volume->get_matrix();
 
-            for (int i = 0; i < stl.stats.shared_vertices; ++i)
+            for (size_t i = 0; i < its.vertices.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
+                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
@@ -1944,19 +2044,19 @@ void close_archive_writer(mz_zip_archive *arch) {
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
-            stl_file& stl = volume->mesh.stl;
+            const indexed_triangle_set &its = volume->mesh().its;
 
             // updates triangle offsets
             volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += stl.stats.number_of_facets;
+            triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
 
-            for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i)
+            for (size_t i = 0; i < its.indices.size(); ++ i)
             {
                 stream << "     <" << TRIANGLE_TAG << " ";
                 for (int j = 0; j < 3; ++j)
                 {
-                    stream << "v" << j + 1 << "=\"" << stl.v_indices[i].vertex[j] + volume_it->second.first_vertex_id << "\" ";
+                    stream << "v" << j + 1 << "=\"" << its.indices[i][j] + volume_it->second.first_vertex_id << "\" ";
                 }
                 stream << "/>\n";
             }
@@ -1990,7 +2090,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                         stream << " ";
                 }
             }
-            stream << "\" />\n";
+            stream << "\" printable =\"" << item.printable << "\" />\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
@@ -2027,6 +2127,70 @@ void close_archive_writer(mz_zip_archive *arch) {
         if (!out.empty())
         {
             if (!mz_zip_writer_add_mem(&archive, LAYER_HEIGHTS_PROFILE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+            {
+                add_error("Unable to add layer heights profile file to archive");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        std::string out = "";
+        pt::ptree tree;
+
+        unsigned int object_cnt = 0;
+        for (const ModelObject* object : model.objects)
+        {
+            object_cnt++;
+            const t_layer_config_ranges& ranges = object->layer_config_ranges;
+            if (!ranges.empty())
+            {
+                pt::ptree& obj_tree = tree.add("objects.object","");
+
+                obj_tree.put("<xmlattr>.id", object_cnt);
+
+                // Store the layer config ranges.
+                for (const auto& range : ranges)
+                {
+                    pt::ptree& range_tree = obj_tree.add("range", "");
+
+                    // store minX and maxZ
+                    range_tree.put("<xmlattr>.min_z", range.first.first);
+                    range_tree.put("<xmlattr>.max_z", range.first.second);
+
+                    // store range configuration
+                    const DynamicPrintConfig& config = range.second;
+                    for (const std::string& opt_key : config.keys())
+                    {
+                        pt::ptree& opt_tree = range_tree.add("option", config.opt_serialize(opt_key));
+                        opt_tree.put("<xmlattr>.opt_key", opt_key);
+                    }
+                }
+            }
+        }
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            boost::property_tree::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string for a better preview
+            boost::replace_all(out, "><object",      ">\n <object");
+            boost::replace_all(out, "><range",       ">\n  <range");
+            boost::replace_all(out, "><option",      ">\n   <option");
+            boost::replace_all(out, "></range>",     ">\n  </range>");
+            boost::replace_all(out, "></object>",    ">\n </object>");
+            // OR just 
+            boost::replace_all(out, "><",            ">\n<"); 
+        }
+
+        if (!out.empty())
+        {
+            if (!mz_zip_writer_add_mem(&archive, LAYER_CONFIG_RANGES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
             {
                 add_error("Unable to add layer heights profile file to archive");
                 return false;
@@ -2083,7 +2247,7 @@ void close_archive_writer(mz_zip_archive *arch) {
 
         for (const std::string &key : config.keys())
             if (key != "compatible_printers")
-                out += "; " + key + " = " + config.serialize(key) + "\n";
+                out += "; " + key + " = " + config.opt_serialize(key) + "\n";
 
         if (!out.empty())
         {
@@ -2117,7 +2281,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                 // stores object's config data
                 for (const std::string& key : obj->config.keys())
                 {
-                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.serialize(key) << "\"/>\n";
+                    stream << "  <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
 
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes)
@@ -2147,7 +2311,7 @@ void close_archive_writer(mz_zip_archive *arch) {
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())
                             {
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.serialize(key) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
                             stream << "  </" << VOLUME_TAG << ">\n";
@@ -2172,13 +2336,13 @@ void close_archive_writer(mz_zip_archive *arch) {
         return true;
     }
 
-    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model)
+    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
     {
         if ((path == nullptr) || (config == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Importer importer;
-        bool res = importer.load_model_from_file(path, *model, *config);
+        bool res = importer.load_model_from_file(path, *model, *config, check_version);
         importer.log_errors();
         return res;
     }

@@ -1,24 +1,37 @@
 
+# This how-to is out of date
+
+We have switched to MS Visual Studio 2019.
+
+We don't use MSVS 2013 any more. At the moment we are in the process of creating new pre-built dependency bundles
+and updating this document. In the meantime, you will need to compile the dependencies yourself
+[the same way as before](#building-the-dependencies-package-yourself)
+except with CMake generators for MSVS 2019 instead of 2013.
+
+Thank you for understanding.
+
+---
+
 # Building PrusaSlicer on Microsoft Windows
 
-The currently supported way of building PrusaSlicer on Windows is with CMake and MS Visual Studio 2013.
+~~The currently supported way of building PrusaSlicer on Windows is with CMake and MS Visual Studio 2013.
 You can use the free [Visual Studio 2013 Community Edition](https://www.visualstudio.com/vs/older-downloads/).
-CMake installer can be downloaded from [the official website](https://cmake.org/download/).
+CMake installer can be downloaded from [the official website](https://cmake.org/download/).~~
 
-Building with newer versions of MSVS (2015, 2017) may work too as reported by some of our users.
+~~Building with newer versions of MSVS (2015, 2017) may work too as reported by some of our users.~~
 
 _Note:_ Thanks to [**@supermerill**](https://github.com/supermerill) for testing and inspiration for this guide.
 
 ### Dependencies
 
 On Windows PrusaSlicer is built against statically built libraries.
-We provide a prebuilt package of all the needed dependencies. This package only works on Visual Studio 2013, so if you are using a newer version of Visual Studio, you need to compile the dependencies yourself as per [below](#building-the-dependencies-package-yourself).
+~~We provide a prebuilt package of all the needed dependencies. This package only works on Visual Studio 2013, so~~ if you are using a newer version of Visual Studio, you need to compile the dependencies yourself as per [below](#building-the-dependencies-package-yourself).
 The package comes in a several variants:
 
-  - [64 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64.7z) (41 MB, 578 MB unpacked)
-  - [64 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64-dev.7z) (88 MB, 1.3 GB unpacked)
-  - [32 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32.7z) (38 MB, 520 MB unpacked)
-  - [32 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32-dev.7z) (74 MB, 1.1 GB unpacked)
+  - ~~64 bit, Release mode only (41 MB, 578 MB unpacked)~~
+  - ~~64 bit, Release and Debug mode (88 MB, 1.3 GB unpacked)~~
+  - ~~32 bit, Release mode only (38 MB, 520 MB unpacked)~~
+  - ~~32 bit, Release and Debug mode (74 MB, 1.1 GB unpacked)~~
 
 When unsure, use the _Release mode only_ variant, the _Release and Debug_ variant is only needed for debugging & development.
 

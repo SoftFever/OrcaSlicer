@@ -6,6 +6,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <exception>
 #include <stdexcept>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -71,13 +72,10 @@ void parse_hardware_id(const std::string &hardware_id, SerialPortInfo &spi)
 	std::regex pattern("USB\\\\.*VID_([[:xdigit:]]+)&PID_([[:xdigit:]]+).*");
 	std::smatch matches;
 	if (std::regex_match(hardware_id, matches, pattern)) {
-		try {
-			vid = std::stoul(matches[1].str(), 0, 16);
-			pid = std::stoul(matches[2].str(), 0, 16);
-			spi.id_vendor = vid;
-			spi.id_product = pid;
-		}
-		catch (...) {}
+		vid = std::stoul(matches[1].str(), 0, 16);
+		pid = std::stoul(matches[2].str(), 0, 16);
+		spi.id_vendor = vid;
+		spi.id_product = pid;
 	}
 }
 #endif
@@ -353,6 +351,8 @@ void Serial::set_baud_rate(unsigned baud_rate)
 	}
 }
 
+
+/*
 void Serial::set_DTR(bool on)
 {
 	auto handle = native_handle();
@@ -384,7 +384,13 @@ void Serial::reset_line_num()
 
 bool Serial::read_line(unsigned timeout, std::string &line, error_code &ec)
 {
-	auto &io_service = get_io_service();
+	auto& io_service =
+#if BOOST_VERSION >= 107000
+		//FIXME this is most certainly wrong!
+		(boost::asio::io_context&)this->get_executor().context();
+ #else
+		this->get_io_service();
+#endif
 	asio::deadline_timer timer(io_service);
 	char c = 0;
 	bool fail = false;
@@ -489,6 +495,7 @@ std::string Serial::printer_format_line(const std::string &line, unsigned line_n
 
 	return (boost::format("N%1% %2%*%3%\n") % line_num_str % line % checksum).str();
 }
+*/
 
 
 } // namespace Utils

@@ -135,8 +135,7 @@ void config_wizard(int reason)
 
 	wxGetApp().load_current_presets();
 
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA &&
-        wxGetApp().obj_list()->has_multi_part_objects())
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA && model_has_multi_part_objects(wxGetApp().model()))
     {
         show_info(nullptr,
             _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
@@ -149,6 +148,13 @@ void config_wizard(int reason)
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 {
 	try{
+
+        if (config.def()->get(opt_key)->type == coBools && config.def()->get(opt_key)->nullable) {
+            ConfigOptionBoolsNullable* vec_new = new ConfigOptionBoolsNullable{ boost::any_cast<unsigned char>(value) };
+            config.option<ConfigOptionBoolsNullable>(opt_key)->set_at(vec_new, opt_index, 0);
+            return;
+        }
+
 		switch (config.def()->get(opt_key)->type) {
 		case coFloatOrPercent:{
 			std::string str = boost::any_cast<std::string>(value);

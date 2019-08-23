@@ -8,6 +8,22 @@
 # Created by modification of the original qhull CMakeLists.
 # Lukas Matena (25.7.2018), lukasmatena@seznam.cz
 
+# see bug report: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=925540
+
+find_package(Qhull 7.2 QUIET)
+
+add_library(qhull INTERFACE)
+
+if(Qhull_FOUND)
+
+message(STATUS "Using qhull from system.")
+if(SLIC3R_STATIC)
+    target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
+else()
+    target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
+endif()
+    
+else(Qhull_FOUND)
 
 project(qhull)
 cmake_minimum_required(VERSION 2.6)
@@ -112,7 +128,7 @@ set(libqhull_SOURCES
 
 ##################################################
 # combined library (reentrant qhull and qhullcpp) for Slic3r:
-set(qhull_STATIC qhull)
+set(qhull_STATIC qhullstatic)
 add_library(${qhull_STATIC} STATIC ${libqhull_SOURCES})
 set_target_properties(${qhull_STATIC} PROPERTIES
     VERSION ${qhull_VERSION})
@@ -123,4 +139,7 @@ endif(UNIX)
 ##################################################
 
 # LIBDIR is defined in the main xs CMake file:
-target_include_directories(${qhull_STATIC} PRIVATE ${LIBDIR}/qhull/src)
+target_include_directories(${qhull_STATIC} BEFORE PUBLIC ${LIBDIR}/qhull/src)
+target_link_libraries(qhull INTERFACE ${qhull_STATIC})
+
+endif()

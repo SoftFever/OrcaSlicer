@@ -912,7 +912,7 @@ MedialAxis::build(ThickPolylines* polylines)
     }
     */
     
-    typedef const VD::vertex_type vert_t;
+    //typedef const VD::vertex_type vert_t;
     typedef const VD::edge_type   edge_t;
     
     // collect valid edges (i.e. prune those not belonging to MAT)
@@ -1407,6 +1407,63 @@ const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rot
 Transformation Transformation::operator * (const Transformation& other) const
 {
     return Transformation(get_matrix() * other.get_matrix());
+}
+
+Transformation Transformation::volume_to_bed_transformation(const Transformation& instance_transformation, const BoundingBoxf3& bbox)
+{
+    Transformation out;
+
+    if (instance_transformation.is_scaling_uniform()) {
+        // No need to run the non-linear least squares fitting for uniform scaling.
+        // Just set the inverse.
+        out.set_from_transform(instance_transformation.get_matrix(true).inverse());
+    }
+    else if (is_rotation_ninety_degrees(instance_transformation.get_rotation()))
+    {
+        // Anisotropic scaling, rotation by multiples of ninety degrees.
+        Eigen::Matrix3d instance_rotation_trafo =
+            (Eigen::AngleAxisd(instance_transformation.get_rotation().z(), Vec3d::UnitZ()) *
+            Eigen::AngleAxisd(instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+            Eigen::AngleAxisd(instance_transformation.get_rotation().x(), Vec3d::UnitX())).toRotationMatrix();
+        Eigen::Matrix3d volume_rotation_trafo =
+            (Eigen::AngleAxisd(-instance_transformation.get_rotation().x(), Vec3d::UnitX()) *
+            Eigen::AngleAxisd(-instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+            Eigen::AngleAxisd(-instance_transformation.get_rotation().z(), Vec3d::UnitZ())).toRotationMatrix();
+
+        // 8 corners of the bounding box.
+        auto pts = Eigen::MatrixXd(8, 3);
+        pts(0, 0) = bbox.min.x(); pts(0, 1) = bbox.min.y(); pts(0, 2) = bbox.min.z();
+        pts(1, 0) = bbox.min.x(); pts(1, 1) = bbox.min.y(); pts(1, 2) = bbox.max.z();
+        pts(2, 0) = bbox.min.x(); pts(2, 1) = bbox.max.y(); pts(2, 2) = bbox.min.z();
+        pts(3, 0) = bbox.min.x(); pts(3, 1) = bbox.max.y(); pts(3, 2) = bbox.max.z();
+        pts(4, 0) = bbox.max.x(); pts(4, 1) = bbox.min.y(); pts(4, 2) = bbox.min.z();
+        pts(5, 0) = bbox.max.x(); pts(5, 1) = bbox.min.y(); pts(5, 2) = bbox.max.z();
+        pts(6, 0) = bbox.max.x(); pts(6, 1) = bbox.max.y(); pts(6, 2) = bbox.min.z();
+        pts(7, 0) = bbox.max.x(); pts(7, 1) = bbox.max.y(); pts(7, 2) = bbox.max.z();
+
+        // Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
+        auto qs = pts *
+            (instance_rotation_trafo *
+            Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror())) *
+            volume_rotation_trafo).inverse().transpose();
+        // Fill in scaling based on least squares fitting of the bounding box corners.
+        Vec3d scale;
+        for (int i = 0; i < 3; ++i)
+            scale(i) = pts.col(i).dot(qs.col(i)) / pts.col(i).dot(pts.col(i));
+
+        out.set_rotation(Geometry::extract_euler_angles(volume_rotation_trafo));
+        out.set_scaling_factor(Vec3d(std::abs(scale(0)), std::abs(scale(1)), std::abs(scale(2))));
+        out.set_mirror(Vec3d(scale(0) > 0 ? 1. : -1, scale(1) > 0 ? 1. : -1, scale(2) > 0 ? 1. : -1));
+    }
+    else
+    {
+        // General anisotropic scaling, general rotation.
+        // Keep the modifier mesh in the instance coordinate system, so the modifier mesh will not be aligned with the world.
+        // Scale it to get the required size.
+        out.set_scaling_factor(instance_transformation.get_scaling_factor().cwiseInverse());
+    }
+
+    return out;
 }
 
 Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

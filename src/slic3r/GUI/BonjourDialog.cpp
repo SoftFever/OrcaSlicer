@@ -52,7 +52,7 @@ struct LifetimeGuard
 };
 
 BonjourDialog::BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology tech)
-	: wxDialog(parent, wxID_ANY, _(L("Network lookup")), wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER)
+	: wxDialog(parent, wxID_ANY, _(L("Network lookup")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 	, list(new wxListView(this, wxID_ANY))
 	, replies(new ReplySet)
 	, label(new wxStaticText(this, wxID_ANY, ""))
@@ -171,7 +171,7 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 	// Filter replies based on selected technology
 	const auto model = e.reply.txt_data.find("model");
 	const bool sl1 = model != e.reply.txt_data.end() && model->second == "SL1";
-	if (tech == ptFFF && sl1 || tech == ptSLA && !sl1) {
+	if ((tech == ptFFF && sl1) || (tech == ptSLA && !sl1)) {
 		return;
 	}
 

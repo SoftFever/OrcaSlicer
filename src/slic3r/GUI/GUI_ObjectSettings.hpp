@@ -39,12 +39,13 @@ class ObjectSettings : public OG_Settings
     std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
     ScalableBitmap m_bmp_delete;
+    ScalableBitmap m_bmp_delete_focus;
 
 public:
     ObjectSettings(wxWindow* parent);
     ~ObjectSettings() {}
 
-    void        update_settings_list();
+    bool        update_settings_list();
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
 };

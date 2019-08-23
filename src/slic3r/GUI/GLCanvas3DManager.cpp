@@ -15,40 +15,112 @@
 #include <string>
 #include <iostream>
 
+#ifdef __APPLE__
+#include "../Utils/MacDarkMode.hpp"
+#endif // __APPLE__
+
 namespace Slic3r {
 namespace GUI {
 
 GLCanvas3DManager::GLInfo::GLInfo()
-    : version("")
-    , glsl_version("")
-    , vendor("")
-    , renderer("")
+    : m_detected(false)
+    , m_version("")
+    , m_glsl_version("")
+    , m_vendor("")
+    , m_renderer("")
+    , m_max_tex_size(0)
+    , m_max_anisotropy(0.0f)
 {
 }
 
-void GLCanvas3DManager::GLInfo::detect()
+const std::string& GLCanvas3DManager::GLInfo::get_version() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_version;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_glsl_version() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_glsl_version;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_vendor() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_vendor;
+}
+
+const std::string& GLCanvas3DManager::GLInfo::get_renderer() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_renderer;
+}
+
+int GLCanvas3DManager::GLInfo::get_max_tex_size() const
+{
+    if (!m_detected)
+        detect();
+
+    // clamp to avoid the texture generation become too slow and use too much GPU memory
+#ifdef __APPLE__
+    // and use smaller texture for non retina systems
+    return (Slic3r::GUI::mac_max_scaling_factor() > 1.0) ? std::min(m_max_tex_size, 8192) : std::min(m_max_tex_size / 2, 4096);
+#else
+    // and use smaller texture for older OpenGL versions
+    return is_version_greater_or_equal_to(3, 0) ? std::min(m_max_tex_size, 8192) : std::min(m_max_tex_size / 2, 4096);
+#endif // __APPLE__
+}
+
+float GLCanvas3DManager::GLInfo::get_max_anisotropy() const
+{
+    if (!m_detected)
+        detect();
+
+    return m_max_anisotropy;
+}
+
+void GLCanvas3DManager::GLInfo::detect() const
 {
     const char* data = (const char*)::glGetString(GL_VERSION);
     if (data != nullptr)
-        version = data;
+        m_version = data;
 
     data = (const char*)::glGetString(GL_SHADING_LANGUAGE_VERSION);
     if (data != nullptr)
-        glsl_version = data;
+        m_glsl_version = data;
 
     data = (const char*)::glGetString(GL_VENDOR);
     if (data != nullptr)
-        vendor = data;
+        m_vendor = data;
 
     data = (const char*)::glGetString(GL_RENDERER);
     if (data != nullptr)
-        renderer = data;
+        m_renderer = data;
+
+    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
+    
+    if (GLEW_EXT_texture_filter_anisotropic)
+        glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
+
+    m_detected = true;
 }
 
 bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
 {
+    if (!m_detected)
+        detect();
+
     std::vector<std::string> tokens;
-    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
+    boost::split(tokens, m_version, boost::is_any_of(" "), boost::token_compress_on);
 
     if (tokens.empty())
         return false;
@@ -75,6 +147,9 @@ bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int majo
 
 std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool extensions) const
 {
+    if (!m_detected)
+        detect();
+
     std::stringstream out;
 
     std::string h2_start = format_as_html ? "<b>" : "";
@@ -84,10 +159,10 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
-    out << b_start << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
-    out << b_start << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
-    out << b_start << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
-    out << b_start << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
+    out << b_start << "GL version:   " << b_end << (m_version.empty() ? "N/A" : m_version) << line_end;
+    out << b_start << "Vendor:       " << b_end << (m_vendor.empty() ? "N/A" : m_vendor) << line_end;
+    out << b_start << "Renderer:     " << b_end << (m_renderer.empty() ? "N/A" : m_renderer) << line_end;
+    out << b_start << "GLSL version: " << b_end << (m_glsl_version.empty() ? "N/A" : m_glsl_version) << line_end;
 
     if (extensions)
     {
@@ -111,22 +186,18 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 }
 
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
+bool GLCanvas3DManager::s_compressed_textures_supported = false;
+GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
     , m_gl_initialized(false)
-    , m_use_legacy_opengl(false)
-    , m_use_VBOs(false)
 {
 }
 
 GLCanvas3DManager::~GLCanvas3DManager()
 {
-    if (m_context != nullptr)
-    {
-        delete m_context;
-        m_context = nullptr;
-    }
+	this->destroy();
 }
 
 bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
@@ -134,7 +205,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLTo
     if (canvas == nullptr)
         return false;
 
-    if (_get_canvas(canvas) != m_canvases.end())
+    if (do_get_canvas(canvas) != m_canvases.end())
         return false;
 
     GLCanvas3D* canvas3D = new GLCanvas3D(canvas, bed, camera, view_toolbar);
@@ -159,7 +230,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLTo
 
 bool GLCanvas3DManager::remove(wxGLCanvas* canvas)
 {
-    CanvasesMap::iterator it = _get_canvas(canvas);
+    CanvasesMap::iterator it = do_get_canvas(canvas);
     if (it == m_canvases.end())
         return false;
 
@@ -190,77 +261,92 @@ void GLCanvas3DManager::init_gl()
     if (!m_gl_initialized)
     {
         glewInit();
-        m_gl_info.detect();
-        const AppConfig* config = GUI::get_app_config();
-        m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
-        m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
         m_gl_initialized = true;
+        if (GLEW_EXT_texture_compression_s3tc)
+            s_compressed_textures_supported = true;
+        else
+            s_compressed_textures_supported = false;
     }
-}
-
-std::string GLCanvas3DManager::get_gl_info(bool format_as_html, bool extensions) const
-{
-    return m_gl_info.to_string(format_as_html, extensions);
 }
 
 bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 {
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    CanvasesMap::const_iterator it = do_get_canvas(canvas);
     if (it != m_canvases.end())
-        return (it->second != nullptr) ? _init(*it->second) : false;
+        return (it->second != nullptr) ? init(*it->second) : false;
     else
         return false;
 }
 
+void GLCanvas3DManager::destroy()
+{
+    if (m_context != nullptr)
+    {
+        delete m_context;
+        m_context = nullptr;
+    }
+}
+
 GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
 {
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    CanvasesMap::const_iterator it = do_get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second : nullptr;
 }
 
 wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
 {
-    int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
+    int attribList[] = { 
+    	WX_GL_RGBA,
+    	WX_GL_DOUBLEBUFFER,
+    	// RGB channels each should be allocated with 8 bit depth. One should almost certainly get these bit depths by default.
+      	WX_GL_MIN_RED, 			8,
+      	WX_GL_MIN_GREEN, 		8,
+      	WX_GL_MIN_BLUE, 		8,
+      	// Requesting an 8 bit alpha channel. Interestingly, the NVIDIA drivers would most likely work with some alpha plane, but glReadPixels would not return
+      	// the alpha channel on NVIDIA if not requested when the GL context is created.
+      	WX_GL_MIN_ALPHA, 		8,
+    	WX_GL_DEPTH_SIZE, 		24,
+    	WX_GL_SAMPLE_BUFFERS, 	GL_TRUE,
+    	WX_GL_SAMPLES, 			4,
+    	0
+    };
 
     if (s_multisample == MS_Unknown)
     {
-        _detect_multisample(attribList);
-        // debug output
-        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
+        detect_multisample(attribList);
+//        // debug output
+//        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
     }
 
-    if (! can_multisample()) {
-        attribList[4] = 0;
-    }
+    if (! can_multisample())
+        attribList[12] = 0;
 
     return new wxGLCanvas(parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 }
 
-GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
+GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
 }
 
-GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas) const
+GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::do_get_canvas(wxGLCanvas* canvas) const
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
 }
 
-bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
+bool GLCanvas3DManager::init(GLCanvas3D& canvas)
 {
     if (!m_gl_initialized)
         init_gl();
 
-    return canvas.init(m_use_VBOs, m_use_legacy_opengl);
+    return canvas.init();
 }
 
-void GLCanvas3DManager::_detect_multisample(int* attribList)
+void GLCanvas3DManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     const AppConfig* app_config = GUI::get_app_config();
-    bool enable_multisample = app_config != nullptr
-        && app_config->get("use_legacy_opengl") != "1"
-        && wxVersion >= 30003;
+    bool enable_multisample = wxVersion >= 30003;
 
     s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? MS_Enabled : MS_Disabled;
     // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows

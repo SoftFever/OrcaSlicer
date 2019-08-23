@@ -44,6 +44,9 @@ enum FileType
 
     FT_INI,
     FT_SVG,
+
+    FT_TEX,
+
     FT_PNGZIP,
 
     FT_SIZE,
@@ -95,6 +98,7 @@ public:
     bool            initialized() const { return m_initialized; }
 
     GUI_App();
+    ~GUI_App();
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
@@ -120,8 +124,8 @@ public:
     void            recreate_GUI();
     void            system_info();
     void            keyboard_shortcuts();
-    void            load_project(wxWindow *parent, wxString& input_file);
-    void            import_model(wxWindow *parent, wxArrayString& input_files);
+    void            load_project(wxWindow *parent, wxString& input_file) const;
+    void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
@@ -138,11 +142,13 @@ public:
     void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);
-    bool            check_unsaved_changes();
+    bool            check_unsaved_changes(const wxString &header = wxString());
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
-    wxString        current_language_code() { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+    wxString        current_language_code() const { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
+    wxString      	current_language_code_safe() const;
 
     virtual bool OnExceptionInMainLoop();
 
@@ -155,8 +161,9 @@ public:
     ObjectManipulation* obj_manipul();
     ObjectSettings*     obj_settings();
     ObjectList*         obj_list();
+    ObjectLayers*       obj_layers();
     Plater*             plater();
-    std::vector<ModelObject*> *model_objects();
+    Model&      		model();
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
@@ -166,6 +173,7 @@ public:
 
     wxNotebook*     tab_panel() const ;
     int             extruders_cnt() const;
+    int             extruders_edited_cnt() const;
 
     std::vector<Tab *>      tabs_list;
 

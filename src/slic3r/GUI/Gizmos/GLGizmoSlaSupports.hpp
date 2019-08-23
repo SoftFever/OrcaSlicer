@@ -14,6 +14,8 @@
 #include "libslic3r/SLAPrint.hpp"
 #include <wx/dialog.h>
 
+#include <cereal/types/vector.hpp>
+
 
 namespace Slic3r {
 namespace GUI {
@@ -26,19 +28,20 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ModelID m_current_mesh_model_id = 0;
+    ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
     mutable float m_z_shift = 0.f;
-    std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
+    bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
 
     GLUquadricObj* m_quadric;
-    Eigen::MatrixXf m_V; // vertices
-    Eigen::MatrixXi m_F; // facets indices
-    igl::AABB<Eigen::MatrixXf,3> m_AABB;
+    typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
+    typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
+    igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
     const TriangleMesh* m_mesh;
+    const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
     mutable std::vector<Vec2f> m_supports_triangles;
@@ -48,20 +51,33 @@ private:
 
     class CacheEntry {
     public:
-        CacheEntry(const sla::SupportPoint& point, bool sel, const Vec3f& norm = Vec3f::Zero()) :
+        CacheEntry() :
+            support_point(sla::SupportPoint()), selected(false), normal(Vec3f::Zero()) {}
+
+        CacheEntry(const sla::SupportPoint& point, bool sel = false, const Vec3f& norm = Vec3f::Zero()) :
             support_point(point), selected(sel), normal(norm) {}
+
+        bool operator==(const CacheEntry& rhs) const {
+            return (support_point == rhs.support_point);
+        }
+
+        bool operator!=(const CacheEntry& rhs) const {
+            return ! ((*this) == rhs);
+        }
 
         sla::SupportPoint support_point;
         bool selected; // whether the point is selected
         Vec3f normal;
+
+        template<class Archive>
+        void serialize(Archive & ar)
+        {
+            ar(support_point, selected, normal);
+        }
     };
 
 public:
-#if ENABLE_SVG_ICONS
     GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-#else
-    GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
-#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
@@ -70,12 +86,14 @@ public:
 
     bool is_in_editing_mode() const { return m_editing_mode; }
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
+    bool has_backend_supports() const;
+    void reslice_SLA_supports() const;
 
 private:
     bool on_init();
-    void on_update(const UpdateData& data, const Selection& selection);
-    virtual void on_render(const Selection& selection) const;
-    virtual void on_render_for_picking(const Selection& selection) const;
+    void on_update(const UpdateData& data);
+    virtual void on_render() const;
+    virtual void on_render_for_picking() const;
 
     //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
@@ -83,13 +101,21 @@ private:
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
+    bool unsaved_changes() const;
 
+    EState m_no_hover_state = Off;
+    EState m_no_hover_old_state = Off;
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
-    float m_minimal_point_distance = 20.f;
-    mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
+    CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
+    float m_old_point_head_diameter = 0.;   // the same
+    float m_minimal_point_distance_stash = 0.f; // and again
+    float m_density_stash = 0.f;                // and again
+    mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
+    std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
+
     float m_clipping_plane_distance = 0.f;
     mutable float m_old_clipping_plane_distance = 0.f;
     mutable Vec3d m_old_clipping_plane_normal;
@@ -102,7 +128,6 @@ private:
     GLSelectionRectangle m_selection_rectangle;
 
     bool m_wait_for_up_event = false;
-    bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
@@ -123,20 +148,29 @@ private:
     void unselect_point(int i);
     void editing_mode_apply_changes();
     void editing_mode_discard_changes();
-    void editing_mode_reload_cache();
+    void reload_cache();
     void get_data_from_backend();
     void auto_generate();
     void switch_to_editing_mode();
+    void disable_editing_mode();
     void reset_clipping_plane_normal() const;
 
 protected:
     void on_set_state() override;
-    void on_start_dragging(const Selection& selection) override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
+    virtual void on_set_hover_id()
+    {
+        if (! m_editing_mode || (int)m_editing_cache.size() <= m_hover_id)
+            m_hover_id = -1;
+    }
+    void on_start_dragging() override;
+    void on_stop_dragging() override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const Selection& selection) const;
+    virtual bool on_is_activable() const;
     virtual bool on_is_selectable() const;
+    virtual void on_load(cereal::BinaryInputArchive& ar) override;
+    virtual void on_save(cereal::BinaryOutputArchive& ar) const override;
 };
 
 

@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
+#include "../Utils/UndoRedo.hpp"
 
 #include <string>
 
@@ -9,6 +10,14 @@
 #include <wx/platinfo.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
+
+#ifdef _WIN32
+	// The standard Windows includes.
+	#define WIN32_LEAN_AND_MEAN
+	#define NOMINMAX
+	#include <Windows.h>
+	#include <psapi.h>
+#endif /* _WIN32 */
 
 namespace Slic3r { 
 namespace GUI {
@@ -36,6 +45,31 @@ std::string get_main_info(bool format_as_html)
         "System Version:      "
 #endif
         << b_end << wxPlatformInfo::Get().GetOperatingSystemDescription() << line_end;
+    out << b_start << "Total RAM size [MB]: "  << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory());
+
+    return out.str();
+}
+
+std::string get_mem_info(bool format_as_html)
+{
+    std::stringstream out;
+
+    std::string b_start  = format_as_html ? "<b>"  : "";
+    std::string b_end    = format_as_html ? "</b>" : "";
+    std::string line_end = format_as_html ? "<br>" : "\n";
+
+    std::string mem_info_str = log_memory_info(true);
+    std::istringstream mem_info(mem_info_str);
+    std::string value;
+    while (std::getline(mem_info, value, ':')) {
+        out << b_start << (value+": ") << b_end;
+        std::getline(mem_info, value, ';');
+        out << value << line_end;
+    }
+
+    const Slic3r::UndoRedo::Stack &stack = wxGetApp().plater()->undo_redo_stack_main();
+    out << b_start << "RAM size reserved for the Undo / Redo stack: "  << b_end << Slic3r::format_memsize_MB(stack.get_memory_limit()) << line_end;
+    out << b_start << "RAM size occupied by the Undo / Redo stack: "  << b_end << Slic3r::format_memsize_MB(stack.memsize()) << line_end << line_end;
 
     return out.str();
 }
@@ -111,7 +145,7 @@ SysInfoDialog::SysInfoDialog()
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
-            _3DScene::get_gl_info(true, true));
+            get_mem_info(true) + "<br>" + _3DScene::get_gl_info(true, true));
         m_opengl_info_html->SetPage(text);
         main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }

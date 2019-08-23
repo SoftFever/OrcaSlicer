@@ -1,5 +1,5 @@
-#include "igl/random_points_on_mesh.h"
-#include "igl/AABB.h"
+//#include "igl/random_points_on_mesh.h"
+//#include "igl/AABB.h"
 
 #include <tbb/parallel_for.h>
 
@@ -59,8 +59,6 @@ SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3
 void SLAAutoSupports::project_onto_mesh(std::vector<sla::SupportPoint>& points) const
 {
     // The function  makes sure that all the points are really exactly placed on the mesh.
-    igl::Hit hit_up{0, 0, 0.f, 0.f, 0.f};
-    igl::Hit hit_down{0, 0, 0.f, 0.f, 0.f};
 
     // Use a reasonable granularity to account for the worker thread synchronization cost.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, points.size(), 64),
@@ -103,7 +101,7 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
     std::vector<SLAAutoSupports::MyLayer> layers;
     layers.reserve(slices.size());
     for (size_t i = 0; i < slices.size(); ++ i)
-		layers.emplace_back(i, heights[i]);
+        layers.emplace_back(i, heights[i]);
 
     // FIXME: calculate actual pixel area from printer config:
     //const float pixel_area = pow(wxGetApp().preset_bundle->project_config.option<ConfigOptionFloat>("display_width") / wxGetApp().preset_bundle->project_config.option<ConfigOptionInt>("display_pixels_x"), 2.f); //
@@ -116,48 +114,47 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
                 if ((layer_id % 8) == 0)
                     // Don't call the following function too often as it flushes CPU write caches due to synchronization primitves.
                     throw_on_cancel();
-				SLAAutoSupports::MyLayer &layer   = layers[layer_id];
+                SLAAutoSupports::MyLayer &layer   = layers[layer_id];
                 const ExPolygons		 &islands = slices[layer_id];
                 //FIXME WTF?
                 const float height = (layer_id>2 ? heights[layer_id-3] : heights[0]-(heights[1]-heights[0]));
-				layer.islands.reserve(islands.size());
+                layer.islands.reserve(islands.size());
                 for (const ExPolygon &island : islands) {
                     float area = float(island.area() * SCALING_FACTOR * SCALING_FACTOR);
                     if (area >= pixel_area)
                         //FIXME this is not a correct centroid of a polygon with holes.
-						layer.islands.emplace_back(layer, island, get_extents(island.contour), Slic3r::unscale(island.contour.centroid()).cast<float>(), area, height);
+                        layer.islands.emplace_back(layer, island, get_extents(island.contour), Slic3r::unscale(island.contour.centroid()).cast<float>(), area, height);
                 }
             }
         });
 
-	// Calculate overlap of successive layers. Link overlapping islands.
-	tbb::parallel_for(tbb::blocked_range<size_t>(1, layers.size(), 8),
-		[&layers, &heights, throw_on_cancel](const tbb::blocked_range<size_t>& range) {
-		for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
-			if ((layer_id % 2) == 0)
-				// Don't call the following function too often as it flushes CPU write caches due to synchronization primitves.
-				throw_on_cancel();
-			SLAAutoSupports::MyLayer &layer_above = layers[layer_id];
-			SLAAutoSupports::MyLayer &layer_below = layers[layer_id - 1];
+    // Calculate overlap of successive layers. Link overlapping islands.
+    tbb::parallel_for(tbb::blocked_range<size_t>(1, layers.size(), 8),
+        [&layers, &heights, throw_on_cancel](const tbb::blocked_range<size_t>& range) {
+        for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+            if ((layer_id % 2) == 0)
+                // Don't call the following function too often as it flushes CPU write caches due to synchronization primitves.
+                throw_on_cancel();
+            SLAAutoSupports::MyLayer &layer_above = layers[layer_id];
+            SLAAutoSupports::MyLayer &layer_below = layers[layer_id - 1];
             //FIXME WTF?
-            const float height = (layer_id>2 ? heights[layer_id-3] : heights[0]-(heights[1]-heights[0]));
             const float layer_height = (layer_id!=0 ? heights[layer_id]-heights[layer_id-1] : heights[0]);
             const float safe_angle = 5.f * (float(M_PI)/180.f); // smaller number - less supports
             const float between_layers_offset =  float(scale_(layer_height / std::tan(safe_angle)));
             const float slope_angle = 75.f * (float(M_PI)/180.f); // smaller number - less supports
             const float slope_offset = float(scale_(layer_height / std::tan(slope_angle)));
-			//FIXME This has a quadratic time complexity, it will be excessively slow for many tiny islands.
-			for (SLAAutoSupports::Structure &top : layer_above.islands) {
-				for (SLAAutoSupports::Structure &bottom : layer_below.islands) {
+            //FIXME This has a quadratic time complexity, it will be excessively slow for many tiny islands.
+            for (SLAAutoSupports::Structure &top : layer_above.islands) {
+                for (SLAAutoSupports::Structure &bottom : layer_below.islands) {
                     float overlap_area = top.overlap_area(bottom);
                     if (overlap_area > 0) {
-						top.islands_below.emplace_back(&bottom, overlap_area);
+                        top.islands_below.emplace_back(&bottom, overlap_area);
                         bottom.islands_above.emplace_back(&top, overlap_area);
                     }
                 }
                 if (! top.islands_below.empty()) {
                     Polygons top_polygons    = to_polygons(*top.polygon);
-					Polygons bottom_polygons = top.polygons_below();
+                    Polygons bottom_polygons = top.polygons_below();
                     top.overhangs = diff_ex(top_polygons, bottom_polygons);
                     if (! top.overhangs.empty()) {
                         top.overhangs_area = 0.f;
@@ -167,21 +164,21 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
                             expolys_with_areas.emplace_back(&ex, area);
                             top.overhangs_area += area;
                         }
-                        std::sort(expolys_with_areas.begin(), expolys_with_areas.end(), 
+                        std::sort(expolys_with_areas.begin(), expolys_with_areas.end(),
                             [](const std::pair<ExPolygon*, float> &p1, const std::pair<ExPolygon*, float> &p2)
                                 { return p1.second > p2.second; });
                         ExPolygons overhangs_sorted;
                         for (auto &p : expolys_with_areas)
                             overhangs_sorted.emplace_back(std::move(*p.first));
-						top.overhangs = std::move(overhangs_sorted);
+                        top.overhangs = std::move(overhangs_sorted);
                         top.overhangs_area *= float(SCALING_FACTOR * SCALING_FACTOR);
                         top.overhangs_slopes = diff_ex(top_polygons, offset(bottom_polygons, slope_offset));
                         top.dangling_areas = diff_ex(top_polygons, offset(bottom_polygons, between_layers_offset));
                     }
                 }
-			}
-		}
-	});
+            }
+        }
+    });
 
     return layers;
 }
@@ -210,14 +207,14 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                 support_force_bottom[i] = layer_bottom->islands[i].supports_force_total();
         }
         for (Structure &top : layer_top->islands)
-			for (Structure::Link &bottom_link : top.islands_below) {
+            for (Structure::Link &bottom_link : top.islands_below) {
                 Structure &bottom = *bottom_link.island;
-                float centroids_dist = (bottom.centroid - top.centroid).norm();
+                //float centroids_dist = (bottom.centroid - top.centroid).norm();
                 // Penalization resulting from centroid offset:
 //                  bottom.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * centroids_dist * centroids_dist / bottom.area));
                 float &support_force = support_force_bottom[&bottom - layer_bottom->islands.data()];
 //FIXME this condition does not reflect a bifurcation into a one large island and one tiny island well, it incorrectly resets the support force to zero.
-// One should rather work with the overlap area vs overhang area.                
+// One should rather work with the overlap area vs overhang area.
 //                support_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom.area));
                 // Penalization resulting from increasing polygon area:
                 support_force *= std::min(1.f, 20.f * bottom.area / top.area);
@@ -227,10 +224,10 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
             for (Structure &below : layer_bottom->islands) {
                 float below_support_force = support_force_bottom[&below - layer_bottom->islands.data()];
                 float above_overlap_area = 0.f;
-				for (Structure::Link &above_link : below.islands_above)
-					above_overlap_area += above_link.overlap_area;
-				for (Structure::Link &above_link : below.islands_above)
-					above_link.island->supports_force_inherited += below_support_force * above_link.overlap_area / above_overlap_area;
+                for (Structure::Link &above_link : below.islands_above)
+                    above_overlap_area += above_link.overlap_area;
+                for (Structure::Link &above_link : below.islands_above)
+                    above_link.island->supports_force_inherited += below_support_force * above_link.overlap_area / above_overlap_area;
             }
         }
         // Now iterate over all polygons and append new points if needed.
@@ -239,7 +236,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
 //            s.supports_force_inherited /= std::max(1.f, (layer_height / 0.3f) * e_area / s.area);
             s.supports_force_inherited /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
 
-            float force_deficit = s.support_force_deficit(m_config.tear_pressure());
+            //float force_deficit = s.support_force_deficit(m_config.tear_pressure());
             if (s.islands_below.empty()) { // completely new island - needs support no doubt
                 uniformly_cover({ *s.polygon }, s, point_grid, true);
             } else if (! s.dangling_areas.empty()) {
@@ -269,7 +266,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
 }
 
 std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_mm2, std::mt19937 &rng)
-{    
+{
     // Triangulate the polygon with holes into triplets of 3D points.
     std::vector<Vec2f> triangles = Slic3r::triangulate_expolygon_2f(expoly);
 
@@ -350,7 +347,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
         sample.cell_id = ((pt - corner_min) / radius).cast<int>();
         raw_samples_sorted.emplace_back(sample);
     }
-    std::sort(raw_samples_sorted.begin(), raw_samples_sorted.end(), [](const RawSample &lhs, const RawSample &rhs) 
+    std::sort(raw_samples_sorted.begin(), raw_samples_sorted.end(), [](const RawSample &lhs, const RawSample &rhs)
         { return lhs.cell_id.x() < rhs.cell_id.x() || (lhs.cell_id.x() == rhs.cell_id.x() && lhs.cell_id.y() < rhs.cell_id.y()); });
 
     struct PoissonDiskGridEntry {
@@ -380,7 +377,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     {
         typename Cells::iterator last_cell_id_it;
         Vec2i           last_cell_id(-1, -1);
-        for (int i = 0; i < raw_samples_sorted.size(); ++ i) {
+        for (size_t i = 0; i < raw_samples_sorted.size(); ++ i) {
             const RawSample &sample = raw_samples_sorted[i];
             if (sample.cell_id == last_cell_id) {
                 // This sample is in the same cell as the previous, so just increase the count.  Cells are
@@ -389,7 +386,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
             } else {
                 // This is a new cell.
                 PoissonDiskGridEntry data;
-                data.first_sample_idx = i;
+                data.first_sample_idx = int(i);
                 data.sample_cnt       = 1;
                 auto result     = cells.insert({sample.cell_id, data});
                 last_cell_id    = sample.cell_id;
@@ -467,10 +464,10 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
     //FIXME share the random generator. The random generator may be not so cheap to initialize, also we don't want the random generator to be restarted for each polygon.
     std::random_device  rd;
     std::mt19937        rng(rd());
-	std::vector<Vec2f>  raw_samples = sample_expolygon_with_boundary(islands, samples_per_mm2, 5.f / poisson_radius, rng);
+    std::vector<Vec2f>  raw_samples = sample_expolygon_with_boundary(islands, samples_per_mm2, 5.f / poisson_radius, rng);
     std::vector<Vec2f>  poisson_samples;
     for (size_t iter = 0; iter < 4; ++ iter) {
-        poisson_samples = poisson_disk_from_samples(raw_samples, poisson_radius, 
+        poisson_samples = poisson_disk_from_samples(raw_samples, poisson_radius,
             [&structure, &grid3d, min_spacing](const Vec2f &pos) {
                 return grid3d.collides_with(pos, &structure, min_spacing);
             });
@@ -484,21 +481,21 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
     }
 
 #ifdef SLA_AUTOSUPPORTS_DEBUG
-	{
-		static int irun = 0;
-		Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(islands));
+    {
+        static int irun = 0;
+        Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(islands));
         for (const ExPolygon &island : islands)
             svg.draw(island);
-		for (const Vec2f &pt : raw_samples)
-			svg.draw(Point(scale_(pt.x()), scale_(pt.y())), "red");
-		for (const Vec2f &pt : poisson_samples)
-			svg.draw(Point(scale_(pt.x()), scale_(pt.y())), "blue");
-	}
+        for (const Vec2f &pt : raw_samples)
+            svg.draw(Point(scale_(pt.x()), scale_(pt.y())), "red");
+        for (const Vec2f &pt : poisson_samples)
+            svg.draw(Point(scale_(pt.x()), scale_(pt.y())), "blue");
+    }
 #endif /* NDEBUG */
 
 //    assert(! poisson_samples.empty());
     if (poisson_samples_target < poisson_samples.size()) {
-		std::shuffle(poisson_samples.begin(), poisson_samples.end(), rng);
+        std::shuffle(poisson_samples.begin(), poisson_samples.end(), rng);
         poisson_samples.erase(poisson_samples.begin() + poisson_samples_target, poisson_samples.end());
     }
     for (const Vec2f &pt : poisson_samples) {

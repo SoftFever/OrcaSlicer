@@ -21,19 +21,13 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
 public:
-    TriangleMesh() : repaired(false) { stl_initialize(&this->stl); }
+    TriangleMesh() : repaired(false) {}
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
-    TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_initialize(&this->stl); *this = other; }
-    TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_initialize(&this->stl); this->swap(other); }
-    ~TriangleMesh() { clear(); }
-    TriangleMesh& operator=(const TriangleMesh &other);
-    TriangleMesh& operator=(TriangleMesh &&other) { this->swap(other); return *this; }
-    void clear() { stl_close(&this->stl); this->repaired = false; }
-    void swap(TriangleMesh &other) { std::swap(this->stl, other.stl); std::swap(this->repaired, other.repaired); }
-    void ReadSTLFile(const char* input_file) { stl_open(&stl, input_file); }
-    void write_ascii(const char* output_file) { stl_write_ascii(&this->stl, output_file, ""); }
-    void write_binary(const char* output_file) { stl_write_binary(&this->stl, output_file, ""); }
-    void repair();
+	void clear() { this->stl.clear(); this->its.clear(); this->repaired = false; }
+    bool ReadSTLFile(const char* input_file) { return stl_open(&stl, input_file); }
+    bool write_ascii(const char* output_file) { return stl_write_ascii(&this->stl, output_file, ""); }
+    bool write_binary(const char* output_file) { return stl_write_binary(&this->stl, output_file, ""); }
+    void repair(bool update_shared_vertices = true);
     float volume();
     void check_topology();
     bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == (int)this->stl.stats.number_of_facets; }
@@ -58,7 +52,7 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
-    const float* first_vertex() const { return this->stl.facet_start ? &this->stl.facet_start->vertex[0](0) : nullptr; }
+    const float* first_vertex() const { return this->stl.facet_start.empty() ? nullptr : &this->stl.facet_start.front().vertex[0](0); }
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
@@ -69,12 +63,19 @@ public:
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();
-    bool   has_shared_vertices() const { return stl.v_shared != NULL; }
+    bool   has_shared_vertices() const { return ! this->its.vertices.empty(); }
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
     bool is_splittable() const;
+    // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
+    size_t memsize() const;
+    // Release optional data from the mesh if the object is on the Undo / Redo stack only. Returns the amount of memory released.
+    size_t release_optional();
+	// Restore optional data possibly released by release_optional().
+	void restore_optional();
 
     stl_file stl;
+    indexed_triangle_set its;
     bool repaired;
 
 private:
@@ -198,6 +199,26 @@ TriangleMesh make_cylinder(double r, double h, double fa=(2*PI/360));
 
 TriangleMesh make_sphere(double rho, double fa=(2*PI/360));
 
+}
+
+// Serialization through the Cereal library
+#include <cereal/access.hpp>
+namespace cereal {
+	template <class Archive> struct specialize<Archive, Slic3r::TriangleMesh, cereal::specialization::non_member_load_save> {};
+	template<class Archive> void load(Archive &archive, Slic3r::TriangleMesh &mesh) {
+        stl_file &stl = mesh.stl;
+        stl.stats.type = inmemory;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+        stl_allocate(&stl);
+		archive.loadBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+        stl_get_size(&stl);
+        mesh.repair();
+	}
+	template<class Archive> void save(Archive &archive, const Slic3r::TriangleMesh &mesh) {
+		const stl_file& stl = mesh.stl;
+		archive(stl.stats.number_of_facets, stl.stats.original_num_facets);
+		archive.saveBinary((char*)stl.facet_start.data(), stl.facet_start.size() * 50);
+	}
 }
 
 #endif

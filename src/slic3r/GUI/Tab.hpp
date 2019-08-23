@@ -142,6 +142,12 @@ protected:
 	PresetDependencies 	m_compatible_printers;
 	PresetDependencies 	m_compatible_prints;
 
+    /* Indicates, that default preset or preset inherited from default is selected
+     * This value is used for a options color updating 
+     * (use green color only for options, which values are equal to system values)
+     */
+    bool                    m_is_default_preset {false};
+
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
 	ScalableButton*			m_question_btn;
@@ -212,7 +218,7 @@ protected:
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
     bool                m_complited { false };
-    ConfigOptionMode    m_mode = comSimple;
+    ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -331,6 +337,12 @@ class TabFilament : public Tab
 {
 	ogStaticText*	m_volumetric_speed_description_line;
 	ogStaticText*	m_cooling_description_line;
+
+    void            add_filament_overrides_page();
+    void            update_filament_overrides_page();
+	void 			update_volumetric_flow_preset_hints();
+
+    std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
 	TabFilament(wxNotebook* parent) : 
 // 		Tab(parent, _(L("Filament Settings")), L("filament")) {}
@@ -359,6 +371,7 @@ public:
 	wxButton*	m_serial_test_btn = nullptr;
 	ScalableButton*	m_print_host_test_btn = nullptr;
 	ScalableButton*	m_printhost_browse_btn = nullptr;
+	ScalableButton*	m_reset_to_filament_color = nullptr;
 
 	size_t		m_extruders_count;
 	size_t		m_extruders_count_old = 0;

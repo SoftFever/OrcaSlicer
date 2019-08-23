@@ -6,7 +6,8 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
-#include "slic3r/GUI/3DScene.hpp"
+#include "3DScene.hpp"
+#include "Camera.hpp"
 
 #include <GL/glew.h>
 
@@ -47,6 +48,26 @@ Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_trans
 {
 }
 
+bool Selection::Clipboard::is_sla_compliant() const
+{
+    if (m_mode == Selection::Volume)
+        return false;
+
+    for (const ModelObject* o : m_model.objects)
+    {
+        if (o->is_multiparts())
+            return false;
+
+        for (const ModelVolume* v : o->volumes)
+        {
+            if (v->is_modifier())
+                return false;
+        }
+    }
+
+    return true;
+}
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -79,14 +100,15 @@ void Selection::set_volumes(GLVolumePtrs* volumes)
     update_valid();
 }
 
-bool Selection::init(bool useVBOs)
+// Init shall be called from the OpenGL render function, so that the OpenGL context is initialized!
+bool Selection::init()
 {
-    if (!m_arrow.init(useVBOs))
+    if (!m_arrow.init())
         return false;
 
     m_arrow.set_scale(5.0 * Vec3d::Ones());
 
-    if (!m_curved_arrow.init(useVBOs))
+    if (!m_curved_arrow.init())
         return false;
 
     m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
@@ -119,11 +141,13 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     needs_reset |= as_single_selection && !is_any_modifier() && volume->is_modifier;
     needs_reset |= is_any_modifier() && !volume->is_modifier;
 
-    if (needs_reset)
-        clear();
-
     if (!already_contained || needs_reset)
     {
+        wxGetApp().plater()->take_snapshot(_(L("Selection-Add")));
+
+        if (needs_reset)
+            clear();
+
         if (!keep_instance_mode)
             m_mode = volume->is_modifier ? Volume : Instance;
     }
@@ -142,7 +166,8 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     }
     case Instance:
     {
-        do_add_instance(volume->object_idx(), volume->instance_idx());
+        Plater::SuppressSnapshots suppress(wxGetApp().plater());
+        add_instance(volume->object_idx(), volume->instance_idx(), as_single_selection);
         break;
     }
     }
@@ -155,6 +180,11 @@ void Selection::remove(unsigned int volume_idx)
 {
     if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
         return;
+
+    if (!contains_volume(volume_idx))
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove")));
 
     GLVolume* volume = (*m_volumes)[volume_idx];
 
@@ -181,13 +211,20 @@ void Selection::add_object(unsigned int object_idx, bool as_single_selection)
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(object_idx);
+    if ((!as_single_selection && contains_all_volumes(volume_idxs)) ||
+        (as_single_selection && matches(volume_idxs)))
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Object")));
+
     // resets the current list if needed
     if (as_single_selection)
         clear();
 
     m_mode = Instance;
 
-    do_add_object(object_idx);
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -197,6 +234,8 @@ void Selection::remove_object(unsigned int object_idx)
 {
     if (!m_valid)
         return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Object")));
 
     do_remove_object(object_idx);
 
@@ -209,13 +248,20 @@ void Selection::add_instance(unsigned int object_idx, unsigned int instance_idx,
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_instance(object_idx, instance_idx);
+    if ((!as_single_selection && contains_all_volumes(volume_idxs)) ||
+        (as_single_selection && matches(volume_idxs)))
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Instance")));
+
     // resets the current list if needed
     if (as_single_selection)
         clear();
 
     m_mode = Instance;
 
-    do_add_instance(object_idx, instance_idx);
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -225,6 +271,8 @@ void Selection::remove_instance(unsigned int object_idx, unsigned int instance_i
 {
     if (!m_valid)
         return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Instance")));
 
     do_remove_instance(object_idx, instance_idx);
 
@@ -237,21 +285,20 @@ void Selection::add_volume(unsigned int object_idx, unsigned int volume_idx, int
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_volume(object_idx, instance_idx, volume_idx);
+    if ((!as_single_selection && contains_all_volumes(volume_idxs)) ||
+        (as_single_selection && matches(volume_idxs)))
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Volume")));
+
     // resets the current list if needed
     if (as_single_selection)
         clear();
 
     m_mode = Volume;
 
-    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
-    {
-        GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
-        {
-            if ((instance_idx != -1) && (v->instance_idx() == instance_idx))
-                do_add_volume(i);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -261,6 +308,8 @@ void Selection::remove_volume(unsigned int object_idx, unsigned int volume_idx)
 {
     if (!m_valid)
         return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Volume")));
 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
@@ -273,10 +322,66 @@ void Selection::remove_volume(unsigned int object_idx, unsigned int volume_idx)
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::add_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs, bool as_single_selection)
+{
+    if (!m_valid)
+        return;
+
+    if ((!as_single_selection && contains_all_volumes(volume_idxs)) ||
+        (as_single_selection && matches(volume_idxs)))
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Volumes")));
+
+    // resets the current list if needed
+    if (as_single_selection)
+        clear();
+
+    m_mode = mode;
+    for (unsigned int i : volume_idxs)
+    {
+        if (i < (unsigned int)m_volumes->size())
+            do_add_volume(i);
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
+void Selection::remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs)
+{
+    if (!m_valid)
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Volumes")));
+
+    m_mode = mode;
+    for (unsigned int i : volume_idxs)
+    {
+        if (i < (unsigned int)m_volumes->size())
+            do_remove_volume(i);
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
 void Selection::add_all()
 {
     if (!m_valid)
         return;
+
+    unsigned int count = 0;
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        if (!(*m_volumes)[i]->is_wipe_tower)
+            ++count;
+    }
+
+    if ((unsigned int)m_list.size() == count)
+        return;
+    
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All")));
 
     m_mode = Instance;
     clear();
@@ -291,9 +396,45 @@ void Selection::add_all()
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::remove_all()
+{
+    if (!m_valid)
+        return;
+
+    if (is_empty())
+        return;
+  
+// Not taking the snapshot with non-empty Redo stack will likely be more confusing than losing the Redo stack.
+// Let's wait for user feedback.
+//    if (!wxGetApp().plater()->can_redo())
+        wxGetApp().plater()->take_snapshot(_(L("Selection-Remove All")));
+
+    m_mode = Instance;
+    clear();
+}
+
+void Selection::set_deserialized(EMode mode, const std::vector<std::pair<size_t, size_t>> &volumes_and_instances)
+{
+    if (! m_valid)
+        return;
+
+	m_mode = mode;
+    for (unsigned int i : m_list)
+        (*m_volumes)[i]->selected = false;
+    m_list.clear();
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++ i)
+		if (std::binary_search(volumes_and_instances.begin(), volumes_and_instances.end(), (*m_volumes)[i]->geometry_id))
+			this->do_add_volume(i);
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
 void Selection::clear()
 {
     if (!m_valid)
+        return;
+
+    if (m_list.empty())
         return;
 
     for (unsigned int i : m_list)
@@ -308,6 +449,9 @@ void Selection::clear()
 
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
+
+    // #et_FIXME fake KillFocus from sidebar
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 }
 
 // Update the selection based on the new instance IDs.
@@ -380,6 +524,57 @@ bool Selection::is_from_single_object() const
 {
     int idx = get_object_idx();
     return (0 <= idx) && (idx < 1000);
+}
+
+bool Selection::is_sla_compliant() const
+{
+    if (m_mode == Volume)
+        return false;
+
+    for (unsigned int i : m_list)
+    {
+        if ((*m_volumes)[i]->is_modifier)
+            return false;
+    }
+
+    return true;
+}
+
+bool Selection::contains_all_volumes(const std::vector<unsigned int>& volume_idxs) const
+{
+    for (unsigned int i : volume_idxs)
+    {
+        if (m_list.find(i) == m_list.end())
+            return false;
+    }
+
+    return true;
+}
+
+bool Selection::contains_any_volume(const std::vector<unsigned int>& volume_idxs) const
+{
+    for (unsigned int i : volume_idxs)
+    {
+        if (m_list.find(i) != m_list.end())
+            return true;
+    }
+
+    return false;
+}
+
+bool Selection::matches(const std::vector<unsigned int>& volume_idxs) const
+{
+    unsigned int count = 0;
+
+    for (unsigned int i : volume_idxs)
+    {
+        if (m_list.find(i) != m_list.end())
+            ++count;
+        else
+            return false;
+    }
+
+    return count == (unsigned int)m_list.size();
 }
 
 bool Selection::requires_uniform_scale() const
@@ -749,6 +944,8 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0)
             {
+                wxGetApp().plater()->take_snapshot(_(L("Scale To Fit")));
+
                 TransformationType type;
                 type.set_world();
                 type.set_relative();
@@ -757,12 +954,12 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
                 // apply scale
                 start_dragging();
                 scale(s * Vec3d::Ones(), type);
-                wxGetApp().plater()->canvas3D()->do_scale();
+                wxGetApp().plater()->canvas3D()->do_scale(L("")); // avoid storing another snapshot
 
                 // center selection on print bed
                 start_dragging();
                 translate(print_volume.center() - get_bounding_box().center());
-                wxGetApp().plater()->canvas3D()->do_move();
+                wxGetApp().plater()->canvas3D()->do_move(L("")); // avoid storing another snapshot
 
                 wxGetApp().obj_manipul()->set_dirty();
             }
@@ -1033,61 +1230,68 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field, const Shader& shader) const
 {
     if (sidebar_field.empty())
         return;
 
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (!boost::starts_with(sidebar_field, "layer"))
+    {
+        shader.start_using();
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+        glsafe(::glEnable(GL_LIGHTING));
+    }
 
-    glsafe(::glEnable(GL_LIGHTING));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
 
-    const Vec3d& center = get_bounding_box().center();
-
-    if (is_single_full_instance() && ! wxGetApp().obj_manipul()->get_world_coordinates())
+    if (!boost::starts_with(sidebar_field, "layer"))
     {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        if (!boost::starts_with(sidebar_field, "position"))
+        const Vec3d& center = get_bounding_box().center();
+
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates())
         {
-            Transform3d orient_matrix = Transform3d::Identity();
-            if (boost::starts_with(sidebar_field, "scale"))
-                orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-            else if (boost::starts_with(sidebar_field, "rotation"))
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            if (!boost::starts_with(sidebar_field, "position"))
             {
-                if (boost::ends_with(sidebar_field, "x"))
+                Transform3d orient_matrix = Transform3d::Identity();
+                if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                else if (boost::ends_with(sidebar_field, "y"))
+                else if (boost::starts_with(sidebar_field, "rotation"))
                 {
-                    const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
-                    if (rotation(0) == 0.0)
+                    if (boost::ends_with(sidebar_field, "x"))
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                    else
-                        orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                    else if (boost::ends_with(sidebar_field, "y"))
+                    {
+                        const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
+                        if (rotation(0) == 0.0)
+                            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                        else
+                            orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                    }
                 }
+
+                glsafe(::glMultMatrixd(orient_matrix.data()));
             }
+        }
+        else if (is_single_volume() || is_single_modifier())
+        {
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            if (!boost::starts_with(sidebar_field, "position"))
+                orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
             glsafe(::glMultMatrixd(orient_matrix.data()));
         }
-    }
-    else if (is_single_volume() || is_single_modifier())
-    {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-        if (!boost::starts_with(sidebar_field, "position"))
-            orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
-
-        glsafe(::glMultMatrixd(orient_matrix.data()));
-    }
-    else
-    {
-        glsafe(::glTranslated(center(0), center(1), center(2)));
-        if (requires_local_axes())
+        else
         {
-            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-            glsafe(::glMultMatrixd(orient_matrix.data()));
+            glsafe(::glTranslated(center(0), center(1), center(2)));
+            if (requires_local_axes())
+            {
+                Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                glsafe(::glMultMatrixd(orient_matrix.data()));
+            }
         }
     }
 
@@ -1099,10 +1303,16 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
         render_sidebar_scale_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "size"))
         render_sidebar_size_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "layer"))
+        render_sidebar_layers_hints(sidebar_field);
 
     glsafe(::glPopMatrix());
 
-    glsafe(::glDisable(GL_LIGHTING));
+    if (!boost::starts_with(sidebar_field, "layer"))
+    {
+        glsafe(::glDisable(GL_LIGHTING));
+        shader.stop_using();
+    }
 }
 
 bool Selection::requires_local_axes() const
@@ -1123,10 +1333,10 @@ void Selection::copy_to_clipboard()
         ModelObject* dst_object = m_clipboard.add_object();
         dst_object->name                 = src_object->name;
         dst_object->input_file           = src_object->input_file;
-        dst_object->config               = src_object->config;
+		static_cast<DynamicPrintConfig&>(dst_object->config) = static_cast<const DynamicPrintConfig&>(src_object->config);
         dst_object->sla_support_points   = src_object->sla_support_points;
         dst_object->sla_points_status    = src_object->sla_points_status;
-        dst_object->layer_height_ranges  = src_object->layer_height_ranges;
+        dst_object->layer_config_ranges  = src_object->layer_config_ranges;     // #ys_FIXME_experiment
         dst_object->layer_height_profile = src_object->layer_height_profile;
         dst_object->origin_translation   = src_object->origin_translation;
 
@@ -1178,6 +1388,110 @@ void Selection::paste_from_clipboard()
 
         break;
     }
+    }
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_object(unsigned int object_idx) const
+{
+    std::vector<unsigned int> idxs;
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        if ((*m_volumes)[i]->object_idx() == object_idx)
+            idxs.push_back(i);
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_instance(unsigned int object_idx, unsigned int instance_idx) const
+{
+    std::vector<unsigned int> idxs;
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+            idxs.push_back(i);
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_volume(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx) const
+{
+    std::vector<unsigned int> idxs;
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+        {
+            if ((instance_idx != -1) && (v->instance_idx() == instance_idx))
+                idxs.push_back(i);
+        }
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_missing_volume_idxs_from(const std::vector<unsigned int>& volume_idxs) const
+{
+    std::vector<unsigned int> idxs;
+
+    for (unsigned int i : m_list)
+    {
+        std::vector<unsigned int>::const_iterator it = std::find(volume_idxs.begin(), volume_idxs.end(), i);
+        if (it == volume_idxs.end())
+            idxs.push_back(i);
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_unselected_volume_idxs_from(const std::vector<unsigned int>& volume_idxs) const
+{
+    std::vector<unsigned int> idxs;
+
+    for (unsigned int i : volume_idxs)
+    {
+        if (m_list.find(i) == m_list.end())
+            idxs.push_back(i);
+    }
+
+    return idxs;
+}
+
+void Selection::toggle_instance_printable_state()
+{
+    int instance_idx = get_instance_idx();
+    if (instance_idx == -1)
+        return;
+
+    int obj_idx = get_object_idx();
+    if ((0 <= obj_idx) && (obj_idx < (int)m_model->objects.size()))
+    {
+        ModelObject* model_object = m_model->objects[obj_idx];
+        if ((0 <= instance_idx) && (instance_idx < (int)model_object->instances.size()))
+        {
+            ModelInstance* instance = model_object->instances[instance_idx];
+            const bool printable = !instance->printable;
+
+            wxString snapshot_text = model_object->instances.size() == 1 ? wxString::Format("%s %s",
+                                     printable ? _(L("Set Printable")) : _(L("Set Unprintable")), model_object->name) :
+                                     printable ? _(L("Set Printable Instance")) : _(L("Set Unprintable Instance"));
+            wxGetApp().plater()->take_snapshot(snapshot_text);
+
+            instance->printable = printable;
+
+            for (GLVolume* volume : *m_volumes)
+            {
+                if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == instance_idx))
+                    volume->printable = instance->printable;
+            }
+
+            wxGetApp().obj_list()->update_printable_state(obj_idx, instance_idx);
+        }
     }
 }
 
@@ -1427,22 +1741,11 @@ void Selection::do_add_volume(unsigned int volume_idx)
     (*m_volumes)[volume_idx]->selected = true;
 }
 
-void Selection::do_add_instance(unsigned int object_idx, unsigned int instance_idx)
+void Selection::do_add_volumes(const std::vector<unsigned int>& volume_idxs)
 {
-    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    for (unsigned int i : volume_idxs)
     {
-        GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-            do_add_volume(i);
-    }
-}
-
-void Selection::do_add_object(unsigned int object_idx)
-{
-    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
-    {
-        GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() == object_idx)
+        if (i < (unsigned int)m_volumes->size())
             do_add_volume(i);
     }
 }
@@ -1672,6 +1975,78 @@ void Selection::render_sidebar_size_hints(const std::string& sidebar_field) cons
     render_sidebar_scale_hints(sidebar_field);
 }
 
+void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+{
+    static const double Margin = 10.0;
+
+    std::string field = sidebar_field;
+
+    // extract max_z
+    std::string::size_type pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    double max_z = std::stod(field.substr(pos + 1));
+
+    // extract min_z
+    field = field.substr(0, pos);
+    pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    double min_z = std::stod(field.substr(pos + 1));
+
+    // extract type
+    field = field.substr(0, pos);
+    pos = field.rfind("_");
+    if (pos == std::string::npos)
+        return;
+
+    int type = std::stoi(field.substr(pos + 1));
+
+    const BoundingBoxf3& box = get_bounding_box();
+
+    const float min_x = box.min(0) - Margin;
+    const float max_x = box.max(0) + Margin;
+    const float min_y = box.min(1) - Margin;
+    const float max_y = box.max(1) + Margin;
+
+    // view dependend order of rendering to keep correct transparency
+    bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
+    float z1 = camera_on_top ? min_z : max_z;
+    float z2 = camera_on_top ? max_z : min_z;
+
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+    ::glBegin(GL_QUADS);
+    if ((camera_on_top && (type == 1)) || (!camera_on_top && (type == 2)))
+        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+    else
+        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glVertex3f(min_x, min_y, z1);
+    ::glVertex3f(max_x, min_y, z1);
+    ::glVertex3f(max_x, max_y, z1);
+    ::glVertex3f(min_x, max_y, z1);
+    glsafe(::glEnd());
+
+    ::glBegin(GL_QUADS);
+    if ((camera_on_top && (type == 2)) || (!camera_on_top && (type == 1)))
+        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+    else
+        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glVertex3f(min_x, min_y, z2);
+    ::glVertex3f(max_x, min_y, z2);
+    ::glVertex3f(max_x, max_y, z2);
+    ::glVertex3f(min_x, max_y, z2);
+    glsafe(::glEnd());
+
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_BLEND));
+}
+
 void Selection::render_sidebar_position_hint(Axis axis) const
 {
     m_arrow.set_color(AXES_COLOR[axis], 3);
@@ -1890,30 +2265,79 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
 void Selection::paste_volumes_from_clipboard()
 {
-    int obj_idx = get_object_idx();
-    if ((obj_idx < 0) || ((int)m_model->objects.size() <= obj_idx))
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
+    int dst_obj_idx = get_object_idx();
+    if ((dst_obj_idx < 0) || ((int)m_model->objects.size() <= dst_obj_idx))
+        return;
+
+    ModelObject* dst_object = m_model->objects[dst_obj_idx];
+
+    int dst_inst_idx = get_instance_idx();
+    if ((dst_inst_idx < 0) || ((int)dst_object->instances.size() <= dst_inst_idx))
         return;
 
     ModelObject* src_object = m_clipboard.get_object(0);
     if (src_object != nullptr)
     {
-        ModelObject* dst_object = m_model->objects[obj_idx];
+        ModelInstance* dst_instance = dst_object->instances[dst_inst_idx];
+        BoundingBoxf3 dst_instance_bb = dst_object->instance_bounding_box(dst_inst_idx);
+        Transform3d src_matrix = src_object->instances[0]->get_transformation().get_matrix(true);
+        Transform3d dst_matrix = dst_instance->get_transformation().get_matrix(true);
+        bool from_same_object = (src_object->input_file == dst_object->input_file) && src_matrix.isApprox(dst_matrix);
+
+        // used to keep relative position of multivolume selections when pasting from another object
+        BoundingBoxf3 total_bb;
 
         ModelVolumePtrs volumes;
         for (ModelVolume* src_volume : src_object->volumes)
         {
             ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
             dst_volume->set_new_unique_id();
-            double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-            dst_volume->translate(offset, offset, 0.0);
+            if (from_same_object)
+            {
+//                // if the volume comes from the same object, apply the offset in world system
+//                double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+//                dst_volume->translate(dst_matrix.inverse() * Vec3d(offset, offset, 0.0));
+            }
+            else
+            {
+                // if the volume comes from another object, apply the offset as done when adding modifiers
+                // see ObjectList::load_generic_subobject()
+                total_bb.merge(dst_volume->mesh().bounding_box().transformed(src_volume->get_matrix()));
+            }
+
             volumes.push_back(dst_volume);
+#ifdef _DEBUG
+		    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
         }
-        wxGetApp().obj_list()->paste_volumes_into_list(obj_idx, volumes);
+
+        // keeps relative position of multivolume selections
+        if (!from_same_object)
+        {
+            for (ModelVolume* v : volumes)
+            {
+                v->set_offset((v->get_offset() - total_bb.center()) + dst_matrix.inverse() * (Vec3d(dst_instance_bb.max(0), dst_instance_bb.min(1), dst_instance_bb.min(2)) + 0.5 * total_bb.size() - dst_instance->get_transformation().get_offset()));
+            }
+        }
+
+        wxGetApp().obj_list()->paste_volumes_into_list(dst_obj_idx, volumes);
     }
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 void Selection::paste_objects_from_clipboard()
 {
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
+
     std::vector<size_t> object_idxs;
     const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
     for (const ModelObject* src_object : src_objects)
@@ -1927,9 +2351,16 @@ void Selection::paste_objects_from_clipboard()
         }
 
         object_idxs.push_back(m_model->objects.size() - 1);
+#ifdef _DEBUG
+	    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
     }
 
     wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
+
+#ifdef _DEBUG
+    check_model_ids_validity(*m_model);
+#endif /* _DEBUG */
 }
 
 } // namespace GUI

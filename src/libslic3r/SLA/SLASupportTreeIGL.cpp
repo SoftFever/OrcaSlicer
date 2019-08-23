@@ -12,10 +12,18 @@
 #include "SLABoostAdapter.hpp"
 #include "boost/geometry/index/rtree.hpp"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
 #include <igl/ray_mesh_intersect.h>
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/remove_duplicate_vertices.h>
 #include <igl/signed_distance.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <tbb/parallel_for.h>
 
@@ -29,69 +37,137 @@ namespace sla {
 using igl::PI;
 
 /* **************************************************************************
- * SpatIndex implementation
+ * PointIndex implementation
  * ************************************************************************** */
 
-class SpatIndex::Impl {
+class PointIndex::Impl {
 public:
-    using BoostIndex = boost::geometry::index::rtree< SpatElement,
+    using BoostIndex = boost::geometry::index::rtree< PointIndexEl,
                        boost::geometry::index::rstar<16, 4> /* ? */ >;
 
     BoostIndex m_store;
 };
 
-SpatIndex::SpatIndex(): m_impl(new Impl()) {}
-SpatIndex::~SpatIndex() {}
+PointIndex::PointIndex(): m_impl(new Impl()) {}
+PointIndex::~PointIndex() {}
 
-SpatIndex::SpatIndex(const SpatIndex &cpy): m_impl(new Impl(*cpy.m_impl)) {}
-SpatIndex::SpatIndex(SpatIndex&& cpy): m_impl(std::move(cpy.m_impl)) {}
+PointIndex::PointIndex(const PointIndex &cpy): m_impl(new Impl(*cpy.m_impl)) {}
+PointIndex::PointIndex(PointIndex&& cpy): m_impl(std::move(cpy.m_impl)) {}
 
-SpatIndex& SpatIndex::operator=(const SpatIndex &cpy)
+PointIndex& PointIndex::operator=(const PointIndex &cpy)
 {
     m_impl.reset(new Impl(*cpy.m_impl));
     return *this;
 }
 
-SpatIndex& SpatIndex::operator=(SpatIndex &&cpy)
+PointIndex& PointIndex::operator=(PointIndex &&cpy)
 {
     m_impl.swap(cpy.m_impl);
     return *this;
 }
 
-void SpatIndex::insert(const SpatElement &el)
+void PointIndex::insert(const PointIndexEl &el)
 {
     m_impl->m_store.insert(el);
 }
 
-bool SpatIndex::remove(const SpatElement& el)
+bool PointIndex::remove(const PointIndexEl& el)
 {
     return m_impl->m_store.remove(el) == 1;
 }
 
-std::vector<SpatElement>
-SpatIndex::query(std::function<bool(const SpatElement &)> fn)
+std::vector<PointIndexEl>
+PointIndex::query(std::function<bool(const PointIndexEl &)> fn)
 {
     namespace bgi = boost::geometry::index;
 
-    std::vector<SpatElement> ret;
+    std::vector<PointIndexEl> ret;
     m_impl->m_store.query(bgi::satisfies(fn), std::back_inserter(ret));
     return ret;
 }
 
-std::vector<SpatElement> SpatIndex::nearest(const Vec3d &el, unsigned k = 1)
+std::vector<PointIndexEl> PointIndex::nearest(const Vec3d &el, unsigned k = 1)
 {
     namespace bgi = boost::geometry::index;
-    std::vector<SpatElement> ret; ret.reserve(k);
+    std::vector<PointIndexEl> ret; ret.reserve(k);
     m_impl->m_store.query(bgi::nearest(el, k), std::back_inserter(ret));
     return ret;
 }
 
-size_t SpatIndex::size() const
+size_t PointIndex::size() const
 {
     return m_impl->m_store.size();
 }
 
-void SpatIndex::foreach(std::function<void (const SpatElement &)> fn)
+void PointIndex::foreach(std::function<void (const PointIndexEl &)> fn)
+{
+    for(auto& el : m_impl->m_store) fn(el);
+}
+
+/* **************************************************************************
+ * BoxIndex implementation
+ * ************************************************************************** */
+
+class BoxIndex::Impl {
+public:
+    using BoostIndex = boost::geometry::index::
+        rtree<BoxIndexEl, boost::geometry::index::rstar<16, 4> /* ? */>;
+
+    BoostIndex m_store;
+};
+
+BoxIndex::BoxIndex(): m_impl(new Impl()) {}
+BoxIndex::~BoxIndex() {}
+
+BoxIndex::BoxIndex(const BoxIndex &cpy): m_impl(new Impl(*cpy.m_impl)) {}
+BoxIndex::BoxIndex(BoxIndex&& cpy): m_impl(std::move(cpy.m_impl)) {}
+
+BoxIndex& BoxIndex::operator=(const BoxIndex &cpy)
+{
+    m_impl.reset(new Impl(*cpy.m_impl));
+    return *this;
+}
+
+BoxIndex& BoxIndex::operator=(BoxIndex &&cpy)
+{
+    m_impl.swap(cpy.m_impl);
+    return *this;
+}
+
+void BoxIndex::insert(const BoxIndexEl &el)
+{
+    m_impl->m_store.insert(el);
+}
+
+bool BoxIndex::remove(const BoxIndexEl& el)
+{
+    return m_impl->m_store.remove(el) == 1;
+}
+
+std::vector<BoxIndexEl> BoxIndex::query(const BoundingBox &qrbb,
+                                        BoxIndex::QueryType qt)
+{
+    namespace bgi = boost::geometry::index;
+
+    std::vector<BoxIndexEl> ret; ret.reserve(m_impl->m_store.size());
+
+    switch (qt) {
+    case qtIntersects:
+        m_impl->m_store.query(bgi::intersects(qrbb), std::back_inserter(ret));
+        break;
+    case qtWithin:
+        m_impl->m_store.query(bgi::within(qrbb), std::back_inserter(ret));
+    }
+
+    return ret;
+}
+
+size_t BoxIndex::size() const
+{
+    return m_impl->m_store.size();
+}
+
+void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
 {
     for(auto& el : m_impl->m_store) fn(el);
 }
@@ -121,19 +197,10 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     V.resize(3*stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = double(facet->vertex[0](0));
-        V(3*i+0, 1) = double(facet->vertex[0](1));
-        V(3*i+0, 2) = double(facet->vertex[0](2));
-
-        V(3*i+1, 0) = double(facet->vertex[1](0));
-        V(3*i+1, 1) = double(facet->vertex[1](1));
-        V(3*i+1, 2) = double(facet->vertex[1](2));
-
-        V(3*i+2, 0) = double(facet->vertex[2](0));
-        V(3*i+2, 1) = double(facet->vertex[2](1));
-        V(3*i+2, 2) = double(facet->vertex[2](2));
-
+        const stl_facet &facet = stl.facet_start[i];
+        V.block<1, 3>(3 * i + 0, 0) = facet.vertex[0].cast<double>();
+        V.block<1, 3>(3 * i + 1, 0) = facet.vertex[1].cast<double>();
+        V.block<1, 3>(3 * i + 2, 0) = facet.vertex[2].cast<double>();
         F(i, 0) = int(3*i+0);
         F(i, 1) = int(3*i+1);
         F(i, 2) = int(3*i+2);
@@ -239,6 +306,7 @@ PointSet normals(const PointSet& points,
 
     PointSet            ret(range.size(), 3);
 
+//    for (size_t ridx = 0; ridx < range.size(); ++ridx)
     tbb::parallel_for(size_t(0), range.size(),
                       [&ret, &range, &mesh, &points, thr, eps](size_t ridx)
     {
@@ -352,12 +420,14 @@ PointSet normals(const PointSet& points,
     return ret;
 }
 namespace bgi = boost::geometry::index;
-using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
+using Index3D = bgi::rtree< PointIndexEl, bgi::rstar<16, 4> /* ? */ >;
 
-ClusteredPoints cluster(Index3D& sindex, unsigned max_points,
-                        std::function<std::vector<SpatElement>(const Index3D&, const SpatElement&)> qfn)
+ClusteredPoints cluster(Index3D &sindex,
+                        unsigned max_points,
+                        std::function<std::vector<PointIndexEl>(
+                            const Index3D &, const PointIndexEl &)> qfn)
 {
-    using Elems = std::vector<SpatElement>;
+    using Elems = std::vector<PointIndexEl>;
 
     // Recursive function for visiting all the points in a given distance to
     // each other
@@ -365,8 +435,8 @@ ClusteredPoints cluster(Index3D& sindex, unsigned max_points,
     [&sindex, &group, max_points, qfn](Elems& pts, Elems& cluster)
     {
         for(auto& p : pts) {
-            std::vector<SpatElement> tmp = qfn(sindex, p);
-            auto cmp = [](const SpatElement& e1, const SpatElement& e2){
+            std::vector<PointIndexEl> tmp = qfn(sindex, p);
+            auto cmp = [](const PointIndexEl& e1, const PointIndexEl& e2){
                 return e1.second < e2.second;
             };
 
@@ -410,12 +480,12 @@ ClusteredPoints cluster(Index3D& sindex, unsigned max_points,
 }
 
 namespace {
-std::vector<SpatElement> distance_queryfn(const Index3D& sindex,
-                                          const SpatElement& p,
+std::vector<PointIndexEl> distance_queryfn(const Index3D& sindex,
+                                          const PointIndexEl& p,
                                           double dist,
                                           unsigned max_points)
 {
-    std::vector<SpatElement> tmp; tmp.reserve(max_points);
+    std::vector<PointIndexEl> tmp; tmp.reserve(max_points);
     sindex.query(
         bgi::nearest(p.first, max_points),
         std::back_inserter(tmp)
@@ -442,7 +512,7 @@ ClusteredPoints cluster(
     for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
 
     return cluster(sindex, max_points,
-                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+                   [dist, max_points](const Index3D& sidx, const PointIndexEl& p)
     {
         return distance_queryfn(sidx, p, dist, max_points);
     });
@@ -452,7 +522,7 @@ ClusteredPoints cluster(
 ClusteredPoints cluster(
         const std::vector<unsigned>& indices,
         std::function<Vec3d(unsigned)> pointfn,
-        std::function<bool(const SpatElement&, const SpatElement&)> predicate,
+        std::function<bool(const PointIndexEl&, const PointIndexEl&)> predicate,
         unsigned max_points)
 {
     // A spatial index for querying the nearest points
@@ -462,10 +532,10 @@ ClusteredPoints cluster(
     for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
 
     return cluster(sindex, max_points,
-        [max_points, predicate](const Index3D& sidx, const SpatElement& p)
+        [max_points, predicate](const Index3D& sidx, const PointIndexEl& p)
     {
-        std::vector<SpatElement> tmp; tmp.reserve(max_points);
-        sidx.query(bgi::satisfies([p, predicate](const SpatElement& e){
+        std::vector<PointIndexEl> tmp; tmp.reserve(max_points);
+        sidx.query(bgi::satisfies([p, predicate](const PointIndexEl& e){
             return predicate(p, e);
         }), std::back_inserter(tmp));
         return tmp;
@@ -482,7 +552,7 @@ ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
         sindex.insert(std::make_pair(Vec3d(pts.row(i)), unsigned(i)));
 
     return cluster(sindex, max_points,
-                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+                   [dist, max_points](const Index3D& sidx, const PointIndexEl& p)
     {
         return distance_queryfn(sidx, p, dist, max_points);
     });

@@ -29,19 +29,21 @@ GLGizmoBase::Grabber::Grabber()
     color[0] = 1.0f;
     color[1] = 1.0f;
     color[2] = 1.0f;
+    color[3] = 1.0f;
 }
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
-    float render_color[3];
+    float render_color[4];
     if (hover)
     {
         render_color[0] = 1.0f - color[0];
         render_color[1] = 1.0f - color[1];
         render_color[2] = 1.0f - color[2];
+        render_color[3] = color[3];
     }
     else
-        ::memcpy((void*)render_color, (const void*)color, 3 * sizeof(float));
+        ::memcpy((void*)render_color, (const void*)color, 4 * sizeof(float));
 
     render(size, render_color, true);
 }
@@ -63,7 +65,7 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     if (use_lighting)
         glsafe(::glEnable(GL_LIGHTING));
 
-    glsafe(::glColor3fv(render_color));
+    glsafe(::glColor4fv(render_color));
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center(0), center(1), center(2)));
@@ -132,26 +134,21 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     glsafe(::glEnd());
 }
 
-#if ENABLE_SVG_ICONS
+
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-#else
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
-#endif // ENABLE_SVG_ICONS
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_shortcut_key(0)
-#if ENABLE_SVG_ICONS
     , m_icon_filename(icon_filename)
-#endif // ENABLE_SVG_ICONS
     , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)
     , m_imgui(wxGetApp().imgui())
 {
-    ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
-    ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
-    ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 3 * sizeof(float));
+    ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
+    ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
+    ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
 }
 
 void GLGizmoBase::set_hover_id(int id)
@@ -166,12 +163,12 @@ void GLGizmoBase::set_hover_id(int id)
 void GLGizmoBase::set_highlight_color(const float* color)
 {
     if (color != nullptr)
-        ::memcpy((void*)m_highlight_color, (const void*)color, 3 * sizeof(float));
+        ::memcpy((void*)m_highlight_color, (const void*)color, 4 * sizeof(float));
 }
 
 void GLGizmoBase::enable_grabber(unsigned int id)
 {
-    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+    if (id < m_grabbers.size())
         m_grabbers[id].enabled = true;
 
     on_enable_grabber(id);
@@ -179,13 +176,13 @@ void GLGizmoBase::enable_grabber(unsigned int id)
 
 void GLGizmoBase::disable_grabber(unsigned int id)
 {
-    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+    if (id < m_grabbers.size())
         m_grabbers[id].enabled = false;
 
     on_disable_grabber(id);
 }
 
-void GLGizmoBase::start_dragging(const Selection& selection)
+void GLGizmoBase::start_dragging()
 {
     m_dragging = true;
 
@@ -194,7 +191,7 @@ void GLGizmoBase::start_dragging(const Selection& selection)
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-    on_start_dragging(selection);
+    on_start_dragging();
 }
 
 void GLGizmoBase::stop_dragging()
@@ -209,13 +206,13 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const UpdateData& data, const Selection& selection)
+void GLGizmoBase::update(const UpdateData& data)
 {
     if (m_hover_id != -1)
-        on_update(data, selection);
+        on_update(data);
 }
 
-std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
+std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 {
     static const float INV_255 = 1.0f / 255.0f;
 
@@ -225,9 +222,12 @@ std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
         id -= m_group_id;
 
     // color components are encoded to match the calculation of volume_id made into GLCanvas3D::_picking_pass()
-    return std::array<float, 3> { (float)((id >> 0) & 0xff) * INV_255, // red
-                                  (float)((id >> 8) & 0xff) * INV_255, // green
-                                  (float)((id >> 16) & 0xff) * INV_255 }; // blue
+    return std::array<float, 4> { 
+		float((id >> 0) & 0xff) * INV_255, // red
+		float((id >> 8) & 0xff) * INV_255, // green
+		float((id >> 16) & 0xff) * INV_255, // blue
+		float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255 // checksum for validating against unwanted alpha blending and multi sampling
+	};
 }
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
@@ -252,10 +252,11 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     {
         if (m_grabbers[i].enabled)
         {
-            std::array<float, 3> color = picking_color_component(i);
+            std::array<float, 4> color = picking_color_component(i);
             m_grabbers[i].color[0] = color[0];
             m_grabbers[i].color[1] = color[1];
             m_grabbers[i].color[2] = color[2];
+            m_grabbers[i].color[3] = color[3];
             m_grabbers[i].render_for_picking(mean_size);
         }
     }
@@ -270,6 +271,21 @@ void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
     return Slic3r::string_printf("%.*f", decimals, value);
+}
+
+// Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
+// were not interpolated by alpha blending or multi sampling.
+unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue)
+{
+	// 8 bit hash for the color
+	unsigned char b = ((((37 * red) + green) & 0x0ff) * 37 + blue) & 0x0ff;
+	// Increase enthropy by a bit reversal
+	b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+	b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+	b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+	// Flip every second bit to increase the enthropy even more.
+	b ^= 0x55;
+	return b;
 }
 
 } // namespace GUI

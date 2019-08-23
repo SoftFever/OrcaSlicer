@@ -2,7 +2,9 @@
 #define PROGRESSSTATUSBAR_HPP
 
 #include <memory>
+#include <string>
 #include <functional>
+#include <string>
 
 class wxTimer;
 class wxGauge;
@@ -23,9 +25,9 @@ namespace Slic3r {
 class ProgressStatusBar 
 {
     wxStatusBar *self;      // we cheat! It should be the base class but: perl!
-    wxTimer *m_timer;
     wxGauge *m_prog;
     wxButton *m_cancelbutton;
+    std::unique_ptr<wxTimer> m_timer;
 public:
 
     /// Cancel callback function type
@@ -51,6 +53,7 @@ public:
     void        set_status_text(const wxString& txt);
     void        set_status_text(const std::string& txt);
     void        set_status_text(const char *txt);
+    wxString    get_status_text() const;
 
     // Temporary methods to satisfy Perl side
     void        show_cancel_button();

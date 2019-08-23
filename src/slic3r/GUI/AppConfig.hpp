@@ -6,7 +6,7 @@
 #include <string>
 
 #include "libslic3r/Config.hpp"
-#include "slic3r/Utils/Semver.hpp"
+#include "libslic3r/Semver.hpp"
 
 namespace Slic3r {
 
@@ -121,6 +121,9 @@ public:
 
 	// Does the config file exist?
 	static bool 		exists();
+
+    std::vector<std::string> get_recent_projects() const;
+    void set_recent_projects(const std::vector<std::string>& recent_projects);
 
 private:
 	// Map of section, name -> value

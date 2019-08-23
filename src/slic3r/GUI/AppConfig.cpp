@@ -15,8 +15,12 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/exceptions.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
+
+#include <wx/string.h>
+#include "I18N.hpp"
 
 namespace Slic3r {
 
@@ -54,12 +58,11 @@ void AppConfig::set_defaults()
     if (get("preset_update").empty())
         set("preset_update", "1");
 
-    // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
-    // github.com/prusa3d/PrusaSlicer/issues/233
-    if (get("use_legacy_opengl").empty())
-        set("use_legacy_opengl", "0");
+    // remove old 'use_legacy_opengl' parameter from this config, if present
+    if (!get("use_legacy_opengl").empty())
+        erase("", "use_legacy_opengl");
 
-#if __APPLE__
+#ifdef __APPLE__
     if (get("use_retina_opengl").empty())
         set("use_retina_opengl", "1");
 #endif
@@ -72,6 +75,9 @@ void AppConfig::set_defaults()
 
     if (get("custom_toolbar_size").empty())
         set("custom_toolbar_size", "100");
+
+    if (get("use_perspective_camera").empty())
+        set("use_perspective_camera", "1");
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
@@ -88,7 +94,15 @@ void AppConfig::load()
     namespace pt = boost::property_tree;
     pt::ptree tree;
     boost::nowide::ifstream ifs(AppConfig::config_path());
-    pt::read_ini(ifs, tree);
+    try {
+        pt::read_ini(ifs, tree);
+    } catch (pt::ptree_error& ex) {
+        // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+        throw std::runtime_error(
+        	_utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    "Try to manualy delete the file to recover from the error. Your user profiles will not be affected.")) + 
+        	"\n\n" + AppConfig::config_path() + "\n\n" + ex.what());
+    }
 
     // 2) Parse the property_tree, extract the sections and key / value pairs.
     for (const auto &section : tree) {
@@ -225,6 +239,33 @@ std::string AppConfig::get_last_dir() const
         }
     }
     return std::string();
+}
+
+std::vector<std::string> AppConfig::get_recent_projects() const
+{
+    std::vector<std::string> ret;
+    const auto it = m_storage.find("recent_projects");
+    if (it != m_storage.end())
+    {
+        for (const std::map<std::string, std::string>::value_type& item : it->second)
+        {
+            ret.push_back(item.second);
+        }
+    }
+    return ret;
+}
+
+void AppConfig::set_recent_projects(const std::vector<std::string>& recent_projects)
+{
+    auto it = m_storage.find("recent_projects");
+    if (it == m_storage.end())
+        it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type("recent_projects", std::map<std::string, std::string>())).first;
+
+    it->second.clear();
+    for (unsigned int i = 0; i < (unsigned int)recent_projects.size(); ++i)
+    {
+        it->second[std::to_string(i + 1)] = recent_projects[i];
+    }
 }
 
 void AppConfig::update_config_dir(const std::string &dir)

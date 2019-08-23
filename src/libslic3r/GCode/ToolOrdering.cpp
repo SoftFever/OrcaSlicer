@@ -78,8 +78,13 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                 zs.emplace_back(layer->print_z);
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
-            if (! object->layers().empty())
-                object_bottom_z = object->layers().front()->print_z - object->layers().front()->height;
+
+            // Find first object layer that is not empty and save its print_z
+            for (const Layer* layer : object->layers())
+                if (layer->has_extrusions()) {
+                    object_bottom_z = layer->print_z - layer->height;
+                    break;
+                }
         }
         this->initialize_layers(zs);
     }
@@ -94,23 +99,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
 
     this->collect_extruder_statistics(prime_multi_material);
-}
-
-
-LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z)
-{
-    auto it_layer_tools = std::lower_bound(m_layer_tools.begin(), m_layer_tools.end(), LayerTools(print_z - EPSILON));
-    assert(it_layer_tools != m_layer_tools.end());
-    coordf_t dist_min = std::abs(it_layer_tools->print_z - print_z);
-	for (++ it_layer_tools; it_layer_tools != m_layer_tools.end(); ++it_layer_tools) {
-        coordf_t d = std::abs(it_layer_tools->print_z - print_z);
-        if (d >= dist_min)
-            break;
-        dist_min = d;
-    }
-    -- it_layer_tools;
-    assert(dist_min < EPSILON);
-    return *it_layer_tools;
 }
 
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
@@ -151,7 +139,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
         // What extruders are required to print this object layer?
         for (size_t region_id = 0; region_id < object.region_volumes.size(); ++ region_id) {
-			const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
+            const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
             if (layerm == nullptr)
                 continue;
             const PrintRegion &region = *object.print()->regions()[region_id];
@@ -324,17 +312,17 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
 						m_layer_tools[j].has_wipe_tower = true;
 					} else {
 						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);
-                        LayerTools &lt_prev  = m_layer_tools[j - 1];
+                        //LayerTools &lt_prev  = m_layer_tools[j];
                         LayerTools &lt_next  = m_layer_tools[j + 1];
-                        assert(! lt_prev.extruders.empty() && ! lt_next.extruders.empty());
+                        assert(! m_layer_tools[j - 1].extruders.empty() && ! lt_next.extruders.empty());
                         // FIXME: Following assert tripped when running combine_infill.t. I decided to comment it out for now.
                         // If it is a bug, it's likely not critical, because this code is unchanged for a long time. It might
                         // still be worth looking into it more and decide if it is a bug or an obsolete assert.
                         //assert(lt_prev.extruders.back() == lt_next.extruders.front());
-						lt_extra.has_wipe_tower = true;
+                        lt_extra.has_wipe_tower = true;
                         lt_extra.extruders.push_back(lt_next.extruders.front());
-						lt_extra.wipe_tower_partitions = lt_next.wipe_tower_partitions;
-					}
+                        lt_extra.wipe_tower_partitions = lt_next.wipe_tower_partitions;
+                    }
                 }
             }
             break;
@@ -376,7 +364,7 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
         // Reorder m_all_printing_extruders in the sequence they will be primed, the last one will be m_first_printing_extruder.
         // Then set m_first_printing_extruder to the 1st extruder primed.
         m_all_printing_extruders.erase(
-            std::remove_if(m_all_printing_extruders.begin(), m_all_printing_extruders.end(), 
+            std::remove_if(m_all_printing_extruders.begin(), m_all_printing_extruders.end(),
                 [ this ](const unsigned int eid) { return eid == m_first_printing_extruder; }),
             m_all_printing_extruders.end());
         m_all_printing_extruders.emplace_back(m_first_printing_extruder);
@@ -494,9 +482,6 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
                         if (!is_overriddable(*fill, print.config(), *object, region))
                             continue;
-
-                        // What extruder would this normally be printed with?
-                        unsigned int correct_extruder = Print::get_extruder(*fill, region);
 
                         if (volume_to_wipe<=0)
                             continue;
@@ -627,6 +612,6 @@ const std::vector<int>* WipingExtrusions::get_extruder_overrides(const Extrusion
 
     return &(entity_map_it->second);
 }
-    
+
 
 } // namespace Slic3r

@@ -13,6 +13,10 @@
 #define ENABLE_RENDER_SELECTION_CENTER 0
 // Shows an imgui dialog with render related data
 #define ENABLE_RENDER_STATISTICS 0
+// Shows an imgui dialog with camera related data
+#define ENABLE_CAMERA_STATISTICS 0
+//  Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)
+#define ENABLE_RENDER_PICKING_PASS 0
 
 
 //====================
@@ -26,24 +30,6 @@
 #define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
-
-
-//====================
-// 1.42.0.alpha7 techs
-//====================
-#define ENABLE_1_42_0_ALPHA7 1
-
-// Printbed textures generated from svg files
-#define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
-
-
-//====================
-// 1.42.0.alpha8 techs
-//====================
-#define ENABLE_1_42_0_ALPHA8 1
-
-// Toolbars and Gizmos use icons imported from svg files
-#define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
 
 
 #endif // _technologies_h_

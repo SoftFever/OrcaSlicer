@@ -24,3 +24,4 @@ _Is this a new feature request?_
 
 #### Project File (.3MF) where problem occurs
 _Upload a PrusaSlicer Project File (.3MF) (`Plater -> Export plate as 3MF` for Slic3r PE 1.41.2 and older, `File -> Save` / `Save Project` for PrusaSlicer, Slic3r PE 1.42.0-alpha and newer)_
+_Images (PNG, GIF, JPEG), PDFs or text files could be drag & dropped to the issue directly, while all other files need to be zipped first (.zip, .gz)_

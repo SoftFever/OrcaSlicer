@@ -80,6 +80,7 @@ class Preview : public wxPanel
     wxCheckBox* m_checkbox_retractions;
     wxCheckBox* m_checkbox_unretractions;
     wxCheckBox* m_checkbox_shells;
+    wxCheckBox* m_checkbox_legend;
 
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
@@ -110,6 +111,8 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
+    void set_as_dirty();
+
     void set_number_extruders(unsigned int number_extruders);
     void set_canvas_as_dirty();
     void set_enabled(bool enabled);
@@ -122,6 +125,12 @@ public:
     void refresh_print();
 
     void msw_rescale();
+    void move_double_slider(wxKeyEvent& evt);
+    void edit_double_slider(wxKeyEvent& evt);
+
+    void update_view_type();
+
+    bool is_loaded() const { return m_loaded; }
 
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
@@ -141,6 +150,7 @@ private:
     void on_checkbox_retractions(wxCommandEvent& evt);
     void on_checkbox_unretractions(wxCommandEvent& evt);
     void on_checkbox_shells(wxCommandEvent& evt);
+    void on_checkbox_legend(wxCommandEvent& evt);
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();

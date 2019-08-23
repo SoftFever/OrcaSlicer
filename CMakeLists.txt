@@ -13,13 +13,13 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 if(DEFINED ENV{SLIC3R_STATIC})
-	set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
+        set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
 else()
-	if (MSVC OR MINGW OR APPLE)
-		set(SLIC3R_STATIC_INITIAL 1)
-	else()
-		set(SLIC3R_STATIC_INITIAL 0)
-	endif()
+        if (MSVC OR MINGW OR APPLE)
+                set(SLIC3R_STATIC_INITIAL 1)
+        else()
+                set(SLIC3R_STATIC_INITIAL 0)
+        endif()
 endif()
 
 option(SLIC3R_STATIC 			"Compile PrusaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
@@ -32,7 +32,6 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
-option(SLIC3R_SYNTAXONLY        "Only perform source code correctness checking, no binary output (UNIX only)" 0)
 
 set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
@@ -53,14 +52,30 @@ if (SLIC3R_GUI)
     add_definitions(-DSLIC3R_GUI)
 endif ()
 
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    set(IS_CLANG_CL TRUE)
+
+    # clang-cl can interpret SYSTEM header paths if -imsvc is used
+    set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
+        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
+else ()
+    set(IS_CLANG_CL FALSE)
+endif ()
+
 if (MSVC)
-    if (SLIC3R_MSVC_COMPILE_PARALLEL)
-	   add_compile_options(/MP)
+    if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
+           add_compile_options(/MP)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm316 /Zi)
+    add_compile_options(-bigobj -Zm520 /Zi)
+endif ()
+
+if (MINGW)
+    add_compile_options(-Wa,-mbig-obj)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH
@@ -89,8 +104,6 @@ enable_testing ()
 # Enable C++11 language standard.
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if(NOT WIN32)
     # Add DEBUG flags to debug builds.
@@ -104,17 +117,17 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
 if(WIN32)
-	if(NOT DEFINED WIN10SDK_PATH)
-		if(DEFINED ENV{WIN10SDK_PATH})
-			set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
-		endif()
-	endif()
-	if(DEFINED WIN10SDK_PATH AND NOT EXISTS "${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h")
-		message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
-		message("${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h was not found")
-		message("STL fixing by the Netfabb service will not be compiled")
-		unset(WIN10SDK_PATH)
-	endif()
+        if(NOT DEFINED WIN10SDK_PATH)
+                if(DEFINED ENV{WIN10SDK_PATH})
+                        set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
+                endif()
+        endif()
+        if(DEFINED WIN10SDK_PATH AND NOT EXISTS "${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h")
+                message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
+                message("${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h was not found")
+                message("STL fixing by the Netfabb service will not be compiled")
+                unset(WIN10SDK_PATH)
+        endif()
     if(WIN10SDK_PATH)
         message("Building with Win10 Netfabb STL fixing service support")
         add_definitions(-DHAS_WIN10SDK)
@@ -149,30 +162,29 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
-
-    if (SLIC3R_SYNTAXONLY)
-        set(CMAKE_CXX_ARCHIVE_CREATE "true")
-        set(CMAKE_C_ARCHIVE_CREATE "true")
-        set(CMAKE_CXX_ARCHIVE_APPEND "true")
-        set(CMAKE_C_ARCHIVE_APPEND "true")
-        set(CMAKE_RANLIB "true")
-        set(CMAKE_C_LINK_EXECUTABLE "true")
-        set(CMAKE_CXX_LINK_EXECUTABLE "true")
-
-        set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> -fsyntax-only <DEFINES> <INCLUDES> <FLAGS> -c <SOURCE> && touch <OBJECT>")
-        set(CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> -fsyntax-only <DEFINES> <INCLUDES> <FLAGS> -c <SOURCE> && touch <OBJECT>")
-    endif ()
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    add_compile_options(-Wall)
+if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+    if (NOT MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
+    endif ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder" )
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
-    #removes LOTS of extraneous Eigen warnings
-    add_compile_options(-Wno-ignored-attributes)
+    #removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
+    #if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 6.1)
+        # add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
+    #endif()
+
+    #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
+    # We will turn the warning of for GCC for now:
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options(-Wno-unknown-pragmas)
+    endif()
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -201,9 +213,12 @@ include_directories(${LIBDIR_BIN}/platform)
 include_directories(${LIBDIR}/clipper ${LIBDIR}/polypartition)
 
 if(WIN32)
-    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-endif()
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+    if(MSVC)
+        # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
+        add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 )
+    endif(MSVC)
+endif(WIN32)
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 
@@ -234,21 +249,40 @@ if(SLIC3R_STATIC)
     # set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 #set(Boost_DEBUG ON)
-# set(Boost_COMPILER "-vc120")
+# set(Boost_COMPILER "-mgw81")
 if(NOT WIN32)
     # boost::process was introduced first in version 1.64.0
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
-if(Boost_FOUND)
-#    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    if (APPLE)
-        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-        add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)
-    endif()
-    if(NOT SLIC3R_STATIC)
-        add_definitions(-DBOOST_LOG_DYN_LINK)
-    endif()
+
+add_library(boost_libs INTERFACE)
+add_library(boost_headeronly INTERFACE)
+
+if (APPLE)
+    # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
+endif()
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
+endif()
+
+if(TARGET Boost::system)
+    message(STATUS "Boost::boost exists")
+    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+    target_link_libraries(boost_libs INTERFACE
+        boost_headeronly # includes the custom compile definitions as well
+        Boost::system
+        Boost::filesystem
+        Boost::thread
+        Boost::log
+        Boost::locale
+        Boost::regex
+        )
+else()
+    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
 # Find and configure intel-tbb
@@ -289,13 +323,13 @@ endif()
 
 # Find eigen3 or use bundled version
 if (NOT SLIC3R_STATIC)
-    find_package(Eigen3 3)
+    find_package(Eigen3 3.3)
 endif ()
-if (NOT Eigen3_FOUND)
-    set(Eigen3_FOUND 1)
+if (NOT EIGEN3_FOUND)
+    set(EIGEN3_FOUND 1)
     set(EIGEN3_INCLUDE_DIR ${LIBDIR}/eigen/)
 endif ()
-include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(BEFORE SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # Find expat or use bundled version
 # Always use the system libexpat on Linux.
@@ -326,6 +360,10 @@ if (NOT GLEW_FOUND)
     add_definitions(-DGLEW_STATIC)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
+
+# Find the Cereal serialization library
+add_library(cereal INTERFACE)
+target_include_directories(cereal INTERFACE include)
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")

@@ -332,7 +332,7 @@ Polyline MotionPlannerGraph::shortest_path(size_t node_start, size_t node_end) c
         queue.pop();
         map_node_to_queue_id[u] = size_t(-1);
         // Stop searching if we reached our destination.
-        if (u == node_end)
+        if (size_t(u) == node_end)
             break;
         // Visit each edge starting at node u.
         for (const Neighbor& neighbor : m_adjacency_list[u])

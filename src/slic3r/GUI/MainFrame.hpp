@@ -1,4 +1,4 @@
-﻿#ifndef slic3r_MainFrame_hpp_
+#ifndef slic3r_MainFrame_hpp_
 #define slic3r_MainFrame_hpp_
 
 #include "libslic3r/PrintConfig.hpp"
@@ -6,6 +6,7 @@
 #include <wx/frame.h>
 #include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/filehistory.h>
 
 #include <string>
 #include <map>
@@ -64,8 +65,10 @@ class MainFrame : public DPIFrame
     bool can_start_new_project() const;
     bool can_save() const;
     bool can_export_model() const;
+    bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
+    bool can_send_gcode() const;
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
@@ -78,18 +81,21 @@ class MainFrame : public DPIFrame
     enum MenuItems
     {                   //   FFF                  SLA
         miExport = 0,   // Export G-code        Export
+        miSend,         // Send G-code          Send to print
         miMaterialTab,  // Filament Settings    Material Settings
     };
 
     // vector of a MenuBar items changeable in respect to printer technology 
     std::vector<wxMenuItem*> m_changeable_menu_items;
 
+    wxFileHistory m_recent_projects;
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
 
 public:
     MainFrame();
-    ~MainFrame() {}
+    ~MainFrame();
 
     Plater*     plater() { return m_plater; }
 
@@ -121,12 +127,14 @@ public:
     // Propagate changed configuration from the Tab to the Platter and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
 
+    void        add_to_recent_projects(const wxString& filename);
+
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
-    ProgressStatusBar*  m_statusbar { nullptr };
+    std::unique_ptr<ProgressStatusBar>  m_statusbar;
 };
 
 } // GUI
