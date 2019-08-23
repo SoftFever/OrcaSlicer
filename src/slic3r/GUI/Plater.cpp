@@ -724,8 +724,8 @@ void Sidebar::priv::show_preset_comboboxes()
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this, wxID_ANY/*, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1)*/);
-    p->scrolled->SetScrollbars(0, 20, 1, 2);
+    p->scrolled = new wxScrolledWindow(this);
+    p->scrolled->SetScrollbars(0, 100, 1, 2);
 
 
     // Sizer in the scrolled area
