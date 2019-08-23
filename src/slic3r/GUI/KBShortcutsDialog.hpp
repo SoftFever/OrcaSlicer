@@ -39,6 +39,7 @@ protected:
 
 private:
     void onCloseDialog(wxEvent &);
+    wxSize get_size();
 };
 
 } // namespace GUI

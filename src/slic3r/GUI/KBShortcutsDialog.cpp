@@ -9,11 +9,6 @@
 namespace Slic3r {
 namespace GUI {
 
-enum {
-    DLG_WIDTH   = 90,
-    DLG_HEIGHT  = 60
-};
-
 KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")),
      wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -39,9 +34,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     fill_shortcuts();
 
-    const int em = em_unit();
-    const wxSize& size = wxSize(DLG_WIDTH * em, DLG_HEIGHT * em);
-    panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, size);
+    panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, get_size());
     panel->SetScrollbars(1, 20, 1, 2);
 
     auto main_grid_sizer = new wxFlexGridSizer(2, 10, 10);
@@ -216,7 +209,7 @@ void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_OK });
 
-    const wxSize& size = wxSize(DLG_WIDTH * em, DLG_HEIGHT * em);
+    wxSize size = get_size();
 
     panel->SetMinSize(size);
 
@@ -229,6 +222,31 @@ void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
 void KBShortcutsDialog::onCloseDialog(wxEvent &)
 {
     this->EndModal(wxID_CLOSE);
+}
+
+wxSize KBShortcutsDialog::get_size()
+{
+    wxTopLevelWindow* window = Slic3r::GUI::find_toplevel_parent(this);
+    const int display_idx = wxDisplay::GetFromWindow(window);
+    wxRect display;
+    if (display_idx == wxNOT_FOUND) {
+        display = wxDisplay(0u).GetClientArea();
+        window->Move(display.GetTopLeft());
+    }
+    else {
+        display = wxDisplay(display_idx).GetClientArea();
+    }
+
+    const int em = em_unit();
+    wxSize dialog_size = wxSize(90 * em, 85 * em);
+
+    const int margin = 10 * em;
+    if (dialog_size.x > display.GetWidth())
+        dialog_size.x = display.GetWidth() - margin;
+    if (dialog_size.y > display.GetHeight())
+        dialog_size.y = display.GetHeight() - margin;
+
+    return dialog_size;
 }
 
 } // namespace GUI
