@@ -716,7 +716,7 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
         std::abort();
     }
 
-    Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete support point")));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete support point")));
 
     for (unsigned int idx=0; idx<m_editing_cache.size(); ++idx) {
         if (m_editing_cache[idx].selected && (!m_editing_cache[idx].support_point.is_new_island || !m_lock_unique_islands || force)) {
@@ -1283,7 +1283,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
     disable_editing_mode(); // this leaves the editing mode undo/redo stack and must be done before the snapshot is taken
 
     if (unsaved_changes()) {
-        take_snapshot_internal(_(L("Support points edit")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Support points edit")));
 
         m_normal_cache.clear();
         for (const CacheEntry& ce : m_editing_cache)
@@ -1347,13 +1347,6 @@ void GLGizmoSlaSupports::get_data_from_backend()
     // We don't copy the data into ModelObject, as this would stop the background processing.
 }
 
-void GLGizmoSlaSupports::take_snapshot_internal(const wxString& desc)
-{
-    m_internal_snapshot = true;
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), desc);
-    m_internal_snapshot = false;
-}
-
 
 
 void GLGizmoSlaSupports::auto_generate()
@@ -1364,7 +1357,7 @@ void GLGizmoSlaSupports::auto_generate()
                 )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
     if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_normal_cache.empty() || dlg.ShowModal() == wxID_YES) {
-        take_snapshot_internal(_(L("Autogenerate support points")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Autogenerate support points")));
         wxGetApp().CallAfter([this]() { reslice_SLA_supports(); });
         m_model_object->sla_points_status = sla::PointsStatus::Generating;
     }

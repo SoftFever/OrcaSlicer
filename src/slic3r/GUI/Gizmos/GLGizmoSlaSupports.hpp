@@ -102,7 +102,6 @@ private:
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
     bool unsaved_changes() const;
-    void take_snapshot_internal(const wxString& desc);
 
     EState m_no_hover_state = Off;
     EState m_no_hover_old_state = Off;
@@ -131,7 +130,6 @@ private:
     bool m_wait_for_up_event = false;
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
-    bool m_internal_snapshot = false;
 
     mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
     mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;
