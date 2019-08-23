@@ -3,6 +3,7 @@
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include <wx/scrolwin.h>
+#include <wx/display.h>
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 
