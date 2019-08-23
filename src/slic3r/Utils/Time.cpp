@@ -21,7 +21,11 @@ time_t parse_time_ISO8601Z(const std::string &sdate)
 	tms.tm_hour = h;         // 0-23
 	tms.tm_min  = m;         // 0-59
 	tms.tm_sec  = s;         // 0-61 (0-60 in C++11)
-	return mktime(&tms);
+#ifdef WIN32
+	return _mkgmtime(&tms);
+#else /* WIN32 */
+	return timegm(&tms);
+#endif /* WIN32 */
 }
 
 std::string format_time_ISO8601Z(time_t time)
@@ -47,6 +51,7 @@ std::string format_local_date_time(time_t time)
 {
 	struct tm tms;
 #ifdef WIN32
+	// Converts a time_t time value to a tm structure, and corrects for the local time zone.
 	localtime_s(&tms, &time);
 #else
 	localtime_r(&time, &tms);
@@ -60,6 +65,7 @@ time_t get_current_time_utc()
 {
 #ifdef WIN32
 	SYSTEMTIME st;
+	// Retrieves the current system date and time. The system time is expressed in Coordinated Universal Time (UTC).
 	::GetSystemTime(&st);
 	std::tm tm;
 	tm.tm_sec   = st.wSecond;
@@ -69,10 +75,10 @@ time_t get_current_time_utc()
 	tm.tm_mon   = st.wMonth - 1;
 	tm.tm_year  = st.wYear - 1900;
 	tm.tm_isdst = -1;
-	return mktime(&tm);
+	return _mkgmtime(&tm);
 #else
-	const time_t current_local = time(nullptr);
-	return mktime(gmtime(&current_local));
+	// time() returns the time as the number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+	return time(nullptr);
 #endif
 }
 

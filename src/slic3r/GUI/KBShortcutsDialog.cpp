@@ -9,6 +9,11 @@
 namespace Slic3r {
 namespace GUI {
 
+enum {
+    DLG_WIDTH   = 90,
+    DLG_HEIGHT  = 60
+};
+
 KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")),
      wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -34,7 +39,11 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     fill_shortcuts();
 
-    auto panel = new wxPanel(this);
+    const int em = em_unit();
+    const wxSize& size = wxSize(DLG_WIDTH * em, DLG_HEIGHT * em);
+    panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, size);
+    panel->SetScrollbars(1, 20, 1, 2);
+
     auto main_grid_sizer = new wxFlexGridSizer(2, 10, 10);
     panel->SetSizer(main_grid_sizer);
     main_sizer->Add(panel, 1, wxEXPAND | wxALL, 0);
@@ -207,7 +216,9 @@ void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_OK });
 
-    const wxSize& size = wxSize(85 * em, 75 * em);
+    const wxSize& size = wxSize(DLG_WIDTH * em, DLG_HEIGHT * em);
+
+    panel->SetMinSize(size);
 
     SetMinSize(size);
     Fit();
