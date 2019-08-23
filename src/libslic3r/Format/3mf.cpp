@@ -350,6 +350,7 @@ namespace Slic3r {
 
         // Version of the 3mf file
         unsigned int m_version;
+        bool m_check_version;
 
         XML_Parser m_xml_parser;
         Model* m_model;
@@ -372,7 +373,7 @@ namespace Slic3r {
         _3MF_Importer();
         ~_3MF_Importer();
 
-        bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
+        bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, bool check_version);
 
     private:
         void _destroy_xml_parser();
@@ -465,6 +466,7 @@ namespace Slic3r {
 
     _3MF_Importer::_3MF_Importer()
         : m_version(0)
+        , m_check_version(false)
         , m_xml_parser(nullptr)
         , m_model(nullptr)   
         , m_unit_factor(1.0f)
@@ -479,9 +481,10 @@ namespace Slic3r {
         _destroy_xml_parser();
     }
 
-    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config)
+    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config, bool check_version)
     {
         m_version = 0;
+        m_check_version = check_version;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object.reset();
@@ -543,12 +546,21 @@ namespace Slic3r {
 
                 if (boost::algorithm::istarts_with(name, MODEL_FOLDER) && boost::algorithm::iends_with(name, MODEL_EXTENSION))
                 {
-                    // valid model name -> extract model
-                    if (!_extract_model_from_archive(archive, stat))
+                    try
                     {
+                        // valid model name -> extract model
+                        if (!_extract_model_from_archive(archive, stat))
+                        {
+                            close_zip_reader(&archive);
+                            add_error("Archive does not contain a valid model");
+                            return false;
+                        }
+                    }
+                    catch (const std::exception& e)
+                    {
+                        // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        add_error("Archive does not contain a valid model");
-                        return false;
+                        throw e;
                     }
                 }
             }
@@ -1399,7 +1411,15 @@ namespace Slic3r {
     bool _3MF_Importer::_handle_end_metadata()
     {
         if (m_curr_metadata_name == SLIC3RPE_3MF_VERSION)
+        {
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
+
+            if (m_check_version && (m_version > VERSION_3MF))
+            {
+                std::string msg = "The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+                throw std::runtime_error(msg.c_str());
+            }
+        }
 
         return true;
     }
@@ -2316,13 +2336,13 @@ namespace Slic3r {
         return true;
     }
 
-    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model)
+    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
     {
         if ((path == nullptr) || (config == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Importer importer;
-        bool res = importer.load_model_from_file(path, *model, *config);
+        bool res = importer.load_model_from_file(path, *model, *config, check_version);
         importer.log_errors();
         return res;
     }

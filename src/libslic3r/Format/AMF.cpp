@@ -44,7 +44,7 @@ namespace Slic3r
 
 struct AMFParserContext
 {
-    AMFParserContext(XML_Parser parser, DynamicPrintConfig *config, Model *model) :
+    AMFParserContext(XML_Parser parser, DynamicPrintConfig* config, Model* model) :
         m_version(0),
         m_parser(parser),
         m_model(*model), 
@@ -755,7 +755,7 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
     return result;
 }
 
-bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig* config, Model* model, unsigned int& version)
+bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if (stat.m_uncomp_size == 0)
     {
@@ -801,18 +801,20 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     ctx.endDocument();
 
-    version = ctx.m_version;
+    if (check_version && (ctx.m_version > VERSION_AMF))
+    {
+        std::string msg = "The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+        throw std::runtime_error(msg.c_str());
+    }
 
     return true;
 }
 
 // Load an AMF archive into a provided model.
-bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model)
+bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if ((path == nullptr) || (model == nullptr))
         return false;
-
-    unsigned int version = 0;
 
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
@@ -833,11 +835,20 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
         {
             if (boost::iends_with(stat.m_filename, ".amf"))
             {
-                if (!extract_model_from_archive(archive, stat, config, model, version))
+                try
                 {
+                    if (!extract_model_from_archive(archive, stat, config, model, check_version))
+                    {
+                        close_zip_reader(&archive);
+                        printf("Archive does not contain a valid model");
+                        return false;
+                    }
+                }
+                catch (const std::exception& e)
+                {
+                    // ensure the zip archive is closed and rethrow the exception
                     close_zip_reader(&archive);
-                    printf("Archive does not contain a valid model");
-                    return false;
+                    throw e;
                 }
 
                 break;
@@ -862,7 +873,7 @@ bool load_amf_archive(const char *path, DynamicPrintConfig *config, Model *model
 
 // Load an AMF file into a provided model.
 // If config is not a null pointer, updates it if the amf file/archive contains config data
-bool load_amf(const char *path, DynamicPrintConfig *config, Model *model)
+bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
 {
     if (boost::iends_with(path, ".amf.xml"))
         // backward compatibility with older slic3r output
@@ -877,7 +888,7 @@ bool load_amf(const char *path, DynamicPrintConfig *config, Model *model)
         file.read(const_cast<char*>(zip_mask.data()), 2);
         file.close();
 
-        return (zip_mask == "PK") ? load_amf_archive(path, config, model) : load_amf_file(path, config, model);
+        return (zip_mask == "PK") ? load_amf_archive(path, config, model, check_version) : load_amf_file(path, config, model);
     }
     else
         return false;
