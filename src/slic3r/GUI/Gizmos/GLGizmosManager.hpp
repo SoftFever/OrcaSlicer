@@ -11,7 +11,7 @@
 namespace Slic3r {
 
 namespace UndoRedo {
-class Snapshot;
+struct Snapshot;
 }
 
 namespace GUI {
