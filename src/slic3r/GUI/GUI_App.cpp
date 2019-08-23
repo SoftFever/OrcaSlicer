@@ -183,7 +183,7 @@ bool GUI_App::on_init_inner()
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
     //SetAppName(SLIC3R_APP_KEY);
-    SetAppName(SLIC3R_APP_KEY "-alpha");
+    SetAppName(SLIC3R_APP_KEY "-beta");
     SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
