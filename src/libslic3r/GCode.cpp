@@ -24,6 +24,8 @@
 
 #include "SVG.hpp"
 
+#include <tbb/parallel_for.h>
+
 #include <Shiny/Shiny.h>
 
 #if 0
@@ -63,6 +65,72 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     if (use_external)
         result.translate(- scaled_origin);
     return result;
+}
+
+// Collect outer contours of all objects over all layers.
+// Discard objects only containing thin walls (offset would fail on an empty polygon).
+// Used by avoid crossing perimeters feature.
+static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects)
+{
+    Polygons islands;
+    for (const PrintObject *object : objects) {
+        // Reducing all the object slices into the Z projection in a logarithimc fashion.
+        // First reduce to half the number of layers.
+        std::vector<Polygons> polygons_per_layer((object->layers().size() + 1) / 2);
+         tbb::parallel_for(tbb::blocked_range<size_t>(0, object->layers().size() / 2),
+             [&object, &polygons_per_layer](const tbb::blocked_range<size_t> &range) {
+                 for (size_t i = range.begin(); i < range.end(); ++ i) {
+                     const Layer* layer1 = object->layers()[i/2];
+                     const Layer* layer2 = object->layers()[i/2 + 1];
+                     Polygons polys;
+                     polys.reserve(layer1->slices.expolygons.size() + layer2->slices.expolygons.size());
+                    for (const ExPolygon &expoly : layer1->slices.expolygons)
+                        //FIXME no holes?
+                        polys.emplace_back(expoly.contour);
+                    for (const ExPolygon &expoly : layer2->slices.expolygons)
+                        //FIXME no holes?
+                        polys.emplace_back(expoly.contour);
+                     polygons_per_layer[i] = union_(polys);
+                }
+            });
+         if (object->layers().size() & 1) {
+            const Layer *layer = object->layers().back();
+            Polygons polys;
+            polys.reserve(layer->slices.expolygons.size());
+            for (const ExPolygon &expoly : layer->slices.expolygons)
+                //FIXME no holes?
+                polys.emplace_back(expoly.contour);
+             polygons_per_layer.back() = union_(polys);
+         }
+         // Now reduce down to a single layer.
+         size_t cnt = polygons_per_layer.size();
+         while (cnt > 1) {
+             tbb::parallel_for(tbb::blocked_range<size_t>(0, cnt / 2),
+                 [&polygons_per_layer](const tbb::blocked_range<size_t> &range) {
+                     for (size_t i = range.begin(); i < range.end(); ++ i) {
+                         Polygons polys;
+                         polys.reserve(polygons_per_layer[i * 2].size() + polygons_per_layer[i * 2 + 1].size());
+                         polygons_append(polys, polygons_per_layer[i * 2]);
+                         polygons_append(polys, polygons_per_layer[i * 2 + 1]);
+                         polygons_per_layer[i * 2] = union_(polys);
+                     }
+                 });
+             for (size_t i = 0; i < cnt / 2; ++ i)
+                 polygons_per_layer[i] = std::move(polygons_per_layer[i * 2]);
+             if (cnt & 1)
+                 polygons_per_layer[cnt / 2] = std::move(polygons_per_layer[cnt - 1]);
+             cnt = (cnt + 1) / 2;
+         }
+         // And collect copies of the objects.
+        for (const Point &copy : object->copies()) {
+            // All the layers were reduced to the 1st item of polygons_per_layer.
+             size_t i = islands.size();
+             polygons_append(islands, polygons_per_layer.front());
+             for (; i < islands.size(); ++ i)
+                islands[i].translate(copy);
+        }
+    }
+    return islands;
 }
 
 std::string OozePrevention::pre_toolchange(GCode &gcodegen)
@@ -940,21 +1008,11 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // Initialize a motion planner for object-to-object travel moves.
     if (print.config().avoid_crossing_perimeters.value) {
-        // Collect outer contours of all objects over all layers.
-        // Discard objects only containing thin walls (offset would fail on an empty polygon).
-        Polygons islands;
-        for (const PrintObject *object : print.objects())
-            for (const Layer *layer : object->layers())
-                for (const ExPolygon &expoly : layer->slices.expolygons)
-                    for (const Point &copy : object->copies()) {
-                        islands.emplace_back(expoly.contour);
-                        islands.back().translate(copy);
-                    }
-        //FIXME Mege the islands in parallel.
+        Polygons islands = collect_contours_all_layers(print.objects());
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
         print.throw_if_canceled();
     }
-    
+
     // Calculate wiping points if needed
     if (print.config().ooze_prevention.value && ! print.config().single_extruder_multi_material) {
         Points skirt_points;
