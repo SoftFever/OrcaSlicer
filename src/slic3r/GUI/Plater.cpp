@@ -1908,7 +1908,7 @@ private:
     void update_fff_scene();
     void update_sla_scene();
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
-    void update_after_undo_redo(bool temp_snapshot_was_taken = false);
+    void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
 
     // path to project file stored with no extension
     wxString 					m_project_filename;
@@ -3823,6 +3823,12 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name)
     }
     else if (this->sidebar->obj_list()->is_selected(itLayerRoot))
         snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_LAYERROOT_ON_SIDEBAR;
+
+    // If SLA gizmo is active, ask it if it wants to trigger support generation
+    // on loading this snapshot.
+    if (view3D->get_canvas3d()->get_gizmos_manager().wants_reslice_supports_on_undo())
+        snapshot_data.flags |= UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS;
+
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     if (this->printer_technology == ptFFF) {
@@ -3863,6 +3869,9 @@ void Plater::priv::undo_redo_to(size_t time_to_load)
 
 void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
+    // Make sure that no updating function calls take_snapshot until we are done.
+    SuppressSnapshots snapshot_supressor(q);
+
     bool 				temp_snapshot_was_taken 	= this->undo_redo_stack().temp_snapshot_active();
     PrinterTechnology 	new_printer_technology 		= it_snapshot->snapshot_data.printer_technology;
     bool 				printer_technology_changed 	= this->printer_technology != new_printer_technology;
@@ -3905,9 +3914,14 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     bool         new_selected_layer_on_sidebar     = (new_flags & UndoRedo::SnapshotData::SELECTED_LAYER_ON_SIDEBAR) != 0;
     bool         new_selected_layerroot_on_sidebar = (new_flags & UndoRedo::SnapshotData::SELECTED_LAYERROOT_ON_SIDEBAR) != 0;
 
+    if (this->view3D->get_canvas3d()->get_gizmos_manager().wants_reslice_supports_on_undo())
+        top_snapshot_data.flags |= UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS;
+
     // Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+    // Make a copy of the snapshot, undo/redo could invalidate the iterator
+    const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack().active_snapshot_time() ?
         this->undo_redo_stack().undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), top_snapshot_data, it_snapshot->timestamp) :
@@ -3945,14 +3959,14 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         if (new_selected_settings_on_sidebar || new_selected_layer_on_sidebar)
             this->sidebar->obj_list()->set_selected_layers_range_idx(layer_range_idx);
 
-        this->update_after_undo_redo(temp_snapshot_was_taken);
+        this->update_after_undo_redo(snapshot_copy, temp_snapshot_was_taken);
         // Enable layer editing after the Undo / Redo jump.
         if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
             view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     }
 }
 
-void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
+void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
 {
     this->view3D->get_canvas3d()->get_selection().clear();
     // Update volumes from the deserializd model, always stop / update the background processing (for both the SLA and FFF technologies).
@@ -3964,7 +3978,7 @@ void Plater::priv::update_after_undo_redo(bool /* temp_snapshot_was_taken */)
         this->undo_redo_stack().release_least_recently_used();
     //YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
     this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances);
-    this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo();
+    this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot);
 
     wxGetApp().obj_list()->update_after_undo_redo();
 

@@ -86,6 +86,8 @@ public:
 
     bool is_in_editing_mode() const { return m_editing_mode; }
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
+    bool has_backend_supports() const;
+    void reslice_SLA_supports() const;
 
 private:
     bool on_init();
@@ -101,6 +103,8 @@ private:
     void update_cache_entry_normal(unsigned int i) const;
     bool unsaved_changes() const;
 
+    EState m_no_hover_state = Off;
+    EState m_no_hover_old_state = Off;
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).

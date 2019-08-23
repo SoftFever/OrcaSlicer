@@ -9,6 +9,11 @@
 #include <map>
 
 namespace Slic3r {
+
+namespace UndoRedo {
+struct Snapshot;
+}
+
 namespace GUI {
 
 class GLCanvas3D;
@@ -173,6 +178,7 @@ public:
     void set_sla_support_data(ModelObject* model_object);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_sla_clipping_plane() const;
+    bool wants_reslice_supports_on_undo() const;
 
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
@@ -186,7 +192,7 @@ public:
     bool on_char(wxKeyEvent& evt);
     bool on_key(wxKeyEvent& evt);
 
-    void update_after_undo_redo();
+    void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
 private:
     void reset();

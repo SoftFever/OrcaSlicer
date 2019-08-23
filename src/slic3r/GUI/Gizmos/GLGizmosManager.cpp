@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
 #include <wx/glcanvas.h>
@@ -280,8 +281,8 @@ bool GLGizmosManager::handle_shortcut(int key)
     if (m_parent.get_selection().is_empty())
         return false;
 
-    EType old_current = m_current;
     bool handled = false;
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
@@ -294,23 +295,32 @@ bool GLGizmosManager::handle_shortcut(int key)
             if ((it->second->get_state() == GLGizmoBase::On))
             {
                 it->second->set_state(GLGizmoBase::Off);
-                m_current = Undefined;
+                if (it->second->get_state() == GLGizmoBase::Off) {
+                    m_current = Undefined;
+                }
                 handled = true;
             }
             else if ((it->second->get_state() == GLGizmoBase::Off))
             {
-                it->second->set_state(GLGizmoBase::On);
-                m_current = it->first;
+                // Before turning anything on, turn everything else off to see if
+                // nobody refuses. Only then activate the gizmo.
+                bool can_open = true;
+                for (GizmosMap::iterator i = m_gizmos.begin(); i != m_gizmos.end(); ++i) {
+                    if (i->first != it->first) {
+                        if (m_current == i->first && i->second->get_state() != GLGizmoBase::Off ) {
+                            i->second->set_state(GLGizmoBase::Off);
+                            if (i->second->get_state() != GLGizmoBase::Off)
+                                can_open = false;
+                        }
+                    }
+                }
+                if (can_open) {
+                    it->second->set_state(GLGizmoBase::On);
+                    m_current = it->first;
+                }
                 handled = true;
             }
         }
-    }
-
-    if (handled && (old_current != Undefined) && (old_current != m_current))
-    {
-        GizmosMap::const_iterator it = m_gizmos.find(old_current);
-        if (it != m_gizmos.end())
-            it->second->set_state(GLGizmoBase::Off);
     }
 
     return handled;
@@ -455,6 +465,11 @@ ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
     return ClippingPlane::ClipsNothing();
 }
 
+bool GLGizmosManager::wants_reslice_supports_on_undo() const
+{
+    return (m_current == SlaSupports
+        && dynamic_cast<const GLGizmoSlaSupports*>(m_gizmos.at(SlaSupports))->has_backend_supports());
+}
 
 void GLGizmosManager::render_current_gizmo() const
 {
@@ -861,10 +876,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
     return processed;
 }
 
-void GLGizmosManager::update_after_undo_redo()
+void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
 {
     update_data();
     m_serializing = false;
+    if (m_current == SlaSupports
+     && snapshot.snapshot_data.flags & UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS)
+        dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports])->reslice_SLA_supports();
 }
 
 void GLGizmosManager::reset()
@@ -1065,34 +1083,65 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     float scaled_stride_y = scaled_icons_size + scaled_gap_y;
     float top_y = 0.5f * (cnv_h - height) + scaled_border;
 
-    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    auto inside = [scaled_border, scaled_icons_size, &mouse_pos](float top_y) {
+        return (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+    };
+
+    bool could_activate = true;
+    for (std::pair<const GLGizmosManager::EType, GLGizmoBase*> &type_and_gizmo : m_gizmos)
     {
-        if ((it->second == nullptr) || !it->second->is_selectable())
+        GLGizmoBase *gizmo = type_and_gizmo.second;
+        if ((gizmo == nullptr) || !gizmo->is_selectable())
             continue;
 
-        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-        if (it->second->is_activable() && inside)
-        {
-            if ((it->second->get_state() == GLGizmoBase::On))
-            {
-                it->second->set_state(GLGizmoBase::Hover);
-                m_current = Undefined;
-            }
-            else if ((it->second->get_state() == GLGizmoBase::Hover))
-            {
-                it->second->set_state(GLGizmoBase::On);
-                m_current = it->first;
+        if (! (gizmo->is_activable() && inside(top_y))) {
+            gizmo->set_state(GLGizmoBase::Off);
+            if (gizmo->get_state() != GLGizmoBase::Off) {
+                // Gizmo refused to leave it's active state. Don't try to select
+                could_activate = false;
             }
         }
-        else
-            it->second->set_state(GLGizmoBase::Off);
 
         top_y += scaled_stride_y;
     }
 
-    GizmosMap::iterator it = m_gizmos.find(m_current);
-    if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
-        it->second->set_state(GLGizmoBase::On);
+    // We may change m_current soon. If we did it during following loop, gizmos that take undo/redo snapshots
+    // in their on_set_state function could snapshot a state with the new gizmo already active.
+    // Therefore, just remember what needs to be done and actually change m_current afterwards.
+    EType new_current = m_current;
+    top_y = 0.5f * (cnv_h - height) + scaled_border;
+    for (std::pair<const GLGizmosManager::EType, GLGizmoBase*> &type_and_gizmo : m_gizmos)
+    {
+        GLGizmoBase *gizmo = type_and_gizmo.second;
+        if ((gizmo == nullptr) || !gizmo->is_selectable())
+            continue;
+
+        if (gizmo->is_activable() && inside(top_y))
+        {
+            if ((gizmo->get_state() == GLGizmoBase::On))
+            {
+                gizmo->set_state(GLGizmoBase::Off);
+                if (gizmo->get_state() == GLGizmoBase::Off) {
+                    gizmo->set_state(GLGizmoBase::Hover);
+                    new_current = Undefined;
+                }
+            }
+            else if ((gizmo->get_state() == GLGizmoBase::Hover) && could_activate)
+            {
+                gizmo->set_state(GLGizmoBase::On);
+                new_current = type_and_gizmo.first;
+            }
+        }
+
+        top_y += scaled_stride_y;
+    }
+    m_current = new_current;
+
+    if (could_activate) {
+        GizmosMap::iterator it = m_gizmos.find(m_current);
+        if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
+            it->second->set_state(GLGizmoBase::On);
+    }
 }
 
 std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
