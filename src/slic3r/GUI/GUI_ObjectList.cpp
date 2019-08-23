@@ -2495,35 +2495,47 @@ void ObjectList::remove()
     if (GetSelectedItemsCount() == 0)
         return;
 
-    wxDataViewItemArray sels;
-    GetSelections(sels);
-
-    wxDataViewItem  parent = wxDataViewItem(0);
-
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete Selected")));
-
-    for (auto& item : sels)
+    auto delete_item = [this](wxDataViewItem item)
     {
-        if (m_objects_model->InvalidItem(item)) // item can be deleted for this moment (like last 2 Instances or Volumes)
-            continue;
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+        wxDataViewItem parent = m_objects_model->GetParent(item);
+        if (m_objects_model->GetItemType(item) & itObject)
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
             if (m_objects_model->GetItemType(item) & itLayer) {
-                parent = m_objects_model->GetParent(item);
                 wxDataViewItemArray children;
                 if (m_objects_model->GetChildren(parent, children) == 1)
                     parent = m_objects_model->GetTopParent(item);
             }
-            else if (sels.size() == 1)
-                select_item(m_objects_model->GetParent(item));
             
             del_subobject_item(item);
         }
+
+        return parent;
+    };
+
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    wxDataViewItem parent = wxDataViewItem(0);
+
+    if (sels.Count() == 1)
+        parent = delete_item(GetSelection());
+    else
+    {
+        Plater::TakeSnapshot snapshot = Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete Selected")));
+
+        for (auto& item : sels)
+        {
+            if (m_objects_model->InvalidItem(item)) // item can be deleted for this moment (like last 2 Instances or Volumes)
+                continue;
+            parent = delete_item(item);
+        }
     }
 
-    if (parent)
+    if (parent && !m_objects_model->InvalidItem(parent)) {
         select_item(parent);
+        update_selections_on_canvas();
+    }
 }
 
 void ObjectList::del_layer_range(const t_layer_height_range& range)
@@ -2780,8 +2792,12 @@ void ObjectList::update_selections()
             }
             else if (m_selection_mode & smLayerRoot)
                 sels.Add(m_objects_model->GetLayerRootItem(obj_item));
-            else if (m_selection_mode & smLayer)
-                sels.Add(m_objects_model->GetItemByLayerId(obj_idx, m_selected_layers_range_idx));
+            else if (m_selection_mode & smLayer) {
+                if (m_selected_layers_range_idx >= 0)
+                    sels.Add(m_objects_model->GetItemByLayerId(obj_idx, m_selected_layers_range_idx));
+                else
+                    sels.Add(obj_item);
+            }
         }
         else {
         for (const auto& object : objects_content) {
