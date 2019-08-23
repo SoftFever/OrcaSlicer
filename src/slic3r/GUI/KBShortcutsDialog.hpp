@@ -23,10 +23,10 @@ class KBShortcutsDialog : public DPIDialog
     typedef std::vector< Shortcut >             Shortcuts;
     typedef std::vector< std::pair<wxString, std::pair<Shortcuts, PLACED_SIZER_ID>> >   ShortcutsVec;
 
-    wxString text_info {wxEmptyString};
+    wxScrolledWindow*               panel;
 
-    ShortcutsVec    m_full_shortcuts;
-    ScalableBitmap  m_logo_bmp;
+    ShortcutsVec                    m_full_shortcuts;
+    ScalableBitmap                  m_logo_bmp;
     std::vector<wxStaticBitmap*>    m_head_bitmaps;
 
 public:

@@ -3607,7 +3607,15 @@ bool GLCanvas3D::_init_main_toolbar()
     item.sprite_id = 10;
     item.left.toggable = true;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
-    item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };
+    item.visibility_callback = [this]()->bool
+    {
+        bool res = m_process->current_printer_technology() == ptFFF;
+        // turns off if changing printer technology
+        if (!res && m_main_toolbar.is_item_visible("layersediting") && m_main_toolbar.is_item_pressed("layersediting"))
+            force_main_toolbar_left_action(get_main_toolbar_item_id("layersediting"));
+
+        return res;
+    };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     if (!m_main_toolbar.add_item(item))
         return false;
