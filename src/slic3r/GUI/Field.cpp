@@ -1056,6 +1056,7 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
     wxBitmap bmp = btn->GetBitmap();
     wxMemoryDC dc(bmp);
+    if (!dc.IsOk()) return;
     dc.SetTextForeground(*wxWHITE);
     dc.SetFont(wxGetApp().normal_font());
 
