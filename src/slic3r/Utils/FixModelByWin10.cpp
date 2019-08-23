@@ -377,7 +377,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 	            // PresetBundle bundle;
 				on_progress(L("Loading repaired model"), 80);
 				DynamicPrintConfig config;
-				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &model);
+				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &model, false);
 			    boost::filesystem::remove(path_dst);
 				if (! loaded)
 	 				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
