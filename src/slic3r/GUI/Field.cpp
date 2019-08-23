@@ -637,6 +637,10 @@ void SpinCtrl::BUILD() {
 
 void SpinCtrl::propagate_value()
 {
+    if (suppress_propagation)
+        return;
+
+    suppress_propagation = true;
     if (tmp_value == UNDEF_VALUE) {
         on_kill_focus();
 	} else {
@@ -650,6 +654,7 @@ void SpinCtrl::propagate_value()
 #endif
         on_change_field();
     }
+    suppress_propagation = false;
 }
 
 void SpinCtrl::msw_rescale()

@@ -62,6 +62,8 @@ Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
 
     m_em_unit = wxGetApp().em_unit();
 
+    m_config_manipulation = get_config_manipulation();
+
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &evt) {
         for (auto page : m_pages)
             if (! page.get()->IsShown())
@@ -1251,6 +1253,7 @@ void TabPrint::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    /*
     // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
     // KillFocus() for the wxSpinCtrl use CallAfter function. So,
@@ -1258,10 +1261,13 @@ void TabPrint::update()
     // let check if this process is already started.
     if (is_msg_dlg_already_exist)
         return;
+        */
 
     m_update_cnt++;
 //	Freeze();
 
+    /* #ys_FIXME_delete_after_testing (refactoring)
+     *
     // layer_height shouldn't be equal to zero
     if (m_config->opt_float("layer_height") < EPSILON)
     {
@@ -1355,7 +1361,7 @@ void TabPrint::update()
         // Ask only once.
         if (!m_support_material_overhangs_queried) {
             m_support_material_overhangs_queried = true;
-            if (!m_config->opt_bool("overhangs")/* != 1*/) {
+            if (!m_config->opt_bool("overhangs")/* != 1* /) {
                 wxString msg_text = _(L("Supports work better, if the following feature is enabled:\n"
                     "- Detect bridging perimeters\n"
                     "\nShall I adjust those settings for supports?"));
@@ -1490,6 +1496,9 @@ void TabPrint::update()
     bool have_wipe_tower = m_config->opt_bool("wipe_tower");
     for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging"})
         get_field(el)->toggle(have_wipe_tower);
+        */
+
+    m_config_manipulation.update_print_fff_config(m_config, true);
 
     m_recommended_thin_wall_thickness_description_line->SetText(
         from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
@@ -1498,8 +1507,13 @@ void TabPrint::update()
 //	Thaw();
     m_update_cnt--;
 
-    if (m_update_cnt==0)
+    if (m_update_cnt==0) {
+        m_config_manipulation.toggle_print_fff_options(m_config);
+
+        wxGetApp().obj_list()->update_and_show_object_settings_item();
+
         wxGetApp().mainframe->on_config_changed(m_config);
+    }
 }
 
 void TabPrint::OnActivate()
@@ -3799,6 +3813,8 @@ void TabSLAPrint::update()
 
     m_update_cnt++;
 
+    /* #ys_FIXME_delete_after_testing (refactoring)
+     *
     bool supports_en = m_config->opt_bool("supports_enable");
 
     get_field("support_head_front_diameter")->toggle(supports_en);
@@ -3873,11 +3889,41 @@ void TabSLAPrint::update()
     get_field("pad_object_connector_stride")->toggle(zero_elev);
     get_field("pad_object_connector_width")->toggle(zero_elev);
     get_field("pad_object_connector_penetration")->toggle(zero_elev);
+*/
 
+    m_config_manipulation.update_print_sla_config(m_config, true);
     m_update_cnt--;
 
-    if (m_update_cnt == 0) wxGetApp().mainframe->on_config_changed(m_config);
+    if (m_update_cnt == 0) {
+        m_config_manipulation.toggle_print_sla_options(m_config);
+
+        wxGetApp().obj_list()->update_and_show_object_settings_item();
+
+        wxGetApp().mainframe->on_config_changed(m_config);
+    }
 }
+
+ConfigManipulation Tab::get_config_manipulation()
+{
+    auto load_config = [this]()
+    {
+        update_dirty();
+        // Initialize UI components with the config values.
+        reload_config();
+        update();
+    };
+
+    auto get_field_ = [this](const t_config_option_key& opt_key, int opt_index) {
+        return get_field(opt_key, opt_index);
+    };
+
+    auto cb_value_change = [this](const std::string& opt_key, const boost::any& value) {
+        return on_value_change(opt_key, value);
+    };
+
+    return ConfigManipulation(load_config, get_field_, cb_value_change);
+}
+
 
 } // GUI
 } // Slic3r

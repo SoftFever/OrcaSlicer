@@ -336,6 +336,8 @@ class SpinCtrl : public Field {
 	using Field::Field;
 private:
 	static const int UNDEF_VALUE = INT_MIN;
+
+    bool            suppress_propagation {false};
 public:
 	SpinCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id), tmp_value(UNDEF_VALUE) {}
 	SpinCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id), tmp_value(UNDEF_VALUE) {}

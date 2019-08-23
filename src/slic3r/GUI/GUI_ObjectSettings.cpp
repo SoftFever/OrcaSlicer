@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "I18N.hpp"
+#include "ConfigManipulation.hpp"
 
 #include <wx/wupdlock.h>
 
@@ -117,7 +118,8 @@ bool ObjectSettings::update_settings_list()
             optgroup->label_width = 15;
             optgroup->sidetext_width = 5.5;
 
-            optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
+            optgroup->m_on_change = [this, config](const t_config_option_key& opt_id, const boost::any& value) {
+                                    this->update_config_values(config);
                                     wxGetApp().obj_list()->changed_object(); };
 
             // call back for rescaling of the extracolumn control
@@ -152,8 +154,10 @@ bool ObjectSettings::update_settings_list()
             m_og_settings.push_back(optgroup);
         }
 
-        if (!categories.empty())
+        if (!categories.empty()) {
             objects_model->UpdateSettingsDigest(item, categories);
+            update_config_values(config);
+        }
     }
     else
     {
@@ -162,6 +166,61 @@ bool ObjectSettings::update_settings_list()
     } 
             
     return true;
+}
+
+void ObjectSettings::update_config_values(DynamicPrintConfig* config)
+{
+    const auto objects_model        = wxGetApp().obj_list()->GetModel();
+    const auto item                 = wxGetApp().obj_list()->GetSelection();
+    const auto printer_technology   = wxGetApp().plater()->printer_technology();
+    const bool is_object_settings   = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
+
+    // update config values according to configuration hierarchy
+    DynamicPrintConfig  main_config   = printer_technology == ptFFF ?
+                                        wxGetApp().preset_bundle->prints.get_edited_preset().config :
+                                        wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+
+    auto load_config = [this, config, &main_config]()
+    {
+        // load checked values from main_config to config
+        config->apply_only(main_config, config->keys(), true);
+        // Initialize UI components with the config values.
+        for (auto og : m_og_settings)
+            og->reload_config();
+        // next config check
+        update_config_values(config);
+    };
+
+    auto get_field = [this](const t_config_option_key & opt_key, int opt_index)
+    {
+        Field* field = nullptr;
+        for (auto og : m_og_settings) {
+            field = og->get_fieldc(opt_key, opt_index);
+            if (field != nullptr)
+                return field;
+        }
+        return field;
+    };
+
+    ConfigManipulation config_manipulation(load_config, get_field, nullptr, config);
+
+    if (!is_object_settings)
+    {
+        const int obj_idx = objects_model->GetObjectIdByItem(item);
+        assert(obj_idx >= 0);
+        DynamicPrintConfig* obj_config = &wxGetApp().model().objects[obj_idx]->config;
+
+        main_config.apply(*obj_config, true);
+        printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
+                                        config_manipulation.update_print_sla_config(&main_config) ;
+    }
+
+    main_config.apply(*config, true);
+    printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
+                                    config_manipulation.update_print_sla_config(&main_config) ;
+
+    printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&main_config) :
+                                    config_manipulation.toggle_print_sla_options(&main_config) ;
 }
 
 void ObjectSettings::UpdateAndShow(const bool show)

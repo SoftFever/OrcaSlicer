@@ -5,6 +5,7 @@
 #include <vector>
 #include <wx/panel.h>
 #include "wxExtensions.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 class wxBoxSizer;
 
@@ -28,6 +29,7 @@ public:
 
     virtual wxSizer*    get_sizer();
     ConfigOptionsGroup* get_og() { return m_og.get(); }
+    wxWindow*           parent() const {return m_parent; }
 };
 
 
@@ -46,6 +48,7 @@ public:
     ~ObjectSettings() {}
 
     bool        update_settings_list();
+    void        update_config_values(DynamicPrintConfig*config);
     void        UpdateAndShow(const bool show) override;
     void        msw_rescale();
 };

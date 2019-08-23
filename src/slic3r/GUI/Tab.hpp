@@ -32,6 +32,7 @@
 #include "ButtonsDescription.hpp"
 #include "Event.hpp"
 #include "wxExtensions.hpp"
+#include "ConfigManipulation.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -313,6 +314,9 @@ protected:
 	void			update_frequently_changed_parameters();
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();
+
+    ConfigManipulation m_config_manipulation;
+    ConfigManipulation get_config_manipulation();
 };
 
 class TabPrint : public Tab
