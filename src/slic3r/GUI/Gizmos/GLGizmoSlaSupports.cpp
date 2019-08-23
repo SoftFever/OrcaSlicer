@@ -1320,9 +1320,9 @@ bool GLGizmoSlaSupports::has_backend_supports() const
     return false;
 }
 
-void GLGizmoSlaSupports::reslice_SLA_supports() const
+void GLGizmoSlaSupports::reslice_SLA_supports(bool postpone_error_messages) const
 {
-    wxGetApp().CallAfter([this]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object); });
+    wxGetApp().CallAfter([this, postpone_error_messages]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object, postpone_error_messages); });
 }
 
 void GLGizmoSlaSupports::get_data_from_backend()

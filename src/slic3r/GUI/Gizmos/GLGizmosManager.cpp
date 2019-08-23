@@ -882,7 +882,7 @@ void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
     m_serializing = false;
     if (m_current == SlaSupports
      && snapshot.snapshot_data.flags & UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS)
-        dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports])->reslice_SLA_supports();
+        dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports])->reslice_SLA_supports(true);
 }
 
 void GLGizmosManager::reset()

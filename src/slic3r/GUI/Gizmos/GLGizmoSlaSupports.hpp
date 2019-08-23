@@ -87,7 +87,7 @@ public:
     bool is_in_editing_mode() const { return m_editing_mode; }
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
     bool has_backend_supports() const;
-    void reslice_SLA_supports() const;
+    void reslice_SLA_supports(bool postpone_error_messages = false) const;
 
 private:
     bool on_init();

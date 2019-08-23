@@ -186,7 +186,7 @@ public:
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
-    void reslice_SLA_supports(const ModelObject &object);
+    void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
