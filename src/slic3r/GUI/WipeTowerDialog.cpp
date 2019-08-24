@@ -218,28 +218,32 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 				edit_boxes[i][j]->SetValue(wxString("") << int(matrix[m_number_of_extruders*j + i]));
 		}
 	}
+
+    const int clr_icon_side = edit_boxes.front().front()->GetSize().y;
+    const auto icon_size = wxSize(clr_icon_side, clr_icon_side);
+
 	m_gridsizer_advanced->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("")));
 	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
         auto hsizer = new wxBoxSizer(wxHORIZONTAL);
         hsizer->AddSpacer(20);
         hsizer->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER);
-        wxWindow* w = new wxWindow(m_page_advanced, wxID_ANY, wxDefaultPosition, wxSize(25, 25), wxBORDER_SIMPLE);
+        wxWindow* w = new wxWindow(m_page_advanced, wxID_ANY, wxDefaultPosition, icon_size, wxBORDER_SIMPLE);
         w->SetCanFocus(false);
         w->SetBackgroundColour(m_colours[i]);
-        hsizer->AddSpacer(10);
+        hsizer->AddStretchSpacer();
         hsizer->Add(w);
-		m_gridsizer_advanced->Add(hsizer);
+		m_gridsizer_advanced->Add(hsizer, 1, wxEXPAND);
     }
 	for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
         auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-        wxWindow* w = new wxWindow(m_page_advanced, wxID_ANY, wxDefaultPosition, wxSize(25, 25), wxBORDER_SIMPLE);
+        wxWindow* w = new wxWindow(m_page_advanced, wxID_ANY, wxDefaultPosition, icon_size, wxBORDER_SIMPLE);
         w->SetCanFocus(false);
         w->SetBackgroundColour(m_colours[i]);
         hsizer->AddSpacer(20);
         hsizer->Add(new wxStaticText(m_page_advanced, wxID_ANY, wxString("") << i + 1), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
-        hsizer->AddSpacer(10);
+        hsizer->AddStretchSpacer();
         hsizer->Add(w);
-        m_gridsizer_advanced->Add(hsizer);
+        m_gridsizer_advanced->Add(hsizer, 1, wxEXPAND);
 
     for (unsigned int j = 0; j < m_number_of_extruders; ++j)
         m_gridsizer_advanced->Add(edit_boxes[j][i], 0);
@@ -264,14 +268,14 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         m_new.push_back(new wxSpinCtrl(m_page_simple,wxID_ANY,wxEmptyString,wxDefaultPosition, wxSize(ITEM_WIDTH(), -1),wxSP_ARROW_KEYS|wxALIGN_RIGHT,0,300,extruders[2*i+1]));
 
         auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-        wxWindow* w = new wxWindow(m_page_simple, wxID_ANY, wxDefaultPosition, wxSize(25, 25), wxBORDER_SIMPLE);
+        wxWindow* w = new wxWindow(m_page_simple, wxID_ANY, wxDefaultPosition, icon_size, wxBORDER_SIMPLE);
         w->SetCanFocus(false);
         w->SetBackgroundColour(m_colours[i]);
         hsizer->Add(w, wxALIGN_CENTER_VERTICAL);
         hsizer->AddSpacer(10);
         hsizer->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString(_(L("Tool #"))) << i + 1 << ": "), 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
 
-        gridsizer_simple->Add(hsizer,  wxALIGN_CENTER_VERTICAL);
+        gridsizer_simple->Add(hsizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
         gridsizer_simple->Add(m_old.back(),0);
         gridsizer_simple->Add(m_new.back(),0);
 	}
