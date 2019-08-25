@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-08-06 09:54+0200\n"
-"PO-Revision-Date: 2019-08-23 23:38+0900\n"
+"PO-Revision-Date: 2019-08-25 09:43+0900\n"
 "Last-Translator: lee hak-min <hangmini12@naver.com>\n"
 "Language-Team: ulsanether\n"
 "Language: ko_KR\n"
@@ -317,7 +317,7 @@ msgstr "활동중"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:45
 msgid "slic3r version"
-msgstr "slic3r에 대하여"
+msgstr "slic3r 버전"
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:46 src/slic3r/GUI/Preset.cpp:1307
 msgid "print"
@@ -1212,7 +1212,7 @@ msgstr "모드 보기 로드"
 
 #: src/slic3r/GUI/GUI_App.cpp:544
 msgid "Choose one file (3MF/AMF):"
-msgstr "하나의 파일(3MF/AMF)을 선택합니다."
+msgstr "파일(3MF/AMF) 선택:"
 
 #: src/slic3r/GUI/GUI_App.cpp:556
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
@@ -2569,7 +2569,7 @@ msgstr "모든 개체를 선택 합니다"
 
 #: src/slic3r/GUI/MainFrame.cpp:546
 msgid "D&eselect all"
-msgstr "선택 취소 D&eselect"
+msgstr "선택 취소 D&select+"
 
 #: src/slic3r/GUI/MainFrame.cpp:547
 msgid "Deselects all objects"
@@ -8705,7 +8705,8 @@ msgstr "슬라이스"
 msgid ""
 "Slice the model as FFF or SLA based on the printer_technology configuration "
 "value."
-msgstr "프린터_기술 구성 값을 기반으로 모델을 FFF 또는 SLA로 슬라이스합니다."
+msgstr ""
+" printer_technology 구성 값을 기반으로 모델을 FFF 또는 SLA로 슬라이스합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3139
 msgid "Help"
@@ -8765,7 +8766,7 @@ msgstr "중앙"
 
 #: src/libslic3r/PrintConfig.cpp:3199
 msgid "Center the print around the given center."
-msgstr "지정된 중심을 중심으로 인쇄 합니다."
+msgstr "지정된 점을 중심으로 인쇄 합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3203
 msgid "Don't arrange"
@@ -8792,7 +8793,7 @@ msgstr "모눈에 따라 복제"
 
 #: src/libslic3r/PrintConfig.cpp:3213
 msgid "Multiply copies by creating a grid."
-msgstr "격자를 만들어 복사본을 곱합니다."
+msgstr "그리드를 만들어 복사본을 곱합니다."
 
 #: src/libslic3r/PrintConfig.cpp:3216
 msgid "Merge"
@@ -8810,12 +8811,12 @@ msgid ""
 "Try to repair any non-manifold meshes (this option is implicitly added "
 "whenever we need to slice the model to perform the requested action)."
 msgstr ""
-"비 다양체 메쉬를 복구 하십시오 (요청 된 작업을 수행 하기 위해 모델을 슬라이"
-"스 해야 할때마다 이 옵션이 암시적으로 추가 됨)."
+"메쉬를 복구 하십시오 (요청 된 작업을 수행 하기 위해 모델을 슬라이스 해야 할때"
+"마다 이 옵션이 암시적으로 추가 됨)."
 
 #: src/libslic3r/PrintConfig.cpp:3226
 msgid "Rotation angle around the Z axis in degrees."
-msgstr "Z 축 주위의 회전 각도입니다."
+msgstr "Z 축 주위 회전 각도입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3230
 msgid "Rotate around X"
@@ -8823,7 +8824,7 @@ msgstr "X 주위 회전"
 
 #: src/libslic3r/PrintConfig.cpp:3231
 msgid "Rotation angle around the X axis in degrees."
-msgstr "X 축을 중심으로 회전 각도 (도)입니다."
+msgstr "X 축을 중심 회전 각도 입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3235
 msgid "Rotate around Y"
@@ -8831,7 +8832,7 @@ msgstr "Y 주위로 회전"
 
 #: src/libslic3r/PrintConfig.cpp:3236
 msgid "Rotation angle around the Y axis in degrees."
-msgstr "Y 축을 중심으로 회전 각도 (도)입니다."
+msgstr "Y 축을 중심 회전 각도 입니다."
 
 #: src/libslic3r/PrintConfig.cpp:3241
 msgid "Scaling factor or percentage."
@@ -8874,7 +8875,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:3267
 msgid "Output File"
-msgstr "출력파일"
+msgstr "출력 파일"
 
 #: src/libslic3r/PrintConfig.cpp:3268
 msgid ""
@@ -8934,7 +8935,7 @@ msgstr "채우기 준비"
 
 #: src/libslic3r/PrintObject.cpp:391
 msgid "Generating support material"
-msgstr "지원 자료 생성"
+msgstr "지원할 서포트 생성"
 
 #: src/libslic3r/GCode/PreviewData.cpp:176
 msgid "Mixed"
