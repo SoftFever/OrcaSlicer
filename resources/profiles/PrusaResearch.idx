@@ -1,4 +1,5 @@
 min_slic3r_version = 2.1.0-alpha0
+1.0.0-beta1 Updated color for the ASA filaments to differ from the other filaments. Single extruder printers now have no extruder color assigned, obects and toolpaths will be colored with the color of the active filament.
 1.0.0-beta0 Printer model checks in start G-codes, ASA filament profiles, limits on min / max SL1 exposition times
 1.0.0-alpha0 Filament specific retract for PET and similar copolymers, and for FLEX
 min_slic3r_version = 1.42.0-alpha6
