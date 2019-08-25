@@ -50,7 +50,12 @@ static inline void check_add_eol(std::string &gcode)
     if (! gcode.empty() && gcode.back() != '\n')
         gcode += '\n';    
 }
-    
+
+void AvoidCrossingPerimeters::init_external_mp(const Print &print)
+{ 
+	m_external_mp = Slic3r::make_unique<MotionPlanner>(union_ex(this->collect_contours_all_layers(print.objects())));
+}
+
 // Plan a travel move while minimizing the number of perimeter crossings.
 // point is in unscaled coordinates, in the coordinate system of the current active object
 // (set by gcodegen.set_origin()).
@@ -70,7 +75,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 // Collect outer contours of all objects over all layers.
 // Discard objects only containing thin walls (offset would fail on an empty polygon).
 // Used by avoid crossing perimeters feature.
-static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects)
+Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectPtrs& objects)
 {
     Polygons islands;
     for (const PrintObject *object : objects) {
@@ -80,8 +85,8 @@ static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects)
          tbb::parallel_for(tbb::blocked_range<size_t>(0, object->layers().size() / 2),
              [&object, &polygons_per_layer](const tbb::blocked_range<size_t> &range) {
                  for (size_t i = range.begin(); i < range.end(); ++ i) {
-                     const Layer* layer1 = object->layers()[i/2];
-                     const Layer* layer2 = object->layers()[i/2 + 1];
+                     const Layer* layer1 = object->layers()[i * 2];
+                     const Layer* layer2 = object->layers()[i * 2 + 1];
                      Polygons polys;
                      polys.reserve(layer1->slices.expolygons.size() + layer2->slices.expolygons.size());
                     for (const ExPolygon &expoly : layer1->slices.expolygons)
@@ -1008,8 +1013,7 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // Initialize a motion planner for object-to-object travel moves.
     if (print.config().avoid_crossing_perimeters.value) {
-        Polygons islands = collect_contours_all_layers(print.objects());
-        m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
+        m_avoid_crossing_perimeters.init_external_mp(print);
         print.throw_if_canceled();
     }
 

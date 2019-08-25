@@ -45,12 +45,15 @@ public:
     AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
     ~AvoidCrossingPerimeters() {}
 
-    void init_external_mp(const ExPolygons &islands) { m_external_mp = Slic3r::make_unique<MotionPlanner>(islands); }
+	void init_external_mp(const Print &print);
     void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
 
     Polyline travel_to(const GCode &gcodegen, const Point &point);
 
 private:
+    // For initializing the regions to avoid.
+	static Polygons collect_contours_all_layers(const PrintObjectPtrs& objects);
+
     std::unique_ptr<MotionPlanner> m_external_mp;
     std::unique_ptr<MotionPlanner> m_layer_mp;
 };
