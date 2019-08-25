@@ -290,9 +290,10 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 		size_t 									j;
 	} visitor(m_cell_data, m_cells, m_cols);
 
+	assert(visitor.i == 0);
 	for (; visitor.i < m_contours.size(); ++ visitor.i) {
 		const Slic3r::Points &pts = *m_contours[visitor.i];
-		for (; visitor.j < pts.size(); ++ visitor.j)
+		for (visitor.j = 0; visitor.j < pts.size(); ++ visitor.j)
 			this->visit_cells_intersecting_line(pts[visitor.j], pts[(visitor.j + 1 == pts.size()) ? 0 : visitor.j + 1], visitor);
 	}
 }
