@@ -175,6 +175,9 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
     const auto printer_technology   = wxGetApp().plater()->printer_technology();
     const bool is_object_settings   = objects_model->GetItemType(objects_model->GetParent(item)) == itObject;
 
+    if (!item || !objects_model->IsSettingsItem(item) || !config)
+        return;
+
     // update config values according to configuration hierarchy
     DynamicPrintConfig  main_config   = printer_technology == ptFFF ?
                                         wxGetApp().preset_bundle->prints.get_edited_preset().config :
