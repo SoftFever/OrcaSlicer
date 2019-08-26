@@ -719,9 +719,6 @@ private:
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates gcode travel paths geometry
     void _load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    bool _travel_paths_by_type(const GCodePreviewData& preview_data);
-    bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data);
-    bool _travel_paths_by_tool(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates objects and wipe tower geometry
     void _load_fff_shells();
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.

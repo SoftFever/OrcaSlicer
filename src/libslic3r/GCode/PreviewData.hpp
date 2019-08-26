@@ -14,14 +14,14 @@ public:
     {
         float rgba[4];
 
-        Color();
-        Color(float r, float g, float b, float a);
+        Color(const float *argba) { memcpy(this->rgba, argba, sizeof(float) * 4); }
+		Color(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f) { rgba[0] = r; rgba[1] = g; rgba[2] = b; rgba[3] = a; }
 
         std::vector<unsigned char> as_bytes() const;
 
         static const Color Dummy;
     };
-
+    
     // Color mapping from a <min, max> range into a smooth rainbow of 10 colors.
     struct Range
     {

@@ -13,22 +13,6 @@ namespace Slic3r {
 
 const GCodePreviewData::Color GCodePreviewData::Color::Dummy(0.0f, 0.0f, 0.0f, 0.0f);
 
-GCodePreviewData::Color::Color()
-{
-    rgba[0] = 1.0f;
-    rgba[1] = 1.0f;
-    rgba[2] = 1.0f;
-    rgba[3] = 1.0f;
-}
-
-GCodePreviewData::Color::Color(float r, float g, float b, float a)
-{
-    rgba[0] = r;
-    rgba[1] = g;
-    rgba[2] = b;
-    rgba[3] = a;
-}
-
 std::vector<unsigned char> GCodePreviewData::Color::as_bytes() const
 {
     std::vector<unsigned char> ret;
