@@ -1012,6 +1012,7 @@ void GCode::_do_export(Print &print, FILE *file)
     _write(file, this->preamble());
 
     // Initialize a motion planner for object-to-object travel moves.
+    m_avoid_crossing_perimeters.reset();
     if (print.config().avoid_crossing_perimeters.value) {
         m_avoid_crossing_perimeters.init_external_mp(print);
         print.throw_if_canceled();

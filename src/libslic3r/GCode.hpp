@@ -45,6 +45,7 @@ public:
     AvoidCrossingPerimeters() : use_external_mp(false), use_external_mp_once(false), disable_once(true) {}
     ~AvoidCrossingPerimeters() {}
 
+    void reset() { m_external_mp.reset(); m_layer_mp.reset(); }
 	void init_external_mp(const Print &print);
     void init_layer_mp(const ExPolygons &islands) { m_layer_mp = Slic3r::make_unique<MotionPlanner>(islands); }
 
