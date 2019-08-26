@@ -5234,67 +5234,49 @@ bool GLCanvas3D::_travel_paths_by_type(const GCodePreviewData& preview_data)
 
 bool GLCanvas3D::_travel_paths_by_feedrate(const GCodePreviewData& preview_data)
 {
-    // Helper structure for feedrate
-    struct Feedrate
-    {
-        float value;
-        GLVolume* volume;
-
-        explicit Feedrate(float value)
-            : value(value)
-            , volume(nullptr)
-        {
-        }
-
-        bool operator == (const Feedrate& other) const
-        {
-            return value == other.value;
-        }
-    };
-
-    typedef std::vector<Feedrate> FeedratesList;
+    // nothing to render, return
+	if (preview_data.travel.polylines.empty())
+		return true;
 
     // colors travels by feedrate
-
     // detects feedrates
-    FeedratesList feedrates;
-    for (const GCodePreviewData::Travel::Polyline& polyline : preview_data.travel.polylines)
+	std::vector<std::pair<float, GLVolume*>> feedrates;
     {
-        if (std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate)) == feedrates.end())
-            feedrates.emplace_back(polyline.feedrate);
+    	std::vector<float> values;
+		values.reserve(preview_data.travel.polylines.size());
+    	for (const GCodePreviewData::Travel::Polyline& polyline : preview_data.travel.polylines)
+    		values.emplace_back(polyline.feedrate);
+    	sort_remove_duplicates(values);
+    	feedrates.reserve(values.size());
+	    // creates a new volume for each feedrate
+    	for (float feedrate : values)
+    		feedrates.emplace_back(feedrate, m_volumes.new_nontoolpath_volume(preview_data.get_feedrate_color(feedrate).rgba, VERTEX_BUFFER_RESERVE_SIZE));
     }
 
-    // nothing to render, return
-    if (feedrates.empty())
-        return true;
-
-    // creates a new volume for each feedrate
-    for (Feedrate& feedrate : feedrates)
-		feedrate.volume = m_volumes.new_nontoolpath_volume(preview_data.get_feedrate_color(feedrate.value).rgba, VERTEX_BUFFER_RESERVE_SIZE);
-
 	// populates volumes
+	std::pair<float, GLVolume*> key(0.f, nullptr);
     for (const GCodePreviewData::Travel::Polyline& polyline : preview_data.travel.polylines)
     {
-        FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
-        if (feedrate != feedrates.end())
-        {
-        	GLVolume &vol = *feedrate->volume;
-            vol.print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
-            vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
-            vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
+    	key.first = polyline.feedrate;
+        auto it_feedrate = std::lower_bound(feedrates.begin(), feedrates.end(), key, [](const std::pair<float, GLVolume*> &l, const std::pair<float, GLVolume*> &r) { return l.first < r.first; });
+        assert(it_feedrate != feedrates.end() && it_feedrate->first == polyline.feedrate);
 
-            _3DScene::polyline3_to_verts(polyline.polyline, preview_data.travel.width, preview_data.travel.height, *feedrate->volume);
+    	GLVolume &vol = *it_feedrate->second;
+        vol.print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
+        vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
+        vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
 
-            // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
-            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
-	            feedrate->volume = m_volumes.new_nontoolpath_volume(vol.color);
-                reserve_new_volume_finalize_old_volume(*feedrate->volume, vol, m_initialized);
-            }
+        _3DScene::polyline3_to_verts(polyline.polyline, preview_data.travel.width, preview_data.travel.height, vol);
+
+        // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
+        if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
+			it_feedrate->second = m_volumes.new_nontoolpath_volume(vol.color);
+            reserve_new_volume_finalize_old_volume(*it_feedrate->second, vol, m_initialized);
         }
     }
 
-    for (Feedrate &feedrate : feedrates)
-    	feedrate.volume->finalize_geometry(m_initialized);
+    for (auto &feedrate : feedrates)
+    	feedrate.second->finalize_geometry(m_initialized);
 
     return true;
 }
