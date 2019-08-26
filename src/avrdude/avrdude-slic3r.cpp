@@ -207,18 +207,6 @@ AvrDude::Ptr AvrDude::run()
 				if (self->p->complete_fn) {
 					self->p->complete_fn();
 				}
-			} catch (...) {
-				self->p->exit_code = EXIT_EXCEPTION;
-
-				static const char *msg = "An unkown exception was thrown in the background thread.\n";
-
-				if (self->p->message_fn) {
-					self->p->message_fn(msg, sizeof(msg));
-				}
-
-				if (self->p->complete_fn) {
-					self->p->complete_fn();
-				}
 			}
 		});
 

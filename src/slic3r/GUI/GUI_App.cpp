@@ -139,9 +139,6 @@ static void generic_exception_handle()
         wxLogError("Internal error: %s", ex.what());
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
-    } catch (...) {
-        wxLogError("Unknown internal error");
-        BOOST_LOG_TRIVIAL(error) << "Uncaught exception: Unknown error";
     }
 }
 
@@ -169,7 +166,7 @@ bool GUI_App::OnInit()
 {
     try {
         return on_init_inner();
-    } catch (...) {
+    } catch (const std::exception&) {
         generic_exception_handle();
         return false;
     }
