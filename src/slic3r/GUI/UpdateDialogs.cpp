@@ -113,7 +113,9 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 
 		if (! update.comment.empty()) {
 			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:"))), 0, wxALIGN_RIGHT);
-			flex->Add(new wxStaticText(this, wxID_ANY, from_u8(update.comment)));
+			auto *update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
+			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
+			flex->Add(update_comment);
 		}
 
 		versions->Add(flex);
