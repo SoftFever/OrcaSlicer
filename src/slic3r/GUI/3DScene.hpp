@@ -522,6 +522,9 @@ public:
     int load_wipe_tower_preview(
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized);
 
+    GLVolume* new_toolpath_volume(const float *rgba, size_t reserve_vbo_floats = 0);
+    GLVolume* new_nontoolpath_volume(const float *rgba, size_t reserve_vbo_floats = 0);
+
     // Render the volumes by OpenGL.
     void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
 

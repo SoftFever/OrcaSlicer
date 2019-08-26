@@ -131,6 +131,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 
 class GLCanvas3D
 {
+public:
     struct GCodePreviewVolumeIndex
     {
         enum EType
@@ -158,6 +159,7 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
+private:
     class LayersEditing
     {
     public:
@@ -720,10 +722,6 @@ private:
     bool _travel_paths_by_type(const GCodePreviewData& preview_data);
     bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data);
     bool _travel_paths_by_tool(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    // generates gcode retractions geometry
-    void _load_gcode_retractions(const GCodePreviewData& preview_data);
-    // generates gcode unretractions geometry
-    void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
     void _load_fff_shells();
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.

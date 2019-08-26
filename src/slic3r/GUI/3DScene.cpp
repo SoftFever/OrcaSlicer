@@ -585,6 +585,23 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(this->volumes.size() - 1);
 }
 
+GLVolume* GLVolumeCollection::new_toolpath_volume(const float *rgba, size_t reserve_vbo_floats)
+{
+	GLVolume *out = new_nontoolpath_volume(rgba, reserve_vbo_floats);
+	out->is_extrusion_path = true;
+	return out;
+}
+
+GLVolume* GLVolumeCollection::new_nontoolpath_volume(const float *rgba, size_t reserve_vbo_floats)
+{
+	GLVolume *out = new GLVolume(rgba);
+	out->is_extrusion_path = false;
+	// Reserving number of vertices (3x position + 3x color)
+	out->indexed_vertex_array.reserve(reserve_vbo_floats / 6);
+	this->volumes.emplace_back(out);
+	return out;
+}
+
 GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func)
 {
     GLVolumeWithIdAndZList list;
