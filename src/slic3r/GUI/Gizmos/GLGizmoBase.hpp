@@ -99,6 +99,7 @@ protected:
     float m_highlight_color[4];
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
+    bool m_first_input_window_render;
 
 public:
     GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -144,7 +145,7 @@ public:
 
     void render() const { on_render(); }
     void render_for_picking() const { on_render_for_picking(); }
-    void render_input_window(float x, float y, float bottom_limit) { on_render_input_window(x, y, bottom_limit); }
+    void render_input_window(float x, float y, float bottom_limit);
 
 protected:
     virtual bool on_init() = 0;

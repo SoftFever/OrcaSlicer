@@ -145,6 +145,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     , m_hover_id(-1)
     , m_dragging(false)
     , m_imgui(wxGetApp().imgui())
+    , m_first_input_window_render(true)
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));
@@ -271,6 +272,18 @@ void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
     return Slic3r::string_printf("%.*f", decimals, value);
+}
+
+void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
+{
+    on_render_input_window(x, y, bottom_limit);
+    if (m_first_input_window_render)
+    {
+        // for some reason, the imgui dialogs are not shown on screen in the 1st frame where they are rendered, but show up only with the 2nd rendered frame
+        // so, we forces another frame rendering the first time the imgui window is shown
+        m_parent.set_as_dirty();
+        m_first_input_window_render = false;
+    }
 }
 
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components

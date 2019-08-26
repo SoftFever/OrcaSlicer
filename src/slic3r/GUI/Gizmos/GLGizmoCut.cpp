@@ -141,6 +141,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
     m_imgui->set_next_window_bg_alpha(0.5f);
+
     m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::PushItemWidth(m_imgui->scaled(5.0f));

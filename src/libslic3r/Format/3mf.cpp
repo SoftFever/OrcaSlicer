@@ -4,6 +4,8 @@
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 
+#include "../I18N.hpp"
+
 #include "3mf.hpp"
 
 #include <limits>
@@ -201,6 +203,11 @@ bool is_valid_object_type(const std::string& type)
 }
 
 namespace Slic3r {
+
+//! macro used to mark string used at localization,
+//! return same string
+#define L(s) (s)
+#define _(s) Slic3r::I18N::translate(s)
 
     // Base class with error messages management
     class _3MF_Base
@@ -1416,7 +1423,7 @@ namespace Slic3r {
 
             if (m_check_version && (m_version > VERSION_3MF))
             {
-                std::string msg = "The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+                std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile."));
                 throw std::runtime_error(msg.c_str());
             }
         }

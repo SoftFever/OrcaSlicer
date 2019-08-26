@@ -11,6 +11,8 @@
 #include "../GCode.hpp"
 #include "../PrintConfig.hpp"
 #include "../Utils.hpp"
+#include "../I18N.hpp"
+
 #include "AMF.hpp"
 
 #include <boost/filesystem/operations.hpp>
@@ -41,6 +43,11 @@ const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
 
 namespace Slic3r
 {
+
+//! macro used to mark string used at localization,
+//! return same string
+#define L(s) (s)
+#define _(s) Slic3r::I18N::translate(s)
 
 struct AMFParserContext
 {
@@ -803,7 +810,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     if (check_version && (ctx.m_version > VERSION_AMF))
     {
-        std::string msg = "The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile.";
+        std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile."));
         throw std::runtime_error(msg.c_str());
     }
 
