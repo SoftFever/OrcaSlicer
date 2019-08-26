@@ -2264,12 +2264,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
 
     if (m_gizmos.on_char(evt))
-    {
-        // FIXME: Without the following call to render(), the gimgui dialogs are not shown the first time the user tries to open them using the keyboard shortcuts
-        //        (it looks like as if 2 render calls are needed before they show up)
-        render();
         return;
-    }
 
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
