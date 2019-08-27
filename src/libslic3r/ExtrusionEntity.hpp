@@ -29,6 +29,7 @@ enum ExtrusionRole {
     erCustom,
     // Extrusion role for a collection with multiple extrusion roles.
     erMixed,
+    erCount,
 };
 
 inline bool is_perimeter(ExtrusionRole role)
