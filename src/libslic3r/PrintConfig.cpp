@@ -2758,8 +2758,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_object_connector_width", coFloat);
     def->label = L("Pad object connector width");
     def->category = L("Pad");
-    def->tooltip  = L("The width of the connectors sticks which connect the "
-                      "object pad and the generated pad.");
+    def->tooltip  = L("Width of the connector sticks which connect the object and the generated pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
