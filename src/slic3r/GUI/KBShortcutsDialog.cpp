@@ -151,7 +151,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("F",        L("Press to scale selection to fit print volume\nin Gizmo scale")));
     plater_shortcuts.push_back(Shortcut(alt,        L("Press to activate deselection rectangle\nor to scale or rotate selected objects\naround their own center")));
     plater_shortcuts.push_back(Shortcut(ctrl,       L("Press to activate one direction scaling in Gizmo scale")));
-    plater_shortcuts.push_back(Shortcut("K",        L("Change camera type")));
+    plater_shortcuts.push_back(Shortcut("K",        L("Change camera type (perspective, orthographic)")));
     plater_shortcuts.push_back(Shortcut("B",        L("Zoom to Bed")));
     plater_shortcuts.push_back(Shortcut("Z",        L("Zoom to all objects in scene, if none selected")));
     plater_shortcuts.push_back(Shortcut("Z",        L("Zoom to selected object")));

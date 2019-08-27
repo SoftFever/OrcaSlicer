@@ -2240,7 +2240,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (object->volumes.size() > 1)
                                 {
                                     Slic3r::GUI::show_info(nullptr,
-                                        _(L("You can't to load SLA project if there is at least one multi-part object on the bed")) + "\n\n" +
+                                        _(L("You can't load SLA project if there is at least one multi-part object on the bed")) + "\n\n" +
                                         _(L("Please check your object list before preset changing.")),
                                         _(L("Attention!")));
                                     return obj_idxs;

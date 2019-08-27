@@ -3468,14 +3468,13 @@ static bool string_getter(const bool is_undo, int idx, const char** out_text)
 
 void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 {
-    const wxString& stack_name = _(is_undo ? L("Undo") : L("Redo"));
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
     const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
     imgui->set_next_window_pos(x, m_undoredo_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
     imgui->set_next_window_bg_alpha(0.5f);
-    imgui->begin(wxString::Format(_(L("%s Stack")), stack_name),
-                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+	std::string title = is_undo ? L("Undo History") : L("Redo History");
+    imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     int hovered = m_imgui_undo_redo_hovered_pos;
     int selected = -1;
@@ -3492,7 +3491,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     if (selected >= 0)
         is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
 
-    imgui->text(wxString::Format(_(L("%s %d Action")), stack_name, hovered + 1));
+    imgui->text(wxString::Format(_(hovered ? (is_undo ? L("Undo %d Actions") : L("Redo %d Actions")) : (is_undo ? L("Undo %d Action") : L("Redo %d Action"))), hovered + 1));
 
     imgui->end();
 }
@@ -3645,7 +3644,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "layersediting";
     item.icon_filename = "layers_white.svg";
-    item.tooltip = _utf8(L("Layers editing"));
+    item.tooltip = _utf8(L("Height ranges"));
     item.sprite_id = 10;
     item.left.toggable = true;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
@@ -3696,7 +3695,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
 
     item.name = "undo";
     item.icon_filename = "undo_toolbar.svg";
-    item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]";
+    item.tooltip = _utf8(L("Undo")) + " [" + GUI::shortkey_ctrl_prefix() + "Z]\n" + _utf8(L("Click right mouse button to open History"));
     item.sprite_id = 0;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_UNDO)); };
     item.right.toggable = true;
@@ -3710,8 +3709,11 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
         std::string new_additional_tooltip = "";
-        if (can_undo)
-            wxGetApp().plater()->undo_redo_topmost_string_getter(true, new_additional_tooltip);
+        if (can_undo) {
+        	std::string action;
+            wxGetApp().plater()->undo_redo_topmost_string_getter(true, action);
+            new_additional_tooltip = (boost::format(_utf8(L("Undo action: %1%"))) % action).str();
+        }
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {
@@ -3726,7 +3728,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
 
     item.name = "redo";
     item.icon_filename = "redo_toolbar.svg";
-    item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]";
+	item.tooltip = _utf8(L("Redo")) + " [" + GUI::shortkey_ctrl_prefix() + "Y]\n" + _utf8(L("Click right mouse button to open History"));
     item.sprite_id = 1;
     item.left.action_callback = [this]() { post_event(SimpleEvent(EVT_GLCANVAS_REDO)); };
     item.right.action_callback = [this]() { m_imgui_undo_redo_hovered_pos = -1; };
@@ -3739,8 +3741,11 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
 
         std::string new_additional_tooltip = "";
-        if (can_redo)
-            wxGetApp().plater()->undo_redo_topmost_string_getter(false, new_additional_tooltip);
+        if (can_redo) {
+        	std::string action;
+            wxGetApp().plater()->undo_redo_topmost_string_getter(false, action);
+            new_additional_tooltip = (boost::format(_utf8(L("Redo action: %1%"))) % action).str();
+        }
 
         if (new_additional_tooltip != curr_additional_tooltip)
         {

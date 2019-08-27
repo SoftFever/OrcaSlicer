@@ -24,8 +24,8 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
 
     // Legend for object layers
-    for (const std::string col : { "Min Z", "Max Z", "Layer height" }) {
-        auto temp = new wxStaticText(m_parent, wxID_ANY, _(L(col)), wxDefaultPosition, /*size*/wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
+    for (const std::string col : { L("Start at height"), L("Stop at height"), L("Layer height") }) {
+        auto temp = new wxStaticText(m_parent, wxID_ANY, _(col), wxDefaultPosition, /*size*/wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
         temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         temp->SetFont(wxGetApp().bold_font());
@@ -145,7 +145,7 @@ void ObjectLayers::create_layers_list()
         auto sizer = create_layer(range);
 
         auto del_btn = new ScalableButton(m_parent, wxID_ANY, m_bmp_delete);
-        del_btn->SetToolTip(_(L("Remove layer")));
+        del_btn->SetToolTip(_(L("Remove layer range")));
 
         sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));
 
@@ -154,7 +154,7 @@ void ObjectLayers::create_layers_list()
         });
 
         auto add_btn = new ScalableButton(m_parent, wxID_ANY, m_bmp_add);
-        add_btn->SetToolTip(_(L("Add layer")));
+        add_btn->SetToolTip(_(L("Add layer range")));
 
         sizer->Add(add_btn, 0, wxRIGHT, em_unit(m_parent));
 
