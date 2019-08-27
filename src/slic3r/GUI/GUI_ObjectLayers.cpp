@@ -20,13 +20,12 @@ namespace GUI
 ObjectLayers::ObjectLayers(wxWindow* parent) :
     OG_Settings(parent, true)
 {
-    m_grid_sizer = new wxFlexGridSizer(3, 5, 5); // "Min Z", "Max Z", "Layer height" & buttons sizer
+    m_grid_sizer = new wxFlexGridSizer(3, 5, wxGetApp().em_unit()); // "Min Z", "Max Z", "Layer height" & buttons sizer
     m_grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
 
     // Legend for object layers
     for (const std::string col : { L("Start at height"), L("Stop at height"), L("Layer height") }) {
         auto temp = new wxStaticText(m_parent, wxID_ANY, _(col), wxDefaultPosition, /*size*/wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
-        temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         temp->SetFont(wxGetApp().bold_font());
 
@@ -132,6 +131,12 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(editor);
+
+    auto temp = new wxStaticText(m_parent, wxID_ANY, _(L("mm")));
+    temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    temp->SetFont(wxGetApp().normal_font());
+    sizer->Add(temp, 0, wxLEFT|wxRIGHT, wxGetApp().em_unit());
+
     m_grid_sizer->Add(sizer);
 
     return sizer;
