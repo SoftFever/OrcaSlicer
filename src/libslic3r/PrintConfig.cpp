@@ -368,7 +368,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("end_gcode", coString);
     def->label = L("End G-code");
     def->tooltip = L("This end procedure is inserted at the end of the output file. "
-                   "Note that you can use placeholder variables for all Slic3r settings.");
+                   "Note that you can use placeholder variables for all PrusaSlicer settings.");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -379,7 +379,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("End G-code");
     def->tooltip = L("This end procedure is inserted at the end of the output file, before the printer end gcode (and "
                    "before any toolchange from this filament in case of multimaterial printers). "
-                   "Note that you can use placeholder variables for all Slic3r settings. "
+                   "Note that you can use placeholder variables for all PrusaSlicer settings. "
                    "If you have multiple extruders, the gcode is processed in extruder order.");
     def->multiline = true;
     def->full_width = true;
@@ -913,7 +913,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("G-code flavor");
     def->tooltip = L("Some G/M-code commands, including temperature control and others, are not universal. "
                    "Set this option to your printer's firmware to get a compatible output. "
-                   "The \"No extrusion\" flavor prevents Slic3r from exporting any extrusion value at all.");
+                   "The \"No extrusion\" flavor prevents PrusaSlicer from exporting any extrusion value at all.");
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("reprap");
     def->enum_values.push_back("repetier");
@@ -1785,10 +1785,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Start G-code");
     def->tooltip = L("This start procedure is inserted at the beginning, after bed has reached "
                    "the target temperature and extruder just started heating, and before extruder "
-                   "has finished heating. If Slic3r detects M104 or M190 in your custom codes, "
+                   "has finished heating. If PrusaSlicer detects M104 or M190 in your custom codes, "
                    "such commands will not be prepended automatically so you're free to customize "
                    "the order of heating commands and other custom actions. Note that you can use "
-                   "placeholder variables for all Slic3r settings, so you can put "
+                   "placeholder variables for all PrusaSlicer settings, so you can put "
                    "a \"M109 S[first_layer_temperature]\" command wherever you want.");
     def->multiline = true;
     def->full_width = true;
@@ -1800,11 +1800,11 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Start G-code");
     def->tooltip = L("This start procedure is inserted at the beginning, after any printer start gcode (and "
                    "after any toolchange to this filament in case of multi-material printers). "
-                   "This is used to override settings for a specific filament. If Slic3r detects "
+                   "This is used to override settings for a specific filament. If PrusaSlicer detects "
                    "M104, M109, M140 or M190 in your custom codes, such commands will "
                    "not be prepended automatically so you're free to customize the order "
                    "of heating commands and other custom actions. Note that you can use placeholder variables "
-                   "for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command "
+                   "for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command "
                    "wherever you want. If you have multiple extruders, the gcode is processed "
                    "in extruder order.");
     def->multiline = true;
@@ -2749,8 +2749,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_object_connector_stride", coFloat);
     def->label = L("Pad object connector stride");
     def->category = L("Pad");
-    def->tooltip = L("Distance between two connector sticks between "
-                     "the object pad and the generated pad.");
+    def->tooltip = L("Distance between two connector sticks which connect the object and the generated pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
@@ -2759,8 +2758,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_object_connector_width", coFloat);
     def->label = L("Pad object connector width");
     def->category = L("Pad");
-    def->tooltip  = L("The width of the connectors sticks which connect the "
-                      "object pad and the generated pad.");
+    def->tooltip  = L("Width of the connector sticks which connect the object and the generated pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;

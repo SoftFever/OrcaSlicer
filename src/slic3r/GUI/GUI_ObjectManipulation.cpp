@@ -562,7 +562,7 @@ void ObjectManipulation::update_if_dirty()
 
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
-        m_lock_bnt->SetToolTip(_(L("You cann't use non-uniform scaling mode for multiple objects/parts selection")));
+        m_lock_bnt->SetToolTip(_(L("You cannot use non-uniform scaling mode for multiple objects/parts selection")));
         m_lock_bnt->disable();
     }
     else {

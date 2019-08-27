@@ -252,7 +252,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_checkbox_retractions = new wxCheckBox(this, wxID_ANY, _(L("Retractions")));
     m_checkbox_unretractions = new wxCheckBox(this, wxID_ANY, _(L("Unretractions")));
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
-
     m_checkbox_legend = new wxCheckBox(this, wxID_ANY, _(L("Legend")));
     m_checkbox_legend->SetValue(true);
 

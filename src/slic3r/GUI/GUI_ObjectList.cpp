@@ -1249,7 +1249,7 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
     assert(m_config);
     auto opt_keys = m_config->keys();
 
-    const wxString snapshot_text = item_type & itLayer  ? _(L("Add Settings Bundle for Layers")) :
+    const wxString snapshot_text = item_type & itLayer  ? _(L("Add Settings Bundle for Height range")) :
                                    item_type & itVolume ? _(L("Add Settings Bundle for Sub-object")) :
                                                           _(L("Add Settings Bundle for Object"));
     take_snapshot(snapshot_text);
@@ -1347,7 +1347,7 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 
 wxMenuItem* ObjectList::append_menu_item_layers_editing(wxMenu* menu) 
 {
-    return append_menu_item(menu, wxID_ANY, _(L("Edit Layers")), "",
+    return append_menu_item(menu, wxID_ANY, _(L("Height range Modifier")), "",
         [this](wxCommandEvent&) { layers_editing(); }, "edit_layers_all", menu);
 }
 
@@ -1895,7 +1895,7 @@ void ObjectList::del_layer_from_object(const int obj_idx, const t_layer_height_r
     if (del_range == object(obj_idx)->layer_config_ranges.end())
         return;
 
-    take_snapshot(_(L("Delete Layers Range")));
+    take_snapshot(_(L("Delete Height Range")));
         
     object(obj_idx)->layer_config_ranges.erase(del_range);
 
@@ -2203,7 +2203,7 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx]->config;
                 }
                 else if (type & (itLayerRoot|itLayer)) {
-                    og_name = type & itLayerRoot ? _(L("Layers Editing")) : _(L("Layer Editing"));
+                    og_name = type & itLayerRoot ? _(L("Height ranges")) : _(L("Settings for height range"));
                     update_and_show_layers = true;
 
                     if (type & itLayer)
@@ -2581,7 +2581,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
     
     if (current_range == last_range)
     {
-        take_snapshot(_(L("Add New Layers Range")));
+        take_snapshot(_(L("Add Height Range")));
 
         const t_layer_height_range& new_range = { last_range.second, last_range.second + 2.0f };
         ranges[new_range] = get_default_layer_config(obj_idx);
@@ -2610,7 +2610,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             
             t_layer_height_range new_range = { midl_layer, next_range.second };
 
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add New Layers Range")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
 
             // create new 2 layers instead of deleted one
 
@@ -2628,7 +2628,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
         }
         else
         {
-            take_snapshot(_(L("Add New Layers Range")));
+            take_snapshot(_(L("Add Height Range")));
 
             const t_layer_height_range new_range = { current_range.second, next_range.first };
             ranges[new_range] = get_default_layer_config(obj_idx);
@@ -2687,7 +2687,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return false;
 
-    take_snapshot(_(L("Edit Layers Range")));
+    take_snapshot(_(L("Edit Height Range")));
 
     const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
 

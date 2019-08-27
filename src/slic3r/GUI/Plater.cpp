@@ -2240,7 +2240,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (object->volumes.size() > 1)
                                 {
                                     Slic3r::GUI::show_info(nullptr,
-                                        _(L("You can't to load SLA project if there is at least one multi-part object on the bed")) + "\n\n" +
+                                        _(L("You can't load SLA project if there is at least one multi-part object on the bed")) + "\n\n" +
                                         _(L("Please check your object list before preset changing.")),
                                         _(L("Attention!")));
                                     return obj_idxs;
@@ -3946,6 +3946,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             AppConfig *app_config = wxGetApp().app_config;
             app_config->set("presets", "printer", (new_printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name);
             wxGetApp().preset_bundle->load_presets(*app_config);
+			// load_current_presets() calls Tab::load_current_preset() -> TabPrint::update() -> Object_list::update_and_show_object_settings_item(),
+			// but the Object list still keeps pointer to the old Model. Avoid a crash by removing selection first.
+			this->sidebar->obj_list()->unselect_objects();
             // Load the currently selected preset into the GUI, update the preset selection box.
             // This also switches the printer technology based on the printer technology of the active printer profile.
             wxGetApp().load_current_presets();
