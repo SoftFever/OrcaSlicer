@@ -2749,8 +2749,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_object_connector_stride", coFloat);
     def->label = L("Pad object connector stride");
     def->category = L("Pad");
-    def->tooltip = L("Distance between two connector sticks between "
-                     "the object pad and the generated pad.");
+    def->tooltip = L("Distance between two connector sticks which connect the object and the generated pad.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
