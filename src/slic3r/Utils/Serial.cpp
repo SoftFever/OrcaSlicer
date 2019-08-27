@@ -98,7 +98,7 @@ optional<unsigned long> sysfs_tty_prop_hex(const std::string &tty_dev, const std
 	if (!prop) { return boost::none; }
 
 	try { return std::stoul(*prop, 0, 16); }
-	catch (...) { return boost::none; }
+	catch (const std::exception&) { return boost::none; }
 }
 #endif
 
