@@ -18,7 +18,6 @@ namespace GUI {
 class ConfigManipulation
 {
     bool                is_msg_dlg_already_exist{ false };
-    bool                support_material_overhangs_queried{ false };
 
     // function to loading of changed configuration 
     std::function<void()>                                       load_config = nullptr;
