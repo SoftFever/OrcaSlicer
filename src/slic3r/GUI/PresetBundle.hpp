@@ -38,10 +38,6 @@ public:
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
 
-    // Make sure filament and sla_materials section in AppConfig are initialized
-    // to defaults from vendor profiles if they don't exist already
-    void            init_materials_selection(AppConfig &config) const;
-
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
@@ -151,9 +147,14 @@ private:
     // If the "vendor" section is missing, enable all models and variants of the particular vendor.
     void                        load_installed_printers(const AppConfig &config);
 
+    // Set the enabled flag for filaments and sla materials,
+    // apply defaults based on enabled printers when no filaments/materials are installed.
+    void                        load_installed_filaments(AppConfig &config);
+    void                        load_installed_sla_materials(AppConfig &config);
+
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.
-    void                        load_selections(const AppConfig &config, const std::string &preferred_model_id = "");
+    void                        load_selections(AppConfig &config, const std::string &preferred_model_id = "");
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

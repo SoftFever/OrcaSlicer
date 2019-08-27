@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -239,10 +240,6 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
 
-    // Make sure there are filament / material selections in the AppConfig,
-    // if there are none, load up defaults from vendor profiles.
-    this->init_materials_selection(config);
-
     this->load_selections(config, preferred_model_id);
 }
 
@@ -371,9 +368,55 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
     for (auto &preset : printers) {
         preset.set_visible_from_appconfig(config);
     }
+}
+
+void PresetBundle::load_installed_filaments(AppConfig &config)
+{
+    if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
+        std::unordered_set<const Preset*> comp_filaments;
+
+        for (const Preset &printer : printers) {
+            if (! printer.is_visible || printer.printer_technology() != ptFFF) {
+                continue;
+            }
+
+            for (const Preset &filament : filaments) {
+                if (filament.is_compatible_with_printer(printer)) {
+                    comp_filaments.insert(&filament);
+                }
+            }
+        }
+
+        for (const auto &filament: comp_filaments) {
+            config.set(AppConfig::SECTION_FILAMENTS, filament->name, "1");
+        }
+    }
 
     for (auto &preset : filaments) {
         preset.set_visible_from_appconfig(config);
+    }
+}
+
+void PresetBundle::load_installed_sla_materials(AppConfig &config)
+{
+    if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
+        std::unordered_set<const Preset*> comp_sla_materials;
+
+        for (const Preset &printer : printers) {
+            if (! printer.is_visible || printer.printer_technology() != ptSLA) {
+                continue;
+            }
+
+            for (const Preset &material : sla_materials) {
+                if (material.is_compatible_with_printer(printer)) {
+                    comp_sla_materials.insert(&material);
+                }
+            }
+        }
+
+        for (const auto &material: comp_sla_materials) {
+            config.set(AppConfig::SECTION_MATERIALS, material->name, "1");
+        }
     }
 
     for (auto &preset : sla_materials) {
@@ -383,10 +426,14 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
 
 // Load selections (current print, current filaments, current printer) from config.ini
 // This is done on application start up or after updates are applied.
-void PresetBundle::load_selections(const AppConfig &config, const std::string &preferred_model_id)
+void PresetBundle::load_selections(AppConfig &config, const std::string &preferred_model_id)
 {
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
+
+    // Update visibility of filament and sla material presets
+    this->load_installed_filaments(config);
+    this->load_installed_sla_materials(config);
 
     // Parse the initial print / filament / printer profile names.
     std::string initial_print_profile_name        = remove_ini_suffix(config.get("presets", "print"));
@@ -453,23 +500,6 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
-}
-
-void PresetBundle::init_materials_selection(AppConfig &config) const {
-    if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
-        for (const auto &vendor : this->vendors) {
-            for (const auto &profile : vendor.second.default_filaments) {
-                config.set(AppConfig::SECTION_FILAMENTS, profile, "1");
-            }
-        }
-    }
-    if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
-        for (const auto &vendor : this->vendors) {
-            for (const auto &profile : vendor.second.default_sla_materials) {
-                config.set(AppConfig::SECTION_MATERIALS, profile, "1");
-            }
-        }
-    }
 }
 
 void PresetBundle::load_compatible_bitmaps(wxWindow *window)
