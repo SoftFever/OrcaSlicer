@@ -368,7 +368,7 @@ target_include_directories(cereal INTERFACE include)
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
 add_custom_target(pot
-    COMMAND xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug
+    COMMAND xgettext --keyword=L --keyword=L_CONTEXT:1,2c --add-comments=TRN --from-code=UTF-8 --debug
         -f "${L10N_DIR}/list.txt"
         -o "${L10N_DIR}/PrusaSlicer.pot"
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

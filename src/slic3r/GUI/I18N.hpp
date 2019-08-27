@@ -17,6 +17,10 @@
 #define L(s) s
 #endif /* L */
 
+#ifndef L_CONTEXT
+#define L_CONTEXT(s, context) s
+#endif /* L */
+
 #ifndef _CHB
 //! macro used to localization, return wxScopedCharBuffer
 //! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding

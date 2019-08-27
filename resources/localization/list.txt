@@ -24,6 +24,7 @@ src/slic3r/GUI/GUI_Preview.cpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/MainFrame.cpp
 src/slic3r/GUI/MsgDialog.cpp
+src/slic3r/GUI/OptionsGroup.cpp
 src/slic3r/GUI/Plater.cpp
 src/slic3r/GUI/Preferences.cpp
 src/slic3r/GUI/Preset.cpp
