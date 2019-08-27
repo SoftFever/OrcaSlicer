@@ -3712,7 +3712,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         if (can_undo) {
         	std::string action;
             wxGetApp().plater()->undo_redo_topmost_string_getter(true, action);
-            new_additional_tooltip = (boost::format(_utf8(L("Undo action: %1%"))) % action).str();
+            new_additional_tooltip = (boost::format(_utf8(L("Next Undo action: %1%"))) % action).str();
         }
 
         if (new_additional_tooltip != curr_additional_tooltip)
@@ -3744,7 +3744,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
         if (can_redo) {
         	std::string action;
             wxGetApp().plater()->undo_redo_topmost_string_getter(false, action);
-            new_additional_tooltip = (boost::format(_utf8(L("Redo action: %1%"))) % action).str();
+            new_additional_tooltip = (boost::format(_utf8(L("Next Redo action: %1%"))) % action).str();
         }
 
         if (new_additional_tooltip != curr_additional_tooltip)
