@@ -159,7 +159,8 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("O",        L("Zoom out")));
     plater_shortcuts.push_back(Shortcut("ESC",      L("Unselect gizmo / Clear selection")));
 #if ENABLE_RENDER_PICKING_PASS
-    plater_shortcuts.push_back(Shortcut("T",        L("Toggle picking pass texture rendering on/off")));
+    // Don't localize debugging texts.
+    plater_shortcuts.push_back(Shortcut("T",        "Toggle picking pass texture rendering on/off"));
 #endif // ENABLE_RENDER_PICKING_PASS
 
     m_full_shortcuts.push_back(std::make_pair(_(L("Plater Shortcuts")), std::make_pair(plater_shortcuts, szRight)));
