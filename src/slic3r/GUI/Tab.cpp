@@ -1797,7 +1797,7 @@ void TabFilament::update_volumetric_flow_preset_hints()
     try {
         text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
     } catch (std::exception &ex) {
-        text = _(L("Volumetric flow hints not available\n\n")) + from_u8(ex.what());
+        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
     }
     m_volumetric_speed_description_line->SetText(text);
 }

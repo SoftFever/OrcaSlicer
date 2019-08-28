@@ -1183,7 +1183,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
                     for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
                         info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
                     }
                 }
@@ -1192,7 +1192,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
                     for (int i = (int)ps.estimated_silent_color_print_times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
                         info_text += wxString::Format("\n%s", ps.estimated_silent_color_print_times[i]);
                     }
                 }
@@ -3387,7 +3387,7 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
          */
         const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
         if (wxGetApp().get_mode() == comSimple) {
-            if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
+            if (menu->FindItem(_(L("Add instance"))) != wxNOT_FOUND)
             {
                 /* Detach an items from the menu, but don't delete them
                  * so that they can be added back later
@@ -3399,7 +3399,7 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
             }
         }
         else {
-            if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
+            if (menu->FindItem(_(L("Add instance"))) == wxNOT_FOUND)
             {
                 // Prepend items to the menu, if those aren't not there
                 menu->Prepend(items_set_number_of_copies[id]);
@@ -3513,11 +3513,11 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
     else {
-        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
+        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Add instance")) + "\t+", _(L("Add one more instance of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances();      }, "add_copies",        nullptr, [this]() { return can_increase_instances(); }, q);
-        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
+        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Remove instance")) + "\t-", _(L("Remove one instance of the selected object")),
             [this](wxCommandEvent&) { q->decrease_instances();      }, "remove_copies",     nullptr, [this]() { return can_decrease_instances(); }, q);
-        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
+        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of instances")) + dots, _(L("Change the number of instances of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies();    }, "number_of_copies",  nullptr, [this]() { return can_increase_instances(); }, q);
 
 
