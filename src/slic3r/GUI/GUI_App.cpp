@@ -649,6 +649,12 @@ bool GUI_App::load_language(wxString language)
     if (language.IsEmpty())
         language = "en_US";
 
+    // Alternate language code.
+    wxString language_code_alt = language_code_short(language);
+    if (language_code_alt == "sk")
+    	// Slovaks understand Czech well. Give them the Czech translation.
+    	language_code_alt = "cz";
+
     const wxLanguageInfo *info = nullptr;
     for (const wxLanguageInfo *this_info : get_installed_languages()) {
         if (this_info->CanonicalName == language) {
@@ -656,17 +662,18 @@ bool GUI_App::load_language(wxString language)
             info = this_info;
             break;
         }
-        if (language_code_short(this_info->CanonicalName) == language_code_short(language))
+        if (language_code_short(this_info->CanonicalName) == language_code_alt)
         	// Alternatively try to match just the language without the country suffix.
         	info = this_info;
     }
 
-    wxString canonical_name = info->CanonicalName;
+    wxString canonical_name;
     if (info == nullptr) {
     	// Fallback for user languages, for which we do not have dictionaries.
     	canonical_name = "en_EN";
 		info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
-	}
+	} else
+		canonical_name = info->CanonicalName;
 
     wxLocale *new_locale = new wxLocale;
     if (info == nullptr || ! new_locale->Init(info->Language)) {
