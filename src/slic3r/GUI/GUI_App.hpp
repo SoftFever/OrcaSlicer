@@ -132,9 +132,7 @@ public:
     void            update_ui_from_settings();
 
     bool            switch_language();
-    // Load gettext translation files and activate them at the start of the application,
-    // based on the "translation_language" key stored in the application config.
-    bool            load_language();
+    bool            load_language(wxString language);
 
     Tab*            get_tab(Preset::Type type);
     ConfigOptionMode get_mode();
@@ -146,9 +144,9 @@ public:
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
-    wxString        current_language_code() const { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+    wxString        current_language_code() const { assert(m_wxLocale != nullptr); return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
-    wxString      	current_language_code_safe() const;
+    wxString 		current_language_code_safe() const;
 
     virtual bool OnExceptionInMainLoop();
 
@@ -189,7 +187,6 @@ private:
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
     bool            select_language();
-    void            save_language();
     std::vector<const wxLanguageInfo*> get_installed_languages();
 #ifdef __WXMSW__
     void            associate_3mf_files();
