@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 15:11+0200\n"
+"POT-Creation-Date: 2019-08-28 15:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -880,11 +880,12 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3603
+#: src/slic3r/GUI/GLCanvas3D.cpp:3603 src/slic3r/GUI/Plater.cpp:3390
+#: src/slic3r/GUI/Plater.cpp:3402 src/slic3r/GUI/Plater.cpp:3516
 msgid "Add instance"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3614
+#: src/slic3r/GUI/GLCanvas3D.cpp:3614 src/slic3r/GUI/Plater.cpp:3518
 msgid "Remove instance"
 msgstr ""
 
@@ -3370,33 +3371,24 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3390 src/slic3r/GUI/Plater.cpp:3402
-#: src/slic3r/GUI/Plater.cpp:3516
-msgid "Increase copies"
-msgstr ""
-
 #: src/slic3r/GUI/Plater.cpp:3510 src/slic3r/GUI/Plater.cpp:3529
 msgid "Remove the selected object"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:3516
-msgid "Place one more copy of the selected object"
+msgid "Add one more instance of the selected object"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:3518
-msgid "Decrease copies"
-msgstr ""
-
-#: src/slic3r/GUI/Plater.cpp:3518
-msgid "Remove one copy of the selected object"
+msgid "Remove one instance of the selected object"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:3520
-msgid "Set number of copies"
+msgid "Set number of instances"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:3520
-msgid "Change the number of copies of the selected object"
+msgid "Change the number of instances of the selected object"
 msgstr ""
 
 #: src/slic3r/GUI/Plater.cpp:3539
