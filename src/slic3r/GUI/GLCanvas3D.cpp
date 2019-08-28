@@ -3494,7 +3494,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
     if (selected >= 0)
         is_undo ? wxGetApp().plater()->undo_to(selected) : wxGetApp().plater()->redo_to(selected);
 
-    imgui->text(wxString::Format(_(hovered ? (is_undo ? L("Undo %d Actions") : L("Redo %d Actions")) : (is_undo ? L("Undo %d Action") : L("Redo %d Action"))), hovered + 1));
+    imgui->text(wxString::Format(is_undo ? _L_PLURAL("Undo %1$d Action", "Undo %1$d Actions", hovered + 1) : _L_PLURAL("Redo %1$d Action", "Redo %1$d Actions", hovered + 1), hovered + 1));
 
     imgui->end();
 }
