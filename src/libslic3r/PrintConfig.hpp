@@ -1042,7 +1042,7 @@ public:
     // /////////////////////////////////////////////////////////////////////////
 
     // Disable the elevation (ignore its value) and use the zero elevation mode
-    ConfigOptionBool  pad_zero_elevation;
+    ConfigOptionBool  pad_around_object;
 
     // This is the gap between the object bottom and the generated pad
     ConfigOptionFloat pad_object_gap;
@@ -1085,7 +1085,7 @@ protected:
         OPT_PTR(pad_max_merge_distance);
         // OPT_PTR(pad_edge_radius);
         OPT_PTR(pad_wall_slope);
-        OPT_PTR(pad_zero_elevation);
+        OPT_PTR(pad_around_object);
         OPT_PTR(pad_object_gap);
         OPT_PTR(pad_object_connector_stride);
         OPT_PTR(pad_object_connector_width);

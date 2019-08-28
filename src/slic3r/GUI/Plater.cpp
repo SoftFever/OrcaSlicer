@@ -563,9 +563,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             new_conf.set_key_value("pad_enable", new ConfigOptionBool(pad_enable));
 
             if (selection == _("Below object"))
-                new_conf.set_key_value("pad_zero_elevation", new ConfigOptionBool(false));
+                new_conf.set_key_value("pad_around_object", new ConfigOptionBool(false));
             else if (selection == _("Around object"))
-                new_conf.set_key_value("pad_zero_elevation", new ConfigOptionBool(true));
+                new_conf.set_key_value("pad_around_object", new ConfigOptionBool(true));
         }
         else
         {

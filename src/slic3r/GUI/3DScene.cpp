@@ -1130,13 +1130,13 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
         fprintf(fp, "\n# vertices volume %d\n", volumes_count);
         for (const Vector& v : dst_vertices)
         {
-            fprintf(fp, "v %f %f %f\n", unscale<float>(v.vector[0]), unscale<float>(v.vector[1]), unscale<float>(v.vector[2]));
+            fprintf(fp, "v %g %g %g\n", unscale<float>(v.vector[0]), unscale<float>(v.vector[1]), unscale<float>(v.vector[2]));
         }
 
         fprintf(fp, "\n# normals volume %d\n", volumes_count);
         for (const Vector& n : dst_normals)
         {
-            fprintf(fp, "vn %f %f %f\n", unscale<float>(n.vector[0]), unscale<float>(n.vector[1]), unscale<float>(n.vector[2]));
+            fprintf(fp, "vn %g %g %g\n", unscale<float>(n.vector[0]), unscale<float>(n.vector[1]), unscale<float>(n.vector[2]));
         }
 
         Color color;

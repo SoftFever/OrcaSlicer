@@ -577,12 +577,7 @@ std::string SLAPrint::output_filename(const std::string &filename_base) const
 namespace {
 
 bool is_zero_elevation(const SLAPrintObjectConfig &c) {
-    bool en_implicit = c.support_object_elevation.getFloat() <= EPSILON &&
-                       c.pad_enable.getBool() && c.supports_enable.getBool();
-    bool en_explicit = c.pad_zero_elevation.getBool() &&
-                       c.supports_enable.getBool();
-
-    return en_implicit || en_explicit;
+    return c.pad_enable.getBool() && c.pad_around_object.getBool();
 }
 
 // Compile the argument for support creation from the static print config.
@@ -676,12 +671,13 @@ std::string SLAPrint::validate() const
 
         double elv = cfg.object_elevation_mm;
 
-        if(supports_en && elv > EPSILON && elv < pinhead_width )
+        sla::PoolConfig::EmbedObject builtinpad = builtin_pad_cfg(po->config());
+        
+        if(supports_en && !builtinpad.enabled && elv < pinhead_width )
             return L(
                 "Elevation is too low for object. Use the \"Pad around "
                 "obect\" feature to print the object without elevation.");
-
-        sla::PoolConfig::EmbedObject builtinpad = builtin_pad_cfg(po->config());
+        
         if(supports_en && builtinpad.enabled &&
            cfg.pillar_base_safety_distance_mm < builtinpad.object_gap_mm) {
             return L(
@@ -1698,7 +1694,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_wall_thickness"
             || opt_key == "supports_enable"
             || opt_key == "support_object_elevation"
-            || opt_key == "pad_zero_elevation"
+            || opt_key == "pad_around_object"
             || opt_key == "slice_closing_radius") {
             steps.emplace_back(slaposObjectSlice);
         } else if (
