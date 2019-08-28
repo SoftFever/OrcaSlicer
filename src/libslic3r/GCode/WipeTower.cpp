@@ -947,11 +947,16 @@ void WipeTower::toolchange_Unload(
               .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
               .resume_preview();
     }
-    if (new_temperature != 0 && (new_temperature != m_old_temperature || m_is_first_layer) ) { 	// Set the extruder temperature, but don't wait.
-        // If the required temperature is the same as last time, don't emit the M104 again (if user adjusted the value, it would be reset)
-        // However, always change temperatures on the first layer (this is to avoid issues with priming lines turned off).
-		writer.set_extruder_temp(new_temperature, false);
-        m_old_temperature = new_temperature;
+    // Wipe tower should only change temperature with single extruder MM. Otherwise, all temperatures should
+    // be already set and there is no need to change anything. Also, the temperature could be changed
+    // for wrong extruder.
+    if (m_semm) {
+        if (new_temperature != 0 && (new_temperature != m_old_temperature || m_is_first_layer) ) { 	// Set the extruder temperature, but don't wait.
+            // If the required temperature is the same as last time, don't emit the M104 again (if user adjusted the value, it would be reset)
+            // However, always change temperatures on the first layer (this is to avoid issues with priming lines turned off).
+            writer.set_extruder_temp(new_temperature, false);
+            m_old_temperature = new_temperature;
+        }
     }
 
     // Cooling:
@@ -1001,6 +1006,10 @@ void WipeTower::toolchange_Change(
     // These will be substituted by the actual gcodes when the gcode is generated.
     writer.append("[end_filament_gcode]\n");
     writer.append("[toolchange_gcode]\n");
+
+    // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
+    // gcode could have left the extruder somewhere, we cannot just start extruding.
+    writer.append(std::string("G1 X") + std::to_string(writer.x()) +  " Y" + std::to_string(writer.y()) +  "\n");
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.
