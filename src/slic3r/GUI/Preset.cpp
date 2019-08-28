@@ -480,7 +480,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             // "pad_edge_radius",
             "pad_wall_slope",
             "pad_object_gap",
-            "pad_zero_elevation",
+            "pad_around_object",
             "pad_object_connector_stride",
             "pad_object_connector_width",
             "pad_object_connector_penetration",
