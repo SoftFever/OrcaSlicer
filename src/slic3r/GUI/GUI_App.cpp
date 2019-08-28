@@ -649,6 +649,12 @@ bool GUI_App::load_language(wxString language)
     if (language.IsEmpty())
         language = "en_US";
 
+    // Alternate language code.
+    wxString language_code_alt = language_code_short(language);
+    if (language_code_alt == "sk")
+    	// Slovaks understand Czech well. Give them the Czech translation.
+    	language_code_alt = "cz";
+
     const wxLanguageInfo *info = nullptr;
     for (const wxLanguageInfo *this_info : get_installed_languages()) {
         if (this_info->CanonicalName == language) {
@@ -656,17 +662,18 @@ bool GUI_App::load_language(wxString language)
             info = this_info;
             break;
         }
-        if (language_code_short(this_info->CanonicalName) == language_code_short(language))
+        if (language_code_short(this_info->CanonicalName) == language_code_alt)
         	// Alternatively try to match just the language without the country suffix.
         	info = this_info;
     }
 
-    wxString canonical_name = info->CanonicalName;
+    wxString canonical_name;
     if (info == nullptr) {
     	// Fallback for user languages, for which we do not have dictionaries.
     	canonical_name = "en_EN";
 		info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
-	}
+	} else
+		canonical_name = info->CanonicalName;
 
     wxLocale *new_locale = new wxLocale;
     if (info == nullptr || ! new_locale->Init(info->Language)) {
@@ -685,7 +692,7 @@ bool GUI_App::load_language(wxString language)
 		else
 			return false;
     }
-    delete m_wxLocale;
+	wxLocale *old_locale = m_wxLocale;
     m_wxLocale = new_locale;
     m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
@@ -693,7 +700,9 @@ bool GUI_App::load_language(wxString language)
 	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
     Preset::update_suffix_modified();
-    return true;
+	//FIXME Why the following line crashes?
+	// delete old_locale;
+	return true;
 }
 
 // Get a list of installed languages (languages for which we have dictionaries).
@@ -702,7 +711,7 @@ std::vector<const wxLanguageInfo*> GUI_App::get_installed_languages()
 	wxDir dir(from_u8(localization_dir()));
     wxString filename;
     std::vector<const wxLanguageInfo*> res;
-    res.emplace_back(wxLocale::FindLanguageInfo("en_EN"));
+    res.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US));
     for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS); cont; cont = dir.GetNext(&filename)) {
 	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(filename);
         if (langinfo != nullptr) {
