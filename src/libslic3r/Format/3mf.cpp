@@ -705,25 +705,41 @@ namespace Slic3r {
         XML_SetElementHandler(m_xml_parser, _3MF_Importer::_handle_start_model_xml_element, _3MF_Importer::_handle_end_model_xml_element);
         XML_SetCharacterDataHandler(m_xml_parser, _3MF_Importer::_handle_model_xml_characters);
 
-        void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
-        if (parser_buffer == nullptr)
+        struct CallbackData
         {
-            add_error("Unable to create buffer");
+            XML_Parser& parser;
+            const mz_zip_archive_file_stat& stat;
+
+            CallbackData(XML_Parser& parser, const mz_zip_archive_file_stat& stat) : parser(parser), stat(stat) {}
+        };
+
+        CallbackData data(m_xml_parser, stat);
+
+        mz_bool res = 0;
+
+        try
+        {
+            res = mz_zip_reader_extract_file_to_callback(&archive, stat.m_filename, [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
+                CallbackData* data = (CallbackData*)pOpaque;
+                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0))
+                {
+                    char error_buf[1024];
+                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", XML_ErrorString(XML_GetErrorCode(data->parser)), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                    throw std::runtime_error(error_buf);
+                }
+
+                return n;
+                }, &data, 0);
+        }
+        catch (std::exception& e)
+        {
+            add_error(e.what());
             return false;
         }
 
-        mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
         if (res == 0)
         {
-            add_error("Error while reading model data to buffer");
-            return false;
-        }
-
-        if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1))
-        {
-            char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
-            add_error(error_buf);
+            add_error("Error while extracting model data from zip archive");
             return false;
         }
 
