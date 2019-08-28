@@ -1183,7 +1183,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
                     for (int i = (int)ps.estimated_normal_color_print_times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
                         info_text += wxString::Format("\n%s", ps.estimated_normal_color_print_times[i]);
                     }
                 }
@@ -1192,7 +1192,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
                     for (int i = (int)ps.estimated_silent_color_print_times.size() - 1; i >= 0; --i)
                     {
-                        new_label += wxString::Format("\n      - %s%d", _(L("Color ")), i + 1);
+                        new_label += wxString::Format("\n      - %s%d", _(L("Color")) + " ", i + 1);
                         info_text += wxString::Format("\n%s", ps.estimated_silent_color_print_times[i]);
                     }
                 }

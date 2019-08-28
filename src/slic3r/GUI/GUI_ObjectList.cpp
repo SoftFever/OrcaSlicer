@@ -268,7 +268,7 @@ void ObjectList::create_objects_ctrl()
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn("Editing", colEditing, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
+    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 }
 

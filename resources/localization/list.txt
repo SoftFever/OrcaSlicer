@@ -15,6 +15,7 @@ src/slic3r/GUI/Gizmos/GLGizmoMove.cpp
 src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp
 src/slic3r/GUI/Gizmos/GLGizmoScale.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp
+src/slic3r/GUI/Gizmos/GLGizmosManager.cpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_ObjectList.cpp
@@ -33,6 +34,7 @@ src/slic3r/GUI/PresetHints.cpp
 src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/ProgressStatusBar.cpp
 src/slic3r/GUI/RammingChart.cpp
+src/slic3r/GUI/Selection.cpp
 src/slic3r/GUI/SysInfoDialog.cpp
 src/slic3r/GUI/Tab.cpp
 src/slic3r/GUI/Tab.hpp

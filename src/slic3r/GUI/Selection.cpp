@@ -954,12 +954,12 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
                 // apply scale
                 start_dragging();
                 scale(s * Vec3d::Ones(), type);
-                wxGetApp().plater()->canvas3D()->do_scale(L("")); // avoid storing another snapshot
+                wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
 
                 // center selection on print bed
                 start_dragging();
                 translate(print_volume.center() - get_bounding_box().center());
-                wxGetApp().plater()->canvas3D()->do_move(L("")); // avoid storing another snapshot
+                wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
                 wxGetApp().obj_manipul()->set_dirty();
             }
