@@ -422,9 +422,6 @@ public:
     const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
 
 private:
-    using SLAPrinter = sla::SLARasterWriter;
-    using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
-
     // Implement same logic as in SLAPrintObject
     bool invalidate_step(SLAPrintStep st);
 
@@ -443,7 +440,7 @@ private:
     std::vector<PrintLayer>                 m_printer_input;
 
     // The printer itself
-    SLAPrinterPtr                           m_printer;
+    std::unique_ptr<sla::SLARasterWriter>   m_printer;
 
     // Estimated print time, material consumed.
     SLAPrintStatistics                      m_print_statistics;

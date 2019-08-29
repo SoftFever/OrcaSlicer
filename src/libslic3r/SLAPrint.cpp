@@ -454,7 +454,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
     }
 
     if(m_objects.empty()) {
-        m_printer.release();
+        m_printer.reset();
         m_printer_input.clear();
         m_print_statistics.clear();
     }
@@ -1397,13 +1397,14 @@ void SLAPrint::process()
 
         { // create a raster printer for the current print parameters
             double layerh = m_default_object_config.layer_height.getFloat();
-            m_printer.reset(new SLAPrinter(m_printer_config,
-                                           m_material_config,
-                                           layerh));
+            m_printer.reset(new sla::SLARasterWriter(m_printer_config,
+                                                     m_material_config,
+                                                     layerh));
         }
 
         // Allocate space for all the layers
-        SLAPrinter& printer = *m_printer;
+        sla::SLARasterWriter &printer = *m_printer;
+
         auto lvlcnt = unsigned(m_printer_input.size());
         printer.layers(lvlcnt);
 
