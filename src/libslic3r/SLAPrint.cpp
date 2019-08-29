@@ -455,8 +455,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
 
     if(m_objects.empty()) {
         m_printer.reset();
-        m_printer_input.clear();
-        m_print_statistics.clear();
+        m_printer_input = {};
+        m_print_statistics = {};
     }
 
 #ifdef _DEBUG
