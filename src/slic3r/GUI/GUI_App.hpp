@@ -88,7 +88,11 @@ class GUI_App : public wxApp
     size_t          m_em_unit; // width of a "m"-symbol in pixels for current system font 
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
-    std::unique_ptr<wxLocale> 		m_wxLocale;
+    std::unique_ptr<wxLocale> 	  m_wxLocale;
+    // System language, from locales, owned by wxWidgets.
+    const wxLanguageInfo		 *m_language_info_system = nullptr;
+    // Best translation language, provided by Windows or OSX, owned by wxWidgets.
+    const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;

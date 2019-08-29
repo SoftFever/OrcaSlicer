@@ -640,11 +640,20 @@ bool GUI_App::select_language()
 
     const long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")), names, init_selection_default);
 	// Try to load a new language.
-    if (index != -1 && (init_selection == -1 || init_selection != index) && this->load_language(language_infos[index]->CanonicalName, false)) {
-		// Save language at application config.
-		app_config->set("translation_language", m_wxLocale->GetCanonicalName().ToUTF8().data());
-		app_config->save();
-    	return true;
+    if (index != -1 && (init_selection == -1 || init_selection != index)) {
+    	const wxLanguageInfo *new_language_info = language_infos[index];
+        if (new_language_info == m_language_info_best || new_language_info == m_language_info_system) {
+        	// The newly selected profile matches user's default profile exactly. That's great.
+        } else if (m_language_info_best != nullptr && new_language_info->CanonicalName.BeforeFirst('_') == m_language_info_best->CanonicalName.BeforeFirst('_'))
+    		new_language_info = m_language_info_best;
+    	else if (m_language_info_system != nullptr && new_language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
+            new_language_info = m_language_info_system;
+    	if (this->load_language(new_language_info->CanonicalName, false)) {
+			// Save language at application config.
+			app_config->set("translation_language", m_wxLocale->GetCanonicalName().ToUTF8().data());
+			app_config->save();
+    		return true;
+    	}
     }
 
     return false;
@@ -659,20 +668,12 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("translation_language");
-    }
-
-	const wxLanguageInfo *language_info = wxLocale::FindLanguageInfo(language);
-	if (language_info == nullptr)
-		language.clear();
-
-    if (language.IsEmpty()) {
-        const wxLanguage 	  lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-        const wxLanguageInfo *lang_info_system = nullptr;
-        if (lang_system != wxLANGUAGE_UNKNOWN) {
-			lang_info_system = wxLocale::GetLanguageInfo(lang_system);
-            if (lang_info_system != nullptr)
-                language = lang_info_system->CanonicalName;
-        }
+        // Get the system language.
+        {
+	        const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+	        if (lang_system != wxLANGUAGE_UNKNOWN)
+				m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
+		}
         {
 	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
 	    	wxLocale temp_locale;
@@ -685,8 +686,19 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    	// for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
 			wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
 			if (! best_language.IsEmpty())
-				language = best_language;
+				m_language_info_best = wxLocale::FindLanguageInfo(best_language);
 		}
+    }
+
+	const wxLanguageInfo *language_info = wxLocale::FindLanguageInfo(language);
+	if (language_info == nullptr)
+		language.clear();
+
+    if (language.IsEmpty()) {
+        if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
+            language = m_language_info_system->CanonicalName;
+        if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
+        	language = m_language_info_best->CanonicalName;
 	    if (language.IsEmpty())
 	        language = "en_US";
     }
@@ -721,7 +733,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     }
 
     // Release the old locales, create new locales.
-    
+    //FIXME wxWidgets cause havoc if the current locale is deleted. We just forget it causing memory leaks for now.
     m_wxLocale.release();
     m_wxLocale = Slic3r::make_unique<wxLocale>();
     m_wxLocale->Init(language_info->Language);
