@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-29 11:15+0200\n"
+"POT-Creation-Date: 2019-08-29 14:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -138,6 +138,7 @@ msgstr ""
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:91 src/slic3r/GUI/ConfigWizard.cpp:123
 #: src/slic3r/GUI/ConfigWizard.cpp:576 src/slic3r/GUI/ConfigWizard.cpp:590
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:135
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:390
 #: src/slic3r/GUI/WipeTowerDialog.cpp:84 src/slic3r/GUI/wxExtensions.cpp:509
 #: src/libslic3r/PrintConfig.cpp:70 src/libslic3r/PrintConfig.cpp:77
@@ -398,7 +399,7 @@ msgstr ""
 msgid "Welcome"
 msgstr ""
 
-#: src/slic3r/GUI/ConfigWizard.cpp:309 src/slic3r/GUI/GUI_App.cpp:773
+#: src/slic3r/GUI/ConfigWizard.cpp:309 src/slic3r/GUI/GUI_App.cpp:783
 #, possible-c-format
 msgid "Run %s"
 msgstr ""
@@ -645,6 +646,7 @@ msgid "%s doesn't support percentage"
 msgstr ""
 
 #: src/slic3r/GUI/Field.cpp:174 src/slic3r/GUI/Field.cpp:197
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:337
 msgid "Invalid numeric input."
 msgstr ""
 
@@ -1203,7 +1205,7 @@ msgstr ""
 msgid "Notice"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:132
+#: src/slic3r/GUI/GUI_App.cpp:133
 #, possible-c-format
 msgid ""
 "%s has encountered an error. It was likely caused by running out of memory. "
@@ -1213,96 +1215,96 @@ msgid ""
 "The application will now terminate."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:135
+#: src/slic3r/GUI/GUI_App.cpp:136
 msgid "Fatal error"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:301
+#: src/slic3r/GUI/GUI_App.cpp:299
 #, possible-c-format
 msgid ""
 "PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
 "while OpenGL version %s, render %s, vendor %s was detected."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:304
+#: src/slic3r/GUI/GUI_App.cpp:302
 msgid "You may need to update your graphics card driver."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:307
+#: src/slic3r/GUI/GUI_App.cpp:305
 msgid ""
 "As a workaround, you may run PrusaSlicer with a software rendered 3D "
 "graphics by running prusa-slicer.exe with the --sw_renderer parameter."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:309
+#: src/slic3r/GUI/GUI_App.cpp:307
 msgid "Unsupported OpenGL version"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:460
+#: src/slic3r/GUI/GUI_App.cpp:458
 msgid "Changing of an application language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:468 src/slic3r/GUI/GUI_App.cpp:477
+#: src/slic3r/GUI/GUI_App.cpp:466 src/slic3r/GUI/GUI_App.cpp:475
 msgid "Recreating"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:481
+#: src/slic3r/GUI/GUI_App.cpp:479
 msgid "Loading of current presets"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:489
+#: src/slic3r/GUI/GUI_App.cpp:487
 msgid "Loading of a mode view"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:569
+#: src/slic3r/GUI/GUI_App.cpp:567
 msgid "Choose one file (3MF/AMF):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:581
+#: src/slic3r/GUI/GUI_App.cpp:579
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:617
+#: src/slic3r/GUI/GUI_App.cpp:641
 msgid "Select the language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:617
+#: src/slic3r/GUI/GUI_App.cpp:641
 msgid "Language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:776
+#: src/slic3r/GUI/GUI_App.cpp:786
 msgid "&Configuration Snapshots"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:776
+#: src/slic3r/GUI/GUI_App.cpp:786
 msgid "Inspect / activate configuration snapshots"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:777
+#: src/slic3r/GUI/GUI_App.cpp:787
 msgid "Take Configuration &Snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:777
+#: src/slic3r/GUI/GUI_App.cpp:787
 msgid "Capture a configuration snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:780
+#: src/slic3r/GUI/GUI_App.cpp:790
 msgid "&Preferences"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:786
+#: src/slic3r/GUI/GUI_App.cpp:796
 msgid "Application preferences"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:789 src/slic3r/GUI/wxExtensions.cpp:3041
+#: src/slic3r/GUI/GUI_App.cpp:799 src/slic3r/GUI/wxExtensions.cpp:3041
 msgid "Simple"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:789
+#: src/slic3r/GUI/GUI_App.cpp:799
 msgid "Simple View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:790 src/slic3r/GUI/GUI_ObjectList.cpp:97
+#: src/slic3r/GUI/GUI_App.cpp:800 src/slic3r/GUI/GUI_ObjectList.cpp:97
 #: src/slic3r/GUI/GUI_ObjectList.cpp:620 src/slic3r/GUI/Tab.cpp:1058
 #: src/slic3r/GUI/Tab.cpp:1073 src/slic3r/GUI/Tab.cpp:1171
 #: src/slic3r/GUI/Tab.cpp:1174 src/slic3r/GUI/Tab.cpp:1682
@@ -1313,75 +1315,96 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:790
+#: src/slic3r/GUI/GUI_App.cpp:800
 msgid "Advanced View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:791 src/slic3r/GUI/wxExtensions.cpp:3043
+#: src/slic3r/GUI/GUI_App.cpp:801 src/slic3r/GUI/wxExtensions.cpp:3043
 msgid "Expert"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:791
+#: src/slic3r/GUI/GUI_App.cpp:801
 msgid "Expert View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:796
+#: src/slic3r/GUI/GUI_App.cpp:806
 msgid "Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:796
+#: src/slic3r/GUI/GUI_App.cpp:806
 #, possible-c-format
 msgid "%s View Mode"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:798
+#: src/slic3r/GUI/GUI_App.cpp:808
 msgid "Change Application &Language"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:800
+#: src/slic3r/GUI/GUI_App.cpp:810
 msgid "Flash printer &firmware"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:800
+#: src/slic3r/GUI/GUI_App.cpp:810
 msgid "Upload a firmware image into an Arduino based printer"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:812
+#: src/slic3r/GUI/GUI_App.cpp:822
 msgid "Taking configuration snapshot"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:812
+#: src/slic3r/GUI/GUI_App.cpp:822
 msgid "Snapshot name"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:855
+#: src/slic3r/GUI/GUI_App.cpp:865
 msgid ""
 "Switching the language will trigger application restart.\n"
 "You will lose content of the plater."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:857
+#: src/slic3r/GUI/GUI_App.cpp:867
 msgid "Do you want to proceed?"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:858
+#: src/slic3r/GUI/GUI_App.cpp:868
 msgid "Language selection"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:881
+#: src/slic3r/GUI/GUI_App.cpp:891
 msgid "&Configuration"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:903
+#: src/slic3r/GUI/GUI_App.cpp:913
 msgid "The presets on the following tabs were modified"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:903 src/slic3r/GUI/Tab.cpp:3130
+#: src/slic3r/GUI/GUI_App.cpp:913 src/slic3r/GUI/Tab.cpp:3130
 msgid "Discard changes and continue anyway?"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_App.cpp:906
+#: src/slic3r/GUI/GUI_App.cpp:916
 msgid "Unsaved Presets"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:27
+msgid "Start at height"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:27
+msgid "Stop at height"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:27 src/slic3r/GUI/Tab.cpp:1030
+#: src/libslic3r/PrintConfig.cpp:66
+msgid "Layer height"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:153
+msgid "Remove layer range"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectLayers.cpp:162
+msgid "Add layer range"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:34 src/slic3r/GUI/GUI_ObjectList.cpp:88
@@ -4048,10 +4071,6 @@ msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:1029 src/slic3r/GUI/Tab.cpp:3728
 msgid "Layers and perimeters"
-msgstr ""
-
-#: src/slic3r/GUI/Tab.cpp:1030 src/libslic3r/PrintConfig.cpp:66
-msgid "Layer height"
 msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:1034
