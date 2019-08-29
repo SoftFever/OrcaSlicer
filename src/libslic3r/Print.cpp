@@ -1189,6 +1189,8 @@ std::string Print::validate() const
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
+        if (m_config.ooze_prevention)
+            return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
