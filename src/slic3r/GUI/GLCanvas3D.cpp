@@ -845,21 +845,21 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     {
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
-        const int values_cnt = color_print_values.size();
+        const size_t values_cnt = color_print_values.size();
         if (values_cnt > 0) {
-            auto print_zs = canvas.get_current_print_zs(true);
-            auto z = 0;
-            for (auto i = 0; i < values_cnt; ++i)
+            std::vector<double> print_zs = canvas.get_current_print_zs(true);
+            size_t z = 0;
+            for (size_t i = 0; i < values_cnt; ++i)
             {
                 double prev_z = -1.0;
-                for (z; z < print_zs.size(); ++z)
+                for ( ; z < print_zs.size(); ++z)
                     if (fabs(color_print_values[i] - print_zs[z]) < EPSILON) {
-                        prev_z = print_zs[z - 1];
+                        prev_z = z > 0 ? print_zs[z - 1] : 0.;
                         break;
                     }
                 if (prev_z < 0)
                     continue;
-                
+
                 cp_legend_values.push_back(std::pair<double, double>(prev_z, color_print_values[i]));
             }
         }
