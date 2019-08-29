@@ -723,7 +723,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     // Release the old locales, create new locales.
     
     m_wxLocale.release();
-    m_wxLocale = std::make_unique<wxLocale>();
+    m_wxLocale = Slic3r::make_unique<wxLocale>();
     m_wxLocale->Init(language_info->Language);
     // Override language at the active wxTranslations class (which is stored in the active m_wxLocale)
     // to load possibly different dictionary, for example, load Czech dictionary for Slovak language.
