@@ -151,7 +151,7 @@ public:
 
 		float dx = x - m_current_pos.x();
 		float dy = y - m_current_pos.y();
-		double len = sqrt(dx*dx+dy*dy);
+        float len = std::sqrt(dx*dx+dy*dy);
         if (record_length)
             m_used_filament_length += e;
 
@@ -159,11 +159,11 @@ public:
 		Vec2f rotated_current_pos(rotate(m_current_pos + Vec2f(0.f,m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle)); // this is where we are
 		Vec2f rot(rotate(Vec2f(x,y+m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle));                               // this is where we want to go
 
-		if (! m_preview_suppressed && e > 0.f && len > 0.) {
+        if (! m_preview_suppressed && e > 0.f && len > 0.f) {
             change_analyzer_mm3_per_mm(len, e);
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
-			float width = float(double(e) * m_filpar[0].filament_area / (len * m_layer_height));
+            float width = e * m_filpar[0].filament_area / (len * m_layer_height);
 			// Correct for the roundings of a squished extrusion.
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
@@ -172,10 +172,10 @@ public:
 		}
 
 		m_gcode += "G1";
-		if (std::abs(rot.x() - rotated_current_pos.x()) > EPSILON)
+        if (std::abs(rot.x() - rotated_current_pos.x()) > (float)EPSILON)
 			m_gcode += set_format_X(rot.x());
 
-		if (std::abs(rot.y() - rotated_current_pos.y()) > EPSILON)
+        if (std::abs(rot.y() - rotated_current_pos.y()) > (float)EPSILON)
 			m_gcode += set_format_Y(rot.y());
 
 
@@ -214,7 +214,7 @@ public:
 	{
 		float dx = x - m_current_pos.x();
 		float dy = y - m_current_pos.y();
-		return extrude_explicit(x, y, sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
+        return extrude_explicit(x, y, std::sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
 	}
 
 	WipeTowerWriter& extrude(const Vec2f &dest, const float f = 0.f) 
@@ -311,7 +311,7 @@ public:
 		return *this;
 	}
 
-	WipeTowerWriter& set_tool(int tool)
+    WipeTowerWriter& set_tool(unsigned tool)
 	{
 		m_current_tool = tool;
 		return *this;
@@ -320,57 +320,52 @@ public:
 	// Set extruder temperature, don't wait by default.
 	WipeTowerWriter& set_extruder_temp(int temperature, bool wait = false)
 	{
-        char buf[128];
-        sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
-        m_gcode += buf;
+        m_gcode += "M" + std::to_string(wait ? 109 : 104) + " S" + std::to_string(temperature) + "\n";
         return *this;
-	};
+    }
 
     // Wait for a period of time (seconds).
 	WipeTowerWriter& wait(float time)
 	{
-        if (time==0)
+        if (time==0.f)
             return *this;
 		char buf[128];
 		sprintf(buf, "G4 S%.3f\n", time);
 		m_gcode += buf;
 		return *this;
-	};
+    }
 
 	// Set speed factor override percentage.
 	WipeTowerWriter& speed_override(int speed)
 	{
-		char buf[128];
-		sprintf(buf, "M220 S%d\n", speed);
-		m_gcode += buf;
+        m_gcode += "M220 S" + std::to_string(speed) + "\n";
 		return *this;
-	};
+    }
 
 	// Let the firmware back up the active speed override value.
 	WipeTowerWriter& speed_override_backup()
 	{
 		m_gcode += "M220 B\n";
 		return *this;
-	};
+    }
 
 	// Let the firmware restore the active speed override value.
 	WipeTowerWriter& speed_override_restore()
 	{
 		m_gcode += "M220 R\n";
 		return *this;
-	};
+    }
 
 	// Set digital trimpot motor
 	WipeTowerWriter& set_extruder_trimpot(int current)
 	{
-		char buf[128];
         if (m_gcode_flavor == gcfRepRap)
-            sprintf(buf, "M906 E%d\n", current);
+            m_gcode += "M906 E";
         else
-            sprintf(buf, "M907 E%d\n", current);
-		m_gcode += buf;
+            m_gcode += "M907 E";
+        m_gcode += std::to_string(current) + "\n";
 		return *this;
-	};
+    }
 
 	WipeTowerWriter& flush_planner_queue()
 	{ 
@@ -386,28 +381,20 @@ public:
 	}
 
 	WipeTowerWriter& comment_with_value(const char *comment, int value)
-	{
-		char strvalue[64];
-		sprintf(strvalue, "%d", value);
-		m_gcode += std::string(";") + comment + strvalue + "\n";
+    {
+        m_gcode += std::string(";") + comment + std::to_string(value) + "\n";
 		return *this;
-	};
+    }
 
 
 	WipeTowerWriter& set_fan(unsigned int speed)
 	{
 		if (speed == m_last_fan_speed)
 			return *this;
-				
 		if (speed == 0)
 			m_gcode += "M107\n";
-		else
-		{
-			m_gcode += "M106 S";
-			char buf[128];
-			sprintf(buf,"%u\n",(unsigned int)(255.0 * speed / 100.0));
-			m_gcode += buf;
-		}
+        else
+            m_gcode += "M106 S" + std::to_string((size_t)(255.0 * speed / 100.0)) + "\n";
 		m_last_fan_speed = speed;
 		return *this;
 	}
@@ -995,8 +982,8 @@ void WipeTower::toolchange_Unload(
 // Change the tool, set a speed override for soluble and flex materials.
 void WipeTower::toolchange_Change(
 	WipeTowerWriter &writer,
-	const unsigned int 	new_tool, 
-	const std::string&  new_material)
+    const size_t 	new_tool,
+    const std::string&  new_material)
 {
     // Ask the writer about how much of the old filament we consumed:
     if (m_current_tool < m_used_filament_length.size())

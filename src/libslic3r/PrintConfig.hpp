@@ -24,7 +24,7 @@
 
 namespace Slic3r {
 
-enum GCodeFlavor {
+enum GCodeFlavor : unsigned char {
     gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };

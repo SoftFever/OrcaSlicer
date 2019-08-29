@@ -13,6 +13,7 @@
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Tesselate.hpp"
 
 

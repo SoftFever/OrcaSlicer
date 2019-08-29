@@ -1870,12 +1870,13 @@ std::vector<ExPolygons> PrintObject::slice_modifiers(size_t region_id, const std
 			                	merge.assign(out.size(), false);
 			                } else {
 			                	for (size_t i = 0; i < out.size(); ++ i)
-			                		if (! this_slices[i].empty())
+                                    if (! this_slices[i].empty()) {
 			                			if (! out[i].empty()) {
 			                				append(out[i], this_slices[i]);
 			                				merge[i] = true;
 			                			} else
 			                				out[i] = std::move(this_slices[i]);
+                                    }
 			                }
 							i = j;
 						} else
