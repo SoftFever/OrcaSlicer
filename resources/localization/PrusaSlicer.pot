@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 16:09+0200\n"
+"POT-Creation-Date: 2019-08-29 10:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1919,11 +1919,11 @@ msgstr ""
 msgid "This extruder will be set for selected items"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3759 src/slic3r/GUI/Selection.cpp:1481
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3759 src/slic3r/GUI/Selection.cpp:1473
 msgid "Set Printable"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:3759 src/slic3r/GUI/Selection.cpp:1481
+#: src/slic3r/GUI/GUI_ObjectList.cpp:3759 src/slic3r/GUI/Selection.cpp:1473
 msgid "Set Unprintable"
 msgstr ""
 
@@ -3926,39 +3926,23 @@ msgstr ""
 msgid "Selection-Remove Instance"
 msgstr ""
 
-#: src/slic3r/GUI/Selection.cpp:293
-msgid "Selection-Add Volume"
-msgstr ""
-
-#: src/slic3r/GUI/Selection.cpp:312
-msgid "Selection-Remove Volume"
-msgstr ""
-
-#: src/slic3r/GUI/Selection.cpp:334
-msgid "Selection-Add Volumes"
-msgstr ""
-
-#: src/slic3r/GUI/Selection.cpp:356
-msgid "Selection-Remove Volumes"
-msgstr ""
-
-#: src/slic3r/GUI/Selection.cpp:384
+#: src/slic3r/GUI/Selection.cpp:376
 msgid "Selection-Add All"
 msgstr ""
 
-#: src/slic3r/GUI/Selection.cpp:410
+#: src/slic3r/GUI/Selection.cpp:402
 msgid "Selection-Remove All"
 msgstr ""
 
-#: src/slic3r/GUI/Selection.cpp:947
+#: src/slic3r/GUI/Selection.cpp:939
 msgid "Scale To Fit"
 msgstr ""
 
-#: src/slic3r/GUI/Selection.cpp:1482
+#: src/slic3r/GUI/Selection.cpp:1474
 msgid "Set Printable Instance"
 msgstr ""
 
-#: src/slic3r/GUI/Selection.cpp:1482
+#: src/slic3r/GUI/Selection.cpp:1474
 msgid "Set Unprintable Instance"
 msgstr ""
 
@@ -5255,54 +5239,58 @@ msgid ""
 "addressing (use_relative_e_distances=1)."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1212
+#: src/libslic3r/Print.cpp:1193
+msgid "Ooze prevention is currently not supported with the wipe tower enabled."
+msgstr ""
+
+#: src/libslic3r/Print.cpp:1214
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they have equal "
 "layer heights"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1214
+#: src/libslic3r/Print.cpp:1216
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are printed "
 "over an equal number of raft layers"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1216
+#: src/libslic3r/Print.cpp:1218
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are printed "
 "with the same support_material_contact_distance"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1218
+#: src/libslic3r/Print.cpp:1220
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they are sliced "
 "equally."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1246
+#: src/libslic3r/Print.cpp:1248
 msgid ""
 "The Wipe tower is only supported if all objects have the same layer height "
 "profile"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1256
+#: src/libslic3r/Print.cpp:1258
 msgid "The supplied settings will cause an empty print."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1273
+#: src/libslic3r/Print.cpp:1275
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1282
+#: src/libslic3r/Print.cpp:1284
 msgid "%1%=%2% mm is too low to be printable at a layer height %3% mm"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1285
+#: src/libslic3r/Print.cpp:1287
 msgid "Excessive %1%=%2% mm to be printable with a nozzle diameter %3% mm"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1296
+#: src/libslic3r/Print.cpp:1298
 msgid ""
 "Printing with multiple extruders of differing nozzle diameters. If support "
 "is to be printed with the current extruder (support_material_extruder == 0 "
@@ -5310,13 +5298,13 @@ msgid ""
 "same diameter."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1304
+#: src/libslic3r/Print.cpp:1306
 msgid ""
 "For the Wipe Tower to work with the soluble supports, the support layers "
 "need to be synchronized with the object layers."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1308
+#: src/libslic3r/Print.cpp:1310
 msgid ""
 "The Wipe Tower currently supports the non-soluble supports only if they are "
 "printed with the current extruder without triggering a tool change. (both "
@@ -5324,31 +5312,31 @@ msgid ""
 "set to 0)."
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1330
+#: src/libslic3r/Print.cpp:1332
 msgid "First layer height can't be greater than nozzle diameter"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1335
+#: src/libslic3r/Print.cpp:1337
 msgid "Layer height can't be greater than nozzle diameter"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1490
+#: src/libslic3r/Print.cpp:1492
 msgid "Infilling layers"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1498
+#: src/libslic3r/Print.cpp:1500
 msgid "Generating skirt"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1506
+#: src/libslic3r/Print.cpp:1508
 msgid "Generating brim"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1534
+#: src/libslic3r/Print.cpp:1536
 msgid "Exporting G-code"
 msgstr ""
 
-#: src/libslic3r/Print.cpp:1538
+#: src/libslic3r/Print.cpp:1540
 msgid "Generating G-code"
 msgstr ""
 
@@ -5417,7 +5405,7 @@ msgstr ""
 msgid "Visualizing supports"
 msgstr ""
 
-#: src/libslic3r/SLAPrint.cpp:1565
+#: src/libslic3r/SLAPrint.cpp:1566
 msgid "Slicing done"
 msgstr ""
 
