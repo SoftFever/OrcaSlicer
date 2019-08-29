@@ -290,8 +290,6 @@ void Selection::add_volume(unsigned int object_idx, unsigned int volume_idx, int
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Volume")));
-
     // resets the current list if needed
     if (as_single_selection)
         clear();
@@ -308,8 +306,6 @@ void Selection::remove_volume(unsigned int object_idx, unsigned int volume_idx)
 {
     if (!m_valid)
         return;
-
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Volume")));
 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
@@ -331,8 +327,6 @@ void Selection::add_volumes(EMode mode, const std::vector<unsigned int>& volume_
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Volumes")));
-
     // resets the current list if needed
     if (as_single_selection)
         clear();
@@ -352,8 +346,6 @@ void Selection::remove_volumes(EMode mode, const std::vector<unsigned int>& volu
 {
     if (!m_valid)
         return;
-
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Remove Volumes")));
 
     m_mode = mode;
     for (unsigned int i : volume_idxs)
