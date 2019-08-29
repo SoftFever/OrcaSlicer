@@ -1443,11 +1443,8 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         layer_height_profile.clear();
 
     if (layer_height_profile.empty()) {
-    	if (0)
-//        if (this->layer_height_profile.empty())
-        	layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
-        else
-        	layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);     // #ys_FIXME_experiment
+            //layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
+            layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
        	updated = true;
     }
     return updated;
