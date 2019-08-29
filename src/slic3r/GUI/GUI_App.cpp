@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iterator>
 #include <exception>
+#include <cstdlib>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
@@ -229,11 +230,8 @@ bool GUI_App::on_init_inner()
     init_label_colours();
     init_fonts();
 
-    wxString language = wxEmptyString;
-    if (app_config->has("translation_language"))
-        language = app_config->get("translation_language");
     // If load_language() fails, the application closes.
-    load_language(language);
+    load_language(wxString(), true);
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
@@ -600,23 +598,49 @@ bool GUI_App::switch_language()
 // select language from the list of installed languages
 bool GUI_App::select_language()
 {
-    const std::vector<const wxLanguageInfo*> langs = get_installed_languages();
+	wxArrayString translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
+    std::vector<const wxLanguageInfo*> language_infos;
+    language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
+    for (size_t i = 0; i < translations.GetCount(); ++ i) {
+	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
+        if (langinfo != nullptr)
+            language_infos.emplace_back(langinfo);
+    }
+    sort_remove_duplicates(language_infos);
+	std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo* l, const wxLanguageInfo* r) { return l->Description < r->Description; });
+
     wxArrayString names;
-    names.Alloc(langs.size());
+    names.Alloc(language_infos.size());
 
     // Some valid language should be selected since the application start up.
-    assert(m_wxLocale != nullptr);
-    const auto 	current_language = m_wxLocale->GetLanguage();
-    int 		init_selection   = 0;
-    for (size_t i = 0; i < langs.size(); ++ i) {
-        if (langs[i]->Language == current_language)
+    const wxLanguage current_language = wxLanguage(m_wxLocale->GetLanguage());
+    int 		     init_selection   		= -1;
+    int 			 init_selection_alt     = -1;
+    int 			 init_selection_default = -1;
+    for (size_t i = 0; i < language_infos.size(); ++ i) {
+        if (wxLanguage(language_infos[i]->Language) == current_language)
+        	// The dictionary matches the active language and country.
             init_selection = i;
-        names.Add(langs[i]->Description);
+        else if ((language_infos[i]->CanonicalName.BeforeFirst('_') == m_wxLocale->GetCanonicalName().BeforeFirst('_')) ||
+        		 // if the active language is Slovak, mark the Czech language as active.
+        	     (language_infos[i]->CanonicalName.BeforeFirst('_') == "cs" && m_wxLocale->GetCanonicalName().BeforeFirst('_') == "sk"))
+        	// The dictionary matches the active language, it does not necessarily match the country.
+        	init_selection_alt = i;
+        if (language_infos[i]->CanonicalName.BeforeFirst('_') == "en")
+        	// This will be the default selection if the active language does not match any dictionary.
+        	init_selection_default = i;
+        names.Add(language_infos[i]->Description);
     }
+    if (init_selection == -1)
+    	// This is the dictionary matching the active language.
+    	init_selection = init_selection_alt;
+    if (init_selection != -1)
+    	// This is the language to highlight in the choice dialog initially.
+    	init_selection_default = init_selection;
 
-    const long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")), names, init_selection);
+    const long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")), names, init_selection_default);
 	// Try to load a new language.
-    if (index != -1 && langs[index]->Language != current_language && this->load_language(langs[index]->CanonicalName)) {
+    if (index != -1 && (init_selection == -1 || init_selection != index) && this->load_language(language_infos[index]->CanonicalName, false)) {
 		// Save language at application config.
 		app_config->set("translation_language", m_wxLocale->GetCanonicalName().ToUTF8().data());
 		app_config->save();
@@ -626,104 +650,90 @@ bool GUI_App::select_language()
     return false;
 }
 
-// Get the language code before underscore, if there is underscore.
-static wxString language_code_short(const wxString &language_code)
-{
-	size_t idx_underscore = language_code.find('_');
-	return (idx_underscore != wxString::npos) ? language_code.substr(0, idx_underscore) : language_code;
-}
-
 // Load gettext translation files and activate them at the start of the application,
 // based on the "translation_language" key stored in the application config.
-bool GUI_App::load_language(wxString language)
+bool GUI_App::load_language(wxString language, bool initial)
 {
-    if (language.IsEmpty()) {
-        int lang = wxLocale::GetSystemLanguage();
-        if (lang != wxLANGUAGE_UNKNOWN) {
-			const wxLanguageInfo *info = wxLocale::GetLanguageInfo(lang);
-            if (info != nullptr)
-                language = info->CanonicalName;
-        }
+    if (initial) {
+    	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
+	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
+    	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
+        language = app_config->get("translation_language");
     }
 
-    if (language.IsEmpty())
-        language = "en_US";
+	const wxLanguageInfo *language_info = wxLocale::FindLanguageInfo(language);
+	if (language_info == nullptr)
+		language.clear();
+
+    if (language.IsEmpty()) {
+        const wxLanguage 	  lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+        const wxLanguageInfo *lang_info_system = nullptr;
+        if (lang_system != wxLANGUAGE_UNKNOWN) {
+			lang_info_system = wxLocale::GetLanguageInfo(lang_system);
+            if (lang_info_system != nullptr)
+                language = lang_info_system->CanonicalName;
+        }
+        {
+	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
+	    	wxLocale temp_locale;
+	    	// Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
+	    	wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
+	    	// Let the wxFileTranslationsLoader enumerate all translation dictionaries for PrusaSlicer
+	    	// and try to match them with the system specific "preferred languages". 
+	    	// There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
+	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround 
+	    	// for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
+			wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
+			if (! best_language.IsEmpty())
+				language = best_language;
+		}
+	    if (language.IsEmpty())
+	        language = "en_US";
+    }
+
+	language_info = wxLocale::FindLanguageInfo(language);
+	if (language_info == nullptr || language_info->LayoutDirection == wxLayout_RightToLeft) {
+		// We don't support right-to-left rendering (Hebrew, Arabic ...), therefore we switch to English.
+		language 	  = "en_US";
+		language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
+	}
 
     // Alternate language code.
-    wxString language_code_alt = language_code_short(language);
-    if (language_code_alt == "sk")
+    wxLanguage language_dict = wxLanguage(language_info->Language);
+    if (language.BeforeFirst('_') == "sk")
     	// Slovaks understand Czech well. Give them the Czech translation.
-    	language_code_alt = "cz";
+    	language_dict = wxLANGUAGE_CZECH;
 
-    const wxLanguageInfo *info = nullptr;
-    for (const wxLanguageInfo *this_info : get_installed_languages()) {
-        if (this_info->CanonicalName == language) {
-        	// The language matches exactly, including the country suffix. Use it.
-            info = this_info;
-            break;
-        }
-        if (language_code_short(this_info->CanonicalName) == language_code_alt)
-        	// Alternatively try to match just the language without the country suffix.
-        	info = this_info;
-    }
-
-    wxString canonical_name;
-    if (info == nullptr) {
-    	// Fallback for user languages, for which we do not have dictionaries.
-    	canonical_name = "en_EN";
-		info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
-	} else
-		canonical_name = info->CanonicalName;
-
-    wxLocale *new_locale = new wxLocale;
-    if (info == nullptr || ! new_locale->Init(info->Language)) {
+    if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching PrusaSlicer to language " + canonical_name + " failed.";
+    	wxString message = "Switching PrusaSlicer to language " + language_info->CanonicalName + " failed.";
 #if !defined(_WIN32) && !defined(__APPLE__)
-        	// likely some linux system
-        	"\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
+        // likely some linux system
+        message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
 #endif
-		delete new_locale;
-        if (m_wxLocale == nullptr)
+        if (initial)
         	message + "\n\nApplication will close.";
 		wxMessageBox(message, "PrusaSlicer - Switching language failed", wxOK | wxICON_ERROR);
-        if (m_wxLocale == nullptr)
-			std::terminate();
+        if (initial)
+			std::exit(EXIT_FAILURE);
 		else
 			return false;
     }
-	wxLocale *old_locale = m_wxLocale;
-    m_wxLocale = new_locale;
-    m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
+
+    // Release the old locales, create new locales.
+    
+    m_wxLocale.release();
+    m_wxLocale = std::make_unique<wxLocale>();
+    m_wxLocale->Init(language_info->Language);
+    // Override language at the active wxTranslations class (which is stored in the active m_wxLocale)
+    // to load possibly different dictionary, for example, load Czech dictionary for Slovak language.
+    wxTranslations::Get()->SetLanguage(language_dict);
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
-    m_imgui->set_language(into_u8(info->CanonicalName));
+    m_imgui->set_language(into_u8(language_info->CanonicalName));
 	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     wxSetlocale(LC_NUMERIC, "C");
     Preset::update_suffix_modified();
-	//FIXME Why the following line crashes?
-	// delete old_locale;
 	return true;
-}
-
-// Get a list of installed languages (languages for which we have dictionaries).
-std::vector<const wxLanguageInfo*> GUI_App::get_installed_languages()
-{
-	wxDir dir(from_u8(localization_dir()));
-    wxString filename;
-    std::vector<const wxLanguageInfo*> res;
-    res.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US));
-    for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS); cont; cont = dir.GetNext(&filename)) {
-	    const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(filename);
-        if (langinfo != nullptr) {
-            auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
-                filename + wxFileName::GetPathSeparator() + SLIC3R_APP_KEY + wxT(".mo");
-            if (wxFileExists(full_file_name))
-                res.push_back(langinfo);
-        }
-    }
-    // Remove duplicated "en_EN" and possible others.
-    sort_remove_duplicates(res);
-    return res;
 }
 
 Tab* GUI_App::get_tab(Preset::Type type)
@@ -1019,7 +1029,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "uk", 	"uk_UA", },
 		{ "zh", 	"zh_CN", },
 	};
-	wxString language_code = language_code_short(this->current_language_code());
+	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
 	if (it != mapping.end())
 		language_code = it->second;
