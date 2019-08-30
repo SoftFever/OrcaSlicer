@@ -807,14 +807,14 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
     while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
 
-        // if InstanceRoot item is just created and start to adding Instances
-        if (just_created && counter == 0) {
-            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
-            // use object's printable state to first instance
-            instance_node->set_printable_icon(obj_node->IsPrintable());
-        }
-        else
-            instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
+//        // if InstanceRoot item is just created and start to adding Instances
+//        if (just_created && counter == 0) {
+//            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
+//            // use object's printable state to first instance
+//            instance_node->set_printable_icon(obj_node->IsPrintable());
+//        }
+//        else
+        instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
 
         inst_root_node->Append(instance_node);
         // notify control
