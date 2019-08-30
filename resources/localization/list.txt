@@ -9,6 +9,7 @@ src/slic3r/GUI/ConfigWizard.cpp
 src/slic3r/GUI/Field.cpp
 src/slic3r/GUI/FirmwareDialog.cpp
 src/slic3r/GUI/GLCanvas3D.cpp
+src/slic3r/GUI/GLCanvas3DManager.cpp
 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMove.cpp
