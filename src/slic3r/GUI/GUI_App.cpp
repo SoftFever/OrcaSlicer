@@ -653,12 +653,18 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("translation_language");
+        if (! language.empty())
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("translation_language provided by PrusaSlicer.ini: %1%") % language;
+
         // Get the system language.
         {
 	        const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
-	        if (lang_system != wxLANGUAGE_UNKNOWN)
+	        if (lang_system != wxLANGUAGE_UNKNOWN) {
 				m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
+	        	BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
+	        }
 		}
+#if defined(__WXMSW__) || defined(__WXOSX__)
         {
 	    	// Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
 	    	wxLocale temp_locale;
@@ -670,36 +676,41 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround 
 	    	// for not having the English dictionary. Let's hope wxWidgets of various versions process this call the same way.
 			wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
-			if (! best_language.IsEmpty())
+			if (! best_language.IsEmpty()) {
 				m_language_info_best = wxLocale::FindLanguageInfo(best_language);
+	        	BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") % m_language_info_best->CanonicalName.ToUTF8().data();
+			}
 		}
+#endif
     }
 
 	const wxLanguageInfo *language_info = wxLocale::FindLanguageInfo(language);
-	if (language_info == nullptr)
-		language.clear();
+	if (! language.empty() && language_info == nullptr)
+    	BOOST_LOG_TRIVIAL(error) << boost::format("Language code \"%1%\" is not supported") % language.ToUTF8().data();
 
-    if (language.IsEmpty()) {
+	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
+    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by PrusaSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
+		language_info = nullptr;
+	}
+
+    if (language_info == nullptr) {
         if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
-            language = m_language_info_system->CanonicalName;
+            language_info = m_language_info_system;
         if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
-        	language = m_language_info_best->CanonicalName;
-	    if (language.IsEmpty())
-	        language = "en_US";
+        	language_info = m_language_info_best;
+	    if (language_info == nullptr)
+			language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
     }
 
-	language_info = wxLocale::FindLanguageInfo(language);
-	if (language_info == nullptr || language_info->LayoutDirection == wxLayout_RightToLeft) {
-		// We don't support right-to-left rendering (Hebrew, Arabic ...), therefore we switch to English.
-		language 	  = "en_US";
-		language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
-	}
+	BOOST_LOG_TRIVIAL(trace) << boost::format("Switching wxLocales to %1%") % language_info->CanonicalName.ToUTF8().data();
 
     // Alternate language code.
     wxLanguage language_dict = wxLanguage(language_info->Language);
-    if (language.BeforeFirst('_') == "sk")
+    if (language_info->CanonicalName.BeforeFirst('_') == "sk") {
     	// Slovaks understand Czech well. Give them the Czech translation.
     	language_dict = wxLANGUAGE_CZECH;
+		BOOST_LOG_TRIVIAL(trace) << "Using Czech dictionaries for Slovak language";
+    }
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
