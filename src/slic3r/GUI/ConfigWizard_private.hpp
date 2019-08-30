@@ -21,7 +21,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "AppConfig.hpp"
-// #include "Preset.hpp"
 #include "PresetBundle.hpp"
 #include "BedShapeDialog.hpp"
 
@@ -58,17 +57,23 @@ enum Technology {
 struct Materials
 {
     Technology technology;
-    std::vector<Preset> presets;
+    std::set<const Preset*> presets;
     std::set<std::string> types;
 
     Materials(Technology technology) : technology(technology) {}
 
+    void push(const Preset *preset);
+    void clear();
+    bool containts(const Preset *preset) {
+        return presets.find(preset) != presets.end(); 
+    }
+
     const std::string& appconfig_section() const;
-    const std::string& get_type(Preset &preset) const;
-    const std::string& get_vendor(Preset &preset) const;
+    const std::string& get_type(const Preset *preset) const;
+    const std::string& get_vendor(const Preset *preset) const;
 
     template<class F> void filter_presets(const std::string &type, const std::string &vendor, F cb) {
-        for (Preset &preset : presets) {
+        for (const Preset *preset : presets) {
             if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)) {
                 cb(preset);
             }
@@ -76,10 +81,10 @@ struct Materials
     }
 
     static const std::string UNKNOWN;
-    static const std::string& get_filament_type(const Preset &preset);
-    static const std::string& get_filament_vendor(const Preset &preset);
-    static const std::string& get_material_type(Preset &preset);
-    static const std::string& get_material_vendor(const Preset &preset);
+    static const std::string& get_filament_type(const Preset *preset);
+    static const std::string& get_filament_vendor(const Preset *preset);
+    static const std::string& get_material_type(const Preset *preset);
+    static const std::string& get_material_vendor(const Preset *preset);
 };
 
 struct Bundle
@@ -104,6 +109,7 @@ struct BundleMap: std::unordered_map<std::string /* = vendor ID */, Bundle>
     const Bundle& prusa_bundle() const;
 };
 
+struct PrinterPickerEvent;
 
 
 // GUI elements
@@ -170,6 +176,7 @@ struct ConfigWizardPage: wxPanel
 
     virtual void apply_custom_config(DynamicPrintConfig &config) {}
     virtual void set_run_reason(ConfigWizard::RunReason run_reason) {}
+    virtual void on_activate() {}
 };
 
 struct PageWelcome: ConfigWizardPage
@@ -209,6 +216,9 @@ template<class T, class D> struct DataList : public T
 {
     DataList(wxWindow *parent) : T(parent, wxID_ANY) {}
 
+    // Note: We're _not_ using wxLB_SORT here because it doesn't do the right thing,
+    // eg. "ABS" is sorted before "(All)"
+
     int append(const std::string &label, const D *data) {
         void *ptr = reinterpret_cast<void*>(const_cast<D*>(data));
         return this->Append(from_u8(label), ptr);
@@ -241,14 +251,19 @@ struct PageMaterials: ConfigWizardPage
     StringList *list_l1, *list_l2;
     PresetList *list_l3;
     int sel1_prev, sel2_prev;
+    bool presets_loaded;
+
+    static const std::string EMPTY;
 
     PageMaterials(ConfigWizard *parent, Materials *materials, wxString title, wxString shortname, wxString list1name);
 
+    void reload_presets();
     void update_lists(int sel1, int sel2);
     void select_material(int i);
     void select_all(bool select);
+    void clear();
 
-    static const std::string EMPTY;
+    virtual void on_activate() override;
 };
 
 struct PageCustom: ConfigWizardPage
@@ -339,6 +354,8 @@ public:
     void msw_rescale();
 
     int em() const { return em_w; }
+
+    static const size_t NO_ITEM = size_t(-1);
 private:
     struct Item
     {
@@ -379,14 +396,12 @@ struct ConfigWizard::priv
     ConfigWizard *q;
     ConfigWizard::RunReason run_reason = RR_USER;
     AppConfig appconfig_new;      // Backing for vendor/model/variant and material selections in the GUI
-    // std::unordered_map<std::string, VendorProfile> vendors;
-    // PresetBundle bundle;          // XXX: comment
-    BundleMap bundles;            // XXX: comment
+    BundleMap bundles;            // Holds all loaded config bundles, the key is the vendor names.
+                                  // Materials refers to Presets in those bundles by pointers.
+                                  // Also we update the is_visible flag in printer Presets according to the
+                                  // PrinterPickers state.
     Materials filaments;          // Holds available filament presets and their types & vendors
     Materials sla_materials;      // Ditto for SLA materials
-    // std::set<const VendorProfile*> install_3rdparty;
-    // XXX: rm: (?)
-    // std::unordered_map<std::string, std::string> vendors_rsrc;   // List of bundles to install from resources
     std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
     bool any_fff_selected;        // Used to decide whether to display Filaments page
     bool any_sla_selected;        // Used to decide whether to display SLA Materials page
@@ -437,10 +452,11 @@ struct ConfigWizard::priv
     void set_start_page(ConfigWizard::StartPage start_page);
     void create_3rdparty_pages();
     void set_run_reason(RunReason run_reason);
+    void update_materials();
 
     void on_custom_setup();
-    void on_printer_pick(PagePrinters *page);
-    void on_3rdparty_install(const VendorProfile *vendor, bool install);  // XXX: ?
+    void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);
+    void on_3rdparty_install(const VendorProfile *vendor, bool install);
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
 

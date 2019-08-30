@@ -475,7 +475,7 @@ PagePrinters::PagePrinters(ConfigWizard *parent,
 
         picker->Bind(EVT_PRINTER_PICK, [this, appconfig](const PrinterPickerEvent &evt) {
             appconfig->set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
-            wizard_p()->on_printer_pick(this);
+            wizard_p()->on_printer_pick(this, evt);
         });
 
         append(new wxStaticLine(this));
@@ -527,6 +527,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     , list_l3(new PresetList(this))
     , sel1_prev(wxNOT_FOUND)
     , sel2_prev(wxNOT_FOUND)
+    , presets_loaded(false)
 {
     append_spacer(VERTICAL_SPACING);
 
@@ -559,12 +560,6 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
 
     append(grid);
 
-    list_l1->append(_(L("(All)")), &EMPTY);
-
-    for (const std::string &type : materials->types) {
-        list_l1->append(type, &type);
-    }
-
     list_l1->Bind(wxEVT_LISTBOX, [this](wxCommandEvent &) {
         update_lists(list_l1->GetSelection(), list_l2->GetSelection());
     });
@@ -577,10 +572,27 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     sel_all->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { select_all(true); });
     sel_none->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { select_all(false); });
 
+    reload_presets();
+}
+
+void PageMaterials::reload_presets()
+{
+    list_l1->Clear();
+
+    list_l1->append(_(L("(All)")), &EMPTY);
+
+    for (const std::string &type : materials->types) {
+        list_l1->append(type, &type);
+    }
+
     if (list_l1->GetCount() > 0) {
         list_l1->SetSelection(0);
+        sel1_prev = wxNOT_FOUND;
+        sel2_prev = wxNOT_FOUND;
         update_lists(0, 0);
     }
+
+    presets_loaded = true;
 }
 
 void PageMaterials::update_lists(int sel1, int sel2)
@@ -592,14 +604,14 @@ void PageMaterials::update_lists(int sel1, int sel2)
         // Refresh the second list
 
         // XXX: The vendor list is created with quadratic complexity here,
-        // but the number of vendors is realistically so small this shouldn't be a problem.
+        // but the number of vendors is going to be very small this shouldn't be a problem.
 
         list_l2->Clear();
         list_l2->append(_(L("(All)")), &EMPTY);
         if (sel1 != wxNOT_FOUND) {
             const std::string &type = list_l1->get_data(sel1);
 
-            materials->filter_presets(type, EMPTY, [this](Preset &p) {
+            materials->filter_presets(type, EMPTY, [this](const Preset *p) {
                 const std::string &vendor = this->materials->get_vendor(p);
 
                 if (list_l2->find(vendor) == wxNOT_FOUND) {
@@ -623,9 +635,9 @@ void PageMaterials::update_lists(int sel1, int sel2)
             const std::string &type = list_l1->get_data(sel1);
             const std::string &vendor = list_l2->get_data(sel2);
 
-            materials->filter_presets(type, vendor, [this](Preset &p) {
-                const int i = list_l3->append(p.name, &p);
-                const bool checked = wizard_p()->appconfig_new.has(materials->appconfig_section(), p.name);
+            materials->filter_presets(type, vendor, [this](const Preset *p) {
+                const int i = list_l3->append(p->name, p);
+                const bool checked = wizard_p()->appconfig_new.has(materials->appconfig_section(), p->name);
                 list_l3->Check(i, checked);
             });
         }
@@ -657,6 +669,24 @@ void PageMaterials::select_all(bool select)
             list_l3->Check(i, select);
             select_material(i);
         }
+    }
+}
+
+void PageMaterials::clear()
+{
+    list_l1->Clear();
+    list_l2->Clear();
+    list_l3->Clear();
+    sel1_prev = wxNOT_FOUND;
+    sel2_prev = wxNOT_FOUND;
+    presets_loaded = false;
+}
+
+void PageMaterials::on_activate()
+{
+    if (! presets_loaded) {
+        wizard_p()->update_materials();
+        reload_presets();
     }
 }
 
@@ -952,8 +982,8 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
     , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
-    , item_active(0)
-    , item_hover(-1)
+    , item_active(NO_ITEM)
+    , item_hover(NO_ITEM)
     , last_page((size_t)-1)
 {
     SetMinSize(bg.bmp().GetSize());
@@ -1015,6 +1045,8 @@ void ConfigWizardIndex::go_prev()
 {
     // Search for a preceiding item that is a page (not a label, ie. page != nullptr)
 
+    if (item_active == NO_ITEM) { return; }
+
     for (size_t i = item_active; i > 0; i--) {
         if (items[i - 1].page != nullptr) {
             go_to(i - 1);
@@ -1027,6 +1059,8 @@ void ConfigWizardIndex::go_next()
 {
     // Search for a next item that is a page (not a label, ie. page != nullptr)
 
+    if (item_active == NO_ITEM) { return; }
+
     for (size_t i = item_active + 1; i < items.size(); i++) {
         if (items[i].page != nullptr) {
             go_to(i);
@@ -1035,19 +1069,27 @@ void ConfigWizardIndex::go_next()
     }
 }
 
+// This one actually performs the go-to op
 void ConfigWizardIndex::go_to(size_t i)
 {
-    if (i < items.size() && items[i].page != nullptr) {
+    if (i != item_active
+        && i < items.size()
+        && items[i].page != nullptr) {
+        auto *new_active = items[i].page;
         auto *former_active = active_page();
-        if (former_active != nullptr) { former_active->Hide(); }
+        if (former_active != nullptr) {
+            former_active->Hide();
+        }
 
         item_active = i;
-        items[i].page->Show();
+        new_active->Show();
 
         wxCommandEvent evt(EVT_INDEX_PAGE, GetId());
         AddPendingEvent(evt);
 
         Refresh();
+
+        new_active->on_activate();
     }
 }
 
@@ -1069,7 +1111,7 @@ void ConfigWizardIndex::clear()
     if (former_active != nullptr) { former_active->Hide(); }
 
     items.clear();
-    item_active = 0;
+    item_active = NO_ITEM;
 }
 
 void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
@@ -1150,24 +1192,38 @@ void ConfigWizardIndex::msw_rescale()
 
 const std::string Materials::UNKNOWN = "(Unknown)";
 
+void Materials::push(const Preset *preset)
+{
+    presets.insert(preset);
+    types.insert(technology & T_FFF
+        ? Materials::get_filament_type(preset)
+        : Materials::get_material_type(preset));
+}
+
+void Materials::clear()
+{
+    presets.clear();
+    types.clear();
+}
+
 const std::string& Materials::appconfig_section() const
 {
     return (technology & T_FFF) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
 }
 
-const std::string& Materials::get_type(Preset &preset) const
+const std::string& Materials::get_type(const Preset *preset) const
 {
     return (technology & T_FFF) ? get_filament_type(preset) : get_material_type(preset);
 }
 
-const std::string& Materials::get_vendor(Preset &preset) const
+const std::string& Materials::get_vendor(const Preset *preset) const
 {
     return (technology & T_FFF) ? get_filament_vendor(preset) : get_material_vendor(preset);
 }
 
-const std::string& Materials::get_filament_type(const Preset &preset)
+const std::string& Materials::get_filament_type(const Preset *preset)
 {
-    const auto *opt = preset.config.opt<ConfigOptionStrings>("filament_type");
+    const auto *opt = preset->config.opt<ConfigOptionStrings>("filament_type");
     if (opt != nullptr && opt->values.size() > 0) {
         return opt->values[0];
     } else {
@@ -1175,15 +1231,15 @@ const std::string& Materials::get_filament_type(const Preset &preset)
     }
 }
 
-const std::string& Materials::get_filament_vendor(const Preset &preset)
+const std::string& Materials::get_filament_vendor(const Preset *preset)
 {
-    const auto *opt = preset.config.opt<ConfigOptionString>("filament_vendor");
+    const auto *opt = preset->config.opt<ConfigOptionString>("filament_vendor");
     return opt != nullptr ? opt->value : UNKNOWN;
 }
 
-const std::string& Materials::get_material_type(Preset &preset)
+const std::string& Materials::get_material_type(const Preset *preset)
 {
-    const auto *opt = preset.config.opt<ConfigOptionString>("material_type");
+    const auto *opt = preset->config.opt<ConfigOptionString>("material_type");
     if (opt != nullptr) {
         return opt->value;
     } else {
@@ -1191,9 +1247,9 @@ const std::string& Materials::get_material_type(Preset &preset)
     }
 }
 
-const std::string& Materials::get_material_vendor(const Preset &preset)
+const std::string& Materials::get_material_vendor(const Preset *preset)
 {
-    const auto *opt = preset.config.opt<ConfigOptionString>("material_vendor");
+    const auto *opt = preset->config.opt<ConfigOptionString>("material_vendor");
     return opt != nullptr ? opt->value : UNKNOWN;
 }
 
@@ -1275,72 +1331,7 @@ void ConfigWizard::priv::init_dialog_size()
 
 void ConfigWizard::priv::load_vendors()
 {
-    // const auto vendor_dir = fs::path(Slic3r::data_dir()) / "vendor";
-    // const auto rsrc_vendor_dir = fs::path(resources_dir()) / "profiles";
-
-    // PresetBundle bundle;
-    // bundle.load_available_system_presets();
     bundles = BundleMap::load();
-
-    // // Load vendors from the "vendors" directory in datadir
-    // // XXX: The VendorProfile is loaded twice here, ditto below
-    // for (auto &dir_entry : boost::filesystem::directory_iterator(vendor_dir)) {
-    //     if (Slic3r::is_ini_file(dir_entry)) {
-    //         try {
-    //             bundle.load_configbundle(dir_entry.path().string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
-
-    //             auto vp = VendorProfile::from_ini(dir_entry.path());
-    //             vendors[vp.id] = std::move(vp);
-    //         }
-    //         catch (const std::exception& e) {
-    //             BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % dir_entry.path() % e.what();
-    //         }
-    //     }
-    // }
-
-    // // Additionally load up vendors from the application resources directory, but only those not seen in the datadir
-    // for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_vendor_dir)) {
-    //     if (Slic3r::is_ini_file(dir_entry)) {
-    //         const auto id = dir_entry.path().stem().string();
-
-    //         if (vendors.find(id) == vendors.end()) {
-    //             try {
-    //                 bundle.load_configbundle(dir_entry.path().string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
-
-    //                 auto vp = VendorProfile::from_ini(dir_entry.path());
-    //                 vendors_rsrc[vp.id] = dir_entry.path().filename().string();
-    //                 vendors[vp.id] = std::move(vp);
-    //             }
-    //             catch (const std::exception& e) {
-    //                 BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % dir_entry.path() % e.what();
-    //             }
-    //         }
-    //     }
-    // }
-
-    // // Move materials to our Materials container:
-    // for (auto &&f : bundle.filaments) {
-    //     f.vendor = nullptr;
-    //     filaments.presets.push_back(std::move(f));
-    //     filaments.types.insert(Materials::get_filament_type(f));
-    // }
-    // for (auto &&m : bundle.sla_materials) {
-    //     m.vendor = nullptr;
-    //     sla_materials.presets.push_back(std::move(m));
-    //     sla_materials.types.insert(Materials::get_material_type(m));
-    // }
-    for (auto &pair : bundles) {
-        for (auto &&f : pair.second.preset_bundle->filaments) {
-            f.vendor = nullptr;
-            filaments.presets.push_back(std::move(f));
-            filaments.types.insert(Materials::get_filament_type(f));
-        }
-        for (auto &&m : pair.second.preset_bundle->sla_materials) {
-            m.vendor = nullptr;
-            sla_materials.presets.push_back(std::move(m));
-            sla_materials.types.insert(Materials::get_material_type(m));
-        }
-    }
 
     // Load up the set of vendors / models / variants the user has had enabled up till now
     AppConfig *app_config = wxGetApp().app_config;
@@ -1360,15 +1351,13 @@ void ConfigWizard::priv::load_vendors()
             }
     }
 
-// TODO: This'll be done differently, cf. the design document
-    // Load up the materials enabled till now,
-    // apply defaults from vendor profiles if there are no selections yet.
-    // bundle.init_materials_selection(*app_config);
+    // Initialize the is_visible flag in printer Presets
+    for (auto &pair : bundles) {
+        pair.second.preset_bundle->load_installed_printers(appconfig_new);
+    }
 
-    // TODO: load up sane defaults if no previous data in AppConfig
-    //  as per the design doc:
-    //      - all f/m for installed printers if prev Slicer version
-    //      - default f/m set from bundle + default for each printer from bundle if fresh install
+    update_materials();
+
     if (app_config->has_section(AppConfig::SECTION_FILAMENTS)) {
         appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
     }
@@ -1420,12 +1409,66 @@ void ConfigWizard::priv::set_run_reason(RunReason run_reason)
     }
 }
 
+void ConfigWizard::priv::update_materials()
+{
+    filaments.clear();
+    sla_materials.clear();
+
+    if (any_fff_selected) {
+        // Iterate filaments in all bundles
+        for (const auto &pair : bundles) {
+            for (const auto &filament : pair.second.preset_bundle->filaments) {
+                // Check if filament is already added
+                if (filaments.containts(&filament)) { continue; }
+
+                // Iterate printers in all bundles
+                for (const auto &pair : bundles) {
+                    for (const auto &printer : pair.second.preset_bundle->printers) {
+                        // Filter out inapplicable printers
+                        if (!printer.is_visible || printer.printer_technology() != ptFFF) {
+                            continue;
+                        }
+
+                        if (filament.is_compatible_with_printer(printer)) {
+                            filaments.push(&filament);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (any_sla_selected) {
+        // Iterate SLA materials in all bundles
+        for (const auto &pair : bundles) {
+            for (const auto &material : pair.second.preset_bundle->sla_materials) {
+                // Check if material is already added
+                if (sla_materials.containts(&material)) { continue; }
+
+                // Iterate printers in all bundles
+                for (const auto &pair : bundles) {
+                    for (const auto &printer : pair.second.preset_bundle->printers) {
+                        // Filter out inapplicable printers
+                        if (!printer.is_visible || printer.printer_technology() != ptSLA) {
+                            continue;
+                        }
+
+                        if (material.is_compatible_with_printer(printer)) {
+                            sla_materials.push(&material);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void ConfigWizard::priv::on_custom_setup()
 {
     load_pages();
 }
 
-void ConfigWizard::priv::on_printer_pick(PagePrinters *page)
+void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt)
 {
     if (page_msla->any_selected() != any_sla_selected ||
         page_fff->any_selected() != any_fff_selected) {
@@ -1433,6 +1476,24 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page)
         any_sla_selected = page_msla->any_selected();
 
         load_pages();
+    }
+
+    // Update the is_visible flag on relevant printer profiles
+    for (auto &pair : bundles) {
+        if (pair.first != evt.vendor_id) { continue; }
+
+        for (auto &preset : pair.second.preset_bundle->printers) {
+            if (preset.config.opt_string("printer_model") == evt.model_id
+                && preset.config.opt_string("printer_variant") == evt.variant_name) {
+                preset.is_visible = evt.enable;
+            }
+        }
+    }
+
+    if (page == page_fff) {
+        page_filaments->clear();
+    } else if (page == page_msla) {
+        page_sla_materials->clear();
     }
 }
 
@@ -1636,7 +1697,9 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
     p->any_sla_selected = p->page_msla->any_selected();
     p->any_fff_selected = p->page_fff->any_selected();
+
     p->load_pages();
+    p->index->go_to(size_t{0});
 
     vsizer->Add(topsizer, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
     vsizer->Add(hline, 0, wxEXPAND);

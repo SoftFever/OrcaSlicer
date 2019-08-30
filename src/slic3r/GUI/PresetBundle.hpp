@@ -134,7 +134,13 @@ public:
 
     void                        load_default_preset_bitmaps(wxWindow *window);
 
+    // FIXME: rm
     void                        load_available_system_presets();   // XXX: name  XXX: retval (VendorMap stored internally)
+
+    // Set the is_visible flag for printer vendors, printer models and printer variants
+    // based on the user configuration.
+    // If the "vendor" section is missing, enable all models and variants of the particular vendor.
+    void                        load_installed_printers(const AppConfig &config);
 
     static const char *PRUSA_BUNDLE;
 private:
@@ -142,12 +148,7 @@ private:
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
 
-    // Set the "enabled" flag for printer vendors, printer models and printer variants
-    // based on the user configuration.
-    // If the "vendor" section is missing, enable all models and variants of the particular vendor.
-    void                        load_installed_printers(const AppConfig &config);
-
-    // Set the enabled flag for filaments and sla materials,
+    // Set the is_visible flag for filaments and sla materials,
     // apply defaults based on enabled printers when no filaments/materials are installed.
     void                        load_installed_filaments(AppConfig &config);
     void                        load_installed_sla_materials(AppConfig &config);
