@@ -1483,6 +1483,7 @@ void Selection::toggle_instance_printable_state()
             }
 
             wxGetApp().obj_list()->update_printable_state(obj_idx, instance_idx);
+            wxGetApp().plater()->update();
         }
     }
 }
