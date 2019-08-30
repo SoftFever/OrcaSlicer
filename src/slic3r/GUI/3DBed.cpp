@@ -474,10 +474,10 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
         m_requires_canvas_update = true;
     }
     else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
-    {
-        canvas.stop_keeping_dirty();
         m_requires_canvas_update = false;
-    }
+
+    if (m_texture.all_compressed_data_sent_to_gpu() && canvas.is_keeping_dirty())
+        canvas.stop_keeping_dirty();
 
     if (m_triangles.get_vertices_count() > 0)
     {

@@ -637,6 +637,7 @@ public:
     void set_cursor(ECursorType type);
     void msw_rescale();
 
+    bool is_keeping_dirty() const { return m_keep_dirty; }
     void start_keeping_dirty() { m_keep_dirty = true; }
     void stop_keeping_dirty() { m_keep_dirty = false; }
 
