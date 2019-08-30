@@ -568,10 +568,10 @@ void MainFrame::init_menubar()
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Undo")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "Z",
             _(L("Undo")), [this](wxCommandEvent&) { m_plater->undo(); },
-            "undo", nullptr, [this](){return m_plater->can_undo(); }, this);
+            "undo_menu", nullptr, [this](){return m_plater->can_undo(); }, this);
         append_menu_item(editMenu, wxID_ANY, _(L("&Redo")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "Y",
             _(L("Redo")), [this](wxCommandEvent&) { m_plater->redo(); },
-            "redo", nullptr, [this](){return m_plater->can_redo(); }, this);
+            "redo_menu", nullptr, [this](){return m_plater->can_redo(); }, this);
 
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
