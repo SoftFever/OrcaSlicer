@@ -3179,7 +3179,12 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     }
     else if (current_panel == preview)
     {
-        this->q->reslice();
+        // see: Plater::priv::object_list_changed()
+        // FIXME: it may be better to have a single function making this check and let it be called wherever needed
+        bool export_in_progress = this->background_process.is_export_scheduled();
+        bool model_fits = view3D->check_volumes_outside_state() != ModelInstance::PVS_Partly_Outside;
+        if (!model.objects.empty() && !export_in_progress && model_fits)
+            this->q->reslice();
         // keeps current gcode preview, if any
         preview->reload_print(true);
         preview->set_canvas_as_dirty();
