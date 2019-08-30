@@ -220,7 +220,11 @@ bool BackgroundSlicingProcess::start()
 	if (m_state == STATE_INITIAL) {
 		// The worker thread is not running yet. Start it.
 		assert(! m_thread.joinable());
-		m_thread = std::thread([this]{this->thread_proc_safe();});
+		boost::thread::attributes attrs;
+		// Duplicating the stack allocation size of Thread Building Block worker threads of the thread pool:
+		// allocate 4MB on a 64bit system, allocate 2MB on a 32bit system by default.
+		attrs.set_stack_size((sizeof(void*) == 4) ? (2048 * 1024) : (4096 * 1024));
+		m_thread = boost::thread(attrs, [this]{this->thread_proc_safe();});
 		// Wait until the worker thread is ready to execute the background processing task.
 		m_condition.wait(lck, [this](){ return m_state == STATE_IDLE; });
 	}

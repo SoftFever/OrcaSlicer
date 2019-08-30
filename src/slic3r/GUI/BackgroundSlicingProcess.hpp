@@ -4,9 +4,9 @@
 #include <string>
 #include <condition_variable>
 #include <mutex>
-#include <thread>
 
 #include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
 
 #include <wx/event.h>
 
@@ -161,7 +161,7 @@ private:
 	PrintHostJob                m_upload_job;
 	// Thread, on which the background processing is executed. The thread will always be present
 	// and ready to execute the slicing process.
-	std::thread		 			m_thread;
+	boost::thread		 		m_thread;
 	// Mutex and condition variable to synchronize m_thread with the UI thread.
 	std::mutex 		 			m_mutex;
 	std::condition_variable		m_condition;
