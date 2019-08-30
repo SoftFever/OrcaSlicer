@@ -684,9 +684,12 @@ bool GUI_App::load_language(wxString language, bool initial)
 #endif
     }
 
-	const wxLanguageInfo *language_info = wxLocale::FindLanguageInfo(language);
-	if (! language.empty() && language_info == nullptr)
+	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);
+	if (! language.empty() && (language_info == nullptr || language_info->CanonicalName.empty())) {
+		// Fix for wxWidgets issue, where the FindLanguageInfo() returns locales with undefined ANSII code (wxLANGUAGE_KONKANI or wxLANGUAGE_MANIPURI).
+		language_info = nullptr;
     	BOOST_LOG_TRIVIAL(error) << boost::format("Language code \"%1%\" is not supported") % language.ToUTF8().data();
+	}
 
 	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
     	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by PrusaSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
