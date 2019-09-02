@@ -589,13 +589,11 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	switch (opt->type) {
 	case coFloatOrPercent:{
 		const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+
+        text_value = double_to_string(value.value);
 		if (value.percent)
-		{
-			text_value = wxString::Format(_T("%i"), int(value.value));
 			text_value += "%";
-		}
-		else
-			text_value = double_to_string(value.value);
+
 		ret = text_value;
 		break;
 	}
