@@ -872,7 +872,7 @@ bool load_amf_archive(const char* path, DynamicPrintConfig* config, Model* model
                 {
                     // ensure the zip archive is closed and rethrow the exception
                     close_zip_reader(&archive);
-                    throw e;
+                    throw std::runtime_error(e.what());
                 }
 
                 break;
