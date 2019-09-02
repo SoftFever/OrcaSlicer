@@ -2218,7 +2218,8 @@ void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
     for (auto h : heights) {
         while (i < m_values.size() && m_values[i].second - 1e-6 < h)
             ++i;
-        if (i == m_values.size())
+        // don't miss last layer if it is
+        if (i == m_values.size() && fabs(m_values[i-1].second - h) > EPSILON)
             return;
         m_ticks.insert(i-1);
     }
@@ -2292,6 +2293,10 @@ void DoubleSlider::render()
 void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    // suppress add tick on first layer
+    if (tick == 0)
+        return;
 
     wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     if (m_ticks.find(tick) != m_ticks.end())
