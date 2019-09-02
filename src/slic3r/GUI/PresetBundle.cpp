@@ -1532,7 +1532,9 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
             }
             // Paint a lock at the system presets.
             bmps.emplace_back(m_bitmapCache->mkclear(space_icon_width, icon_height));
-            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(normal_icon_width, icon_height));
+            // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
+            // for nonsystem presets set a width of empty bitmap to m_bitmapLock->GetWidth()
+            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(m_bitmapLock->GetWidth(), icon_height));
 //                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}

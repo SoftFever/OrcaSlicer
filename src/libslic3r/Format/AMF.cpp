@@ -827,7 +827,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     if (check_version && (ctx.m_version > VERSION_AMF))
     {
-        std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile."));
+        std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
         throw std::runtime_error(msg.c_str());
     }
 
