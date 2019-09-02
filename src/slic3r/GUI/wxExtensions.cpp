@@ -786,7 +786,12 @@ wxDataViewItem ObjectDataViewModel::AddInstanceRoot(const wxDataViewItem &parent
 
 wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
 {
-    const std::vector<bool> print_indicator(num, true);
+    std::vector<bool> print_indicator(num, true);
+
+    // if InstanceRoot item isn't created for this moment
+    if (!GetInstanceRootItem(parent_item).IsOk())
+        // use object's printable state to first instance
+        print_indicator[0] = IsPrintable(parent_item);
     
     return wxDataViewItem((void*)AddInstanceChild(parent_item, print_indicator));
 }
@@ -799,21 +804,12 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
 
     ObjectDataViewModelNode* inst_root_node = (ObjectDataViewModelNode*)inst_root_item.GetID();
 
-    const bool just_created = inst_root_node->GetChildren().Count() == 0;
-
     // Add instance nodes
     ObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
     while (counter < print_indicator.size()) {
         instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
 
-//        // if InstanceRoot item is just created and start to adding Instances
-//        if (just_created && counter == 0) {
-//            ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent_item.GetID();
-//            // use object's printable state to first instance
-//            instance_node->set_printable_icon(obj_node->IsPrintable());
-//        }
-//        else
         instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
 
         inst_root_node->Append(instance_node);
