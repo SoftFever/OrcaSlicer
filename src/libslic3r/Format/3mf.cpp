@@ -9,6 +9,7 @@
 #include "3mf.hpp"
 
 #include <limits>
+#include <stdexcept>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -100,6 +101,13 @@ const char* INVALID_OBJECT_TYPES[] =
     "support",
     "surface",
     "other"
+};
+
+class version_error : public std::runtime_error
+{
+public:
+    version_error(const std::string& what_arg) : std::runtime_error(what_arg) {}
+    version_error(const char* what_arg) : std::runtime_error(what_arg) {}
 };
 
 const char* get_attribute_value_charptr(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -730,6 +738,11 @@ namespace Slic3r {
 
                 return n;
                 }, &data, 0);
+        }
+        catch (const version_error& e)
+        {
+            // rethrow the exception
+            throw std::runtime_error(e.what());
         }
         catch (std::exception& e)
         {
@@ -1440,7 +1453,7 @@ namespace Slic3r {
             if (m_check_version && (m_version > VERSION_3MF))
             {
                 std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile."));
-                throw std::runtime_error(msg.c_str());
+                throw version_error(msg.c_str());
             }
         }
 
