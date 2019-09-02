@@ -1452,7 +1452,7 @@ namespace Slic3r {
 
             if (m_check_version && (m_version > VERSION_3MF))
             {
-                std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatibile."));
+                std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
                 throw version_error(msg.c_str());
             }
         }
