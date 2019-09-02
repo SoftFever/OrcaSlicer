@@ -1071,9 +1071,11 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
 	return empty;
 }
 
-static bool improper_category(const std::string& category, const int extruders_cnt)
+static bool improper_category(const std::string& category, const int extruders_cnt, const bool is_object_settings = true)
 {
-    return category.empty() || (extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options" ));
+    return  category.empty() || 
+            extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options" ) ||
+            !is_object_settings && category == "Support material";
 }
 
 void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
@@ -1087,7 +1089,7 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
     {
         auto const opt = config.def()->get(option);
         auto category = opt->category;
-        if (improper_category(category, extruders_cnt))
+        if (improper_category(category, extruders_cnt, !is_part))
             continue;
 
         const std::string& label = !opt->full_label.empty() ? opt->full_label : opt->label;
@@ -1404,7 +1406,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
         menu->SetFirstSeparator();
 
     // Add frequently settings
-    create_freq_settings_popupmenu(menu);
+    create_freq_settings_popupmenu(menu, sel_vol==nullptr);
 
     if (mode == comAdvanced)
         return nullptr;
@@ -1598,7 +1600,7 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     return menu;
 }
 
-void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
+void ObjectList::create_freq_settings_popupmenu(wxMenu *menu, const bool is_object_settings/* = true*/)
 {
     // Add default settings bundles
     const SettingsBundle& bundle = printer_technology() == ptFFF ?
@@ -1607,7 +1609,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     const int extruders_cnt = extruders_count();
 
     for (auto& it : bundle) {
-        if (improper_category(it.first, extruders_cnt)) 
+        if (improper_category(it.first, extruders_cnt, is_object_settings)) 
             continue;
 
         append_menu_item(menu, wxID_ANY, _(it.first), "",
@@ -2262,7 +2264,7 @@ SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* co
     for (auto& opt_key : opt_keys)
     {
         auto category = config->def()->get(opt_key)->category;
-        if (improper_category(category, extruders_cnt))
+        if (improper_category(category, extruders_cnt, is_object_settings))
             continue;
 
         std::vector< std::string > new_category;

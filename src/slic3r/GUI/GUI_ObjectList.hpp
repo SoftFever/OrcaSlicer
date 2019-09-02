@@ -241,7 +241,7 @@ public:
     void                create_part_popupmenu(wxMenu*menu);
     void                create_instance_popupmenu(wxMenu*menu);
     wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
-    void                create_freq_settings_popupmenu(wxMenu *parent_menu);
+    void                create_freq_settings_popupmenu(wxMenu *parent_menu, const bool is_object_settings = true);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys, const bool is_object);
 
