@@ -138,7 +138,7 @@ bool Field::is_matched(const std::string& string, const std::string& pattern)
 
 static wxString na_value() { return _(L("N/A")); }
 
-void Field::get_value_by_opt_type(wxString& str)
+void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true*/)
 {
 	switch (m_opt.type) {
 	case coInt:
@@ -150,7 +150,7 @@ void Field::get_value_by_opt_type(wxString& str)
 	case coFloat:{
 		if (m_opt.type == coPercent && !str.IsEmpty() &&  str.Last() == '%') 
 			str.RemoveLast();
-		else if (!str.IsEmpty() && str.Last() == '%')	{
+		else if (check_value && !str.IsEmpty() && str.Last() == '%')	{
 			wxString label = m_Label->GetLabel();
 			if		(label.Last() == '\n')	label.RemoveLast();
 			while	(label.Last() == ' ')	label.RemoveLast();
@@ -169,12 +169,12 @@ void Field::get_value_by_opt_type(wxString& str)
         {
             if (m_opt.nullable && str == na_value())
                 val = ConfigOptionFloatsNullable::nil_value();
-            else if (!str.ToCDouble(&val))
+            else if (check_value && !str.ToCDouble(&val))
             {
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            if (m_opt.min > val || val > m_opt.max)
+            if (check_value && (m_opt.min > val || val > m_opt.max))
             {
                 show_error(m_parent, _(L("Input value is out of range")));
                 if (m_opt.min > val) val = m_opt.min;
@@ -192,12 +192,12 @@ void Field::get_value_by_opt_type(wxString& str)
             double val;
 			// Replace the first occurence of comma in decimal number.
 			str.Replace(",", ".", false);
-            if (!str.ToCDouble(&val))
+            if (check_value && !str.ToCDouble(&val))
             {
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            else if ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
+            else if (check_value && (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
                      m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1) && 
                      (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
             {
@@ -206,7 +206,7 @@ void Field::get_value_by_opt_type(wxString& str)
                 const wxString msg_text = wxString::Format(_(L("Do you mean %s%% instead of %s %s?\n"
                     "Select YES if you want to change this value to %s%%, \n"
                     "or NO if you are sure that %s %s is a correct value.")), stVal, stVal, sidetext, stVal, stVal, sidetext);
-                wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
+                wxMessageDialog dialog(m_parent, msg_text, _(L("Parameter validation")) + ": " + m_opt_id , wxICON_WARNING | wxYES | wxNO);
                 if (dialog.ShowModal() == wxID_YES) {
                     set_value(wxString::Format("%s%%", stVal), false/*true*/);
                     str += "%%";
@@ -396,8 +396,9 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
 
     if (!change_event) {
         wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-        // update m_value to correct work of next value_was_changed()
-        get_value_by_opt_type(ret_str);
+        // update m_value to correct work of next value_was_changed(), 
+        // but don't check/change inputed value and don't show a warning message
+        get_value_by_opt_type(ret_str, false);
     }
 }
 

@@ -152,7 +152,7 @@ public:
     virtual wxWindow*	getWindow() { return nullptr; }
 
 	bool				is_matched(const std::string& string, const std::string& pattern);
-	void				get_value_by_opt_type(wxString& str);
+	void				get_value_by_opt_type(wxString& str, const bool check_value = true);
 
     /// Factory method for generating new derived classes.
     template<class T>
