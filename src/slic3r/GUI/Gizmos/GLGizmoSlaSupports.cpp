@@ -1099,9 +1099,6 @@ std::string GLGizmoSlaSupports::on_get_name() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
-    if (m_state == Hover)
-        return;
-
     // m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
     m_model_object = nullptr;
