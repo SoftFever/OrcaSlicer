@@ -2152,9 +2152,36 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             
             if (!m_volumes.empty())
             {
-                // removes empty volumes
-                m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
-                    [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
+                // Remove empty volumes from both m_volumes, update m_gcode_preview_volume_index.
+                {
+	                size_t idx_volume_src = 0;
+	                size_t idx_volume_dst = 0;
+	                size_t idx_volume_index_src = 0;
+	                size_t idx_volume_index_dst = 0;
+	                size_t idx_volume_of_this_type_last = (idx_volume_index_src + 1 == m_gcode_preview_volume_index.first_volumes.size()) ? m_volumes.volumes.size() : m_gcode_preview_volume_index.first_volumes[idx_volume_index_src + 1].id;
+	                size_t idx_volume_of_this_type_first_new = 0;
+	                for (;;) {
+	                	if (idx_volume_src == idx_volume_of_this_type_last) {
+	                		if (idx_volume_of_this_type_first_new < idx_volume_dst) {
+	                			// There are some volumes of this type left, therefore their entry in the index has to be maintained.
+	                			if (idx_volume_index_dst < idx_volume_index_src)
+	                				m_gcode_preview_volume_index.first_volumes[idx_volume_index_dst] = m_gcode_preview_volume_index.first_volumes[idx_volume_index_src];
+	                			m_gcode_preview_volume_index.first_volumes[idx_volume_index_dst].id = idx_volume_of_this_type_first_new;
+		                		++ idx_volume_index_dst;
+		                	}
+	                		if (idx_volume_of_this_type_last == m_volumes.volumes.size())
+	                			break;
+	                		++ idx_volume_index_src;
+	                		idx_volume_of_this_type_last = (idx_volume_index_src + 1 == m_gcode_preview_volume_index.first_volumes.size()) ? m_volumes.volumes.size() : m_gcode_preview_volume_index.first_volumes[idx_volume_index_src + 1].id;
+	                		idx_volume_of_this_type_first_new = idx_volume_dst;
+	                	}
+	                	if (! m_volumes.volumes[idx_volume_src]->print_zs.empty())
+                			m_volumes.volumes[idx_volume_dst ++] = m_volumes.volumes[idx_volume_src];
+	                	++ idx_volume_src;
+	                }
+	                m_volumes.volumes.erase(m_volumes.volumes.begin() + idx_volume_dst, m_volumes.volumes.end());
+	                m_gcode_preview_volume_index.first_volumes.erase(m_gcode_preview_volume_index.first_volumes.begin() + idx_volume_index_dst, m_gcode_preview_volume_index.first_volumes.end());
+	            }
 
                 _load_fff_shells();
             }
@@ -5097,7 +5124,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 		    	unsigned int role = (unsigned int)(&filters - &roles_filters.front());
 			    for (std::pair<float, GLVolume*> &filter : filters)
 					if (filter.second->indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
-						if (m_gcode_preview_volume_index.first_volumes.back().id != role)
+						if (m_gcode_preview_volume_index.first_volumes.back().type != GCodePreviewVolumeIndex::Extrusion || m_gcode_preview_volume_index.first_volumes.back().flag != role)
 			        		m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, role, (unsigned int)m_volumes.volumes.size());
 						GLVolume& vol = *filter.second;
 						filter.second = m_volumes.new_toolpath_volume(vol.color);
