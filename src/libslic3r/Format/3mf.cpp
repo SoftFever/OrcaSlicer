@@ -567,7 +567,7 @@ namespace Slic3r {
                     {
                         // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        throw e;
+                        throw std::runtime_error(e.what());
                     }
                 }
             }
