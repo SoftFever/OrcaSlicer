@@ -87,16 +87,12 @@ protected:
     virtual void on_set_state()
     {
         for (GLGizmoRotate& g : m_gizmos)
-        {
             g.set_state(m_state);
-        }
     }
     virtual void on_set_hover_id()
     {
         for (int i = 0; i < 3; ++i)
-        {
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
-        }
     }
     virtual void on_enable_grabber(unsigned int id)
     {

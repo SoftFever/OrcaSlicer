@@ -157,6 +157,7 @@ private:
 protected:
     void on_set_state() override;
     void on_set_hover_id() override
+
     {
         if (! m_editing_mode || (int)m_editing_cache.size() <= m_hover_id)
             m_hover_id = -1;
