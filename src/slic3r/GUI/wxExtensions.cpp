@@ -752,7 +752,7 @@ static bool append_root_node(ObjectDataViewModelNode *parent_node,
     
     if (inst_root_id < 0) {
         if ((root_type&itInstanceRoot) ||
-            (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0)
+            ( (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0) )
             parent_node->Append(*root_node);
         else if (root_type&itLayerRoot)
             parent_node->Insert(*root_node, static_cast<unsigned int>(get_root_idx(parent_node, itInstanceRoot)));
@@ -1379,7 +1379,12 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
     type = itUndef;
 
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() <-1 || node->GetIdx() == -1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/)))
+    if (!node || 
+        node->GetIdx() <-1 || 
+        ( node->GetIdx() == -1 && 
+         !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/))
+        )
+       )
         return;
 
     idx = node->GetIdx();
@@ -2342,7 +2347,8 @@ wxString DoubleSlider::get_label(const SelectedSlider& selection) const
 
 void DoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
 {
-    if ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection || !selection) 
+    if ( selection == ssUndef || 
+        ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection) )
         return;
     wxCoord text_width, text_height;
     const wxString label = get_label(selection);
@@ -2674,7 +2680,7 @@ void DoubleSlider::correct_lower_value()
     else if (m_lower_value > m_max_value)
         m_lower_value = m_max_value;
     
-    if (m_lower_value >= m_higher_value && m_lower_value <= m_max_value || m_is_one_layer)
+    if ((m_lower_value >= m_higher_value && m_lower_value <= m_max_value) || m_is_one_layer)
         m_higher_value = m_lower_value;
 }
 
@@ -2685,7 +2691,7 @@ void DoubleSlider::correct_higher_value()
     else if (m_higher_value < m_min_value)
         m_higher_value = m_min_value;
     
-    if (m_higher_value <= m_lower_value && m_higher_value >= m_min_value || m_is_one_layer)
+    if ((m_higher_value <= m_lower_value && m_higher_value >= m_min_value) || m_is_one_layer)
         m_lower_value = m_higher_value;
 }
 

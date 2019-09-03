@@ -697,6 +697,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		config.option<ConfigOptionString>("default_sla_print_profile", true);
 		config.option<ConfigOptionString>("default_sla_material_profile", true);
 		break;
+    default: break;
 	}
 
     // 1) Create a name from the file name.
@@ -805,6 +806,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         load_preset(this->sla_materials, 1, "sla_material_settings_id");
         load_preset(this->printers,      2, "printer_settings_id");
         break;
+    default: break;
     }
 
 	this->update_compatible(false);
@@ -1349,6 +1351,7 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
                 [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });
 		break;
 	}
+    default: break;
     }
 }
 

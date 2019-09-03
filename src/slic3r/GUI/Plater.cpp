@@ -1075,8 +1075,6 @@ void Sidebar::show_info_sizer()
         return;
     }
 
-    const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
-
     auto size = model_object->bounding_box().size();
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
@@ -2287,20 +2285,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             if (! is_project_file) {
                 if (model.looks_like_multipart_object()) {
-                    wxMessageDialog dlg(q, _(L(
+                    wxMessageDialog msg_dlg(q, _(L(
                         "This file contains several objects positioned at multiple heights. "
                         "Instead of considering them as multiple objects, should I consider\n"
                         "this file as a single object having multiple parts?\n"
                         )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
-                    if (dlg.ShowModal() == wxID_YES) {
+                    if (msg_dlg.ShowModal() == wxID_YES) {
                         model.convert_multipart_object(nozzle_dmrs->values.size());
                     }
                 }
             }
             else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf) && model_has_advanced_features(model)) {
-                wxMessageDialog dlg(q, _(L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?\n")),
+                wxMessageDialog msg_dlg(q, _(L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?\n")),
                     _(L("Detected advanced data")), wxICON_WARNING | wxYES | wxNO);
-                if (dlg.ShowModal() == wxID_YES)
+                if (msg_dlg.ShowModal() == wxID_YES)
                 {
                     Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
                     view3D->set_as_dirty();
@@ -2339,12 +2337,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     if (new_model != nullptr && new_model->objects.size() > 1) {
-        wxMessageDialog dlg(q, _(L(
+        wxMessageDialog msg_dlg(q, _(L(
                 "Multiple objects were loaded for a multi-material printer.\n"
                 "Instead of considering them as multiple objects, should I consider\n"
                 "these files to represent a single object having multiple parts?\n"
             )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
-        if (dlg.ShowModal() == wxID_YES) {
+        if (msg_dlg.ShowModal() == wxID_YES) {
             new_model->convert_multipart_object(nozzle_dmrs->values.size());
         }
 
@@ -3263,6 +3261,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             else
                 this->update_sla_scene();
             break;
+        default: break;
         }
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
@@ -3282,6 +3281,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
         else
             this->update_sla_scene();
         break;
+    default: break;
     }
 }
 
@@ -3328,6 +3328,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         else
             this->update_sla_scene();
         break;
+    default: break;
     }
 
     if (canceled) {

@@ -3402,7 +3402,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
 
     // create new object from selected instance  
     ModelObject* model_object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
-    for (int inst_idx = model_object->instances.size() - 1; inst_idx >= 0; inst_idx--)
+    for (int inst_idx = int(model_object->instances.size()) - 1; inst_idx >= 0; inst_idx--)
     {
         if (find(inst_idxs.begin(), inst_idxs.end(), inst_idx) != inst_idxs.end())
             continue;

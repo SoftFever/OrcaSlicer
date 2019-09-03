@@ -909,11 +909,13 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
     wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
-        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
             if (dirty.empty())
                 dirty = tab->title();
             else
                 dirty += wxString(", ") + tab->title();
+        }
+
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;
