@@ -1300,11 +1300,12 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     // FIXME: when drag and drop is done on a .3mf or a .amf file we should clear the plater for consistence with the open project command
     // (the following call to plater->load_files() will load the config data, if present)
 
-    plater->load_files(paths);
+    std::vector<size_t> res = plater->load_files(paths);
 
     // because right now the plater is not cleared, we set the project file (from the latest imported .3mf or .amf file)
     // only if not set yet
-    if (plater->get_project_filename().empty())
+    // if res is empty no data has been loaded
+    if (!res.empty() && plater->get_project_filename().empty())
     {
         for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it)
         {
@@ -4076,11 +4077,15 @@ void Plater::load_project(const wxString& filename)
     Plater::TakeSnapshot snapshot(this, _(L("Load Project")) + ": " + wxString::FromUTF8(into_path(filename).stem().string().c_str()));
 
     p->reset();
-    p->set_project_filename(filename);
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(filename));
-    load_files(input_paths);
+
+    std::vector<size_t> res = load_files(input_paths);
+
+    // if res is empty no data has been loaded
+    if (!res.empty())
+        p->set_project_filename(filename);
 }
 
 void Plater::add_model()
@@ -4127,16 +4132,16 @@ void Plater::extract_config_from_project()
     load_files(input_paths, false, true);
 }
 
-void Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { p->load_files(input_files, load_model, load_config); }
+std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { return p->load_files(input_files, load_model, load_config); }
 
 // To be called when providing a list of files to the GUI slic3r on command line.
-void Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config)
+std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config)
 {
     std::vector<fs::path> paths;
     paths.reserve(input_files.size());
-    for (const std::string &path : input_files)
+    for (const std::string& path : input_files)
         paths.emplace_back(path);
-    p->load_files(paths, load_model, load_config);
+    return p->load_files(paths, load_model, load_config);
 }
 
 void Plater::update() { p->update(); }
