@@ -1113,8 +1113,6 @@ void GLGizmoSlaSupports::on_set_state()
     if (m_state == m_old_state)
         return;
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo on/off")));
-
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
         if (is_mesh_update_necessary())
