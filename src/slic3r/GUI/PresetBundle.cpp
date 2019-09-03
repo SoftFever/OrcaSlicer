@@ -1492,12 +1492,15 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
     // To avoid the errors of number rounding for different combination of monitor configuration,
     // let use scaled 8px, as a smallest icon unit 
     const int icon_unit         = 8 * scale_f + 0.5f;
-    const int icon_height       = 2 * icon_unit;    //16 * scale_f + 0.5f;
     const int normal_icon_width = 2 * icon_unit;    //16 * scale_f + 0.5f;
     const int thin_icon_width   = icon_unit;        //8 * scale_f + 0.5f;
     const int wide_icon_width   = 3 * icon_unit;    //24 * scale_f + 0.5f;
 
     const int space_icon_width  = 2  * scale_f + 0.5f;
+
+    // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
+    // set a bitmap height to m_bitmapLock->GetHeight()
+    const int icon_height       = m_bitmapLock->GetHeight();//2 * icon_unit;    //16 * scale_f + 0.5f;
 
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
