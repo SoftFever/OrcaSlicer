@@ -310,7 +310,7 @@ void Selection::remove_volume(unsigned int object_idx, unsigned int volume_idx)
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+        if ((v->object_idx() == (int)object_idx) && (v->volume_idx() == (int)volume_idx))
             do_remove_volume(i);
     }
 
@@ -992,7 +992,7 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
     for (unsigned int i : m_list)
     {
         GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() == object_idx)
+        if (v->object_idx() == (int)object_idx)
             v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
@@ -1037,7 +1037,7 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     for (unsigned int i : m_list)
     {
         GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+        if ((v->object_idx() == (int)object_idx) && (v->instance_idx() == (int)instance_idx))
             v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
@@ -1063,7 +1063,7 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
                 continue;
 
             GLVolume* v = (*m_volumes)[j];
-            if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
+            if ((v->object_idx() != object_idx) || (v->instance_idx() != (int)instance_idx))
                 continue;
 
             v->set_instance_offset(v->get_instance_offset() + displacement);
@@ -1154,7 +1154,7 @@ void Selection::erase()
         for (const ItemForDelete& i : items_set) {
             if (i.type == ItemType::itVolume) {
                 const int vol_in_obj_cnt = volumes_in_obj.find(i.obj_idx) == volumes_in_obj.end() ? 0 : volumes_in_obj.at(i.obj_idx);
-                if (vol_in_obj_cnt == m_model->objects[i.obj_idx]->volumes.size()) {
+                if (vol_in_obj_cnt == (int)m_model->objects[i.obj_idx]->volumes.size()) {
                     if (i.sub_obj_idx == vol_in_obj_cnt - 1)
                         items.emplace_back(ItemType::itObject, i.obj_idx, 0);
                     continue;
@@ -1389,7 +1389,7 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_object(unsigned int ob
 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
-        if ((*m_volumes)[i]->object_idx() == object_idx)
+        if ((*m_volumes)[i]->object_idx() == (int)object_idx)
             idxs.push_back(i);
     }
 
@@ -1403,7 +1403,7 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_instance(unsigned int 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         const GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+        if ((v->object_idx() == (int)object_idx) && (v->instance_idx() == (int)instance_idx))
             idxs.push_back(i);
     }
 
@@ -1417,9 +1417,9 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_volume(unsigned int ob
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         const GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+        if ((v->object_idx() == (int)object_idx) && (v->volume_idx() == (int)volume_idx))
         {
-            if ((instance_idx != -1) && (v->instance_idx() == instance_idx))
+            if (((int)instance_idx != -1) && (v->instance_idx() == (int)instance_idx))
                 idxs.push_back(i);
         }
     }
@@ -1607,7 +1607,7 @@ void Selection::update_type()
             }
             else
             {
-                int sels_cntr = 0;
+                unsigned int sels_cntr = 0;
                 for (ObjectIdxsToInstanceIdxsMap::iterator it = m_cache.content.begin(); it != m_cache.content.end(); ++it)
                 {
                     const ModelObject* model_object = m_model->objects[it->first];
@@ -1759,7 +1759,7 @@ void Selection::do_remove_instance(unsigned int object_idx, unsigned int instanc
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+        if ((v->object_idx() == (int)object_idx) && (v->instance_idx() == (int)instance_idx))
             do_remove_volume(i);
     }
 }
@@ -1769,7 +1769,7 @@ void Selection::do_remove_object(unsigned int object_idx)
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() == object_idx)
+        if (v->object_idx() == (int)object_idx)
             do_remove_volume(i);
     }
 }
@@ -1836,7 +1836,6 @@ void Selection::render_synchronized_volumes() const
     {
         const GLVolume* volume = (*m_volumes)[i];
         int object_idx = volume->object_idx();
-        int instance_idx = volume->instance_idx();
         int volume_idx = volume->volume_idx();
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
         {

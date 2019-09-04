@@ -680,7 +680,7 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
                                  const std::vector<double> &layers_z)
 {
     values.clear();
-    for (int i = 0; i < layers_z.size(); ++i)
+    for (int i = 0; i < (int)layers_z.size(); ++i)
     {
         values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
     }

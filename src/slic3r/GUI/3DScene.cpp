@@ -1142,7 +1142,7 @@ void GLVolumeCollection::export_toolpaths_to_obj(const char* filename) const
         Color color;
         ::memcpy((void*)color.data(), (const void*)volume->color, 4 * sizeof(float));
         fprintf(fp, "\n# material volume %d\n", volumes_count);
-        fprintf(fp, "usemtl material_%lld\n", 1 + std::distance(colors.begin(), colors.find(color)));
+        fprintf(fp, "usemtl material_%lld\n", (long long)(1 + std::distance(colors.begin(), colors.find(color))));
 
         int base_vertex_id = vertices_count + 1;
         int base_normal_id = normals_count + 1;
@@ -1242,8 +1242,8 @@ static void thick_lines_to_indexed_vertex_array(
         // calculate new XY normals
         Vec2d xy_right_normal = unscale(line.normal()).normalized();
 
-        int idx_a[4];
-        int idx_b[4];
+        int idx_a[4] = { 0, 0, 0, 0 }; // initialized to avoid warnings
+        int idx_b[4] = { 0, 0, 0, 0 }; // initialized to avoid warnings
         int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
 
         bool bottom_z_different = bottom_z_prev != bottom_z;

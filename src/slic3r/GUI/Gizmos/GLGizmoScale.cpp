@@ -329,6 +329,7 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
             case X: { local_offset_vec = local_offset * Vec3d::UnitX(); break; }
             case Y: { local_offset_vec = local_offset * Vec3d::UnitY(); break; }
             case Z: { local_offset_vec = local_offset * Vec3d::UnitZ(); break; }
+            default: break;
             }
 
             m_offset = m_offsets_transform * local_offset_vec;
