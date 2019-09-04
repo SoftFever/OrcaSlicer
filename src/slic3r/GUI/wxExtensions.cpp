@@ -2217,7 +2217,7 @@ void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
     m_ticks.clear();
     unsigned int i = 0;
     for (auto h : heights) {
-        while (i < m_values.size() && m_values[i].second - 1e-6 < h)
+        while (i < m_values.size() && m_values[i].second - EPSILON/*1e-6*/ < h)
             ++i;
         // don't miss last layer if it is
         if (i == m_values.size() && fabs(m_values[i-1].second - h) > EPSILON)
