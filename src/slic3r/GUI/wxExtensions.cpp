@@ -2196,9 +2196,10 @@ std::vector<double> DoubleSlider::GetTicksValues() const
 {
     std::vector<double> values;
 
+    const int val_size = m_values.size();
     if (!m_values.empty())
-        for (auto tick : m_ticks) {
-            if (tick > m_values.size())
+        for (int tick : m_ticks) {
+            if (tick > val_size)
                 break;
             values.push_back(m_values[tick].second);
         }

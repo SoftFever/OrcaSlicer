@@ -691,7 +691,12 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
     std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
     unsigned int old_size = ticks_from_config.size();
     ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
-                                           [values](double val) { return values.back().second < val; }),
+                                           [values](double val)
+    {
+        return (values.back().second < val &&
+                // we can't ignore tick on last layer
+                fabs(values.back().second - val) > EPSILON);
+    }),
                             ticks_from_config.end());
     if (ticks_from_config.size() != old_size)
         m_schedule_background_process();
