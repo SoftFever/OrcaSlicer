@@ -2,6 +2,21 @@
 
 namespace Slic3r {
 
+// 1-based extruder identifier for this region and role.
+unsigned int PrintRegion::extruder(FlowRole role) const
+{
+    size_t extruder = 0;
+    if (role == frPerimeter || role == frExternalPerimeter)
+        extruder = m_config.perimeter_extruder;
+    else if (role == frInfill)
+        extruder = m_config.infill_extruder;
+    else if (role == frSolidInfill || role == frTopSolidInfill)
+        extruder = m_config.solid_infill_extruder;
+    else
+        throw std::invalid_argument("Unknown role");
+    return extruder;
+}
+
 Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const
 {
     ConfigOptionFloatOrPercent config_width;
@@ -28,24 +43,13 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
             throw std::invalid_argument("Unknown role");
         }
     }
-    if (config_width.value == 0) {
+
+    if (config_width.value == 0)
         config_width = object.config().extrusion_width;
-    }
     
-    // get the configured nozzle_diameter for the extruder associated
-    // to the flow role requested
-    size_t extruder = 0;    // 1-based
-    if (role == frPerimeter || role == frExternalPerimeter) {
-        extruder = m_config.perimeter_extruder;
-    } else if (role == frInfill) {
-        extruder = m_config.infill_extruder;
-    } else if (role == frSolidInfill || role == frTopSolidInfill) {
-        extruder = m_config.solid_infill_extruder;
-    } else {
-        throw std::invalid_argument("Unknown role");
-    }
-    double nozzle_diameter = m_print->config().nozzle_diameter.get_at(extruder-1);
-    
+    // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
+    // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
+    double nozzle_diameter = m_print->config().nozzle_diameter.get_at(this->extruder(role) - 1);
     return Flow::new_from_config_width(role, config_width, (float)nozzle_diameter, (float)layer_height, bridge ? (float)m_config.bridge_flow_ratio : 0.0f);
 }
 
