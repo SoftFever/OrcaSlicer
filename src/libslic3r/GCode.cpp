@@ -1738,13 +1738,9 @@ void GCode::process_layer(
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
                         int correct_extruder_id = Print::get_extruder(*fill, region);
-                        //FIXME what is this?
-                        entity_type=="infills" ? 
-                            std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config().solid_infill_extruder : region.config().infill_extruder) - 1) :
-                            std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 
                         // Let's recover vector of extruder overrides:
-                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, (int)layer_to_print.object()->copies().size());
+                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->copies().size());
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : layer_tools.extruders)
@@ -3027,7 +3023,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
 
 // This function takes the eec and appends its entities to either perimeters or infills of this Region (depending on the first parameter)
 // It also saves pointer to ExtruderPerCopy struct (for each entity), that holds information about which extruders should be used for which copy.
-void GCode::ObjectByExtruder::Island::Region::append(const std::string& type, const ExtrusionEntityCollection* eec, const ExtruderPerCopy* copies_extruder, unsigned int object_copies_num)
+void GCode::ObjectByExtruder::Island::Region::append(const std::string& type, const ExtrusionEntityCollection* eec, const ExtruderPerCopy* copies_extruder, size_t object_copies_num)
 {
     // We are going to manipulate either perimeters or infills, exactly in the same way. Let's create pointers to the proper structure to not repeat ourselves:
     ExtrusionEntityCollection* perimeters_or_infills = &infills;

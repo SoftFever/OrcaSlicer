@@ -24,7 +24,7 @@ public:
     }
 
     // This is called from GCode::process_layer - see implementation for further comments:
-    const std::vector<int>* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, int num_of_copies);
+    const std::vector<int>* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
@@ -44,7 +44,7 @@ private:
     void set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies);
 
     // Returns true in case that entity is not printed with its usual extruder for a given copy:
-    bool is_entity_overridden(const ExtrusionEntity* entity, int copy_id) const {
+    bool is_entity_overridden(const ExtrusionEntity* entity, size_t copy_id) const {
         return (entity_map.find(entity) == entity_map.end() ? false : entity_map.at(entity).at(copy_id) != -1);
     }
 
