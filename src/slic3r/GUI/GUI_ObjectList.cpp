@@ -2500,15 +2500,18 @@ void ObjectList::remove()
     auto delete_item = [this](wxDataViewItem item)
     {
         wxDataViewItem parent = m_objects_model->GetParent(item);
-        if (m_objects_model->GetItemType(item) & itObject)
+        ItemType type = m_objects_model->GetItemType(item);
+        if (type & itObject)
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else {
-            if (m_objects_model->GetItemType(item) & itLayer) {
+            if (type & (itLayer | itInstance)) {
+                // In case there is just one layer or two instances and we delete it, del_subobject_item will
+                // also remove the parent item. Selection should therefore pass to the top parent (object).
                 wxDataViewItemArray children;
-                if (m_objects_model->GetChildren(parent, children) == 1)
+                if (m_objects_model->GetChildren(parent, children) == (type & itLayer ? 1 : 2))
                     parent = m_objects_model->GetTopParent(item);
             }
-            
+
             del_subobject_item(item);
         }
 

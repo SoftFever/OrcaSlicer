@@ -545,6 +545,9 @@ void TabSLAMaterial::init_options_list()
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
 {
     auto opt = m_options_list.find(opt_key);
+    if (opt == m_options_list.end()) 
+        return;
+
     if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
     modified_page |= (opt->second & osInitValue) == 0;
 }
