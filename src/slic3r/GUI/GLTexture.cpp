@@ -56,7 +56,7 @@ bool GLTexture::Compressor::unsent_compressed_data_available() const
 {
 	if (m_levels.empty())
 		return false;
-	// Querying the atomic m_num_levels_compressed value synchronizes processor caches, so that the dat of m_levels modified by the worker thread are accessible to the calling thread.
+	// Querying the atomic m_num_levels_compressed value synchronizes processor caches, so that the data of m_levels modified by the worker thread are accessible to the calling thread.
 	unsigned int num_compressed = m_num_levels_compressed;
 	for (unsigned int i = 0; i < num_compressed; ++ i)
         if (! m_levels[i].sent_to_gpu && ! m_levels[i].compressed_data.empty())
@@ -89,8 +89,8 @@ void GLTexture::Compressor::send_compressed_data_to_gpu()
     }
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
-    if (num_compressed == (unsigned int)m_levels.size())
-    	// Finalize the worker thread, close it.
+    if (num_compressed == (int)m_levels.size())
+        // Finalize the worker thread, close it.
     	this->reset();
 }
 

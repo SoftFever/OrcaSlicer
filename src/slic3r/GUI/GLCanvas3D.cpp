@@ -901,11 +901,11 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // Disabling ClearType works, but the font returned is very different (much thicker) from the default.
 //    msw_disable_cleartype(font);
-    bool cleartype = is_font_cleartype(font);
+//    bool cleartype = is_font_cleartype(font);
 #else
     // select default font
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
-    bool cleartype = false;
+//    bool cleartype = false;
 #endif /* __WXMSW__ */
 
     memDC.SetFont(font);
@@ -1330,13 +1330,13 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
 void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx)
 {
     ModelObject* model_object = m_model->objects[obj_idx];
-    for (int inst_idx = 0; inst_idx < model_object->instances.size(); inst_idx++)
+    for (int inst_idx = 0; inst_idx < (int)model_object->instances.size(); ++inst_idx)
     {
         ModelInstance* instance = model_object->instances[inst_idx];
 
         for (GLVolume* volume : m_volumes.volumes)
         {
-            if ((volume->object_idx() == obj_idx) && (volume->instance_idx() == inst_idx))
+            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx))
                 volume->printable = instance->printable;
         }
     }
@@ -1672,7 +1672,7 @@ void GLCanvas3D::ensure_on_bed(unsigned int object_idx)
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        if ((volume->object_idx() == object_idx) && !volume->is_modifier)
+        if ((volume->object_idx() == (int)object_idx) && !volume->is_modifier)
         {
             double min_z = volume->transformed_convex_hull_bounding_box().min(2);
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
@@ -1968,8 +1968,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     }
             }
 
-            // stores the current volumes count
-            size_t volumes_count = m_volumes.volumes.size();
+//            // stores the current volumes count
+//            size_t volumes_count = m_volumes.volumes.size();
 
             for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                 if (!instances[istep].empty())
@@ -1978,7 +1978,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
 		// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
 		for (GLVolume* volume : m_volumes.volumes)
-			if (volume->object_idx() < m_model->objects.size() && m_model->objects[volume->object_idx()]->instances[volume->instance_idx()]->is_printable())
+			if (volume->object_idx() < (int)m_model->objects.size() && m_model->objects[volume->object_idx()]->instances[volume->instance_idx()]->is_printable())
 				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
     }
 
@@ -3733,7 +3733,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(true, 0.5f * (left + right)); };
     item.enabling_callback = [this]()->bool {
         bool can_undo = wxGetApp().plater()->can_undo();
-        unsigned int id = m_undoredo_toolbar.get_item_id("undo");
+        int id = m_undoredo_toolbar.get_item_id("undo");
 
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
@@ -3765,7 +3765,7 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     item.right.render_callback = [this](float left, float right, float, float) { if (m_canvas != nullptr) _render_undo_redo_stack(false, 0.5f * (left + right)); };
     item.enabling_callback = [this]()->bool {
         bool can_redo = wxGetApp().plater()->can_redo();
-        unsigned int id = m_undoredo_toolbar.get_item_id("redo");
+        int id = m_undoredo_toolbar.get_item_id("redo");
 
         std::string curr_additional_tooltip;
         m_undoredo_toolbar.get_additional_tooltip(id, curr_additional_tooltip);
@@ -3908,7 +3908,7 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.set_hover_id(-1);
         }
         else
-            m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
+            m_gizmos.set_hover_id(inside && volume_id <= (int)GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
 
         _update_volumes_hover_state();
     }
@@ -4858,7 +4858,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     ctxt.print = print;
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
     if (print->wipe_tower_data().priming && print->config().single_extruder_multi_material_priming)
-        for (int i=0; i<print->wipe_tower_data().priming.get()->size(); ++i)
+        for (int i=0; i<(int)print->wipe_tower_data().priming.get()->size(); ++i)
             ctxt.priming.emplace_back(print->wipe_tower_data().priming.get()->at(i));
     if (print->wipe_tower_data().final_purge)
         ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
@@ -5037,7 +5037,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
             case GCodePreviewData::Extrusion::ColorPrint:
             {
-                const size_t color_cnt = tool_colors.size() / 4;
+                int color_cnt = (int)tool_colors.size() / 4;
 
                 int val = int(value);
                 while (val >= color_cnt)
