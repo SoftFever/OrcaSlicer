@@ -720,6 +720,9 @@ public:
         const wxString& name = wxEmptyString);
     ~DoubleSlider() {}
 
+    // permissible error for layer height
+    static double epsilon() { return 0.0011;}
+
     void    msw_rescale();
 
     int GetMinValue() const { return m_min_value; }
