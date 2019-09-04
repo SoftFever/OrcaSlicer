@@ -135,7 +135,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range)
     auto temp = new wxStaticText(m_parent, wxID_ANY, _(L("mm")));
     temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().normal_font());
-    sizer->Add(temp, 0, wxLEFT|wxRIGHT, wxGetApp().em_unit());
+    sizer->Add(temp, 0, wxLEFT, wxGetApp().em_unit());
 
     m_grid_sizer->Add(sizer);
 
@@ -154,16 +154,16 @@ void ObjectLayers::create_layers_list()
 
         sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));
 
-        del_btn->Bind(wxEVT_BUTTON, [this, range](wxEvent &event) {
+        del_btn->Bind(wxEVT_BUTTON, [range](wxEvent &) {
             wxGetApp().obj_list()->del_layer_range(range);
         });
 
         auto add_btn = new ScalableButton(m_parent, wxID_ANY, m_bmp_add);
         add_btn->SetToolTip(_(L("Add layer range")));
 
-        sizer->Add(add_btn, 0, wxRIGHT, em_unit(m_parent));
+        sizer->Add(add_btn);
 
-        add_btn->Bind(wxEVT_BUTTON, [this, range](wxEvent &event) {
+        add_btn->Bind(wxEVT_BUTTON, [range](wxEvent &) {
             wxGetApp().obj_list()->add_layer_range_after_current(range);
         });
     }

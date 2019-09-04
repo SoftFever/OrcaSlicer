@@ -108,7 +108,6 @@ static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConf
 
 std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig &rhs)
 {
-    const ConfigDef *def = rhs.def();
     std::vector<std::string> diff_keys;
     for (const t_config_option_key &opt_key : rhs.keys())
         if (! opts_equal(m_config, rhs, opt_key))
@@ -124,7 +123,6 @@ std::vector<std::string> PlaceholderParser::config_diff(const DynamicPrintConfig
 // a current extruder ID is used.
 bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 {
-    const ConfigDef *def = rhs.def();
     bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
         if (! opts_equal(m_config, rhs, opt_key)) {

@@ -458,14 +458,14 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
             continue;
         }
 
-        const auto& object = object_list[i];
+        const PrintObject* object = object_list[i];
 
         // Finds this layer:
         auto this_layer_it = std::find_if(object->layers().begin(), object->layers().end(), [&lt](const Layer* lay) { return std::abs(lt.print_z - lay->print_z)<EPSILON; });
         if (this_layer_it == object->layers().end())
             continue;
         const Layer* this_layer = *this_layer_it;
-        unsigned int num_of_copies = object->copies().size();
+        size_t num_of_copies = object->copies().size();
 
         for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
 
@@ -494,7 +494,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
                         if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {     // this infill will be used to wipe this extruder
                             set_extruder_override(fill, copy, new_extruder, num_of_copies);
-                            volume_to_wipe -= fill->total_volume();
+                            volume_to_wipe -= float(fill->total_volume());
                         }
                     }
                 }
@@ -512,7 +512,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
                         if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {
                             set_extruder_override(fill, copy, new_extruder, num_of_copies);
-                            volume_to_wipe -= fill->total_volume();
+                            volume_to_wipe -= float(fill->total_volume());
                         }
                     }
                 }
@@ -540,9 +540,9 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
         if (this_layer_it == object->layers().end())
             continue;
         const Layer* this_layer = *this_layer_it;
-        unsigned int num_of_copies = object->copies().size();
+        size_t num_of_copies = object->copies().size();
 
-        for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
+        for (size_t copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
             for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
                 const auto& region = *object->print()->regions()[region_id];
 
@@ -598,7 +598,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
 // so -1 was used as "print as usual".
 // The resulting vector has to keep track of which extrusions are the ones that were overridden and which were not. In the extruder is used as overridden,
 // its number is saved as it is (zero-based index). Usual extrusions are saved as -number-1 (unfortunately there is no negative zero).
-const std::vector<int>* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, int num_of_copies)
+const std::vector<int>* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies)
 {
     auto entity_map_it = entity_map.find(entity);
     if (entity_map_it == entity_map.end())

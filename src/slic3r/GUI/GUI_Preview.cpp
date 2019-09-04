@@ -634,7 +634,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool force_sliders_full_range = was_empty;
     if (!keep_z_range)
     {
-        bool span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
+        bool span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > DoubleSlider::epsilon()/*1e-6*/;
         force_sliders_full_range |= span_changed;
     }
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
@@ -650,12 +650,12 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     int idx_high = m_slider->GetMaxValue();
     if (! layers_z.empty()) {
         if (! snap_to_min) {
-            int idx_new = find_close_layer_idx(layers_z, z_low, 1e-6);
+            int idx_new = find_close_layer_idx(layers_z, z_low, DoubleSlider::epsilon()/*1e-6*/);
             if (idx_new != -1)
                 idx_low = idx_new;
         }
         if (! snap_to_max) {
-            int idx_new = find_close_layer_idx(layers_z, z_high, 1e-6);
+            int idx_new = find_close_layer_idx(layers_z, z_high, DoubleSlider::epsilon()/*1e-6*/);
             if (idx_new != -1)
                 idx_high = idx_new;
         }
@@ -691,7 +691,12 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
     std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
     unsigned int old_size = ticks_from_config.size();
     ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
-                                           [values](double val) { return values.back().second < val; }),
+                                           [values](double val)
+    {
+        return (values.back().second < val &&
+                // we can't ignore tick on last layer
+                fabs(values.back().second - val) > DoubleSlider::epsilon());
+    }),
                             ticks_from_config.end());
     if (ticks_from_config.size() != old_size)
         m_schedule_background_process();
