@@ -79,12 +79,14 @@ void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_con
 
 void PrintRegion::collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const
 {
-    auto num_extruders = (int)print()->config().nozzle_diameter.size();
     // PrintRegion, if used by some PrintObject, shall have all the extruders set to an existing printer extruder.
     // If not, then there must be something wrong with the Print::apply() function.
+#ifndef NDEBUG
+    auto num_extruders = (int)print()->config().nozzle_diameter.size();
     assert(this->config().perimeter_extruder    <= num_extruders);
     assert(this->config().infill_extruder       <= num_extruders);
     assert(this->config().solid_infill_extruder <= num_extruders);
+#endif
     collect_object_printing_extruders(print()->config(), this->config(), object_extruders);
 }
 
