@@ -2,8 +2,12 @@ min_slic3r_version = 2.1.0-alpha0
 1.0.0 Updated end G-code for the MMU2 profiles to lift the extruder at the end of print. Wipe tower bridging distance was made smaller for soluble supports.
 1.0.0-beta1 Updated color for the ASA filaments to differ from the other filaments. Single extruder printers now have no extruder color assigned, obects and toolpaths will be colored with the color of the active filament.
 1.0.0-beta0 Printer model checks in start G-codes, ASA filament profiles, limits on min / max SL1 exposition times
+1.0.0-alpha2 Printer model and nozzle diameter check
+1.0.0-alpha1 Added Prusament ASA profile
 1.0.0-alpha0 Filament specific retract for PET and similar copolymers, and for FLEX
 min_slic3r_version = 1.42.0-alpha6
+0.8.5 Updated SL1 printer and material settings
+0.8.4 Added Prusament ASA profile
 0.8.3 FW version and SL1 materials update
 0.8.2 FFF and SL1 settings update
 0.8.1 Output settings and SLA materials update
