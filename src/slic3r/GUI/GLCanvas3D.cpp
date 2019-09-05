@@ -845,22 +845,20 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     {
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
-        const size_t values_cnt = color_print_values.size();
-        if (values_cnt > 0) {
+        
+        if (!color_print_values.empty()) {
             std::vector<double> print_zs = canvas.get_current_print_zs(true);
-            size_t z = 0;
-            for (size_t i = 0; i < values_cnt; ++i)
+            for (auto cp_value : color_print_values)
             {
-                double prev_z = -1.0;
-                for ( ; z < print_zs.size(); ++z)
-                    if (fabs(color_print_values[i] - print_zs[z]) < EPSILON) {
-                        prev_z = z > 0 ? print_zs[z - 1] : 0.;
-                        break;
-                    }
-                if (prev_z < 0)
+                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value);
+
+                if (lower_b == print_zs.end())
                     continue;
 
-                cp_legend_values.push_back(std::pair<double, double>(prev_z, color_print_values[i]));
+                double current_z    = *lower_b;
+                double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
+
+                cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
             }
         }
     }
