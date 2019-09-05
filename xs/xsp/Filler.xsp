@@ -65,13 +65,6 @@ new_from_type(CLASS, type)
     OUTPUT:
         RETVAL
 
-void
-make_fill(CLASS, layer_region, out_append)
-    char*                       CLASS;
-    LayerRegion*                layer_region;
-    ExtrusionEntityCollection*  out_append;
-    CODE:
-        make_fill(*layer_region, *out_append);
 %}
 
 };

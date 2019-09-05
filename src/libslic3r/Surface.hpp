@@ -24,9 +24,8 @@ enum SurfaceType {
     stInternalVoid,
     // Inner/outer perimeters.
     stPerimeter,
-    // Last surface type, if the SurfaceType is used as an index into a vector.
-    stLast,
-    stCount = stLast + 1
+    // Number of SurfaceType enums.
+    stCount,
 };
 
 class Surface
