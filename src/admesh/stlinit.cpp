@@ -162,24 +162,31 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
 			// Read a single facet from an ASCII .STL file
 			// skip solid/endsolid
 			// (in this order, otherwise it won't work when they are paired in the middle of a file)
-			fscanf(fp, "endsolid %*[^\n]\n");
-			fscanf(fp, "solid %*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
+			fscanf(fp, " endsolid%*[^\n]\n");
+			fscanf(fp, " solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
 			// Leading space in the fscanf format skips all leading white spaces including numerous new lines and tabs.
-			int res_normal     = fscanf(fp, " facet normal %31s %31s %31s ", normal_buf[0], normal_buf[1], normal_buf[2]);
+			int res_normal     = fscanf(fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
 			assert(res_normal == 3);
-			int res_outer_loop = fscanf(fp, " outer loop ");
+			int res_outer_loop = fscanf(fp, " outer loop");
 			assert(res_outer_loop == 0);
-			int res_vertex1    = fscanf(fp, " vertex %f %f %f ", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
+			int res_vertex1    = fscanf(fp, " vertex %f %f %f", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
 			assert(res_vertex1 == 3);
-			int res_vertex2    = fscanf(fp, " vertex %f %f %f ", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
+			int res_vertex2    = fscanf(fp, " vertex %f %f %f", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
 			assert(res_vertex2 == 3);
+			// Trailing whitespace is there to eat all whitespaces and empty lines up to the next non-whitespace.
 			int res_vertex3    = fscanf(fp, " vertex %f %f %f ", &facet.vertex[2](0), &facet.vertex[2](1), &facet.vertex[2](2));
 			assert(res_vertex3 == 3);
-			int res_endloop    = fscanf(fp, " endloop %*[^\n]\n");
-			assert(res_endloop == 0);
-			// There is a leading and trailing white space around endfacet to eat up all leading and trailing white spaces including numerous tabs and new lines.
-			int res_endfacet   = fscanf(fp, " endfacet %*[^\n]\n");
-			if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || res_endloop != 0 || res_endfacet != 0) {
+			// Some G-code generators tend to produce text after "endloop" and "endfacet". Just ignore it.
+			char buf[2048];
+			fgets(buf, 2047, fp);
+			bool endloop_ok = strncmp(buf, "endloop", 7) == 0 && (buf[7] == '\n' || buf[7] == ' ' || buf[7] == '\t');
+			assert(endloop_ok);
+			// Skip the trailing whitespaces and empty lines.
+			fscanf(fp, " ");
+			fgets(buf, 2047, fp);
+			bool endfacet_ok = strncmp(buf, "endfacet", 8) == 0 && (buf[8] == '\n' || buf[8] == ' ' || buf[8] == '\t');
+			assert(endfacet_ok);
+			if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || ! endloop_ok || ! endfacet_ok) {
 				BOOST_LOG_TRIVIAL(error) << "Something is syntactically very wrong with this ASCII STL! ";
 				return false;
 			}
