@@ -662,15 +662,19 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         throw std::runtime_error(msg);
     }
 
-    if (print->config().remaining_times.value) {
-        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode" << log_memory_info();
-        m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+    GCodeTimeEstimator::PostProcessData normal_data = m_normal_time_estimator.get_post_process_data();
+    GCodeTimeEstimator::PostProcessData silent_data = m_silent_time_estimator.get_post_process_data();
+
+    bool remaining_times_enabled = print->config().remaining_times.value;
+
+    BOOST_LOG_TRIVIAL(debug) << "Time estimator post processing" << log_memory_info();
+    GCodeTimeEstimator::post_process(path_tmp, 60.0f, remaining_times_enabled ? &normal_data : nullptr, (remaining_times_enabled && m_silent_time_estimator_enabled) ? &silent_data : nullptr);
+
+    if (remaining_times_enabled)
+    {
         m_normal_time_estimator.reset();
-        if (m_silent_time_estimator_enabled) {
-            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode" << log_memory_info();
-            m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+        if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.reset();
-        }
     }
 
     // starts analyzer calculations
