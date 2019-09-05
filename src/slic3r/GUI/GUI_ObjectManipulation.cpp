@@ -625,6 +625,14 @@ void ObjectManipulation::update_reset_buttons_visibility()
         m_reset_rotation_button->Show(show_rotation);
         m_reset_scale_button->Show(show_scale);
         m_drop_to_bed_button->Show(show_drop_to_bed);
+
+        // Because of CallAfter we need to layout sidebar after Show/hide of reset buttons one more time
+        Sidebar& panel = wxGetApp().sidebar();
+        if (!panel.IsFrozen()) {
+            panel.Freeze();
+            panel.Layout();
+            panel.Thaw();
+        }
     });
 }
 
