@@ -56,6 +56,8 @@ public:
     // Enable some perimeter squish (see INSET_OVERLAP_TOLERANCE).
     // Here an overlap of 0.2x external perimeter spacing is allowed for by the elephant foot compensation.
     coord_t scaled_elephant_foot_spacing() const { return coord_t(0.5f * float(this->scaled_width() + 0.6f * this->scaled_spacing())); }
+
+    bool operator==(const Flow &rhs) const { return this->width == rhs.width && this->height == rhs.height && this->nozzle_diameter == rhs.nozzle_diameter && this->bridge == rhs.bridge; }
     
     static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
     // Create a flow from the spacing of extrusion lines.

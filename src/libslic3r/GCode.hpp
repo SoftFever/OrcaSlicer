@@ -246,7 +246,7 @@ protected:
                 std::vector<const ExtruderPerCopy*> perimeters_overrides;
 
                 // Appends perimeter/infill entities and writes don't indices of those that are not to be extruder as part of perimeter/infill wiping
-                void append(const std::string& type, const ExtrusionEntityCollection* eec, const ExtruderPerCopy* copy_extruders, unsigned int object_copies_num);
+                void append(const std::string& type, const ExtrusionEntityCollection* eec, const ExtruderPerCopy* copy_extruders, size_t object_copies_num);
             };
 
             std::vector<Region> by_region;                                    // all extrusions for this island, grouped by regions

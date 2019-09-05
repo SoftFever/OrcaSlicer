@@ -2049,7 +2049,7 @@ void PrintConfigDef::init_fff_params()
     {
         int threads = (unsigned int)boost::thread::hardware_concurrency();
         def->set_default_value(new ConfigOptionInt(threads > 0 ? threads : 2));
-        def->cli == ConfigOptionDef::nocli;
+        def->cli = ConfigOptionDef::nocli;
     }
 
     def = this->add("toolchange_gcode", coString);

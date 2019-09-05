@@ -676,7 +676,7 @@ std::string SLAPrint::validate() const
         if(supports_en && !builtinpad.enabled && elv < pinhead_width )
             return L(
                 "Elevation is too low for object. Use the \"Pad around "
-                "obect\" feature to print the object without elevation.");
+                "object\" feature to print the object without elevation.");
         
         if(supports_en && builtinpad.enabled &&
            cfg.pillar_base_safety_distance_mm < builtinpad.object_gap_mm) {

@@ -74,7 +74,7 @@ public:
             config(config), object_config(object_config), print_config(print_config),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)
-        {};
+        {}
     void process();
 
 private:

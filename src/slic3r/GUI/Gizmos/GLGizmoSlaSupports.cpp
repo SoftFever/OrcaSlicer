@@ -308,7 +308,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         }
         else {
             render_color[3] = 1.f;
-            if ((m_hover_id == i && m_editing_mode)) { // ignore hover state unless editing mode is active
+            if ((size_t(m_hover_id) == i && m_editing_mode)) { // ignore hover state unless editing mode is active
                 render_color[0] = 0.f;
                 render_color[1] = 1.0f;
                 render_color[2] = 1.0f;
@@ -330,7 +330,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
-        glsafe(::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2)));
+        glsafe(::glTranslatef(support_point.pos(0), support_point.pos(1), support_point.pos(2)));
         glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
         if (vol->is_left_handed())
@@ -347,16 +347,16 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             Eigen::AngleAxisd aa(q);
             glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
 
-            const float cone_radius = 0.25f; // mm
-            const float cone_height = 0.75f;
+            const double cone_radius = 0.25; // mm
+            const double cone_height = 0.75;
             glsafe(::glPushMatrix());
             glsafe(::glTranslatef(0.f, 0.f, support_point.head_front_radius * RenderPointScale));
-            ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 24, 1);
+            ::gluCylinder(m_quadric, 0., cone_radius, cone_height, 24, 1);
             glsafe(::glTranslatef(0.f, 0.f, cone_height));
             ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
             glsafe(::glPopMatrix());
         }
-        ::gluSphere(m_quadric, support_point.head_front_radius * RenderPointScale, 24, 12);
+        ::gluSphere(m_quadric, (double)support_point.head_front_radius * RenderPointScale, 24, 12);
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
 
@@ -777,7 +777,7 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
 }
 
 
-void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
+void GLGizmoSlaSupports::update_cache_entry_normal(size_t i) const
 {
     int idx = 0;
     Eigen::Matrix<float, 1, 3> pp = m_editing_cache[i].support_point.pos;

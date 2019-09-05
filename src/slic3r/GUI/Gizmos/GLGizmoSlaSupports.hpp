@@ -30,7 +30,7 @@ private:
     ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    mutable float m_z_shift = 0.f;
+    mutable double m_z_shift = 0.f;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
@@ -99,11 +99,9 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void update_cache_entry_normal(unsigned int i) const;
+    void update_cache_entry_normal(size_t i) const;
     bool unsaved_changes() const;
 
-    EState m_no_hover_state = Off;
-    EState m_no_hover_old_state = Off;
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
