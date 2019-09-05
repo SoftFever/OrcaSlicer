@@ -185,7 +185,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        	const SurfaceFillParams *params = region_to_surface_params[region_id][&surface - &layerm.fill_surfaces.surfaces.front()];
 				if (params != nullptr) {
 	        		SurfaceFill &fill = surface_fills[params->idx];
-	        		if (fill.region_id = size_t(-1)) {
+                    if (fill.region_id == size_t(-1)) {
 	        			fill.region_id = region_id;
 	        			fill.surface = surface;
 	        			fill.expolygons.emplace_back(std::move(fill.surface.expolygon));
