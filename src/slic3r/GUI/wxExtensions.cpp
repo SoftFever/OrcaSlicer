@@ -2192,9 +2192,9 @@ double DoubleSlider::get_double_value(const SelectedSlider& selection)
         return 0.0;
     if (m_values.size() <= m_higher_value) {
         correct_higher_value();
-        return m_values.back().second;
+        return m_values.back();
     }
-    return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
+    return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
 std::vector<double> DoubleSlider::GetTicksValues() const
@@ -2206,7 +2206,7 @@ std::vector<double> DoubleSlider::GetTicksValues() const
         for (int tick : m_ticks) {
             if (tick > val_size)
                 break;
-            values.push_back(m_values[tick].second);
+            values.push_back(m_values[tick]);
         }
 
     return values;
@@ -2220,14 +2220,13 @@ void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
     const bool was_empty = m_ticks.empty();
 
     m_ticks.clear();
-    unsigned int i = 0;
     for (auto h : heights) {
-        while (i < m_values.size() && m_values[i].second - epsilon()/*1e-6*/ < h)
-            ++i;
-        // don't miss last layer if it is
-        if (i == m_values.size() && fabs(m_values[i-1].second - h) > epsilon())
-            return;
-        m_ticks.insert(i-1);
+        auto it = std::lower_bound(m_values.begin(), m_values.end(), h - epsilon());
+
+        if (it == m_values.end())
+            continue;
+
+        m_ticks.insert(it-m_values.begin());
     }
     
     if (!was_empty && m_ticks.empty())
@@ -2347,8 +2346,8 @@ wxString DoubleSlider::get_label(const SelectedSlider& selection) const
 
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
-                         wxNumberFormatter::ToString(m_values[value].second, 2, wxNumberFormatter::Style_None);
-    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : m_values[value].first);
+                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
+    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : value+1);
 }
 
 void DoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const

@@ -850,7 +850,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
             std::vector<double> print_zs = canvas.get_current_print_zs(true);
             for (auto cp_value : color_print_values)
             {
-                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value);
+                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value - DoubleSlider::epsilon());
 
                 if (lower_b == print_zs.end())
                     continue;
@@ -858,7 +858,10 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
                 double current_z    = *lower_b;
                 double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
 
-                cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
+                // to avoid duplicate values, check adding values
+                if (cp_legend_values.empty() || 
+                    !(cp_legend_values.back().first == previous_z && cp_legend_values.back().second == current_z) )
+                    cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
             }
         }
     }

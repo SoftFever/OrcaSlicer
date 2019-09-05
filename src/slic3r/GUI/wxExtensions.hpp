@@ -729,8 +729,8 @@ public:
 
     int GetMinValue() const { return m_min_value; }
     int GetMaxValue() const { return m_max_value; }
-    double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value].second; }
-    double GetMaxValueD() { return m_values.empty() ? 0. : m_values[m_max_value].second; }
+    double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value]; }
+    double GetMaxValueD() { return m_values.empty() ? 0. : m_values[m_max_value]; }
     int GetLowerValue() const { return m_lower_value; }
     int GetHigherValue() const { return m_higher_value; }
     int GetActiveValue() const;
@@ -746,7 +746,7 @@ public:
     void SetKoefForLabels(const double koef) {
         m_label_koef = koef;
     }
-    void SetSliderValues(const std::vector<std::pair<int, double>>& values) {
+    void SetSliderValues(const std::vector<double>& values) {
         m_values = values;
     }
     void ChangeOneLayerLock();
@@ -867,7 +867,7 @@ private:
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
     std::set<int>       m_ticks;
-    std::vector<std::pair<int,double>> m_values;
+    std::vector<double> m_values;
 };
 
 
