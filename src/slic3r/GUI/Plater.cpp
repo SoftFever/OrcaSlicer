@@ -3083,6 +3083,7 @@ void Plater::priv::reload_from_disk()
     auto& selection = get_selection();
     const auto obj_orig_idx = selection.get_object_idx();
     if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }
+    int instance_idx = selection.get_instance_idx();
 
     auto *object_orig = model.objects[obj_orig_idx];
     std::vector<fs::path> input_paths(1, object_orig->input_file);
@@ -3091,6 +3092,12 @@ void Plater::priv::reload_from_disk()
     view3D->get_canvas3d()->enable_render(false);
 
     const auto new_idxs = load_files(input_paths, true, false);
+    if (new_idxs.empty())
+    {
+        // error while loading
+        view3D->get_canvas3d()->enable_render(true);
+        return;
+    }
 
     for (const auto idx : new_idxs) {
         ModelObject *object = model.objects[idx];
@@ -3119,7 +3126,7 @@ void Plater::priv::reload_from_disk()
     selection.clear();
     for (const auto idx : new_idxs)
     {
-        selection.add_object((unsigned int)idx - 1, false);
+        selection.add_instance((unsigned int)idx - 1, instance_idx, false);
     }
 }
 
