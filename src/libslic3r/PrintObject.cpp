@@ -810,15 +810,72 @@ void PrintObject::process_external_surfaces()
 {
     BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info();
 
+    // Cached surfaces covered by some extrusion, defining regions, over which the from the surfaces one layer higher are allowed to expand.
+    std::vector<Polygons> surfaces_covered;
+    // Is there any printing region, that has zero infill? If so, then we don't want the expansion to be performed over the complete voids, but only
+    // over voids, which are supported by the layer below.
+    bool 				  has_voids = false;
+	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id)
+		if (! this->region_volumes.empty() && this->print()->regions()[region_id]->config().fill_density == 0) {
+			has_voids = true;
+			break;
+		}
+	if (has_voids && m_layers.size() > 1) {
+	    // All but stInternal fill surfaces will get expanded and possibly trimmed.
+	    std::vector<unsigned char> layer_expansions_and_voids(m_layers.size(), false);
+	    for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++ layer_idx) {
+	    	const Layer *layer = m_layers[layer_idx];
+	    	bool expansions = false;
+	    	bool voids      = false;
+	    	for (const LayerRegion *layerm : layer->regions()) {
+	    		for (const Surface &surface : layerm->fill_surfaces.surfaces) {
+	    			if (surface.surface_type == stInternal)
+	    				voids = true;
+	    			else
+	    				expansions = true;
+	    			if (voids && expansions) {
+	    				layer_expansions_and_voids[layer_idx] = true;
+	    				goto end;
+	    			}
+	    		}
+	    	}
+		end:;
+		}
+	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - start";
+	    surfaces_covered.resize(m_layers.size() - 1, Polygons());
+    	auto unsupported_width = - float(scale_(0.3 * EXTERNAL_INFILL_MARGIN));
+	    tbb::parallel_for(
+	        tbb::blocked_range<size_t>(0, m_layers.size() - 1),
+	        [this, &surfaces_covered, &layer_expansions_and_voids, unsupported_width](const tbb::blocked_range<size_t>& range) {
+	            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
+	            	if (layer_expansions_and_voids[layer_idx + 1]) {
+		                m_print->throw_if_canceled();
+		                Polygons voids;
+		                for (const LayerRegion *layerm : m_layers[layer_idx]->regions()) {
+		                	if (layerm->region()->config().fill_density.value == 0.)
+		                		for (const Surface &surface : layerm->fill_surfaces.surfaces)
+		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
+		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
+		                }
+		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->slices.expolygons), voids);
+	            	}
+	        }
+	    );
+	    m_print->throw_if_canceled();
+	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - end";
+	}
+
 	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, region_id](const tbb::blocked_range<size_t>& range) {
+            [this, &surfaces_covered, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Processing external surface, layer" << m_layers[layer_idx]->print_z;
-                    m_layers[layer_idx]->get_region((int)region_id)->process_external_surfaces((layer_idx == 0) ? NULL : m_layers[layer_idx - 1]);
+                    m_layers[layer_idx]->get_region((int)region_id)->process_external_surfaces(
+                    	(layer_idx == 0) ? nullptr : m_layers[layer_idx - 1],
+                    	(layer_idx == 0 || surfaces_covered.empty() || surfaces_covered[layer_idx - 1].empty()) ? nullptr : &surfaces_covered[layer_idx - 1]);
                 }
             }
         );

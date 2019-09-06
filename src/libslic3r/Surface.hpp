@@ -90,16 +90,18 @@ public:
         return *this;
     }
 
-    operator Polygons() const;
-    double area() const;
-    bool empty() const { return expolygon.empty(); }
-    void clear() { expolygon.clear(); }
-    bool is_solid() const;
-    bool is_external() const;
-    bool is_internal() const;
-    bool is_top() const;
-    bool is_bottom() const;
-    bool is_bridge() const;
+	operator Polygons()  const { return this->expolygon; }
+	double area() 		 const { return this->expolygon.area(); }
+    bool   empty() 		 const { return expolygon.empty(); }
+    void   clear() 			   { expolygon.clear(); }
+
+    // The following methods do not test for stPerimeter.
+	bool   is_top()      const { return this->surface_type == stTop; }
+	bool   is_bottom()   const { return this->surface_type == stBottom || this->surface_type == stBottomBridge; }
+	bool   is_bridge()   const { return this->surface_type == stBottomBridge || this->surface_type == stInternalBridge; }
+	bool   is_external() const { return this->is_top() || this->is_bottom(); }
+	bool   is_internal() const { return ! this->is_external(); }
+	bool   is_solid()    const { return this->is_external() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
 };
 
 typedef std::vector<Surface> Surfaces;
