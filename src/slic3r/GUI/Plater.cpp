@@ -3080,7 +3080,7 @@ void Plater::priv::reload_from_disk()
 {
     Plater::TakeSnapshot snapshot(q, _(L("Reload from Disk")));
 
-    const auto &selection = get_selection();
+    auto& selection = get_selection();
     const auto obj_orig_idx = selection.get_object_idx();
     if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }
 
@@ -3107,6 +3107,14 @@ void Plater::priv::reload_from_disk()
     }
 
     remove(obj_orig_idx);
+
+    // the previous call to remove() clears the selection
+    // select newly added objects
+    selection.clear();
+    for (const auto idx : new_idxs)
+    {
+        selection.add_object((unsigned int)idx - 1, false);
+    }
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
