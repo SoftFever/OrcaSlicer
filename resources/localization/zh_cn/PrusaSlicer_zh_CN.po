@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-08-30 11:18+0200\n"
-"PO-Revision-Date: 2019-09-06 14:41+0800\n"
+"PO-Revision-Date: 2019-09-06 15:44+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -48,7 +48,7 @@ msgstr "根据"
 
 #: src/slic3r/GUI/AboutDialog.cpp:259
 msgid "GNU Affero General Public License, version 3"
-msgstr "GNU 阿菲罗通用公共许可证，版本 3"
+msgstr "GNU Affero 通用公共许可证，版本 3"
 
 #: src/slic3r/GUI/AboutDialog.cpp:260
 msgid ""
