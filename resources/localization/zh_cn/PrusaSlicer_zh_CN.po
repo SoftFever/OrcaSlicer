@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-08-30 11:18+0200\n"
-"PO-Revision-Date: 2019-09-06 15:44+0800\n"
+"PO-Revision-Date: 2019-09-06 16:24+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -106,7 +106,7 @@ msgstr "将临时 G 代码复制到输出 G 代码失败"
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:422
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
-msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上载队列"
+msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上传队列"
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:65
 msgid "Shape"
@@ -183,7 +183,7 @@ msgstr "直径"
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
-msgstr "打印床的直径。假定原点 (0,0) 位于中心。"
+msgstr "构建板(打印床)的直径。假定原点 (0,0) 位于中心。"
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:97 src/slic3r/GUI/GUI_Preview.cpp:247
 #: src/libslic3r/GCode/PreviewData.cpp:159
@@ -2579,7 +2579,7 @@ msgstr "从包加载预设"
 
 #: src/slic3r/GUI/MainFrame.cpp:466
 msgid "&Import"
-msgstr "导入（&I）"
+msgstr "导入(&I)"
 
 #: src/slic3r/GUI/MainFrame.cpp:469 src/slic3r/GUI/MainFrame.cpp:719
 msgid "Export &G-code"
@@ -2804,7 +2804,7 @@ msgstr "显示3D 切片预览"
 
 #: src/slic3r/GUI/MainFrame.cpp:628
 msgid "Print &Host Upload Queue"
-msgstr "打印&主机上载队列"
+msgstr "打印&主机上传队列"
 
 #: src/slic3r/GUI/MainFrame.cpp:628
 msgid "Display the Print Host Upload Queue window"
@@ -3247,7 +3247,7 @@ msgstr "对象"
 
 #: src/slic3r/GUI/Plater.cpp:1152 src/slic3r/GUI/Plater.cpp:1167
 msgid "wipe tower"
-msgstr "擦拭塔"
+msgstr "擦料塔"
 
 #: src/slic3r/GUI/Plater.cpp:1182
 msgid "normal mode"
@@ -3291,7 +3291,7 @@ msgstr "处理输入文件 %s\n"
 msgid ""
 "You can't load SLA project if there is at least one multi-part object on the "
 "bed"
-msgstr "如果床上至少有一个多部分对象，则无法加载 SLA 项目"
+msgstr "如果构建板上有至少一个多部分对象，则无法加载 SLA 项目"
 
 #: src/slic3r/GUI/Plater.cpp:2244 src/slic3r/GUI/Tab.cpp:3143
 msgid "Please check your object list before preset changing."
@@ -3343,7 +3343,7 @@ msgstr "加载"
 msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
-msgstr "对象看起来太大，因此会自动缩小，以适应打印床。"
+msgstr "对象看起来太大，因此会自动缩小，以适应构建板。"
 
 #: src/slic3r/GUI/Plater.cpp:2454
 msgid "Object too large?"
@@ -3662,7 +3662,7 @@ msgstr "自动居中部件"
 msgid ""
 "If this is enabled, Slic3r will auto-center objects around the print bed "
 "center."
-msgstr "如果启用此功能，Slic3r 将自动将对象集中在打印床中心周围。"
+msgstr "如果启用此功能，Slic3r 将自动将对象集中在构建板中心周围。"
 
 #: src/slic3r/GUI/Preferences.cpp:60
 msgid "Background processing"
@@ -3906,7 +3906,7 @@ msgstr "推荐对象薄壁厚度：由于层高度无效，不可用。"
 #: src/slic3r/GUI/PresetHints.cpp:262
 #, c-format
 msgid "Recommended object thin wall thickness for layer height %.2f and"
-msgstr "推荐对象薄壁厚度，层高度为 %.2f 和"
+msgstr "推荐对象薄壁厚度，当层高度为 %.2f 和"
 
 #: src/slic3r/GUI/PresetHints.cpp:268
 #, c-format
@@ -4271,12 +4271,12 @@ msgstr "配置文件依赖"
 
 #: src/slic3r/GUI/Tab.cpp:1535 src/slic3r/GUI/Tab.cpp:1590
 msgid "Filament Overrides"
-msgstr "细丝覆盖"
+msgstr "耗材丝参数替换"
 
 #: src/slic3r/GUI/Tab.cpp:1536 src/slic3r/GUI/Tab.cpp:1595
 #: src/slic3r/GUI/Tab.cpp:2567
 msgid "Retraction"
-msgstr "回退"
+msgstr "回抽"
 
 #: src/slic3r/GUI/Tab.cpp:1645 src/libslic3r/PrintConfig.cpp:2030
 msgid "Temperature"
@@ -4317,7 +4317,7 @@ msgstr "打印速度覆盖"
 
 #: src/slic3r/GUI/Tab.cpp:1697
 msgid "Wipe tower parameters"
-msgstr "擦除塔参数"
+msgstr "擦料塔参数"
 
 #: src/slic3r/GUI/Tab.cpp:1700
 msgid "Toolchange parameters with single extruder MM printers"
@@ -4554,7 +4554,7 @@ msgstr "仅提升 Z"
 msgid ""
 "Retraction when tool is disabled (advanced settings for multi-extruder "
 "setups)"
-msgstr "禁用工具时的回缩 (多挤出机设置的高级设置)"
+msgstr "工具禁用时的回抽 (多挤出机设置的高级设置)"
 
 #: src/slic3r/GUI/Tab.cpp:2591
 msgid "Reset to Filament Color"
@@ -4566,13 +4566,13 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"使用固件回缩模式时，\"擦除\"选项不可用。\n"
+"使用固件回抽模式时，\"擦除\"选项不可用。\n"
 "\n"
-"我应禁用它，以便启用固件回缩？"
+"我应禁用它，以便启用固件回抽？"
 
 #: src/slic3r/GUI/Tab.cpp:2774
 msgid "Firmware Retraction"
-msgstr "固件回缩"
+msgstr "固件回抽"
 
 #: src/slic3r/GUI/Tab.cpp:3103
 #, c-format
@@ -4991,7 +4991,7 @@ msgstr "冲击线行距"
 
 #: src/slic3r/GUI/WipeTowerDialog.cpp:141
 msgid "Wipe tower - Purging volume adjustment"
-msgstr "擦拭塔 - 清除体积调整"
+msgstr "擦料塔 - 清除体积调整"
 
 #: src/slic3r/GUI/WipeTowerDialog.cpp:225
 msgid ""
@@ -5380,7 +5380,7 @@ msgid ""
 "The wipe tower is only supported if all extruders have the same nozzle "
 "diameter and use filaments of the same diameter."
 msgstr ""
-"仅当所有挤出机具有相同的喷嘴直径并使用相同直径的耗材丝时,才支持擦拭塔。"
+"仅当所有挤出机具有相同的喷嘴直径并使用相同直径的耗材丝时,才支持擦料塔。"
 
 #: src/libslic3r/Print.cpp:1189
 msgid ""
@@ -5396,13 +5396,13 @@ msgstr "擦料塔目前仅支持相对挤出机寻址 (use_relative_e_distances=
 
 #: src/libslic3r/Print.cpp:1193
 msgid "Ooze prevention is currently not supported with the wipe tower enabled."
-msgstr "启用擦除塔时，当前不支持 Ooze 预防。"
+msgstr "启用擦料塔时，当前不支持 Ooze 预防。"
 
 #: src/libslic3r/Print.cpp:1214
 msgid ""
 "The Wipe Tower is only supported for multiple objects if they have equal "
 "layer heights"
-msgstr "仅当多个对象具有相等的图层高度时,才支持擦除塔"
+msgstr "仅当多个对象具有相等的图层高度时,才支持擦料塔"
 
 #: src/libslic3r/Print.cpp:1216
 msgid ""
@@ -5634,7 +5634,7 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance."
 msgstr ""
-"Slic3r 可以将 G-code 文件上载到打印机主机。此字段应包含打印机主机实例的主机"
+"Slic3r 可以将 G-code 文件上传到打印机主机。此字段应包含打印机主机实例的主机"
 "名, IP 地址或 URL。"
 
 #: src/libslic3r/PrintConfig.cpp:99
@@ -5646,7 +5646,7 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the API Key or the password required for authentication."
 msgstr ""
-"Slic3r 可以将 G-code 文件上载到打印机主机。此字段应包含 API 密钥或身份验证所"
+"Slic3r 可以将 G-code 文件上传到打印机主机。此字段应包含 API 密钥或身份验证所"
 "需的密码。"
 
 #: src/libslic3r/PrintConfig.cpp:106
@@ -5788,8 +5788,8 @@ msgid ""
 "settings are usually good and you should experiment with cooling (use a fan) "
 "before tweaking this."
 msgstr ""
-"此因子影响用于桥接的耗材量。您可以稍微减小它以拉拉伸和防止下垂，虽然默认设置"
-"通常很好，您应该尝试冷却（使用风扇），然后再调整它。"
+"此因子影响用于桥接的耗材量。您可以稍微减小它挤出和防止下垂，虽然默认设置通常"
+"很好，您应该尝试冷却（使用风扇），然后再调整它。"
 
 #: src/libslic3r/PrintConfig.cpp:208
 msgid "Bridges"
@@ -6281,7 +6281,7 @@ msgstr "加载速度"
 
 #: src/libslic3r/PrintConfig.cpp:591
 msgid "Speed used for loading the filament on the wipe tower."
-msgstr "用于在擦拭塔上装载耗材丝的速度。"
+msgstr "用于在擦料塔上装载耗材丝的速度。"
 
 #: src/libslic3r/PrintConfig.cpp:598
 msgid "Loading speed at the start"
@@ -6343,7 +6343,7 @@ msgstr "冷却运动正逐渐以这个速度加速。"
 
 #: src/libslic3r/PrintConfig.cpp:650
 msgid "Minimal purge on wipe tower"
-msgstr "擦拭塔上的最小清理量"
+msgstr "擦料塔上的最小清理量"
 
 #: src/libslic3r/PrintConfig.cpp:651
 msgid ""
@@ -6355,7 +6355,7 @@ msgid ""
 msgstr ""
 "换料后, 新加载的耗材丝在喷嘴内的确切位置可能尚不清楚, 而且耗材丝压力可能尚不"
 "稳定。在将打印头清洗成填充物或填充对象之前, Slic3r 将始终将这些数量的材料放入"
-"擦拭塔中, 以可靠地产生连续的填充物或填充对象。"
+"擦料塔中, 以可靠地产生连续的填充物或填充对象。"
 
 #: src/libslic3r/PrintConfig.cpp:655
 msgid "mm³"
@@ -6456,7 +6456,7 @@ msgstr "在此处输入每公斤耗材丝成本。这仅用于统计信息。"
 
 #: src/libslic3r/PrintConfig.cpp:744
 msgid "money/kg"
-msgstr "钱/公斤"
+msgstr "元/公斤"
 
 #: src/libslic3r/PrintConfig.cpp:753
 msgid "Fill angle"
@@ -6497,7 +6497,7 @@ msgstr "三角形"
 
 #: src/libslic3r/PrintConfig.cpp:824
 msgid "Stars"
-msgstr "星级"
+msgstr "星形"
 
 #: src/libslic3r/PrintConfig.cpp:825
 msgid "Cubic"
@@ -6666,7 +6666,7 @@ msgid ""
 "This feature allows to combine infill and speed up your print by extruding "
 "thicker infill layers while preserving thin perimeters, thus accuracy."
 msgstr ""
-"此功能允许通过拉伸较厚的填充层来组合填充并加快打印速度，同时保持薄轮廓，从而"
+"此功能允许通过挤出较厚的填充层来组合填充并加快打印速度，同时保持薄轮廓，从而"
 "保持精度。"
 
 #: src/libslic3r/PrintConfig.cpp:972
@@ -6904,7 +6904,7 @@ msgstr "最小移动进给率 (M205 T)"
 
 #: src/libslic3r/PrintConfig.cpp:1180
 msgid "Maximum acceleration when extruding"
-msgstr "拉伸时的最大加速度"
+msgstr "挤出时的最大加速度"
 
 #: src/libslic3r/PrintConfig.cpp:1182
 msgid "Maximum acceleration when extruding (M204 S)"
@@ -6912,11 +6912,11 @@ msgstr "挤出时的最大加速度 (M204 S)"
 
 #: src/libslic3r/PrintConfig.cpp:1191
 msgid "Maximum acceleration when retracting"
-msgstr "回缩时的最大加速度"
+msgstr "回抽时的最大加速度"
 
 #: src/libslic3r/PrintConfig.cpp:1193
 msgid "Maximum acceleration when retracting (M204 T)"
-msgstr "缩回时的最大加速度 (M204 T)"
+msgstr "回抽时的最大加速度 (M204 T)"
 
 #: src/libslic3r/PrintConfig.cpp:1201 src/libslic3r/PrintConfig.cpp:1210
 msgid "Max"
@@ -7041,17 +7041,17 @@ msgstr "主机类型"
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field must contain "
 "the kind of the host."
-msgstr "Slic3r 可以将 G-code 文件上载到打印机主机。此字段必须包含主机的类型。"
+msgstr "Slic3r 可以将 G-code 文件上传到打印机主机。此字段必须包含主机的类型。"
 
 #: src/libslic3r/PrintConfig.cpp:1328
 msgid "Only retract when crossing perimeters"
-msgstr "仅在跨越轮廓时缩回"
+msgstr "仅在跨越轮廓时回抽"
 
 #: src/libslic3r/PrintConfig.cpp:1329
 msgid ""
 "Disables retraction when the travel path does not exceed the upper layer's "
 "perimeters (and thus any ooze will be probably invisible)."
-msgstr "当打印路径不超出前一层的轮廓时（此时任何渗出物不可见），禁用回缩。"
+msgstr "当打印路径不超出前一层的轮廓时（此时任何渗出物不可见），禁用回抽。"
 
 #: src/libslic3r/PrintConfig.cpp:1336
 msgid ""
@@ -7239,16 +7239,16 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:1501
 msgid "Minimum travel after retraction"
-msgstr "回缩最小行程"
+msgstr "回抽最小行程"
 
 #: src/libslic3r/PrintConfig.cpp:1502
 msgid ""
 "Retraction is not triggered when travel moves are shorter than this length."
-msgstr "当行驶移动短于此长度时，不会触发回缩。"
+msgstr "当打印移动短于此长度时，不会触发回抽。"
 
 #: src/libslic3r/PrintConfig.cpp:1508
 msgid "Retract amount before wipe"
-msgstr "擦拭前的回缩量"
+msgstr "擦拭前的回抽量"
 
 #: src/libslic3r/PrintConfig.cpp:1509
 msgid ""
@@ -7258,11 +7258,11 @@ msgstr "对于远程挤出机, 在做擦拭动作之前, 做一些快速的收�
 
 #: src/libslic3r/PrintConfig.cpp:1516
 msgid "Retract on layer change"
-msgstr "在图层更改时回缩"
+msgstr "在图层更改时回抽"
 
 #: src/libslic3r/PrintConfig.cpp:1517
 msgid "This flag enforces a retraction whenever a Z move is done."
-msgstr "每当完成 Z 移动时，都会强制回缩。"
+msgstr "每当完成 Z 移动时，都会强制回抽。"
 
 #: src/libslic3r/PrintConfig.cpp:1522 src/libslic3r/PrintConfig.cpp:1530
 msgid "Length"
@@ -7270,7 +7270,7 @@ msgstr "长度"
 
 #: src/libslic3r/PrintConfig.cpp:1523
 msgid "Retraction Length"
-msgstr "回缩长度"
+msgstr "回抽长度"
 
 #: src/libslic3r/PrintConfig.cpp:1524
 msgid ""
@@ -7278,7 +7278,7 @@ msgid ""
 "amount (the length is measured on raw filament, before it enters the "
 "extruder)."
 msgstr ""
-"触发回缩时，耗材丝按指定量拉回（长度在进入挤出机之前在原始耗材丝上测量）。"
+"触发回抽时，耗材丝按指定量拉回（长度在进入挤出机之前在原始耗材丝上测量）。"
 
 #: src/libslic3r/PrintConfig.cpp:1526 src/libslic3r/PrintConfig.cpp:1535
 msgid "mm (zero to disable)"
@@ -7286,7 +7286,7 @@ msgstr "mm (0禁用)"
 
 #: src/libslic3r/PrintConfig.cpp:1531
 msgid "Retraction Length (Toolchange)"
-msgstr "回缩长度 (工具更换)"
+msgstr "回抽长度 (工具更换)"
 
 #: src/libslic3r/PrintConfig.cpp:1532
 msgid ""
@@ -7294,7 +7294,7 @@ msgid ""
 "by the specified amount (the length is measured on raw filament, before it "
 "enters the extruder)."
 msgstr ""
-"在更换热头之前触发回缩时，耗材丝按指定量拉回（长度在进入挤出机之前在原始耗材"
+"在更换热头之前触发回抽时，耗材丝按指定量拉回（长度在进入挤出机之前在原始耗材"
 "丝上测量）。"
 
 #: src/libslic3r/PrintConfig.cpp:1540
@@ -7307,7 +7307,7 @@ msgid ""
 "retraction is triggered. When using multiple extruders, only the setting for "
 "the first extruder will be considered."
 msgstr ""
-"如果将此值设置为正值，则每次触发回缩时都会快速引发 Z。使用多个挤出机时，仅考"
+"如果将此值设置为正值，则每次触发回抽时都会快速引发 Z。使用多个挤出机时，仅考"
 "虑第一个挤出机的设置。"
 
 #: src/libslic3r/PrintConfig.cpp:1548
@@ -7353,13 +7353,13 @@ msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
-"当回缩在行驶后得到补偿时，挤出机将推进这个额外的耗材丝量。很少需要此设置。"
+"当回抽在打印后得到补偿时，挤出机将推进这个额外的耗材丝量。很少需要此设置。"
 
 #: src/libslic3r/PrintConfig.cpp:1576
 msgid ""
 "When the retraction is compensated after changing tool, the extruder will "
 "push this additional amount of filament."
-msgstr "当更换热头后补偿回缩时，挤出机将推进这额外的耗材丝量。"
+msgstr "当更换热头后补偿回抽时，挤出机将推进这额外的耗材丝量。"
 
 #: src/libslic3r/PrintConfig.cpp:1583 src/libslic3r/PrintConfig.cpp:1584
 msgid "Retraction Speed"
@@ -7367,7 +7367,7 @@ msgstr "回抽速度"
 
 #: src/libslic3r/PrintConfig.cpp:1585
 msgid "The speed for retractions (it only applies to the extruder motor)."
-msgstr "回缩速度 (仅适用于挤出机电机)."
+msgstr "回抽速度 (仅适用于挤出机电机)."
 
 #: src/libslic3r/PrintConfig.cpp:1591 src/libslic3r/PrintConfig.cpp:1592
 msgid "Deretraction Speed"
@@ -7379,7 +7379,7 @@ msgid ""
 "applies to the extruder motor). If left to zero, the retraction speed is "
 "used."
 msgstr ""
-"收回后将耗材丝装入挤出机的速度 (仅适用于挤出机电机)。如果保持为零, 则使用回缩"
+"收回后将耗材丝装入挤出机的速度 (仅适用于挤出机电机)。如果保持为零, 则使用回抽"
 "速度。"
 
 #: src/libslic3r/PrintConfig.cpp:1600
@@ -7641,7 +7641,7 @@ msgstr "装填所有印刷挤出机"
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
-msgstr "如果启用, 所有打印挤出机都将在打印开始时在打印床的前缘进行装填。"
+msgstr "如果启用, 所有打印挤出机都将在打印开始时在构建板的前缘进行装填。"
 
 #: src/libslic3r/PrintConfig.cpp:1829
 msgid "Generate support material"
@@ -7879,7 +7879,8 @@ msgstr "检测薄壁"
 msgid ""
 "Detect single-width walls (parts where two extrusions don't fit and we need "
 "to collapse them into a single trace)."
-msgstr "检测单宽度壁（两个拉伸不适合的零件，我们需要将它们折叠成单个轨迹）。"
+msgstr ""
+"检测单宽度壁（无法容纳两个挤出线的零件，我们需要将它们折叠成单个轨迹）。"
 
 #: src/libslic3r/PrintConfig.cpp:2044
 msgid "Threads"
@@ -7914,9 +7915,9 @@ msgid ""
 "will be used if set, otherwise nozzle diameter will be used. If expressed as "
 "percentage (for example 90%) it will be computed over layer height."
 msgstr ""
-"此值设置为非零值，以设置用于顶曲面填充的手动拉伸宽度。您可能需要使用较薄的拉"
-"伸来填充所有狭窄的区域，并获得更平滑的完成。如果左为零，则如果设置，将使用默"
-"认拉伸宽度，否则将使用喷嘴直径。如果以百分比表示（例如 90%）它将在层高度上计"
+"此值设置为非零值，以设置用于顶曲面填充的手动挤出宽度。您可能需要使用较薄的挤"
+"出来填充所有狭窄的区域，并获得更平滑的完成。如果左为零，则如果设置，将使用默"
+"认挤出宽度，否则将使用喷嘴直径。如果以百分比表示（例如 90%）它将在层高度上计"
 "算。"
 
 #: src/libslic3r/PrintConfig.cpp:2081
@@ -7941,7 +7942,7 @@ msgstr "顶部实心层"
 
 #: src/libslic3r/PrintConfig.cpp:2103
 msgid "Speed for travel moves (jumps between distant extrusion points)."
-msgstr "行驶移动的速度（在远处挤出点之间跳跃）。"
+msgstr "打印移动的速度（在远处挤出点之间跳跃）。"
 
 #: src/libslic3r/PrintConfig.cpp:2111
 msgid "Use firmware retraction"
@@ -7952,7 +7953,7 @@ msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
-"此实验设置使用 G10 和 G11 命令让固件处理回缩。这在最近马林中才得到支持。"
+"此实验设置使用 G10 和 G11 命令让固件处理回抽。这在最近Marlin中才得到支持。"
 
 #: src/libslic3r/PrintConfig.cpp:2118
 msgid "Use relative E distances"
@@ -7963,7 +7964,7 @@ msgid ""
 "If your firmware requires relative E values, check this, otherwise leave it "
 "unchecked. Most firmwares use absolute values."
 msgstr ""
-"如果您的固件需要相对的 E 值，请检查这一点，否则将不选中它。大多数固件使用绝对"
+"如果您的固件需要相对的 E 值，请检查这一点，否则不要选中它。大多数固件使用绝对"
 "值。"
 
 #: src/libslic3r/PrintConfig.cpp:2125
@@ -8023,7 +8024,7 @@ msgid ""
 "wipe tower. These values are used to simplify creation of the full purging "
 "volumes below."
 msgstr ""
-"此矢量保存所需的体积，以便从/到擦除塔上使用的每个工具。这些值用于简化以下完整"
+"此矢量保存所需的体积，以便从/到擦料塔上使用的每个工具。这些值用于简化以下完整"
 "清除量的创建。"
 
 #: src/libslic3r/PrintConfig.cpp:2164
@@ -8035,7 +8036,7 @@ msgid ""
 "This matrix describes volumes (in cubic milimetres) required to purge the "
 "new filament on the wipe tower for any given pair of tools."
 msgstr ""
-"此矩阵描述清除擦除塔上任何给定工具对的新耗材丝所需的体积（以立方米为单位）。"
+"此矩阵描述清除擦料塔上任何给定工具对的新耗材丝所需的体积（以立方米为单位）。"
 
 #: src/libslic3r/PrintConfig.cpp:2174
 msgid "Position X"
@@ -8051,7 +8052,7 @@ msgstr "纵向位置Y"
 
 #: src/libslic3r/PrintConfig.cpp:2182
 msgid "Y coordinate of the left front corner of a wipe tower"
-msgstr "擦拭塔左前角的 Y 坐标"
+msgstr "擦料塔左前角的 Y 坐标"
 
 #: src/libslic3r/PrintConfig.cpp:2189
 msgid "Width of a wipe tower"
@@ -8063,7 +8064,7 @@ msgstr "擦料塔旋转角度"
 
 #: src/libslic3r/PrintConfig.cpp:2196
 msgid "Wipe tower rotation angle with respect to x-axis."
-msgstr "相对于 x 轴擦拭塔旋转角度。"
+msgstr "相对于 x 轴擦料塔旋转角度。"
 
 #: src/libslic3r/PrintConfig.cpp:2203
 msgid "Wipe into this object's infill"
@@ -8088,7 +8089,7 @@ msgid ""
 "that would otherwise end up in the wipe tower and decrease print time. "
 "Colours of the objects will be mixed as a result."
 msgstr ""
-"对象将用于在工具更改后清除喷嘴, 以节省在擦除塔中浪费的材料并减少打印时间。因"
+"对象将用于在工具更改后清除喷嘴, 以节省在擦料塔中浪费的材料并减少打印时间。因"
 "此, 对象的颜色将混合在一起。"
 
 #: src/libslic3r/PrintConfig.cpp:2218
@@ -8123,9 +8124,9 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
-"此值将从输出 G 代码中的所有 Z 坐标中添加（或减去）。它用于补偿损坏的 Z 端挡位"
-"置：例如，如果端挡零实际离开喷嘴 0.3 mm远离打印床，将其设置为 -0.3（或修复端"
-"挡）。"
+"此值将从输出 G 代码中的所有 Z 坐标中添加(或减去)。它用于补偿损坏的 Z 端限位器"
+"置：例如，如果限位器零实际离开喷嘴 0.3 mm远离构建板(打印床)，将其设置为 "
+"-0.3（或调整限位器）。"
 
 #: src/libslic3r/PrintConfig.cpp:2294
 msgid "Display width"
