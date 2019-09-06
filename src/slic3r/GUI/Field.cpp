@@ -189,7 +189,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
     case coFloatOrPercent: {
         if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
         {
-            double val;
+            double val = 0.;
 			// Replace the first occurence of comma in decimal number.
 			str.Replace(",", ".", false);
             if (check_value && !str.ToCDouble(&val))
@@ -198,7 +198,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 set_value(double_to_string(val), true);
             }
             else if (check_value && ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
-                     m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1) && 
+                     (m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)) &&
                      (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
             {
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
