@@ -3113,6 +3113,8 @@ void Plater::priv::reload_from_disk()
             }
         }
 
+        sidebar->obj_list()->increase_object_instances(idx, object_orig->instances.size());
+
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
