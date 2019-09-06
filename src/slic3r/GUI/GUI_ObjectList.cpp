@@ -1074,8 +1074,8 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
 static bool improper_category(const std::string& category, const int extruders_cnt, const bool is_object_settings = true)
 {
     return  category.empty() || 
-            extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options" ) ||
-            !is_object_settings && category == "Support material";
+            (extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options" )) ||
+            (!is_object_settings && category == "Support material");
 }
 
 void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)

@@ -668,7 +668,7 @@ void ObjectManipulation::update_mirror_buttons_visibility()
     wxGetApp().CallAfter([this, new_states]{
         for (int i=0; i<3; ++i) {
             if (new_states[i] != m_mirror_buttons[i].second) {
-                const ScalableBitmap* bmp;
+                const ScalableBitmap* bmp = nullptr;
                 switch (new_states[i]) {
                     case mbHidden : bmp = &m_mirror_bitmap_hidden; m_mirror_buttons[i].first->Enable(false); break;
                     case mbShown  : bmp = &m_mirror_bitmap_off; m_mirror_buttons[i].first->Enable(true); break;

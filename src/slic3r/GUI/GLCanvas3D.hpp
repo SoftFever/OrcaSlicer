@@ -434,7 +434,6 @@ private:
     bool m_initialized;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
-    bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
     bool m_moving_enabled;

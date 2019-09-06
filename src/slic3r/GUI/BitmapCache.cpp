@@ -57,7 +57,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
         m_map[bitmap_key] = bitmap;
     } else {
         bitmap = it->second;
-        if (bitmap->GetWidth() != width || bitmap->GetHeight() != height)
+        if (size_t(bitmap->GetWidth()) != width || size_t(bitmap->GetHeight()) != height)
             bitmap->Create(width, height);
     }
 #ifndef BROKEN_ALPHA
@@ -194,7 +194,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
 }
 
-wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height, 
+wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, unsigned height,
     const bool grayscale/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( height !=0 ? 
@@ -211,10 +211,10 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int wid
         image.GetWidth() == 0 || image.GetHeight() == 0)
         return nullptr;
 
-    if (height != 0 && image.GetHeight() != height)
-        width   = int(0.5f + float(image.GetWidth()) * height / image.GetHeight());
-    else if (width != 0 && image.GetWidth() != width)
-        height  = int(0.5f + float(image.GetHeight()) * width / image.GetWidth());
+    if (height != 0 && unsigned(image.GetHeight()) != height)
+        width   = unsigned(0.5f + float(image.GetWidth()) * height / image.GetHeight());
+    else if (width != 0 && unsigned(image.GetWidth()) != width)
+        height  = unsigned(0.5f + float(image.GetHeight()) * width / image.GetWidth());
 
     if (height != 0 && width != 0)
         image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);

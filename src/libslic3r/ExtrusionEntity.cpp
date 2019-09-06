@@ -8,6 +8,8 @@
 #include <limits>
 #include <sstream>
 
+#define L(s) (s)
+
 namespace Slic3r {
     
 void
@@ -317,5 +319,40 @@ ExtrusionLoop::min_mm3_per_mm() const
         min_mm3_per_mm = std::min(min_mm3_per_mm, path->mm3_per_mm);
     return min_mm3_per_mm;
 }
+
+
+std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
+{
+    switch (role) {
+        case erNone                         : return L("None");
+        case erPerimeter                    : return L("Perimeter");
+        case erExternalPerimeter            : return L("External perimeter");
+        case erOverhangPerimeter            : return L("Overhang perimeter");
+        case erInternalInfill               : return L("Internal infill");
+        case erSolidInfill                  : return L("Solid infill");
+        case erTopSolidInfill               : return L("Top solid infill");
+        case erBridgeInfill                 : return L("Bridge infill");
+        case erGapFill                      : return L("Gap fill");
+        case erSkirt                        : return L("Skirt");
+        case erSupportMaterial              : return L("Support material");
+        case erSupportMaterialInterface     : return L("Support material interface");
+        case erWipeTower                    : return L("Wipe tower");
+        case erCustom                       : return L("Custom");
+        case erMixed                        : return L("Mixed");
+        default                             : assert(false);
+    }
+    return "";
+}
+
+//std::string ExtrusionLoop::role_to_string(ExtrusionLoopRole role)
+//{
+//    switch (role) {
+//        case elrDefault                 : return "elrDefault";
+//        case elrContourInternalPerimeter: return "elrContourInternalPerimeter";
+//        case elrSkirt                   : return "elrSkirt";
+//        default                         : assert(false);
+//    }
+//};
+
 
 }

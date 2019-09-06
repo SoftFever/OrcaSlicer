@@ -86,11 +86,12 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 //#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
 
-void LayerRegion::process_external_surfaces(const Layer* lower_layer)
+void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
-    const Surfaces &surfaces = this->fill_surfaces.surfaces;
-    const double margin = scale_(EXTERNAL_INFILL_MARGIN);
-    
+    const Surfaces &surfaces   = this->fill_surfaces.surfaces;
+    const bool      has_infill = this->region()->config().fill_density.value > 0.;
+    const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
+
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
@@ -106,36 +107,44 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
     // Internal surfaces, not grown.
     Surfaces                    internal;
     // Areas, where an infill of various types (top, bottom, bottom bride, sparse, void) could be placed.
-    //FIXME if non zero infill, then fill_boundaries could be cheaply initialized from layerm->fill_expolygons.
-    Polygons                    fill_boundaries;
+    Polygons                    fill_boundaries = to_polygons(this->fill_expolygons);
+    Polygons  					lower_layer_covered_tmp;
 
     // Collect top surfaces and internal surfaces.
     // Collect fill_boundaries: If we're slicing with no infill, we can't extend external surfaces over non-existent infill.
     // This loop destroys the surfaces (aliasing this->fill_surfaces.surfaces) by moving into top/internal/fill_boundaries!
+
     {
-        // bottom_polygons are used to trim inflated top surfaces.
-        fill_boundaries.reserve(number_polygons(surfaces));
-        bool has_infill = this->region()->config().fill_density.value > 0.;
+        // Voids are sparse infills if infill rate is zero.
+        Polygons voids;
         for (const Surface &surface : this->fill_surfaces.surfaces) {
             if (surface.surface_type == stTop) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
                 // This gives the priority to bottom surfaces.
-                surfaces_append(top, offset_ex(surface.expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
-            } else if (surface.surface_type == stBottom || (surface.surface_type == stBottomBridge && lower_layer == NULL)) {
+                surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+            } else if (surface.surface_type == stBottom || (surface.surface_type == stBottomBridge && lower_layer == nullptr)) {
                 // Grown by 3mm.
-                surfaces_append(bottom, offset_ex(surface.expolygon, float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+                surfaces_append(bottom, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
             } else if (surface.surface_type == stBottomBridge) {
                 if (! surface.empty())
-                    bridges.push_back(surface);
+                    bridges.emplace_back(surface);
             }
-            bool internal_surface = surface.surface_type != stTop && ! surface.is_bottom();
-            if (has_infill || surface.surface_type != stInternal) {
-                if (internal_surface)
-                    // Make a copy as the following line uses the move semantics.
-                    internal.push_back(surface);
-                polygons_append(fill_boundaries, std::move(surface.expolygon));
-            } else if (internal_surface)
-                internal.push_back(std::move(surface));
+            if (surface.is_internal()) {
+            	assert(surface.surface_type == stInternal);
+            	if (! has_infill && lower_layer != nullptr)
+            		polygons_append(voids, surface.expolygon);
+            	internal.emplace_back(std::move(surface));
+            }
+        }
+        if (! has_infill && lower_layer != nullptr && ! voids.empty()) {
+        	// Remove voids from fill_boundaries, that are not supported by the layer below.
+            if (lower_layer_covered == nullptr) {
+            	lower_layer_covered = &lower_layer_covered_tmp;
+            	lower_layer_covered_tmp = to_polygons(lower_layer->slices.expolygons);
+            }
+            if (! lower_layer_covered->empty())
+            	voids = diff(voids, *lower_layer_covered);
+        	fill_boundaries = diff(fill_boundaries, voids);
         }
     }
 
@@ -184,9 +193,9 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(to_polygons(bridges[i].expolygon), float(margin), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset(to_polygons(bridges[i].expolygon), margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
-                    printf("Bridge did not fall into the source region!\r\n");
+				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {
                     // Found an island, to which this bridge region belongs. Trim it,
                     polys = intersection(polys, to_polygons(fill_boundaries_ex[idx_island]));

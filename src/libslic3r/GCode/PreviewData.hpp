@@ -80,9 +80,8 @@ public:
             Num_View_Types
         };
 
-        static const unsigned int Num_Extrusion_Roles = (unsigned int)erMixed + 1;
-        static const Color Default_Extrusion_Role_Colors[Num_Extrusion_Roles];
-        static const std::string Default_Extrusion_Role_Names[Num_Extrusion_Roles];
+        static const Color Default_Extrusion_Role_Colors[erCount];
+        static const std::string Default_Extrusion_Role_Names[erCount];
         static const EViewType Default_View_Type;
 
         struct Layer
@@ -96,8 +95,8 @@ public:
         typedef std::vector<Layer> LayersList;
 
         EViewType view_type;
-        Color role_colors[Num_Extrusion_Roles];
-        std::string role_names[Num_Extrusion_Roles];
+        Color role_colors[erCount];
+        std::string role_names[erCount];
         LayersList layers;
         unsigned int role_flags;
 

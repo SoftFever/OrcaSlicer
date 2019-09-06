@@ -32,9 +32,9 @@ public:
 	wxBitmap* 		insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, float scale = 1.0f, const bool grayscale = false);
 
 	// Load png from resources/icons. bitmap_key is given without the .png suffix. Bitmap will be rescaled to provided height/width if nonzero.
-    wxBitmap* 		load_png(const std::string &bitmap_key, unsigned int width = 0, unsigned int height = 0, const bool grayscale = false);
+    wxBitmap* 		load_png(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false);
 	// Load svg from resources/icons. bitmap_key is given without the .svg suffix. SVG will be rasterized to provided height/width.
-    wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned int width = 0, unsigned int height = 0, float scale = 1.0f, const bool grayscale = false);
+    wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, float scale = 1.0f, const bool grayscale = false);
 
 	static wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency);
 	static wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3]) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }

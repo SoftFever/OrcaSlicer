@@ -363,12 +363,14 @@ private:
 	MutableHistoryInterval& operator=(const MutableHistoryInterval &rhs);
 };
 
+#ifdef SLIC3R_UNDOREDO_DEBUG
 static inline std::string ptr_to_string(const void* ptr)
 {
 	char buf[64];
 	sprintf(buf, "%p", ptr);
 	return buf;
 }
+#endif
 
 // Smaller objects (Model, ModelObject, ModelInstance, ModelVolume, DynamicPrintConfig)
 // are mutable and there is not tracking of the changes, therefore a snapshot needs to be
