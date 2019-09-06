@@ -3087,6 +3087,9 @@ void Plater::priv::reload_from_disk()
     auto *object_orig = model.objects[obj_orig_idx];
     std::vector<fs::path> input_paths(1, object_orig->input_file);
 
+    // disable render to avoid to show intermediate states
+    view3D->get_canvas3d()->enable_render(false);
+
     const auto new_idxs = load_files(input_paths, true, false);
 
     for (const auto idx : new_idxs) {
@@ -3107,6 +3110,9 @@ void Plater::priv::reload_from_disk()
     }
 
     remove(obj_orig_idx);
+
+    // re-enable render 
+    view3D->get_canvas3d()->enable_render(true);
 
     // the previous call to remove() clears the selection
     // select newly added objects
