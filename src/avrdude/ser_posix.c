@@ -90,7 +90,7 @@ static speed_t serial_baud_lookup(long baud)
    * If a non-standard BAUD rate is used, issue
    * a warning (if we are verbose) and return the raw rate
    */
-  avrdude_message(MSG_NOTICE, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+  avrdude_message(MSG_NOTICE, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld\n",
               progname, baud);
 
   return baud;
@@ -110,7 +110,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
    */
   rc = tcgetattr(fd->ifd, &termios);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcgetattr() failed",
+    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcgetattr() failed\n",
             progname);
     return -errno;
   }
