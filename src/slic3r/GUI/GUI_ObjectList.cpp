@@ -789,16 +789,11 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 void ObjectList::list_manipulation()
 {
     wxDataViewItem item;
-    wxDataViewColumn* col;
+    wxDataViewColumn* col = nullptr;
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
-#ifdef __WXOSX__ // temporary workaround for OSX 
-                 // after Yosemite OS X version, HitTest return undefined item
-    if (!item) item = GetSelection();
-#endif // __WXOSX__
 
-    if (!item) {
-        printf("undefined item\n");
+    if (!item || col == nullptr) {
         return;
     }
 
