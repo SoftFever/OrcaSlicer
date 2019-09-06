@@ -302,8 +302,9 @@ bool GUI_App::on_init_inner()
      * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
      * after first whole Mainframe updating/layouting
      */
-    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
-        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
+    const int list_min_height = 15 * em_unit();
+    if (obj_list()->GetMinSize().GetY() > list_min_height)
+        obj_list()->SetMinSize(wxSize(-1, list_min_height));
 
     update_mode(); // update view mode after fix of the object_list size
 
@@ -474,8 +475,9 @@ void GUI_App::recreate_GUI()
     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
     * after first whole Mainframe updating/layouting
     */
-    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
-        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
+    const int list_min_height = 15 * em_unit();
+    if (obj_list()->GetMinSize().GetY() > list_min_height)
+        obj_list()->SetMinSize(wxSize(-1, list_min_height));
 
     update_mode();
 
@@ -908,11 +910,13 @@ bool GUI_App::check_unsaved_changes(const wxString &header)
     wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
-        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
+        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
             if (dirty.empty())
                 dirty = tab->title();
             else
                 dirty += wxString(", ") + tab->title();
+        }
+
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;
@@ -1085,7 +1089,7 @@ void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &na
 
 void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
 {
-    unsigned display_idx = wxDisplay::GetFromWindow(window);
+    /*unsigned*/int display_idx = wxDisplay::GetFromWindow(window);
     wxRect display;
     if (display_idx == wxNOT_FOUND) {
         display = wxDisplay(0u).GetClientArea();

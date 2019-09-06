@@ -29,7 +29,7 @@ namespace GUI
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
 // pt_FFF
-SettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
+static SettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
 {
     { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers" } },
     { L("Infill")               , { "fill_density", "fill_pattern" } },
@@ -40,13 +40,13 @@ SettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
 };
 
 // pt_SLA
-SettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
+static SettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
 {
     { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
 };
 
 // Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
-std::vector<std::pair<std::string, std::string>> ADD_VOLUME_MENU_ITEMS = { 
+static std::vector<std::pair<std::string, std::string>> ADD_VOLUME_MENU_ITEMS = {
 //     menu_item Name            menu_item bitmap name
     {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
     {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
@@ -126,7 +126,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #ifdef __WXMSW__
 		// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		int new_selected_column = -1;
-#endif __WXMSW__
+#endif //__WXMSW__
         if (wxGetKeyState(WXK_SHIFT))
         {
             wxDataViewItemArray sels;
@@ -149,12 +149,12 @@ ObjectList::ObjectList(wxWindow* parent) :
 	        	wxUIActionSimulator sim;
 				sim.Char(WXK_RETURN);
 	        }
-#endif __WXMSW__
+#endif //__WXMSW__
 	        m_last_selected_item = new_selected_item;
         }
 #ifdef __WXMSW__
         m_last_selected_column = new_selected_column;
-#endif __WXMSW__
+#endif //__WXMSW__
 
         selection_changed();
 #ifndef __WXMSW__
@@ -192,7 +192,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->undo();  					}, wxID_UNDO);
         this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->redo();                    	}, wxID_REDO);
     }
-#else __WXOSX__
+#else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 #endif
 
@@ -281,9 +281,9 @@ void ObjectList::create_popup_menus()
     create_instance_popupmenu(&m_menu_instance);
 }
 
-void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(0)*/)
+void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(nullptr)*/)
 {
-    const wxDataViewItem item = input_item == wxDataViewItem(0) ? GetSelection() : input_item;
+    const wxDataViewItem item = input_item == wxDataViewItem(nullptr) ? GetSelection() : input_item;
 
     if (!item)
     {
@@ -737,7 +737,7 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     if (items.size() > 1)
     {
         m_selection_mode = smVolume;
-        m_last_selected_item = wxDataViewItem(0);
+        m_last_selected_item = wxDataViewItem(nullptr);
     }
 
     select_items(items);
@@ -844,7 +844,7 @@ void ObjectList::show_context_menu()
 
         wxMenu* menu = type & itInstance ? &m_menu_instance :
                        type & itLayer ? &m_menu_layer :
-                       m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
+                       m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? &m_menu_part :
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
         if (!(type & itInstance))
@@ -915,9 +915,9 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 
     const bool mult_sel = multiple_selection();
 
-    if (mult_sel && !selected_instances_of_same_object() ||
-        !mult_sel && (GetSelection() != item ||
-        m_objects_model->GetParent(item) == wxDataViewItem(0) ) ) {
+    if ((mult_sel && !selected_instances_of_same_object()) ||
+        (!mult_sel && (GetSelection() != item)) ||
+        m_objects_model->GetParent(item) == wxDataViewItem(nullptr) ) {
         event.Veto();
         return;
     }
@@ -962,10 +962,10 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 
 bool ObjectList::can_drop(const wxDataViewItem& item) const 
 {
-    return  m_dragged_data.type() == itInstance && !item.IsOk()     ||
-            m_dragged_data.type() == itVolume && item.IsOk() &&
+    return (m_dragged_data.type() == itInstance && !item.IsOk())     ||
+           (m_dragged_data.type() == itVolume && item.IsOk() &&
             m_objects_model->GetItemType(item) == itVolume &&
-            m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item);
+            m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item));
 }
 
 void ObjectList::OnDropPossible(wxDataViewEvent &event)
@@ -1331,7 +1331,7 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
         return;
     }
     
-    for (int type = mode == comExpert ? 0 : 1 ; type < ADD_VOLUME_MENU_ITEMS.size(); type++)
+    for (size_t type = (mode == comExpert ? 0 : 1) ; type < ADD_VOLUME_MENU_ITEMS.size(); type++)
     {
         auto& item = ADD_VOLUME_MENU_ITEMS[type];
 
@@ -1402,7 +1402,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     // Create new items for settings popupmenu
 
     if (printer_technology() == ptFFF ||
-        menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator())
+       (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
         menu->SetFirstSeparator();
 
     // Add frequently settings
@@ -1435,9 +1435,9 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWind
         [this](wxCommandEvent&) { split_instances(); }, "", menu, [](){return wxGetApp().plater()->can_set_instance_to_object(); }, parent);
 }
 
-wxMenuItem* ObjectList::append_menu_item_printable(wxMenu* menu, wxWindow* parent)
+wxMenuItem* ObjectList::append_menu_item_printable(wxMenu* menu, wxWindow* /*parent*/)
 {
-    return append_menu_check_item(menu, wxID_ANY, _(L("Printable")), "", [this](wxCommandEvent&) {
+    return append_menu_check_item(menu, wxID_ANY, _(L("Printable")), "", [](wxCommandEvent&) {
         wxGetApp().plater()->canvas3D()->get_selection().toggle_instance_printable_state();
         }, menu);
 }
@@ -1510,7 +1510,7 @@ void ObjectList::append_menu_item_delete(wxMenu* menu)
 void ObjectList::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _(L("Scale to print volume")), _(L("Scale the selected object to fit the print volume")),
-        [this](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+        [](wxCommandEvent&) { wxGetApp().plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
 void ObjectList::create_object_popupmenu(wxMenu *menu)
@@ -1576,7 +1576,7 @@ void ObjectList::create_instance_popupmenu(wxMenu*menu)
      * 2. Separate selected instances from the initial object to the separated object,
      *    if some (not all) instances are selected
      */
-    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
 //         evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
         evt.SetText(wxGetApp().plater()->canvas3D()->get_selection().is_single_full_object() ? 
                     _(L("Set as a Separated Objects")) : _(L("Set as a Separated Object")));
@@ -1588,7 +1588,7 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     wxMenu *menu = new wxMenu;
 
     settings_menu_hierarchy settings_menu;
-    const bool is_part = m_objects_model->GetParent(GetSelection()) != wxDataViewItem(0);
+    const bool is_part = m_objects_model->GetParent(GetSelection()) != wxDataViewItem(nullptr);
     get_options_menu(settings_menu, is_part);
 
     for (auto cat : settings_menu) {
@@ -1681,7 +1681,7 @@ void ObjectList::load_part( ModelObject* model_object,
 
     wxArrayString input_files;
     wxGetApp().import_model(parent, input_files);
-    for (int i = 0; i < input_files.size(); ++i) {
+    for (size_t i = 0; i < input_files.size(); ++i) {
         std::string input_file = input_files.Item(i).ToUTF8().data();
 
         Model model;
@@ -1719,7 +1719,7 @@ void ObjectList::load_part( ModelObject* model_object,
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
 {
-    const auto obj_idx = get_selected_obj_idx();
+    const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) 
         return;
 
@@ -1852,9 +1852,9 @@ void ObjectList::del_settings_from_config(const wxDataViewItem& parent_item)
 {
     const bool is_layer_settings = m_objects_model->GetItemType(parent_item) == itLayer;
 
-    const int opt_cnt = m_config->keys().size();
-    if (opt_cnt == 1 && m_config->has("extruder") || 
-        is_layer_settings && opt_cnt == 2 && m_config->has("extruder") && m_config->has("layer_height"))
+    const size_t opt_cnt = m_config->keys().size();
+    if ((opt_cnt == 1 && m_config->has("extruder")) ||
+        (is_layer_settings && opt_cnt == 2 && m_config->has("extruder") && m_config->has("layer_height")))
         return;
 
     take_snapshot(_(L("Delete Settings")));
@@ -2052,13 +2052,13 @@ wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)
     if (obj_idx < 0 || 
         object(obj_idx)->layer_config_ranges.empty() ||
         printer_technology() == ptSLA)
-        return wxDataViewItem(0);
+        return wxDataViewItem(nullptr);
 
     // create LayerRoot item
     wxDataViewItem layers_item = m_objects_model->AddLayersRoot(obj_item);
 
     // and create Layer item(s) according to the layer_config_ranges
-    for (const auto range : object(obj_idx)->layer_config_ranges)
+    for (const auto& range : object(obj_idx)->layer_config_ranges)
         add_layer_item(range.first, layers_item);
 
     Expand(layers_item);
@@ -2150,7 +2150,7 @@ void ObjectList::part_selection_changed()
 
     const auto item = GetSelection();
 
-    if ( multiple_selection() || item && m_objects_model->GetItemType(item) == itInstanceRoot ) 
+    if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot ))
     {
         og_name = _(L("Group manipulation"));
 
@@ -2162,7 +2162,7 @@ void ObjectList::part_selection_changed()
     {
         if (item)
         {
-            if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+            if (m_objects_model->GetParent(item) == wxDataViewItem(nullptr)) {
                 obj_idx = m_objects_model->GetIdByItem(item);
                 og_name = _(L("Object manipulation"));
                 m_config = &(*m_objects)[obj_idx]->config;
@@ -2281,7 +2281,7 @@ SettingsBundle ObjectList::get_item_settings_bundle(const DynamicPrintConfig* co
 // Add new SettingsItem for parent_item if it doesn't exist, or just update a digest according to new config
 wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config)
 {
-    wxDataViewItem ret = wxDataViewItem(0);
+    wxDataViewItem ret = wxDataViewItem(nullptr);
 
     if (!parent_item)
         return ret;
@@ -2337,7 +2337,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     if (model_object->instances.size()>1)
     {
         std::vector<bool> print_idicator(model_object->instances.size());
-        for (int i = 0; i < model_object->instances.size(); ++i)
+        for (size_t i = 0; i < model_object->instances.size(); ++i)
             print_idicator[i] = model_object->instances[i]->printable;
 
         const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
@@ -2364,7 +2364,7 @@ void ObjectList::delete_object_from_list()
     auto item = GetSelection();
     if (!item) 
         return;
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+    if (m_objects_model->GetParent(item) == wxDataViewItem(nullptr))
         select_item(m_objects_model->Delete(item));
     else
         select_item(m_objects_model->Delete(m_objects_model->GetParent(item)));
@@ -2521,7 +2521,7 @@ void ObjectList::remove()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
-    wxDataViewItem parent = wxDataViewItem(0);
+    wxDataViewItem parent = wxDataViewItem(nullptr);
 
     if (sels.Count() == 1)
         parent = delete_item(GetSelection());
@@ -2588,7 +2588,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
     {
         take_snapshot(_(L("Add Height Range")));
 
-        const t_layer_height_range& new_range = { last_range.second, last_range.second + 2.0f };
+        const t_layer_height_range& new_range = { last_range.second, last_range.second + 2. };
         ranges[new_range] = get_default_layer_config(obj_idx);
         add_layer_item(new_range, layers_item);
     }
@@ -2611,7 +2611,7 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range& curre
             if (delta < get_min_layer_height(old_config.opt_int("extruder"))/*0.05f*/) // next range division has no sense 
                 return; 
 
-            const coordf_t midl_layer = next_range.first + 0.5f * delta;
+            const coordf_t midl_layer = next_range.first + 0.5 * delta;
             
             t_layer_height_range new_range = { midl_layer, next_range.second };
 
@@ -2711,7 +2711,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 
     if (root_item.IsOk())
         // create Layer item(s) according to the layer_config_ranges
-        for (const auto r : ranges)
+        for (const auto& r : ranges)
             add_layer_item(r.first, root_item);
 
     select_item(sel_type&itLayer ? m_objects_model->GetItemByLayerRange(obj_idx, new_range) : root_item);
@@ -3028,7 +3028,7 @@ void ObjectList::select_item_all_children()
 
     // There is no selection before OR some object is selected   =>  select all objects
     if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
-        for (int i = 0; i < m_objects->size(); i++)
+        for (size_t i = 0; i < m_objects->size(); i++)
             sels.Add(m_objects_model->GetItemById(i));
         m_selection_mode = smInstance;
     }
@@ -3054,7 +3054,7 @@ void ObjectList::update_selection_mode()
     // All items are unselected 
     if (!GetSelection())
     {
-        m_last_selected_item = wxDataViewItem(0);
+        m_last_selected_item = wxDataViewItem(nullptr);
         m_selection_mode = smUndef;
         return;
     }
@@ -3096,9 +3096,9 @@ bool ObjectList::check_last_selection(wxString& msg_str)
     if (impossible_multi_selection(itVolume, smVolume) ||
         impossible_multi_selection(itLayer,  smLayer ) ||
         type & itSettings ||
-        type & itVolume   && !(m_selection_mode & smVolume  ) ||
-        type & itLayer    && !(m_selection_mode & smLayer   ) ||
-        type & itInstance && !(m_selection_mode & smInstance)
+        (type & itVolume   && !(m_selection_mode & smVolume  )) ||
+        (type & itLayer    && !(m_selection_mode & smLayer   )) ||
+        (type & itInstance && !(m_selection_mode & smInstance))
         )
     {
         // Inform user why selection isn't complited
@@ -3151,7 +3151,7 @@ void ObjectList::fix_multiselection_conflicts()
 
         const ItemType item_type = m_selection_mode & smVolume ? itVolume : itLayer;
 
-        for (const auto child : children)
+        for (const auto& child : children)
             if (IsSelected(child) && m_objects_model->GetItemType(child) & item_type)
                 sels.Add(child);
 
@@ -3161,7 +3161,7 @@ void ObjectList::fix_multiselection_conflicts()
     }
     else
     {
-        for (const auto item : sels)
+        for (const auto& item : sels)
         {
             if (!IsSelected(item)) // if this item is unselected now (from previous actions)
                 continue;
@@ -3172,13 +3172,13 @@ void ObjectList::fix_multiselection_conflicts()
             }
 
             const wxDataViewItem& parent = m_objects_model->GetParent(item);
-            if (parent != wxDataViewItem(0) && IsSelected(parent))
+            if (parent != wxDataViewItem(nullptr) && IsSelected(parent))
                 Unselect(parent);
             else
             {
                 wxDataViewItemArray unsels;
                 m_objects_model->GetAllChildren(item, unsels);
-                for (const auto unsel_item : unsels)
+                for (const auto& unsel_item : unsels)
                     Unselect(unsel_item);
             }
 
@@ -3193,7 +3193,7 @@ void ObjectList::fix_multiselection_conflicts()
         show_info(this, msg_string, _(L("Info")));
 
     if (!IsSelected(m_last_selected_item))
-        m_last_selected_item = wxDataViewItem(0);
+        m_last_selected_item = wxDataViewItem(nullptr);
 
     m_prevent_list_events = false;
 }
@@ -3334,7 +3334,7 @@ void ObjectList::update_object_list_by_printer_technology()
     GetSelections(sel); // stash selection
 
     wxDataViewItemArray object_items;
-    m_objects_model->GetChildren(wxDataViewItem(0), object_items);
+    m_objects_model->GetChildren(wxDataViewItem(nullptr), object_items);
 
     for (auto& object_item : object_items) {
         // Update Settings Item for object
@@ -3405,7 +3405,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
 
     // create new object from selected instance  
     ModelObject* model_object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
-    for (int inst_idx = model_object->instances.size() - 1; inst_idx >= 0; inst_idx--)
+    for (int inst_idx = int(model_object->instances.size()) - 1; inst_idx >= 0; inst_idx--)
     {
         if (find(inst_idxs.begin(), inst_idxs.end(), inst_idx) != inst_idxs.end())
             continue;
@@ -3599,7 +3599,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
 	m_last_selected_column = -1;
 }
-#endif __WXMSW__
+#endif //__WXMSW__
 
 void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
@@ -3618,7 +3618,7 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 	// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 	// Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 	m_last_selected_column = -1;
-#endif __WXMSW__
+#endif //__WXMSW__
 }
 
 void ObjectList::show_multi_selection_menu()

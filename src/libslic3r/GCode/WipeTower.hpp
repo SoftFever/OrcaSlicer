@@ -7,21 +7,21 @@
 #include <utility>
 #include <algorithm>
 
-#include "libslic3r/PrintConfig.hpp"
-
+#include "libslic3r/Point.hpp"
 
 namespace Slic3r
 {
 
 class WipeTowerWriter;
-
+class PrintConfig;
+enum GCodeFlavor : unsigned char;
 
 
 class WipeTower
 {
 public:
     struct Extrusion
-	{
+    {
 		Extrusion(const Vec2f &pos, float width, unsigned int tool) : pos(pos), width(width), tool(tool) {}
 		// End position of this extrusion.
 		Vec2f				pos;
@@ -79,7 +79,6 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
     WipeTower(const PrintConfig& config, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool);
-	virtual ~WipeTower() {}
 
 
 	// Set the extruder properties.
@@ -244,7 +243,7 @@ private:
 	bool m_print_brim = true;
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
-	unsigned int 	m_current_tool  = 0;
+    size_t 	m_current_tool  = 0;
     const std::vector<std::vector<float>> wipe_volumes;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
@@ -309,13 +308,13 @@ private:
 	// to store information about tool changes for a given layer
 	struct WipeTowerInfo{
 		struct ToolChange {
-			unsigned int old_tool;
-			unsigned int new_tool;
+            size_t old_tool;
+            size_t new_tool;
 			float required_depth;
             float ramming_depth;
             float first_wipe_line;
             float wipe_volume;
-			ToolChange(unsigned int old, unsigned int newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f)
+            ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f)
             : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth}, first_wipe_line{fwl}, wipe_volume{wv} {}
 		};
 		float z;		// z position of the layer
@@ -350,7 +349,7 @@ private:
 
 	void toolchange_Change(
 		WipeTowerWriter &writer,
-		const unsigned int		new_tool,
+        const size_t		new_tool,
 		const std::string& 		new_material);
 	
 	void toolchange_Load(

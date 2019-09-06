@@ -34,7 +34,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipArchimedeanChords:   return new FillArchimedeanChords();
     case ipHilbertCurve:        return new FillHilbertCurve();
     case ipOctagramSpiral:      return new FillOctagramSpiral();
-    default: throw std::invalid_argument("unknown type");;
+    default: throw std::invalid_argument("unknown type");
     }
 }
 
@@ -43,6 +43,24 @@ Fill* Fill::new_from_type(const std::string &type)
     const t_config_enum_values &enum_keys_map = ConfigOptionEnum<InfillPattern>::get_enum_values();
     t_config_enum_values::const_iterator it = enum_keys_map.find(type);
     return (it == enum_keys_map.end()) ? nullptr : new_from_type(InfillPattern(it->second));
+}
+
+// Force initialization of the Fill::use_bridge_flow() internal static map in a thread safe fashion even on compilers
+// not supporting thread safe non-static data member initializers.
+static bool use_bridge_flow_initializer = Fill::use_bridge_flow(ipGrid);
+
+bool Fill::use_bridge_flow(const InfillPattern type)
+{
+	static std::vector<unsigned char> cached;
+	if (cached.empty()) {
+		cached.assign(size_t(ipCount), 0);
+		for (size_t i = 0; i < cached.size(); ++ i) {
+			auto *fill = Fill::new_from_type((InfillPattern)i);
+			cached[i] = fill->use_bridge_flow();
+			delete fill;
+		}
+	}
+	return cached[type] != 0;
 }
 
 Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)

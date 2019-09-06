@@ -11,7 +11,6 @@
 #include "slic3r/GUI/I18N.hpp"  // ...and redefine again when we are done with the igl code
 
 #include "libslic3r/SLA/SLACommon.hpp"
-#include "libslic3r/SLAPrint.hpp"
 #include <wx/dialog.h>
 
 #include <cereal/types/vector.hpp>
@@ -31,7 +30,7 @@ private:
     ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    mutable float m_z_shift = 0.f;
+    mutable double m_z_shift = 0.f;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
@@ -78,7 +77,7 @@ private:
 
 public:
     GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    virtual ~GLGizmoSlaSupports();
+    ~GLGizmoSlaSupports() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
@@ -90,21 +89,19 @@ public:
     void reslice_SLA_supports(bool postpone_error_messages = false) const;
 
 private:
-    bool on_init();
-    void on_update(const UpdateData& data);
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const;
+    bool on_init() override;
+    void on_update(const UpdateData& data) override;
+    void on_render() const override;
+    void on_render_for_picking() const override;
 
     //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void update_cache_entry_normal(unsigned int i) const;
+    void update_cache_entry_normal(size_t i) const;
     bool unsaved_changes() const;
 
-    EState m_no_hover_state = Off;
-    EState m_no_hover_old_state = Off;
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
@@ -157,20 +154,21 @@ private:
 
 protected:
     void on_set_state() override;
-    virtual void on_set_hover_id()
+    void on_set_hover_id() override
+
     {
         if (! m_editing_mode || (int)m_editing_cache.size() <= m_hover_id)
             m_hover_id = -1;
     }
     void on_start_dragging() override;
     void on_stop_dragging() override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
+    void on_render_input_window(float x, float y, float bottom_limit) override;
 
-    virtual std::string on_get_name() const;
-    virtual bool on_is_activable() const;
-    virtual bool on_is_selectable() const;
-    virtual void on_load(cereal::BinaryInputArchive& ar) override;
-    virtual void on_save(cereal::BinaryOutputArchive& ar) const override;
+    std::string on_get_name() const override;
+    bool on_is_activable() const override;
+    bool on_is_selectable() const override;
+    void on_load(cereal::BinaryInputArchive& ar) override;
+    void on_save(cereal::BinaryOutputArchive& ar) const override;
 };
 
 

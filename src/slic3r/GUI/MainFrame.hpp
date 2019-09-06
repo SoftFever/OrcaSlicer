@@ -50,8 +50,9 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
-
-    wxMenuItem* m_menu_item_repeat { nullptr };
+#if 0
+    wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
+#endif
     wxMenuItem* m_menu_item_reslice_now { nullptr };
 
     PrintHostQueueDialog *m_printhost_queue_dlg;

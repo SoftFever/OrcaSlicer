@@ -197,7 +197,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            else if (check_value && (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
+            else if (check_value && ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
                      m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1) && 
                      (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
             {
@@ -444,7 +444,7 @@ void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic
 #ifdef __WXGTK__
 void TextCtrl::change_field_value(wxEvent& event)
 {
-	if (bChangedValueEvent = event.GetEventType()==wxEVT_KEY_UP)
+	if (bChangedValueEvent = (event.GetEventType()==wxEVT_KEY_UP))
 		on_change_field();
     event.Skip();
 };
@@ -768,7 +768,7 @@ void Choice::set_selection()
 		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
-			if (el.compare(text_value) == 0)
+			if (el == text_value)
 				break;
 			++idx;
 		}
@@ -789,7 +789,7 @@ void Choice::set_selection()
 		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
-			if (el.compare(text_value) == 0)
+			if (el == text_value)
 				break;
 			++idx;
 		}
@@ -804,7 +804,7 @@ void Choice::set_selection()
 		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
-			if (el.compare(text_value) == 0)
+			if (el == text_value)
 				break;
 			++idx;
 		}
@@ -813,6 +813,7 @@ void Choice::set_selection()
 			field->SetSelection(idx);
 		break;
 	}
+    default: break;
 	}
 }
 
@@ -823,7 +824,7 @@ void Choice::set_value(const std::string& value, bool change_event)  //! Redunda
 	size_t idx=0;
 	for (auto el : m_opt.enum_values)
 	{
-		if (el.compare(value) == 0)
+		if (el == value)
 			break;
 		++idx;
 	}
@@ -856,7 +857,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 		auto idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
-			if (el.compare(text_value) == 0)
+			if (el == text_value)
 				break;
 			++idx;
 		}
@@ -887,7 +888,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 				size_t idx = 0;
 				for (auto el : m_opt.enum_values)
 				{
-					if (el.compare(key) == 0)
+					if (el == key)
 						break;
 					++idx;
 				}

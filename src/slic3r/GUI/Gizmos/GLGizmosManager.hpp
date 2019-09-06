@@ -54,25 +54,30 @@ public:
 
     enum EType : unsigned char
     {
-        Undefined,
         Move,
         Scale,
         Rotate,
         Flatten,
         Cut,
         SlaSupports,
-        Num_Types
+        Undefined
     };
 
 private:
     GLCanvas3D& m_parent;
     bool m_enabled;
-    typedef std::map<EType, GLGizmoBase*> GizmosMap;
-    GizmosMap m_gizmos;
+    std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
     EType m_current;
+    EType m_hover;
+
+    std::vector<size_t> get_selectable_idxs() const;
+    std::vector<size_t> get_activable_idxs() const;
+    size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
+
+    void activate_gizmo(EType type);
 
     float m_overlay_icons_size;
     float m_overlay_scale;
@@ -98,7 +103,6 @@ private:
 
 public:
     explicit GLGizmosManager(GLCanvas3D& parent);
-    ~GLGizmosManager();
 
     bool init();
 
@@ -112,16 +116,8 @@ public:
 
         ar(m_current);
 
-        GLGizmoBase* curr = get_current();
-		for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
-			GLGizmoBase* gizmo = it->second;
-			if (gizmo != nullptr) {
-				gizmo->set_hover_id(-1);
-				gizmo->set_state((it->second == curr) ? GLGizmoBase::On : GLGizmoBase::Off);
-				if (gizmo == curr)
-					gizmo->load(ar);
-			}
-		}
+        if (m_current != Undefined)
+            m_gizmos[m_current]->load(ar);
     }
 
     template<class Archive>
@@ -132,9 +128,8 @@ public:
 
         ar(m_current);
 
-        GLGizmoBase* curr = get_current();
-        if (curr != nullptr)
-            curr->save(ar);
+        if (m_current != Undefined && !m_gizmos.empty())
+            m_gizmos[m_current]->save(ar);
     }
 
     bool is_enabled() const { return m_enabled; }
@@ -195,8 +190,6 @@ public:
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
 private:
-    void reset();
-
     void render_background(float left, float top, float right, float bottom, float border) const;
     void do_render_overlay() const;
 
@@ -209,7 +202,6 @@ private:
 
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
-    bool overlay_contains_mouse(const Vec2d& mouse_pos) const;
     bool grabber_contains_mouse() const;
 };
 

@@ -262,7 +262,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 	}
 	catch (const std::exception & /* e */)
 	{
-		int i = 0;//no reason, just experiment
+		// int i = 0;//no reason, just experiment
 	}
 }
 

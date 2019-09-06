@@ -321,7 +321,6 @@ protected:
 
 class TabPrint : public Tab
 {
-    bool is_msg_dlg_already_exist {false};
 public:
 	TabPrint(wxNotebook* parent) : 
 // 		Tab(parent, _(L("Print Settings")), L("print")) {}

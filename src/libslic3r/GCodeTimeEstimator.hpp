@@ -213,8 +213,18 @@ namespace Slic3r {
         typedef std::map<Block::EMoveType, MoveStats> MovesStatsMap;
 #endif // ENABLE_MOVE_STATS
 
+    public:
         typedef std::pair<unsigned int, unsigned int> G1LineIdToBlockId;
         typedef std::vector<G1LineIdToBlockId> G1LineIdToBlockIdMap;
+
+        struct PostProcessData
+        {
+            const G1LineIdToBlockIdMap& g1_line_ids;
+            const BlocksList& blocks;
+            float time;
+
+            PostProcessData(const G1LineIdToBlockIdMap& g1_line_ids, const BlocksList& blocks, float time) : g1_line_ids(g1_line_ids), blocks(blocks), time(time) {}
+        };
 
     private:
         EMode m_mode;
@@ -263,11 +273,12 @@ namespace Slic3r {
         void calculate_time_from_lines(const std::vector<std::string>& gcode_lines);
 
         // Process the gcode contained in the file with the given filename, 
-        // placing in it new lines (M73) containing the remaining time, at the given interval in seconds
-        // and saving the result back in the same file
-        // This time estimator should have been already used to calculate the time estimate for the gcode
-        // contained in the given file before to call this method
-        bool post_process_remaining_times(const std::string& filename, float interval_sec);
+        // replacing placeholders with correspondent new lines M73
+        // placing new lines M73 (containing the remaining time) where needed (in dependence of the given interval in seconds)
+        // and removing working tags (as those used for color changes)
+        // if normal_mode == nullptr no M73 line will be added for normal mode
+        // if silent_mode == nullptr no M73 line will be added for silent mode
+        static bool post_process(const std::string& filename, float interval_sec, const PostProcessData* const normal_mode, const PostProcessData* const silent_mode);
 
         // Set current position on the given axis with the given value
         void set_axis_position(EAxis axis, float position);
@@ -361,6 +372,8 @@ namespace Slic3r {
 
         // Return an estimate of the memory consumed by the time estimator.
         size_t memory_used() const;
+
+        PostProcessData get_post_process_data() const { return PostProcessData(m_g1_line_ids, m_blocks, m_time); }
 
     private:
         void _reset();

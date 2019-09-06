@@ -247,7 +247,7 @@ extern void its_transform(indexed_triangle_set &its, T *trafo3x4)
 template<typename T>
 inline void its_transform(indexed_triangle_set &its, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
 {
-	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
+	//const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
 	for (stl_vertex &v : its.vertices)
 		v = (t * v.template cast<T>()).template cast<float>().eval();
 }

@@ -752,7 +752,7 @@ static bool append_root_node(ObjectDataViewModelNode *parent_node,
     
     if (inst_root_id < 0) {
         if ((root_type&itInstanceRoot) ||
-            (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0)
+            ( (root_type&itLayerRoot) && get_root_idx(parent_node, itInstanceRoot)<0) )
             parent_node->Append(*root_node);
         else if (root_type&itLayerRoot)
             parent_node->Insert(*root_node, static_cast<unsigned int>(get_root_idx(parent_node, itInstanceRoot)));
@@ -1379,7 +1379,12 @@ void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type
     type = itUndef;
 
     ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() <-1 || node->GetIdx() == -1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/)))
+    if (!node || 
+        node->GetIdx() <-1 || 
+        ( node->GetIdx() == -1 && 
+         !(node->GetType() & (itObject | itSettings | itInstanceRoot | itLayerRoot/* | itLayer*/))
+        )
+       )
         return;
 
     idx = node->GetIdx();
@@ -2187,9 +2192,9 @@ double DoubleSlider::get_double_value(const SelectedSlider& selection)
         return 0.0;
     if (m_values.size() <= m_higher_value) {
         correct_higher_value();
-        return m_values.back().second;
+        return m_values.back();
     }
-    return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
+    return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
 std::vector<double> DoubleSlider::GetTicksValues() const
@@ -2201,7 +2206,7 @@ std::vector<double> DoubleSlider::GetTicksValues() const
         for (int tick : m_ticks) {
             if (tick > val_size)
                 break;
-            values.push_back(m_values[tick].second);
+            values.push_back(m_values[tick]);
         }
 
     return values;
@@ -2215,14 +2220,13 @@ void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
     const bool was_empty = m_ticks.empty();
 
     m_ticks.clear();
-    unsigned int i = 0;
     for (auto h : heights) {
-        while (i < m_values.size() && m_values[i].second - epsilon()/*1e-6*/ < h)
-            ++i;
-        // don't miss last layer if it is
-        if (i == m_values.size() && fabs(m_values[i-1].second - h) > epsilon())
-            return;
-        m_ticks.insert(i-1);
+        auto it = std::lower_bound(m_values.begin(), m_values.end(), h - epsilon());
+
+        if (it == m_values.end())
+            continue;
+
+        m_ticks.insert(it-m_values.begin());
     }
     
     if (!was_empty && m_ticks.empty())
@@ -2342,13 +2346,14 @@ wxString DoubleSlider::get_label(const SelectedSlider& selection) const
 
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
-                         wxNumberFormatter::ToString(m_values[value].second, 2, wxNumberFormatter::Style_None);
-    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : m_values[value].first);
+                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
+    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : value+1);
 }
 
 void DoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
 {
-    if ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection || !selection) 
+    if ( selection == ssUndef || 
+        ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection) )
         return;
     wxCoord text_width, text_height;
     const wxString label = get_label(selection);
@@ -2680,7 +2685,7 @@ void DoubleSlider::correct_lower_value()
     else if (m_lower_value > m_max_value)
         m_lower_value = m_max_value;
     
-    if (m_lower_value >= m_higher_value && m_lower_value <= m_max_value || m_is_one_layer)
+    if ((m_lower_value >= m_higher_value && m_lower_value <= m_max_value) || m_is_one_layer)
         m_higher_value = m_lower_value;
 }
 
@@ -2691,7 +2696,7 @@ void DoubleSlider::correct_higher_value()
     else if (m_higher_value < m_min_value)
         m_higher_value = m_min_value;
     
-    if (m_higher_value <= m_lower_value && m_higher_value >= m_min_value || m_is_one_layer)
+    if ((m_higher_value <= m_lower_value && m_higher_value >= m_min_value) || m_is_one_layer)
         m_lower_value = m_higher_value;
 }
 

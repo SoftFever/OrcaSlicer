@@ -69,7 +69,6 @@ public:
     enum EState
     {
         Off,
-        Hover,
         On,
         Num_States
     };

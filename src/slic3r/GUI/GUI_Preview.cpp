@@ -640,9 +640,10 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<std::pair<int, double>> values;
-    fill_slider_values(values, layers_z);
-    m_slider->SetSliderValues(values);
+    std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+    check_slider_values(ticks_from_config, layers_z);
+
+    m_slider->SetSliderValues(layers_z);
     assert(m_slider->GetMinValue() == 0);
     m_slider->SetMaxValue(layers_z.empty() ? 0 : layers_z.size() - 1);
 
@@ -662,9 +663,6 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->SetSelectionSpan(idx_low, idx_high);
 
-    const auto& config = wxGetApp().preset_bundle->project_config;
-    const std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
-
     m_slider->SetTicksValues(ticks_from_config);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
@@ -676,26 +674,18 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     m_slider->EnableTickManipulation(color_print_enable);
 }
 
-void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
+void Preview::check_slider_values(std::vector<double>& ticks_from_config,
                                  const std::vector<double> &layers_z)
 {
-    values.clear();
-    for (int i = 0; i < layers_z.size(); ++i)
-    {
-        values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
-    }
-
     // All ticks that would end up outside the slider range should be erased.
     // TODO: this should be placed into more appropriate part of code,
     // this function is e.g. not called when the last object is deleted
-    std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
     unsigned int old_size = ticks_from_config.size();
     ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
-                                           [values](double val)
+                                           [layers_z](double val)
     {
-        return (values.back().second < val &&
-                // we can't ignore tick on last layer
-                fabs(values.back().second - val) > DoubleSlider::epsilon());
+        auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val - DoubleSlider::epsilon());
+        return it == layers_z.end();
     }),
                             ticks_from_config.end());
     if (ticks_from_config.size() != old_size)

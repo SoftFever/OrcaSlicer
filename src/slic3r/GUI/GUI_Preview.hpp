@@ -155,7 +155,7 @@ private:
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
-    void fill_slider_values(std::vector<std::pair<int, double>> &values,
+    void check_slider_values(std::vector<double> &ticks_from_config,
                             const std::vector<double> &layers_z);
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas

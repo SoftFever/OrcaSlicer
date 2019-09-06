@@ -1228,24 +1228,35 @@ std::string Print::validate() const
             if (has_custom_layering) {
                 const std::vector<coordf_t> &layer_height_profile_tallest = layer_height_profiles[tallest_object_idx];
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
+                    if (idx_object == tallest_object_idx)
+                        continue;
                     const std::vector<coordf_t> &layer_height_profile = layer_height_profiles[idx_object];
-                    bool                         failed               = false;
-                    if (layer_height_profile_tallest.size() >= layer_height_profile.size()) {
-                        size_t i = 0;
-                        while (i < layer_height_profile.size() && i < layer_height_profile_tallest.size()) {
-                            if (std::abs(layer_height_profile_tallest[i] - layer_height_profile[i])) {
-                                failed = true;
-                                break;
-                            }
-                            ++ i;
-                            if (i == layer_height_profile.size() - 2) // this element contains this objects max z
-                                if (layer_height_profile_tallest[i] > layer_height_profile[i]) // the difference does not matter in this case
-                                    ++ i;
+
+                    // The comparison of the profiles is not just about element-wise equality, some layers may not be
+                    // explicitely included. Always remember z and height of last reference layer that in the vector
+                    // and compare to that.
+                    size_t i = 0; // index into tested profile
+                    size_t j = 0; // index into reference profile
+                    coordf_t ref_z = -1.;
+                    coordf_t next_ref_z = layer_height_profile_tallest[0];
+                    coordf_t ref_height = -1.;
+                    while (i < layer_height_profile.size()) {
+                        coordf_t this_z = layer_height_profile[i];
+                        coordf_t this_height = layer_height_profile[i+1];
+                        if (next_ref_z < this_z + EPSILON) {
+                            ref_z = next_ref_z;
+                            do { // one layer can be in the vector several times
+                                ref_height = layer_height_profile_tallest[j+1];
+                                if (j+2 >= layer_height_profile_tallest.size())
+                                    break;
+                                j += 2;
+                                next_ref_z = layer_height_profile_tallest[j];
+                            } while (ref_z == next_ref_z);
                         }
-                    } else
-                        failed = true;
-                    if (failed)
-                        return L("The Wipe tower is only supported if all objects have the same layer height profile");
+                        if (std::abs(this_height - ref_height) > EPSILON)
+                            return L("The Wipe tower is only supported if all objects have the same layer height profile");
+                        i += 2;
+                    }
                 }
             }
         }

@@ -254,7 +254,7 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
-    unsigned int m_pressed_toggable_id;
+    int m_pressed_toggable_id;
 
 public:
     GLToolbar(EType type, const std::string& name);
@@ -293,15 +293,15 @@ public:
 
     bool is_any_item_pressed() const;
 
-    unsigned int get_item_id(const std::string& name) const;
+    int get_item_id(const std::string& name) const;
 
-    void force_left_action(unsigned int item_id, GLCanvas3D& parent);
-    void force_right_action(unsigned int item_id, GLCanvas3D& parent);
+    void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }
+    void force_right_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Right, item_id, parent, false); }
 
     const std::string& get_tooltip() const { return m_tooltip; }
 
-    void get_additional_tooltip(unsigned int item_id, std::string& text);
-    void set_additional_tooltip(unsigned int item_id, const std::string& text);
+    void get_additional_tooltip(int item_id, std::string& text);
+    void set_additional_tooltip(int item_id, const std::string& text);
 
     // returns true if any item changed its state
     bool update_items_state();
@@ -317,7 +317,7 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
-    void do_action(GLToolbarItem::EActionType type, unsigned int item_id, GLCanvas3D& parent, bool check_hover);
+    void do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover);
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);

@@ -385,9 +385,9 @@ class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap*>                      m_volume_bmps;
-    wxBitmap*                                   m_warning_bmp;
+    wxBitmap*                                   m_warning_bmp { nullptr };
 
-    wxDataViewCtrl*                             m_ctrl{ nullptr };
+    wxDataViewCtrl*                             m_ctrl { nullptr };
 
 public:
     ObjectDataViewModel();
@@ -720,15 +720,17 @@ public:
         const wxString& name = wxEmptyString);
     ~DoubleSlider() {}
 
-    // permissible error for layer height
+    /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
+     * So, let use same value as a permissible error for layer height.
+     */
     static double epsilon() { return 0.0011;}
 
     void    msw_rescale();
 
     int GetMinValue() const { return m_min_value; }
     int GetMaxValue() const { return m_max_value; }
-    double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value].second; }
-    double GetMaxValueD() { return m_values.empty() ? 0. : m_values[m_max_value].second; }
+    double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value]; }
+    double GetMaxValueD() { return m_values.empty() ? 0. : m_values[m_max_value]; }
     int GetLowerValue() const { return m_lower_value; }
     int GetHigherValue() const { return m_higher_value; }
     int GetActiveValue() const;
@@ -744,7 +746,7 @@ public:
     void SetKoefForLabels(const double koef) {
         m_label_koef = koef;
     }
-    void SetSliderValues(const std::vector<std::pair<int, double>>& values) {
+    void SetSliderValues(const std::vector<double>& values) {
         m_values = values;
     }
     void ChangeOneLayerLock();
@@ -865,7 +867,7 @@ private:
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
     std::set<int>       m_ticks;
-    std::vector<std::pair<int,double>> m_values;
+    std::vector<double> m_values;
 };
 
 

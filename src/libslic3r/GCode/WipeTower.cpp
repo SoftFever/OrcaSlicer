@@ -151,7 +151,7 @@ public:
 
 		float dx = x - m_current_pos.x();
 		float dy = y - m_current_pos.y();
-		double len = sqrt(dx*dx+dy*dy);
+        float len = std::sqrt(dx*dx+dy*dy);
         if (record_length)
             m_used_filament_length += e;
 
@@ -159,11 +159,11 @@ public:
 		Vec2f rotated_current_pos(rotate(m_current_pos + Vec2f(0.f,m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle)); // this is where we are
 		Vec2f rot(rotate(Vec2f(x,y+m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle));                               // this is where we want to go
 
-		if (! m_preview_suppressed && e > 0.f && len > 0.) {
+        if (! m_preview_suppressed && e > 0.f && len > 0.f) {
             change_analyzer_mm3_per_mm(len, e);
 			// Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
-			float width = float(double(e) * m_filpar[0].filament_area / (len * m_layer_height));
+            float width = e * m_filpar[0].filament_area / (len * m_layer_height);
 			// Correct for the roundings of a squished extrusion.
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
@@ -172,10 +172,10 @@ public:
 		}
 
 		m_gcode += "G1";
-		if (std::abs(rot.x() - rotated_current_pos.x()) > EPSILON)
+        if (std::abs(rot.x() - rotated_current_pos.x()) > (float)EPSILON)
 			m_gcode += set_format_X(rot.x());
 
-		if (std::abs(rot.y() - rotated_current_pos.y()) > EPSILON)
+        if (std::abs(rot.y() - rotated_current_pos.y()) > (float)EPSILON)
 			m_gcode += set_format_Y(rot.y());
 
 
@@ -184,7 +184,7 @@ public:
 
 		if (f != 0.f && f != m_current_feedrate) {
             if (limit_volumetric_flow) {
-                float e_speed = e / (((len == 0) ? std::abs(e) : len) / f * 60.f);
+                float e_speed = e / (((len == 0.f) ? std::abs(e) : len) / f * 60.f);
                 f /= std::max(1.f, e_speed / m_filpar[m_current_tool].max_e_speed);
             }
 			m_gcode += set_format_F(f);
@@ -194,7 +194,7 @@ public:
         m_current_pos.y() = y;
 
 		// Update the elapsed time with a rough estimate.
-		m_elapsed_time += ((len == 0) ? std::abs(e) : len) / m_current_feedrate * 60.f;
+        m_elapsed_time += ((len == 0.f) ? std::abs(e) : len) / m_current_feedrate * 60.f;
 		m_gcode += "\n";
 		return *this;
 	}
@@ -214,7 +214,7 @@ public:
 	{
 		float dx = x - m_current_pos.x();
 		float dy = y - m_current_pos.y();
-		return extrude_explicit(x, y, sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
+        return extrude_explicit(x, y, std::sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
 	}
 
 	WipeTowerWriter& extrude(const Vec2f &dest, const float f = 0.f) 
@@ -311,7 +311,7 @@ public:
 		return *this;
 	}
 
-	WipeTowerWriter& set_tool(int tool)
+    WipeTowerWriter& set_tool(unsigned tool)
 	{
 		m_current_tool = tool;
 		return *this;
@@ -320,57 +320,52 @@ public:
 	// Set extruder temperature, don't wait by default.
 	WipeTowerWriter& set_extruder_temp(int temperature, bool wait = false)
 	{
-        char buf[128];
-        sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
-        m_gcode += buf;
+        m_gcode += "M" + std::to_string(wait ? 109 : 104) + " S" + std::to_string(temperature) + "\n";
         return *this;
-	};
+    }
 
     // Wait for a period of time (seconds).
 	WipeTowerWriter& wait(float time)
 	{
-        if (time==0)
+        if (time==0.f)
             return *this;
 		char buf[128];
 		sprintf(buf, "G4 S%.3f\n", time);
 		m_gcode += buf;
 		return *this;
-	};
+    }
 
 	// Set speed factor override percentage.
 	WipeTowerWriter& speed_override(int speed)
 	{
-		char buf[128];
-		sprintf(buf, "M220 S%d\n", speed);
-		m_gcode += buf;
+        m_gcode += "M220 S" + std::to_string(speed) + "\n";
 		return *this;
-	};
+    }
 
 	// Let the firmware back up the active speed override value.
 	WipeTowerWriter& speed_override_backup()
 	{
 		m_gcode += "M220 B\n";
 		return *this;
-	};
+    }
 
 	// Let the firmware restore the active speed override value.
 	WipeTowerWriter& speed_override_restore()
 	{
 		m_gcode += "M220 R\n";
 		return *this;
-	};
+    }
 
 	// Set digital trimpot motor
 	WipeTowerWriter& set_extruder_trimpot(int current)
 	{
-		char buf[128];
         if (m_gcode_flavor == gcfRepRap)
-            sprintf(buf, "M906 E%d\n", current);
+            m_gcode += "M906 E";
         else
-            sprintf(buf, "M907 E%d\n", current);
-		m_gcode += buf;
+            m_gcode += "M907 E";
+        m_gcode += std::to_string(current) + "\n";
 		return *this;
-	};
+    }
 
 	WipeTowerWriter& flush_planner_queue()
 	{ 
@@ -386,28 +381,20 @@ public:
 	}
 
 	WipeTowerWriter& comment_with_value(const char *comment, int value)
-	{
-		char strvalue[64];
-		sprintf(strvalue, "%d", value);
-		m_gcode += std::string(";") + comment + strvalue + "\n";
+    {
+        m_gcode += std::string(";") + comment + std::to_string(value) + "\n";
 		return *this;
-	};
+    }
 
 
-	WipeTowerWriter& set_fan(unsigned int speed)
+    WipeTowerWriter& set_fan(unsigned speed)
 	{
 		if (speed == m_last_fan_speed)
 			return *this;
-				
 		if (speed == 0)
 			m_gcode += "M107\n";
-		else
-		{
-			m_gcode += "M106 S";
-			char buf[128];
-			sprintf(buf,"%u\n",(unsigned int)(255.0 * speed / 100.0));
-			m_gcode += buf;
-		}
+        else
+            m_gcode += "M106 S" + std::to_string(unsigned(255.0 * speed / 100.0)) + "\n";
 		m_last_fan_speed = speed;
 		return *this;
 	}
@@ -430,7 +417,7 @@ private:
 	float		  m_y_shift = 0.f;
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
-	float		  m_last_fan_speed = 0.f;
+    unsigned      m_last_fan_speed = 0.f;
     int           current_temp = -1;
     const float   m_default_analyzer_line_width;
     float         m_used_filament_length = 0.f;
@@ -479,12 +466,12 @@ private:
 WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool) :
     m_semm(config.single_extruder_multi_material.value),
     m_wipe_tower_pos(config.wipe_tower_x, config.wipe_tower_y),
-    m_wipe_tower_width(config.wipe_tower_width),
-    m_wipe_tower_rotation_angle(config.wipe_tower_rotation_angle),
+    m_wipe_tower_width(float(config.wipe_tower_width)),
+    m_wipe_tower_rotation_angle(float(config.wipe_tower_rotation_angle)),
     m_y_shift(0.f),
     m_z_pos(0.f),
     m_is_first_layer(false),
-    m_bridging(config.wipe_tower_bridging),
+    m_bridging(float(config.wipe_tower_bridging)),
     m_gcode_flavor(config.gcode_flavor),
     m_current_tool(initial_tool),
     wipe_volumes(wiping_matrix)
@@ -492,16 +479,16 @@ WipeTower::WipeTower(const PrintConfig& config, const std::vector<std::vector<fl
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
     if (m_semm) {
-        m_cooling_tube_retraction = config.cooling_tube_retraction;
-        m_cooling_tube_length = config.cooling_tube_length;
-        m_parking_pos_retraction = config.parking_pos_retraction;
-        m_extra_loading_move = config.extra_loading_move;
-        m_set_extruder_trimpot = config.high_current_on_filament_swap;
+        m_cooling_tube_retraction = float(config.cooling_tube_retraction);
+        m_cooling_tube_length     = float(config.cooling_tube_length);
+        m_parking_pos_retraction  = float(config.parking_pos_retraction);
+        m_extra_loading_move      = float(config.extra_loading_move);
+        m_set_extruder_trimpot    = config.high_current_on_filament_swap;
     }
     // Calculate where the priming lines should be - very naive test not detecting parallelograms or custom shapes
     const std::vector<Vec2d>& bed_points = config.bed_shape.values;
     m_bed_shape = (bed_points.size() == 4 ? RectangularBed : CircularBed);
-    m_bed_width = BoundingBoxf(bed_points).size().x();
+    m_bed_width = float(BoundingBoxf(bed_points).size().x());
 }
 
 
@@ -518,21 +505,21 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
     if (m_semm) {
-        m_filpar[idx].loading_speed           = config.filament_loading_speed.get_at(idx);
-        m_filpar[idx].loading_speed_start     = config.filament_loading_speed_start.get_at(idx);
-        m_filpar[idx].unloading_speed         = config.filament_unloading_speed.get_at(idx);
-        m_filpar[idx].unloading_speed_start   = config.filament_unloading_speed_start.get_at(idx);
-        m_filpar[idx].delay                   = config.filament_toolchange_delay.get_at(idx);
+        m_filpar[idx].loading_speed           = float(config.filament_loading_speed.get_at(idx));
+        m_filpar[idx].loading_speed_start     = float(config.filament_loading_speed_start.get_at(idx));
+        m_filpar[idx].unloading_speed         = float(config.filament_unloading_speed.get_at(idx));
+        m_filpar[idx].unloading_speed_start   = float(config.filament_unloading_speed_start.get_at(idx));
+        m_filpar[idx].delay                   = float(config.filament_toolchange_delay.get_at(idx));
         m_filpar[idx].cooling_moves           = config.filament_cooling_moves.get_at(idx);
-        m_filpar[idx].cooling_initial_speed   = config.filament_cooling_initial_speed.get_at(idx);
-        m_filpar[idx].cooling_final_speed     = config.filament_cooling_final_speed.get_at(idx);
+        m_filpar[idx].cooling_initial_speed   = float(config.filament_cooling_initial_speed.get_at(idx));
+        m_filpar[idx].cooling_final_speed     = float(config.filament_cooling_final_speed.get_at(idx));
     }
 
     m_filpar[idx].filament_area = float((M_PI/4.f) * pow(config.filament_diameter.get_at(idx), 2)); // all extruders are assumed to have the same filament diameter at this point
-    float nozzle_diameter = config.nozzle_diameter.get_at(idx);
+    float nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
     m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
-    float max_vol_speed = config.filament_max_volumetric_speed.get_at(idx);
+    float max_vol_speed = float(config.filament_max_volumetric_speed.get_at(idx));
     if (max_vol_speed!= 0.f)
         m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
 
@@ -561,7 +548,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 	const std::vector<unsigned int> &tools,
 	// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
 	// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
-	bool 						last_wipe_inside_wipe_tower)
+    bool 						/*last_wipe_inside_wipe_tower*/)
 {
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
 	this->m_current_tool 		= tools.front();
@@ -696,7 +683,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(unsigned int tool, bool last_
 	box_coordinates cleaning_box(
 		Vec2f(m_perimeter_width / 2.f, m_perimeter_width / 2.f),
 		m_wipe_tower_width - m_perimeter_width,
-		(tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5*m_perimeter_width
+        (tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5f*m_perimeter_width
                                     : m_wipe_tower_depth-m_perimeter_width));
 
 	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
@@ -802,7 +789,7 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
     // Extrude 4 rounds of a brim around the future wipe tower.
     box_coordinates box(wipeTower_box);
     for (size_t i = 0; i < 4; ++ i) {
-        box.expand(m_perimeter_width - m_layer_height*(1.f-M_PI_4)); // the brim shall have 'normal' spacing with no extra void space
+        box.expand(m_perimeter_width - m_layer_height*float(1.-M_PI_4)); // the brim shall have 'normal' spacing with no extra void space
         writer.travel (box.ld, 7000)
                 .extrude(box.lu, 2100).extrude(box.ru)
                 .extrude(box.rd      ).extrude(box.ld);
@@ -911,8 +898,8 @@ void WipeTower::toolchange_Unload(
         const float x = volume_to_length(m_filpar[m_current_tool].ramming_speed[i] * 0.25f, line_width, m_layer_height);
         const float e = m_filpar[m_current_tool].ramming_speed[i] * 0.25f / filament_area(); // transform volume per sec to E move;
         const float dist = std::min(x - e_done, remaining);		  // distance to travel for either the next 0.25s, or to the next turnaround
-        const float actual_time = dist/x * 0.25;
-        writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0, 0, e * (dist / x), dist / (actual_time / 60.));
+        const float actual_time = dist/x * 0.25f;
+        writer.ram(writer.x(), writer.x() + (m_left_to_right ? 1.f : -1.f) * dist, 0.f, 0.f, e * (dist / x), dist / (actual_time / 60.f));
         remaining -= dist;
 
 		if (remaining < WT_EPSILON)	{ // we reached a turning point
@@ -995,8 +982,8 @@ void WipeTower::toolchange_Unload(
 // Change the tool, set a speed override for soluble and flex materials.
 void WipeTower::toolchange_Change(
 	WipeTowerWriter &writer,
-	const unsigned int 	new_tool, 
-	const std::string&  new_material)
+    const size_t 	new_tool,
+    const std::string&  new_material)
 {
     // Ask the writer about how much of the old filament we consumed:
     if (m_current_tool < m_used_filament_length.size())
@@ -1091,21 +1078,21 @@ void WipeTower::toolchange_Wipe(
 
 		float traversed_x = writer.x();
 		if (m_left_to_right)
-			writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
+            writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
 		else
-			writer.extrude(xl + (i % 4 == 1 ? 0 : 1.5*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
+            writer.extrude(xl + (i % 4 == 1 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
 
-        if (writer.y()+EPSILON > cleaning_box.lu.y()-0.5f*m_perimeter_width)
+        if (writer.y()+float(EPSILON) > cleaning_box.lu.y()-0.5f*m_perimeter_width)
             break;		// in case next line would not fit
 
 		traversed_x -= writer.x();
-		x_to_wipe -= fabs(traversed_x);
+        x_to_wipe -= std::abs(traversed_x);
 		if (x_to_wipe < WT_EPSILON) {
-			writer.travel(m_left_to_right ? xl + 1.5*m_perimeter_width : xr - 1.5*m_perimeter_width, writer.y(), 7200);
+            writer.travel(m_left_to_right ? xl + 1.5f*m_perimeter_width : xr - 1.5f*m_perimeter_width, writer.y(), 7200);
 			break;
 		}
 		// stepping to the next line:
-		writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5*m_perimeter_width, writer.y() + dy);
+        writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5f*m_perimeter_width, writer.y() + dy);
 		m_left_to_right = !m_left_to_right;
 	}
 
@@ -1188,7 +1175,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
             writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
                   .extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), 2900 * speed_factor);
 
-            const int n = 1+(right-left)/(m_bridging);
+            const int n = 1+int((right-left)/m_bridging);
             const float dx = (right-left)/n;
             for (int i=1;i<=n;++i) {
                 float x=left+dx*i;
@@ -1267,7 +1254,7 @@ void WipeTower::plan_tower()
 	for (auto& layer : m_plan)
 		layer.depth = 0.f;
 	
-	for (int layer_index = m_plan.size() - 1; layer_index >= 0; --layer_index)
+    for (int layer_index = int(m_plan.size()) - 1; layer_index >= 0; --layer_index)
 	{
 		float this_layer_depth = std::max(m_plan[layer_index].depth, m_plan[layer_index].toolchanges_depth());
 		m_plan[layer_index].depth = this_layer_depth;

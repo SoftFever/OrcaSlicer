@@ -89,7 +89,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     double bridge_flow_ratio                = print_config.opt_float("bridge_flow_ratio");
     double perimeter_speed                  = print_config.opt_float("perimeter_speed");
     double external_perimeter_speed         = print_config.get_abs_value("external_perimeter_speed", perimeter_speed);
-    double gap_fill_speed                   = print_config.opt_float("gap_fill_speed");
+    // double gap_fill_speed                   = print_config.opt_float("gap_fill_speed");
     double infill_speed                     = print_config.opt_float("infill_speed");
     double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", perimeter_speed);
     double solid_infill_speed               = print_config.get_abs_value("solid_infill_speed", infill_speed);
@@ -123,7 +123,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // Current filament values
     double filament_diameter                = filament_config.opt_float("filament_diameter", 0);
     double filament_crossection             = M_PI * 0.25 * filament_diameter * filament_diameter;
-    double extrusion_multiplier             = filament_config.opt_float("extrusion_multiplier", 0);
+    // double extrusion_multiplier             = filament_config.opt_float("extrusion_multiplier", 0);
     // The following value will be annotated by this hint, so it does not take part in the calculation.
 //    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
 
