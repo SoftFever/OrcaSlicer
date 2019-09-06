@@ -60,10 +60,6 @@
 #endif // ENABLE_RENDER_STATISTICS
 
 static const float TRACKBALLSIZE = 0.8f;
-static const float GROUND_Z = -0.02f;
-
-static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
-static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
