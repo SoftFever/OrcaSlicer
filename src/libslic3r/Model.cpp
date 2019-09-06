@@ -529,8 +529,9 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             }
         }
 
-    object->add_instance();
-    object->instances[0]->set_offset(object->raw_mesh_bounding_box().center());
+    // commented-out to fix #2868
+//    object->add_instance();
+//    object->instances[0]->set_offset(object->raw_mesh_bounding_box().center());
 
     this->clear_objects();
     this->objects.push_back(object);
