@@ -3101,7 +3101,7 @@ void Plater::priv::reload_from_disk()
 
     for (const auto idx : new_idxs) {
         ModelObject *object = model.objects[idx];
-
+        object->config.apply(object_orig->config);
         object->clear_instances();
         for (const ModelInstance *instance : object_orig->instances) {
             object->add_instance(*instance);
@@ -3131,6 +3131,8 @@ void Plater::priv::reload_from_disk()
     {
         selection.add_instance((unsigned int)idx - 1, instance_idx, false);
     }
+
+    wxGetApp().obj_list()->update_and_show_object_settings_item();
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
