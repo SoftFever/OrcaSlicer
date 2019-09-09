@@ -51,6 +51,35 @@ static inline void check_add_eol(std::string &gcode)
         gcode += '\n';    
 }
 
+
+// Return true if tch_prefix is found in custom_gcode
+static bool custom_gcode_changes_tool(const std::string& custom_gcode, const std::string& tch_prefix, unsigned next_extruder)
+{
+    bool ok = false;
+    size_t from_pos = 0;
+    size_t pos = 0;
+    while ((pos = custom_gcode.find(tch_prefix, from_pos)) != std::string::npos) {
+        if (pos+1 == custom_gcode.size())
+            break;
+        from_pos = pos+1;
+        // only whitespace is allowed before the command
+        while (--pos < custom_gcode.size() && custom_gcode[pos] != '\n') {
+            if (! std::isspace(custom_gcode[pos]))
+                continue;
+        }
+        // we should also check that the extruder changes to what was expected
+        std::istringstream ss(custom_gcode.substr(from_pos, std::string::npos));
+        unsigned num = 0;
+        if (ss >> num) {
+            if (num == next_extruder)
+                ok = true;
+            else
+                ok = false;
+        }
+    }
+    return ok;
+}
+
 void AvoidCrossingPerimeters::init_external_mp(const Print &print)
 { 
 	m_external_mp = Slic3r::make_unique<MotionPlanner>(union_ex(this->collect_contours_all_layers(print.objects())));
@@ -314,8 +343,8 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         std::string toolchange_command;
         if (tcr.priming || (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id)))
             toolchange_command = gcodegen.writer().toolchange(new_extruder_id);
-        if (toolchange_gcode.empty())
-            toolchange_gcode_str = toolchange_command;
+        if (! custom_gcode_changes_tool(toolchange_gcode_str, gcodegen.writer().toolchange_prefix(), new_extruder_id))
+            toolchange_gcode_str += toolchange_command;
         else {
             // We have informed the m_writer about the current extruder_id, we can ignore the generated G-code.
         }
@@ -2928,6 +2957,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
     const std::string& toolchange_gcode = m_config.toolchange_gcode.value;
+    std::string toolchange_gcode_parsed;
 
     // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
     if (!toolchange_gcode.empty()) {
@@ -2936,13 +2966,14 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
         config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
-        gcode += placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
+        toolchange_gcode_parsed = placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
+        gcode += toolchange_gcode_parsed;
         check_add_eol(gcode);
     }
 
     // We inform the writer about what is happening, but we may not use the resulting gcode.
     std::string toolchange_command = m_writer.toolchange(extruder_id);
-    if (toolchange_gcode.empty())
+    if (! custom_gcode_changes_tool(toolchange_gcode_parsed, m_writer.toolchange_prefix(), extruder_id))
         gcode += toolchange_command;
     else {
         // user provided his own toolchange gcode, no need to do anything
