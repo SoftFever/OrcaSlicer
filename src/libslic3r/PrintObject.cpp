@@ -532,8 +532,13 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow_ratio") {
-            steps.emplace_back(posPerimeters);
-            steps.emplace_back(posInfill);
+            if (m_config.support_material_contact_distance > 0.) {
+            	// Only invalidate due to bridging if bridging is enabled.
+            	// If later "support_material_contact_distance" is modified, the complete PrintObject is invalidated anyway.
+            	steps.emplace_back(posPerimeters);
+            	steps.emplace_back(posInfill);
+	            steps.emplace_back(posSupportMaterial);
+	        }
         } else if (
                opt_key == "seam_position"
             || opt_key == "seam_preferred_direction"
