@@ -37,7 +37,6 @@ public:
 private:
     wxTextCtrl *txt_filename;
     wxCheckBox *box_print;
-    bool can_start_print;
 };
 
 
