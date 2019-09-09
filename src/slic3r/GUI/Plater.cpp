@@ -2368,6 +2368,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             selection.add_object((unsigned int)idx, false);
         }
+
+        if (view3D->get_canvas3d()->get_gizmos_manager().is_running())
+            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+            view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
 
     return obj_idxs;
