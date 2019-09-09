@@ -3080,18 +3080,28 @@ void Plater::priv::reload_from_disk()
 {
     Plater::TakeSnapshot snapshot(q, _(L("Reload from Disk")));
 
-    const auto &selection = get_selection();
+    auto& selection = get_selection();
     const auto obj_orig_idx = selection.get_object_idx();
     if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }
+    int instance_idx = selection.get_instance_idx();
 
     auto *object_orig = model.objects[obj_orig_idx];
     std::vector<fs::path> input_paths(1, object_orig->input_file);
 
+    // disable render to avoid to show intermediate states
+    view3D->get_canvas3d()->enable_render(false);
+
     const auto new_idxs = load_files(input_paths, true, false);
+    if (new_idxs.empty())
+    {
+        // error while loading
+        view3D->get_canvas3d()->enable_render(true);
+        return;
+    }
 
     for (const auto idx : new_idxs) {
         ModelObject *object = model.objects[idx];
-
+        object->config.apply(object_orig->config);
         object->clear_instances();
         for (const ModelInstance *instance : object_orig->instances) {
             object->add_instance(*instance);
@@ -3103,10 +3113,26 @@ void Plater::priv::reload_from_disk()
             }
         }
 
+        if (object_orig->instances.size() > 1)
+            sidebar->obj_list()->increase_object_instances(idx, object_orig->instances.size());
+
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
     remove(obj_orig_idx);
+
+    // re-enable render 
+    view3D->get_canvas3d()->enable_render(true);
+
+    // the previous call to remove() clears the selection
+    // select newly added objects
+    selection.clear();
+    for (const auto idx : new_idxs)
+    {
+        selection.add_instance((unsigned int)idx - 1, instance_idx, false);
+    }
+
+    wxGetApp().obj_list()->update_and_show_object_settings_item();
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)

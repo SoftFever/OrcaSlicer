@@ -117,9 +117,9 @@ public:
     virtual ConfigOption*       clone() const = 0;
     // Set a value from a ConfigOption. The two options should be compatible.
     virtual void                set(const ConfigOption *option) = 0;
-    virtual int                 getInt()        const { throw std::runtime_error("Calling ConfigOption::getInt on a non-int ConfigOption"); return 0; }
-    virtual double              getFloat()      const { throw std::runtime_error("Calling ConfigOption::getFloat on a non-float ConfigOption"); return 0; }
-    virtual bool                getBool()       const { throw std::runtime_error("Calling ConfigOption::getBool on a non-boolean ConfigOption"); return 0; }
+    virtual int                 getInt()        const { throw std::runtime_error("Calling ConfigOption::getInt on a non-int ConfigOption"); }
+    virtual double              getFloat()      const { throw std::runtime_error("Calling ConfigOption::getFloat on a non-float ConfigOption"); }
+    virtual bool                getBool()       const { throw std::runtime_error("Calling ConfigOption::getBool on a non-boolean ConfigOption");  }
     virtual void                setInt(int /* val */) { throw std::runtime_error("Calling ConfigOption::setInt on a non-int ConfigOption"); }
     virtual bool                operator==(const ConfigOption &rhs) const = 0;
     bool                        operator!=(const ConfigOption &rhs) const { return ! (*this == rhs); }
@@ -203,6 +203,12 @@ public:
     virtual bool   empty() const = 0;
     // Is the value nil? That should only be possible if this->nullable().
     virtual bool   is_nil(size_t idx) const = 0;
+
+    // We just overloaded and hid two base class virtual methods.
+    // Let's show it was intentional (warnings).
+    using ConfigOption::set;
+    using ConfigOption::is_nil;
+
 
 protected:
     // Used to verify type compatibility when assigning to / from a scalar ConfigOption.
@@ -544,7 +550,7 @@ public:
     static ConfigOptionType static_type() { return coInt; }
     ConfigOptionType        type()   const override { return static_type(); }
     int                     getInt() const override { return this->value; }
-    void                    setInt(int val) { this->value = val; }
+    void                    setInt(int val) override { this->value = val; }
     ConfigOption*           clone()  const override { return new ConfigOptionInt(*this); }
     bool                    operator==(const ConfigOptionInt &rhs) const { return this->value == rhs.value; }
     
@@ -702,7 +708,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionStrings(*this); }
     ConfigOptionStrings&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionStrings &rhs) const { return this->values == rhs.values; }
-	bool					is_nil(size_t idx) const override { return false; }
+    bool					is_nil(size_t) const override { return false; }
 
     std::string serialize() const override
     {
@@ -917,7 +923,7 @@ public:
     ConfigOption*           clone() const override { return new ConfigOptionPoints(*this); }
     ConfigOptionPoints&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                    operator==(const ConfigOptionPoints &rhs) const { return this->values == rhs.values; }
-	bool					is_nil(size_t idx) const override { return false; }
+    bool					is_nil(size_t) const override { return false; }
 
     std::string serialize() const override
     {
@@ -1502,7 +1508,7 @@ protected:
     // Both opt_key and value may be modified by handle_legacy().
     // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
     // handle_legacy() is called internally by set_deserialize().
-    virtual void                    handle_legacy(t_config_option_key &opt_key, std::string &value) const {}
+    virtual void                    handle_legacy(t_config_option_key &/*opt_key*/, std::string &/*value*/) const {}
 
 public:
     // Non-virtual methods:
@@ -1576,7 +1582,7 @@ public:
     DynamicConfig() {}
     DynamicConfig(const DynamicConfig& other) { *this = other; }
     DynamicConfig(DynamicConfig&& other) : options(std::move(other.options)) { other.options.clear(); }
-    virtual ~DynamicConfig() { clear(); }
+    virtual ~DynamicConfig() override { clear(); }
 
     // Copy a content of one DynamicConfig to another DynamicConfig.
     // If rhs.def() is not null, then it has to be equal to this->def(). 
@@ -1697,14 +1703,14 @@ public:
     const std::string&  opt_string(const t_config_option_key &opt_key, unsigned int idx) const  { return const_cast<DynamicConfig*>(this)->opt_string(opt_key, idx); }
 
     double&             opt_float(const t_config_option_key &opt_key)                           { return this->option<ConfigOptionFloat>(opt_key)->value; }
-    const double        opt_float(const t_config_option_key &opt_key) const                     { return dynamic_cast<const ConfigOptionFloat*>(this->option(opt_key))->value; }
+    const double&       opt_float(const t_config_option_key &opt_key) const                     { return dynamic_cast<const ConfigOptionFloat*>(this->option(opt_key))->value; }
     double&             opt_float(const t_config_option_key &opt_key, unsigned int idx)         { return this->option<ConfigOptionFloats>(opt_key)->get_at(idx); }
-    const double        opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { return dynamic_cast<const ConfigOptionFloats*>(this->option(opt_key))->get_at(idx); }
+    const double&       opt_float(const t_config_option_key &opt_key, unsigned int idx) const   { return dynamic_cast<const ConfigOptionFloats*>(this->option(opt_key))->get_at(idx); }
 
     int&                opt_int(const t_config_option_key &opt_key)                             { return this->option<ConfigOptionInt>(opt_key)->value; }
-    const int           opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
+    int                 opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
     int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return this->option<ConfigOptionInts>(opt_key)->get_at(idx); }
-    const int           opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
+    int                 opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
 
     template<typename ENUM>
 	ENUM                opt_enum(const t_config_option_key &opt_key) const                      { return (ENUM)dynamic_cast<const ConfigOptionEnumGeneric*>(this->option(opt_key))->value; }

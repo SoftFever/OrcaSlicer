@@ -403,6 +403,7 @@ private:
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
     bool m_in_render;
+    bool m_render_enabled;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;
@@ -433,7 +434,6 @@ private:
     bool m_initialized;
     bool m_apply_zoom_to_volumes_filter;
     mutable std::vector<int> m_hover_volume_idxs;
-    bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
     bool m_moving_enabled;
@@ -532,6 +532,9 @@ public:
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
+
+    void enable_render(bool enable) { m_render_enabled = enable; }
+    bool is_render_enabled() const { return m_render_enabled; }
 
     void zoom_to_bed();
     void zoom_to_volumes();

@@ -60,10 +60,6 @@
 #endif // ENABLE_RENDER_STATISTICS
 
 static const float TRACKBALLSIZE = 0.8f;
-static const float GROUND_Z = -0.02f;
-
-static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
-static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
@@ -1127,6 +1123,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_retina_helper(nullptr)
 #endif
     , m_in_render(false)
+    , m_render_enabled(true)
     , m_bed(bed)
     , m_camera(camera)
     , m_view_toolbar(view_toolbar)
@@ -1513,7 +1510,7 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 void GLCanvas3D::render()
 {
-    if (m_in_render)
+    if (!m_render_enabled || m_in_render)
     {
         // if called recursively, return
         m_dirty = true;
@@ -3909,7 +3906,7 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.set_hover_id(-1);
         }
         else
-            m_gizmos.set_hover_id(inside && volume_id <= (int)GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+            m_gizmos.set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
 
         _update_volumes_hover_state();
     }

@@ -1916,7 +1916,7 @@ void GCode::process_layer(
     _write(file, gcode);
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << 
         ", time estimator memory: " <<
-            format_memsize_MB(m_normal_time_estimator.memory_used() + m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0) <<
+            format_memsize_MB(m_normal_time_estimator.memory_used() + (m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0)) <<
         ", analyzer memory: " <<
             format_memsize_MB(m_analyzer.memory_used()) <<
         log_memory_info();
@@ -1996,38 +1996,6 @@ std::string GCode::change_layer(coordf_t print_z)
     
     return gcode;
 }
-
-static inline const char* ExtrusionRole2String(const ExtrusionRole role)
-{
-    switch (role) {
-    case erNone:                        return "erNone";
-    case erPerimeter:                   return "erPerimeter";
-    case erExternalPerimeter:           return "erExternalPerimeter";
-    case erOverhangPerimeter:           return "erOverhangPerimeter";
-    case erInternalInfill:              return "erInternalInfill";
-    case erSolidInfill:                 return "erSolidInfill";
-    case erTopSolidInfill:              return "erTopSolidInfill";
-    case erBridgeInfill:                return "erBridgeInfill";
-    case erGapFill:                     return "erGapFill";
-    case erSkirt:                       return "erSkirt";
-    case erSupportMaterial:             return "erSupportMaterial";
-    case erSupportMaterialInterface:    return "erSupportMaterialInterface";
-    case erWipeTower:                   return "erWipeTower";
-    case erMixed:                       return "erMixed";
-
-    default:                            return "erInvalid";
-    };
-}
-
-static inline const char* ExtrusionLoopRole2String(const ExtrusionLoopRole role)
-{
-    switch (role) {
-    case elrDefault:                    return "elrDefault";
-    case elrContourInternalPerimeter:   return "elrContourInternalPerimeter";
-    case elrSkirt:                      return "elrSkirt";
-    default:                            return "elrInvalid";
-    }
-};
 
 // Return a value in <0, 1> of a cubic B-spline kernel centered around zero.
 // The B-spline is re-scaled so it has value 1 at zero.
@@ -2411,8 +2379,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // extrude along the path
     std::string gcode;
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
-//    description += ExtrusionLoopRole2String(loop.loop_role());
-//    description += ExtrusionRole2String(path->role);
+//    description += ExtrusionLoop::role_to_string(loop.loop_role());
+//    description += ExtrusionEntity::role_to_string(path->role);
         path->simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(*path, description, speed);
     }
@@ -2465,8 +2433,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     // extrude along the path
     std::string gcode;
     for (ExtrusionPath path : multipath.paths) {
-//    description += ExtrusionLoopRole2String(loop.loop_role());
-//    description += ExtrusionRole2String(path->role);
+//    description += ExtrusionLoop::role_to_string(loop.loop_role());
+//    description += ExtrusionEntity::role_to_string(path->role);
         path.simplify(SCALED_RESOLUTION);
         gcode += this->_extrude(path, description, speed);
     }
@@ -2495,7 +2463,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
-//    description += ExtrusionRole2String(path.role());
+//    description += ExtrusionEntity::role_to_string(path.role());
     path.simplify(SCALED_RESOLUTION);
     std::string gcode = this->_extrude(path, description, speed);
     if (m_wipe.enable) {

@@ -11,7 +11,7 @@ class ExPolygonCollection;
 class ExtrusionEntityCollection;
 class Extruder;
 
-/* Each ExtrusionRole value identifies a distinct set of { extruder, speed } */
+// Each ExtrusionRole value identifies a distinct set of { extruder, speed }
 enum ExtrusionRole {
     erNone,
     erPerimeter,
@@ -29,8 +29,16 @@ enum ExtrusionRole {
     erCustom,
     // Extrusion role for a collection with multiple extrusion roles.
     erMixed,
-    erCount,
+    erCount
 };
+
+// Special flags describing loop
+enum ExtrusionLoopRole {
+    elrDefault,
+    elrContourInternalPerimeter,
+    elrSkirt,
+};
+
 
 inline bool is_perimeter(ExtrusionRole role)
 {
@@ -59,13 +67,6 @@ inline bool is_bridge(ExtrusionRole role) {
         || role == erOverhangPerimeter;
 }
 
-/* Special flags describing loop */
-enum ExtrusionLoopRole {
-    elrDefault,
-    elrContourInternalPerimeter,
-    elrSkirt,
-};
-
 class ExtrusionEntity
 {
 public:
@@ -74,7 +75,7 @@ public:
     virtual bool is_loop() const { return false; }
     virtual bool can_reverse() const { return true; }
     virtual ExtrusionEntity* clone() const = 0;
-    virtual ~ExtrusionEntity() {};
+    virtual ~ExtrusionEntity() {}
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
     virtual Point last_point() const = 0;
@@ -96,6 +97,8 @@ public:
     virtual Polylines as_polylines() const { Polylines dst; this->collect_polylines(dst); return dst; }
     virtual double length() const = 0;
     virtual double total_volume() const = 0;
+
+    static std::string role_to_string(ExtrusionRole role);
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -117,17 +120,17 @@ public:
     // Id of the color, used for visualization purposed in the color printing case.
     unsigned int cp_color_id;
 
-    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {};
-    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {};
+    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
+    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
     ExtrusionPath(const ExtrusionPath &rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
     ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
 //    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height), feedrate(0.0f), extruder_id(0) {};
 
-    ExtrusionPath& operator=(const ExtrusionPath &rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->cp_color_id = rhs.cp_color_id, this->polyline = rhs.polyline; return *this; }
-    ExtrusionPath& operator=(ExtrusionPath &&rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->cp_color_id = rhs.cp_color_id, this->polyline = std::move(rhs.polyline); return *this; }
+    ExtrusionPath& operator=(const ExtrusionPath &rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = rhs.polyline; return *this; }
+    ExtrusionPath& operator=(ExtrusionPath &&rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = std::move(rhs.polyline); return *this; }
 
-    ExtrusionPath* clone() const { return new ExtrusionPath (*this); }
-    void reverse() { this->polyline.reverse(); }
+    ExtrusionPath* clone() const override { return new ExtrusionPath (*this); }
+    void reverse() override { this->polyline.reverse(); }
     Point first_point() const override { return this->polyline.points.front(); }
     Point last_point() const override { return this->polyline.points.back(); }
     size_t size() const { return this->polyline.size(); }
@@ -145,18 +148,18 @@ public:
     ExtrusionRole role() const override { return m_role; }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
-    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
-    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const override;
     Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
     Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
-    double min_mm3_per_mm() const { return this->mm3_per_mm; }
-    Polyline as_polyline() const { return this->polyline; }
+    double min_mm3_per_mm() const override { return this->mm3_per_mm; }
+    Polyline as_polyline() const override { return this->polyline; }
     void   collect_polylines(Polylines &dst) const override { if (! this->polyline.empty()) dst.emplace_back(this->polyline); }
     double total_volume() const override { return mm3_per_mm * unscale<double>(length()); }
 
@@ -174,37 +177,37 @@ class ExtrusionMultiPath : public ExtrusionEntity
 public:
     ExtrusionPaths paths;
     
-    ExtrusionMultiPath() {};
+    ExtrusionMultiPath() {}
     ExtrusionMultiPath(const ExtrusionMultiPath &rhs) : paths(rhs.paths) {}
     ExtrusionMultiPath(ExtrusionMultiPath &&rhs) : paths(std::move(rhs.paths)) {}
-    ExtrusionMultiPath(const ExtrusionPaths &paths) : paths(paths) {};
+    ExtrusionMultiPath(const ExtrusionPaths &paths) : paths(paths) {}
     ExtrusionMultiPath(const ExtrusionPath &path) { this->paths.push_back(path); }
 
     ExtrusionMultiPath& operator=(const ExtrusionMultiPath &rhs) { this->paths = rhs.paths; return *this; }
     ExtrusionMultiPath& operator=(ExtrusionMultiPath &&rhs) { this->paths = std::move(rhs.paths); return *this; }
 
-    bool is_loop() const { return false; }
-    bool can_reverse() const { return true; }
-    ExtrusionMultiPath* clone() const { return new ExtrusionMultiPath(*this); }
-    void reverse();
+    bool is_loop() const override { return false; }
+    bool can_reverse() const override { return true; }
+    ExtrusionMultiPath* clone() const override { return new ExtrusionMultiPath(*this); }
+    void reverse() override;
     Point first_point() const override { return this->paths.front().polyline.points.front(); }
     Point last_point() const override { return this->paths.back().polyline.points.back(); }
     double length() const override;
     ExtrusionRole role() const override { return this->paths.empty() ? erNone : this->paths.front().role(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
-    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
-    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const override;
     Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
     Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
-    double min_mm3_per_mm() const;
-    Polyline as_polyline() const;
+    double min_mm3_per_mm() const override;
+    Polyline as_polyline() const override;
     void   collect_polylines(Polylines &dst) const override { Polyline pl = this->as_polyline(); if (! pl.empty()) dst.emplace_back(std::move(pl)); }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 };
@@ -215,19 +218,19 @@ class ExtrusionLoop : public ExtrusionEntity
 public:
     ExtrusionPaths paths;
     
-    ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : m_loop_role(role) {};
-    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault) : paths(paths), m_loop_role(role) {};
-    ExtrusionLoop(ExtrusionPaths &&paths, ExtrusionLoopRole role = elrDefault) : paths(std::move(paths)), m_loop_role(role) {};
+    ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : m_loop_role(role) {}
+    ExtrusionLoop(const ExtrusionPaths &paths, ExtrusionLoopRole role = elrDefault) : paths(paths), m_loop_role(role) {}
+    ExtrusionLoop(ExtrusionPaths &&paths, ExtrusionLoopRole role = elrDefault) : paths(std::move(paths)), m_loop_role(role) {}
     ExtrusionLoop(const ExtrusionPath &path, ExtrusionLoopRole role = elrDefault) : m_loop_role(role) 
-        { this->paths.push_back(path); };
+        { this->paths.push_back(path); }
     ExtrusionLoop(const ExtrusionPath &&path, ExtrusionLoopRole role = elrDefault) : m_loop_role(role)
-        { this->paths.emplace_back(std::move(path)); };
-    bool is_loop() const { return true; }
-    bool can_reverse() const { return false; }
-    ExtrusionLoop* clone() const { return new ExtrusionLoop (*this); }
+        { this->paths.emplace_back(std::move(path)); }
+    bool is_loop() const override{ return true; }
+    bool can_reverse() const override { return false; }
+    ExtrusionLoop* clone() const override{ return new ExtrusionLoop (*this); }
     bool make_clockwise();
     bool make_counter_clockwise();
-    void reverse();
+    void reverse() override;
     Point first_point() const override { return this->paths.front().polyline.points.front(); }
     Point last_point() const override { assert(first_point() == this->paths.back().polyline.points.back()); return first_point(); }
     Polygon polygon() const;
@@ -242,20 +245,22 @@ public:
     ExtrusionLoopRole loop_role() const { return m_loop_role; }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
-    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
-    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const  override;
     Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
     Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
-    double min_mm3_per_mm() const;
-    Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
+    double min_mm3_per_mm() const override;
+    Polyline as_polyline() const override { return this->polygon().split_at_first_point(); }
     void   collect_polylines(Polylines &dst) const override { Polyline pl = this->as_polyline(); if (! pl.empty()) dst.emplace_back(std::move(pl)); }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
+
+    //static inline std::string role_to_string(ExtrusionLoopRole role);
 
 private:
     ExtrusionLoopRole m_loop_role;
