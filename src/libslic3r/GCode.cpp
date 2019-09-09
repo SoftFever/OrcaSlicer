@@ -2688,11 +2688,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // PrusaMultiMaterial::Writer may generate GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines without updating m_last_height and m_last_width
         // so, if the last role was erWipeTower we force export of GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines
         bool last_was_wipe_tower = (m_last_analyzer_extrusion_role == erWipeTower);
+        char buf[64];
 
         if (path.role() != m_last_analyzer_extrusion_role)
         {
             m_last_analyzer_extrusion_role = path.role();
-            char buf[32];
             sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), int(m_last_analyzer_extrusion_role));
             gcode += buf;
         }
@@ -2700,8 +2700,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (last_was_wipe_tower || (m_last_mm3_per_mm != path.mm3_per_mm))
         {
             m_last_mm3_per_mm = path.mm3_per_mm;
-
-            char buf[32];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Mm3_Per_Mm_Tag.c_str(), m_last_mm3_per_mm);
             gcode += buf;
         }
@@ -2709,8 +2707,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (last_was_wipe_tower || (m_last_width != path.width))
         {
             m_last_width = path.width;
-
-            char buf[32];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), m_last_width);
             gcode += buf;
         }
@@ -2718,8 +2714,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (last_was_wipe_tower || (m_last_height != path.height))
         {
             m_last_height = path.height;
-
-            char buf[32];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_last_height);
             gcode += buf;
         }
