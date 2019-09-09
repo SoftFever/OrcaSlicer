@@ -65,17 +65,16 @@ static bool custom_gcode_changes_tool(const std::string& custom_gcode, const std
         // only whitespace is allowed before the command
         while (--pos < custom_gcode.size() && custom_gcode[pos] != '\n') {
             if (! std::isspace(custom_gcode[pos]))
-                continue;
+                goto NEXT;
         }
-        // we should also check that the extruder changes to what was expected
-        std::istringstream ss(custom_gcode.substr(from_pos, std::string::npos));
-        unsigned num = 0;
-        if (ss >> num) {
-            if (num == next_extruder)
-                ok = true;
-            else
-                ok = false;
+        {
+            // we should also check that the extruder changes to what was expected
+            std::istringstream ss(custom_gcode.substr(from_pos, std::string::npos));
+            unsigned num = 0;
+            if (ss >> num)
+                ok = (num == next_extruder);
         }
+NEXT: ;
     }
     return ok;
 }
