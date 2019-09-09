@@ -2054,10 +2054,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("toolchange_gcode", coString);
     def->label = L("Tool change G-code");
-    def->tooltip = L("This custom code is inserted before every toolchange. You can use placeholder variables for all PrusaSlicer settings "
-                     "as well as {previous_extruder} and {next_extruder}. Explicitely including a tool-changing command (such as T{next_extruder}), "
-                     "which changes to the correct extruder, no other such command will be emitted. It is therefore possible to script custom  "
-                     "behaviour both before and after the toolchange.");
+    def->tooltip = L("This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings "
+                     "as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command "
+                     "which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. "
+                     "It is therefore possible to script custom behaviour both before and after the toolchange.");
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
