@@ -674,9 +674,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && ((m_parent.get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
+        else if (evt.LeftUp() && (m_current == Flatten) && (m_gizmos[m_current]->get_hover_id() != -1))
         {
-            // to avoid to loose the selection when user clicks an object while the Flatten gizmo is active
+            // to avoid to loose the selection when user clicks an the white faces of a different object while the Flatten gizmo is active
             processed = true;
         }
     }
