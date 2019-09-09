@@ -866,7 +866,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	SetSize(std::max(size.GetWidth(), static_cast<int>(p->min_width)), std::max(size.GetHeight(), static_cast<int>(p->min_height)));
 	Layout();
 
-    SetEscapeId(wxID_CLOSE); // To close the dialog using "Esc" button
+	SetEscapeId(wxID_CLOSE); // To close the dialog using "Esc" button
 
 	// Bind events
 
@@ -893,7 +893,6 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 		this->p->fit_no_shrink();
 	});
 
-	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
 	p->btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
 
 	p->btn_flash->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {

@@ -151,7 +151,7 @@ bool stl_write_binary(stl_file *stl, const char *file, const char *label)
 	memcpy(buffer, &stl->stats.number_of_facets, 4);
 	stl_internal_reverse_quads(buffer, 4);
 	fwrite(buffer, 4, 1, fp);
-	for (i = 0; i < stl->stats.number_of_facets; ++ i) {
+	for (size_t i = 0; i < stl->stats.number_of_facets; ++ i) {
 		memcpy(buffer, stl->facet_start + i, 50);
 		// Convert to little endian.
 		stl_internal_reverse_quads(buffer, 48);
