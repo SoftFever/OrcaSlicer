@@ -2054,10 +2054,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("toolchange_gcode", coString);
     def->label = L("Tool change G-code");
-    def->tooltip = L("This custom code is inserted at every extruder change. If you don't leave this empty, you are "
-                     "expected to take care of the toolchange yourself - PrusaSlicer will not output any other G-code to "
-                     "change the filament. You can use placeholder variables for all Slic3r settings as well as [previous_extruder] "
-                     "and [next_extruder], so e.g. the standard toolchange command can be scripted as T[next_extruder].");
+    def->tooltip = L("This custom code is inserted before every toolchange. You can use placeholder variables for all PrusaSlicer settings "
+                     "as well as {previous_extruder} and {next_extruder}. Explicitely including a tool-changing command (such as T{next_extruder}), "
+                     "which changes to the correct extruder, no other such command will be emitted. It is therefore possible to script custom  "
+                     "behaviour both before and after the toolchange.");
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
