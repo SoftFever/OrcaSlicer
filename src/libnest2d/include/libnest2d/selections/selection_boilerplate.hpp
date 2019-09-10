@@ -35,7 +35,8 @@ protected:
         while (it != c.end() && !stopcond_()) {
             Placer p{bin};
             p.configure(pcfg);
-            Item cpy{*it};
+            const Item& itm = *it;
+            Item cpy{itm};
             if (!p.pack(cpy)) it = c.erase(it);
             else it++;
         }
