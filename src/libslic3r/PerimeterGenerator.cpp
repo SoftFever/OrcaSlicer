@@ -37,7 +37,8 @@ void PerimeterGenerator::process()
     // internal flow which is unrelated.
     coord_t min_spacing         = perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE);
     coord_t ext_min_spacing     = ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE);
-    
+    bool    has_gap_fill 		= this->config->gap_fill_speed.value > 0;
+
     // prepare grown lower layer slices for overhang detection
     if (this->lower_slices != NULL && this->config->overhangs) {
         // We consider overhang any part where the entire nozzle diameter is not supported by the
@@ -105,7 +106,7 @@ void PerimeterGenerator::process()
                         // leads to overflows, as in prusa3d/Slic3r GH #32
                         offset_ex(last, - distance);
                     // look for gaps
-                    if (this->config->gap_fill_speed.value > 0 && this->config->fill_density.value > 0)
+                    if (has_gap_fill)
                         // not using safety offset here would "detect" very narrow gaps
                         // (but still long enough to escape the area threshold) that gap fill
                         // won't be able to fill but we'd still remove from infill area
@@ -132,6 +133,11 @@ void PerimeterGenerator::process()
                     }
                 }
                 last = std::move(offsets);
+                if (i == loop_number && (! has_gap_fill || this->config->fill_density.value == 0)) {
+                	// The last run of this loop is executed to collect gaps for gap fill.
+                	// As the gap fill is either disabled or not 
+                	break;
+                }
             }
 
             // nest loops: holes first
