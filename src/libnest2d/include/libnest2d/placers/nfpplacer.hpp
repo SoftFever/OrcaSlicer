@@ -546,7 +546,12 @@ public:
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
-        norm_(std::sqrt(sl::area(bin))) {}
+        norm_(std::sqrt(sl::area(bin)))
+    {
+        // In order to not have items out of bin, it will be shrinked by an
+        // very little empiric offset value.
+        // sl::offset(bin_, 1e-5 * norm_);
+    }
 
     _NofitPolyPlacer(const _NofitPolyPlacer&) = default;
     _NofitPolyPlacer& operator=(const _NofitPolyPlacer&) = default;
@@ -1179,7 +1184,14 @@ private:
     }
 
     void setInitialPosition(Item& item) {
-        Box&& bb = item.boundingBox();
+        auto sh = item.rawShape();
+        sl::translate(sh, item.translation());
+        sl::rotate(sh, item.rotation());
+        
+        Box bb = sl::boundingBox(sh);
+        bb.minCorner() += item.translation();
+        bb.maxCorner() += item.translation();
+        
         Vertex ci, cb;
         auto bbin = sl::boundingBox(bin_);
 

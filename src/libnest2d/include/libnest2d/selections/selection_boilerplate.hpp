@@ -25,6 +25,21 @@ public:
     inline void clear() { packed_bins_.clear(); }
 
 protected:
+    
+    template<class Placer, class Container, class Bin, class PCfg>
+    void remove_unpackable_items(Container &c, const Bin &bin, const PCfg& pcfg)
+    {
+        // Safety test: try to pack each item into an empty bin. If it fails
+        // then it should be removed from the list
+        auto it = c.begin();
+        while (it != c.end() && !stopcond_()) {
+            Placer p{bin};
+            p.configure(pcfg);
+            Item cpy{*it};
+            if (!p.pack(cpy)) it = c.erase(it);
+            else it++;
+        }
+    }
 
     PackGroup packed_bins_;
     ProgressFunction progress_ = [](unsigned){};
