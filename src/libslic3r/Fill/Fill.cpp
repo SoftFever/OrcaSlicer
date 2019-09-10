@@ -198,11 +198,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	{
 		Polygons all_polygons;
 		for (SurfaceFill &fill : surface_fills)
-			if (! fill.expolygons.empty() && (fill.expolygons.size() > 1 || ! all_polygons.empty())) {
+			if (! fill.expolygons.empty()) {
 				Polygons polys = to_polygons(std::move(fill.expolygons));
-	            // Make a union of polygons, use a safety offset, subtract the preceding polygons.
-			    // Bridges are processed first (see SurfaceFill::operator<())
-	            fill.expolygons = all_polygons.empty() ? union_ex(polys, true) : diff_ex(polys, all_polygons, true);
+				if (fill.expolygons.size() > 1 || ! all_polygons.empty())
+		            // Make a union of polygons, use a safety offset, subtract the preceding polygons.
+				    // Bridges are processed first (see SurfaceFill::operator<())
+		            fill.expolygons = all_polygons.empty() ? union_ex(polys, true) : diff_ex(polys, all_polygons, true);
 				append(all_polygons, std::move(polys));
 	        }
 	}
@@ -309,7 +310,6 @@ void Layer::make_fills()
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->spacing  = surface_fill.params.spacing;
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.flow.bridge;
@@ -335,8 +335,10 @@ void Layer::make_fills()
         params.dont_adjust 	= surface_fill.params.dont_adjust; // false
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
-        	surface_fill.surface.expolygon = std::move(expoly);
-	        Polylines polylines = f->fill_surface(&surface_fill.surface, params);
+			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
+			f->spacing = surface_fill.params.spacing;
+			surface_fill.surface.expolygon = std::move(expoly);
+			Polylines polylines = f->fill_surface(&surface_fill.surface, params);
 	        if (! polylines.empty()) {
 		        // calculate actual flow from spacing (which might have been adjusted by the infill
 		        // pattern generator)

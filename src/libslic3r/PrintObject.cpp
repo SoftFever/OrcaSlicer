@@ -258,8 +258,8 @@ void PrintObject::prepare_infill()
     m_print->throw_if_canceled();
     
     // Decide what surfaces are to be filled.
-    // Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
-    // Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
+    // Here the stTop / stBottomBridge / stBottom infill is turned to just stInternal if zero top / bottom infill layers are configured.
+    // Also tiny stInternal surfaces are turned to stInternalSolid.
     BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
     for (auto *layer : m_layers)
         for (auto *region : layer->m_regions) {
@@ -271,8 +271,8 @@ void PrintObject::prepare_infill()
     // and rearrange top/bottom/internal surfaces
     // It produces enlarged overlapping bridging areas.
     //
-    // 1) S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
-    // 2) S_TYPE_TOP is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
     // 3) Clip the internal surfaces by the grown top/bottom surfaces.
     // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
     //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
@@ -468,9 +468,17 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "support_material_contact_distance" 
             || opt_key == "xy_size_compensation") {
             steps.emplace_back(posSlice);
+        } else if (opt_key == "support_material") {
+            steps.emplace_back(posSupportMaterial);
+            if (m_config.support_material_contact_distance == 0.) {
+            	// Enabling / disabling supports while soluble support interface is enabled.
+            	// This changes the bridging logic (bridging enabled without supports, disabled with supports).
+            	// Reset everything.
+            	// See GH #1482 for details.
+	            steps.emplace_back(posSlice);
+	        }
         } else if (
-               opt_key == "support_material"
-            || opt_key == "support_material_auto"
+        	   opt_key == "support_material_auto"
             || opt_key == "support_material_angle"
             || opt_key == "support_material_buildplate_only"
             || opt_key == "support_material_enforce_layers"
@@ -524,8 +532,13 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow_ratio") {
-            steps.emplace_back(posPerimeters);
-            steps.emplace_back(posInfill);
+            if (m_config.support_material_contact_distance > 0.) {
+            	// Only invalidate due to bridging if bridging is enabled.
+            	// If later "support_material_contact_distance" is modified, the complete PrintObject is invalidated anyway.
+            	steps.emplace_back(posPerimeters);
+            	steps.emplace_back(posInfill);
+	            steps.emplace_back(posSupportMaterial);
+	        }
         } else if (
                opt_key == "seam_position"
             || opt_key == "seam_preferred_direction"
@@ -1372,7 +1385,7 @@ void PrintObject::bridge_over_infill()
                                 )};
                             push @new_surfaces, map Slic3r::Surface->new(
                                 expolygon       => $_,
-                                surface_type    => S_TYPE_INTERNALVOID,
+                                surface_type    => stInternalVoid,
                             ), @{intersection_ex(
                                 [ map $_->p, @$group ],
                                 [ map @$_, @$to_bridge ],
@@ -2293,8 +2306,7 @@ void PrintObject::clip_fill_surfaces()
         // Detect things that we need to support.
         // Cummulative slices.
         Polygons slices;
-        for (const ExPolygon &expoly : layer->slices.expolygons)
-            polygons_append(slices, to_polygons(expoly));
+        polygons_append(slices, layer->slices.expolygons);
         // Cummulative fill surfaces.
         Polygons fill_surfaces;
         // Solid surfaces to be supported.
@@ -2403,7 +2415,7 @@ void PrintObject::discover_horizontal_shells()
                         polygons_append(solid, to_polygons(surface.expolygon));
                 if (solid.empty())
                     continue;
-//                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == S_TYPE_TOP) ? 'top' : 'bottom';
+//                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == stTop) ? 'top' : 'bottom';
                 
                 size_t solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_solid_layers.value;                
                 for (int n = (type == stTop) ? i-1 : i+1; std::abs(n - (int)i) < solid_layers; (type == stTop) ? -- n : ++ n) {
@@ -2422,7 +2434,7 @@ void PrintObject::discover_horizontal_shells()
                     // shells to be generated in the base but not in the walls (where there are many
                     // narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the 
                     // upper perimeter as an obstacle and shell will not be propagated to more upper layers
-                    //FIXME How does it work for S_TYPE_INTERNALBRIDGE? This is set for sparse infill. Likely this does not work.
+                    //FIXME How does it work for stInternalBRIDGE? This is set for sparse infill. Likely this does not work.
                     Polygons new_internal_solid;
                     {
                         Polygons internal;
@@ -2615,7 +2627,7 @@ void PrintObject::combine_infill()
                 continue;
 //            Slic3r::debugf "  combining %d %s regions from layers %d-%d\n",
 //                scalar(@$intersection),
-//                ($type == S_TYPE_INTERNAL ? 'internal' : 'internal-solid'),
+//                ($type == stInternal ? 'internal' : 'internal-solid'),
 //                $layer_idx-($every-1), $layer_idx;
             // intersection now contains the regions that can be combined across the full amount of layers,
             // so let's remove those areas from all layers.
