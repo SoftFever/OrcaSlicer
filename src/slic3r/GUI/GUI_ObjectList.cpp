@@ -2565,7 +2565,14 @@ static double get_min_layer_height(const int extruder_idx)
 static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    return config.opt_float("max_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+    int extruder_idx_zero_based = extruder_idx <= 0 ? 0 : extruder_idx-1;
+    double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
+
+    // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
+    if (max_layer_height < EPSILON)
+        max_layer_height = 0.75 * config.opt_float("nozzle_diameter", extruder_idx_zero_based);
+
+    return max_layer_height;
 }
 
 void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
