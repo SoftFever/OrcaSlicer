@@ -116,7 +116,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        	has_internal_voids = true;
 	        else {
 		        FlowRole extrusion_role = (surface.surface_type == stTop) ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
-		        bool     is_bridge 	    = layerm.layer()->id() > 0 && surface.is_bridge();
+		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
 		        params.extruder 	 = layerm.region()->extruder(extrusion_role);
 		        params.pattern 		 = layerm.region()->config().fill_pattern.value;
 		        params.density       = float(layerm.region()->config().fill_density);
@@ -141,11 +141,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        // calculate the actual flow we'll be using for this infill
 		        params.flow = layerm.region()->flow(
 		            extrusion_role,
-		            (surface.thickness == -1) ? layerm.layer()->height : surface.thickness, // extrusion height
-		            is_bridge || Fill::use_bridge_flow(params.pattern), 					// bridge flow?
-		            layerm.layer()->id() == 0,          									// first layer?
-		            -1,                                 									// auto width
-		            *layerm.layer()->object()
+		            (surface.thickness == -1) ? layer.height : surface.thickness, 	// extrusion height
+		            is_bridge || Fill::use_bridge_flow(params.pattern), 			// bridge flow?
+		            layer.id() == 0,          										// first layer?
+		            -1,                                 							// auto width
+		            *layer.object()
 		        );
 		        
 		        // Calculate flow spacing for infill pattern generation.
@@ -156,7 +156,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            // layer height
 		            params.spacing = layerm.region()->flow(
 			                frInfill,
-			                layerm.layer()->object()->config().layer_height.value,  // TODO: handle infill_every_layers?
+			                layer.object()->config().layer_height.value,  // TODO: handle infill_every_layers?
 			                false,  // no bridge
 			                false,  // no first layer
 			                -1,     // auto width
@@ -199,12 +199,14 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		Polygons all_polygons;
 		for (SurfaceFill &fill : surface_fills)
 			if (! fill.expolygons.empty()) {
-				Polygons polys = to_polygons(std::move(fill.expolygons));
-				if (fill.expolygons.size() > 1 || ! all_polygons.empty())
+				if (fill.expolygons.size() > 1 || ! all_polygons.empty()) {
+					Polygons polys = to_polygons(std::move(fill.expolygons));
 		            // Make a union of polygons, use a safety offset, subtract the preceding polygons.
 				    // Bridges are processed first (see SurfaceFill::operator<())
 		            fill.expolygons = all_polygons.empty() ? union_ex(polys, true) : diff_ex(polys, all_polygons, true);
-				append(all_polygons, std::move(polys));
+					append(all_polygons, std::move(polys));
+				} else if (&fill != &surface_fills.back())
+					append(all_polygons, to_polygons(fill.expolygons));
 	        }
 	}
 
@@ -259,7 +261,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				region_id = region_some_infill;
 			const LayerRegion& layerm = *layer.regions()[region_id];
 	        for (SurfaceFill &surface_fill : surface_fills)
-	        	if (surface_fill.surface.surface_type == stInternalSolid && std::abs(layerm.layer()->height - surface_fill.params.flow.height) < EPSILON) {
+	        	if (surface_fill.surface.surface_type == stInternalSolid && std::abs(layer.height - surface_fill.params.flow.height) < EPSILON) {
 	        		internal_solid_fill = &surface_fill;
 	        		break;
 	        	}
@@ -273,10 +275,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        // calculate the actual flow we'll be using for this infill
 		        params.flow = layerm.region()->flow(
 		            frSolidInfill,
-		            layerm.layer()->height, 		// extrusion height
-		            false, 							// bridge flow?
-		            layerm.layer()->id() == 0,      // first layer?
-		            -1,                             // auto width
+		            layer.height, 		// extrusion height
+		            false, 				// bridge flow?
+		            layer.id() == 0,    // first layer?
+		            -1,                 // auto width
 		            *layer.object()
 		        );
 		        params.spacing = params.flow.spacing();	        
@@ -294,14 +296,47 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	return surface_fills;
 }
 
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> &fills)
+{
+    BoundingBox bbox;
+    for (const auto &fill : fills)
+        for (const auto &expoly : fill.expolygons)
+            bbox.merge(get_extents(expoly));
+    Point legend_size = export_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
+
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (const auto &fill : fills)
+        for (const auto &expoly : fill.expolygons)
+            svg.draw(expoly, surface_type_to_color_name(fill.surface.surface_type), transparency);
+    export_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close(); 
+}
+#endif
+
 // friend to Layer
 void Layer::make_fills()
 {
 	for (LayerRegion *layerm : m_regions)
 		layerm->fills.clear();
 
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+//	this->export_region_fill_surfaces_to_svg_debug("10_fill-initial");
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
 	std::vector<SurfaceFill>  surface_fills = group_fills(*this);
 	const Slic3r::BoundingBox bbox = this->object()->bounding_box();
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+	{
+		static int iRun = 0;
+		export_group_fills_to_svg(debug_out_path("Layer-fill_surfaces-10_fill-final-%d.svg", iRun ++).c_str(), surface_fills);
+	}
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     for (SurfaceFill &surface_fill : surface_fills) {
         // Create the filler object.
