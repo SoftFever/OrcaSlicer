@@ -3106,6 +3106,7 @@ void Plater::priv::reload_from_disk()
     for (const auto idx : new_idxs) {
         ModelObject *object = model.objects[idx];
         object->config.apply(object_orig->config);
+
         object->clear_instances();
         for (const ModelInstance *instance : object_orig->instances) {
             object->add_instance(*instance);
@@ -3117,13 +3118,25 @@ void Plater::priv::reload_from_disk()
             }
         }
 
-        if (object_orig->instances.size() > 1)
-            sidebar->obj_list()->increase_object_instances(idx, object_orig->instances.size());
+        if (object->instances.size() > 1)
+        {
+            sidebar->obj_list()->increase_object_instances(idx, object->instances.size());
+            for (int i = 0; i < (int)object->instances.size(); ++i)
+            {
+                sidebar->obj_list()->update_printable_state((int)idx, i);
+            }
+        }
 
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
     remove(obj_orig_idx);
+
+    // new GLVolumes have been created at this point, so update their printable state
+    for (size_t i = 0; i < model.objects.size(); ++i)
+    {
+        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
 
     // re-enable render 
     view3D->get_canvas3d()->enable_render(true);
