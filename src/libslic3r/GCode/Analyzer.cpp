@@ -7,6 +7,8 @@
 #include "../Utils.hpp"
 #include "Print.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 
