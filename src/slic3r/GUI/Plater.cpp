@@ -1936,6 +1936,7 @@ private:
                                                               * */
     std::string m_last_fff_printer_profile_name;
     std::string m_last_sla_printer_profile_name;
+    bool m_update_objects_list_on_loading{ true };
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -2460,8 +2461,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             _(L("Object too large?")));
     }
 
-    for (const size_t idx : obj_idxs) {
-        wxGetApp().obj_list()->add_object_to_list(idx);
+    if (m_update_objects_list_on_loading)
+    {
+        for (const size_t idx : obj_idxs) {
+            wxGetApp().obj_list()->add_object_to_list(idx);
+        }
     }
 
     update();
@@ -3095,18 +3099,15 @@ void Plater::priv::reload_from_disk()
     // disable render to avoid to show intermediate states
     view3D->get_canvas3d()->enable_render(false);
 
+    // disable update of objects list while loading to avoid to show intermediate states
+    m_update_objects_list_on_loading = false;
+
     const auto new_idxs = load_files(input_paths, true, false);
     if (new_idxs.empty())
     {
         // error while loading
         view3D->get_canvas3d()->enable_render(true);
         return;
-    }
-
-    // temporary removes the new objects from the list
-    for (const auto idx : new_idxs)
-    {
-        wxGetApp().obj_list()->delete_object_from_list(idx);
     }
 
     for (const auto idx : new_idxs)
@@ -3137,7 +3138,10 @@ void Plater::priv::reload_from_disk()
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
-    // puts the updated objects back into the list
+    // re-enable update of objects list
+    m_update_objects_list_on_loading = true;
+
+    // puts the new objects into the list
     for (const auto idx : new_idxs)
     {
         wxGetApp().obj_list()->add_object_to_list(idx);
