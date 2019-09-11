@@ -1,5 +1,13 @@
 #include "Time.hpp"
 
+#include <iomanip>
+#include <sstream>
+#include <chrono>
+
+//#include <boost/date_time/local_time/local_time.hpp>
+//#include <boost/chrono.hpp>
+
+
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
@@ -9,11 +17,31 @@
 namespace Slic3r {
 namespace Utils {
 
+namespace  {
+
+// FIXME: after we switch to gcc > 4.9 on the build server, please remove me
+#if defined(__GNUC__) && __GNUC__ <= 4
+std::string put_time(const std::tm *tm, const char *fmt)
+{
+    static const constexpr int MAX_CHARS = 200;
+    char out[MAX_CHARS];
+    std::strftime(out, MAX_CHARS, fmt, tm);
+    return out;
+}
+#else
+auto put_time(const std::tm *tm, const char *fmt) -> decltype (std::put_time(tm, fmt))
+{
+    return std::put_time(tm, fmt);
+}
+#endif
+
+}
+
 time_t parse_time_ISO8601Z(const std::string &sdate)
 {
 	int y, M, d, h, m, s;
 	if (sscanf(sdate.c_str(), "%04d%02d%02dT%02d%02d%02dZ", &y, &M, &d, &h, &m, &s) != 6)
-        return (time_t)-1;
+        return time_t(-1);
 	struct tm tms;
     tms.tm_year = y - 1900;  // Year since 1900
 	tms.tm_mon  = M - 1;     // 0-11
@@ -62,24 +90,28 @@ std::string format_local_date_time(time_t time)
 }
 
 time_t get_current_time_utc()
+{    
+    using clk = std::chrono::system_clock;
+    return clk::to_time_t(clk::now());
+}
+
+static std::string tm2str(const std::tm *tm, const char *fmt)
 {
-#ifdef WIN32
-	SYSTEMTIME st;
-	// Retrieves the current system date and time. The system time is expressed in Coordinated Universal Time (UTC).
-	::GetSystemTime(&st);
-	std::tm tm;
-	tm.tm_sec   = st.wSecond;
-	tm.tm_min   = st.wMinute;
-	tm.tm_hour  = st.wHour;
-	tm.tm_mday  = st.wDay;
-	tm.tm_mon   = st.wMonth - 1;
-	tm.tm_year  = st.wYear - 1900;
-	tm.tm_isdst = -1;
-	return _mkgmtime(&tm);
-#else
-	// time() returns the time as the number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
-	return time(nullptr);
-#endif
+    std::stringstream ss;
+    ss << put_time(tm, fmt);
+    return ss.str();
+}
+
+std::string time2str(const time_t &t, TimeZone zone, const char *fmt)
+{
+    std::string ret;
+    
+    switch (zone) {
+    case TimeZone::local: ret = tm2str(std::localtime(&t), fmt); break;
+    case TimeZone::utc:   ret = tm2str(std::gmtime(&t), fmt) + " UTC"; break;
+    }
+    
+    return ret;
 }
 
 }; // namespace Utils

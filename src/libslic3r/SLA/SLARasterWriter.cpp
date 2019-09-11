@@ -1,5 +1,7 @@
 #include "SLARasterWriter.hpp"
 #include "libslic3r/Zipper.hpp"
+#include "libslic3r/Time.hpp"
+
 #include "ExPolygon.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
@@ -10,25 +12,13 @@ namespace Slic3r { namespace sla {
 
 std::string SLARasterWriter::createIniContent(const std::string& projectname) const 
 {
-    auto expt_str = std::to_string(m_exp_time_s);
-    auto expt_first_str = std::to_string(m_exp_time_first_s);
-    auto layerh_str = std::to_string(m_layer_height);
-
-    const std::string cnt_fade_layers = std::to_string(m_cnt_fade_layers);
-    const std::string cnt_slow_layers = std::to_string(m_cnt_slow_layers);
-    const std::string cnt_fast_layers = std::to_string(m_cnt_fast_layers);
-    const std::string used_material   = std::to_string(m_used_material);
-
-    return std::string(
-    "action = print\n"
-    "jobDir = ") + projectname + "\n" +
-    "expTime = " + expt_str + "\n"
-    "expTimeFirst = " + expt_first_str + "\n"
-    "numFade = " + cnt_fade_layers + "\n"
-    "layerHeight = " + layerh_str + "\n"
-    "usedMaterial = " + used_material + "\n"
-    "numSlow = " + cnt_slow_layers + "\n"
-                                     "numFast = " + cnt_fast_layers + "\n";
+    std::string out("action = print\njobDir = ");
+    out += projectname + "\n";
+    
+    for (auto &param : m_config)
+        out += param.first + " = " + param.second + "\n";    
+    
+    return out;
 }
 
 void SLARasterWriter::flpXY(ClipperLib::Polygon &poly)
@@ -53,38 +43,14 @@ void SLARasterWriter::flpXY(ExPolygon &poly)
     }
 }
 
-SLARasterWriter::SLARasterWriter(const SLAPrinterConfig &cfg, 
-                                 const SLAMaterialConfig &mcfg, 
-                                 double layer_height)
+SLARasterWriter::SLARasterWriter(const Raster::Resolution  &res,
+                                 const Raster::PixelDim    &pixdim,
+                                 const std::array<bool, 2> &mirror,
+                                 double gamma)
+    : m_res(res), m_pxdim(pixdim), m_mirror(mirror), m_gamma(gamma)
 {
-    double w = cfg.display_width.getFloat();
-    double h = cfg.display_height.getFloat();
-    auto pw = unsigned(cfg.display_pixels_x.getInt());
-    auto ph = unsigned(cfg.display_pixels_y.getInt());
-    
-    m_mirror[X] = cfg.display_mirror_x.getBool();
-    
     // PNG raster will implicitly do an Y mirror
-    m_mirror[Y] = ! cfg.display_mirror_y.getBool();
-        
-    auto ro = cfg.display_orientation.getInt();
-    
-    if(ro == roPortrait) {
-        std::swap(w, h);
-        std::swap(pw, ph);
-        m_o = roPortrait;
-        
-        // XY flipping implicitly does an X mirror
-        m_mirror[X] = ! m_mirror[X];
-    } else m_o = roLandscape;
-    
-    m_res = Raster::Resolution(pw, ph);
-    m_pxdim = Raster::PixelDim(w/pw, h/ph);
-    m_exp_time_s = mcfg.exposure_time.getFloat();
-    m_exp_time_first_s = mcfg.initial_exposure_time.getFloat();
-    m_layer_height = layer_height;
-    
-    m_gamma = cfg.gamma_correction.getFloat();
+    m_mirror[1] = !m_mirror[1];
 }
 
 void SLARasterWriter::save(const std::string &fpath, const std::string &prjname)
@@ -121,15 +87,44 @@ void SLARasterWriter::save(const std::string &fpath, const std::string &prjname)
     }
 }
 
-void SLARasterWriter::set_statistics(const std::vector<double> statistics)
+namespace {
+
+std::string get_cfg_value(const DynamicPrintConfig &cfg, const std::string &key)
 {
-    if (statistics.size() != psCnt)
-        return;
+    std::string ret;
     
-    m_used_material   = statistics[psUsedMaterial];
-    m_cnt_fade_layers = int(statistics[psNumFade]);
-    m_cnt_slow_layers = int(statistics[psNumSlow]);
-    m_cnt_fast_layers = int(statistics[psNumFast]);
+    if (cfg.has(key)) {
+        auto opt = cfg.option(key);
+        if (opt) ret = opt->serialize();
+    }
+    
+    return ret;    
+}
+
+} // namespace
+
+void SLARasterWriter::set_config(const DynamicPrintConfig &cfg)
+{
+    m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
+    m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
+    m_config["expTimeFirst"]   = get_cfg_value(cfg, "initial_exposure_time");
+    m_config["materialName"]   = get_cfg_value(cfg, "sla_material_settings_id");
+    m_config["printerModel"]   = get_cfg_value(cfg, "printer_model");
+    m_config["printerVariant"] = get_cfg_value(cfg, "printer_variant");
+    m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
+    m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
+
+    m_config["fileCreationTimestamp"] = Utils::current_utc_time2str();
+    m_config["prusaSlicerVersion"]    = SLIC3R_BUILD_ID;
+}
+
+void SLARasterWriter::set_statistics(const PrintStatistics &stats)
+{
+    m_config["usedMaterial"] = std::to_string(stats.used_material);
+    m_config["numFade"]      = std::to_string(stats.num_fade);
+    m_config["numSlow"]      = std::to_string(stats.num_slow);
+    m_config["numFast"]      = std::to_string(stats.num_fast);
+    m_config["printTime"]    = std::to_string(stats.estimated_print_time_s);
 }
 
 } // namespace sla
