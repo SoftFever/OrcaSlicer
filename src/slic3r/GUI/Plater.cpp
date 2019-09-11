@@ -1936,6 +1936,7 @@ private:
                                                               * */
     std::string m_last_fff_printer_profile_name;
     std::string m_last_sla_printer_profile_name;
+    bool m_update_objects_list_on_loading{ true };
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -2460,8 +2461,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             _(L("Object too large?")));
     }
 
-    for (const size_t idx : obj_idxs) {
-        wxGetApp().obj_list()->add_object_to_list(idx);
+    if (m_update_objects_list_on_loading)
+    {
+        for (const size_t idx : obj_idxs) {
+            wxGetApp().obj_list()->add_object_to_list(idx);
+        }
     }
 
     update();
@@ -3095,6 +3099,9 @@ void Plater::priv::reload_from_disk()
     // disable render to avoid to show intermediate states
     view3D->get_canvas3d()->enable_render(false);
 
+    // disable update of objects list while loading to avoid to show intermediate states
+    m_update_objects_list_on_loading = false;
+
     const auto new_idxs = load_files(input_paths, true, false);
     if (new_idxs.empty())
     {
@@ -3103,31 +3110,41 @@ void Plater::priv::reload_from_disk()
         return;
     }
 
-    for (const auto idx : new_idxs) {
+    for (const auto idx : new_idxs)
+    {
         ModelObject *object = model.objects[idx];
         object->config.apply(object_orig->config);
 
         object->clear_instances();
-        for (const ModelInstance *instance : object_orig->instances) {
+        for (const ModelInstance *instance : object_orig->instances)
+        {
             object->add_instance(*instance);
         }
 
-        if (object->volumes.size() == object_orig->volumes.size()) {
-            for (size_t i = 0; i < object->volumes.size(); i++) {
+        for (const ModelVolume* v : object_orig->volumes)
+        {
+            if (v->is_modifier())
+                object->add_volume(*v);
+        }
+
+        if (object->volumes.size() == object_orig->volumes.size())
+        {
+            for (size_t i = 0; i < object->volumes.size(); i++)
+            {
                 object->volumes[i]->config.apply(object_orig->volumes[i]->config);
             }
         }
 
-        if (object->instances.size() > 1)
-        {
-            sidebar->obj_list()->increase_object_instances(idx, object->instances.size());
-            for (int i = 0; i < (int)object->instances.size(); ++i)
-            {
-                sidebar->obj_list()->update_printable_state((int)idx, i);
-            }
-        }
-
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
+    }
+
+    // re-enable update of objects list
+    m_update_objects_list_on_loading = true;
+
+    // puts the new objects into the list
+    for (const auto idx : new_idxs)
+    {
+        wxGetApp().obj_list()->add_object_to_list(idx);
     }
 
     remove(obj_orig_idx);
@@ -3148,8 +3165,6 @@ void Plater::priv::reload_from_disk()
     {
         selection.add_instance((unsigned int)idx - 1, instance_idx, false);
     }
-
-    wxGetApp().obj_list()->update_and_show_object_settings_item();
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
