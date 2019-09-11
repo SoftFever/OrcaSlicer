@@ -7,6 +7,8 @@
 #include "../Utils.hpp"
 #include "Print.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 
@@ -107,6 +109,11 @@ void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap
     m_extruder_offsets = extruder_offsets;
 }
 
+void GCodeAnalyzer::set_extruders_count(unsigned int count)
+{
+    m_extruders_count = count;
+}
+
 void GCodeAnalyzer::set_gcode_flavor(const GCodeFlavor& flavor)
 {
     m_gcode_flavor = flavor;
@@ -131,6 +138,7 @@ void GCodeAnalyzer::reset()
 
     m_moves_map.clear();
     m_extruder_offsets.clear();
+    m_extruders_count = 1;
 }
 
 const std::string& GCodeAnalyzer::process_gcode(const std::string& gcode)
@@ -520,7 +528,10 @@ void GCodeAnalyzer::_processT(const std::string& cmd)
         unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
         if (_get_extruder_id() != id)
         {
-            _set_extruder_id(id);
+            if (id >= m_extruders_count)
+                BOOST_LOG_TRIVIAL(error) << "GCodeAnalyzer encountered an invalid toolchange, maybe from a custom gcode.";
+            else
+                _set_extruder_id(id);
 
             // stores tool change move
             _store_move(GCodeMove::Tool_change);
