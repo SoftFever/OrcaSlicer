@@ -108,6 +108,7 @@ private:
     GCodeReader m_parser;
     TypeToMovesMap m_moves_map;
     ExtruderOffsetsMap m_extruder_offsets;
+    unsigned int m_extruders_count;
     GCodeFlavor m_gcode_flavor;
 
     // The output of process_layer()
@@ -117,6 +118,7 @@ public:
     GCodeAnalyzer();
 
     void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets);
+    void set_extruders_count(unsigned int count);
 
     void set_gcode_flavor(const GCodeFlavor& flavor);
 

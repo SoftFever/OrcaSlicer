@@ -806,6 +806,11 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     m_analyzer.set_extruder_offsets(extruder_offsets);
 
+    // send extruders count to analyzer to allow it to detect invalid extruder idxs
+    const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(print.config().option("extruder_colour"));
+    const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(print.config().option("filament_colour"));
+    m_analyzer.set_extruders_count(std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size()));
+
     // tell analyzer about the gcode flavor
     m_analyzer.set_gcode_flavor(print.config().gcode_flavor);
 
