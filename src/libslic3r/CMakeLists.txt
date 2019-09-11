@@ -165,6 +165,8 @@ add_library(libslic3r STATIC
     TriangleMesh.hpp
     utils.cpp
     Utils.hpp
+    Time.cpp
+    Time.hpp
     MTUtils.hpp
     Zipper.hpp
     Zipper.cpp
