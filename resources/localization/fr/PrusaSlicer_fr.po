@@ -1771,6 +1771,10 @@ msgstr "Compensation de l'effet patte d'éléphant"
 msgid "Elevation is too low for object. Use the \"Pad around obect\" feature to print the object without elevation."
 msgstr "L'élévation est trop basse pour l'objet. Utilisez la fonction \"Socle autour de l'objet\" pour imprimer l'objet sans élévation."
 
+#: src/libslic3r/SLAPrint.cpp:678
+msgid "Elevation is too low for object. Use the \"Pad around object\" feature to print the object without elevation."
+msgstr "L'Élévation est trop basse pour cet objet. utilisez la fonction \"Socle autour de l'objet\" pour imprimer l'objet sans élévation."
+
 #: src/libslic3r/PrintConfig.cpp:1044
 msgid "Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute intervals into the G-code to let the firmware show accurate remaining time. As of now only the Prusa i3 MK3 firmware recognizes M73. Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode."
 msgstr "Émet M73 P[pourcentage imprimé] R[temps restant en minutes] à 1 minute d'intervalle dans le G-code afin que le firmware puisse indiquer précisément le temps restant. Jusqu'à présent seul le firmware Prusa i3 MK3 reconnait M73. Par ailleurs le firmware i3 MK3 supporte M73 Qxx Sxx pour le mode silencieux."
@@ -6647,6 +6651,10 @@ msgstr "Ce code personnalisé est inséré à chaque changement de couche, juste
 #: src/libslic3r/PrintConfig.cpp:129
 msgid "This custom code is inserted at every layer change, right before the Z move. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z]."
 msgstr "Ce code personnalisé est inséré à chaque changement de couche, juste avant le mouvement en Z. Notez que vous pouvez utiliser des variables génériques pour tous les réglages de Slic3r de même que [layer_num] et [layer_z]."
+
+#: src/libslic3r/PrintConfig.cpp:2057
+msgid "This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. It is therefore possible to script custom behaviour both before and after the toolchange."
+msgstr "Ce code personnalisé est inséré avant chaque changement d'outil. Des variables génériques pour n'importe quels réglages PrusaSlicer ainsi que {previous_extruder} et {next_extruder} peuvent être utilisées. Lorsqu'une commande de changement d'outil qui occasionne un changement concernant le bon extrudeur est incluse (comme T{next_extruder}), PrusaSlicer n'émettra pas d'autres commandes de ce type. Il est donc possible de rédiger le script d'un comportement personnalisé à la fois avant et après le changement d'outil."
 
 #: src/libslic3r/PrintConfig.cpp:380
 msgid "This end procedure is inserted at the end of the output file, before the printer end gcode (and before any toolchange from this filament in case of multimaterial printers). Note that you can use placeholder variables for all PrusaSlicer settings. If you have multiple extruders, the gcode is processed in extruder order."

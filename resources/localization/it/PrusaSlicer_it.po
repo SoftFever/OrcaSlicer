@@ -1771,6 +1771,10 @@ msgstr "Compensazione zampa d'elefante"
 msgid "Elevation is too low for object. Use the \"Pad around obect\" feature to print the object without elevation."
 msgstr "L'elevazione è troppo bassa per l'oggetto. Utilizza la funzione \"Pad intorno all'oggetto\" per stampare l'oggetto senza elevazione."
 
+#: src/libslic3r/SLAPrint.cpp:678
+msgid "Elevation is too low for object. Use the \"Pad around object\" feature to print the object without elevation."
+msgstr "L'elevazione è troppo bassa per l'oggetto. Utilizza la funzione \"Pad intorno all'oggetto\" per stampare l'oggetto senza elevazione."
+
 #: src/libslic3r/PrintConfig.cpp:1044
 msgid "Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute intervals into the G-code to let the firmware show accurate remaining time. As of now only the Prusa i3 MK3 firmware recognizes M73. Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode."
 msgstr "Inserisce M73 P[percent printed] R[remaining time in minutes] ad intervalli di un minuto nel G-code per permettere al firmware di mostrare un tempo residuo accurato. Al momento solo il firmware della Prusa i3 MK3 riconosce M73. Il firmware della i3 MK3 supporta il codice M73 Qxx Sxx anche per la modalità silenziosa."
@@ -6648,6 +6652,10 @@ msgstr "Questo codice personalizzato è inserito ad ogni cambio layer, subito do
 msgid "This custom code is inserted at every layer change, right before the Z move. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z]."
 msgstr "Questo codice personalizzato è inserito ad ogni cambio layer, subito prima del movimento Z. Si fa presente che puoi usare variabili sostitutive per tutte le impostazioni di Slic3r  sia per [layer_num] che per [layer_z]."
 
+#: src/libslic3r/PrintConfig.cpp:2057
+msgid "This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. It is therefore possible to script custom behaviour both before and after the toolchange."
+msgstr "Questo codice personalizzato è inserito prima di ogni cambio attrezzo. Possono essere usate delle variabili segnaposto per tutte le impostazioni di PrusaSlicer come {previous_extruder} e {next_extruder}. Quando viene incluso un comando di cambio attrezzo che cambia all'estrusore corretto (come T{next_extruder}), PrusaSlicer non emetterà altri comandi simili. È per tanto possibile elaborare un comportamento personalizzato sia prima che dopo il cambio attrezzo."
+
 #: src/libslic3r/PrintConfig.cpp:380
 msgid "This end procedure is inserted at the end of the output file, before the printer end gcode (and before any toolchange from this filament in case of multimaterial printers). Note that you can use placeholder variables for all PrusaSlicer settings. If you have multiple extruders, the gcode is processed in extruder order."
 msgstr "Questa procedura finale è inserita alla fine del file di output, prima che la stampante completi il gcode (e prima di qualunque cambio attrezzo da questo filamento in caso di stampanti multi-material). Da notare che è possibile inserire variabili segnaposto per tutte le impostazioni di PrusaSlicer. Se hai estrusori multipli, il gcode è processato nell'ordine degli estrusori."
@@ -6780,7 +6788,7 @@ msgstr "Questa è la massima altezza layer stampabile per questo estrusore, usat
 
 #: src/libslic3r/PrintConfig.cpp:1225
 msgid "This is the lowest printable layer height for this extruder and limits the resolution for variable layer height. Typical values are between 0.05 mm and 0.1 mm."
-msgstr "Questa è l'altezza minima stampabile per questo estrusore e limita la risoluzione per l'altezza variabile di layer.  Valori tipici sono compresi tra 0.05 mm e 0.1 mm."
+msgstr "Questa è l'altezza minima stampabile per questo estrusore e limita la risoluzione per l'altezza variabile dei layer.  Valori tipici sono compresi tra 0.05 mm e 0.1 mm."
 
 #: src/libslic3r/PrintConfig.cpp:2139
 msgid "This matrix describes volumes (in cubic milimetres) required to purge the new filament on the wipe tower for any given pair of tools."
@@ -6832,7 +6840,7 @@ msgstr "Questa impostazione rappresenta la PWM minima (modulazione di larghezza 
 
 #: src/libslic3r/PrintConfig.cpp:1801
 msgid "This start procedure is inserted at the beginning, after any printer start gcode (and after any toolchange to this filament in case of multi-material printers). This is used to override settings for a specific filament. If PrusaSlicer detects M104, M109, M140 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want. If you have multiple extruders, the gcode is processed in extruder order."
-msgstr "Questa procedura di inizio è inserita all'inizio, dopo un qualsiasi gcode iniziale (e dopo un qualunque cambio strumento per questo filamento nel caso di stampanti multi-material). Viene utilizzato per scavalcare le impostazioni per un filamento specifico. Se PrusaSlicer rileva M104, M109, M140 o M190 nei codici personalizzati, questi comandi non vengono anteposti automaticamente così si è liberi di personalizzare liberamente l'ordine dei comandi di riscaldamento e altre azioni personalizzate. Da notare che è possibile utilizzare delle variabili segnaposto per tutte le impostazioni di PrusaSlicer, così è possibile inserire un comando \"M109 S[first_layer_temperature]\" ovunque lo si desideri. Se hai estrusori multipli, il gcode è processato nell'ordine degli estrusori."
+msgstr "Questa procedura di inizio è inserita all'inizio, dopo un qualsiasi gcode iniziale (e dopo un qualunque cambio attrezzo per questo filamento nel caso di stampanti multi-material). Viene utilizzato per scavalcare le impostazioni per un filamento specifico. Se PrusaSlicer rileva M104, M109, M140 o M190 nei codici personalizzati, questi comandi non vengono anteposti automaticamente così si è liberi di personalizzare liberamente l'ordine dei comandi di riscaldamento e altre azioni personalizzate. Da notare che è possibile utilizzare delle variabili segnaposto per tutte le impostazioni di PrusaSlicer, così è possibile inserire un comando \"M109 S[first_layer_temperature]\" ovunque lo si desideri. Se hai estrusori multipli, il gcode è processato nell'ordine degli estrusori."
 
 #: src/libslic3r/PrintConfig.cpp:1786
 msgid "This start procedure is inserted at the beginning, after bed has reached the target temperature and extruder just started heating, and before extruder has finished heating. If PrusaSlicer detects M104 or M190 in your custom codes, such commands will not be prepended automatically so you're free to customize the order of heating commands and other custom actions. Note that you can use placeholder variables for all PrusaSlicer settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want."
