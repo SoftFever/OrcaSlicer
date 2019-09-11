@@ -75,6 +75,8 @@ public:
     virtual bool is_loop() const { return false; }
     virtual bool can_reverse() const { return true; }
     virtual ExtrusionEntity* clone() const = 0;
+    // Create a new object, initialize it with this object using the move semantics.
+    virtual ExtrusionEntity* clone_move() = 0;
     virtual ~ExtrusionEntity() {}
     virtual void reverse() = 0;
     virtual Point first_point() const = 0;
@@ -123,13 +125,17 @@ public:
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
     ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
     ExtrusionPath(const ExtrusionPath &rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
-    ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
+	ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs) : polyline(polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
+	ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
+	ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs) : polyline(std::move(polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
 //    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height), feedrate(0.0f), extruder_id(0) {};
 
     ExtrusionPath& operator=(const ExtrusionPath &rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = rhs.polyline; return *this; }
     ExtrusionPath& operator=(ExtrusionPath &&rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = std::move(rhs.polyline); return *this; }
 
-    ExtrusionPath* clone() const override { return new ExtrusionPath (*this); }
+	ExtrusionEntity* clone() const override { return new ExtrusionPath(*this); }
+    // Create a new object, initialize it with this object using the move semantics.
+	ExtrusionEntity* clone_move() override { return new ExtrusionPath(std::move(*this)); }
     void reverse() override { this->polyline.reverse(); }
     Point first_point() const override { return this->polyline.points.front(); }
     Point last_point() const override { return this->polyline.points.back(); }
@@ -188,7 +194,9 @@ public:
 
     bool is_loop() const override { return false; }
     bool can_reverse() const override { return true; }
-    ExtrusionMultiPath* clone() const override { return new ExtrusionMultiPath(*this); }
+	ExtrusionEntity* clone() const override { return new ExtrusionMultiPath(*this); }
+    // Create a new object, initialize it with this object using the move semantics.
+	ExtrusionEntity* clone_move() override { return new ExtrusionMultiPath(std::move(*this)); }
     void reverse() override;
     Point first_point() const override { return this->paths.front().polyline.points.front(); }
     Point last_point() const override { return this->paths.back().polyline.points.back(); }
@@ -227,7 +235,9 @@ public:
         { this->paths.emplace_back(std::move(path)); }
     bool is_loop() const override{ return true; }
     bool can_reverse() const override { return false; }
-    ExtrusionLoop* clone() const override{ return new ExtrusionLoop (*this); }
+	ExtrusionEntity* clone() const override{ return new ExtrusionLoop (*this); }
+    // Create a new object, initialize it with this object using the move semantics.
+	ExtrusionEntity* clone_move() override { return new ExtrusionLoop(std::move(*this)); }
     bool make_clockwise();
     bool make_counter_clockwise();
     void reverse() override;

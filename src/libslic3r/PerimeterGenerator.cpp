@@ -189,42 +189,36 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         coll.append(ExtrusionLoop(paths, loop_role));
     }
     
-    // append thin walls to the nearest-neighbor search (only for first iteration)
-    if (!thin_walls.empty()) {
+    // Append thin walls to the nearest-neighbor search (only for first iteration)
+    if (! thin_walls.empty()) {
         ExtrusionEntityCollection tw = variable_width(thin_walls, erExternalPerimeter, perimeter_generator.ext_perimeter_flow);
         coll.append(tw.entities);
         thin_walls.clear();
     }
     
-    // sort entities into a new collection using a nearest-neighbor search,
-    // preserving the original indices which are useful for detecting thin walls
+    // Sort entities into a new collection using a nearest-neighbor search,
+    // preserving the original indices which are useful for detecting thin walls.
     ExtrusionEntityCollection sorted_coll;
     coll.chained_path(&sorted_coll, false, erMixed, &sorted_coll.orig_indices);
     
     // traverse children and build the final collection
     ExtrusionEntityCollection entities;
-    for (std::vector<size_t>::const_iterator idx = sorted_coll.orig_indices.begin();
-        idx != sorted_coll.orig_indices.end();
-        ++idx) {
-        
-        if (*idx >= loops.size()) {
-            // this is a thin wall
-            // let's get it from the sorted collection as it might have been reversed
-            size_t i = idx - sorted_coll.orig_indices.begin();
-            entities.append(*sorted_coll.entities[i]);
+    for (const size_t &idx : sorted_coll.orig_indices) {
+        if (idx >= loops.size()) {
+            // This is a thin wall. Let's get it from the sorted collection as it might have been reversed.
+            entities.append(std::move(*sorted_coll.entities[&idx - &sorted_coll.orig_indices.front()]));
         } else {
-            const PerimeterGeneratorLoop &loop = loops[*idx];
-            ExtrusionLoop eloop = *dynamic_cast<ExtrusionLoop*>(coll.entities[*idx]);
-            
+            const PerimeterGeneratorLoop &loop = loops[idx];
+            ExtrusionLoop eloop = *dynamic_cast<ExtrusionLoop*>(coll.entities[idx]);
             ExtrusionEntityCollection children = traverse_loops(perimeter_generator, loop.children, thin_walls);
             if (loop.is_contour) {
                 eloop.make_counter_clockwise();
-                entities.append(children.entities);
-                entities.append(eloop);
+                entities.append(std::move(children.entities));
+                entities.append(std::move(eloop));
             } else {
                 eloop.make_clockwise();
-                entities.append(eloop);
-                entities.append(children.entities);
+                entities.append(std::move(eloop));
+                entities.append(std::move(children.entities));
             }
         }
     }
