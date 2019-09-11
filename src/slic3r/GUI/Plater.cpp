@@ -3103,31 +3103,44 @@ void Plater::priv::reload_from_disk()
         return;
     }
 
-    for (const auto idx : new_idxs) {
+    // temporary removes the new objects from the list
+    for (const auto idx : new_idxs)
+    {
+        wxGetApp().obj_list()->delete_object_from_list(idx);
+    }
+
+    for (const auto idx : new_idxs)
+    {
         ModelObject *object = model.objects[idx];
         object->config.apply(object_orig->config);
 
         object->clear_instances();
-        for (const ModelInstance *instance : object_orig->instances) {
+        for (const ModelInstance *instance : object_orig->instances)
+        {
             object->add_instance(*instance);
         }
 
-        if (object->volumes.size() == object_orig->volumes.size()) {
-            for (size_t i = 0; i < object->volumes.size(); i++) {
+        for (const ModelVolume* v : object_orig->volumes)
+        {
+            if (v->is_modifier())
+                object->add_volume(*v);
+        }
+
+        if (object->volumes.size() == object_orig->volumes.size())
+        {
+            for (size_t i = 0; i < object->volumes.size(); i++)
+            {
                 object->volumes[i]->config.apply(object_orig->volumes[i]->config);
             }
         }
 
-        if (object->instances.size() > 1)
-        {
-            sidebar->obj_list()->increase_object_instances(idx, object->instances.size());
-            for (int i = 0; i < (int)object->instances.size(); ++i)
-            {
-                sidebar->obj_list()->update_printable_state((int)idx, i);
-            }
-        }
-
         // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
+    }
+
+    // puts the updated objects back into the list
+    for (const auto idx : new_idxs)
+    {
+        wxGetApp().obj_list()->add_object_to_list(idx);
     }
 
     remove(obj_orig_idx);
@@ -3148,8 +3161,6 @@ void Plater::priv::reload_from_disk()
     {
         selection.add_instance((unsigned int)idx - 1, instance_idx, false);
     }
-
-    wxGetApp().obj_list()->update_and_show_object_settings_item();
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
