@@ -111,13 +111,13 @@ public:
     double mm3_per_mm;
     // Width of the extrusion, used for visualization purposes.
     float width;
-    // Height of the extrusion, used for visualization purposed.
+    // Height of the extrusion, used for visualization purposes.
     float height;
-    // Feedrate of the extrusion, used for visualization purposed.
+    // Feedrate of the extrusion, used for visualization purposes.
     float feedrate;
-    // Id of the extruder, used for visualization purposed.
+    // Id of the extruder, used for visualization purposes.
     unsigned int extruder_id;
-    // Id of the color, used for visualization purposed in the color printing case.
+    // Id of the color, used for visualization purposes in the color printing case.
     unsigned int cp_color_id;
 
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
