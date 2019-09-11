@@ -350,6 +350,12 @@ public:
         m_pck.configure(m_pconf);
     }
     
+    AutoArranger(const TBin &                  bin,
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)>     stopcond)
+        : AutoArranger{bin, 0 /* no min distance */, progressind, stopcond}
+    {}
+     
     template<class It> inline void operator()(It from, It to) {
         m_rtree.clear();
         m_item_count += size_t(to - from);
@@ -553,13 +559,21 @@ BedShapeHint &BedShapeHint::operator=(const BedShapeHint &cpy)
     return *this;
 }
 
+template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
+{
+    auto it = items.begin();
+    while (it != items.end())
+        sl::isInside(it->transformedShape(), bin) ?
+            ++it : it = items.erase(it);
+}
+
 template<class BinT> // Arrange for arbitrary bin type
 void _arrange(
         std::vector<Item> &           shapes,
         std::vector<Item> &           excludes,
         const BinT &                  bin,
         coord_t                       minobjd,
-        std::function<void(unsigned)> prind,
+        std::function<void(unsigned)> progressfn,
         std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters
@@ -569,16 +583,13 @@ void _arrange(
     auto corrected_bin = bin;
     sl::offset(corrected_bin, md);
     
-    AutoArranger<BinT> arranger{corrected_bin, 0, prind, stopfn};
+    AutoArranger<BinT> arranger{corrected_bin, progressfn, stopfn};
     
     auto infl = coord_t(std::ceil(minobjd / 2.0));
     for (Item& itm : shapes) itm.inflate(infl);
     for (Item& itm : excludes) itm.inflate(infl);
     
-    auto it = excludes.begin();
-    while (it != excludes.end())
-        sl::isInside(it->transformedShape(), corrected_bin) ?
-            ++it : it = excludes.erase(it);
+    remove_large_items(excludes, corrected_bin);
 
     // If there is something on the plate
     if (!excludes.empty()) arranger.preload(excludes);
@@ -674,7 +685,7 @@ void arrange(ArrangePolygons &             arrangables,
         _arrange(items, fixeditems, Box::infinite(), min_obj_dist, pri, cfn);
         break;
     }
-    };
+    }
     
     for(size_t i = 0; i < items.size(); ++i) {
         clppr::IntPoint tr = items[i].translation();

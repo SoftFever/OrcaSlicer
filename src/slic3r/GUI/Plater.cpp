@@ -883,7 +883,7 @@ void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
     sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND | wxBOTTOM, 1);
 }
 
-void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
+void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
 {
     if (current_extruder_count >= p->combos_filament.size())
         return;
@@ -926,9 +926,9 @@ void Sidebar::update_presets(Preset::Type preset_type)
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
     {
-        const int extruder_cnt = print_tech != ptFFF ? 1 :
+        const size_t extruder_cnt = print_tech != ptFFF ? 1 :
                                 dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
-        const int filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
+        const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
 
         if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
@@ -1051,7 +1051,7 @@ wxButton* Sidebar::get_wiping_dialog_button()
     return p->frequently_changed_parameters->get_wiping_dialog_button();
 }
 
-void Sidebar::update_objects_list_extruder_column(int extruders_count)
+void Sidebar::update_objects_list_extruder_column(size_t extruders_count)
 {
     p->object_list->update_objects_list_extruder_column(extruders_count);
 }
@@ -4697,7 +4697,7 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     out_text = "";
 }
 
-void Plater::on_extruders_change(int num_extruders)
+void Plater::on_extruders_change(size_t num_extruders)
 {
     auto& choices = sidebar().combos_filament();
 
@@ -4706,7 +4706,7 @@ void Plater::on_extruders_change(int num_extruders)
 
     wxWindowUpdateLocker noUpdates_scrolled_panel(&sidebar()/*.scrolled_panel()*/);
 
-    int i = choices.size();
+    size_t i = choices.size();
     while ( i < num_extruders )
     {
         PresetComboBox* choice/*{ nullptr }*/;
@@ -4893,7 +4893,7 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     if (object_idxs.empty())
         return;
 
-    for (int obj_idx : object_idxs)
+    for (size_t obj_idx : object_idxs)
     {
         if (obj_idx < p->model.objects.size())
             // recenter and re - align to Z = 0

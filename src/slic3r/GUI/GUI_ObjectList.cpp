@@ -422,7 +422,7 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
                             (*m_objects)[obj_idx]->config;
 }
 
-wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
+wxDataViewColumn* ObjectList::create_objects_list_extruder_column(size_t extruders_count)
 {
     wxArrayString choices;
     choices.Add(_(L("default")));
@@ -435,9 +435,9 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
     return column;
 }
 
-void ObjectList::update_extruder_values_for_items(const int max_extruder)
+void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
 {
-    for (int i = 0; i < m_objects->size(); ++i)
+    for (size_t i = 0; i < m_objects->size(); ++i)
     {
         wxDataViewItem item = m_objects_model->GetItemById(i);
         if (!item) continue;
@@ -453,7 +453,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
         m_objects_model->SetValue(extruder, item, colExtruder);
 
         if (object->volumes.size() > 1) {
-            for (auto id = 0; id < object->volumes.size(); id++) {
+            for (size_t id = 0; id < object->volumes.size(); id++) {
                 item = m_objects_model->GetItemByVolumeId(i, id);
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
@@ -468,7 +468,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
     }
 }
 
-void ObjectList::update_objects_list_extruder_column(int extruders_count)
+void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
 {
     if (!this) return; // #ys_FIXME
     if (printer_technology() == ptSLA)
@@ -2565,7 +2565,14 @@ static double get_min_layer_height(const int extruder_idx)
 static double get_max_layer_height(const int extruder_idx)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    return config.opt_float("max_layer_height", extruder_idx <= 0 ? 0 : extruder_idx-1);
+    int extruder_idx_zero_based = extruder_idx <= 0 ? 0 : extruder_idx-1;
+    double max_layer_height = config.opt_float("max_layer_height", extruder_idx_zero_based);
+
+    // In case max_layer_height is set to zero, it should default to 75 % of nozzle diameter:
+    if (max_layer_height < EPSILON)
+        max_layer_height = 0.75 * config.opt_float("nozzle_diameter", extruder_idx_zero_based);
+
+    return max_layer_height;
 }
 
 void ObjectList::add_layer_range_after_current(const t_layer_height_range& current_range)
@@ -3262,7 +3269,7 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || obj_idx >= m_objects->size() || (*m_objects)[obj_idx]->volumes.size() != 1)
+    if (obj_idx < 0 || size_t(obj_idx) >= m_objects->size() || (*m_objects)[obj_idx]->volumes.size() != 1)
         return;
 
     auto volume = (*m_objects)[obj_idx]->volumes.front();

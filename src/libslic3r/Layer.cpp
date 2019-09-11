@@ -121,7 +121,6 @@ void Layer::make_perimeters()
         for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it) {
             LayerRegion* other_layerm = *it;
             const PrintRegionConfig &other_config = other_layerm->region()->config();
-            
             if (config.perimeter_extruder   == other_config.perimeter_extruder
                 && config.perimeters        == other_config.perimeters
                 && config.perimeter_speed   == other_config.perimeter_speed
@@ -130,7 +129,8 @@ void Layer::make_perimeters()
                 && config.overhangs         == other_config.overhangs
                 && config.opt_serialize("perimeter_extrusion_width") == other_config.opt_serialize("perimeter_extrusion_width")
                 && config.thin_walls        == other_config.thin_walls
-                && config.external_perimeters_first == other_config.external_perimeters_first) {
+                && config.external_perimeters_first == other_config.external_perimeters_first
+                && config.infill_overlap    == other_config.infill_overlap) {
                 layerms.push_back(other_layerm);
                 done[it - m_regions.begin()] = true;
             }
@@ -142,12 +142,17 @@ void Layer::make_perimeters()
             (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
         } else {
             SurfaceCollection new_slices;
+            // Use the region with highest infill rate, as the make_perimeters() function below decides on the gap fill based on the infill existence.
+            LayerRegion *layerm_config = layerms.front();
             {
                 // group slices (surfaces) according to number of extra perimeters
                 std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
-                for (LayerRegion *layerm : layerms)
+                for (LayerRegion *layerm : layerms) {
                     for (Surface &surface : layerm->slices.surfaces)
                         slices[surface.extra_perimeters].emplace_back(surface);
+                    if (layerm->region()->config().fill_density > layerm_config->region()->config().fill_density)
+                    	layerm_config = layerm;
+                }
                 // merge the surfaces assigned to each group
                 for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
                     new_slices.append(union_ex(surfaces_with_extra_perimeters.second, true), surfaces_with_extra_perimeters.second.front());
@@ -155,7 +160,7 @@ void Layer::make_perimeters()
             
             // make perimeters
             SurfaceCollection fill_surfaces;
-            (*layerm)->make_perimeters(new_slices, &fill_surfaces);
+            layerm_config->make_perimeters(new_slices, &fill_surfaces);
 
             // assign fill_surfaces to each layer
             if (!fill_surfaces.surfaces.empty()) { 

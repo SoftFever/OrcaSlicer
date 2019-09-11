@@ -861,11 +861,10 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
 
-    int id = -1;
-    
-    for (GLToolbarItem* item : m_items)
+
+    for (size_t id=0; id<m_items.size(); ++id)
     {
-        ++id;
+        GLToolbarItem* item = m_items[id];
         
         if (!item->is_visible())
             continue;
@@ -936,11 +935,9 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D&
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
 
-    int id = -1;
-
-    for (GLToolbarItem* item : m_items)
+    for (size_t id=0; id<m_items.size(); ++id)
     {
-        ++id;
+        GLToolbarItem* item = m_items[id];
 
         if (!item->is_visible())
             continue;

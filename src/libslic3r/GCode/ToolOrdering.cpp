@@ -329,6 +329,28 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         }
     }
 
+    // If the model contains empty layers (such as https://github.com/prusa3d/Slic3r/issues/1266), there might be layers
+    // that were not marked as has_wipe_tower, even when they should have been. This produces a crash with soluble supports
+    // and maybe other problems. We will therefore go through layer_tools and detect and fix this.
+    // So, if there is a non-object layer starting with different extruder than the last one ended with (or containing more than one extruder),
+    // we'll mark it with has_wipe tower.
+    for (unsigned int i=0; i+1<m_layer_tools.size(); ++i) {
+        LayerTools& lt = m_layer_tools[i];
+        LayerTools& lt_next = m_layer_tools[i+1];
+        if (lt.extruders.empty() || lt_next.extruders.empty())
+            break;
+        if (!lt_next.has_wipe_tower && (lt_next.extruders.front() != lt.extruders.back() || lt_next.extruders.size() > 1))
+            lt_next.has_wipe_tower = true;
+        // We should also check that the next wipe tower layer is no further than max_layer_height:
+        unsigned int j = i+1;
+        double last_wipe_tower_print_z = lt_next.print_z;
+        while (++j < m_layer_tools.size()-1 && !m_layer_tools[j].has_wipe_tower)
+            if (m_layer_tools[j+1].print_z - last_wipe_tower_print_z > max_layer_height) {
+                m_layer_tools[j].has_wipe_tower = true;
+                last_wipe_tower_print_z = m_layer_tools[j].print_z;
+            }
+    }
+
     // Calculate the wipe_tower_layer_height values.
     coordf_t wipe_tower_print_z_last = 0.;
     for (LayerTools &lt : m_layer_tools)

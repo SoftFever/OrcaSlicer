@@ -82,7 +82,7 @@ public:
     }
 
     WipeTowerWriter&          change_analyzer_mm3_per_mm(float len, float e) {
-            static const float area = M_PI * 1.75f * 1.75f / 4.f;
+            static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
             float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
             // adds tag for analyzer:
             char buf[64];
@@ -100,7 +100,7 @@ public:
 		return *this;
 	}
 
-	WipeTowerWriter&				 set_initial_tool(const unsigned int tool) { m_current_tool = tool; return *this; }
+    WipeTowerWriter&				 set_initial_tool(size_t tool) { m_current_tool = tool; return *this; }
 
 	WipeTowerWriter&				 set_z(float z) 
 		{ m_current_z = z; return *this; }
@@ -311,7 +311,7 @@ public:
 		return *this;
 	}
 
-    WipeTowerWriter& set_tool(unsigned tool)
+    WipeTowerWriter& set_tool(size_t tool)
 	{
 		m_current_tool = tool;
 		return *this;
@@ -406,7 +406,7 @@ private:
 	Vec2f         m_current_pos;
 	float    	  m_current_z;
 	float 	  	  m_current_feedrate;
-	unsigned int  m_current_tool;
+    size_t        m_current_tool;
 	float 		  m_layer_height;
 	float 	  	  m_extrusion_flow;
 	bool		  m_preview_suppressed;
@@ -417,7 +417,7 @@ private:
 	float		  m_y_shift = 0.f;
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
-    unsigned      m_last_fan_speed = 0.f;
+    unsigned      m_last_fan_speed = 0;
     int           current_temp = -1;
     const float   m_default_analyzer_line_width;
     float         m_used_filament_length = 0.f;
@@ -568,7 +568,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 
     // Iterate over all priming toolchanges and push respective ToolChangeResults into results vector.
     for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
-        int old_tool = m_current_tool;
+        size_t old_tool = m_current_tool;
 
         WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
         writer.set_extrusion_flow(m_extrusion_flow)
@@ -617,8 +617,8 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 
         ToolChangeResult result;
         result.priming      = true;
-        result.initial_tool = old_tool;
-        result.new_tool     = m_current_tool;
+        result.initial_tool = int(old_tool);
+        result.new_tool     = int(m_current_tool);
         result.print_z 	  	= this->m_z_pos;
         result.layer_height = this->m_layer_height;
         result.gcode   	  	= writer.gcode();
@@ -653,12 +653,12 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
 	return results;
 }
 
-WipeTower::ToolChangeResult WipeTower::tool_change(unsigned int tool, bool last_in_layer)
+WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_layer)
 {
 	if ( m_print_brim )
 		return toolchange_Brim();
 
-    int old_tool = m_current_tool;
+    size_t old_tool = m_current_tool;
 
 	float wipe_area = 0.f;
 	bool last_change_in_layer = false;
@@ -751,8 +751,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change(unsigned int tool, bool last_
 
 	ToolChangeResult result;
     result.priming      = false;
-    result.initial_tool = old_tool;
-    result.new_tool     = m_current_tool;
+    result.initial_tool = int(old_tool);
+    result.new_tool     = int(m_current_tool);
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();
@@ -765,7 +765,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(unsigned int tool, bool last_
 
 WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_offset)
 {
-    int old_tool = m_current_tool;
+    size_t old_tool = m_current_tool;
 
 	const box_coordinates wipeTower_box(
 		Vec2f::Zero(),
@@ -809,8 +809,8 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
 
 	ToolChangeResult result;
     result.priming      = false;
-    result.initial_tool = old_tool;
-    result.new_tool     = m_current_tool;
+    result.initial_tool = int(old_tool);
+    result.new_tool     = int(m_current_tool);
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();
@@ -1115,7 +1115,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
 
-    int old_tool = m_current_tool;
+    size_t old_tool = m_current_tool;
 
 	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -1198,8 +1198,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
 
 	ToolChangeResult result;
     result.priming      = false;
-    result.initial_tool = old_tool;
-    result.new_tool     = m_current_tool;
+    result.initial_tool = int(old_tool);
+    result.new_tool     = int(m_current_tool);
 	result.print_z 	  	= this->m_z_pos;
 	result.layer_height = this->m_layer_height;
 	result.gcode   	  	= writer.gcode();

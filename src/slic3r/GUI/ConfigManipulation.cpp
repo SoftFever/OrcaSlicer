@@ -243,7 +243,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || have_solid_infill);
 
-    toggle_field("gap_fill_speed", have_perimeters && have_infill);
+    // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
+    toggle_field("gap_fill_speed", have_perimeters);
 
     bool have_top_solid_infill = config->opt_int("top_solid_layers") > 0;
     for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })

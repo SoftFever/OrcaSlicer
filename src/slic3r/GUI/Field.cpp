@@ -854,7 +854,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			text_value = wxString::Format(_T("%i"), int(boost::any_cast<int>(value)));
 		else
 			text_value = boost::any_cast<wxString>(value);
-		auto idx = 0;
+        size_t idx = 0;
 		for (auto el : m_opt.enum_values)
 		{
 			if (el == text_value)

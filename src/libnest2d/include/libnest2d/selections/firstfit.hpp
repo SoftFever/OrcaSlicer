@@ -77,17 +77,8 @@ public:
         };
 
         auto& cancelled = this->stopcond_;
-
-        // Safety test: try to pack each item into an empty bin. If it fails
-        // then it should be removed from the list
-        { auto it = store_.begin();
-            while (it != store_.end() && !cancelled()) {
-                Placer p(bin); p.configure(pconfig);
-                if(!p.pack(*it)) {
-                    it = store_.erase(it);
-                } else it++;
-            }
-        }
+        
+        this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
 
         auto it = store_.begin();
 

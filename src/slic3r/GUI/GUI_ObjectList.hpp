@@ -182,15 +182,15 @@ public:
 
     void                create_objects_ctrl();
     void                create_popup_menus();
-    wxDataViewColumn*   create_objects_list_extruder_column(int extruders_count);
-    void                update_objects_list_extruder_column(int extruders_count);
+    wxDataViewColumn*   create_objects_list_extruder_column(size_t extruders_count);
+    void                update_objects_list_extruder_column(size_t extruders_count);
     // show/hide "Extruder" column for Objects List
     void                set_extruder_column_hidden(const bool hide) const;
     // update extruder in current config
     void                update_extruder_in_config(const wxDataViewItem& item);
     // update changed name in the object model
     void                update_name_in_model(const wxDataViewItem& item) const;
-    void                update_extruder_values_for_items(const int max_extruder);
+    void                update_extruder_values_for_items(const size_t max_extruder);
 
     void                init_icons();
     void                msw_rescale_icons();

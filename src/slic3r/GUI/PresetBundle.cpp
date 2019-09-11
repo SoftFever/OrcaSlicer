@@ -366,7 +366,7 @@ void PresetBundle::load_selections(const AppConfig &config, const std::string &p
     this->filament_presets = { filaments.get_selected_preset_name() };
     for (unsigned int i = 1; i < 1000; ++ i) {
         char name[64];
-        sprintf(name, "filament_%d", i);
+        sprintf(name, "filament_%u", i);
         if (! config.has("presets", name))
             break;
         this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
@@ -388,11 +388,12 @@ void PresetBundle::export_selections(AppConfig &config)
     config.clear_section("presets");
     config.set("presets", "print",        prints.get_selected_preset_name());
     config.set("presets", "filament",     filament_presets.front());
-	for (int i = 1; i < filament_presets.size(); ++i) {
+    for (unsigned i = 1; i < filament_presets.size(); ++i) {
         char name[64];
-        sprintf(name, "filament_%d", i);
+        sprintf(name, "filament_%u", i);
         config.set("presets", name, filament_presets[i]);
     }
+
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
@@ -779,7 +780,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 Preset *loaded = nullptr;
                 if (is_external)
                     loaded = &this->filaments.load_external_preset(name_or_path, name,
-                        (i < old_filament_profile_names->values.size()) ? old_filament_profile_names->values[i] : "",
+                        (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
                         std::move(cfg), i == 0);
                 else {
                     // Used by the config wizard when creating a custom setup.
@@ -1262,7 +1263,7 @@ void PresetBundle::update_multi_material_filament_presets()
 
     // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values;
-    size_t old_number_of_extruders = int(sqrt(old_matrix.size())+EPSILON);
+    size_t old_number_of_extruders = size_t(sqrt(old_matrix.size())+EPSILON);
     if (num_extruders != old_number_of_extruders) {
             // First verify if purging volumes presets for each extruder matches number of extruders
             std::vector<double>& extruders = this->project_config.option<ConfigOptionFloats>("wiping_volumes_extruders")->values;

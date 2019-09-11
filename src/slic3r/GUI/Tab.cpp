@@ -232,7 +232,7 @@ void Tab::create_preset_tab()
         //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data());
         //! we doing next:
         int selected_item = m_presets_choice->GetSelection();
-        if (m_selected_preset_item == selected_item && !m_presets->current_is_dirty())
+        if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
             return;
         if (selected_item >= 0) {
             std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
@@ -489,7 +489,7 @@ template<class T>
 void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, Tab *tab, const int& value)
 {
     T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
-    for (int i = 0; i < opt_cur->values.size(); i++)
+    for (size_t i = 0; i < opt_cur->values.size(); i++)
         map.emplace(opt_key + "#" + std::to_string(i), value);
 }
 
@@ -1808,7 +1808,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("single_extruder_multi_material");
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-            size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
+            size_t extruders_count = boost::any_cast<size_t>(optgroup->get_value("extruders_count"));
             wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
                 if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
                     extruders_count_changed(extruders_count);
@@ -2228,7 +2228,7 @@ void TabPrinter::build_unregular_pages()
 
     // Add/delete Kinematics page according to is_marlin_flavor
     size_t existed_page = 0;
-    for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
+    for (size_t i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
         if (m_pages[i]->title().find(_(L("Machine limits"))) != std::string::npos) {
             if (!is_marlin_flavor || m_rebuild_kinematics_page)
                 m_pages.erase(m_pages.begin() + i);
@@ -2253,7 +2253,7 @@ void TabPrinter::build_unregular_pages()
         (m_has_single_extruder_MM_page && m_extruders_count == 1))
     {
         // if we have a single extruder MM setup, add a page with configuration options:
-        for (int i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
+        for (size_t i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
             if (m_pages[i]->title().find(_(L("Single extruder MM setup"))) != std::string::npos) {
                 m_pages.erase(m_pages.begin() + i);
                 break;
@@ -2399,8 +2399,8 @@ void TabPrinter::on_preset_loaded()
 {
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
-    int extruders_count = nozzle_diameter->values.size();
-    set_value("extruders_count", extruders_count);
+    size_t extruders_count = nozzle_diameter->values.size();
+    set_value("extruders_count", int(extruders_count));
     // update the GUI field according to the number of nozzle diameters supplied
     extruders_count_changed(extruders_count);
 }
@@ -2538,7 +2538,7 @@ void TabPrinter::update_fff()
             DynamicPrintConfig new_conf = *m_config;
             if (dialog.ShowModal() == wxID_YES) {
                 auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
-                for (int w = 0; w < wipe->values.size(); w++)
+                for (size_t w = 0; w < wipe->values.size(); w++)
                     wipe->values[w] = false;
                 new_conf.set_key_value("wipe", wipe);
             }
