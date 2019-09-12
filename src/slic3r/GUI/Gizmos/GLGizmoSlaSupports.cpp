@@ -28,7 +28,6 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& ic
     , m_its(nullptr)
 {
     m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
-    m_old_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -140,117 +139,82 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
     if (m_clipping_plane_distance == 0.f)
         return;
 
-    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
-
-    // First cache instance transformation to be used later.
+    // Get transformation of the instance
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     Geometry::Transformation trafo = vol->get_instance_transformation();
-    Transform3f instance_matrix = trafo.get_matrix().cast<float>();
-    Transform3f instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true).cast<float>();
-    Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
-    Vec3d instance_offset = vol->get_instance_offset();
-    // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
-    Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_clipping_plane->get_normal().cast<float>();
-    Vec3f up = Vec3f(up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
-    float height_mesh = m_clipping_plane->distance(center) * (up_noscale.norm()/up.norm());
+    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
+
+    // Get transformation of supports
+    Geometry::Transformation supports_trafo;
+    supports_trafo.set_offset(Vec3d(trafo.get_offset()(0), trafo.get_offset()(1), vol->get_sla_shift_z()));
+    supports_trafo.set_rotation(Vec3d(0., 0., trafo.get_rotation()(2)));
+    // I don't know why, but following seems to be correct.
+    supports_trafo.set_mirror(Vec3d(trafo.get_mirror()(0) * trafo.get_mirror()(1) * trafo.get_mirror()(2),
+                                    1,
+                                    1.));
+
+    // Now initialize the TMS for the object, perform the cut and save the result.
+    if (! m_object_clipper) {
+        m_object_clipper.reset(new MeshClipper);
+        m_object_clipper->set_mesh(*m_mesh);
+    }
+    m_object_clipper->set_plane(*m_clipping_plane);
+    m_object_clipper->set_transformation(trafo);
 
 
-    // Get transformation of the supports and calculate how far from its origin the clipping plane is.
-    Transform3d supports_trafo = Transform3d::Identity();
-    supports_trafo = supports_trafo.rotate(Eigen::AngleAxisd(vol->get_instance_rotation()(2), Vec3d::UnitZ()));
-    Vec3f up_supports = (supports_trafo.inverse() * m_clipping_plane->get_normal()).cast<float>();
-    supports_trafo = supports_trafo.pretranslate(Vec3d(instance_offset(0), instance_offset(1), vol->get_sla_shift_z()));
-    // Instance and supports origin do not coincide, so the following is quite messy:
-    float height_supports = height_mesh * (up.norm() / up_supports.norm()) + instance_offset(2) * (m_clipping_plane->get_normal()(2));
-
-    // In case either of these was recently changed, the cached triangulated ExPolygons are invalid now.
-    // We are gonna recalculate them both for the object and for the support structures.
-    if (*m_old_clipping_plane != *m_clipping_plane) {
-
-        *m_old_clipping_plane = *m_clipping_plane;
-
-        // Now initialize the TMS for the object, perform the cut and save the result.
-        if (! m_object_clipper) {
-            m_object_clipper.reset(new MeshClipper);
-            m_object_clipper->set_mesh(*m_mesh);
+    // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
+    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
+    // cached so we don't have todo it on each render. We only search for the po if needed:
+    if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
+        m_print_objects_count = m_parent.sla_print()->objects().size();
+        m_print_object_idx = -1;
+        for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
+            ++m_print_object_idx;
+            if (po->model_object()->id() == m_model_object->id())
+                break;
         }
-        m_object_clipper->set_plane(*m_clipping_plane);
-        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
-        m_object_clipper->set_transformation(trafo);
+    }
+    if (m_print_object_idx >= 0) {
+        const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
 
+        if (print_object->is_step_done(slaposSupportTree)) {
+            // If the supports are already calculated, save the timestamp of the respective step
+            // so we can later tell they were recalculated.
+            size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
 
-        // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
-        // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
-        // cached so we don't have todo it on each render. We only search for the po if needed:
-        if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
-            m_print_objects_count = m_parent.sla_print()->objects().size();
-            m_print_object_idx = -1;
-            for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
-                ++m_print_object_idx;
-                if (po->model_object()->id() == m_model_object->id())
-                    break;
+            if (! m_supports_clipper || (int)timestamp != m_old_timestamp) {
+                // The timestamp has changed.
+                m_supports_clipper.reset(new MeshClipper);
+                // The mesh should already have the shared vertices calculated.
+                m_supports_clipper->set_mesh(print_object->support_mesh());
+                m_old_timestamp = timestamp;
             }
+            m_supports_clipper->set_plane(*m_clipping_plane);
+            m_supports_clipper->set_transformation(supports_trafo);
         }
-        if (m_print_object_idx >= 0) {
-            const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
-
-            if (print_object->is_step_done(slaposSupportTree)) {
-                // If the supports are already calculated, save the timestamp of the respective step
-                // so we can later tell they were recalculated.
-                size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
-
-                if (! m_supports_clipper || (int)timestamp != m_old_timestamp) {
-                    // The timestamp has changed - stash the mesh and initialize the TMS.
-                    m_supports_mesh = &print_object->support_mesh();
-                    m_supports_clipper.reset(new MeshClipper);
-                    // The mesh should already have the shared vertices calculated.
-                    m_supports_clipper->set_mesh(*m_supports_mesh);
-                    m_old_timestamp = timestamp;
-                }
-
-                // The TMS is initialized - let's do the cutting:
-                m_supports_clipper->set_plane(*m_clipping_plane);
-                m_supports_clipper->set_transformation(Geometry::Transformation(supports_trafo));
-            }
-            else
-                // The supports are not valid. We better dump the cached data.
-                m_supports_clipper.reset();
-        }
+        else
+            // The supports are not valid. We better dump the cached data.
+            m_supports_clipper.reset();
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
     if (! m_object_clipper->get_triangles().empty()) {
 		::glPushMatrix();
-		::glTranslated(0.0, 0.0, m_z_shift);
-		::glMultMatrixf(instance_matrix.data());
-		Eigen::Quaternionf q;
-		q.setFromTwoVectors(Vec3f::UnitZ(), up);
-		Eigen::AngleAxisf aa(q);
-		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, 0.01f); // to make sure the cut does not intersect the structure itself
         ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_object_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), height_mesh);
-
+        for (const Vec3f& point : m_object_clipper->get_triangles())
+            ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
 		::glPopMatrix();
 	}
 
     if (m_supports_clipper && ! m_supports_clipper->get_triangles().empty() && !m_editing_mode) {
         // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
-		::glPushMatrix();
-        ::glMultMatrixd(supports_trafo.data());
-        Eigen::Quaternionf q;
-		q.setFromTwoVectors(Vec3f::UnitZ(), up_supports);
-		Eigen::AngleAxisf aa(q);
-		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, 0.01f);
+        ::glPushMatrix();
         ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_supports_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), height_supports);
-
+        for (const Vec3f& point : m_supports_clipper->get_triangles())
+            ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
 		::glPopMatrix();
 	}

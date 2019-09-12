@@ -13,17 +13,16 @@ public:
     void set_mesh(const TriangleMesh& mesh);
     void set_transformation(const Geometry::Transformation& trafo);
 
-    const std::vector<Vec2f>& get_triangles();
+    const std::vector<Vec3f>& get_triangles();
 
 private:
     void recalculate_triangles();
-    std::pair<Vec3f, float> get_mesh_cut_normal() const;
-
 
     Geometry::Transformation m_trafo;
     const TriangleMesh* m_mesh = nullptr;
     ClippingPlane m_plane;
-    std::vector<Vec2f> m_triangles;
+    std::vector<Vec2f> m_triangles2d;
+    std::vector<Vec3f> m_triangles3d;
     bool m_triangles_valid = false;
     std::unique_ptr<TriangleMeshSlicer> m_tms;
 };
