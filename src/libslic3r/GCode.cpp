@@ -1853,8 +1853,9 @@ void GCode::process_layer(
         if (! m_brim_done) {
             this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp = true;
-            for (const ExtrusionEntity *ee : print.brim().entities)
-                gcode += this->extrude_loop(*dynamic_cast<const ExtrusionLoop*>(ee), "brim", m_config.support_material_speed.value);
+            for (const ExtrusionEntity *ee : print.brim().entities) {
+                gcode += this->extrude_entity(*ee, "brim", m_config.support_material_speed.value);
+            }
             m_brim_done = true;
             m_avoid_crossing_perimeters.use_external_mp = false;
             // Allow a straight travel move to the first object point.
@@ -2520,10 +2521,9 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
         return this->extrude_multi_path(*multipath, description, speed);
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
         return this->extrude_loop(*loop, description, speed, lower_layer_edge_grid);
-    else {
+    else
         throw std::invalid_argument("Invalid argument supplied to extrude()");
-        return "";
-    }
+    return "";
 }
 
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)

@@ -1628,9 +1628,7 @@ void Print::_make_skirt()
 
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
-    Flow   brim_flow = this->brim_flow();
-    double actual_brim_width = brim_flow.spacing() * floor(m_config.brim_width.value / brim_flow.spacing());
-    auto   distance = float(scale_(std::max(m_config.skirt_distance.value, actual_brim_width) - spacing/2.));
+    auto   distance = float(scale_(m_config.skirt_distance.value) - spacing/2.);
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
@@ -1712,11 +1710,71 @@ void Print::_make_brim()
         }
         polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
     }
-
     loops = union_pt_chained(loops, false);
     // The function above produces ordering well suited for concentric infill (from outside to inside).
     // For Brim, the ordering should be reversed (from inside to outside).
     std::reverse(loops.begin(), loops.end());
+
+    // If there is a possibility that brim intersects skirt, go through loops and split those extrusions
+    // The result is either the original Polygon or a list of Polylines
+    if (! m_skirt.empty() && m_config.skirt_distance.value < m_config.brim_width)
+    {
+        // Find the bounding polygons of the skirt
+        const Polygons skirt_inners = offset(dynamic_cast<ExtrusionLoop*>(m_skirt.entities.back())->polygon(),
+                                              -float(scale_(this->skirt_flow().spacing()))/2.f,
+                                              ClipperLib::jtRound,
+                                              float(scale_(0.1)));
+        const Polygons skirt_outers = offset(dynamic_cast<ExtrusionLoop*>(m_skirt.entities.front())->polygon(),
+                                              float(scale_(this->skirt_flow().spacing()))/2.f,
+                                              ClipperLib::jtRound,
+                                              float(scale_(0.1)));
+
+        const Polygon& skirt_inner = skirt_inners.front();
+        const Polygon& skirt_outer = skirt_outers.front();
+
+        for (size_t i=0; i<loops.size(); ++i) {
+            Polylines lines;
+            lines.push_back(Polyline());
+            bool del = false;
+            const Polygon& poly = loops[i];
+            // Check all points of the polygon, consider the first to also be at the end so the loop is closed
+            for (int pt_idx=0; pt_idx <= (int)poly.points.size(); ++pt_idx) {
+                const Point* pt = (pt_idx == (int)poly.points.size() ? &poly.points[0] : &poly.points[pt_idx]);
+                const Point* last_pt = (pt_idx == 0 ? nullptr : &poly.points[pt_idx-1]);
+                bool valid_point = skirt_inner.contains(*pt) || ! skirt_outer.contains(*pt);
+                Points intersections(2); // inner and outer intersection
+
+                if (pt_idx > 0) {
+                    Line line(*last_pt, *pt);
+                    bool inner = skirt_inner.first_intersection(line, &intersections[0]);
+                    bool outer = skirt_outer.first_intersection(line, &intersections[1]);
+                    del = del || inner || outer;
+                    if (inner != outer) {// there is exactly one intersection
+                        lines.back().append(inner ? intersections[0] : intersections[1]);
+                    }
+                    if (inner && outer) {
+                        int nearest_idx = pt->nearest_point_index(intersections);
+                        lines.back().append(intersections[! nearest_idx]);
+                        lines.push_back(Polyline());
+                        lines.back().append(intersections[nearest_idx]);
+                    }
+                }
+                if (valid_point)
+                    lines.back().append(*pt);
+                else {
+                    del = true;
+                    lines.push_back(Polyline());
+                }
+            }
+            // If we found a single intersection, we should erase the respective ExtrusionLoop
+            // and append the polylines that we created.
+            if (del) {
+                loops.erase(loops.begin() + (i--));
+                extrusion_entities_append_paths(m_brim.entities, std::move(lines), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
+            }
+        }
+    }
+
     extrusion_entities_append_loops(m_brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
 }
 
