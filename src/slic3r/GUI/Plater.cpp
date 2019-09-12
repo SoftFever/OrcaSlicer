@@ -3127,11 +3127,14 @@ void Plater::priv::reload_from_disk()
                 object->add_volume(*v);
         }
 
+        Vec3d offset = object_orig->origin_translation - object->origin_translation;
+
         if (object->volumes.size() == object_orig->volumes.size())
         {
             for (size_t i = 0; i < object->volumes.size(); i++)
             {
                 object->volumes[i]->config.apply(object_orig->volumes[i]->config);
+                object->volumes[i]->translate(offset);
             }
         }
 
