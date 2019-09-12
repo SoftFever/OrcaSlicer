@@ -21,6 +21,7 @@ namespace Slic3r {
 namespace GUI {
 
 class ClippingPlane;
+class MeshClipper;
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
@@ -126,8 +127,8 @@ private:
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
-    mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;
+    mutable std::unique_ptr<MeshClipper> m_object_clipper;
+    mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_point_clipped(const Vec3d& point) const;

@@ -12,6 +12,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/MeshClipper.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
@@ -143,14 +144,16 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 
     // First cache instance transformation to be used later.
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    Transform3f instance_matrix = vol->get_instance_transformation().get_matrix().cast<float>();
-    Transform3f instance_matrix_no_translation_no_scaling = vol->get_instance_transformation().get_matrix(true,false,true).cast<float>();
+    Geometry::Transformation trafo = vol->get_instance_transformation();
+    Transform3f instance_matrix = trafo.get_matrix().cast<float>();
+    Transform3f instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true).cast<float>();
     Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
     Vec3d instance_offset = vol->get_instance_offset();
     // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
     Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_clipping_plane->get_normal().cast<float>();
     Vec3f up = Vec3f(up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
     float height_mesh = m_clipping_plane->distance(center) * (up_noscale.norm()/up.norm());
+
 
     // Get transformation of the supports and calculate how far from its origin the clipping plane is.
     Transform3d supports_trafo = Transform3d::Identity();
@@ -167,15 +170,13 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
         *m_old_clipping_plane = *m_clipping_plane;
 
         // Now initialize the TMS for the object, perform the cut and save the result.
-        if (! m_tms) {
-            m_tms.reset(new TriangleMeshSlicer);
-            m_tms->init(m_mesh, [](){});
+        if (! m_object_clipper) {
+            m_object_clipper.reset(new MeshClipper);
+            m_object_clipper->set_mesh(*m_mesh);
         }
-        std::vector<ExPolygons> list_of_expolys;
-        m_tms->set_up_direction(up);
-        m_tms->slice(std::vector<float>{height_mesh}, 0.f, &list_of_expolys, [](){});
-        m_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
-
+        m_object_clipper->set_plane(*m_clipping_plane);
+        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
+        m_object_clipper->set_transformation(trafo);
 
 
         // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
@@ -198,31 +199,27 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
                 // so we can later tell they were recalculated.
                 size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
 
-                if (!m_supports_tms || (int)timestamp != m_old_timestamp) {
+                if (! m_supports_clipper || (int)timestamp != m_old_timestamp) {
                     // The timestamp has changed - stash the mesh and initialize the TMS.
                     m_supports_mesh = &print_object->support_mesh();
-                    m_supports_tms.reset(new TriangleMeshSlicer);
+                    m_supports_clipper.reset(new MeshClipper);
                     // The mesh should already have the shared vertices calculated.
-                    m_supports_tms->init(m_supports_mesh, [](){});
+                    m_supports_clipper->set_mesh(*m_supports_mesh);
                     m_old_timestamp = timestamp;
                 }
 
                 // The TMS is initialized - let's do the cutting:
-                list_of_expolys.clear();
-                m_supports_tms->set_up_direction(up_supports);
-                m_supports_tms->slice(std::vector<float>{height_supports}, 0.f, &list_of_expolys, [](){});
-                m_supports_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
+                m_supports_clipper->set_plane(*m_clipping_plane);
+                m_supports_clipper->set_transformation(Geometry::Transformation(supports_trafo));
             }
-            else {
+            else
                 // The supports are not valid. We better dump the cached data.
-                m_supports_tms.reset();
-                m_supports_triangles.clear();
-            }
+                m_supports_clipper.reset();
         }
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
-	if (! m_triangles.empty()) {
+    if (! m_object_clipper->get_triangles().empty()) {
 		::glPushMatrix();
 		::glTranslated(0.0, 0.0, m_z_shift);
 		::glMultMatrixf(instance_matrix.data());
@@ -233,14 +230,14 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 		::glTranslatef(0.f, 0.f, 0.01f); // to make sure the cut does not intersect the structure itself
         ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_triangles)
+        for (const Vec2f& point : m_object_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), height_mesh);
 
         ::glEnd();
 		::glPopMatrix();
 	}
 
-    if (! m_supports_triangles.empty() && !m_editing_mode) {
+    if (m_supports_clipper && ! m_supports_clipper->get_triangles().empty() && !m_editing_mode) {
         // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
 		::glPushMatrix();
         ::glMultMatrixd(supports_trafo.data());
@@ -251,7 +248,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 		::glTranslatef(0.f, 0.f, 0.01f);
         ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_supports_triangles)
+        for (const Vec2f& point : m_supports_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), height_supports);
 
         ::glEnd();
@@ -1142,8 +1139,8 @@ void GLGizmoSlaSupports::on_set_state()
             // Release triangle mesh slicer and the AABB spatial search structure.
             m_AABB.deinit();
             m_its = nullptr;
-            m_tms.reset();
-            m_supports_tms.reset();
+            m_object_clipper.reset();
+            m_supports_clipper.reset();
         }
     }
     m_old_state = m_state;
