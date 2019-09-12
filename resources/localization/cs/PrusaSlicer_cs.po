@@ -1771,6 +1771,10 @@ msgstr "Kompenzace rozplácnutí první vrstvy"
 msgid "Elevation is too low for object. Use the \"Pad around obect\" feature to print the object without elevation."
 msgstr "Vzdálenost od podložky je příliš nízká. Zvolte funkci \"Podložka okolo objektu\" pro tisk objektu bez nadzvednutí."
 
+#: src/libslic3r/SLAPrint.cpp:678
+msgid "Elevation is too low for object. Use the \"Pad around object\" feature to print the object without elevation."
+msgstr "Nadzvednutí objektu je příliš malé. Pomocí funkce „Podložka okolo objektu“ můžete objekt vytisknout bez nadzvednutí nad podložku."
+
 #: src/libslic3r/PrintConfig.cpp:1044
 msgid "Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute intervals into the G-code to let the firmware show accurate remaining time. As of now only the Prusa i3 MK3 firmware recognizes M73. Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode."
 msgstr "Vkládání M73 P[počet vytištěných procent] R[zbývající čas v minutách] v 1 minutových intervalech do G-codu, aby firmware ukázal přesný zbývající čas. M73 nyní rozpoznává pouze firmware tiskárny Prusa i3 MK3. Firmware i3 MK3 také podporuje M73 Qxx Sxx pro tichý režim."
@@ -1970,7 +1974,7 @@ msgstr "Exportovat &G-code"
 
 #: src/slic3r/GUI/MainFrame.cpp:488
 msgid "Export &toolpaths as OBJ"
-msgstr "Exportovat ces&ty extruderu jako OBJ"
+msgstr "Exportovat tras&sy extruderu jako OBJ"
 
 #: src/libslic3r/PrintConfig.cpp:2949
 msgid "Export 3MF"
@@ -2083,7 +2087,7 @@ msgstr "Exportovat vybrané objekty jako STL soubor"
 
 #: src/slic3r/GUI/MainFrame.cpp:488
 msgid "Export toolpaths as OBJ"
-msgstr "Exportovat cesty extruderu jako OBJ"
+msgstr "Exportovat trasy extruderu jako OBJ"
 
 #: src/libslic3r/Print.cpp:1517
 msgid "Exporting G-code"
@@ -5877,7 +5881,7 @@ msgstr "Naslicuje model a exportuje SLA tiskové vrstvy jako PNG soubory."
 
 #: src/libslic3r/PrintConfig.cpp:2965
 msgid "Slice the model and export toolpaths as G-code."
-msgstr "Naslicujte model a exportujte cesty jako G-code."
+msgstr "Naslicujte model a exportujte trasy jako G-code."
 
 #: src/libslic3r/PrintConfig.cpp:2971
 msgid "Slice the model as FFF or SLA based on the printer_technology configuration value."
@@ -6648,6 +6652,10 @@ msgstr "Tento vlastní kód je vložen při každé změně vrstvy, hned po pohy
 #: src/libslic3r/PrintConfig.cpp:129
 msgid "This custom code is inserted at every layer change, right before the Z move. Note that you can use placeholder variables for all Slic3r settings as well as [layer_num] and [layer_z]."
 msgstr "Tento vlastní kód je vložen pro každou změnu vrstvy, předtím než se pohne Z. Můžete přidávat zástupné proměnné pro veškeré nastavení Slic3ru stejně tak jako [layer_num] a [layer_z]."
+
+#: src/libslic3r/PrintConfig.cpp:2057
+msgid "This custom code is inserted before every toolchange. Placeholder variables for all PrusaSlicer settings as well as {previous_extruder} and {next_extruder} can be used. When a tool-changing command which changes to the correct extruder is included (such as T{next_extruder}), PrusaSlicer will emit no other such command. It is therefore possible to script custom behaviour both before and after the toolchange."
+msgstr "Tento vlastní kód je vložen při každé změně nástroje (extruderu). Lze používat zástupné proměnné pro všechna nastavení PrusaSliceru stejně jako {previous_extruder} a {next_extruder}. Když je použit příkaz pro výměnu extruderu, který mění na požadovaný extruder (jako je T {next_extruder}), PrusaSlicer nevytvoří žádný jiný takový příkaz. Je tedy možné skriptovat vlastní chování před i po výměně nástroje."
 
 #: src/libslic3r/PrintConfig.cpp:380
 msgid "This end procedure is inserted at the end of the output file, before the printer end gcode (and before any toolchange from this filament in case of multimaterial printers). Note that you can use placeholder variables for all PrusaSlicer settings. If you have multiple extruders, the gcode is processed in extruder order."

@@ -2,9 +2,9 @@
 #include "I18N.hpp"
 
 #include "../Config/Snapshot.hpp"
-#include "../Utils/Time.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Time.hpp"
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 

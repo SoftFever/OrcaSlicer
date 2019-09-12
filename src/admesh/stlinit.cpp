@@ -179,12 +179,12 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
 			// Some G-code generators tend to produce text after "endloop" and "endfacet". Just ignore it.
 			char buf[2048];
 			fgets(buf, 2047, fp);
-			bool endloop_ok = strncmp(buf, "endloop", 7) == 0 && (buf[7] == '\n' || buf[7] == ' ' || buf[7] == '\t');
+			bool endloop_ok = strncmp(buf, "endloop", 7) == 0 && (buf[7] == '\r' || buf[7] == '\n' || buf[7] == ' ' || buf[7] == '\t');
 			assert(endloop_ok);
 			// Skip the trailing whitespaces and empty lines.
 			fscanf(fp, " ");
 			fgets(buf, 2047, fp);
-			bool endfacet_ok = strncmp(buf, "endfacet", 8) == 0 && (buf[8] == '\n' || buf[8] == ' ' || buf[8] == '\t');
+			bool endfacet_ok = strncmp(buf, "endfacet", 8) == 0 && (buf[8] == '\r' || buf[8] == '\n' || buf[8] == ' ' || buf[8] == '\t');
 			assert(endfacet_ok);
 			if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || ! endloop_ok || ! endfacet_ok) {
 				BOOST_LOG_TRIVIAL(error) << "Something is syntactically very wrong with this ASCII STL! ";

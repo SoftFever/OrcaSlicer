@@ -529,7 +529,10 @@ void GCodeAnalyzer::_processT(const std::string& cmd)
         if (_get_extruder_id() != id)
         {
             if (id >= m_extruders_count)
-                BOOST_LOG_TRIVIAL(error) << "GCodeAnalyzer encountered an invalid toolchange, maybe from a custom gcode.";
+            {
+                if (m_extruders_count > 1)
+                    BOOST_LOG_TRIVIAL(error) << "GCodeAnalyzer encountered an invalid toolchange, maybe from a custom gcode.";
+            }
             else
                 _set_extruder_id(id);
 
