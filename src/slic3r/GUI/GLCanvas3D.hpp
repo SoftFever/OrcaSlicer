@@ -89,11 +89,29 @@ public:
         m_data[3] = offset;
     }
 
+    bool operator==(const ClippingPlane& cp) const {
+        return m_data[0]==cp.m_data[0] && m_data[1]==cp.m_data[1] && m_data[2]==cp.m_data[2] && m_data[3]==cp.m_data[3];
+    }
+    bool operator!=(const ClippingPlane& cp) const { return ! (*this==cp); }
+
+    double distance(const Vec3d& pt) const {
+        assert(is_approx(get_normal().norm(), 1.));
+        return (-get_normal().dot(pt) + m_data[3]);
+    }
+
+    void set_normal(const Vec3d& normal) { for (size_t i=0; i<3; ++i) m_data[i] = normal(i); }
+    void set_offset(double offset) { m_data[3] = offset; }
+    Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
-
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
-
     const double* get_data() const { return m_data; }
+
+    // Serialization through cereal library
+    template <class Archive>
+    void serialize( Archive & ar )
+    {
+        ar( m_data[0], m_data[1], m_data[2], m_data[3] );
+    }
 };
 
 

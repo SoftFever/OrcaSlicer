@@ -4,6 +4,7 @@
 #include "GLGizmoBase.hpp"
 #include "GLGizmos.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
+#include "slic3r/GUI/GLSelectionRectangle.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
 #undef L
@@ -19,9 +20,7 @@
 namespace Slic3r {
 namespace GUI {
 
-
 class ClippingPlane;
-
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
@@ -114,9 +113,8 @@ private:
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 
     float m_clipping_plane_distance = 0.f;
-    mutable float m_old_clipping_plane_distance = 0.f;
-    mutable Vec3d m_old_clipping_plane_normal;
-    mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
+    std::unique_ptr<ClippingPlane> m_clipping_plane;
+    std::unique_ptr<ClippingPlane> m_old_clipping_plane;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
@@ -151,6 +149,7 @@ private:
     void switch_to_editing_mode();
     void disable_editing_mode();
     void reset_clipping_plane_normal() const;
+    void update_clipping_plane(bool keep_normal = false) const;
 
 protected:
     void on_set_state() override;

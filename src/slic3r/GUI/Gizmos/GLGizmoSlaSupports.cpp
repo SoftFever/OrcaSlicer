@@ -26,6 +26,8 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& ic
     , m_quadric(nullptr)
     , m_its(nullptr)
 {
+    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+    m_old_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -137,10 +139,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
     if (m_clipping_plane_distance == 0.f)
         return;
 
-    if (m_clipping_plane_normal == Vec3d::Zero())
-        reset_clipping_plane_normal();
-
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
+    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
 
     // First cache instance transformation to be used later.
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -148,27 +147,24 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
     Transform3f instance_matrix_no_translation_no_scaling = vol->get_instance_transformation().get_matrix(true,false,true).cast<float>();
     Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
     Vec3d instance_offset = vol->get_instance_offset();
-
     // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
-    Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera.cast<float>();
+    Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_clipping_plane->get_normal().cast<float>();
     Vec3f up = Vec3f(up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
-    float height_mesh = (m_active_instance_bb_radius - m_clipping_plane_distance * 2*m_active_instance_bb_radius) * (up_noscale.norm()/up.norm());
+    float height_mesh = m_clipping_plane->distance(center) * (up_noscale.norm()/up.norm());
 
     // Get transformation of the supports and calculate how far from its origin the clipping plane is.
     Transform3d supports_trafo = Transform3d::Identity();
     supports_trafo = supports_trafo.rotate(Eigen::AngleAxisd(vol->get_instance_rotation()(2), Vec3d::UnitZ()));
-    Vec3f up_supports = (supports_trafo.inverse() * direction_to_camera).cast<float>();
+    Vec3f up_supports = (supports_trafo.inverse() * m_clipping_plane->get_normal()).cast<float>();
     supports_trafo = supports_trafo.pretranslate(Vec3d(instance_offset(0), instance_offset(1), vol->get_sla_shift_z()));
     // Instance and supports origin do not coincide, so the following is quite messy:
-    float height_supports = height_mesh * (up.norm() / up_supports.norm()) + instance_offset(2) * (direction_to_camera(2) / direction_to_camera.norm());
+    float height_supports = height_mesh * (up.norm() / up_supports.norm()) + instance_offset(2) * (m_clipping_plane->get_normal()(2));
 
     // In case either of these was recently changed, the cached triangulated ExPolygons are invalid now.
     // We are gonna recalculate them both for the object and for the support structures.
-    if (m_clipping_plane_distance != m_old_clipping_plane_distance
-     || m_old_clipping_plane_normal != direction_to_camera) {
+    if (*m_old_clipping_plane != *m_clipping_plane) {
 
-        m_old_clipping_plane_normal = direction_to_camera;
-        m_old_clipping_plane_distance = m_clipping_plane_distance;
+        *m_old_clipping_plane = *m_clipping_plane;
 
         // Now initialize the TMS for the object, perform the cut and save the result.
         if (! m_tms) {
@@ -379,15 +375,12 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
 bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 {
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
-
     if (m_clipping_plane_distance == 0.f)
         return false;
 
     Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
-    return direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift)) + m_active_instance_bb_radius
-            - m_clipping_plane_distance * 2*m_active_instance_bb_radius < direction_to_camera.dot(transformed_point);
+    return m_clipping_plane->distance(transformed_point) < 0.;
 }
 
 
@@ -693,18 +686,18 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
         m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
-        m_parent.set_as_dirty();
+        update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
         m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
-        m_parent.set_as_dirty();
+        update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::ResetClippingPlane) {
-        reset_clipping_plane_normal();
+        update_clipping_plane();
         return true;
     }
 
@@ -796,18 +789,10 @@ void GLGizmoSlaSupports::update_cache_entry_normal(size_t i) const
 
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
-    if (!m_model_object || m_state == Off)
+    if (!m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
         return ClippingPlane::ClipsNothing();
-
-    //Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-    //::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    //Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
-
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
-    float dist = direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift));
-
-    return ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
+    else
+        return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
 }
 
 
@@ -1019,14 +1004,15 @@ RENDER_AGAIN:
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){
-                    reset_clipping_plane_normal();
+                    update_clipping_plane();
                 });
         }
     }
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
+    if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+        update_clipping_plane(true);
 
 
     if (m_imgui->button("?")) {
@@ -1198,7 +1184,7 @@ void GLGizmoSlaSupports::on_stop_dragging()
 void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 {
     ar(m_clipping_plane_distance,
-       m_clipping_plane_normal,
+       *m_clipping_plane,
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1212,7 +1198,7 @@ void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
 {
     ar(m_clipping_plane_distance,
-       m_clipping_plane_normal,
+       *m_clipping_plane,
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1401,17 +1387,19 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 }
 
 
-void GLGizmoSlaSupports::reset_clipping_plane_normal() const
+void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
-    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    m_clipping_plane_normal = Vec3d(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+    Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
+                        m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+
+    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
+    float dist = normal.dot(center);
+    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
     m_parent.set_as_dirty();
 }
 
-
 SlaGizmoHelpDialog::SlaGizmoHelpDialog()
-: wxDialog(NULL, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+: wxDialog(nullptr, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     const wxString ctrl = GUI::shortkey_ctrl_prefix();
