@@ -2,7 +2,6 @@
 #define slic3r_GLGizmoSlaSupports_hpp_
 
 #include "GLGizmoBase.hpp"
-#include "GLGizmos.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
@@ -19,9 +18,9 @@
 namespace Slic3r {
 namespace GUI {
 
-
 class ClippingPlane;
-
+class MeshClipper;
+enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
@@ -114,9 +113,7 @@ private:
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 
     float m_clipping_plane_distance = 0.f;
-    mutable float m_old_clipping_plane_distance = 0.f;
-    mutable Vec3d m_old_clipping_plane_normal;
-    mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
+    std::unique_ptr<ClippingPlane> m_clipping_plane;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
@@ -128,8 +125,8 @@ private:
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
-    mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;
+    mutable std::unique_ptr<MeshClipper> m_object_clipper;
+    mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_point_clipped(const Vec3d& point) const;
@@ -151,6 +148,7 @@ private:
     void switch_to_editing_mode();
     void disable_editing_mode();
     void reset_clipping_plane_normal() const;
+    void update_clipping_plane(bool keep_normal = false) const;
 
 protected:
     void on_set_state() override;

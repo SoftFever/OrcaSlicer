@@ -33,10 +33,16 @@ protected:
         // then it should be removed from the list
         auto it = c.begin();
         while (it != c.end() && !stopcond_()) {
-            Placer p{bin};
-            p.configure(pcfg);
+            
+            // WARNING: The copy of itm needs to be created before Placer.
+            // Placer is working with references and its destructor still
+            // manipulates the item this is why the order of stack creation
+            // matters here.            
             const Item& itm = *it;
             Item cpy{itm};
+            
+            Placer p{bin};
+            p.configure(pcfg);
             if (!p.pack(cpy)) it = c.erase(it);
             else it++;
         }
