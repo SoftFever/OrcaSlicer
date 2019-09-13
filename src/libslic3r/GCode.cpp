@@ -542,14 +542,15 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 	//FIXME should we use the printing extruders instead?
 	double gap_over_supports = object.config().support_material_contact_distance;
 	// FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
-	assert(gap_over_supports > 0. || object.config().support_material_synchronize_layers);
-	if (gap_over_supports > 0.) {
+    assert(gap_over_supports != 0. || object.config().support_material_synchronize_layers);
+    if (gap_over_supports != 0.) {
+        gap_over_supports = std::max(0., gap_over_supports);
 		// Not a soluble support,
 		double support_layer_height_min = 1000000.;
 		for (auto lh : object.print()->config().min_layer_height.values)
 			support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
 		gap_over_supports += support_layer_height_min;
-	}
+    }
 
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer  = 0;
@@ -576,11 +577,11 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         	// Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
          || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
-                                       ? object.config().support_material_contact_distance
+                                       ? gap_over_supports
                                        : 0.;
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                                     + layer_to_print.layer()->height
-                                    + std::max(0., support_contact_z);
+                                    + support_contact_z;
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
 
