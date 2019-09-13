@@ -537,6 +537,20 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     std::vector<GCode::LayerToPrint> layers_to_print;
     layers_to_print.reserve(object.layers().size() + object.support_layers().size());
 
+	// Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
+	// This is the same logic as in support generator.
+	//FIXME should we use the printing extruders instead?
+	double gap_over_supports = object.config().support_material_contact_distance;
+	// FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
+	assert(gap_over_supports > 0. || object.config().support_material_synchronize_layers);
+	if (gap_over_supports > 0.) {
+		// Not a soluble support,
+		double support_layer_height_min = 1000000.;
+		for (auto lh : object.print()->config().min_layer_height.values)
+			support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
+		gap_over_supports += support_layer_height_min;
+	}
+
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer  = 0;
     size_t idx_support_layer = 0;
@@ -559,7 +573,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-         || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions())) {
+        	// Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
+         || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
                                        ? object.config().support_material_contact_distance
                                        : 0.;
@@ -570,7 +585,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
 
 
-            if (layer_to_print.print_z() > maximal_print_z + EPSILON)
+            if (layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
                 throw std::runtime_error(_(L("Empty layers detected, the output would not be printable.")) + "\n\n" +
                     _(L("Object name: ")) + object.model_object()->name + "\n" + _(L("Print z: ")) +
                     std::to_string(layers_to_print.back().print_z()) + "\n\n" + _(L("This is "
