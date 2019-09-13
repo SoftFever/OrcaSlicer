@@ -35,6 +35,7 @@
 #define clipper_hpp
 
 #include <inttypes.h>
+#include <functional>
 
 #define CLIPPER_VERSION "6.2.6"
 
@@ -56,7 +57,11 @@
 #include <functional>
 #include <queue>
 
+#ifdef use_xyz
+namespace ClipperLib_Z {
+#else /* use_xyz */
 namespace ClipperLib {
+#endif /* use_xyz */
 
 enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
 enum PolyType { ptSubject, ptClip };
@@ -114,7 +119,7 @@ struct DoublePoint
 //------------------------------------------------------------------------------
 
 #ifdef use_xyz
-typedef void (*ZFillCallback)(IntPoint& e1bot, IntPoint& e1top, IntPoint& e2bot, IntPoint& e2top, IntPoint& pt);
+typedef std::function<void(const IntPoint& e1bot, const IntPoint& e1top, const IntPoint& e2bot, const IntPoint& e2top, IntPoint& pt)> ZFillCallback;
 #endif
 
 enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
