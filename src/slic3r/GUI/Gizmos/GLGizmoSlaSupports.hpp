@@ -2,8 +2,6 @@
 #define slic3r_GLGizmoSlaSupports_hpp_
 
 #include "GLGizmoBase.hpp"
-#include "GLGizmos.hpp"
-#include "slic3r/GUI/GLSelectionRectangle.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
@@ -22,6 +20,7 @@ namespace GUI {
 
 class ClippingPlane;
 class MeshClipper;
+enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {

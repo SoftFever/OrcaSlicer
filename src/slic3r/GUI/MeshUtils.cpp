@@ -1,6 +1,7 @@
-#include "MeshClipper.hpp"
-#include "GLCanvas3D.hpp"
+#include "MeshUtils.hpp"
+
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -13,6 +14,8 @@ void MeshClipper::set_plane(const ClippingPlane& plane)
     }
 }
 
+
+
 void MeshClipper::set_mesh(const TriangleMesh& mesh)
 {
     if (m_mesh != &mesh) {
@@ -23,6 +26,8 @@ void MeshClipper::set_mesh(const TriangleMesh& mesh)
         m_tms.reset(nullptr);
     }
 }
+
+
 
 void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
 {
@@ -44,13 +49,14 @@ const std::vector<Vec3f>& MeshClipper::get_triangles()
     return m_triangles3d;
 }
 
+
+
 void MeshClipper::recalculate_triangles()
 {
     if (! m_tms) {
         m_tms.reset(new TriangleMeshSlicer);
         m_tms->init(m_mesh, [](){});
     }
-
 
     const Transform3f& instance_matrix_no_translation_no_scaling = m_trafo.get_matrix(true,false,true).cast<float>();
     const Vec3f& scaling = m_trafo.get_scaling_factor().cast<float>();

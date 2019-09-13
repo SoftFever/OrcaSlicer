@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 
 #include <GL/glew.h>
 
@@ -12,11 +13,10 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
-#include "slic3r/GUI/MeshClipper.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/Tesselate.hpp"
 
 
 namespace Slic3r {
