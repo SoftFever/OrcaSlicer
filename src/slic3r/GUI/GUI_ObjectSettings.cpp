@@ -106,6 +106,12 @@ bool ObjectSettings::update_settings_list()
                     update_settings_list(); 
                     m_parent->Layout(); 
                 });
+
+                /* Check overriden options list after deleting.
+                 * Some options couldn't be deleted because of another one.
+                 * Like, we couldn't delete fill pattern, if fill density is set to 100%
+                 */
+                update_config_values(config);
 			});
 			return btn;
 		};
