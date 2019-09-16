@@ -36,19 +36,6 @@ TODO LIST
 namespace Slic3r
 {
 
-// Rotate the point around center of the wipe tower about given angle (in degrees)
-static Vec2f rotate(const Vec2f& pt, float width, float depth, float angle)
-{
-    Vec2f out(0,0);
-    float temp_x = pt(0) - width / 2.f;
-    float temp_y = pt(1) - depth / 2.f;
-    angle *= float(M_PI/180.);
-    out.x() += temp_x * cos(angle)  -  temp_y * sin(angle) + width / 2.f;
-    out.y() += temp_x * sin(angle)  +  temp_y * cos(angle) + depth / 2.f;
-    return out;
-}
-
-
 class WipeTowerWriter
 {
 public:
@@ -95,7 +82,7 @@ public:
         m_wipe_tower_width = width;
         m_wipe_tower_depth = depth;
         m_internal_angle = internal_angle;
-		m_start_pos = rotate(pos + Vec2f(0.f,m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle);
+		m_start_pos = this->rotate(pos);
 		m_current_pos = pos;
 		return *this;
 	}
@@ -136,9 +123,9 @@ public:
 	const std::vector<WipeTower::Extrusion>& extrusions() const { return m_extrusions; }
 	float                x()     const { return m_current_pos.x(); }
 	float                y()     const { return m_current_pos.y(); }
-	const Vec2f& pos()   const { return m_current_pos; }
-	const Vec2f	 start_pos_rotated() const { return m_start_pos; }
-	const Vec2f  pos_rotated() const { return rotate(m_current_pos + Vec2f(0.f, m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle); }
+	const Vec2f& 		 pos()   const { return m_current_pos; }
+	const Vec2f	 		 start_pos_rotated() const { return m_start_pos; }
+	const Vec2f  		 pos_rotated() const { return this->rotate(m_current_pos); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
     float                get_and_reset_used_filament_length() { float temp = m_used_filament_length; m_used_filament_length = 0.f; return temp; }
 
@@ -156,8 +143,8 @@ public:
             m_used_filament_length += e;
 
 		// Now do the "internal rotation" with respect to the wipe tower center
-		Vec2f rotated_current_pos(rotate(m_current_pos + Vec2f(0.f,m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle)); // this is where we are
-		Vec2f rot(rotate(Vec2f(x,y+m_y_shift), m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle));                               // this is where we want to go
+		Vec2f rotated_current_pos(this->pos_rotated());
+		Vec2f rot(this->rotate(Vec2f(x,y)));                               // this is where we want to go
 
         if (! m_preview_suppressed && e > 0.f && len > 0.f) {
             change_analyzer_mm3_per_mm(len, e);
@@ -459,6 +446,18 @@ private:
 	}
 
 	WipeTowerWriter& operator=(const WipeTowerWriter &rhs);
+
+	// Rotate the point around center of the wipe tower about given angle (in degrees)
+	Vec2f rotate(Vec2f pt) const
+	{
+		pt.x() -= m_wipe_tower_width / 2.f;
+		pt.y() += m_y_shift - m_wipe_tower_depth / 2.f;
+	    double angle = m_internal_angle * float(M_PI/180.);
+	    double c = cos(angle);
+	    double s = sin(angle);
+	    return Vec2f(float(pt.x() * c - pt.y() * s) + m_wipe_tower_width / 2.f, float(pt.x() * s + pt.y() * c) + m_wipe_tower_depth / 2.f);
+	}
+
 }; // class WipeTowerWriter
 
 
@@ -996,7 +995,8 @@ void WipeTower::toolchange_Change(
 
     // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
     // gcode could have left the extruder somewhere, we cannot just start extruding.
-    writer.append(std::string("G1 X") + std::to_string(writer.x()) +  " Y" + std::to_string(writer.y()) +  "\n");
+	Vec2f current_pos = writer.pos_rotated();
+    writer.append(std::string("G1 X") + std::to_string(current_pos.x()) +  " Y" + std::to_string(current_pos.y()) +  "\n");
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.

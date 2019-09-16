@@ -68,15 +68,14 @@ public:
 
     /// Type that represents a resolution in pixels.
     struct Resolution {
-        unsigned width_px;
-        unsigned height_px;
+        size_t width_px;
+        size_t height_px;
 
-        inline Resolution(unsigned w = 0, unsigned h = 0):
-            width_px(w), height_px(h) {}
+        inline Resolution(size_t w = 0, size_t h = 0)
+            : width_px(w), height_px(h)
+        {}
 
-        inline unsigned pixels() const /*noexcept*/ {
-            return width_px * height_px;
-        }
+        inline size_t pixels() const { return width_px * height_px; }
     };
 
     /// Types that represents the dimension of a pixel in millimeters.
