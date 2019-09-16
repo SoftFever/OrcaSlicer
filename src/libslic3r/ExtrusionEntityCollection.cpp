@@ -11,7 +11,7 @@ ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths
     this->append(paths);
 }
 
-ExtrusionEntityCollection& ExtrusionEntityCollection::operator= (const ExtrusionEntityCollection &other)
+ExtrusionEntityCollection& ExtrusionEntityCollection::operator=(const ExtrusionEntityCollection &other)
 {
     this->entities      = other.entities;
     for (size_t i = 0; i < this->entities.size(); ++i)
@@ -175,20 +175,20 @@ size_t ExtrusionEntityCollection::items_count() const
 }
 
 // Returns a single vector of pointers to all non-collection items contained in this one.
-void ExtrusionEntityCollection::flatten(ExtrusionEntityCollection* retval) const
-{
-    for (const ExtrusionEntity *entity : this->entities)
-        if (entity->is_collection())
-            retval->append(static_cast<const ExtrusionEntityCollection*>(entity)->flatten().entities);
-        else
-            retval->append(*entity);
-}
-
 ExtrusionEntityCollection ExtrusionEntityCollection::flatten() const
 {
-    ExtrusionEntityCollection coll;
-    this->flatten(&coll);
-    return coll;
+	struct Flatten {
+		ExtrusionEntityCollection out;
+		void recursive_do(const ExtrusionEntityCollection &collection) {
+			for (const ExtrusionEntity* entity : collection.entities)
+				if (entity->is_collection())
+					this->recursive_do(*static_cast<const ExtrusionEntityCollection*>(entity));
+				else
+					out.append(*entity);
+		}
+	} flatten;
+	flatten.recursive_do(*this);
+    return flatten.out;
 }
 
 double ExtrusionEntityCollection::min_mm3_per_mm() const
