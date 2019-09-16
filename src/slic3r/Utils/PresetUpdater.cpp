@@ -245,6 +245,16 @@ void PresetUpdater::priv::sync_version() const
 		})
 		.on_complete([&](std::string body, unsigned /* http_status */) {
 			boost::trim(body);
+			const auto nl_pos = body.find_first_of("\n\r");
+			if (nl_pos != std::string::npos) {
+				body.resize(nl_pos);
+			}
+
+			if (! Semver::parse(body)) {
+				BOOST_LOG_TRIVIAL(warning) << boost::format("Received invalid contents from `%1%`: Not a correct semver: `%2%`") % SLIC3R_APP_NAME % body;
+				return;
+			}
+
 			BOOST_LOG_TRIVIAL(info) << boost::format("Got %1% online version: `%2%`. Sending to GUI thread...") % SLIC3R_APP_NAME % body;
 
 			wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
