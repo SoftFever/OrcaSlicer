@@ -1401,7 +1401,8 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
         menu->SetFirstSeparator();
 
     // Add frequently settings
-    create_freq_settings_popupmenu(menu, sel_vol==nullptr);
+    const bool is_object_settings = m_objects_model->GetItemType(GetSelection()) == itObject;
+    create_freq_settings_popupmenu(menu, is_object_settings);
 
     if (mode == comAdvanced)
         return nullptr;

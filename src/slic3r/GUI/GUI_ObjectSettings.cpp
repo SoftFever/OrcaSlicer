@@ -106,6 +106,12 @@ bool ObjectSettings::update_settings_list()
                     update_settings_list(); 
                     m_parent->Layout(); 
                 });
+
+                /* Check overriden options list after deleting.
+                 * Some options couldn't be deleted because of another one.
+                 * Like, we couldn't delete fill pattern, if fill density is set to 100%
+                 */
+                update_config_values(config);
 			});
 			return btn;
 		};
@@ -168,6 +174,23 @@ bool ObjectSettings::update_settings_list()
     return true;
 }
 
+bool ObjectSettings::add_missed_options(DynamicPrintConfig* config_to, const DynamicPrintConfig& config_from)
+{
+    bool is_added = false;
+    if (wxGetApp().plater()->printer_technology() == ptFFF)
+    {
+        if (config_to->has("fill_density") && !config_to->has("fill_pattern"))
+        {
+            if (config_from.option<ConfigOptionPercent>("fill_density")->value == 100) {
+                config_to->set_key_value("fill_pattern", config_from.option("fill_pattern")->clone());
+                is_added = true;
+            }
+        }
+    }
+
+    return is_added;
+}
+
 void ObjectSettings::update_config_values(DynamicPrintConfig* config)
 {
     const auto objects_model        = wxGetApp().obj_list()->GetModel();
@@ -185,6 +208,12 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
 
     auto load_config = [this, config, &main_config]()
     {
+        /* Additional check for overrided options.
+         * There is a case, when some options should to be added, 
+         * to avoid check loop in the next configuration update
+         */
+        bool is_added = add_missed_options(config, main_config);
+
         // load checked values from main_config to config
         config->apply_only(main_config, config->keys(), true);
         // Initialize UI components with the config values.
@@ -192,6 +221,14 @@ void ObjectSettings::update_config_values(DynamicPrintConfig* config)
             og->reload_config();
         // next config check
         update_config_values(config);
+
+        if (is_added) {
+            wxTheApp->CallAfter([this]() {
+                wxWindowUpdateLocker noUpdates(m_parent);
+                update_settings_list();
+                m_parent->Layout();
+            });
+        }
     };
 
     auto get_field = [this](const t_config_option_key & opt_key, int opt_index)
