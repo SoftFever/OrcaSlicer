@@ -9,7 +9,10 @@ namespace Slic3r {
 class ExtrusionEntityCollection : public ExtrusionEntity
 {
 public:
-    ExtrusionEntityCollection* clone() const;
+    ExtrusionEntity* clone() const override;
+    // Create a new object, initialize it with this object using the move semantics.
+	ExtrusionEntity* clone_move() override { return new ExtrusionEntityCollection(std::move(*this)); }
+
     ExtrusionEntitiesPtr entities;     // we own these entities
     std::vector<size_t> orig_indices;  // handy for XS
     bool no_sort;
@@ -36,11 +39,12 @@ public:
     bool empty() const { return this->entities.empty(); };
     void clear();
     void swap (ExtrusionEntityCollection &c);
-    void append(const ExtrusionEntity &entity) { this->entities.push_back(entity.clone()); }
-    void append(const ExtrusionEntitiesPtr &entities) { 
+    void append(const ExtrusionEntity &entity) { this->entities.emplace_back(entity.clone()); }
+    void append(ExtrusionEntity &&entity) { this->entities.emplace_back(entity.clone_move()); }
+    void append(const ExtrusionEntitiesPtr &entities) {
         this->entities.reserve(this->entities.size() + entities.size());
-        for (ExtrusionEntitiesPtr::const_iterator ptr = entities.begin(); ptr != entities.end(); ++ptr)
-            this->entities.push_back((*ptr)->clone());
+        for (const ExtrusionEntity *ptr : entities)
+            this->entities.emplace_back(ptr->clone());
     }
     void append(ExtrusionEntitiesPtr &&src) {
         if (entities.empty())

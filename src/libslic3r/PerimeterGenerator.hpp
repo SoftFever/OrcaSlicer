@@ -11,29 +11,6 @@
 
 namespace Slic3r {
 
-// Hierarchy of perimeters.
-class PerimeterGeneratorLoop {
-public:
-    // Polygon of this contour.
-    Polygon polygon;
-    // Is it a contour or a hole?
-    // Contours are CCW oriented, holes are CW oriented.
-    bool is_contour;
-    // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
-    unsigned short depth;
-    // Children contour, may be both CCW and CW oriented (outer contours or holes).
-    std::vector<PerimeterGeneratorLoop> children;
-    
-    PerimeterGeneratorLoop(Polygon polygon, unsigned short depth, bool is_contour) : 
-        polygon(polygon), is_contour(is_contour), depth(depth) {}
-    // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
-    bool is_external() const { return this->depth == 0; }
-    // An island, which may have holes, but it does not have another internal island.
-    bool is_internal_contour() const;
-};
-
-typedef std::vector<PerimeterGeneratorLoop> PerimeterGeneratorLoops;
-
 class PerimeterGenerator {
 public:
     // Inputs:
@@ -73,18 +50,21 @@ public:
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
-            _ext_mm3_per_mm(-1), _mm3_per_mm(-1), _mm3_per_mm_overhang(-1)
+            m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1)
         {}
-    void process();
+
+    void        process();
+
+    double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
+    double      mm3_per_mm()            const { return m_mm3_per_mm; }
+    double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
+    Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
-    double      _ext_mm3_per_mm;
-    double      _mm3_per_mm;
-    double      _mm3_per_mm_overhang;
-    Polygons    _lower_slices_p;
-    
-    ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls) const;
-    ExtrusionEntityCollection _variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const;
+    double      m_ext_mm3_per_mm;
+    double      m_mm3_per_mm;
+    double      m_mm3_per_mm_overhang;
+    Polygons    m_lower_slices_polygons;
 };
 
 }

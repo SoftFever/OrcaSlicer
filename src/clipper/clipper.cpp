@@ -51,7 +51,11 @@
 #include <Shiny/Shiny.h>
 #include <libslic3r/Int128.hpp>
 
+#ifdef use_xyz
+namespace ClipperLib_Z {
+#else /* use_xyz */
 namespace ClipperLib {
+#endif /* use_xyz */
 
 static double const pi = 3.141592653589793238;
 static double const two_pi = pi *2;
@@ -1616,7 +1620,7 @@ void Clipper::SetZ(IntPoint& pt, TEdge& e1, TEdge& e2)
   else if (pt == e1.Top) pt.Z = e1.Top.Z;
   else if (pt == e2.Bot) pt.Z = e2.Bot.Z;
   else if (pt == e2.Top) pt.Z = e2.Top.Z;
-  else (*m_ZFill)(e1.Bot, e1.Top, e2.Bot, e2.Top, pt); 
+  else m_ZFill(e1.Bot, e1.Top, e2.Bot, e2.Top, pt);
 }
 //------------------------------------------------------------------------------
 #endif

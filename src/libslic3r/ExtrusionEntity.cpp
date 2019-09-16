@@ -12,44 +12,35 @@
 
 namespace Slic3r {
     
-void
-ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
+void ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
     this->_inflate_collection(intersection_pl(this->polyline, collection), retval);
 }
 
-void
-ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
+void ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
     this->_inflate_collection(diff_pl(this->polyline, collection), retval);
 }
 
-void
-ExtrusionPath::clip_end(double distance)
+void ExtrusionPath::clip_end(double distance)
 {
     this->polyline.clip_end(distance);
 }
 
-void
-ExtrusionPath::simplify(double tolerance)
+void ExtrusionPath::simplify(double tolerance)
 {
     this->polyline.simplify(tolerance);
 }
 
-double
-ExtrusionPath::length() const
+double ExtrusionPath::length() const
 {
     return this->polyline.length();
 }
 
-void
-ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const
+void ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const
 {
-    for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it) {
-        ExtrusionPath* path = this->clone();
-        path->polyline = *it;
-        collection->entities.push_back(path);
-    }
+    for (const Polyline &polyline : polylines)
+        collection->entities.emplace_back(new ExtrusionPath(polyline, *this));
 }
 
 void ExtrusionPath::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
@@ -67,36 +58,36 @@ void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scale
 
 void ExtrusionMultiPath::reverse()
 {
-    for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->reverse();
+    for (ExtrusionPath &path : this->paths)
+        path.reverse();
     std::reverse(this->paths.begin(), this->paths.end());
 }
 
 double ExtrusionMultiPath::length() const
 {
     double len = 0;
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        len += path->polyline.length();
+    for (const ExtrusionPath &path : this->paths)
+        len += path.polyline.length();
     return len;
 }
 
 void ExtrusionMultiPath::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->polygons_covered_by_width(out, scaled_epsilon);
+    for (const ExtrusionPath &path : this->paths)
+        path.polygons_covered_by_width(out, scaled_epsilon);
 }
 
 void ExtrusionMultiPath::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
 {
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->polygons_covered_by_spacing(out, scaled_epsilon);
+    for (const ExtrusionPath &path : this->paths)
+        path.polygons_covered_by_spacing(out, scaled_epsilon);
 }
 
 double ExtrusionMultiPath::min_mm3_per_mm() const
 {
     double min_mm3_per_mm = std::numeric_limits<double>::max();
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        min_mm3_per_mm = std::min(min_mm3_per_mm, path->mm3_per_mm);
+    for (const ExtrusionPath &path : this->paths)
+        min_mm3_per_mm = std::min(min_mm3_per_mm, path.mm3_per_mm);
     return min_mm3_per_mm;
 }
 
@@ -121,52 +112,46 @@ Polyline ExtrusionMultiPath::as_polyline() const
     return out;
 }
 
-bool
-ExtrusionLoop::make_clockwise()
+bool ExtrusionLoop::make_clockwise()
 {
     bool was_ccw = this->polygon().is_counter_clockwise();
     if (was_ccw) this->reverse();
     return was_ccw;
 }
 
-bool
-ExtrusionLoop::make_counter_clockwise()
+bool ExtrusionLoop::make_counter_clockwise()
 {
     bool was_cw = this->polygon().is_clockwise();
     if (was_cw) this->reverse();
     return was_cw;
 }
 
-void
-ExtrusionLoop::reverse()
+void ExtrusionLoop::reverse()
 {
-    for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->reverse();
+    for (ExtrusionPath &path : this->paths)
+        path.reverse();
     std::reverse(this->paths.begin(), this->paths.end());
 }
 
-Polygon
-ExtrusionLoop::polygon() const
+Polygon ExtrusionLoop::polygon() const
 {
     Polygon polygon;
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
+    for (const ExtrusionPath &path : this->paths) {
         // for each polyline, append all points except the last one (because it coincides with the first one of the next polyline)
-        polygon.points.insert(polygon.points.end(), path->polyline.points.begin(), path->polyline.points.end()-1);
+        polygon.points.insert(polygon.points.end(), path.polyline.points.begin(), path.polyline.points.end()-1);
     }
     return polygon;
 }
 
-double
-ExtrusionLoop::length() const
+double ExtrusionLoop::length() const
 {
     double len = 0;
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        len += path->polyline.length();
+    for (const ExtrusionPath &path : this->paths)
+        len += path.polyline.length();
     return len;
 }
 
-bool
-ExtrusionLoop::split_at_vertex(const Point &point)
+bool ExtrusionLoop::split_at_vertex(const Point &point)
 {
     for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
         int idx = path->polyline.find_point(point);
@@ -220,18 +205,18 @@ void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
         Point  p_non_overhang;
         size_t path_idx_non_overhang = 0;
         double min_non_overhang = std::numeric_limits<double>::max();
-        for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
-            Point p_tmp = point.projection_onto(path->polyline);
+        for (const ExtrusionPath &path : this->paths) {
+            Point p_tmp = point.projection_onto(path.polyline);
             double dist = (p_tmp - point).cast<double>().norm();
             if (dist < min) {
                 p = p_tmp;
                 min = dist;
-                path_idx = path - this->paths.begin();
+                path_idx = &path - &this->paths.front();
             } 
-            if (prefer_non_overhang && ! is_bridge(path->role()) && dist < min_non_overhang) {
+            if (prefer_non_overhang && ! is_bridge(path.role()) && dist < min_non_overhang) {
                 p_non_overhang = p_tmp;
                 min_non_overhang = dist;
-                path_idx_non_overhang = path - this->paths.begin();
+                path_idx_non_overhang = &path - &this->paths.front();
             }
         }
         if (prefer_non_overhang && min_non_overhang != std::numeric_limits<double>::max()) {
@@ -267,8 +252,7 @@ void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
     this->split_at_vertex(p);
 }
 
-void
-ExtrusionLoop::clip_end(double distance, ExtrusionPaths* paths) const
+void ExtrusionLoop::clip_end(double distance, ExtrusionPaths* paths) const
 {
     *paths = this->paths;
     
@@ -285,15 +269,14 @@ ExtrusionLoop::clip_end(double distance, ExtrusionPaths* paths) const
     }
 }
 
-bool
-ExtrusionLoop::has_overhang_point(const Point &point) const
+bool ExtrusionLoop::has_overhang_point(const Point &point) const
 {
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
-        int pos = path->polyline.find_point(point);
+    for (const ExtrusionPath &path : this->paths) {
+        int pos = path.polyline.find_point(point);
         if (pos != -1) {
             // point belongs to this path
             // we consider it overhang only if it's not an endpoint
-            return (is_bridge(path->role()) && pos > 0 && pos != (int)(path->polyline.points.size())-1);
+            return (is_bridge(path.role()) && pos > 0 && pos != (int)(path.polyline.points.size())-1);
         }
     }
     return false;
@@ -301,22 +284,21 @@ ExtrusionLoop::has_overhang_point(const Point &point) const
 
 void ExtrusionLoop::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->polygons_covered_by_width(out, scaled_epsilon);
+    for (const ExtrusionPath &path : this->paths)
+        path.polygons_covered_by_width(out, scaled_epsilon);
 }
 
 void ExtrusionLoop::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
 {
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        path->polygons_covered_by_spacing(out, scaled_epsilon);
+    for (const ExtrusionPath &path : this->paths)
+        path.polygons_covered_by_spacing(out, scaled_epsilon);
 }
 
-double
-ExtrusionLoop::min_mm3_per_mm() const
+double ExtrusionLoop::min_mm3_per_mm() const
 {
     double min_mm3_per_mm = std::numeric_limits<double>::max();
-    for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path)
-        min_mm3_per_mm = std::min(min_mm3_per_mm, path->mm3_per_mm);
+    for (const ExtrusionPath &path : this->paths)
+        min_mm3_per_mm = std::min(min_mm3_per_mm, path.mm3_per_mm);
     return min_mm3_per_mm;
 }
 
@@ -343,16 +325,5 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
     }
     return "";
 }
-
-//std::string ExtrusionLoop::role_to_string(ExtrusionLoopRole role)
-//{
-//    switch (role) {
-//        case elrDefault                 : return "elrDefault";
-//        case elrContourInternalPerimeter: return "elrContourInternalPerimeter";
-//        case elrSkirt                   : return "elrSkirt";
-//        default                         : assert(false);
-//    }
-//};
-
 
 }

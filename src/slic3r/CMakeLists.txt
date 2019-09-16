@@ -85,6 +85,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_ObjectLayers.hpp
     GUI/LambdaObjectDialog.cpp
     GUI/LambdaObjectDialog.hpp
+    GUI/MeshUtils.cpp
+    GUI/MeshUtils.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
     GUI/ConfigManipulation.cpp

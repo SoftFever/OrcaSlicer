@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 
 #include <GL/glew.h>
 
@@ -12,10 +13,10 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/Tesselate.hpp"
 
 
 namespace Slic3r {
@@ -26,6 +27,7 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& ic
     , m_quadric(nullptr)
     , m_its(nullptr)
 {
+    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -137,127 +139,82 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
     if (m_clipping_plane_distance == 0.f)
         return;
 
-    if (m_clipping_plane_normal == Vec3d::Zero())
-        reset_clipping_plane_normal();
-
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
-
-    // First cache instance transformation to be used later.
+    // Get transformation of the instance
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    Transform3f instance_matrix = vol->get_instance_transformation().get_matrix().cast<float>();
-    Transform3f instance_matrix_no_translation_no_scaling = vol->get_instance_transformation().get_matrix(true,false,true).cast<float>();
-    Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
-    Vec3d instance_offset = vol->get_instance_offset();
+    Geometry::Transformation trafo = vol->get_instance_transformation();
+    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
 
-    // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
-    Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera.cast<float>();
-    Vec3f up = Vec3f(up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
-    float height_mesh = (m_active_instance_bb_radius - m_clipping_plane_distance * 2*m_active_instance_bb_radius) * (up_noscale.norm()/up.norm());
+    // Get transformation of supports
+    Geometry::Transformation supports_trafo;
+    supports_trafo.set_offset(Vec3d(trafo.get_offset()(0), trafo.get_offset()(1), vol->get_sla_shift_z()));
+    supports_trafo.set_rotation(Vec3d(0., 0., trafo.get_rotation()(2)));
+    // I don't know why, but following seems to be correct.
+    supports_trafo.set_mirror(Vec3d(trafo.get_mirror()(0) * trafo.get_mirror()(1) * trafo.get_mirror()(2),
+                                    1,
+                                    1.));
 
-    // Get transformation of the supports and calculate how far from its origin the clipping plane is.
-    Transform3d supports_trafo = Transform3d::Identity();
-    supports_trafo = supports_trafo.rotate(Eigen::AngleAxisd(vol->get_instance_rotation()(2), Vec3d::UnitZ()));
-    Vec3f up_supports = (supports_trafo.inverse() * direction_to_camera).cast<float>();
-    supports_trafo = supports_trafo.pretranslate(Vec3d(instance_offset(0), instance_offset(1), vol->get_sla_shift_z()));
-    // Instance and supports origin do not coincide, so the following is quite messy:
-    float height_supports = height_mesh * (up.norm() / up_supports.norm()) + instance_offset(2) * (direction_to_camera(2) / direction_to_camera.norm());
+    // Now initialize the TMS for the object, perform the cut and save the result.
+    if (! m_object_clipper) {
+        m_object_clipper.reset(new MeshClipper);
+        m_object_clipper->set_mesh(*m_mesh);
+    }
+    m_object_clipper->set_plane(*m_clipping_plane);
+    m_object_clipper->set_transformation(trafo);
 
-    // In case either of these was recently changed, the cached triangulated ExPolygons are invalid now.
-    // We are gonna recalculate them both for the object and for the support structures.
-    if (m_clipping_plane_distance != m_old_clipping_plane_distance
-     || m_old_clipping_plane_normal != direction_to_camera) {
 
-        m_old_clipping_plane_normal = direction_to_camera;
-        m_old_clipping_plane_distance = m_clipping_plane_distance;
-
-        // Now initialize the TMS for the object, perform the cut and save the result.
-        if (! m_tms) {
-            m_tms.reset(new TriangleMeshSlicer);
-            m_tms->init(m_mesh, [](){});
+    // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
+    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
+    // cached so we don't have todo it on each render. We only search for the po if needed:
+    if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
+        m_print_objects_count = m_parent.sla_print()->objects().size();
+        m_print_object_idx = -1;
+        for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
+            ++m_print_object_idx;
+            if (po->model_object()->id() == m_model_object->id())
+                break;
         }
-        std::vector<ExPolygons> list_of_expolys;
-        m_tms->set_up_direction(up);
-        m_tms->slice(std::vector<float>{height_mesh}, 0.f, &list_of_expolys, [](){});
-        m_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
+    }
+    if (m_print_object_idx >= 0) {
+        const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
 
+        if (print_object->is_step_done(slaposSupportTree)) {
+            // If the supports are already calculated, save the timestamp of the respective step
+            // so we can later tell they were recalculated.
+            size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
 
-
-        // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
-        // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
-        // cached so we don't have todo it on each render. We only search for the po if needed:
-        if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
-            m_print_objects_count = m_parent.sla_print()->objects().size();
-            m_print_object_idx = -1;
-            for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
-                ++m_print_object_idx;
-                if (po->model_object()->id() == m_model_object->id())
-                    break;
+            if (! m_supports_clipper || (int)timestamp != m_old_timestamp) {
+                // The timestamp has changed.
+                m_supports_clipper.reset(new MeshClipper);
+                // The mesh should already have the shared vertices calculated.
+                m_supports_clipper->set_mesh(print_object->support_mesh());
+                m_old_timestamp = timestamp;
             }
+            m_supports_clipper->set_plane(*m_clipping_plane);
+            m_supports_clipper->set_transformation(supports_trafo);
         }
-        if (m_print_object_idx >= 0) {
-            const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
-
-            if (print_object->is_step_done(slaposSupportTree)) {
-                // If the supports are already calculated, save the timestamp of the respective step
-                // so we can later tell they were recalculated.
-                size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
-
-                if (!m_supports_tms || (int)timestamp != m_old_timestamp) {
-                    // The timestamp has changed - stash the mesh and initialize the TMS.
-                    m_supports_mesh = &print_object->support_mesh();
-                    m_supports_tms.reset(new TriangleMeshSlicer);
-                    // The mesh should already have the shared vertices calculated.
-                    m_supports_tms->init(m_supports_mesh, [](){});
-                    m_old_timestamp = timestamp;
-                }
-
-                // The TMS is initialized - let's do the cutting:
-                list_of_expolys.clear();
-                m_supports_tms->set_up_direction(up_supports);
-                m_supports_tms->slice(std::vector<float>{height_supports}, 0.f, &list_of_expolys, [](){});
-                m_supports_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
-            }
-            else {
-                // The supports are not valid. We better dump the cached data.
-                m_supports_tms.reset();
-                m_supports_triangles.clear();
-            }
-        }
+        else
+            // The supports are not valid. We better dump the cached data.
+            m_supports_clipper.reset();
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
-	if (! m_triangles.empty()) {
+    if (! m_object_clipper->get_triangles().empty()) {
 		::glPushMatrix();
-		::glTranslated(0.0, 0.0, m_z_shift);
-		::glMultMatrixf(instance_matrix.data());
-		Eigen::Quaternionf q;
-		q.setFromTwoVectors(Vec3f::UnitZ(), up);
-		Eigen::AngleAxisf aa(q);
-		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, 0.01f); // to make sure the cut does not intersect the structure itself
         ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_triangles)
-            ::glVertex3f(point(0), point(1), height_mesh);
-
+        for (const Vec3f& point : m_object_clipper->get_triangles())
+            ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
 		::glPopMatrix();
 	}
 
-    if (! m_supports_triangles.empty() && !m_editing_mode) {
+    if (m_supports_clipper && ! m_supports_clipper->get_triangles().empty() && !m_editing_mode) {
         // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
-		::glPushMatrix();
-        ::glMultMatrixd(supports_trafo.data());
-        Eigen::Quaternionf q;
-		q.setFromTwoVectors(Vec3f::UnitZ(), up_supports);
-		Eigen::AngleAxisf aa(q);
-		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, 0.01f);
+        ::glPushMatrix();
         ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec2f& point : m_supports_triangles)
-            ::glVertex3f(point(0), point(1), height_supports);
-
+        for (const Vec3f& point : m_supports_clipper->get_triangles())
+            ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
 		::glPopMatrix();
 	}
@@ -379,15 +336,12 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
 bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 {
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
-
     if (m_clipping_plane_distance == 0.f)
         return false;
 
     Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
-    return direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift)) + m_active_instance_bb_radius
-            - m_clipping_plane_distance * 2*m_active_instance_bb_radius < direction_to_camera.dot(transformed_point);
+    return m_clipping_plane->distance(transformed_point) < 0.;
 }
 
 
@@ -693,18 +647,18 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
         m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
-        m_parent.set_as_dirty();
+        update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
         m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
-        m_parent.set_as_dirty();
+        update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::ResetClippingPlane) {
-        reset_clipping_plane_normal();
+        update_clipping_plane();
         return true;
     }
 
@@ -796,18 +750,10 @@ void GLGizmoSlaSupports::update_cache_entry_normal(size_t i) const
 
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
-    if (!m_model_object || m_state == Off)
+    if (!m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
         return ClippingPlane::ClipsNothing();
-
-    //Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-    //::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    //Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
-
-    const Vec3d& direction_to_camera = m_clipping_plane_normal;
-    float dist = direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift));
-
-    return ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
+    else
+        return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
 }
 
 
@@ -1019,14 +965,15 @@ RENDER_AGAIN:
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){
-                    reset_clipping_plane_normal();
+                    update_clipping_plane();
                 });
         }
     }
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
+    if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+        update_clipping_plane(true);
 
 
     if (m_imgui->button("?")) {
@@ -1156,8 +1103,8 @@ void GLGizmoSlaSupports::on_set_state()
             // Release triangle mesh slicer and the AABB spatial search structure.
             m_AABB.deinit();
             m_its = nullptr;
-            m_tms.reset();
-            m_supports_tms.reset();
+            m_object_clipper.reset();
+            m_supports_clipper.reset();
         }
     }
     m_old_state = m_state;
@@ -1198,7 +1145,7 @@ void GLGizmoSlaSupports::on_stop_dragging()
 void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 {
     ar(m_clipping_plane_distance,
-       m_clipping_plane_normal,
+       *m_clipping_plane,
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1212,7 +1159,7 @@ void GLGizmoSlaSupports::on_load(cereal::BinaryInputArchive& ar)
 void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
 {
     ar(m_clipping_plane_distance,
-       m_clipping_plane_normal,
+       *m_clipping_plane,
        m_model_object_id,
        m_new_point_head_diameter,
        m_normal_cache,
@@ -1401,17 +1348,19 @@ bool GLGizmoSlaSupports::unsaved_changes() const
 }
 
 
-void GLGizmoSlaSupports::reset_clipping_plane_normal() const
+void GLGizmoSlaSupports::update_clipping_plane(bool keep_normal) const
 {
-    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    m_clipping_plane_normal = Vec3d(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+    Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
+                        m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+
+    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
+    float dist = normal.dot(center);
+    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
     m_parent.set_as_dirty();
 }
 
-
 SlaGizmoHelpDialog::SlaGizmoHelpDialog()
-: wxDialog(NULL, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+: wxDialog(nullptr, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     const wxString ctrl = GUI::shortkey_ctrl_prefix();
