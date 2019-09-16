@@ -9,7 +9,7 @@
     %name{_new} ExtrusionEntityCollection();
     ~ExtrusionEntityCollection();
     Clone<ExtrusionEntityCollection> clone()
-        %code{% RETVAL = THIS->clone(); %};
+        %code{% RETVAL = (ExtrusionEntityCollection*)THIS->clone(); %};
     void reverse();
     void clear();
     ExtrusionEntityCollection* chained_path(bool no_reverse, ExtrusionRole role = erMixed)
