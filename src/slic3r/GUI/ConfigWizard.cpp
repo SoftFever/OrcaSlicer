@@ -26,7 +26,6 @@
 #include <wx/debug.h>
 
 #include "libslic3r/Utils.hpp"
-// #include "PresetBundle.hpp"
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "slic3r/Config/Snapshot.hpp"
@@ -44,22 +43,19 @@ using Config::SnapshotDB;
 // Configuration data structures extensions needed for the wizard
 
 Bundle::Bundle(fs::path source_path, bool is_in_resources, bool is_prusa_bundle)
-    : source_path(std::move(source_path))
-    , preset_bundle(new PresetBundle)
+    : preset_bundle(new PresetBundle)
     , vendor_profile(nullptr)
     , is_in_resources(is_in_resources)
     , is_prusa_bundle(is_prusa_bundle)
 {
-    // XXX: consider removing path <-> string juggling
-    preset_bundle->load_configbundle(this->source_path.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
+    preset_bundle->load_configbundle(source_path.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
     auto first_vendor = preset_bundle->vendors.begin();
     wxCHECK_RET(first_vendor != preset_bundle->vendors.end(), "Failed to load preset bundle");
     vendor_profile = &first_vendor->second;
 }
 
 Bundle::Bundle(Bundle &&other)
-    : source_path(std::move(source_path))
-    , preset_bundle(std::move(other.preset_bundle))
+    : preset_bundle(std::move(other.preset_bundle))
     , vendor_profile(other.vendor_profile)
     , is_in_resources(other.is_in_resources)
     , is_prusa_bundle(other.is_prusa_bundle)
@@ -71,15 +67,9 @@ BundleMap BundleMap::load()
 {
     BundleMap res;
 
-    // XXX: Keep Prusa bundle separate? (Probably no - keep same codepaths)
-
     const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
     const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
-    // XXX
-    // const auto prusa_bundle_vendor = (vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
-    // const auto prusa_bundle = boost::filesystem::exists(prusa_bundle_vendor) ? prusa_bundle_vendor
-    //     : (rsrc_vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
     auto prusa_bundle_path = (vendor_dir / PresetBundle::PRUSA_BUNDLE).replace_extension(".ini");
     auto prusa_bundle_rsrc = false;
     if (! boost::filesystem::exists(prusa_bundle_path)) {
@@ -663,7 +653,7 @@ void PageMaterials::select_all(bool select)
     wxWindowUpdateLocker freeze_guard(this);
     (void)freeze_guard;
 
-    for (int i = 0; i < list_l3->GetCount(); i++) {
+    for (unsigned i = 0; i < list_l3->GetCount(); i++) {
         const bool current = list_l3->IsChecked(i);
         if (current != select) {
             list_l3->Check(i, select);
@@ -1646,7 +1636,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     //     }
     // }
 
-    preset_bundle->load_presets(*app_config, preferred_model);
+    // preset_bundle->load_presets(*app_config, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);

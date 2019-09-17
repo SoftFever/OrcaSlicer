@@ -134,9 +134,6 @@ public:
 
     void                        load_default_preset_bitmaps(wxWindow *window);
 
-    // FIXME: rm
-    void                        load_available_system_presets();   // XXX: name  XXX: retval (VendorMap stored internally)
-
     // Set the is_visible flag for printer vendors, printer models and printer variants
     // based on the user configuration.
     // If the "vendor" section is missing, enable all models and variants of the particular vendor.

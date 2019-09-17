@@ -243,48 +243,6 @@ void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_
     this->load_selections(config, preferred_model_id);
 }
 
-// FIXME: Comment
-// XXX: rm
-void PresetBundle::load_available_system_presets()
-{
-    const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
-    const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
-
-    const auto prusa_bundle_vendor = (vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
-    const auto prusa_bundle = boost::filesystem::exists(prusa_bundle_vendor) ? prusa_bundle_vendor
-        : (rsrc_vendor_dir / PRUSA_BUNDLE).replace_extension(".ini");
-
-    // Reset this PresetBundle and load the Prusa bundle first.
-    this->load_configbundle(prusa_bundle.string(), LOAD_CFGBNDLE_SYSTEM);
-
-    // Load the other bundles in the datadir/vendor directory
-    // and then additionally from resources/profiles.
-    for (auto dir : { &vendor_dir, &rsrc_vendor_dir }) {
-        for (const auto &dir_entry : boost::filesystem::directory_iterator(*dir)) {
-            if (Slic3r::is_ini_file(dir_entry)) {
-                std::string id = dir_entry.path().stem().string();  // stem() = filename() without the trailing ".ini" part
-
-                // Don't load this bundle if we've already loaded it.
-                // Note that this takes care of not loading the PRUSA_BUNDLE which was loaded upfront
-                // as well as bundles with the same name (id) in rsrc_vendor_dir as in vendor_dir.
-                if (vendors.find(id) != vendors.end()) { continue; }
-
-                PresetBundle other;
-                other.load_configbundle(dir_entry.path().string(), LOAD_CFGBNDLE_SYSTEM);
-
-                std::vector<std::string> duplicates = this->merge_presets(std::move(other));
-                if (! duplicates.empty()) {
-                    std::string msg = "Vendor configuration file " + id + " contains the following presets with names used by other vendors: ";
-                    for (size_t i = 0; i < duplicates.size(); ++ i) {
-                        if (i > 0) { msg += ", "; }
-                        msg += duplicates[i];
-                    }
-                }
-            }
-        }
-    }
-}
-
 // Load system presets into this PresetBundle.
 // For each vendor, there will be a single PresetBundle loaded.
 std::string PresetBundle::load_system_presets()

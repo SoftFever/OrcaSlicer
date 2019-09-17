@@ -90,7 +90,6 @@ struct Materials
 
 struct Bundle
 {
-    fs::path source_path;    // XXX: not needed?
     std::unique_ptr<PresetBundle> preset_bundle;
     VendorProfile *vendor_profile;
     const bool is_in_resources;
@@ -235,7 +234,7 @@ template<class T, class D> struct DataList : public T
     }
 
     int find(const D &data) {
-        for (int i = 0; i < this->GetCount(); i++) {
+        for (unsigned i = 0; i < this->GetCount(); i++) {
             if (get_data(i) == data) { return i; }
         }
 
