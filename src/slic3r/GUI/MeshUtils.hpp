@@ -103,6 +103,8 @@ public:
     std::vector<unsigned> get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera,
                                               const std::vector<Vec3f>& points, std::function<bool(const Vec3f&)> fn_ignore_hit) const;
 
+    Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
+
 private:
     // PIMPL wrapper around igl::AABB so I don't have to include the header-only IGL here
     class AABBWrapper;

@@ -4,11 +4,6 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
-// There is an L function in igl that would be overridden by our localization macro - let's undefine it...
-#undef L
-#include <igl/AABB.h>
-#include "slic3r/GUI/I18N.hpp"  // ...and redefine again when we are done with the igl code
-
 #include "libslic3r/SLA/SLACommon.hpp"
 #include <wx/dialog.h>
 
@@ -38,7 +33,6 @@ private:
     GLUquadricObj* m_quadric;
     typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
     typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
-    igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
 
     std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
     const TriangleMesh* m_mesh;
@@ -101,7 +95,6 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void update_cache_entry_normal(size_t i) const;
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;

@@ -296,8 +296,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         // Matrices set, we can render the point mark now.
         // If in editing mode, we'll also render a cone pointing to the sphere.
         if (m_editing_mode) {
+            // in case the normal is not yet cached, find and cache it
             if (m_editing_cache[i].normal == Vec3f::Zero())
-                update_cache_entry_normal(i); // in case the normal is not yet cached, find and cache it
+                m_mesh_raycaster->get_closest_point(m_editing_cache[i].support_point.pos, &m_editing_cache[i].normal);
 
             Eigen::Quaterniond q;
             q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * m_editing_cache[i].normal.cast<double>());
@@ -366,17 +367,8 @@ void GLGizmoSlaSupports::update_mesh()
     m_its = &m_mesh->its;
 
     // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_model_object_id != m_model_object->id() || (m_AABB.m_left == NULL && m_AABB.m_right == NULL))
-    {
-        //############################šš
-        m_AABB.deinit();
-        m_AABB.init(
-            MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
-            MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
-        //############################šš
-
+    if (m_model_object_id != m_model_object->id() || ! m_mesh_raycaster)
         m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
-    }
 
     m_model_object_id = m_model_object->id();
     disable_editing_mode();
@@ -389,7 +381,7 @@ void GLGizmoSlaSupports::update_mesh()
 bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (m_its == nullptr)
+    if (! m_mesh_raycaster)
         update_mesh();
 
     const Camera& camera = m_parent.get_camera();
@@ -656,23 +648,6 @@ std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const st
 
     return out;
 }
-
-
-void GLGizmoSlaSupports::update_cache_entry_normal(size_t i) const
-{
-    int idx = 0;
-    Eigen::Matrix<float, 1, 3> pp = m_editing_cache[i].support_point.pos;
-    Eigen::Matrix<float, 1, 3> cc;
-    m_AABB.squared_distance(
-        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
-        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
-        pp, idx, cc);
-    Vec3f a = (m_its->vertices[m_its->indices[idx](1)] - m_its->vertices[m_its->indices[idx](0)]);
-    Vec3f b = (m_its->vertices[m_its->indices[idx](2)] - m_its->vertices[m_its->indices[idx](0)]);
-    m_editing_cache[i].normal = a.cross(b);
-}
-
-
 
 
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
@@ -1027,8 +1002,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_parent.toggle_model_objects_visibility(true);
             m_normal_cache.clear();
             m_clipping_plane_distance = 0.f;
-            // Release triangle mesh slicer and the AABB spatial search structure.
-            m_AABB.deinit();
+            // Release clippers and the AABB raycaster.
             m_its = nullptr;
             m_object_clipper.reset();
             m_supports_clipper.reset();

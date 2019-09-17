@@ -240,8 +240,24 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
         if (! is_obscured)
             out.push_back(i);
     }
-
     return out;
+}
+
+
+Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
+{
+    int idx = 0;
+    Eigen::Matrix<float, 1, 3> closest_point;
+    m_AABB_wrapper->m_AABB.squared_distance(
+        AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+        AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
+        point, idx, closest_point);
+    if (normal) {
+        igl::Hit imag_hit;
+        imag_hit.id = idx;
+        *normal = m_AABB_wrapper->get_hit_normal(imag_hit);
+    }
+    return closest_point;
 }
 
 
