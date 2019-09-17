@@ -14,7 +14,7 @@ class TriangleMeshSlicer;
 
 namespace GUI {
 
-class Camera;
+struct Camera;
 
 
 
