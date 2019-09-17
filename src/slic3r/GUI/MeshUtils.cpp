@@ -108,14 +108,19 @@ public:
     typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
     igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
 
+    Vec3f get_hit_pos(const igl::Hit& hit) const;
+    Vec3f get_hit_normal(const igl::Hit& hit) const;
+
+private:
+    const TriangleMesh* m_mesh;
 };
 
 MeshRaycaster::AABBWrapper::AABBWrapper(const TriangleMesh* mesh)
+    : m_mesh(mesh)
 {
-    const indexed_triangle_set* its = &mesh->its;
     m_AABB.init(
-        MapMatrixXfUnaligned(its->vertices.front().data(), its->vertices.size(), 3),
-        MapMatrixXiUnaligned(its->indices.front().data(), its->indices.size(), 3));
+        MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+        MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3));
 }
 
 
@@ -129,6 +134,23 @@ MeshRaycaster::~MeshRaycaster()
     delete m_AABB_wrapper;
 }
 
+Vec3f MeshRaycaster::AABBWrapper::get_hit_pos(const igl::Hit& hit) const
+{
+    const stl_triangle_vertex_indices& indices = m_mesh->its.indices[hit.id];
+    return Vec3f((1-hit.u-hit.v) * m_mesh->its.vertices[indices(0)]
+               + hit.u           * m_mesh->its.vertices[indices(1)]
+               + hit.v           * m_mesh->its.vertices[indices(2)]);
+}
+
+
+Vec3f MeshRaycaster::AABBWrapper::get_hit_normal(const igl::Hit& hit) const
+{
+    const stl_triangle_vertex_indices& indices = m_mesh->its.indices[hit.id];
+    Vec3f a(m_mesh->its.vertices[indices(1)] - m_mesh->its.vertices[indices(0)]);
+    Vec3f b(m_mesh->its.vertices[indices(2)] - m_mesh->its.vertices[indices(0)]);
+    return Vec3f(a.cross(b));
+}
+
 
 bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo,
                                       const Camera& camera, std::vector<Vec3f>* positions, std::vector<Vec3f>* normals) const
@@ -139,8 +161,8 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 
     Vec3d pt1;
     Vec3d pt2;
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0.f, model_mat.data(), proj_mat.data(), viewport.data(), &pt1(0), &pt1(1), &pt1(2));
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1.f, model_mat.data(), proj_mat.data(), viewport.data(), &pt2(0), &pt2(1), &pt2(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0., model_mat.data(), proj_mat.data(), viewport.data(), &pt1(0), &pt1(1), &pt1(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1., model_mat.data(), proj_mat.data(), viewport.data(), &pt2(0), &pt2(1), &pt2(2));
 
     std::vector<igl::Hit> hits;
 
@@ -162,23 +184,23 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
         positions->clear();
         if (normals != nullptr)
             normals->clear();
-        Vec3f bc;
-        Vec3f a;
-        Vec3f b;
-        int fid = 0;
         for (const igl::Hit& hit : hits) {
-            fid = hit.id;
-            bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-            a = (m_mesh->its.vertices[m_mesh->its.indices[fid](1)] - m_mesh->its.vertices[m_mesh->its.indices[fid](0)]);
-            b = (m_mesh->its.vertices[m_mesh->its.indices[fid](2)] - m_mesh->its.vertices[m_mesh->its.indices[fid](0)]);
-            positions->push_back(bc(0) * m_mesh->its.vertices[m_mesh->its.indices[fid](0)] + bc(1) * m_mesh->its.vertices[m_mesh->its.indices[fid](1)] + bc(2) * m_mesh->its.vertices[m_mesh->its.indices[fid](2)]);
+            positions->push_back(m_AABB_wrapper->get_hit_pos(hit));
 
             if (normals != nullptr)
-                normals->push_back(a.cross(b));
+                normals->push_back(m_AABB_wrapper->get_hit_normal(hit));
         }
     }
 
     return true;
+}
+
+
+std::vector<size_t> MeshRaycaster::get_unobscured_idxs(const Transform3d& trafo, const Camera& camera, const std::vector<Vec3f>& points) const
+{
+
+
+    return std::vector<size_t>();
 }
 
 

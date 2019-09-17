@@ -503,7 +503,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             // clipping plane nor obscured by the mesh.
             for (const unsigned int i : selected_idxs) {
                 const sla::SupportPoint &support_point = m_editing_cache[i].support_point;
-                if (!is_point_clipped(support_point.pos.cast<double>())) {
+                if (! is_point_clipped(support_point.pos.cast<double>())) {
                     bool is_obscured = false;
                     // Cast a ray in the direction of the camera and look for intersection with the mesh:
                     std::vector<igl::Hit> hits;

@@ -100,14 +100,14 @@ public:
     bool unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                            std::vector<Vec3f>* positions = nullptr, std::vector<Vec3f>* normals = nullptr) const;
 
+    std::vector<size_t> get_unobscured_idxs(const Transform3d& trafo, const Camera& camera,
+                                            const std::vector<Vec3f>& points) const;
+
 private:
     // PIMPL wrapper around igl::AABB so I don't have to include the header-only IGL here
     class AABBWrapper;
     AABBWrapper* m_AABB_wrapper;
-
     const TriangleMesh* m_mesh = nullptr;
-
-
 };
 
     
