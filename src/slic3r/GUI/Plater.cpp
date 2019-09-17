@@ -2310,7 +2310,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             for (ModelObject* model_object : model.objects) {
-                model_object->center_around_origin(false);
+                if (!type_3mf && !type_zip_amf)
+                    model_object->center_around_origin(false);
                 model_object->ensure_on_bed();
             }
 
