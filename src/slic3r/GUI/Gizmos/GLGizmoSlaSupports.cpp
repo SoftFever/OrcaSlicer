@@ -368,10 +368,14 @@ void GLGizmoSlaSupports::update_mesh()
     // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
     if (m_model_object_id != m_model_object->id() || (m_AABB.m_left == NULL && m_AABB.m_right == NULL))
     {
+        //############################šš
         m_AABB.deinit();
         m_AABB.init(
             MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
             MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3));
+        //############################šš
+
+        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
     }
 
     m_model_object_id = m_model_object->id();
@@ -389,51 +393,22 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
         update_mesh();
 
     const Camera& camera = m_parent.get_camera();
-    const std::array<int, 4>& viewport = camera.get_viewport();
-    const Transform3d& modelview_matrix = camera.get_view_matrix();
-    const Transform3d& projection_matrix = camera.get_projection_matrix();
-
-    Vec3d point1;
-    Vec3d point2;
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
-    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
-
-    std::vector<igl::Hit> hits;
-
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+    Geometry::Transformation trafo = volume->get_instance_transformation();
+    trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
 
-    point1(2) -= m_z_shift;
-	point2(2) -= m_z_shift;
+    // The raycaster query
+    std::vector<Vec3f> hits;
+    std::vector<Vec3f> normals;
+    m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, &hits, &normals);
 
-    Transform3d inv = volume->get_instance_transformation().get_matrix().inverse();
-
-    point1 = inv * point1;
-    point2 = inv * point2;
-
-    if (!m_AABB.intersect_ray(
-        MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
-        MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
-        point1.cast<float>(), (point2-point1).cast<float>(), hits))
-        return false; // no intersection found
-
-    std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
-
-    // Now let's iterate through the points and find the first that is not clipped:
-    unsigned int i=0;
-    Vec3f bc;
-    Vec3f a;
-    Vec3f b;
-    Vec3f result;
-    for (i=0; i<hits.size(); ++i) {
-        igl::Hit& hit = hits[i];
-        int fid = hit.id;   // facet id
-        bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-        a = (m_its->vertices[m_its->indices[fid](1)] - m_its->vertices[m_its->indices[fid](0)]);
-        b = (m_its->vertices[m_its->indices[fid](2)] - m_its->vertices[m_its->indices[fid](0)]);
-        result = bc(0) * m_its->vertices[m_its->indices[fid](0)] + bc(1) * m_its->vertices[m_its->indices[fid](1)] + bc(2)*m_its->vertices[m_its->indices[fid](2)];
-        if (m_clipping_plane_distance == 0.f || !is_point_clipped(result.cast<double>()))
-            break;
+    // We must also take care of the clipping plane (if active)
+    unsigned i = 0;
+    if (m_clipping_plane_distance != 0.f) {
+        for (i=0; i<hits.size(); ++i)
+            if (! is_point_clipped(hits[i].cast<double>()))
+                break;
     }
 
     if (i==hits.size() || (hits.size()-i) % 2 != 0) {
@@ -443,7 +418,7 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     }
 
     // Calculate and return both the point and the facet normal.
-    pos_and_normal = std::make_pair(result, a.cross(b));
+    pos_and_normal = std::make_pair(hits[i], normals[i]);
     return true;
 }
 
@@ -1105,6 +1080,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_its = nullptr;
             m_object_clipper.reset();
             m_supports_clipper.reset();
+            m_mesh_raycaster.reset();
         }
     }
     m_old_state = m_state;

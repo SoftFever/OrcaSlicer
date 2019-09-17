@@ -20,6 +20,7 @@ namespace GUI {
 
 class ClippingPlane;
 class MeshClipper;
+class MeshRaycaster;
 enum class SLAGizmoEventType : unsigned char;
 
 class GLGizmoSlaSupports : public GLGizmoBase
@@ -38,6 +39,8 @@ private:
     typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
     typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
     igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
+
+    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
     const TriangleMesh* m_mesh;
     const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
