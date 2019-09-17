@@ -49,6 +49,7 @@ public:
 
     EditorType          type() const {return m_type;}
     void                set_focus_data() const { m_set_focus_data(m_type);}
+    void                msw_rescale();
 
 private:
     coordf_t            get_value();

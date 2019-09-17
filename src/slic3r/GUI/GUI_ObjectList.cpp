@@ -1667,6 +1667,10 @@ void ObjectList::load_subobject(ModelVolumeType type)
         
     if (sel_item)
         select_item(sel_item);
+
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_part( ModelObject* model_object,
