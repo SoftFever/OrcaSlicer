@@ -479,76 +479,28 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             GLSelectionRectangle::EState rectangle_status = m_selection_rectangle.get_state();
 
             // First collect positions of all the points in world coordinates.
-            const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
+            Geometry::Transformation trafo = m_model_object->instances[m_active_instance]->get_transformation();
+            trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
             std::vector<Vec3d> points;
-            for (unsigned int i=0; i<m_editing_cache.size(); ++i) {
-                const sla::SupportPoint &support_point = m_editing_cache[i].support_point;
-                points.push_back(instance_matrix * support_point.pos.cast<double>());
-                points.back()(2) += m_z_shift;
-            }
+            for (unsigned int i=0; i<m_editing_cache.size(); ++i)
+                points.push_back(trafo.get_matrix() * m_editing_cache[i].support_point.pos.cast<double>());
+
             // Now ask the rectangle which of the points are inside.
-            const Camera& camera = m_parent.get_camera();
-            std::vector<unsigned int> selected_idxs = m_selection_rectangle.stop_dragging(m_parent, points);
+            std::vector<Vec3f> points_inside;
+            std::vector<unsigned int> points_idxs = m_selection_rectangle.stop_dragging(m_parent, points);
+            for (size_t idx : points_idxs)
+                points_inside.push_back((trafo.get_matrix() * points[idx]).cast<float>());
 
-            // we'll recover current look direction (in world coords) and transform it to model coords.
-            const Selection& selection = m_parent.get_selection();
-            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            const Transform3d& instance_matrix_no_translation_no_scaling = volume->get_instance_transformation().get_matrix(true,false,true);
-            Vec3f direction_to_camera = -camera.get_dir_forward().cast<float>();
-            Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
-            Vec3f scaling = volume->get_instance_scaling_factor().cast<float>();
-            direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
-
-            // Iterate over all points in the rectangle and check that they are neither clipped by the
-            // clipping plane nor obscured by the mesh.
-            for (const unsigned int i : selected_idxs) {
-                const sla::SupportPoint &support_point = m_editing_cache[i].support_point;
+            // Only select/deselect points that are actually visible
+            for (size_t idx :  m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside,
+                          [this](const Vec3f& pt) { return is_point_clipped(pt.cast<double>()); }))
+            {
+                const sla::SupportPoint &support_point = m_editing_cache[points_idxs[idx]].support_point;
                 if (! is_point_clipped(support_point.pos.cast<double>())) {
-                    bool is_obscured = false;
-                    // Cast a ray in the direction of the camera and look for intersection with the mesh:
-                    std::vector<igl::Hit> hits;
-                    // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
-                    if (m_AABB.intersect_ray(
-                            MapMatrixXfUnaligned(m_its->vertices.front().data(), m_its->vertices.size(), 3),
-                            MapMatrixXiUnaligned(m_its->indices.front().data(), m_its->indices.size(), 3),
-                            support_point.pos + direction_to_camera_mesh * (support_point.head_front_radius + EPSILON), direction_to_camera_mesh, hits)) {
-                        std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
-
-                        if (m_clipping_plane_distance != 0.f) {
-                            // If the closest hit facet normal points in the same direction as the ray,
-                            // we are looking through the mesh and should therefore discard the point:
-                            int fid = hits.front().id;   // facet id
-                            Vec3f a = (m_its->vertices[m_its->indices[fid](1)] - m_its->vertices[m_its->indices[fid](0)]);
-                            Vec3f b = (m_its->vertices[m_its->indices[fid](2)] - m_its->vertices[m_its->indices[fid](0)]);
-                            if ((a.cross(b)).dot(direction_to_camera_mesh) > 0.f)
-                                is_obscured = true;
-
-                            // Eradicate all hits that are on clipped surfaces:
-                            for (unsigned int j=0; j<hits.size(); ++j) {
-                                const igl::Hit& hit = hits[j];
-                                int fid = hit.id;   // facet id
-
-                                Vec3f bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-                                Vec3f hit_pos = bc(0) * m_its->vertices[m_its->indices[fid](0)] + bc(1) * m_its->vertices[m_its->indices[fid](1)] + bc(2)*m_its->vertices[m_its->indices[fid](2)];
-                                if (is_point_clipped(hit_pos.cast<double>())) {
-                                    hits.erase(hits.begin()+j);
-                                    --j;
-                                }
-                            }
-                        }
-
-                        // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
-                        // Also, the threshold is in mesh coordinates, not in actual dimensions.
-                        if (!hits.empty())
-                            is_obscured = true;
-                    }
-
-                    if (!is_obscured) {
-                        if (rectangle_status == GLSelectionRectangle::Deselect)
-                            unselect_point(i);
-                        else
-                            select_point(i);
-                    }
+                    if (rectangle_status == GLSelectionRectangle::Deselect)
+                        unselect_point(points_idxs[idx]);
+                    else
+                        select_point(points_idxs[idx]);
                 }
             }
             return true;

@@ -196,11 +196,52 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 }
 
 
-std::vector<size_t> MeshRaycaster::get_unobscured_idxs(const Transform3d& trafo, const Camera& camera, const std::vector<Vec3f>& points) const
+std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera, const std::vector<Vec3f>& points,
+                                                       std::function<bool(const Vec3f&)> fn_ignore_hit) const
 {
+    std::vector<unsigned> out;
 
+    const Transform3d& instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true);
+    Vec3f direction_to_camera = -camera.get_dir_forward().cast<float>();
+    Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
+    Vec3f scaling = trafo.get_scaling_factor().cast<float>();
+    direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
 
-    return std::vector<size_t>();
+    for (size_t i=0; i<points.size(); ++i) {
+        const Vec3f& pt = points[i];
+        bool is_obscured = false;
+        // Cast a ray in the direction of the camera and look for intersection with the mesh:
+        std::vector<igl::Hit> hits;
+        // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
+        if (m_AABB_wrapper->m_AABB.intersect_ray(
+                AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+                AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
+                pt + direction_to_camera_mesh * EPSILON, direction_to_camera_mesh, hits)) {
+
+            std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
+            // If the closest hit facet normal points in the same direction as the ray,
+            // we are looking through the mesh and should therefore discard the point:
+            if (m_AABB_wrapper->get_hit_normal(hits.front()).dot(direction_to_camera_mesh) > 0.f)
+                is_obscured = true;
+
+            // Eradicate all hits that the caller wants to ignore
+            for (unsigned j=0; j<hits.size(); ++j) {
+                const igl::Hit& hit = hits[j];
+                if (fn_ignore_hit(m_AABB_wrapper->get_hit_pos(hit))) {
+                    hits.erase(hits.begin()+j);
+                    --j;
+                }
+            }
+            // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
+            // Also, the threshold is in mesh coordinates, not in actual dimensions.
+            if (! hits.empty())
+                is_obscured = true;
+        }
+        if (! is_obscured)
+            out.push_back(i);
+    }
+
+    return out;
 }
 
 
