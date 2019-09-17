@@ -460,6 +460,9 @@ void ObjectDataViewModelNode::init_container()
 #endif  //__WXGTK__
 }
 
+#define LAYER_ROOT_ICON "edit_layers_all"
+#define LAYER_ICON      "edit_layers_some"
+
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
     m_type(type),
@@ -478,7 +481,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
-        m_bmp = create_scaled_bitmap(nullptr, "edit_layers_all");    // FIXME: pass window ptr
+        m_bmp = create_scaled_bitmap(nullptr, LAYER_ROOT_ICON);    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
 
@@ -507,7 +510,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
-    m_bmp = create_scaled_bitmap(nullptr, "edit_layers_some");    // FIXME: pass window ptr
+    m_bmp = create_scaled_bitmap(nullptr, LAYER_ICON);    // FIXME: pass window ptr
 
     set_action_icon();
     init_container();
@@ -580,6 +583,9 @@ void ObjectDataViewModelNode::msw_rescale()
 {
     if (!m_action_icon_name.empty())
         m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);
+
+    if (m_printable != piUndef)
+        m_printable_icon = create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
@@ -1766,11 +1772,22 @@ void ObjectDataViewModel::Rescale()
         ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
         node->msw_rescale();
 
-        if (node->m_type & itVolume)
+        switch (node->m_type)
+        {
+        case itObject:
+            if (node->m_bmp.IsOk()) node->m_bmp = *m_warning_bmp;
+            break;
+        case itVolume:
             node->m_bmp = GetVolumeIcon(node->m_volume_type, node->m_bmp.GetWidth() != node->m_bmp.GetHeight());
-
-        if (node->m_type & itObject && node->m_bmp.IsOk())
-            node->m_bmp = *m_warning_bmp;
+            break;
+        case itLayerRoot:
+            node->m_bmp = create_scaled_bitmap(nullptr, LAYER_ROOT_ICON);    // FIXME: pass window ptr
+            break;
+        case itLayer:
+            node->m_bmp = create_scaled_bitmap(nullptr, LAYER_ICON);    // FIXME: pass window ptr
+            break;
+        default: break;
+        }
 
         ItemChanged(item);
     }
