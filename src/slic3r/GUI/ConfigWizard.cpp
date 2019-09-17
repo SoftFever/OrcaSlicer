@@ -758,6 +758,43 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
 }
 
+PageMode::PageMode(ConfigWizard *parent)
+    : ConfigWizardPage(parent, _(L("View mode")), _(L("View mode")))
+{
+    append_text(_(L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
+        "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
+        "The other two offer progressivly more specialized fine-tuning, "
+        "they are suitable for advanced and expert usiser, respectively. (FIXME: review this text)")));
+
+    radio_simple = new wxRadioButton(this, wxID_ANY, _(L("Simple mode")));
+    radio_advanced = new wxRadioButton(this, wxID_ANY, _(L("Advanced mode")));
+    radio_expert = new wxRadioButton(this, wxID_ANY, _(L("Expert mode")));
+
+    append(radio_simple);
+    append(radio_advanced);
+    append(radio_expert);
+}
+
+void PageMode::on_activate()
+{
+    std::string mode { "simple" };
+    wxGetApp().app_config->get("", "view_mode", mode);
+
+    if (mode == "advanced") { radio_advanced->SetValue(true); }
+    else if (mode == "expert") { radio_expert->SetValue(true); }
+    else { radio_simple->SetValue(true); }
+}
+
+void PageMode::serialize_mode(AppConfig *app_config) const
+{
+    const char *mode = "simple";
+
+    if (radio_advanced->GetValue()) { mode = "advanced"; }
+    if (radio_expert->GetValue()) { mode = "expert"; }
+
+    app_config->set("view_mode", mode);
+}
+
 PageVendors::PageVendors(ConfigWizard *parent)
     : ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
 {
@@ -1300,6 +1337,7 @@ void ConfigWizard::priv::load_pages()
     if (any_sla_selected) { index->add_page(page_sla_materials); }
 
     index->add_page(page_update);
+    index->add_page(page_mode);
 
     index->go_to(former_active);   // Will restore the active item/page if possible
 
@@ -1587,6 +1625,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     }
     app_config->set("version_check", page_update->version_check ? "1" : "0");
     app_config->set("preset_update", page_update->preset_update ? "1" : "0");
+    page_mode->serialize_mode(app_config);
 
     std::string preferred_model;
 
@@ -1686,6 +1725,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
     p->add_page(p->page_custom   = new PageCustom(this));
     p->add_page(p->page_update   = new PageUpdate(this));
+    p->add_page(p->page_mode     = new PageMode(this));
     p->add_page(p->page_firmware = new PageFirmware(this));
     p->add_page(p->page_bed      = new PageBedShape(this));
     p->add_page(p->page_diams    = new PageDiameters(this));
@@ -1751,6 +1791,7 @@ bool ConfigWizard::run(RunReason reason, StartPage start_page)
     if (ShowModal() == wxID_OK) {
         p->apply_config(app.app_config, app.preset_bundle, app.preset_updater);
         app.app_config->set_legacy_datadir(false);
+        app.update_mode();
         BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
         return true;
     } else {

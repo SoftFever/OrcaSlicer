@@ -17,6 +17,7 @@
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
 #include <wx/checklst.h>
+#include <wx/radiobut.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
@@ -290,6 +291,19 @@ struct PageUpdate: ConfigWizardPage
     PageUpdate(ConfigWizard *parent);
 };
 
+struct PageMode: ConfigWizardPage
+{
+    wxRadioButton *radio_simple;
+    wxRadioButton *radio_advanced;
+    wxRadioButton *radio_expert;
+
+    PageMode(ConfigWizard *parent);
+
+    void serialize_mode(AppConfig *app_config) const;
+
+    virtual void on_activate();
+};
+
 struct PageVendors: ConfigWizardPage
 {
     PageVendors(ConfigWizard *parent);
@@ -424,7 +438,8 @@ struct ConfigWizard::priv
     PageMaterials    *page_sla_materials = nullptr;
     PageCustom       *page_custom = nullptr;
     PageUpdate       *page_update = nullptr;
-    PageVendors      *page_vendors = nullptr;   // XXX: ?
+    PageMode         *page_mode = nullptr;
+    PageVendors      *page_vendors = nullptr;
     Pages3rdparty     pages_3rdparty;
 
     // Custom setup pages
