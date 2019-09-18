@@ -525,7 +525,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             std::vector<std::string> extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
             const std::vector<std::string>& filament_colours = (wxGetApp().plater()->get_plater_config()->option<ConfigOptionStrings>("filament_colour"))->values;
             for (size_t i=0; i<extruder_colours.size(); ++i)
-                if (extruder_colours[i] == "")
+                if (extruder_colours[i] == "" && i < filament_colours.size())
                     extruder_colours[i] = filament_colours[i];
 
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
