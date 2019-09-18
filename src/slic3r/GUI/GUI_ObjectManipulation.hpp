@@ -53,6 +53,9 @@ class ObjectManipulation : public OG_Settings
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
+    wxStaticText*   m_item_name = nullptr;
+    wxStaticText*   m_empty_str = nullptr;
+
     // Non-owning pointers to the reset buttons, so we can hide and show them.
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
@@ -81,7 +84,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_rotation;
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
-    bool            m_new_enabled;
+    bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
@@ -95,6 +98,10 @@ class ObjectManipulation : public OG_Settings
     // Currently focused option name (empty if none)
     std::string     m_focused_option;
 #endif // __APPLE__
+
+    wxFlexGridSizer* m_main_grid_sizer;
+    wxFlexGridSizer* m_labels_grid_sizer;
+    wxFlexGridSizer* m_editors_grid_sizer;
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -122,6 +129,7 @@ public:
     void emulate_kill_focus();
 #endif // __APPLE__
 
+    void update_item_name(const wxString &item_name);
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
 
