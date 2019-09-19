@@ -14,6 +14,8 @@ class TriangleMeshSlicer;
 
 namespace GUI {
 
+struct Camera;
+
 
 
 class ClippingPlane
@@ -85,6 +87,30 @@ private:
     std::unique_ptr<TriangleMeshSlicer> m_tms;
 };
 
+
+
+
+class MeshRaycaster {
+public:
+    MeshRaycaster(const TriangleMesh& mesh);
+    ~MeshRaycaster();
+    void set_transformation(const Geometry::Transformation& trafo);
+    void set_camera(const Camera& camera);
+
+    bool unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                           std::vector<Vec3f>* positions = nullptr, std::vector<Vec3f>* normals = nullptr) const;
+
+    std::vector<unsigned> get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera,
+                                              const std::vector<Vec3f>& points, std::function<bool(const Vec3f&)> fn_ignore_hit) const;
+
+    Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
+
+private:
+    // PIMPL wrapper around igl::AABB so I don't have to include the header-only IGL here
+    class AABBWrapper;
+    AABBWrapper* m_AABB_wrapper;
+    const TriangleMesh* m_mesh = nullptr;
+};
 
     
 } // namespace GUI

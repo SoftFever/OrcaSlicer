@@ -227,6 +227,42 @@ void ObjectLayers::msw_rescale()
 {
     m_bmp_delete.msw_rescale();
     m_bmp_add.msw_rescale();
+
+    m_grid_sizer->SetHGap(wxGetApp().em_unit());
+
+    // rescale edit-boxes
+    const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
+    for (int i = 0; i < cells_cnt; i++)
+    {
+        const wxSizerItem* item = m_grid_sizer->GetItem(i);
+        if (item->IsWindow())
+        {
+            LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(item->GetWindow());
+            if (editor != nullptr)
+                editor->msw_rescale();
+        }
+        else if (item->IsSizer()) // case when we have editor with buttons
+        {
+            wxSizerItem* e_item = item->GetSizer()->GetItem(size_t(0)); // editor
+            if (e_item->IsWindow()) {
+                LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(e_item->GetWindow());
+                if (editor != nullptr)
+                    editor->msw_rescale();
+            }
+
+            const std::vector<size_t> btns = {2, 3};  // del_btn, add_btn
+            for (auto btn : btns)
+            {
+                wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
+                if (b_item->IsWindow()) {
+                    ScalableButton* button = dynamic_cast<ScalableButton*>(b_item->GetWindow());
+                    if (button != nullptr)
+                        button->msw_rescale();
+                }                
+            }
+        }
+    }
+    m_grid_sizer->Layout();
 }
 
 void ObjectLayers::reset_selection()
@@ -340,6 +376,11 @@ coordf_t LayerRangeEditor::get_value()
     }
 
     return layer_height;
+}
+
+void LayerRangeEditor::msw_rescale()
+{
+    SetMinSize(wxSize(8 * wxGetApp().em_unit(), wxDefaultCoord));
 }
 
 } //namespace GUI
