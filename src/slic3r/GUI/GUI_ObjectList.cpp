@@ -1466,6 +1466,14 @@ void ObjectList::append_menu_item_export_stl(wxMenu* menu) const
     menu->AppendSeparator();
 }
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+void ObjectList::append_menu_item_reload_from_disk(wxMenu* menu) const
+{
+    append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
+        [this](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu, []() { return wxGetApp().plater()->can_reload_from_disk(); }, wxGetApp().plater());
+}
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
 void ObjectList::append_menu_item_change_extruder(wxMenu* menu) const
 {
     const wxString name = _(L("Change extruder"));
@@ -1515,6 +1523,9 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
     append_menu_items_osx(menu);
 #endif // __WXOSX__
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    append_menu_item_reload_from_disk(menu);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_scale_selection_to_fit_print_volume(menu);
@@ -1538,6 +1549,9 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
     append_menu_items_osx(menu);
 #endif // __WXOSX__
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    append_menu_item_reload_from_disk(menu);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     // rest of a object_sla_menu will be added later in:
@@ -1550,8 +1564,15 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
     append_menu_items_osx(menu);
 #endif // __WXOSX__
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    append_menu_item_reload_from_disk(menu);
+#else
     append_menu_item_fix_through_netfabb(menu);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     append_menu_item_export_stl(menu);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    append_menu_item_fix_through_netfabb(menu);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     append_menu_item_split(menu);
 

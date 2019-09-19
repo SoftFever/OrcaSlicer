@@ -183,6 +183,9 @@ public:
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    void reload_from_disk();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
@@ -246,6 +249,9 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    bool can_reload_from_disk() const;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     void msw_rescale();
 

@@ -31,7 +31,12 @@ namespace pt = boost::property_tree;
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+// 2 : Meshes saved in their local system and volumes matrices added to Metadata/Slic3r_PE_model.config file.
+const unsigned int VERSION_3MF = 2;
+#else
 const unsigned int VERSION_3MF = 1;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
 const std::string MODEL_FOLDER = "3D/";
@@ -87,6 +92,15 @@ const char* VOLUME_TYPE = "volume";
 const char* NAME_KEY = "name";
 const char* MODIFIER_KEY = "modifier";
 const char* VOLUME_TYPE_KEY = "volume_type";
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+const char* MATRIX_KEY = "matrix";
+const char* SOURCE_FILE_KEY = "source_file";
+const char* SOURCE_OBJECT_ID_KEY = "source_object_id";
+const char* SOURCE_VOLUME_ID_KEY = "source_volume_id";
+const char* SOURCE_OFFSET_X_KEY = "source_offset_x";
+const char* SOURCE_OFFSET_Y_KEY = "source_offset_y";
+const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -148,11 +162,25 @@ bool get_attribute_value_bool(const char** attributes, unsigned int attributes_s
     return (text != nullptr) ? (bool)::atoi(text) : true;
 }
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+Slic3r::Transform3d get_transform_from_3mf_specs_string(const std::string& mat_str)
+#else
 Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 {
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    // check: https://3mf.io/3d-manufacturing-format/ or https://github.com/3MFConsortium/spec_core/blob/master/3MF%20Core%20Specification.md
+    // to see how matrices are stored inside 3mf according to specifications
+    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
     if (mat_str.empty())
         // empty string means default identity matrix
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        return ret;
+#else
         return Slic3r::Transform3d::Identity();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     std::vector<std::string> mat_elements_str;
     boost::split(mat_elements_str, mat_str, boost::is_any_of(" "), boost::token_compress_on);
@@ -160,9 +188,13 @@ Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
     unsigned int size = (unsigned int)mat_elements_str.size();
     if (size != 12)
         // invalid data, return identity matrix
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        return ret;
+#else
         return Slic3r::Transform3d::Identity();
 
     Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     unsigned int i = 0;
     // matrices are stored into 3mf files as 4x3
     // we need to transpose them
@@ -175,6 +207,35 @@ Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
     }
     return ret;
 }
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
+{
+    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
+
+    if (mat_str.empty())
+        // empty string means default identity matrix
+        return ret;
+
+    std::vector<std::string> mat_elements_str;
+    boost::split(mat_elements_str, mat_str, boost::is_any_of(" "), boost::token_compress_on);
+
+    unsigned int size = (unsigned int)mat_elements_str.size();
+    if (size != 16)
+        // invalid data, return identity matrix
+        return ret;
+
+    unsigned int i = 0;
+    for (unsigned int r = 0; r < 4; ++r)
+    {
+        for (unsigned int c = 0; c < 4; ++c)
+        {
+            ret(r, c) = ::atof(mat_elements_str[i++].c_str());
+        }
+    }
+    return ret;
+}
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 float get_unit_factor(const std::string& unit)
 {
@@ -1375,7 +1436,11 @@ namespace Slic3r {
     bool _3MF_Importer::_handle_start_component(const char** attributes, unsigned int num_attributes)
     {
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        Transform3d transform = get_transform_from_3mf_specs_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+#else
         Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
         IdToModelObjectMap::iterator object_item = m_objects.find(object_id);
         if (object_item == m_objects.end())
@@ -1421,7 +1486,11 @@ namespace Slic3r {
         // see specifications
 
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        Transform3d transform = get_transform_from_3mf_specs_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+#else
         Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         int printable = get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
 
         return _create_object_instance(object_id, transform, printable, 1);
@@ -1659,7 +1728,9 @@ namespace Slic3r {
 			triangle_mesh.repair();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
             volume->center_geometry_after_creation();
+#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
             volume->calculate_convex_hull();
 
             // apply volume's name and config data
@@ -1671,6 +1742,22 @@ namespace Slic3r {
 					volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
                 else if (metadata.key == VOLUME_TYPE_KEY)
                     volume->set_type(ModelVolume::type_from_string(metadata.value));
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+                else if (metadata.key == MATRIX_KEY)
+                    volume->set_transformation(Slic3r::Geometry::Transformation(get_transform_from_string(metadata.value)));
+                else if (metadata.key == SOURCE_FILE_KEY)
+                    volume->source.input_file = metadata.value;
+                else if (metadata.key == SOURCE_OBJECT_ID_KEY)
+                    volume->source.object_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_VOLUME_ID_KEY)
+                    volume->source.volume_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_X_KEY)
+                    volume->source.mesh_offset(0) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Y_KEY)
+                    volume->source.mesh_offset(1) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Z_KEY)
+                    volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
@@ -2056,8 +2143,19 @@ namespace Slic3r {
 
             vertices_count += (int)its.vertices.size();
 
+#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
             const Transform3d& matrix = volume->get_matrix();
+#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            for (const Vec3f& v : its.vertices)
+            {
+                stream << "     <" << VERTEX_TAG << " ";
+                stream << "x=\"" << v(0) << "\" ";
+                stream << "y=\"" << v(1) << "\" ";
+                stream << "z=\"" << v(2) << "\" />\n";
+            }
+#else
             for (size_t i = 0; i < its.vertices.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
@@ -2066,6 +2164,7 @@ namespace Slic3r {
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
             }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         }
 
         stream << "    </" << VERTICES_TAG << ">\n";
@@ -2116,7 +2215,7 @@ namespace Slic3r {
 
         for (const BuildItem& item : build_items)
         {
-            stream << "  <" << ITEM_TAG << " objectid=\"" << item.id << "\" transform =\"";
+            stream << "  <" << ITEM_TAG << " " << OBJECTID_ATTR << "=\"" << item.id << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c)
             {
                 for (unsigned r = 0; r < 3; ++r)
@@ -2126,7 +2225,7 @@ namespace Slic3r {
                         stream << " ";
                 }
             }
-            stream << "\" printable =\"" << item.printable << "\" />\n";
+            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\" />\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
@@ -2343,6 +2442,33 @@ namespace Slic3r {
                             // stores volume's type (overrides the modifier field above)
                             stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << VOLUME_TYPE_KEY << "\" " << 
                                 VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+                            // stores volume's local matrix
+                            stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
+                            const Transform3d& matrix = volume->get_matrix();
+                            for (int r = 0; r < 4; ++r)
+                            {
+                                for (int c = 0; c < 4; ++c)
+                                {
+                                    stream << matrix(r, c);
+                                    if ((r != 3) || (c != 3))
+                                        stream << " ";
+                                }
+                            }
+                            stream << "\"/>\n";
+
+                            // stores volume's source data
+                            if (!volume->source.input_file.empty())
+                            {
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->source.input_file) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_X_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Y_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Z_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
+                            }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())

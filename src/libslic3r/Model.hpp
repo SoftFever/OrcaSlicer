@@ -392,6 +392,19 @@ class ModelVolume final : public ObjectBase
 {
 public:
     std::string         name;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    // struct used by reload from disk command to recover data from disk
+    struct Source
+    {
+        std::string input_file;
+        int object_idx{ -1 };
+        int volume_idx{ -1 };
+        Vec3d mesh_offset{ Vec3d::Zero() };
+
+        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset); }
+    };
+    Source              source;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
     void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
@@ -529,7 +542,11 @@ private:
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ObjectBase(other),
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+#else
         name(other.name), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     {
 		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
 		assert(this->id() == other.id() && this->config.id() == other.config.id());
@@ -537,7 +554,11 @@ private:
     }
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+#else
         name(other.name), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     {
 		assert(this->id().valid()); assert(this->config.id().valid()); assert(this->id() != this->config.id());
 		assert(this->id() != other.id() && this->config.id() == other.config.id());
@@ -558,8 +579,12 @@ private:
 	}
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
-		ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
-		cereal::load_by_value(ar, config);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+#else
+        ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+        cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
 			cereal::load_optional(ar, m_convex_hull);
@@ -571,8 +596,12 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-		ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
-		cereal::save_by_value(ar, config);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+#else
+        ar(name, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+        cereal::save_by_value(ar, config);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
 	}

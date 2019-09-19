@@ -1747,101 +1747,118 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         _set_current();
 
     struct ModelVolumeState {
-        ModelVolumeState(const GLVolume *volume) : 
-			model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
-		ModelVolumeState(const ModelVolume *model_volume, const ObjectID &instance_id, const GLVolume::CompositeID &composite_id) :
-			model_volume(model_volume), geometry_id(std::make_pair(model_volume->id().id, instance_id.id)), composite_id(composite_id), volume_idx(-1) {}
-		ModelVolumeState(const ObjectID &volume_id, const ObjectID &instance_id) :
-			model_volume(nullptr), geometry_id(std::make_pair(volume_id.id, instance_id.id)), volume_idx(-1) {}
-		bool new_geometry() const { return this->volume_idx == size_t(-1); }
-		const ModelVolume		   *model_volume;
+        ModelVolumeState(const GLVolume* volume) :
+            model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
+        ModelVolumeState(const ModelVolume* model_volume, const ObjectID& instance_id, const GLVolume::CompositeID& composite_id) :
+            model_volume(model_volume), geometry_id(std::make_pair(model_volume->id().id, instance_id.id)), composite_id(composite_id), volume_idx(-1) {}
+        ModelVolumeState(const ObjectID& volume_id, const ObjectID& instance_id) :
+            model_volume(nullptr), geometry_id(std::make_pair(volume_id.id, instance_id.id)), volume_idx(-1) {}
+        bool new_geometry() const { return this->volume_idx == size_t(-1); }
+        const ModelVolume* model_volume;
         // ObjectID of ModelVolume + ObjectID of ModelInstance
         // or timestamp of an SLAPrintObjectStep + ObjectID of ModelInstance
         std::pair<size_t, size_t>   geometry_id;
         GLVolume::CompositeID       composite_id;
         // Volume index in the new GLVolume vector.
-		size_t                      volume_idx;
+        size_t                      volume_idx;
     };
     std::vector<ModelVolumeState> model_volume_state;
-	std::vector<ModelVolumeState> aux_volume_state;
+    std::vector<ModelVolumeState> aux_volume_state;
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    struct GLVolumeState {
+        GLVolumeState() :
+            volume_idx(-1) {}
+        GLVolumeState(const GLVolume* volume, unsigned int volume_idx) :
+            composite_id(volume->composite_id), volume_idx(volume_idx) {}
+
+        GLVolume::CompositeID       composite_id;
+        // Volume index in the old GLVolume vector.
+        size_t                      volume_idx;
+    };
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     // SLA steps to pull the preview meshes for.
-	typedef std::array<SLAPrintObjectStep, 2> SLASteps;
-	SLASteps sla_steps = { slaposSupportTree, slaposBasePool };
+    typedef std::array<SLAPrintObjectStep, 2> SLASteps;
+    SLASteps sla_steps = { slaposSupportTree, slaposBasePool };
     struct SLASupportState {
-		std::array<PrintStateBase::StateWithTimeStamp, std::tuple_size<SLASteps>::value> step;
+        std::array<PrintStateBase::StateWithTimeStamp, std::tuple_size<SLASteps>::value> step;
     };
     // State of the sla_steps for all SLAPrintObjects.
     std::vector<SLASupportState>   sla_support_state;
 
     std::vector<size_t> instance_ids_selected;
     std::vector<size_t> map_glvolume_old_to_new(m_volumes.volumes.size(), size_t(-1));
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    std::vector<GLVolumeState> deleted_volumes;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     std::vector<GLVolume*> glvolumes_new;
     glvolumes_new.reserve(m_volumes.volumes.size());
-    auto model_volume_state_lower = [](const ModelVolumeState &m1, const ModelVolumeState &m2) { return m1.geometry_id < m2.geometry_id; };
+    auto model_volume_state_lower = [](const ModelVolumeState& m1, const ModelVolumeState& m2) { return m1.geometry_id < m2.geometry_id; };
 
-    m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
+    m_reload_delayed = !m_canvas->IsShown() && !refresh_immediately && !force_full_scene_refresh;
 
-    PrinterTechnology printer_technology        = m_process->current_printer_technology();
+    PrinterTechnology printer_technology = m_process->current_printer_technology();
     int               volume_idx_wipe_tower_old = -1;
 
     // Release invalidated volumes to conserve GPU memory in case of delayed refresh (see m_reload_delayed).
     // First initialize model_volumes_new_sorted & model_instances_new_sorted.
-    for (int object_idx = 0; object_idx < (int)m_model->objects.size(); ++ object_idx) {
-        const ModelObject *model_object = m_model->objects[object_idx];
-        for (int instance_idx = 0; instance_idx < (int)model_object->instances.size(); ++ instance_idx) {
-            const ModelInstance *model_instance = model_object->instances[instance_idx];
-            for (int volume_idx = 0; volume_idx < (int)model_object->volumes.size(); ++ volume_idx) {
-                const ModelVolume *model_volume = model_object->volumes[volume_idx];
-				model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
+    for (int object_idx = 0; object_idx < (int)m_model->objects.size(); ++object_idx) {
+        const ModelObject* model_object = m_model->objects[object_idx];
+        for (int instance_idx = 0; instance_idx < (int)model_object->instances.size(); ++instance_idx) {
+            const ModelInstance* model_instance = model_object->instances[instance_idx];
+            for (int volume_idx = 0; volume_idx < (int)model_object->volumes.size(); ++volume_idx) {
+                const ModelVolume* model_volume = model_object->volumes[volume_idx];
+                model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
             }
         }
     }
     if (printer_technology == ptSLA) {
-        const SLAPrint *sla_print = this->sla_print();
-	#ifndef NDEBUG
+        const SLAPrint* sla_print = this->sla_print();
+#ifndef NDEBUG
         // Verify that the SLAPrint object is synchronized with m_model.
         check_model_ids_equal(*m_model, sla_print->model());
-    #endif /* NDEBUG */
+#endif /* NDEBUG */
         sla_support_state.reserve(sla_print->objects().size());
-        for (const SLAPrintObject *print_object : sla_print->objects()) {
+        for (const SLAPrintObject* print_object : sla_print->objects()) {
             SLASupportState state;
-			for (size_t istep = 0; istep < sla_steps.size(); ++ istep) {
-				state.step[istep] = print_object->step_state_with_timestamp(sla_steps[istep]);
-				if (state.step[istep].state == PrintStateBase::DONE) {
-                    if (! print_object->has_mesh(sla_steps[istep]))
+            for (size_t istep = 0; istep < sla_steps.size(); ++istep) {
+                state.step[istep] = print_object->step_state_with_timestamp(sla_steps[istep]);
+                if (state.step[istep].state == PrintStateBase::DONE) {
+                    if (!print_object->has_mesh(sla_steps[istep]))
                         // Consider the DONE step without a valid mesh as invalid for the purpose
                         // of mesh visualization.
                         state.step[istep].state = PrintStateBase::INVALID;
                     else
-    					for (const ModelInstance *model_instance : print_object->model_object()->instances)
-    						// Only the instances, which are currently printable, will have the SLA support structures kept.
-    						// The instances outside the print bed will have the GLVolumes of their support structures released.
-    						if (model_instance->is_printable())
+                        for (const ModelInstance* model_instance : print_object->model_object()->instances)
+                            // Only the instances, which are currently printable, will have the SLA support structures kept.
+                            // The instances outside the print bed will have the GLVolumes of their support structures released.
+                            if (model_instance->is_printable())
                                 aux_volume_state.emplace_back(state.step[istep].timestamp, model_instance->id());
                 }
-			}
-			sla_support_state.emplace_back(state);
+            }
+            sla_support_state.emplace_back(state);
         }
     }
     std::sort(model_volume_state.begin(), model_volume_state.end(), model_volume_state_lower);
-    std::sort(aux_volume_state  .begin(), aux_volume_state  .end(), model_volume_state_lower);
+    std::sort(aux_volume_state.begin(), aux_volume_state.end(), model_volume_state_lower);
     // Release all ModelVolume based GLVolumes not found in the current Model.
-    for (size_t volume_id = 0; volume_id < m_volumes.volumes.size(); ++ volume_id) {
-        GLVolume         *volume = m_volumes.volumes[volume_id];
+    for (size_t volume_id = 0; volume_id < m_volumes.volumes.size(); ++volume_id) {
+        GLVolume* volume = m_volumes.volumes[volume_id];
         ModelVolumeState  key(volume);
-        ModelVolumeState *mvs = nullptr;
+        ModelVolumeState* mvs = nullptr;
         if (volume->volume_idx() < 0) {
-			auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
+            auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
             if (it != aux_volume_state.end() && it->geometry_id == key.geometry_id)
                 // This can be an SLA support structure that should not be rendered (in case someone used undo
                 // to revert to before it was generated). We only reuse the volume if that's not the case.
                 if (m_model->objects[volume->composite_id.object_id]->sla_points_status != sla::PointsStatus::NoPoints)
                     mvs = &(*it);
-        } else {
-			auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
+        }
+        else {
+            auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
             if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
-				mvs = &(*it);
+                mvs = &(*it);
         }
         // Emplace instance ID of the volume. Both the aux volumes and model volumes share the same instance ID.
         // The wipe tower has its own wipe_tower_instance_id().
@@ -1854,19 +1871,27 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 assert(volume_idx_wipe_tower_old == -1);
                 volume_idx_wipe_tower_old = (int)volume_id;
             }
-            if (! m_reload_delayed)
+            if (!m_reload_delayed)
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            {
+                deleted_volumes.emplace_back(volume, volume_id);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                 delete volume;
-        } else {
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+        }
+        else {
             // This GLVolume will be reused.
             volume->set_sla_shift_z(0.0);
             map_glvolume_old_to_new[volume_id] = glvolumes_new.size();
             mvs->volume_idx = glvolumes_new.size();
             glvolumes_new.emplace_back(volume);
             // Update color of the volume based on the current extruder.
-			if (mvs->model_volume != nullptr) {
-				int extruder_id = mvs->model_volume->extruder_id();
-				if (extruder_id != -1)
-					volume->extruder_id = extruder_id;
+            if (mvs->model_volume != nullptr) {
+                int extruder_id = mvs->model_volume->extruder_id();
+                if (extruder_id != -1)
+                    volume->extruder_id = extruder_id;
 
                 volume->is_modifier = !mvs->model_volume->is_model_part();
                 volume->set_color_from_model_volume(mvs->model_volume);
@@ -1882,7 +1907,19 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
-	bool update_object_list = false;
+    bool update_object_list = false;
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    auto find_old_volume_id = [&deleted_volumes](const GLVolume::CompositeID& id) -> unsigned int {
+        for (unsigned int i = 0; i < (unsigned int)deleted_volumes.size(); ++i)
+        {
+            const GLVolumeState& v = deleted_volumes[i];
+            if (v.composite_id == id)
+                return v.volume_idx;
+        }
+        return (unsigned int)-1;
+    };
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     if (m_volumes.volumes != glvolumes_new)
 		update_object_list = true;
@@ -1898,9 +1935,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
                 if (it->new_geometry()) {
                     // New volume.
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+                    unsigned int old_id = find_old_volume_id(it->composite_id);
+                    if (old_id != -1)
+                        map_glvolume_old_to_new[old_id] = m_volumes.volumes.size();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                     m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
-					update_object_list = true;
+                    update_object_list = true;
                 } else {
 					// Recycling an old GLVolume.
 					GLVolume &existing_volume = *m_volumes.volumes[it->volume_idx];

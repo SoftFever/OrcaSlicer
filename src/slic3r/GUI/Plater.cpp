@@ -10,6 +10,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+#include <boost/filesystem/operations.hpp>
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 #include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
@@ -1905,6 +1908,9 @@ struct Plater::priv
     bool can_fix_through_netfabb() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    bool can_reload_from_disk() const;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     void msw_rescale_object_menu();
 
@@ -1941,7 +1947,9 @@ private:
                                                               * */
     std::string m_last_fff_printer_profile_name;
     std::string m_last_sla_printer_profile_name;
+#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
     bool m_update_objects_list_on_loading{ true };
+#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -2467,12 +2475,16 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             _(L("Object too large?")));
     }
 
+#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
     if (m_update_objects_list_on_loading)
     {
+#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
         for (const size_t idx : obj_idxs) {
             wxGetApp().obj_list()->add_object_to_list(idx);
         }
+#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
     }
+#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     update();
     object_list_changed();
@@ -3092,6 +3104,111 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::reload_from_disk()
 {
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    Plater::TakeSnapshot snapshot(q, _(L("Reload from disk")));
+
+    const Selection& selection = get_selection();
+
+    if (selection.is_wipe_tower())
+        return;
+
+    // struct to hold selected ModelVolumes by their indices
+    struct SelectedVolume
+    {
+        int object_idx;
+        int volume_idx;
+
+        // operators needed by std::algorithms
+        bool operator < (const SelectedVolume& other) const { return (object_idx < other.object_idx) || ((object_idx == other.object_idx) && (volume_idx < other.volume_idx)); }
+        bool operator == (const SelectedVolume& other) const { return (object_idx == other.object_idx) && (volume_idx == other.volume_idx); }
+    };
+    std::vector<SelectedVolume> selected_volumes;
+
+    // collects selected ModelVolumes
+    const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
+    for (unsigned int idx : selected_volumes_idxs)
+    {
+        const GLVolume* v = selection.get_volume(idx);
+        int o_idx = v->object_idx();
+        int v_idx = v->volume_idx();
+        selected_volumes.push_back({ o_idx, v_idx });
+    }
+    std::sort(selected_volumes.begin(), selected_volumes.end());
+    selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
+
+    // collects paths of files to load
+    std::vector<fs::path> input_paths;
+    for (const SelectedVolume& v : selected_volumes)
+    {
+        const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
+        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
+            input_paths.push_back(volume->source.input_file);
+    }
+    std::sort(input_paths.begin(), input_paths.end());
+    input_paths.erase(std::unique(input_paths.begin(), input_paths.end()), input_paths.end());
+
+    // load one file at a time
+    for (size_t i = 0; i < input_paths.size(); ++i)
+    {
+        const auto& path = input_paths[i].string();
+        Model new_model;
+        try
+        {
+            new_model = Model::read_from_file(path, nullptr, true, false);
+            for (ModelObject* model_object : new_model.objects)
+            {
+                model_object->center_around_origin();
+                model_object->ensure_on_bed();
+            }
+        }
+        catch (std::exception&)
+        {
+            // error while loading
+            view3D->get_canvas3d()->enable_render(true);
+            return;
+        }
+
+        // update the selected volumes whose source is the current file
+        for (const SelectedVolume& old_v : selected_volumes)
+        {
+            ModelObject* old_model_object = model.objects[old_v.object_idx];
+            ModelVolume* old_volume = old_model_object->volumes[old_v.volume_idx];
+            int new_volume_idx = old_volume->source.volume_idx;
+            int new_object_idx = old_volume->source.object_idx;
+
+            if (old_volume->source.input_file == path)
+            {
+                if (new_object_idx < (int)new_model.objects.size())
+                {
+                    ModelObject* new_model_object = new_model.objects[new_object_idx];
+                    if (new_volume_idx < (int)new_model_object->volumes.size())
+                    {
+                        old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
+                        ModelVolume* new_volume = old_model_object->volumes.back();
+                        new_volume->set_new_unique_id();
+                        new_volume->config.apply(old_volume->config);
+                        new_volume->set_type(old_volume->type());
+                        new_volume->set_transformation(old_volume->get_transformation());
+                        new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                        std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
+                        old_model_object->delete_volume(old_model_object->volumes.size() - 1);
+                    }
+                }
+            }
+        }
+    }
+
+    model.adjust_min_z();
+
+    // update 3D scene
+    update();
+
+    // new GLVolumes have been created at this point, so update their printable state
+    for (size_t i = 0; i < model.objects.size(); ++i)
+    {
+        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
+#else
     Plater::TakeSnapshot snapshot(q, _(L("Reload from Disk")));
 
     auto& selection = get_selection();
@@ -3113,6 +3230,7 @@ void Plater::priv::reload_from_disk()
     {
         // error while loading
         view3D->get_canvas3d()->enable_render(true);
+        m_update_objects_list_on_loading = true;
         return;
     }
 
@@ -3174,6 +3292,7 @@ void Plater::priv::reload_from_disk()
     {
         selection.add_instance((unsigned int)idx - 1, instance_idx, false);
     }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
@@ -3587,6 +3706,11 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
+            [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu, [this]() { return can_reload_from_disk(); }, q);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
     else {
@@ -3613,8 +3737,13 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
         menu->AppendSeparator();
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
+            [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr, [this]() { return can_reload_from_disk(); }, q);
+#else
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
             [this](wxCommandEvent&) { reload_from_disk(); });
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(false, true); });
@@ -3768,6 +3897,50 @@ bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
 }
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+bool Plater::priv::can_reload_from_disk() const
+{
+    // struct to hold selected ModelVolumes by their indices
+    struct SelectedVolume
+    {
+        int object_idx;
+        int volume_idx;
+
+        // operators needed by std::algorithms
+        bool operator < (const SelectedVolume& other) const { return (object_idx < other.object_idx) || ((object_idx == other.object_idx) && (volume_idx < other.volume_idx)); }
+        bool operator == (const SelectedVolume& other) const { return (object_idx == other.object_idx) && (volume_idx == other.volume_idx); }
+    };
+    std::vector<SelectedVolume> selected_volumes;
+
+    const Selection& selection = get_selection();
+
+    // collects selected ModelVolumes
+    const std::set<unsigned int>& selected_volumes_idxs = selection.get_volume_idxs();
+    for (unsigned int idx : selected_volumes_idxs)
+    {
+        const GLVolume* v = selection.get_volume(idx);
+        int o_idx = v->object_idx();
+        int v_idx = v->volume_idx();
+        selected_volumes.push_back({ o_idx, v_idx });
+    }
+    std::sort(selected_volumes.begin(), selected_volumes.end());
+    selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
+
+    // collects paths of files to load
+    std::vector<fs::path> paths;
+    for (const SelectedVolume& v : selected_volumes)
+    {
+        const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
+        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
+            paths.push_back(volume->source.input_file);
+    }
+    std::sort(paths.begin(), paths.end());
+    paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
+
+    return !paths.empty();
+}
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
@@ -4552,6 +4725,13 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     }
 }
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+void Plater::reload_from_disk()
+{
+    p->reload_from_disk();
+}
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
 bool Plater::has_toolpaths_to_export() const
 {
     return  p->preview->get_canvas3d()->has_toolpaths_to_export();
@@ -5044,6 +5224,9 @@ bool Plater::can_copy_to_clipboard() const
 
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }

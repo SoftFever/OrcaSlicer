@@ -232,7 +232,10 @@ public:
     wxMenuItem*         append_menu_item_printable(wxMenu* menu, wxWindow* parent);
     void                append_menu_items_osx(wxMenu* menu);
     wxMenuItem*         append_menu_item_fix_through_netfabb(wxMenu* menu);
-    void                append_menu_item_export_stl(wxMenu* menu) const ;
+    void                append_menu_item_export_stl(wxMenu* menu) const;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    void                append_menu_item_reload_from_disk(wxMenu* menu) const;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     void                append_menu_item_change_extruder(wxMenu* menu) const;
     void                append_menu_item_delete(wxMenu* menu);
     void                append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
