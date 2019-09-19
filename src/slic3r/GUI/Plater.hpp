@@ -217,6 +217,7 @@ public:
     void on_config_change(const DynamicPrintConfig &config);
     // On activating the parent window.
     void on_activate();
+    const DynamicPrintConfig* get_plater_config() const;
 
     void update_object_menu();
 

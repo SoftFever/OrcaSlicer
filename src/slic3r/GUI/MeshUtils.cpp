@@ -3,6 +3,15 @@
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 
+#include "slic3r/GUI/Camera.hpp"
+
+// There is an L function in igl that would be overridden by our localization macro.
+#undef L
+#include <igl/AABB.h>
+
+#include <GL/glew.h>
+
+
 namespace Slic3r {
 namespace GUI {
 
@@ -87,6 +96,168 @@ void MeshClipper::recalculate_triangles()
     }
 
     m_triangles_valid = true;
+}
+
+
+class MeshRaycaster::AABBWrapper {
+public:
+    AABBWrapper(const TriangleMesh* mesh);
+    ~AABBWrapper() { m_AABB.deinit(); }
+
+    typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
+    typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
+    igl::AABB<MapMatrixXfUnaligned, 3> m_AABB;
+
+    Vec3f get_hit_pos(const igl::Hit& hit) const;
+    Vec3f get_hit_normal(const igl::Hit& hit) const;
+
+private:
+    const TriangleMesh* m_mesh;
+};
+
+MeshRaycaster::AABBWrapper::AABBWrapper(const TriangleMesh* mesh)
+    : m_mesh(mesh)
+{
+    m_AABB.init(
+        MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+        MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3));
+}
+
+
+MeshRaycaster::MeshRaycaster(const TriangleMesh& mesh)
+    : m_AABB_wrapper(new AABBWrapper(&mesh)), m_mesh(&mesh)
+{
+}
+
+MeshRaycaster::~MeshRaycaster()
+{
+    delete m_AABB_wrapper;
+}
+
+Vec3f MeshRaycaster::AABBWrapper::get_hit_pos(const igl::Hit& hit) const
+{
+    const stl_triangle_vertex_indices& indices = m_mesh->its.indices[hit.id];
+    return Vec3f((1-hit.u-hit.v) * m_mesh->its.vertices[indices(0)]
+               + hit.u           * m_mesh->its.vertices[indices(1)]
+               + hit.v           * m_mesh->its.vertices[indices(2)]);
+}
+
+
+Vec3f MeshRaycaster::AABBWrapper::get_hit_normal(const igl::Hit& hit) const
+{
+    const stl_triangle_vertex_indices& indices = m_mesh->its.indices[hit.id];
+    Vec3f a(m_mesh->its.vertices[indices(1)] - m_mesh->its.vertices[indices(0)]);
+    Vec3f b(m_mesh->its.vertices[indices(2)] - m_mesh->its.vertices[indices(0)]);
+    return Vec3f(a.cross(b));
+}
+
+
+bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo,
+                                      const Camera& camera, std::vector<Vec3f>* positions, std::vector<Vec3f>* normals) const
+{
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    const Transform3d& model_mat = camera.get_view_matrix();
+    const Transform3d& proj_mat = camera.get_projection_matrix();
+
+    Vec3d pt1;
+    Vec3d pt2;
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0., model_mat.data(), proj_mat.data(), viewport.data(), &pt1(0), &pt1(1), &pt1(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1., model_mat.data(), proj_mat.data(), viewport.data(), &pt2(0), &pt2(1), &pt2(2));
+
+    std::vector<igl::Hit> hits;
+
+    Transform3d inv = trafo.inverse();
+
+    pt1 = inv * pt1;
+    pt2 = inv * pt2;
+
+    if (! m_AABB_wrapper->m_AABB.intersect_ray(
+        AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+        AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
+        pt1.cast<float>(), (pt2-pt1).cast<float>(), hits))
+        return false; // no intersection found
+
+    std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
+
+    // Now stuff the points in the provided vector and calculate normals if asked about them:
+    if (positions != nullptr) {
+        positions->clear();
+        if (normals != nullptr)
+            normals->clear();
+        for (const igl::Hit& hit : hits) {
+            positions->push_back(m_AABB_wrapper->get_hit_pos(hit));
+
+            if (normals != nullptr)
+                normals->push_back(m_AABB_wrapper->get_hit_normal(hit));
+        }
+    }
+
+    return true;
+}
+
+
+std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera, const std::vector<Vec3f>& points,
+                                                       std::function<bool(const Vec3f&)> fn_ignore_hit) const
+{
+    std::vector<unsigned> out;
+
+    const Transform3d& instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true);
+    Vec3f direction_to_camera = -camera.get_dir_forward().cast<float>();
+    Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
+    Vec3f scaling = trafo.get_scaling_factor().cast<float>();
+    direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
+
+    for (size_t i=0; i<points.size(); ++i) {
+        const Vec3f& pt = points[i];
+        bool is_obscured = false;
+        // Cast a ray in the direction of the camera and look for intersection with the mesh:
+        std::vector<igl::Hit> hits;
+        // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
+        if (m_AABB_wrapper->m_AABB.intersect_ray(
+                AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+                AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
+                pt + direction_to_camera_mesh * EPSILON, direction_to_camera_mesh, hits)) {
+
+            std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
+            // If the closest hit facet normal points in the same direction as the ray,
+            // we are looking through the mesh and should therefore discard the point:
+            if (m_AABB_wrapper->get_hit_normal(hits.front()).dot(direction_to_camera_mesh) > 0.f)
+                is_obscured = true;
+
+            // Eradicate all hits that the caller wants to ignore
+            for (unsigned j=0; j<hits.size(); ++j) {
+                const igl::Hit& hit = hits[j];
+                if (fn_ignore_hit(m_AABB_wrapper->get_hit_pos(hit))) {
+                    hits.erase(hits.begin()+j);
+                    --j;
+                }
+            }
+            // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
+            // Also, the threshold is in mesh coordinates, not in actual dimensions.
+            if (! hits.empty())
+                is_obscured = true;
+        }
+        if (! is_obscured)
+            out.push_back(i);
+    }
+    return out;
+}
+
+
+Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
+{
+    int idx = 0;
+    Eigen::Matrix<float, 1, 3> closest_point;
+    m_AABB_wrapper->m_AABB.squared_distance(
+        AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
+        AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
+        point, idx, closest_point);
+    if (normal) {
+        igl::Hit imag_hit;
+        imag_hit.id = idx;
+        *normal = m_AABB_wrapper->get_hit_normal(imag_hit);
+    }
+    return closest_point;
 }
 
 
