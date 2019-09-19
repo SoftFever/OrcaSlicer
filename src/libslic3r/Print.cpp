@@ -143,6 +143,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "use_volumetric_e",
         "variable_layer_height",
         "wipe",
+        "wipe_tower_no_sparse_layers",
         "wipe_tower_x",
         "wipe_tower_y",
         "wipe_tower_rotation_angle"

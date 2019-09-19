@@ -313,8 +313,11 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     double current_z = gcodegen.writer().get_position().z();
     if (z == -1.) // in case no specific z was provided, print at current_z pos
         z = current_z;
-    if (! is_approx(z, current_z))
+    if (! is_approx(z, current_z)) {
+        gcode += gcodegen.writer().retract();
         gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
+        gcode += gcodegen.writer().unretract();
+    }
 
 
     // Process the end filament gcode.
@@ -526,13 +529,18 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
                 throw std::runtime_error("Wipe tower generation failed, possibly due to empty first layer.");
 
 
-            double wipe_tower_z = m_last_wipe_tower_print_z;
-            bool is_sparse_layer = (m_brim_done && m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+            // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
+            // resulting in a wipe tower with sparse layers.
+            double wipe_tower_z = -1;
+            bool ignore_sparse = false;
+            if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+                wipe_tower_z = m_last_wipe_tower_print_z;
+                ignore_sparse = (m_brim_done && m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+                if (m_tool_change_idx == 0 && ! ignore_sparse)
+                   wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
+            }
 
-            if (m_tool_change_idx == 0 && ! is_sparse_layer)
-                wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
-
-            if (! is_sparse_layer) {
+            if (! ignore_sparse) {
                 gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
                 m_last_wipe_tower_print_z = wipe_tower_z;
             }
