@@ -32,7 +32,7 @@ namespace pt = boost::property_tree;
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
 #if ENABLE_ENHANCED_RELOAD_FROM_DISK
-// 2 : Meshes saved in their local system and volumes matrices added to Metadata/Slic3r_PE_model.config file.
+// 2 : Meshes saved in their local system; Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file.
 const unsigned int VERSION_3MF = 2;
 #else
 const unsigned int VERSION_3MF = 1;
@@ -207,35 +207,6 @@ Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
     }
     return ret;
 }
-
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
-Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
-{
-    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
-
-    if (mat_str.empty())
-        // empty string means default identity matrix
-        return ret;
-
-    std::vector<std::string> mat_elements_str;
-    boost::split(mat_elements_str, mat_str, boost::is_any_of(" "), boost::token_compress_on);
-
-    unsigned int size = (unsigned int)mat_elements_str.size();
-    if (size != 16)
-        // invalid data, return identity matrix
-        return ret;
-
-    unsigned int i = 0;
-    for (unsigned int r = 0; r < 4; ++r)
-    {
-        for (unsigned int c = 0; c < 4; ++c)
-        {
-            ret(r, c) = ::atof(mat_elements_str[i++].c_str());
-        }
-    }
-    return ret;
-}
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 float get_unit_factor(const std::string& unit)
 {
@@ -1744,7 +1715,11 @@ namespace Slic3r {
                     volume->set_type(ModelVolume::type_from_string(metadata.value));
 #if ENABLE_ENHANCED_RELOAD_FROM_DISK
                 else if (metadata.key == MATRIX_KEY)
-                    volume->set_transformation(Slic3r::Geometry::Transformation(get_transform_from_string(metadata.value)));
+                {
+                    Slic3r::Geometry::Transformation transform;
+                    transform.set_from_string(metadata.value);
+                    volume->set_transformation(transform);
+                }
                 else if (metadata.key == SOURCE_FILE_KEY)
                     volume->source.input_file = metadata.value;
                 else if (metadata.key == SOURCE_OBJECT_ID_KEY)

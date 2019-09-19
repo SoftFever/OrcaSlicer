@@ -3188,6 +3188,7 @@ void Plater::priv::reload_from_disk()
                         new_volume->set_new_unique_id();
                         new_volume->config.apply(old_volume->config);
                         new_volume->set_type(old_volume->type());
+                        new_volume->set_material_id(old_volume->material_id());
                         new_volume->set_transformation(old_volume->get_transformation());
                         new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
                         std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());

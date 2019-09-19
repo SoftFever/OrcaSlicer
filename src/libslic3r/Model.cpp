@@ -1555,7 +1555,11 @@ bool ModelVolume::is_splittable() const
     return m_is_splittable == 1;
 }
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+void ModelVolume::center_geometry_after_creation(bool update_source_offset)
+#else
 void ModelVolume::center_geometry_after_creation()
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 {
     Vec3d shift = this->mesh().bounding_box().center();
     if (!shift.isApprox(Vec3d::Zero()))
@@ -1566,9 +1570,10 @@ void ModelVolume::center_geometry_after_creation()
 			const_cast<TriangleMesh*>(m_convex_hull.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
-//================================================================================================================================================================================================
-    source.mesh_offset = shift;
-//================================================================================================================================================================================================
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    if (update_source_offset)
+        source.mesh_offset = shift;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 }
 
 void ModelVolume::calculate_convex_hull()

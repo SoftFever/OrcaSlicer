@@ -12,6 +12,9 @@
 #include "../PrintConfig.hpp"
 #include "../Utils.hpp"
 #include "../I18N.hpp"
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+#include "../Geometry.hpp"
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 #include "AMF.hpp"
 
@@ -36,7 +39,12 @@
 //     Added x and y components of rotation
 //     Added x, y and z components of scale
 //     Added x, y and z components of mirror
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+// 3 : Meshes saved in their local system; Added volumes' matrices and source data
+const unsigned int VERSION_AMF = 3;
+#else
 const unsigned int VERSION_AMF = 2;
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
 
 const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
@@ -568,7 +576,12 @@ void AMFParserContext::endElement(const char * /* name */)
         stl_get_size(&stl);
         mesh.repair();
 		m_volume->set_mesh(std::move(mesh));
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        // pass false if the mesh offset has been already taken from the data 
+        m_volume->center_geometry_after_creation(m_volume->source.input_file.empty());
+#else
         m_volume->center_geometry_after_creation();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -664,6 +677,31 @@ void AMFParserContext::endElement(const char * /* name */)
                 } else if (strcmp(opt_key, "volume_type") == 0) {
                     m_volume->set_type(ModelVolume::type_from_string(m_value[1]));
                 }
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+                else if (strcmp(opt_key, "matrix") == 0) {
+                    Geometry::Transformation transform;
+                    transform.set_from_string(m_value[1]);
+                    m_volume->set_transformation(transform);
+                }
+                else if (strcmp(opt_key, "source_file") == 0) {
+                    m_volume->source.input_file = m_value[1];
+                }
+                else if (strcmp(opt_key, "source_object_id") == 0) {
+                    m_volume->source.object_idx = ::atoi(m_value[1].c_str());
+                }
+                else if (strcmp(opt_key, "source_volume_id") == 0) {
+                    m_volume->source.volume_idx = ::atoi(m_value[1].c_str());
+                }
+                else if (strcmp(opt_key, "source_offset_x") == 0) {
+                    m_volume->source.mesh_offset(0) = ::atof(m_value[1].c_str());
+                }
+                else if (strcmp(opt_key, "source_offset_y") == 0) {
+                    m_volume->source.mesh_offset(1) = ::atof(m_value[1].c_str());
+                }
+                else if (strcmp(opt_key, "source_offset_z") == 0) {
+                    m_volume->source.mesh_offset(2) = ::atof(m_value[1].c_str());
+                }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             }
         } else if (m_path.size() == 3) {
             if (m_path[1] == NODE_TYPE_MATERIAL) {
@@ -1029,6 +1067,18 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 			if (! volume->mesh().has_shared_vertices())
 				throw std::runtime_error("store_amf() requires shared vertices");
             const indexed_triangle_set &its = volume->mesh().its;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            for (const Vec3f& v : its.vertices)
+            {
+                stream << "         <vertex>\n";
+                stream << "           <coordinates>\n";
+                stream << "             <x>" << v(0) << "</x>\n";
+                stream << "             <y>" << v(1) << "</y>\n";
+                stream << "             <z>" << v(2) << "</z>\n";
+                stream << "           </coordinates>\n";
+                stream << "         </vertex>\n";
+            }
+#else
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
@@ -1040,6 +1090,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             num_vertices += (int)its.vertices.size();
         }
         stream << "      </vertices>\n";
@@ -1057,7 +1108,30 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-			const indexed_triangle_set &its = volume->mesh().its;
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            stream << "        <metadata type=\"slic3r.matrix\">";
+            const Transform3d& matrix = volume->get_matrix();
+            for (int r = 0; r < 4; ++r)
+            {
+                for (int c = 0; c < 4; ++c)
+                {
+                    stream << matrix(r, c);
+                    if ((r != 3) || (c != 3))
+                        stream << " ";
+                }
+            }
+            stream << "</metadata>\n";
+            if (!volume->source.input_file.empty())
+            {
+                stream << "        <metadata type=\"slic3r.source_file\">" << xml_escape(volume->source.input_file) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r.source_object_id\">" << volume->source.object_idx << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r.source_volume_id\">" << volume->source.volume_idx << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r.source_offset_x\">" << volume->source.mesh_offset(0) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r.source_offset_y\">" << volume->source.mesh_offset(1) << "</metadata>\n";
+                stream << "        <metadata type=\"slic3r.source_offset_z\">" << volume->source.mesh_offset(2) << "</metadata>\n";
+            }
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+            const indexed_triangle_set &its = volume->mesh().its;
             for (size_t i = 0; i < its.indices.size(); ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)

@@ -15,6 +15,11 @@
 #include <stack>
 #include <vector>
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
 #endif
@@ -1375,6 +1380,34 @@ void Transformation::set_from_transform(const Transform3d& transform)
 //    if (!m_matrix.isApprox(transform))
 //        std::cout << "something went wrong in extracting data from matrix" << std::endl;
 }
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+void Transformation::set_from_string(const std::string& transform_str)
+{
+    Transform3d transform = Transform3d::Identity();
+
+    if (!transform_str.empty())
+    {
+        std::vector<std::string> mat_elements_str;
+        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
+
+        unsigned int size = (unsigned int)mat_elements_str.size();
+        if (size == 16)
+        {
+            unsigned int i = 0;
+            for (unsigned int r = 0; r < 4; ++r)
+            {
+                for (unsigned int c = 0; c < 4; ++c)
+                {
+                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
+                }
+            }
+        }
+    }
+
+    set_from_transform(transform);
+}
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 void Transformation::reset()
 {

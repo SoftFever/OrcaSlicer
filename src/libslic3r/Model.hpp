@@ -453,7 +453,11 @@ public:
 
     // Translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box.
     // Attention! This method may only be called just after ModelVolume creation! It must not be called once the TriangleMesh of this ModelVolume is shared!
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    void                center_geometry_after_creation(bool update_source_offset = true);
+#else
     void                center_geometry_after_creation();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;

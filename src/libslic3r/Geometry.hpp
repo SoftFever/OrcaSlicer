@@ -278,6 +278,9 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+    void set_from_string(const std::string& transform_str);
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     void reset();
 
