@@ -183,7 +183,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     // Height of labels should be equivalent to the edit boxes
     int height = wxTextCtrl(parent, wxID_ANY, "Br").GetBestHeight(-1);
 
-    auto add_label = [this, height](wxStaticText** label, std::string name, wxSizer* resive_sizer = nullptr)
+    auto add_label = [this, height](wxStaticText** label, const std::string& name, wxSizer* resive_sizer = nullptr)
     {
         *label = new wxStaticText(m_parent, wxID_ANY, _(name) + ":");
         set_font_and_background_style(m_move_Label, wxGetApp().normal_font());
@@ -217,6 +217,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     add_label(&m_scale_Label,   L("Scale"), v_sizer);
     wxStaticText* size_Label {nullptr};
     add_label(&size_Label,      L("Size"), v_sizer);
+    if (wxOSX) set_font_and_background_style(size_Label, wxGetApp().normal_font());
 
     sizer->Add(v_sizer, 0, wxLEFT, border);
     m_labels_grid_sizer->Add(sizer);
@@ -236,7 +237,11 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         set_font_and_background_style(axis_name, wxGetApp().bold_font());
 
         sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(axis_name, 0, wxALIGN_CENTER_VERTICAL/* | wxLEFT*/ | wxRIGHT, border);
+        // Under OSX we use font, smaller than default font, so
+        // there is a next trick for an equivalent layout of coordinates combobox and axes labels in they own sizers
+        if (wxOSX) 
+            sizer->SetMinSize(-1, m_word_local_combo->GetBestHeight(-1));
+        sizer->Add(axis_name, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
 
         // We will add a button to toggle mirroring to each axis:
         auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
@@ -811,6 +816,7 @@ void ObjectManipulation::update_if_dirty()
         if (label_cache != new_label_localized) {
             label_cache = new_label_localized;
             widget->SetLabel(new_label_localized);
+            if (wxOSX) set_font_and_background_style(widget, wxGetApp().normal_font());
         }
     };
     update_label(m_cache.move_label_string,   m_new_move_label_string,   m_move_Label);
