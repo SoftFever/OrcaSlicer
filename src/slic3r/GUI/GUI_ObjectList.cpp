@@ -794,13 +794,24 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
 
+    /* Note: Under OSX right click doesn't send "selection changed" event.
+     * It means that Selection() will be return still previously selected item.
+     * Thus under OSX we should force UnselectAll(), when item and col are nullptr,
+     * and select new item otherwise.
+     */
+
     if (!item) {
-        if (col == nullptr)
-            return;
+        if (wxOSX && col == nullptr)
+            UnselectAll();
         if (evt_context_menu) {
             show_context_menu(evt_context_menu);
             return;
         }
+    }
+
+    if (wxOSX && item && col) {
+        UnselectAll();
+        Select(item);
     }
 
     const wxString title = col->GetTitle();
