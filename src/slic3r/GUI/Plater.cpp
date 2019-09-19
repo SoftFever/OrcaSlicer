@@ -2518,6 +2518,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (output_file.empty())
             // Find the file name of the first printable object.
             output_file = this->model.propose_export_file_name_and_path();
+
+        if (output_file.empty() && !model.objects.empty())
+            // Find the file name of the first object.
+            output_file = this->model.objects[0]->get_export_filename();
     }
 
     wxString dlg_title;
@@ -4875,6 +4879,11 @@ bool Plater::is_single_full_object_selection() const
 GLCanvas3D* Plater::canvas3D()
 {
     return p->view3D->get_canvas3d();
+}
+
+BoundingBoxf Plater::bed_shape_bb() const
+{
+    return p->bed_shape_bb();
 }
 
 PrinterTechnology Plater::printer_technology() const
