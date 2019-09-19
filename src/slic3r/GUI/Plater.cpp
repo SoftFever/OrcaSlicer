@@ -4881,6 +4881,11 @@ GLCanvas3D* Plater::canvas3D()
     return p->view3D->get_canvas3d();
 }
 
+BoundingBoxf Plater::bed_shape_bb() const
+{
+    return p->bed_shape_bb();
+}
+
 PrinterTechnology Plater::printer_technology() const
 {
     return p->printer_technology;
