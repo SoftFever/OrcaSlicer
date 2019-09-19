@@ -522,7 +522,11 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
             const DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-            const std::vector<std::string> &extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+            std::vector<std::string> extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+            const std::vector<std::string>& filament_colours = (wxGetApp().plater()->get_plater_config()->option<ConfigOptionStrings>("filament_colour"))->values;
+            for (size_t i=0; i<extruder_colours.size(); ++i)
+                if (extruder_colours[i] == "" && i < filament_colours.size())
+                    extruder_colours[i] = filament_colours[i];
 
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
 
@@ -2514,6 +2518,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (output_file.empty())
             // Find the file name of the first printable object.
             output_file = this->model.propose_export_file_name_and_path();
+
+        if (output_file.empty() && !model.objects.empty())
+            // Find the file name of the first object.
+            output_file = this->model.objects[0]->get_export_filename();
     }
 
     wxString dlg_title;
@@ -4838,6 +4846,11 @@ void Plater::on_activate()
 	this->p->show_delayed_error_message();
 }
 
+const DynamicPrintConfig* Plater::get_plater_config() const
+{
+    return p->config;
+}
+
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);
@@ -4866,6 +4879,11 @@ bool Plater::is_single_full_object_selection() const
 GLCanvas3D* Plater::canvas3D()
 {
     return p->view3D->get_canvas3d();
+}
+
+BoundingBoxf Plater::bed_shape_bb() const
+{
+    return p->bed_shape_bb();
 }
 
 PrinterTechnology Plater::printer_technology() const
