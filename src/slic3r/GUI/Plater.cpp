@@ -522,7 +522,11 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
             const DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-            const std::vector<std::string> &extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+            std::vector<std::string> extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+            const std::vector<std::string>& filament_colours = (wxGetApp().plater()->get_plater_config()->option<ConfigOptionStrings>("filament_colour"))->values;
+            for (size_t i=0; i<extruder_colours.size(); ++i)
+                if (extruder_colours[i] == "" && i < filament_colours.size())
+                    extruder_colours[i] = filament_colours[i];
 
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
 
@@ -4836,6 +4840,11 @@ void Plater::on_activate()
 #endif
 
 	this->p->show_delayed_error_message();
+}
+
+const DynamicPrintConfig* Plater::get_plater_config() const
+{
+    return p->config;
 }
 
 wxString Plater::get_project_filename(const wxString& extension) const
