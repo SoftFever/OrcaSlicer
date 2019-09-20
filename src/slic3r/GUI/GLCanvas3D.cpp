@@ -1094,7 +1094,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
@@ -3012,15 +3012,23 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
-
+/*  #et_FIXME
                     Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL
                     const float factor = m_retina_helper->get_scale_factor();
                     logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif // ENABLE_RETINA_GL
                     post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
+*/
                 }
             }
+            // #et_FIXME
+            Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+            const float factor = m_retina_helper->get_scale_factor();
+            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+            post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, {logical_pos, m_hover_volume_idxs.empty()}));
         }
 
         mouse_up_cleanup();

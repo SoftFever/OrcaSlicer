@@ -1340,6 +1340,8 @@ struct Plater::priv
     MenuWithSeparators part_menu;
     // SLA-Object popup menu
     MenuWithSeparators sla_object_menu;
+    // Default popup menu (when nothing is selected on 3DScene)
+    MenuWithSeparators default_menu;
 
     // Removed/Prepended Items according to the view mode
     std::vector<wxMenuItem*> items_increase;
@@ -1879,7 +1881,7 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
-    void on_right_click(Vec2dEvent&);
+    void on_right_click(RBtnEvent&);
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -3446,57 +3448,66 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
     selection_changed();
 }
 
-void Plater::priv::on_right_click(Vec2dEvent& evt)
+void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
+
+    wxMenu* menu = nullptr;
+
     if (obj_idx == -1)
-        return;
-
-    wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
-                   get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
-                   &object_menu : &part_menu;
-
-    sidebar->obj_list()->append_menu_item_settings(menu);
-
-    if (printer_technology != ptSLA)
-        sidebar->obj_list()->append_menu_item_change_extruder(menu);
-
-    if (menu != &part_menu)
+        menu = &default_menu;
+    else
     {
-        /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-         * Suppress to show those items for a Simple mode
-         */
-        const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
-        if (wxGetApp().get_mode() == comSimple) {
-            if (menu->FindItem(_(L("Add instance"))) != wxNOT_FOUND)
-            {
-                /* Detach an items from the menu, but don't delete them
-                 * so that they can be added back later
-                 * (after switching to the Advanced/Expert mode)
-                 */
-                menu->Remove(items_increase[id]);
-                menu->Remove(items_decrease[id]);
-                menu->Remove(items_set_number_of_copies[id]);
+        // If in 3DScene is(are) selected volume(s), but right button was clicked on empty space
+        if (evt.data.second)
+            return; 
+
+        menu = printer_technology == ptSLA ? &sla_object_menu :
+               get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
+               &object_menu : &part_menu;
+
+        sidebar->obj_list()->append_menu_item_settings(menu);
+
+        if (printer_technology != ptSLA)
+            sidebar->obj_list()->append_menu_item_change_extruder(menu);
+
+        if (menu != &part_menu)
+        {
+            /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
+             * Suppress to show those items for a Simple mode
+             */
+            const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
+            if (wxGetApp().get_mode() == comSimple) {
+                if (menu->FindItem(_(L("Add instance"))) != wxNOT_FOUND)
+                {
+                    /* Detach an items from the menu, but don't delete them
+                     * so that they can be added back later
+                     * (after switching to the Advanced/Expert mode)
+                     */
+                    menu->Remove(items_increase[id]);
+                    menu->Remove(items_decrease[id]);
+                    menu->Remove(items_set_number_of_copies[id]);
+                }
             }
-        }
-        else {
-            if (menu->FindItem(_(L("Add instance"))) == wxNOT_FOUND)
-            {
-                // Prepend items to the menu, if those aren't not there
-                menu->Prepend(items_set_number_of_copies[id]);
-                menu->Prepend(items_decrease[id]);
-                menu->Prepend(items_increase[id]);
+            else {
+                if (menu->FindItem(_(L("Add instance"))) == wxNOT_FOUND)
+                {
+                    // Prepend items to the menu, if those aren't not there
+                    menu->Prepend(items_set_number_of_copies[id]);
+                    menu->Prepend(items_decrease[id]);
+                    menu->Prepend(items_increase[id]);
+                }
             }
         }
     }
 
-    if (q != nullptr) {
+    if (q != nullptr && menu) {
 #ifdef __linux__
         // For some reason on Linux the menu isn't displayed if position is specified
         // (even though the position is sane).
         q->PopupMenu(menu);
 #else
-        q->PopupMenu(menu, (int)evt.data.x(), (int)evt.data.y());
+        q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
 #endif
     }
 }
@@ -3548,12 +3559,14 @@ bool Plater::priv::init_object_menu()
     init_common_menu(&part_menu, true);
     complit_init_part_menu();
 
+    sidebar->obj_list()->create_default_popupmenu(&default_menu);
+
     return true;
 }
 
 void Plater::priv::msw_rescale_object_menu()
 {
-    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu })
+    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu, &default_menu })
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
