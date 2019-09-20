@@ -32,8 +32,6 @@ private:
     const float RenderPointScale = 1.f;
 
     GLUquadricObj* m_quadric;
-    typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
-    typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
 
     //std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
     //const TriangleMesh* m_mesh;
@@ -142,7 +140,6 @@ private:
     void auto_generate();
     void switch_to_editing_mode();
     void disable_editing_mode();
-    void reset_clipping_plane_normal() const;
 
 protected:
     void on_set_state() override;

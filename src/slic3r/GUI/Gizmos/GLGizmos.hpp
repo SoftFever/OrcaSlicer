@@ -31,6 +31,7 @@ enum class SLAGizmoEventType : unsigned char {
 #include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 

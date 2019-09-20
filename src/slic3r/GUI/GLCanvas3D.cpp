@@ -1596,10 +1596,15 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
 void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
-        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
-            vol->is_active = visible;
-            vol->force_native_color = (instance_idx != -1);
+        if (vol->composite_id.object_id == 1000) { // wipe tower
+                vol->is_active = (visible && mo == nullptr);
+        }
+        else {
+            if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+            && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
+                vol->is_active = visible;
+                vol->force_native_color = (instance_idx != -1);
+            }
         }
     }
     if (visible && !mo)
@@ -4794,7 +4799,7 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
+        m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         if (m_camera_clipping_plane.is_active()) {
             ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
             ::glEnable(GL_CLIP_PLANE0);
@@ -4962,7 +4967,7 @@ void GLCanvas3D::_render_objects() const
 #endif // !ENABLE_THUMBNAIL_GENERATOR
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
+    m_camera_clipping_plane = m_gizmos.get_clipping_plane();
 
     if (m_picking_enabled)
     {
