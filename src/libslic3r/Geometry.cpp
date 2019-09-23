@@ -15,10 +15,8 @@
 #include <stack>
 #include <vector>
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -1381,7 +1379,6 @@ void Transformation::set_from_transform(const Transform3d& transform)
 //        std::cout << "something went wrong in extracting data from matrix" << std::endl;
 }
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 void Transformation::set_from_string(const std::string& transform_str)
 {
     Transform3d transform = Transform3d::Identity();
@@ -1407,7 +1404,6 @@ void Transformation::set_from_string(const std::string& transform_str)
 
     set_from_transform(transform);
 }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 void Transformation::reset()
 {

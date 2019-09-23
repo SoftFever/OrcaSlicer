@@ -472,11 +472,7 @@ void Selection::volumes_changed(const std::vector<size_t> &map_volume_old_to_new
     for (unsigned int idx : m_list)
         if (map_volume_old_to_new[idx] != size_t(-1)) {
             unsigned int new_idx = (unsigned int)map_volume_old_to_new[idx];
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
             (*m_volumes)[new_idx]->selected = true;
-#else
-            assert((*m_volumes)[new_idx]->selected);
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             list_new.insert(new_idx);
         }
     m_list = std::move(list_new);

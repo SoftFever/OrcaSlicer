@@ -32,11 +32,4 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
 
-//====================
-// 2.2.0.alpha1 techs
-//====================
-#define ENABLE_2_2_0_ALPHA1 1
-
-#define ENABLE_ENHANCED_RELOAD_FROM_DISK (1 && ENABLE_2_2_0_ALPHA1)
-
 #endif // _technologies_h_

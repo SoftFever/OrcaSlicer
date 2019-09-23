@@ -10,9 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 #include <boost/filesystem/operations.hpp>
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 #include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
@@ -1910,9 +1908,7 @@ struct Plater::priv
     bool can_fix_through_netfabb() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     void msw_rescale_object_menu();
 
@@ -1949,9 +1945,6 @@ private:
                                                               * */
     std::string m_last_fff_printer_profile_name;
     std::string m_last_sla_printer_profile_name;
-#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
-    bool m_update_objects_list_on_loading{ true };
-#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -2477,16 +2470,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             _(L("Object too large?")));
     }
 
-#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
-    if (m_update_objects_list_on_loading)
-    {
-#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
-        for (const size_t idx : obj_idxs) {
-            wxGetApp().obj_list()->add_object_to_list(idx);
-        }
-#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
+    for (const size_t idx : obj_idxs) {
+        wxGetApp().obj_list()->add_object_to_list(idx);
     }
-#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     update();
     object_list_changed();
@@ -3110,7 +3096,6 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::reload_from_disk()
 {
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
     Plater::TakeSnapshot snapshot(q, _(L("Reload from disk")));
 
     const Selection& selection = get_selection();
@@ -3215,91 +3200,6 @@ void Plater::priv::reload_from_disk()
     {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
     }
-#else
-    Plater::TakeSnapshot snapshot(q, _(L("Reload from Disk")));
-
-    auto& selection = get_selection();
-    const auto obj_orig_idx = selection.get_object_idx();
-    if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }
-    int instance_idx = selection.get_instance_idx();
-
-    auto *object_orig = model.objects[obj_orig_idx];
-    std::vector<fs::path> input_paths(1, object_orig->input_file);
-
-    // disable render to avoid to show intermediate states
-    view3D->get_canvas3d()->enable_render(false);
-
-    // disable update of objects list while loading to avoid to show intermediate states
-    m_update_objects_list_on_loading = false;
-
-    const auto new_idxs = load_files(input_paths, true, false);
-    if (new_idxs.empty())
-    {
-        // error while loading
-        view3D->get_canvas3d()->enable_render(true);
-        m_update_objects_list_on_loading = true;
-        return;
-    }
-
-    for (const auto idx : new_idxs)
-    {
-        ModelObject *object = model.objects[idx];
-        object->config.apply(object_orig->config);
-
-        object->clear_instances();
-        for (const ModelInstance *instance : object_orig->instances)
-        {
-            object->add_instance(*instance);
-        }
-
-        for (const ModelVolume* v : object_orig->volumes)
-        {
-            if (v->is_modifier())
-                object->add_volume(*v);
-        }
-
-        Vec3d offset = object_orig->origin_translation - object->origin_translation;
-
-        if (object->volumes.size() == object_orig->volumes.size())
-        {
-            for (size_t i = 0; i < object->volumes.size(); i++)
-            {
-                object->volumes[i]->config.apply(object_orig->volumes[i]->config);
-                object->volumes[i]->translate(offset);
-            }
-        }
-
-        // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
-    }
-
-    // re-enable update of objects list
-    m_update_objects_list_on_loading = true;
-
-    // puts the new objects into the list
-    for (const auto idx : new_idxs)
-    {
-        wxGetApp().obj_list()->add_object_to_list(idx);
-    }
-
-    remove(obj_orig_idx);
-
-    // new GLVolumes have been created at this point, so update their printable state
-    for (size_t i = 0; i < model.objects.size(); ++i)
-    {
-        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
-    }
-
-    // re-enable render 
-    view3D->get_canvas3d()->enable_render(true);
-
-    // the previous call to remove() clears the selection
-    // select newly added objects
-    selection.clear();
-    for (const auto idx : new_idxs)
-    {
-        selection.add_instance((unsigned int)idx - 1, instance_idx, false);
-    }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
@@ -3724,10 +3624,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
             [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu, [this]() { return can_reload_from_disk(); }, q);
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
@@ -3755,13 +3653,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
         menu->AppendSeparator();
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
             [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr, [this]() { return can_reload_from_disk(); }, q);
-#else
-        append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
-            [this](wxCommandEvent&) { reload_from_disk(); });
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(false, true); });
@@ -3916,7 +3809,6 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 bool Plater::priv::can_reload_from_disk() const
 {
     // struct to hold selected ModelVolumes by their indices
@@ -3958,7 +3850,6 @@ bool Plater::priv::can_reload_from_disk() const
 
     return !paths.empty();
 }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
@@ -4743,12 +4634,10 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     }
 }
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 void Plater::reload_from_disk()
 {
     p->reload_from_disk();
 }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
 bool Plater::has_toolpaths_to_export() const
 {
@@ -5247,9 +5136,7 @@ bool Plater::can_copy_to_clipboard() const
 
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }

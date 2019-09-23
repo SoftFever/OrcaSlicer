@@ -1765,7 +1765,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     std::vector<ModelVolumeState> model_volume_state;
     std::vector<ModelVolumeState> aux_volume_state;
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
     struct GLVolumeState {
         GLVolumeState() :
             volume_idx(-1) {}
@@ -1776,7 +1775,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         // Volume index in the old GLVolume vector.
         size_t                      volume_idx;
     };
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     // SLA steps to pull the preview meshes for.
     typedef std::array<SLAPrintObjectStep, 2> SLASteps;
@@ -1789,9 +1787,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     std::vector<size_t> instance_ids_selected;
     std::vector<size_t> map_glvolume_old_to_new(m_volumes.volumes.size(), size_t(-1));
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
     std::vector<GLVolumeState> deleted_volumes;
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
     std::vector<GLVolume*> glvolumes_new;
     glvolumes_new.reserve(m_volumes.volumes.size());
     auto model_volume_state_lower = [](const ModelVolumeState& m1, const ModelVolumeState& m2) { return m1.geometry_id < m2.geometry_id; };
@@ -1872,14 +1868,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 volume_idx_wipe_tower_old = (int)volume_id;
             }
             if (!m_reload_delayed)
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
             {
                 deleted_volumes.emplace_back(volume, volume_id);
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                 delete volume;
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
             }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         }
         else {
             // This GLVolume will be reused.
@@ -1909,7 +1901,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     bool update_object_list = false;
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
     auto find_old_volume_id = [&deleted_volumes](const GLVolume::CompositeID& id) -> unsigned int {
         for (unsigned int i = 0; i < (unsigned int)deleted_volumes.size(); ++i)
         {
@@ -1919,7 +1910,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         return (unsigned int)-1;
     };
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
 
     if (m_volumes.volumes != glvolumes_new)
 		update_object_list = true;
@@ -1935,11 +1925,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
                 if (it->new_geometry()) {
                     // New volume.
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
                     unsigned int old_id = find_old_volume_id(it->composite_id);
                     if (old_id != -1)
                         map_glvolume_old_to_new[old_id] = m_volumes.volumes.size();
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                     m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
                     update_object_list = true;
