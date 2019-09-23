@@ -273,6 +273,8 @@ void ObjectList::create_objects_ctrl()
     AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
+    // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
+    // Therefore, force set column width.
     if (wxOSX)
     {
         GetColumn(colName)->SetWidth(20*em);
@@ -3682,10 +3684,10 @@ void ObjectList::msw_rescale()
     // update min size !!! A width of control shouldn't be a wxDefaultCoord
     SetMinSize(wxSize(1, 15 * em));
 
-    GetColumn(colName)->SetWidth(19 * em);
-    GetColumn(colPrint)->SetWidth( 2 * em);
+    GetColumn(colName    )->SetWidth(20 * em);
+    GetColumn(colPrint   )->SetWidth( 3 * em);
     GetColumn(colExtruder)->SetWidth( 8 * em);
-    GetColumn(colEditing)->SetWidth( 2 * em);
+    GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale all icons, used by ObjectList
     msw_rescale_icons();
