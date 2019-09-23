@@ -228,6 +228,7 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
+    BoundingBoxf bed_shape_bb() const;
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);

@@ -255,21 +255,30 @@ void ObjectList::create_objects_ctrl()
     EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
+    const int em = wxGetApp().em_unit();
+
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(),
-        colName, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, int(2 * wxGetApp().em_unit()),
+    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
+    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+
+    if (wxOSX)
+    {
+        GetColumn(colName)->SetWidth(20*em);
+        GetColumn(colPrint)->SetWidth(3*em);
+        GetColumn(colExtruder)->SetWidth(8*em);
+    }
 }
 
 void ObjectList::create_popup_menus()
@@ -279,6 +288,7 @@ void ObjectList::create_popup_menus()
     create_part_popupmenu(&m_menu_part);
     create_sla_object_popupmenu(&m_menu_sla_object);
     create_instance_popupmenu(&m_menu_instance);
+    create_default_popupmenu(&m_menu_default);
 }
 
 void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(nullptr)*/)
@@ -783,18 +793,34 @@ void ObjectList::OnChar(wxKeyEvent& event)
 
 void ObjectList::OnContextMenu(wxDataViewEvent&)
 {
-    list_manipulation();
+    list_manipulation(true);
 }
 
-void ObjectList::list_manipulation()
+void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
 {
     wxDataViewItem item;
     wxDataViewColumn* col = nullptr;
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
 
-    if (!item || col == nullptr) {
-        return;
+    /* Note: Under OSX right click doesn't send "selection changed" event.
+     * It means that Selection() will be return still previously selected item.
+     * Thus under OSX we should force UnselectAll(), when item and col are nullptr,
+     * and select new item otherwise.
+     */
+
+    if (!item) {
+        if (wxOSX && col == nullptr)
+            UnselectAll();
+        if (evt_context_menu) {
+            show_context_menu(evt_context_menu);
+            return;
+        }
+    }
+
+    if (wxOSX && item && col) {
+        UnselectAll();
+        Select(item);
     }
 
     const wxString title = col->GetTitle();
@@ -802,15 +828,21 @@ void ObjectList::list_manipulation()
     if (title == " ")
         toggle_printable_state(item);
     else if (title == _("Editing"))
-        show_context_menu();
+        show_context_menu(evt_context_menu);
     else if (title == _("Name"))
     {
-        int obj_idx, vol_idx;
-        get_selected_item_indexes(obj_idx, vol_idx, item);
+        if (wxOSX)
+            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
 
-        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-            pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
-            fix_through_netfabb();
+        if (is_windows10())
+        {
+            int obj_idx, vol_idx;
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+
+            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+                pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
+                fix_through_netfabb();
+        }
     }
 
 #ifndef __WXMSW__
@@ -818,7 +850,7 @@ void ObjectList::list_manipulation()
 #endif //__WXMSW__
 }
 
-void ObjectList::show_context_menu()
+void ObjectList::show_context_menu(const bool evt_context_menu)
 {
     if (multiple_selection())
     {
@@ -831,22 +863,26 @@ void ObjectList::show_context_menu()
     }
 
     const auto item = GetSelection();
+    wxMenu* menu {nullptr};
     if (item)
     {
         const ItemType type = m_objects_model->GetItemType(item);
         if (!(type & (itObject | itVolume | itLayer | itInstance)))
             return;
 
-        wxMenu* menu = type & itInstance ? &m_menu_instance :
+        menu = type & itInstance ? &m_menu_instance :
                        type & itLayer ? &m_menu_layer :
                        m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? &m_menu_part :
                        printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
         if (!(type & itInstance))
             append_menu_item_settings(menu);
-
-        wxGetApp().plater()->PopupMenu(menu);
     }
+    else if (evt_context_menu)
+        menu = &m_menu_default;
+
+    if (menu)
+        wxGetApp().plater()->PopupMenu(menu);
 }
 
 void ObjectList::copy()
@@ -1286,13 +1322,16 @@ void ObjectList::show_settings(const wxDataViewItem settings_item)
 wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type) {
     auto sub_menu = new wxMenu;
 
-    if (wxGetApp().get_mode() == comExpert) {
+    if (wxGetApp().get_mode() == comExpert && type != ModelVolumeType::INVALID) {
     append_menu_item(sub_menu, wxID_ANY, _(L("Load")) + " " + dots, "",
         [this, type](wxCommandEvent&) { load_subobject(type); }, "", menu);
     sub_menu->AppendSeparator();
     }
 
-    for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") }) {
+    for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") })
+    {
+        if (type == ModelVolumeType::INVALID && item == "Slab")
+            continue;
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu);
     }
@@ -1600,6 +1639,12 @@ void ObjectList::create_instance_popupmenu(wxMenu*menu)
     }, m_menu_item_split_instances->GetId());
 }
 
+void ObjectList::create_default_popupmenu(wxMenu*menu)
+{
+    wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
+    append_submenu(menu, sub_menu, wxID_ANY, _(L("Add Shape")), "", "add_part");
+}
+
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 {
     wxMenu *menu = new wxMenu;
@@ -1738,8 +1783,38 @@ void ObjectList::load_part( ModelObject* model_object,
 
 }
 
+static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf3& bb)
+{
+    TriangleMesh mesh;
+
+    const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
+
+    if (type_name == "Box")
+        // Sitting on the print bed, left front front corner at (0, 0).
+        mesh = make_cube(side, side, side);
+    else if (type_name == "Cylinder")
+        // Centered around 0, sitting on the print bed.
+        // The cylinder has the same volume as the box above.
+        mesh = make_cylinder(0.564 * side, side);
+    else if (type_name == "Sphere")
+        // Centered around 0, half the sphere below the print bed, half above.
+        // The sphere has the same volume as the box above.
+        mesh = make_sphere(0.62 * side, PI / 18);
+    else if (type_name == "Slab")
+        // Sitting on the print bed, left front front corner at (0, 0).
+        mesh = make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
+    mesh.repair();
+
+    return mesh;
+}
+
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
 {
+    if (type == ModelVolumeType::INVALID) {
+        load_shape_object(type_name);
+        return;
+    }
+
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) 
         return;
@@ -1762,26 +1837,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     // Bounding box of the selected instance in world coordinate system including the translation, without modifiers.
     BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
 
-    const wxString name = _(L("Generic")) + "-" + _(type_name);
-    TriangleMesh mesh;
-
-    double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
-
-    if (type_name == "Box")
-        // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = make_cube(side, side, side);
-    else if (type_name == "Cylinder")
-        // Centered around 0, sitting on the print bed.
-        // The cylinder has the same volume as the box above.
-        mesh = make_cylinder(0.564 * side, side);
-    else if (type_name == "Sphere")
-        // Centered around 0, half the sphere below the print bed, half above.
-        // The sphere has the same volume as the box above.
-        mesh = make_sphere(0.62 * side, PI / 18);
-    else if (type_name == "Slab")
-        // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = make_cube(instance_bb.size().x()*1.5, instance_bb.size().y()*1.5, instance_bb.size().z()*0.5);
-    mesh.repair();
+    TriangleMesh mesh = create_mesh(type_name, instance_bb);
     
 	// Mesh will be centered when loading.
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
@@ -1803,6 +1859,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
     }
 
+    const wxString name = _(L("Generic")) + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1818,6 +1875,57 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
+}
+
+void ObjectList::load_shape_object(const std::string& type_name)
+{
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    assert(selection.get_object_idx() == -1); // Add nothing is something is selected on 3DScene
+    if (selection.get_object_idx() != -1)
+        return;
+
+    const int obj_idx = m_objects->size();
+    if (obj_idx < 0)
+        return;
+
+    take_snapshot(_(L("Add Shape")));
+
+    // Create mesh
+    BoundingBoxf3 bb;
+    TriangleMesh mesh = create_mesh(type_name, bb);
+
+    // Add mesh to model as a new object
+    Model& model = wxGetApp().plater()->model();
+    const wxString name = _(L("Shape")) + "-" + _(type_name);
+
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
+    std::vector<size_t> object_idxs;
+    ModelObject* new_object = model.add_object();
+    new_object->name = into_u8(name);
+    new_object->add_instance(); // each object should have at list one instance
+
+    ModelVolume* new_volume = new_object->add_volume(mesh);
+    new_volume->name = into_u8(name);
+    // set a default extruder value, since user can't add it manually
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    new_object->invalidate_bounding_box();
+
+    const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
+    new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
+
+    object_idxs.push_back(model.objects.size() - 1);
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
+    paste_objects_into_list(object_idxs);
+
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
 }
 
 void ObjectList::del_object(const int obj_idx)
@@ -3606,7 +3714,8 @@ void ObjectList::msw_rescale()
                                       &m_menu_part, 
                                       &m_menu_sla_object, 
                                       &m_menu_instance, 
-                                      &m_menu_layer })
+                                      &m_menu_layer,
+                                      &m_menu_default})
         msw_rescale_menu(menu);
 
     Layout();

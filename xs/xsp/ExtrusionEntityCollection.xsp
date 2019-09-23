@@ -31,13 +31,11 @@
     ExtrusionEntityCollection* flatten()
         %code{%
             RETVAL = new ExtrusionEntityCollection();
-            THIS->flatten(RETVAL);
+            *RETVAL = THIS->flatten();
         %};
     double min_mm3_per_mm();
     bool empty()
         %code{% RETVAL = THIS->entities.empty(); %};
-    std::vector<size_t> orig_indices()
-        %code{% RETVAL = THIS->orig_indices; %};
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
 %{
