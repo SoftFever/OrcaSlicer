@@ -1674,6 +1674,23 @@ namespace Slic3r {
                 return false;
             }
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            Slic3r::Geometry::Transformation transform;
+            if (m_version > 1)
+            {
+                // extract the volume transformation from the volume's metadata, if present
+                for (const Metadata& metadata : volume_data.metadata)
+                {
+                    if (metadata.key == MATRIX_KEY)
+                    {
+                        transform.set_from_string(metadata.value);
+                        break;
+                    }
+                }
+            }
+            Transform3d inv_matrix = transform.get_matrix().inverse();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
             stl_file    &stl             = triangle_mesh.stl;
@@ -1691,7 +1708,16 @@ namespace Slic3r {
                 stl_facet& facet = stl.facet_start[i];
                 for (unsigned int v = 0; v < 3; ++v)
                 {
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+                    unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
+                    Vec3f vertex(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
+                    if (m_version > 1)
+                        // revert the vertices to the original mesh reference system
+                        vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
+                    ::memcpy(facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
+#else
                     ::memcpy(facet.vertex[v].data(), (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
                 }
             }
 
@@ -1699,12 +1725,20 @@ namespace Slic3r {
 			triangle_mesh.repair();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
-#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            // apply the volume matrix taken from the metadata, if present
+            if (m_version > 1)
+                volume->set_transformation(transform);
+#else
             volume->center_geometry_after_creation();
-#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             volume->calculate_convex_hull();
 
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            // apply the remaining volume's metadata
+#else
             // apply volume's name and config data
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             for (const Metadata& metadata : volume_data.metadata)
             {
                 if (metadata.key == NAME_KEY)
@@ -1714,12 +1748,6 @@ namespace Slic3r {
                 else if (metadata.key == VOLUME_TYPE_KEY)
                     volume->set_type(ModelVolume::type_from_string(metadata.value));
 #if ENABLE_ENHANCED_RELOAD_FROM_DISK
-                else if (metadata.key == MATRIX_KEY)
-                {
-                    Slic3r::Geometry::Transformation transform;
-                    transform.set_from_string(metadata.value);
-                    volume->set_transformation(transform);
-                }
                 else if (metadata.key == SOURCE_FILE_KEY)
                     volume->source.input_file = metadata.value;
                 else if (metadata.key == SOURCE_OBJECT_ID_KEY)
@@ -2118,19 +2146,8 @@ namespace Slic3r {
 
             vertices_count += (int)its.vertices.size();
 
-#if !ENABLE_ENHANCED_RELOAD_FROM_DISK
             const Transform3d& matrix = volume->get_matrix();
-#endif // !ENABLE_ENHANCED_RELOAD_FROM_DISK
 
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
-            for (const Vec3f& v : its.vertices)
-            {
-                stream << "     <" << VERTEX_TAG << " ";
-                stream << "x=\"" << v(0) << "\" ";
-                stream << "y=\"" << v(1) << "\" ";
-                stream << "z=\"" << v(2) << "\" />\n";
-            }
-#else
             for (size_t i = 0; i < its.vertices.size(); ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
@@ -2139,7 +2156,6 @@ namespace Slic3r {
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
             }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         }
 
         stream << "    </" << VERTICES_TAG << ">\n";
