@@ -568,10 +568,30 @@ void AMFParserContext::endElement(const char * /* name */)
         stl.stats.number_of_facets = int(m_volume_facets.size() / 3);
         stl.stats.original_num_facets = stl.stats.number_of_facets;
         stl_allocate(&stl);
+
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+        Slic3r::Geometry::Transformation transform;
+        if (m_version > 2)
+            transform = m_volume->get_transformation();
+
+        Transform3d inv_matrix = transform.get_matrix().inverse();
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
+
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
-            for (unsigned int v = 0; v < 3; ++ v)
+            for (unsigned int v = 0; v < 3; ++v)
+#if ENABLE_ENHANCED_RELOAD_FROM_DISK
+            {
+                unsigned int tri_id = m_volume_facets[i++] * 3;
+                Vec3f vertex(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
+                if (m_version > 2)
+                    // revert the vertices to the original mesh reference system
+                    vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
+                ::memcpy((void*)facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
+            }
+#else
                 memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
+#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
         }
         stl_get_size(&stl);
         mesh.repair();
@@ -1067,18 +1087,6 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 			if (! volume->mesh().has_shared_vertices())
 				throw std::runtime_error("store_amf() requires shared vertices");
             const indexed_triangle_set &its = volume->mesh().its;
-#if ENABLE_ENHANCED_RELOAD_FROM_DISK
-            for (const Vec3f& v : its.vertices)
-            {
-                stream << "         <vertex>\n";
-                stream << "           <coordinates>\n";
-                stream << "             <x>" << v(0) << "</x>\n";
-                stream << "             <y>" << v(1) << "</y>\n";
-                stream << "             <z>" << v(2) << "</z>\n";
-                stream << "           </coordinates>\n";
-                stream << "         </vertex>\n";
-            }
-#else
             const Transform3d& matrix = volume->get_matrix();
             for (size_t i = 0; i < its.vertices.size(); ++i) {
                 stream << "         <vertex>\n";
@@ -1090,7 +1098,6 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
-#endif // ENABLE_ENHANCED_RELOAD_FROM_DISK
             num_vertices += (int)its.vertices.size();
         }
         stream << "      </vertices>\n";
