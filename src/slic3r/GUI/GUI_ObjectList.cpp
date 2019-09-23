@@ -255,21 +255,32 @@ void ObjectList::create_objects_ctrl()
     EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
+    const int em = wxGetApp().em_unit();
+
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(),
-        colName, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, int(2 * wxGetApp().em_unit()),
+    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
+    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+
+    // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
+    // Therefore, force set column width.
+    if (wxOSX)
+    {
+        GetColumn(colName)->SetWidth(20*em);
+        GetColumn(colPrint)->SetWidth(3*em);
+        GetColumn(colExtruder)->SetWidth(8*em);
+    }
 }
 
 void ObjectList::create_popup_menus()
@@ -801,8 +812,13 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
      */
 
     if (!item) {
-        if (wxOSX && col == nullptr)
-            UnselectAll();
+        if (col == nullptr) {
+            if (wxOSX)
+                UnselectAll();
+            else
+                return;
+        }
+
         if (evt_context_menu) {
             show_context_menu(evt_context_menu);
             return;
@@ -822,12 +838,18 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
         show_context_menu(evt_context_menu);
     else if (title == _("Name"))
     {
-        int obj_idx, vol_idx;
-        get_selected_item_indexes(obj_idx, vol_idx, item);
+        if (wxOSX)
+            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
 
-        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-            pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
-            fix_through_netfabb();
+        if (is_windows10())
+        {
+            int obj_idx, vol_idx;
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+
+            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+                pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
+                fix_through_netfabb();
+        }
     }
 
 #ifndef __WXMSW__
@@ -1315,7 +1337,7 @@ wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeTy
 
     for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") })
     {
-        if (type == ModelVolumeType::INVALID && item == "Slab")
+        if (type == ModelVolumeType::INVALID && strncmp(item, "Slab", 4) == 0)
             continue;
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu);
@@ -3663,10 +3685,10 @@ void ObjectList::msw_rescale()
     // update min size !!! A width of control shouldn't be a wxDefaultCoord
     SetMinSize(wxSize(1, 15 * em));
 
-    GetColumn(colName)->SetWidth(19 * em);
-    GetColumn(colPrint)->SetWidth( 2 * em);
+    GetColumn(colName    )->SetWidth(20 * em);
+    GetColumn(colPrint   )->SetWidth( 3 * em);
     GetColumn(colExtruder)->SetWidth( 8 * em);
-    GetColumn(colEditing)->SetWidth( 2 * em);
+    GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale all icons, used by ObjectList
     msw_rescale_icons();

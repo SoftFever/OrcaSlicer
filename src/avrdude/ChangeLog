@@ -1,3 +1,12 @@
+2018-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+(cherry-picked)
+	Submitted by Reinhard Max
+	patch #8311: Add IPv6 support to the -Pnet:host:port option
+	* ser_posix.c (net_open): Rewrite to use getaddrinfo()
+	rather than gethostbyname()
+	* avrdude.1: Document IPv6 feature
+	* doc/avrdude.texi: (Dito)
+
 2016-05-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Hannes Jochriem:

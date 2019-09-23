@@ -557,6 +557,9 @@ higher level protocol (as opposed to bit-bang style programmers),
 In this case, instead of trying to open a local device, a TCP
 network connection to (TCP) @var{port} on @var{host}
 is established.
+Square brackets may be placed around @var{host} to improve
+readability for numeric IPv6 addresses (e.g.
+@code{net:[2001:db8::42]:1337}).
 The remote endpoint is assumed to be a terminal or console server
 that connects the network stream to a local serial port where the
 actual programmer has been attached to.
@@ -564,6 +567,8 @@ The port is assumed to be properly configured, for example using a
 transparent 8-bit data connection without parity at 115200 Baud
 for a STK500.
 
+Note: The ability to handle IPv6 hostnames and addresses is limited to
+Posix systems (by now).
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
