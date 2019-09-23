@@ -359,7 +359,7 @@ std::string GCodePreviewData::get_legend_title() const
     case Extrusion::Feedrate:
         return L("Speed (mm/s)");
     case Extrusion::VolumetricRate:
-        return L("Volumetric flow rate (mm3/s)");
+        return L("Volumetric flow rate (mm³/s)");
     case Extrusion::Tool:
         return L("Tool");
     case Extrusion::ColorPrint:
