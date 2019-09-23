@@ -81,17 +81,16 @@ inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance, const PolygonTag
     using ClipperLib::etClosedPolygon;
     using ClipperLib::Paths;
 
-    // If the input is not at least a triangle, we can not do this algorithm
-    if(sh.Contour.size() <= 3 ||
-       std::any_of(sh.Holes.begin(), sh.Holes.end(),
-                   [](const PathImpl& p) { return p.size() <= 3; })
-       ) throw GeometryException(GeomErr::OFFSET);
-
-    ClipperOffset offs;
     Paths result;
-    offs.AddPath(sh.Contour, jtMiter, etClosedPolygon);
-    offs.AddPaths(sh.Holes, jtMiter, etClosedPolygon);
-    offs.Execute(result, static_cast<double>(distance));
+    
+    try {
+        ClipperOffset offs;
+        offs.AddPath(sh.Contour, jtMiter, etClosedPolygon);
+        offs.AddPaths(sh.Holes, jtMiter, etClosedPolygon);
+        offs.Execute(result, static_cast<double>(distance));
+    } catch (ClipperLib::clipperException &) {
+        throw GeometryException(GeomErr::OFFSET);
+    }
 
     // Offsetting reverts the orientation and also removes the last vertex
     // so boost will not have a closed polygon.
