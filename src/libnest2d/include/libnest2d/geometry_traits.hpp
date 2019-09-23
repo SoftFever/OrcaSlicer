@@ -1144,7 +1144,7 @@ inline bool isInside(const TBGuest& ibb, const TBHost& box,
     auto minY = getY(box.minCorner());
     auto maxY = getY(box.maxCorner());
 
-    return iminX > minX && imaxX < maxX && iminY > minY && imaxY < maxY;
+    return iminX >= minX && imaxX <= maxX && iminY >= minY && imaxY <= maxY;
 }
 
 template<class S, class TB>
