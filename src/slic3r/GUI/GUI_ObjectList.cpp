@@ -810,8 +810,13 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
      */
 
     if (!item) {
-        if (wxOSX && col == nullptr)
-            UnselectAll();
+        if (col == nullptr) {
+            if (wxOSX)
+                UnselectAll();
+            else
+                return;
+        }
+
         if (evt_context_menu) {
             show_context_menu(evt_context_menu);
             return;
@@ -1330,7 +1335,7 @@ wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeTy
 
     for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") })
     {
-        if (type == ModelVolumeType::INVALID && item == "Slab")
+        if (type == ModelVolumeType::INVALID && strncmp(item, "Slab", 4) == 0)
             continue;
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu);
