@@ -815,7 +815,9 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
         if (col == nullptr) {
             if (wxOSX)
                 UnselectAll();
-            else
+            else if (!evt_context_menu) 
+                // Case, when last item was deleted and under GTK was called wxEVT_DATAVIEW_SELECTION_CHANGED,
+                // which invoked next list_manipulation(false)
                 return;
         }
 
