@@ -753,9 +753,9 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     }
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
@@ -773,9 +773,9 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
     wxGetApp().plater()->changed_objects(object_idxs);
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 #ifdef __WXOSX__
@@ -1720,9 +1720,9 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (sel_item)
         select_item(sel_item);
 
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_part( ModelObject* model_object,
@@ -1858,9 +1858,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
     select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
         new_volume->get_mesh_errors_count()>0));
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_shape_object(const std::string& type_name)
