@@ -125,7 +125,7 @@ private:
     mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
-    bool is_point_clipped(const Vec3d& point) const;
+    bool is_mesh_point_clipped(const Vec3d& point) const;
     //void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
