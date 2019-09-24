@@ -194,6 +194,19 @@ ClipperLib::Paths Slic3rMultiPoints_to_ClipperPaths(const Polygons &input)
     return retval;
 }
 
+ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const ExPolygons &input)
+{
+    ClipperLib::Paths retval;
+    for (auto &ep : input) {
+        retval.emplace_back(Slic3rMultiPoint_to_ClipperPath(ep.contour));
+        
+        for (auto &h : ep.holes)
+            retval.emplace_back(Slic3rMultiPoint_to_ClipperPath(h));
+    }
+        
+    return retval;
+}
+
 ClipperLib::Paths Slic3rMultiPoints_to_ClipperPaths(const Polylines &input)
 {
     ClipperLib::Paths retval;
@@ -472,14 +485,16 @@ ExPolygons offset2_ex(const ExPolygons &expolygons, const float delta1,
     return union_ex(polys);
 }
 
-template <class T>
-T
-_clipper_do(const ClipperLib::ClipType clipType, const Polygons &subject, 
-    const Polygons &clip, const ClipperLib::PolyFillType fillType, const bool safety_offset_)
+template<class T, class TSubj, class TClip>
+T _clipper_do(const ClipperLib::ClipType     clipType,
+              TSubj &&                        subject,
+              TClip &&                        clip,
+              const ClipperLib::PolyFillType fillType,
+              const bool                     safety_offset_)
 {
     // read input
-    ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
-    ClipperLib::Paths input_clip    = Slic3rMultiPoints_to_ClipperPaths(clip);
+    ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(std::forward<TSubj>(subject));
+    ClipperLib::Paths input_clip    = Slic3rMultiPoints_to_ClipperPaths(std::forward<TClip>(clip));
     
     // perform safety offset
     if (safety_offset_) {
@@ -648,10 +663,24 @@ _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons 
     return retval;
 }
 
-ClipperLib::PolyTree
-union_pt(const Polygons &subject, bool safety_offset_)
+ClipperLib::PolyTree union_pt(const Polygons &subject, bool safety_offset_)
 {
     return _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, subject, Polygons(), ClipperLib::pftEvenOdd, safety_offset_);
+}
+
+ClipperLib::PolyTree union_pt(const ExPolygons &subject, bool safety_offset_)
+{
+    return _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, subject, Polygons(), ClipperLib::pftEvenOdd, safety_offset_);
+}
+
+ClipperLib::PolyTree union_pt(Polygons &&subject, bool safety_offset_)
+{
+    return _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, std::move(subject), Polygons(), ClipperLib::pftEvenOdd, safety_offset_);
+}
+
+ClipperLib::PolyTree union_pt(ExPolygons &&subject, bool safety_offset_)
+{
+    return _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, std::move(subject), Polygons(), ClipperLib::pftEvenOdd, safety_offset_);
 }
 
 Polygons
@@ -664,28 +693,123 @@ union_pt_chained(const Polygons &subject, bool safety_offset_)
     return retval;
 }
 
-void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
+static ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes)
+{
+    // collect ordering points
+    Points ordering_points;
+    ordering_points.reserve(nodes.size());
+    for (const ClipperLib::PolyNode *node : nodes)
+        ordering_points.emplace_back(Point(node->Contour.front().X, node->Contour.front().Y));
+    
+    // perform the ordering
+    ClipperLib::PolyNodes ordered_nodes = chain_clipper_polynodes(ordering_points, nodes);
+    
+    return ordered_nodes;
+}
+
+enum class e_ordering {
+    ORDER_POLYNODES,
+    DONT_ORDER_POLYNODES
+};
+
+template<e_ordering o>
+void foreach_node(const ClipperLib::PolyNodes &nodes,
+                  std::function<void(const ClipperLib::PolyNode *)> fn);
+
+template<> void foreach_node<e_ordering::DONT_ORDER_POLYNODES>(
+    const ClipperLib::PolyNodes &                     nodes,
+    std::function<void(const ClipperLib::PolyNode *)> fn)
+{
+    for (auto &n : nodes) fn(n);
+}
+
+template<> void foreach_node<e_ordering::ORDER_POLYNODES>(
+    const ClipperLib::PolyNodes &                     nodes,
+    std::function<void(const ClipperLib::PolyNode *)> fn)
+{
+    auto ordered_nodes = order_nodes(nodes);
+    for (auto &n : ordered_nodes) fn(n);
+}
+
+template<e_ordering o>
+void _traverse_pt(const ClipperLib::PolyNodes &nodes, Polygons *retval)
 {
     /* use a nearest neighbor search to order these children
        TODO: supply start_near to chained_path() too? */
     
-    // collect ordering points
-    Points ordering_points;
-    ordering_points.reserve(nodes.size());
-    for (ClipperLib::PolyNode *pn : nodes)
-        ordering_points.emplace_back(Point(pn->Contour.front().X, pn->Contour.front().Y));
-    
-    // perform the ordering
-    ClipperLib::PolyNodes ordered_nodes = chain_clipper_polynodes(ordering_points, nodes);
-
     // push results recursively
-    for (ClipperLib::PolyNode *pn : ordered_nodes) {
+    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
         // traverse the next depth
-        traverse_pt(pn->Childs, retval);
-        retval->emplace_back(ClipperPath_to_Slic3rPolygon(pn->Contour));
-        if (pn->IsHole())
-        	retval->back().reverse(); // ccw
-    }
+        _traverse_pt<o>(node->Childs, retval);
+        retval->emplace_back(ClipperPath_to_Slic3rPolygon(node->Contour));
+        if (node->IsHole()) retval->back().reverse();  // ccw
+    });
+}
+
+template<e_ordering o>
+void _traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *retval)
+{
+    if (!retval || !tree) return;
+    
+    ExPolygons &retv = *retval;
+    
+    std::function<void(const ClipperLib::PolyNode*, ExPolygon&)> hole_fn;
+    
+    auto contour_fn = [&retv, &hole_fn](const ClipperLib::PolyNode *pptr) {
+        ExPolygon poly;
+        poly.contour.points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
+        auto fn = std::bind(hole_fn, std::placeholders::_1, poly);
+        foreach_node<o>(pptr->Childs, fn);
+        retv.push_back(poly);
+    };
+    
+    hole_fn = [&contour_fn](const ClipperLib::PolyNode *pptr, ExPolygon& poly)
+    {   
+        poly.holes.emplace_back();
+        poly.holes.back().points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
+        foreach_node<o>(pptr->Childs, contour_fn);
+    };
+    
+    contour_fn(tree);
+}
+
+template<e_ordering o>
+void _traverse_pt(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
+{
+    // Here is the actual traverse
+    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
+        _traverse_pt<o>(node, retval);
+    });
+}
+
+void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *retval)
+{
+    _traverse_pt<e_ordering::ORDER_POLYNODES>(tree, retval);
+}
+
+void traverse_pt_unordered(const ClipperLib::PolyNode *tree, ExPolygons *retval)
+{
+    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(tree, retval);
+}
+
+void traverse_pt(const ClipperLib::PolyNodes &nodes, Polygons *retval)
+{
+    _traverse_pt<e_ordering::ORDER_POLYNODES>(nodes, retval);
+}
+
+void traverse_pt(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
+{
+    _traverse_pt<e_ordering::ORDER_POLYNODES>(nodes, retval);
+}
+
+void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Polygons *retval)
+{
+    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(nodes, retval);
+}
+
+void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
+{
+    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(nodes, retval);
 }
 
 Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)
