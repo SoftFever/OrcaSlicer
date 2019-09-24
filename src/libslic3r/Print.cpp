@@ -252,7 +252,7 @@ bool Print::is_step_done(PrintObjectStep step) const
 {
     if (m_objects.empty())
         return false;
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
         if (! object->is_step_done_unguarded(step))
             return false;

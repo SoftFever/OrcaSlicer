@@ -928,8 +928,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     if (items_count > 1)
         m_original_height += (items_count - 1) * scaled_square_contour;
 
-	m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
-	m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
+    m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
+    m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1882,7 +1882,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
-	bool update_object_list = false;
+    bool update_object_list = false;
 
     if (m_volumes.volumes != glvolumes_new)
 		update_object_list = true;
@@ -5070,14 +5070,14 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 		    for (const GCodePreviewData::Extrusion::Layer &layer : preview_data.extrusion.layers)
 		        for (const ExtrusionPath &path : layer.paths)
 		        	++ num_paths_per_role[size_t(path.role())];
-			std::vector<std::vector<float>> roles_values;
+            std::vector<std::vector<float>> roles_values;
 			roles_values.assign(size_t(erCount), std::vector<float>());
 		    for (size_t i = 0; i < roles_values.size(); ++ i)
 		    	roles_values[i].reserve(num_paths_per_role[i]);
-		    for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
+            for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
 		        for (const ExtrusionPath& path : layer.paths)
 		        	roles_values[size_t(path.role())].emplace_back(Helper::path_filter(preview_data.extrusion.view_type, path));
-			roles_filters.reserve(size_t(erCount));
+            roles_filters.reserve(size_t(erCount));
 			size_t num_buffers = 0;
 		    for (std::vector<float> &values : roles_values) {
 		    	sort_remove_duplicates(values);

@@ -249,7 +249,7 @@ ConfigOption* ConfigOptionDef::create_default_option() const
             // Special case: For a DynamicConfig, convert a templated enum to a generic enum.
             new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt()) :
             this->default_value->clone();
-	return this->create_empty_option();
+    return this->create_empty_option();
 }
 
 // Assignment of the serialization IDs is not thread safe. The Defs shall be initialized from the main thread!

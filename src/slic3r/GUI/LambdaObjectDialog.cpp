@@ -192,7 +192,7 @@ ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(const wx
     else
         panel->SetSizer(optgroup->sizer);
 
-	return optgroup;
+    return optgroup;
 }
 
 
