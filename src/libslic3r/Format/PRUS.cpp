@@ -278,7 +278,7 @@ static void extract_model_from_archive(
         instance->set_rotation(instance_rotation);
         instance->set_scaling_factor(instance_scaling_factor);
         instance->set_offset(instance_offset);
-        if (group_id != (size_t)-1)
+        if (group_id != (unsigned int)(-1))
             group_to_model_object[group_id] = model_object;
     } else {
         // This is not the 1st mesh of a group. Add it to the ModelObject.

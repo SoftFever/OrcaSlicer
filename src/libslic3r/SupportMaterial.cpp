@@ -2934,20 +2934,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
-    InfillPattern           infill_pattern;
+    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipRectilinear);
     std::vector<float>      angles;
     angles.push_back(base_angle);
-    switch (support_pattern) {
-    case smpRectilinearGrid:
+
+    if (support_pattern == smpRectilinearGrid)
         angles.push_back(interface_angle);
-        // fall through
-    case smpRectilinear:
-        infill_pattern = ipRectilinear;
-        break;
-    case smpHoneycomb:
-        infill_pattern = ipHoneycomb;
-        break;
-    }
+
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
 
 //    const coordf_t link_max_length_factor = 3.;
