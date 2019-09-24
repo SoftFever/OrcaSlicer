@@ -349,15 +349,18 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
     toggle_field("pad_wall_thickness", pad_en);
     toggle_field("pad_wall_height", pad_en);
+    toggle_field("pad_brim_size", pad_en);
     toggle_field("pad_max_merge_distance", pad_en);
  // toggle_field("pad_edge_radius", supports_en);
     toggle_field("pad_wall_slope", pad_en);
     toggle_field("pad_around_object", pad_en);
+    toggle_field("pad_around_object_everywhere", pad_en);
 
     bool zero_elev = config->opt_bool("pad_around_object") && pad_en;
 
     toggle_field("support_object_elevation", supports_en && !zero_elev);
     toggle_field("pad_object_gap", zero_elev);
+    toggle_field("pad_around_object_everywhere", zero_elev);
     toggle_field("pad_object_connector_stride", zero_elev);
     toggle_field("pad_object_connector_width", zero_elev);
     toggle_field("pad_object_connector_penetration", zero_elev);

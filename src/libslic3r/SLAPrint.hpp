@@ -21,7 +21,7 @@ enum SLAPrintObjectStep : unsigned int {
 	slaposObjectSlice,
 	slaposSupportPoints,
 	slaposSupportTree,
-	slaposBasePool,
+	slaposPad,
     slaposSliceSupports,
 	slaposCount
 };
@@ -54,7 +54,7 @@ public:
     bool                        is_left_handed() const { return m_left_handed; }
 
     struct Instance {
-        Instance(ObjectID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
+        Instance(ObjectID inst_id, const Point &shft, float rot) : instance_id(inst_id), shift(shft), rotation(rot) {}
         bool operator==(const Instance &rhs) const { return this->instance_id == rhs.instance_id && this->shift == rhs.shift && this->rotation == rhs.rotation; }
         // ID of the corresponding ModelInstance.
         ObjectID instance_id;

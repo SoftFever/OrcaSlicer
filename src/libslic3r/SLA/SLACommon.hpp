@@ -175,6 +175,8 @@ public:
     }
 };
 
+using PointSet = Eigen::MatrixXd;
+
 } // namespace sla
 } // namespace Slic3r
 
