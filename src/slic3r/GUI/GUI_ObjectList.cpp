@@ -1901,6 +1901,9 @@ void ObjectList::load_shape_object(const std::string& type_name)
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
 
+    new_object->center_around_origin();
+    new_object->ensure_on_bed();
+
     const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
     new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
 
