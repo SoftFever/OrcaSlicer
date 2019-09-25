@@ -3389,10 +3389,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     m_sidebar_field = focus_on ? opt_key : "";
 
     if (!m_sidebar_field.empty())
-    {
         m_gizmos.reset_all_states();
-        m_dirty = true;
-    }
+
+    m_dirty = true;
 }
 
 void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
