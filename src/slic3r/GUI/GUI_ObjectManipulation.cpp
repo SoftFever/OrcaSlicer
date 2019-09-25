@@ -124,6 +124,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     , m_focused_option("")
 #endif // __APPLE__
 {
+    m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
+
+    // Load bitmaps to be used for the mirroring buttons:
+    m_mirror_bitmap_on     = ScalableBitmap(parent, "mirroring_on");
+    m_mirror_bitmap_off    = ScalableBitmap(parent, "mirroring_off");
+    m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
+
     const int border = wxOSX ? 0 : 4;
     const int em = wxGetApp().em_unit();
     m_main_grid_sizer = new wxFlexGridSizer(2, 3, 3); // "Name/label", "String name / Editors"
@@ -225,8 +232,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
 
     // Add editors grid sizer
-    m_editors_grid_sizer = new wxFlexGridSizer(5, 3, 3); // "Name/label", "String name / Editors"
-    m_editors_grid_sizer->SetFlexibleDirection(wxBOTH);
+    wxFlexGridSizer* editors_grid_sizer = new wxFlexGridSizer(5, 3, 3); // "Name/label", "String name / Editors"
+    editors_grid_sizer->SetFlexibleDirection(wxBOTH);
 
     // Add Axes labels with icons
     static const char axes[] = { 'X', 'Y', 'Z' };
@@ -283,33 +290,28 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             UpdateAndShow(true);
         });
 
-        m_editors_grid_sizer->Add(sizer, 0, wxALIGN_CENTER_HORIZONTAL);        
+        editors_grid_sizer->Add(sizer, 0, wxALIGN_CENTER_HORIZONTAL);
     }
 
-    m_editors_grid_sizer->AddStretchSpacer(1);
-    m_editors_grid_sizer->AddStretchSpacer(1);
+    editors_grid_sizer->AddStretchSpacer(1);
+    editors_grid_sizer->AddStretchSpacer(1);
 
     // add EditBoxes 
-    auto add_edit_boxes = [this, em, parent](std::string opt_key, int axis)
+    auto add_edit_boxes = [this, editors_grid_sizer](const std::string& opt_key, int axis)
     {
-        wxTextCtrl* editor = new wxTextCtrl(parent, wxID_ANY, wxEmptyString, 
-                                            wxDefaultPosition, wxSize(5 * em, wxDefaultCoord),
-                                            wxTE_PROCESS_ENTER);
+        ManipulationEditor* editor = new ManipulationEditor(this, opt_key, axis);
+        m_editors.push_back(editor);
 
-        set_font_and_background_style(editor, wxGetApp().normal_font());
-#ifdef __WXOSX__
-        editor->OSXDisableAllSmartSubstitutions();
-#endif // __WXOSX__
-        m_editors_grid_sizer->Add(editor, 1, wxEXPAND);
+        editors_grid_sizer->Add(editor, 1, wxEXPAND);
     };
     
     // add Units 
-    auto add_unit_text = [this, parent](std::string unit)
+    auto add_unit_text = [this, parent, editors_grid_sizer](std::string unit)
     {
         wxStaticText* unit_text = new wxStaticText(parent, wxID_ANY, _(unit));
 
         set_font_and_background_style(unit_text, wxGetApp().normal_font());
-        m_editors_grid_sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+        editors_grid_sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
     };
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
@@ -336,7 +338,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_position_value(2, diff.z());
         }
         });
-    m_editors_grid_sizer->Add(m_drop_to_bed_button);
+    editors_grid_sizer->Add(m_drop_to_bed_button);
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("rotation", axis_idx);
@@ -370,7 +372,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
         UpdateAndShow(true);
     });
-    m_editors_grid_sizer->Add(m_reset_rotation_button);
+    editors_grid_sizer->Add(m_reset_rotation_button);
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("scale", axis_idx);
@@ -385,24 +387,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         change_scale_value(1, 100.);
         change_scale_value(2, 100.);
     });
-    m_editors_grid_sizer->Add(m_reset_scale_button);
+    editors_grid_sizer->Add(m_reset_scale_button);
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
         add_edit_boxes("size", axis_idx);
     add_unit_text("mm");
-    m_editors_grid_sizer->AddStretchSpacer(1);
+    editors_grid_sizer->AddStretchSpacer(1);
 
-    m_main_grid_sizer->Add(m_editors_grid_sizer, 1, wxEXPAND);
+    m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
 
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_main_grid_sizer, 1, wxEXPAND | wxALL, border);
-
-    m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
-
-    // Load bitmaps to be used for the mirroring buttons:
-    m_mirror_bitmap_on = ScalableBitmap(parent, "mirroring_on");
-    m_mirror_bitmap_off = ScalableBitmap(parent, "mirroring_off");
-    m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
 }
 
 /*
@@ -823,6 +818,7 @@ void ObjectManipulation::update_if_dirty()
     update_label(m_cache.rotate_label_string, m_new_rotate_label_string, m_rotate_Label);
     update_label(m_cache.scale_label_string,  m_new_scale_label_string,  m_scale_Label);
 
+    /*
     char axis[2] = "x";
     for (int i = 0; i < 3; ++ i, ++ axis[0]) {
         auto update = [this, i, &axis](Vec3d &cached, Vec3d &cached_rounded, const char *key, const Vec3d &new_value) {
@@ -840,6 +836,34 @@ void ObjectManipulation::update_if_dirty()
         update(m_cache.size,     m_cache.size_rounded,     "size_",     m_new_size);
         update(m_cache.rotation, m_cache.rotation_rounded, "rotation_", m_new_rotation);
     }
+    */
+
+    enum ManipulationEditorKey
+    {
+        mePosition = 0,
+        meRotation,
+        meScale,
+        meSize
+    };
+
+    for (int i = 0; i < 3; ++ i) {
+        auto update = [this, i](Vec3d &cached, Vec3d &cached_rounded, ManipulationEditorKey key_id, const Vec3d &new_value) {
+			wxString new_text = double_to_string(new_value(i), 2);
+			double new_rounded;
+			new_text.ToDouble(&new_rounded);
+			if (std::abs(cached_rounded(i) - new_rounded) > EPSILON) {
+				cached_rounded(i) = new_rounded;
+                const int id = key_id*3+i;
+                if (id >= 0) m_editors[id]->set_value(new_text);
+            }
+			cached(i) = new_value(i);
+		};
+        update(m_cache.position, m_cache.position_rounded, mePosition, m_new_position);
+        update(m_cache.scale,    m_cache.scale_rounded,    meScale,    m_new_scale);
+        update(m_cache.size,     m_cache.size_rounded,     meSize,     m_new_size);
+        update(m_cache.rotation, m_cache.rotation_rounded, meRotation, m_new_rotation);
+    }
+
 
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
@@ -1151,6 +1175,21 @@ void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any
         change_size_value(axis, new_value);
 }
 
+void ObjectManipulation::on_change(const std::string& opt_key, int axis, double new_value)
+{
+    if (!m_cache.is_valid())
+        return;
+
+    if (opt_key == "position")
+        change_position_value(axis, new_value);
+    else if (opt_key == "rotation")
+        change_rotation_value(axis, new_value);
+    else if (opt_key == "scale")
+        change_scale_value(axis, new_value);
+    else if (opt_key == "size")
+        change_size_value(axis, new_value);
+}
+
 void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
 {
     // needed to hide the visual hints in 3D scene
@@ -1274,15 +1313,115 @@ void ObjectManipulation::msw_rescale()
     }
 
     // rescale edit-boxes
-    cells_cnt = m_editors_grid_sizer->GetCols() * m_editors_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; i++)
-    {
-        const wxSizerItem* item = m_editors_grid_sizer->GetItem(i);
-        if (item->IsWindow() && dynamic_cast<wxTextCtrl*>(item->GetWindow()))
-            item->GetWindow()->SetMinSize(wxSize(5 * em, -1));
-    }
+    for (ManipulationEditor* editor : m_editors)
+        editor->msw_rescale();
 
     get_og()->msw_rescale();
+}
+
+static const char axes[] = { 'x', 'y', 'z' };
+ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
+                                       const std::string& opt_key,
+                                       int axis) :
+    wxTextCtrl(parent->parent(), wxID_ANY, wxEmptyString, wxDefaultPosition,
+        wxSize(5*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
+    m_opt_key(opt_key),
+    m_axis(axis)
+{
+    set_font_and_background_style(this, wxGetApp().normal_font());
+#ifdef __WXOSX__
+    this->OSXDisableAllSmartSubstitutions();
+#endif // __WXOSX__
+
+    // A name used to call handle_sidebar_focus_event()
+    m_full_opt_name = m_opt_key+"_"+axes[axis];
+
+    // Reset m_enter_pressed flag to _false_, when value is editing
+    this->Bind(wxEVT_TEXT, [this](wxEvent&) { m_enter_pressed = false; }, this->GetId());
+
+    this->Bind(wxEVT_TEXT_ENTER, [this, parent](wxEvent&)
+    {
+        m_enter_pressed = true;
+        parent->on_change(m_opt_key, m_axis, get_value());
+    }, this->GetId());
+
+    this->Bind(wxEVT_KILL_FOCUS, [this, parent/*, edit_fn*/](wxFocusEvent& e)
+    {
+        if (!m_enter_pressed) {
+            parent->on_change(m_opt_key, m_axis, get_value());
+
+            // if the change does not come from the user pressing the ENTER key
+            // we need to hide the visual hints in 3D scene
+            wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(m_full_opt_name, false);
+// #ifndef __WXGTK__
+//             /* Update data for next editor selection.
+//              * But under GTK it looks like there is no information about selected control at e.GetWindow(),
+//              * so we'll take it from wxEVT_LEFT_DOWN event
+//              * */
+//             LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());
+//             if (new_editor)
+//                 new_editor->set_focus_data();
+// #endif // not __WXGTK__
+        }
+        
+        e.Skip();
+    }, this->GetId());
+
+    this->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e)
+    {
+        // needed to show the visual hints in 3D scene
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(m_full_opt_name, true);
+        e.Skip();
+    }, this->GetId());
+
+// #ifdef __WXGTK__ // Workaround! To take information about selectable range
+//     this->Bind(wxEVT_LEFT_DOWN, [this](wxEvent& e)
+//     {
+//         set_focus_data();
+//         e.Skip();
+//     }, this->GetId());
+// #endif //__WXGTK__
+
+    this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
+    {
+        // select all text using Ctrl+A
+        if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+            this->SetSelection(-1, -1); //select all
+        event.Skip();
+    }));
+}
+
+void ManipulationEditor::msw_rescale()
+{
+    const int em = wxGetApp().em_unit();
+    SetMinSize(wxSize(5 * em, wxDefaultCoord));
+}
+
+double ManipulationEditor::get_value()
+{
+    wxString str = GetValue();
+
+    double value;
+    // Replace the first occurence of comma in decimal number.
+    str.Replace(",", ".", false);
+    if (str == ".")
+        value = 0.0;
+
+    if ((str.IsEmpty() || !str.ToCDouble(&value)) && !m_valid_value.IsEmpty()) {
+        str = m_valid_value;
+        SetValue(str);
+        str.ToCDouble(&value);
+    }
+
+    return value;
+}
+
+void ManipulationEditor::set_value(const wxString& new_value)
+{
+    if (new_value.IsEmpty())
+        return;
+    m_valid_value = new_value;
+    SetValue(m_valid_value);
 }
 
 } //namespace GUI

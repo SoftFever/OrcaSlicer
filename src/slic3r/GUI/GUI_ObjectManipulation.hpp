@@ -16,6 +16,28 @@ namespace GUI {
 
 class Selection;
 
+class ObjectManipulation;
+class ManipulationEditor : public wxTextCtrl
+{
+    std::string         m_opt_key;
+    int                 m_axis;
+    bool                m_enter_pressed { false };
+    wxString            m_valid_value {wxEmptyString};
+
+    std::string         m_full_opt_name;
+
+public:
+    ManipulationEditor(ObjectManipulation* parent, const std::string& opt_key, int axis);
+    ~ManipulationEditor() {}
+
+    void                msw_rescale();
+    void                set_value(const wxString& new_value);
+
+private:
+    double              get_value();
+};
+
+
 class ObjectManipulation : public OG_Settings
 {
     struct Cache
@@ -101,7 +123,8 @@ class ObjectManipulation : public OG_Settings
 
     wxFlexGridSizer* m_main_grid_sizer;
     wxFlexGridSizer* m_labels_grid_sizer;
-    wxFlexGridSizer* m_editors_grid_sizer;
+
+    std::vector<ManipulationEditor*> m_editors;
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -132,6 +155,7 @@ public:
     void update_item_name(const wxString &item_name);
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
+    void on_change(const std::string& opt_key, int axis, double new_value);
 
 private:
     void reset_settings_value();
