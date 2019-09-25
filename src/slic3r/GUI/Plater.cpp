@@ -4288,11 +4288,10 @@ void Plater::increase_instances(size_t num)
 
     sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
-    if (p->get_config("autocenter") == "1") {
+    if (p->get_config("autocenter") == "1")
         p->arrange();
-    } else {
-        p->update();
-    }
+
+    p->update();
 
     p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
 

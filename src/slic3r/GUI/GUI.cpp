@@ -125,7 +125,7 @@ void config_wizard(int reason)
     if (! wxGetApp().check_unsaved_changes())
     	return;
 
-	try {
+    try {
 		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
         wizard.run(wxGetApp().preset_bundle, wxGetApp().preset_updater);
 	}

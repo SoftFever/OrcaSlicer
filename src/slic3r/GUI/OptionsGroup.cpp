@@ -133,7 +133,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
         m_options_mode.push_back(option_set[0].opt.mode);
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
-	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
+    if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
         option_set.front().opt.label.empty() &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {

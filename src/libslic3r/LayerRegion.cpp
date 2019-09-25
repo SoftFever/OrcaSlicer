@@ -144,7 +144,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             }
             if (! lower_layer_covered->empty())
             	voids = diff(voids, *lower_layer_covered);
-        	fill_boundaries = diff(fill_boundaries, voids);
+            fill_boundaries = diff(fill_boundaries, voids);
         }
     }
 

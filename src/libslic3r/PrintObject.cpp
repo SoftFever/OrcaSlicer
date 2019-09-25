@@ -1480,7 +1480,7 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();
-	return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
+    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)

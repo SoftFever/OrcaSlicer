@@ -353,7 +353,7 @@ public:
     bool apply_override(const ConfigOption *rhs) override {
         if (this->nullable())
         	throw std::runtime_error("Cannot override a nullable ConfigOption.");
-		if (rhs->type() != this->type())
+        if (rhs->type() != this->type())
 			throw std::runtime_error("ConfigOptionVector.apply_override() applied to different types.");
 		auto rhs_vec = static_cast<const ConfigOptionVector<T>*>(rhs);
 		if (! rhs->nullable()) {
@@ -461,7 +461,7 @@ public:
         for (const double &v : this->values) {
             if (&v != &this->values.front())
             	ss << ",";
-        	serialize_single_value(ss, v);
+            serialize_single_value(ss, v);
         }
         return ss.str();
     }
@@ -607,7 +607,7 @@ public:
         for (const int &v : this->values) {
             if (&v != &this->values.front())
             	ss << ",";
-        	serialize_single_value(ss, v);
+            serialize_single_value(ss, v);
         }
         return ss.str();
     }
