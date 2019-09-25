@@ -179,18 +179,25 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Small trick to correct layouting in different view_mode :
     // Show empty string of a same height as a m_word_local_combo, when m_word_local_combo is hidden
-    sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_word_local_combo_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_empty_str = new wxStaticText(parent, wxID_ANY, "");
-    sizer->Add(m_word_local_combo);
-    sizer->Add(m_empty_str);
-    sizer->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
-    m_labels_grid_sizer->Add(sizer);
+    m_word_local_combo_sizer->Add(m_word_local_combo);
+    m_word_local_combo_sizer->Add(m_empty_str);
+    m_word_local_combo_sizer->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
+    m_labels_grid_sizer->Add(m_word_local_combo_sizer);
 
     // Text trick to grid sizer layout:
     // Height of labels should be equivalent to the edit boxes
     int height = wxTextCtrl(parent, wxID_ANY, "Br").GetBestHeight(-1);
+#ifdef __WXGTK__
+    // On Linux button with bitmap has bigger height then regular button or regular TextCtrl 
+    // It can cause a wrong alignment on show/hide of a reset buttons 
+    const int bmp_btn_height = ScalableButton(parent, wxID_ANY, "undo") .GetBestHeight(-1);
+    if (bmp_btn_height > height)
+        height = bmp_btn_height;
+#endif //__WXGTK__
 
-    auto add_label = [this, height](wxStaticText** label, const std::string& name, wxSizer* resive_sizer = nullptr)
+    auto add_label = [this, height](wxStaticText** label, const std::string& name, wxSizer* reciver = nullptr)
     {
         *label = new wxStaticText(m_parent, wxID_ANY, _(name) + ":");
         set_font_and_background_style(m_move_Label, wxGetApp().normal_font());
@@ -199,10 +206,12 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         sizer->SetMinSize(wxSize(-1, height));
         sizer->Add(*label, 0, wxALIGN_CENTER_VERTICAL);
       
-        if (resive_sizer)
-            resive_sizer->Add(sizer);
+        if (reciver)
+            reciver->Add(sizer);
         else
             m_labels_grid_sizer->Add(sizer);
+
+        m_rescalable_sizers.push_back(sizer);
     };
 
     // Add labels
@@ -302,16 +311,22 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         ManipulationEditor* editor = new ManipulationEditor(this, opt_key, axis);
         m_editors.push_back(editor);
 
-        editors_grid_sizer->Add(editor, 1, wxEXPAND);
+        editors_grid_sizer->Add(editor, 0, wxALIGN_CENTER_VERTICAL);
     };
     
     // add Units 
-    auto add_unit_text = [this, parent, editors_grid_sizer](std::string unit)
+    auto add_unit_text = [this, parent, editors_grid_sizer, height](std::string unit)
     {
         wxStaticText* unit_text = new wxStaticText(parent, wxID_ANY, _(unit));
+        set_font_and_background_style(unit_text, wxGetApp().normal_font()); 
 
-        set_font_and_background_style(unit_text, wxGetApp().normal_font());
-        editors_grid_sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+        // Unit text should be the same height as labels      
+        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->SetMinSize(wxSize(-1, height));
+        sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        editors_grid_sizer->Add(sizer);
+        m_rescalable_sizers.push_back(sizer);
     };
 
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
@@ -1265,6 +1280,7 @@ void ObjectManipulation::msw_rescale()
     const int em = wxGetApp().em_unit();
     m_item_name->SetMinSize(wxSize(20*em, wxDefaultCoord));
     msw_rescale_word_local_combo(m_word_local_combo);
+    m_word_local_combo_sizer->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
     m_manifold_warning_bmp.msw_rescale();
 
     const wxString& tooltip = m_fix_throught_netfab_bitmap->GetToolTipText();
@@ -1286,31 +1302,8 @@ void ObjectManipulation::msw_rescale()
     // Text trick to grid sizer layout:
     // Height of labels should be equivalent to the edit boxes
     const int height = wxTextCtrl(parent(), wxID_ANY, "Br").GetBestHeight(-1);
-    int cells_cnt = m_labels_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; i++)
-    {
-        const wxSizerItem* item = m_labels_grid_sizer->GetItem(i);
-        if (item->IsSizer())
-        {
-            const wxSizerItem* label_item = item->GetSizer()->GetItem(size_t(0));
-            if (label_item->IsWindow()) 
-            {
-                if (dynamic_cast<wxStaticText*>(label_item->GetWindow()))
-                    item->GetSizer()->SetMinSize(wxSize(-1, height));
-                if (dynamic_cast<wxBitmapComboBox*>(label_item->GetWindow()))
-                    item->GetSizer()->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
-                else if (dynamic_cast<LockButton*>(label_item->GetWindow())) // case when we have lock_btn and labels "Scale" and "Size"
-                {
-                    const wxSizerItem* l_item = item->GetSizer()->GetItem(1); // sizer with labels "Scale" and "Size"
-                    if (l_item->IsSizer()) {
-                        for (int id : {0,1}) {
-                            l_item->GetSizer()->GetItem(id)->GetSizer()->SetMinSize(wxSize(-1, height));
-                        }
-                    }
-                }
-            }
-        }
-    }
+    for (wxBoxSizer* sizer : m_rescalable_sizers)
+        sizer->SetMinSize(wxSize(-1, height));
 
     // rescale edit-boxes
     for (ManipulationEditor* editor : m_editors)

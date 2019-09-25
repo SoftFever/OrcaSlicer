@@ -124,7 +124,11 @@ class ObjectManipulation : public OG_Settings
     wxFlexGridSizer* m_main_grid_sizer;
     wxFlexGridSizer* m_labels_grid_sizer;
 
-    std::vector<ManipulationEditor*> m_editors;
+    // sizers, used for msw_rescale
+    wxBoxSizer*     m_word_local_combo_sizer;
+    std::vector<wxBoxSizer*>            m_rescalable_sizers;
+
+    std::vector<ManipulationEditor*>    m_editors;
 
 public:
     ObjectManipulation(wxWindow* parent);
