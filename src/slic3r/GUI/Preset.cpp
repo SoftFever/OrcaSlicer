@@ -500,6 +500,10 @@ const std::vector<std::string>& Preset::sla_material_options()
     if (s_opts.empty()) {
         s_opts = {
             "initial_layer_height",
+            "bottle_cost",
+            "bottle_volume",
+            "bottle_weight",
+            "material_density",
             "exposure_time",
             "initial_exposure_time",
             "material_correction",

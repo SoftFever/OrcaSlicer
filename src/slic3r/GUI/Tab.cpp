@@ -3398,8 +3398,41 @@ void TabSLAMaterial::build()
 
     auto page = add_options_page(_(L("Material")), "resin");
 
-    auto optgroup = page->new_optgroup(_(L("Layers")));
-//     optgroup->append_single_option_line("layer_height");
+    auto optgroup = page->new_optgroup(_(L("Material")));
+    optgroup->append_single_option_line("bottle_cost");
+    optgroup->append_single_option_line("bottle_volume");
+    optgroup->append_single_option_line("bottle_weight");
+    optgroup->append_single_option_line("material_density");
+
+    optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
+    {
+        DynamicPrintConfig new_conf = *m_config;
+
+        if (opt_key == "bottle_volume") {
+            double new_bottle_weight =  boost::any_cast<double>(value)/(new_conf.option("material_density")->getFloat() * 1000);
+            new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
+        }
+        if (opt_key == "bottle_weight") {
+            double new_bottle_volume =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() * 1000);
+            new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
+        }
+        if (opt_key == "material_density") {
+            double new_bottle_weight = new_conf.option("bottle_volume")->getFloat() * boost::any_cast<double>(value) / 1000;
+            new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
+        }
+
+        load_config(new_conf);
+
+        update_dirty();
+        on_value_change(opt_key, value);
+
+        if (opt_key == "bottle_volume" || opt_key == "bottle_cost") {
+            wxGetApp().sidebar().update_sliced_info_sizer();
+            wxGetApp().sidebar().Layout();
+        }
+    };
+
+    optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("initial_layer_height");
 
     optgroup = page->new_optgroup(_(L("Exposure")));

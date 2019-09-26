@@ -2404,6 +2404,34 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
+    def = this->add("bottle_volume", coFloat);
+    def->label = L("Bottle volume");
+    def->tooltip = L("Bottle volume");
+    def->sidetext = L("ml");
+    def->min = 50;
+    def->set_default_value(new ConfigOptionFloat(960.0));
+
+    def = this->add("bottle_weight", coFloat);
+    def->label = L("Bottle weight");
+    def->tooltip = L("Bottle weight");
+    def->sidetext = L("kg");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("material_density", coFloat);
+    def->label = L("Density");
+    def->tooltip = L("Density");
+    def->sidetext = L("g/ml");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(0.960));
+
+    def = this->add("bottle_cost", coFloat);
+    def->label = L("Cost");
+    def->tooltip = L("Cost");
+    def->sidetext = L("money/bottle");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
     def = this->add("faded_layers", coInt);
     def->label = L("Faded layers");
     def->tooltip = L("Number of the layers needed for the exposure time fade from initial exposure time to the exposure time");
