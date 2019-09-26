@@ -6,6 +6,7 @@
 #include "Geometry.hpp"
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
+#include "ShortestPath.hpp"
 #include "Utils.hpp"
 
 #include <algorithm>
@@ -1160,7 +1161,7 @@ void GCode::_do_export(Print &print, FILE *file)
                 for (const LayerToPrint &ltp : layers_to_print) {
                     std::vector<LayerToPrint> lrs;
                     lrs.emplace_back(std::move(ltp));
-                    this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), &copy - object.copies().data());
+                    this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), nullptr, &copy - object.copies().data());
                     print.throw_if_canceled();
                 }
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1174,12 +1175,8 @@ void GCode::_do_export(Print &print, FILE *file)
             }
         }
     } else {
-        // Order objects using a nearest neighbor search.
-        std::vector<size_t> object_indices;
-        Points object_reference_points;
-        for (PrintObject *object : print.objects())
-            object_reference_points.push_back(object->copies().front());
-        Slic3r::Geometry::chained_path(object_reference_points, object_indices);
+        // Order object instances using a nearest neighbor search.
+        std::vector<std::pair<size_t, size_t>> print_object_instances_ordering = chain_print_object_instances(print);
         // Sort layers by Z.
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
@@ -1218,7 +1215,7 @@ void GCode::_do_export(Print &print, FILE *file)
             const LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
             if (m_wipe_tower && layer_tools.has_wipe_tower)
                 m_wipe_tower->next_layer();
-            this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
+            this->process_layer(file, print, layer.second, layer_tools, &print_object_instances_ordering, size_t(-1));
             print.throw_if_canceled();
         }
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1529,8 +1526,54 @@ inline std::vector<GCode::ObjectByExtruder::Island>& object_islands_by_extruder(
     return islands;
 }
 
+std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
+	std::vector<GCode::ObjectByExtruder> 			&objects_by_extruder,
+	const std::vector<LayerToPrint> 				&layers,
+	// Ordering must be defined for normal (non-sequential print).
+	const std::vector<std::pair<size_t, size_t>> 	*ordering,
+	// For sequential print, the instance of the object to be printing has to be defined.
+	const size_t                     				 single_object_instance_idx)
+{
+    std::vector<InstanceToPrint> out;
+
+    if (ordering == nullptr) {
+    	// Sequential print, single object is being printed.
+		for (ObjectByExtruder &object_by_extruder : objects_by_extruder) {
+		    const size_t       layer_id     = &object_by_extruder - objects_by_extruder.data();
+		    const PrintObject *print_object = layers[layer_id].object();
+		    if (print_object)
+		    	out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx);
+		}
+    } else {
+		// Create mapping from PrintObject* to ObjectByExtruder*.
+		std::vector<std::pair<const PrintObject*, ObjectByExtruder*>> sorted;
+		sorted.reserve(objects_by_extruder.size());
+		for (ObjectByExtruder &object_by_extruder : objects_by_extruder) {
+		    const size_t       layer_id     = &object_by_extruder - objects_by_extruder.data();
+		    const PrintObject *print_object = layers[layer_id].object();
+		    if (print_object)
+		    	sorted.emplace_back(print_object, &object_by_extruder);
+		}
+		std::sort(sorted.begin(), sorted.end());
+
+		if (! sorted.empty()) {
+			const Print &print = *sorted.front().first->print();
+		    out.reserve(sorted.size());
+		    for (const std::pair<size_t, size_t> &instance_id : *ordering) {
+		    	const PrintObject &print_object = *print.objects()[instance_id.first];
+		    	std::pair<const PrintObject*, ObjectByExtruder*> key(&print_object, nullptr);
+		    	auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
+		    	if (it != sorted.end() && it->first == &print_object)
+		    		// ObjectByExtruder for this PrintObject was found.
+					out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance_id.second);
+		    }
+		}
+	}
+	return out;
+}
+
 // In sequential mode, process_layer is called once per each object and its copy, 
-// therefore layers will contain a single entry and single_object_idx will point to the copy of the object.
+// therefore layers will contain a single entry and single_object_instance_idx will point to the copy of the object.
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
 // For multi-material prints, this routine minimizes extruder switches by gathering extruder specific extrusion paths
 // and performing the extruder specific extrusions together.
@@ -1541,14 +1584,16 @@ void GCode::process_layer(
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> &layers,
     const LayerTools                &layer_tools,
+	// Pairs of PrintObject index and its instance index.
+	const std::vector<std::pair<size_t, size_t>> *ordering,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
-    const size_t                     single_object_idx)
+    const size_t                     single_object_instance_idx)
 {
     assert(! layers.empty());
 //    assert(! layer_tools.extruders.empty());
     // Either printing all copies of all objects, or just a single copy of a single object.
-    assert(single_object_idx == size_t(-1) || layers.size() == 1);
+    assert(single_object_instance_idx == size_t(-1) || layers.size() == 1);
 
     if (layer_tools.extruders.empty())
         // Nothing to extrude.
@@ -1883,62 +1928,49 @@ void GCode::process_layer(
         if (objects_by_extruder_it == by_extruder.end())
             continue;
 
+		std::vector<InstanceToPrint> instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
+
         // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
         bool is_anything_overridden = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden();
         for (int print_wipe_extrusions = is_anything_overridden; print_wipe_extrusions>=0; --print_wipe_extrusions) {
             if (is_anything_overridden && print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
 
-            for (ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
-                const size_t       layer_id     = &object_by_extruder - objects_by_extruder_it->second.data();
-                const PrintObject *print_object = layers[layer_id].object();
-                if (print_object == nullptr)
-                    // This layer is empty for this particular object, it has neither object extrusions nor support extrusions at this print_z.
-                    continue;
-
-                m_config.apply(print_object->config(), true);
-                m_layer = layers[layer_id].layer();
+            for (InstanceToPrint &instance_to_print : instances_to_print) {
+                m_config.apply(instance_to_print.print_object.config(), true);
+                m_layer = layers[instance_to_print.layer_id].layer();
                 if (m_config.avoid_crossing_perimeters)
                     m_avoid_crossing_perimeters.init_layer_mp(union_ex(m_layer->slices, true));
-                Points copies;
-                if (single_object_idx == size_t(-1))
-                    copies = print_object->copies();
-                else
-                    copies.push_back(print_object->copies()[single_object_idx]);
-                // Sort the copies by the closest point starting with the current print position.
 
-                unsigned int copy_id = 0;
-                for (const Point &copy : copies) {
-                    if (this->config().gcode_label_objects)
-                        gcode += std::string("; printing object ") + print_object->model_object()->name + " id:" + std::to_string(layer_id) + " copy " + std::to_string(copy_id) + "\n";
-                    // When starting a new object, use the external motion planner for the first travel move.
-                    std::pair<const PrintObject*, Point> this_object_copy(print_object, copy);
-                    if (m_last_obj_copy != this_object_copy)
-                        m_avoid_crossing_perimeters.use_external_mp_once = true;
-                    m_last_obj_copy = this_object_copy;
-                    this->set_origin(unscale(copy));
-                    if (object_by_extruder.support != nullptr && !print_wipe_extrusions) {
-                        m_layer = layers[layer_id].support_layer;
-                        gcode += this->extrude_support(
-                            // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
-                            object_by_extruder.support->chained_path_from(m_last_pos, false, object_by_extruder.support_extrusion_role));
-                        m_layer = layers[layer_id].layer();
-                    }
-                    for (ObjectByExtruder::Island &island : object_by_extruder.islands) {
-                        const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(copy_id, extruder_id, print_wipe_extrusions) : island.by_region;
-
-                        if (print.config().infill_first) {
-                            gcode += this->extrude_infill(print, by_region_specific);
-                            gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[layer_id]);
-                        } else {
-                            gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[layer_id]);
-                            gcode += this->extrude_infill(print,by_region_specific);
-                        }
-                    }
-                    if (this->config().gcode_label_objects)
-						gcode += std::string("; stop printing object ") + print_object->model_object()->name + " id:" + std::to_string(layer_id) + " copy " + std::to_string(copy_id) + "\n";
-                    ++ copy_id;
+                if (this->config().gcode_label_objects)
+                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                // When starting a new object, use the external motion planner for the first travel move.
+                const Point &offset = instance_to_print.print_object.copies()[instance_to_print.instance_id];
+                std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
+                if (m_last_obj_copy != this_object_copy)
+                    m_avoid_crossing_perimeters.use_external_mp_once = true;
+                m_last_obj_copy = this_object_copy;
+                this->set_origin(unscale(offset));
+                if (instance_to_print.object_by_extruder.support != nullptr && !print_wipe_extrusions) {
+                    m_layer = layers[instance_to_print.layer_id].support_layer;
+                    gcode += this->extrude_support(
+                        // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
+                        instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, false, instance_to_print.object_by_extruder.support_extrusion_role));
+                    m_layer = layers[instance_to_print.layer_id].layer();
                 }
+                for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
+                    const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(instance_to_print.instance_id, extruder_id, print_wipe_extrusions) : island.by_region;
+
+                    if (print.config().infill_first) {
+                        gcode += this->extrude_infill(print, by_region_specific);
+                        gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
+                    } else {
+                        gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
+                        gcode += this->extrude_infill(print,by_region_specific);
+                    }
+                }
+                if (this->config().gcode_label_objects)
+					gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
             }
         }
     }

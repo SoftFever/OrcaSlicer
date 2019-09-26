@@ -5,6 +5,8 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
+#include <assert.h>
+
 namespace Slic3r {
 
 class ExPolygonCollection;
