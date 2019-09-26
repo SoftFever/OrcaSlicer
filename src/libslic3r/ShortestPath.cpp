@@ -339,6 +339,22 @@ std::vector<size_t> chain_points(const Points &points, Point *start_near)
 	return out;
 }
 
+template<class T> static inline T chain_path_items(const Points &points, const T &items)
+{
+	auto segment_end_point = [&points](size_t idx, bool /* first_point */) -> const Point& { return points[idx]; };
+	std::vector<std::pair<size_t, bool>> ordered = chain_segments<Point, decltype(segment_end_point)>(segment_end_point, points.size(), nullptr);
+	T out;
+	out.reserve(items.size());
+	for (auto &segment_and_reversal : ordered)
+		out.emplace_back(items[segment_and_reversal.first]);
+	return out;
+}
+
+ClipperLib::PolyNodes chain_clipper_polynodes(const Points &points, const ClipperLib::PolyNodes &items)
+{
+	return chain_path_items(points, items);
+}
+
 std::vector<std::pair<size_t, size_t>> chain_print_object_instances(const Print &print)
 {
     // Order objects using a nearest neighbor search.

@@ -309,49 +309,7 @@ convex_hull(const Polygons &polygons)
     return convex_hull(std::move(pp));
 }
 
-/* accepts an arrayref of points and returns a list of indices
-   according to a nearest-neighbor walk */
-void
-chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near)
-{
-    PointConstPtrs my_points;
-    std::map<const Point*,Points::size_type> indices;
-    my_points.reserve(points.size());
-    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
-        my_points.push_back(&*it);
-        indices[&*it] = it - points.begin();
-    }
-    
-    retval.reserve(points.size());
-    while (!my_points.empty()) {
-        Points::size_type idx = start_near.nearest_point_index(my_points);
-        start_near = *my_points[idx];
-        retval.push_back(indices[ my_points[idx] ]);
-        my_points.erase(my_points.begin() + idx);
-    }
-}
-
-void
-chained_path(const Points &points, std::vector<Points::size_type> &retval)
-{
-    if (points.empty()) return;  // can't call front() on empty vector
-    chained_path(points, retval, points.front());
-}
-
-/* retval and items must be different containers */
-template<class T>
-void
-chained_path_items(Points &points, T &items, T &retval)
-{
-    std::vector<Points::size_type> indices;
-    chained_path(points, indices);
-    for (std::vector<Points::size_type>::const_iterator it = indices.begin(); it != indices.end(); ++it)
-        retval.push_back(items[*it]);
-}
-template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
-
-bool
-directions_parallel(double angle1, double angle2, double max_diff)
+bool directions_parallel(double angle1, double angle2, double max_diff)
 {
     double diff = fabs(angle1 - angle2);
     max_diff += EPSILON;
@@ -359,8 +317,7 @@ directions_parallel(double angle1, double angle2, double max_diff)
 }
 
 template<class T>
-bool
-contains(const std::vector<T> &vector, const Point &point)
+bool contains(const std::vector<T> &vector, const Point &point)
 {
     for (typename std::vector<T>::const_iterator it = vector.begin(); it != vector.end(); ++it) {
         if (it->contains(point)) return true;
@@ -369,16 +326,14 @@ contains(const std::vector<T> &vector, const Point &point)
 }
 template bool contains(const ExPolygons &vector, const Point &point);
 
-double
-rad2deg_dir(double angle)
+double rad2deg_dir(double angle)
 {
     angle = (angle < PI) ? (-angle + PI/2.0) : (angle + PI/2.0);
     if (angle < 0) angle += PI;
     return rad2deg(angle);
 }
 
-void
-simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
+void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
 {
     Polygons pp;
     for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it) {
@@ -391,8 +346,7 @@ simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
     *retval = Slic3r::simplify_polygons(pp);
 }
 
-double
-linint(double value, double oldmin, double oldmax, double newmin, double newmax)
+double linint(double value, double oldmin, double oldmax, double newmin, double newmax)
 {
     return (value - oldmin) * (newmax - newmin) / (oldmax - oldmin) + newmin;
 }

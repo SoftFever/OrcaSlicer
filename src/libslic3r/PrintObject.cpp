@@ -12,7 +12,6 @@
 #include <boost/log/trivial.hpp>
 #include <float.h>
 
-#include <tbb/task_scheduler_init.h>
 #include <tbb/parallel_for.h>
 #include <tbb/atomic.h>
 
@@ -75,13 +74,9 @@ PrintBase::ApplyStatus PrintObject::set_copies(const Points &points)
 {
     // Order copies with a nearest-neighbor search.
     std::vector<Point> copies;
-    {
-        std::vector<Points::size_type> ordered_copies;
-        Slic3r::Geometry::chained_path(points, ordered_copies);
-        copies.reserve(ordered_copies.size());
-        for (size_t point_idx : ordered_copies)
-            copies.emplace_back(points[point_idx] + m_copies_shift);
-    }
+    copies.reserve(points.size());
+    for (const Point &pt : points)
+        copies.emplace_back(pt + m_copies_shift);
     // Invalidate and set copies.
     PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
     if (copies != m_copies) {
