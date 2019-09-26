@@ -16,7 +16,6 @@ ExtrusionEntityCollection& ExtrusionEntityCollection::operator=(const ExtrusionE
     this->entities      = other.entities;
     for (size_t i = 0; i < this->entities.size(); ++i)
         this->entities[i] = this->entities[i]->clone();
-    this->orig_indices  = other.orig_indices;
     this->no_sort       = other.no_sort;
     return *this;
 }
@@ -24,7 +23,6 @@ ExtrusionEntityCollection& ExtrusionEntityCollection::operator=(const ExtrusionE
 void ExtrusionEntityCollection::swap(ExtrusionEntityCollection &c)
 {
     std::swap(this->entities, c.entities);
-    std::swap(this->orig_indices, c.orig_indices);
     std::swap(this->no_sort, c.no_sort);
 }
 
@@ -82,10 +80,10 @@ ExtrusionEntityCollection ExtrusionEntityCollection::chained_path(bool no_revers
     return coll;
 }
 
-void ExtrusionEntityCollection::chained_path(ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
+void ExtrusionEntityCollection::chained_path(ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role) const
 {
     if (this->entities.empty()) return;
-    this->chained_path_from(this->entities.front()->first_point(), retval, no_reverse, role, orig_indices);
+    this->chained_path_from(this->entities.front()->first_point(), retval, no_reverse, role);
 }
 
 ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(Point start_near, bool no_reverse, ExtrusionRole role) const
@@ -95,7 +93,7 @@ ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(Point sta
     return coll;
 }
 
-void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role, std::vector<size_t>* orig_indices) const
+void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse, ExtrusionRole role) const
 {
     if (this->no_sort) {
         *retval = *this;
@@ -103,7 +101,6 @@ void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEnt
     }
 
     retval->entities.reserve(this->entities.size());
-    retval->orig_indices.reserve(this->entities.size());
     
     // if we're asked to return the original indices, build a map
     std::map<ExtrusionEntity*,size_t> indices_map;
@@ -122,8 +119,8 @@ void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEnt
 
         ExtrusionEntity *entity = entity_src->clone();
         my_paths.push_back(entity);
-        if (orig_indices != nullptr)
-        	indices_map[entity] = &entity_src - &this->entities.front();
+//        if (orig_indices != nullptr)
+//        	indices_map[entity] = &entity_src - &this->entities.front();
     }
     
     Points endpoints;
@@ -142,8 +139,8 @@ void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEnt
         if (start_index % 2 && !no_reverse && entity->can_reverse())
             entity->reverse();
         retval->entities.push_back(my_paths.at(path_index));
-        if (orig_indices != nullptr)
-        	orig_indices->push_back(indices_map[entity]);
+//        if (orig_indices != nullptr)
+//        	orig_indices->push_back(indices_map[entity]);
         my_paths.erase(my_paths.begin() + path_index);
         endpoints.erase(endpoints.begin() + 2*path_index, endpoints.begin() + 2*path_index + 2);
         start_near = retval->entities.back()->last_point();

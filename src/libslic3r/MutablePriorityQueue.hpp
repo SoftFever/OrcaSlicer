@@ -13,21 +13,28 @@ public:
 		{}
 	~MutablePriorityQueue()	{ clear(); }
 
-	inline void		clear()								{ m_heap.clear(); }
-	inline void		reserve(size_t cnt) 				{ m_heap.reserve(cnt); }
-	inline void		push(const T &item);
-	inline void		push(T &&item);
-	inline void		pop();
-	inline T&		top()								{ return m_heap.front(); }
-	inline void		remove(size_t idx);
-	inline void		update(size_t idx) 					{ T item = m_heap[idx]; remove(idx); push(item); }
+	void		clear()								{ m_heap.clear(); }
+	void		reserve(size_t cnt) 				{ m_heap.reserve(cnt); }
+	void		push(const T &item);
+	void		push(T &&item);
+	void		pop();
+	T&			top()								{ return m_heap.front(); }
+	void		remove(size_t idx);
+	void		update(size_t idx) 					{ T item = m_heap[idx]; remove(idx); push(item); }
 
-	inline size_t	size() const						{ return m_heap.size(); }
-	inline bool		empty() const						{ return m_heap.empty(); }
+	size_t		size() const						{ return m_heap.size(); }
+	bool		empty() const						{ return m_heap.empty(); }
+
+	using iterator		 = typename std::vector<T>::iterator;
+	using const_iterator = typename std::vector<T>::const_iterator;
+	iterator 		begin() 		{ return m_heap.begin(); }
+	iterator 		end() 			{ return m_heap.end(); }
+	const_iterator 	cbegin() const	{ return m_heap.cbegin(); }
+	const_iterator 	cend() const	{ return m_heap.cend(); }
 
 protected:
-	inline void		update_heap_up(size_t top, size_t bottom);
-	inline void		update_heap_down(size_t top, size_t bottom);
+	void		update_heap_up(size_t top, size_t bottom);
+	void		update_heap_down(size_t top, size_t bottom);
 
 private:
 	std::vector<T>	m_heap;

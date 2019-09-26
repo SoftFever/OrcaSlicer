@@ -100,7 +100,7 @@ add_library(libslic3r STATIC
     Geometry.cpp
     Geometry.hpp
     Int128.hpp
-#    KdTree.hpp
+    KdTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
     LayerRegion.cpp
@@ -142,6 +142,8 @@ add_library(libslic3r STATIC
     PrintObject.cpp
     PrintRegion.cpp
     Semver.cpp
+    ShortestPath.cpp
+    ShortestPath.hpp
     SLAPrint.cpp
     SLAPrint.hpp
     SLA/SLAAutoSupports.hpp
