@@ -1,8 +1,9 @@
 #ifndef SLACOMMON_HPP
 #define SLACOMMON_HPP
 
-#include <Eigen/Geometry>
 #include <memory>
+#include <vector>
+#include <Eigen/Geometry>
 
 // #define SLIC3R_SLA_NEEDS_WINDTREE
 
@@ -68,6 +69,8 @@ struct SupportPoint
         ar(pos, head_front_radius, is_new_island);
     }
 };
+
+using SupportPoints = std::vector<SupportPoint>;
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree

@@ -440,7 +440,7 @@ private:
     std::vector<PrintLayer>                 m_printer_input;
 
     // The printer itself
-    std::unique_ptr<sla::SLARasterWriter>   m_printer;
+    std::unique_ptr<sla::RasterWriter>   m_printer;
 
     // Estimated print time, material consumed.
     SLAPrintStatistics                      m_print_statistics;
@@ -459,14 +459,14 @@ private:
         double status() const { return m_st; }
     } m_report_status;
     
-    sla::SLARasterWriter &init_printer();
+    sla::RasterWriter &init_printer();
     
-    inline sla::SLARasterWriter::Orientation get_printer_orientation() const
+    inline sla::RasterWriter::Orientation get_printer_orientation() const
     {
         auto ro = m_printer_config.display_orientation.getInt();
-        return ro == sla::SLARasterWriter::roPortrait ?
-                   sla::SLARasterWriter::roPortrait :
-                   sla::SLARasterWriter::roLandscape;
+        return ro == sla::RasterWriter::roPortrait ?
+                   sla::RasterWriter::roPortrait :
+                   sla::RasterWriter::roLandscape;
     }
 
 	friend SLAPrintObject;

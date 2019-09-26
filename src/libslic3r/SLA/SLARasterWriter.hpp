@@ -22,7 +22,7 @@ namespace Slic3r { namespace sla {
 // each layer can be written and compressed independently (in parallel).
 // At the end when all layers where written, the save method can be used to 
 // write out the result into a zipped archive.
-class SLARasterWriter
+class RasterWriter
 {
 public:
     enum Orientation {
@@ -73,15 +73,15 @@ private:
     static void flpXY(ExPolygon& poly);
 
 public:
-    SLARasterWriter(const Raster::Resolution  &res,
+    RasterWriter(const Raster::Resolution  &res,
                     const Raster::PixelDim    &pixdim,
                     const std::array<bool, 2> &mirror,
                     double gamma = 1.);
 
-    SLARasterWriter(const SLARasterWriter& ) = delete;
-    SLARasterWriter& operator=(const SLARasterWriter&) = delete;
-    SLARasterWriter(SLARasterWriter&& m) = default;
-    SLARasterWriter& operator=(SLARasterWriter&&) = default;
+    RasterWriter(const RasterWriter& ) = delete;
+    RasterWriter& operator=(const RasterWriter&) = delete;
+    RasterWriter(RasterWriter&& m) = default;
+    RasterWriter& operator=(RasterWriter&&) = default;
 
     inline void layers(unsigned cnt) { if(cnt > 0) m_layers_rst.resize(cnt); }
     inline unsigned layers() const { return unsigned(m_layers_rst.size()); }

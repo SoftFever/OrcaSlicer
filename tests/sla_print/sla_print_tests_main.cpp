@@ -1,3 +1,5 @@
+#include <map>
+
 #include <gtest/gtest.h>
 
 #include "libslic3r/libslic3r.h"
@@ -5,7 +7,8 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/SLA/SLAPad.hpp"
-#include "libslic3r/SLA/SLASupportTree.hpp"
+#include "libslic3r/SLA/SLASupportTreeBuilder.hpp"
+#include "libslic3r/SLA/SLASupportTreeAlgorithm.hpp"
 #include "libslic3r/SLA/SLAAutoSupports.hpp"
 #include "libslic3r/MTUtils.hpp"
 
@@ -104,10 +107,51 @@ struct SupportByproducts
 {
     std::vector<float>      slicegrid;
     std::vector<ExPolygons> model_slices;
-    sla::SLASupportTree     supporttree;
+    sla::SupportTreeBuilder supporttree;
 };
 
 const constexpr float CLOSING_RADIUS = 0.005f;
+
+void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
+                                  const sla::SupportConfig &cfg)
+{
+    double gnd  = stree.ground_level;
+    double H1   = cfg.max_solo_pillar_height_mm;
+    double H2   = cfg.max_dual_pillar_height_mm;
+
+    for (const sla::Pillar &pillar : stree.pillars()) {
+        if (std::abs(pillar.endpoint().z() - gnd) < EPSILON) {
+            double h = pillar.height;
+            
+            if (h > H1) ASSERT_GE(pillar.links, 1);
+            else if(h > H2) { ASSERT_GE(pillar.links, 2); }    
+        }
+        
+        ASSERT_LE(pillar.links, cfg.pillar_cascade_neighbors);
+        ASSERT_LE(pillar.bridges, cfg.max_bridges_on_pillar);
+    }
+    
+    double max_bridgelen = 0.;
+    auto chck_bridge = [&cfg](const sla::Bridge &bridge, double &max_brlen) {
+        Vec3d n = bridge.endp - bridge.startp;
+        double d = sla::distance(n);
+        max_brlen = std::max(d, max_brlen);
+
+        double z     = n.z();
+        double polar = std::acos(z / d);
+        double slope = -polar + PI / 2.;
+        ASSERT_TRUE(slope >= cfg.bridge_slope || slope <= -cfg.bridge_slope);
+    };
+    
+    for (auto &bridge : stree.bridges()) chck_bridge(bridge, max_bridgelen);
+    ASSERT_LE(max_bridgelen, cfg.max_bridge_length_mm);
+    
+    max_bridgelen = 0;
+    for (auto &bridge : stree.crossbridges()) chck_bridge(bridge, max_bridgelen);
+    
+    double md = cfg.max_pillar_link_distance_mm / std::cos(-cfg.bridge_slope);
+    ASSERT_LE(max_bridgelen, md);
+}
 
 void test_supports(const std::string &       obj_filename,
                    const sla::SupportConfig &supportcfg,
@@ -119,13 +163,13 @@ void test_supports(const std::string &       obj_filename,
     ASSERT_FALSE(mesh.empty());
     
     TriangleMeshSlicer slicer{&mesh};
-    
-    auto bb             = mesh.bounding_box();
-    double zmin         = bb.min.z();
-    double zmax         = bb.max.z();
-    double gnd          = zmin - supportcfg.object_elevation_mm;
-    auto layer_h        = 0.05f;
-    
+
+    auto   bb      = mesh.bounding_box();
+    double zmin    = bb.min.z();
+    double zmax    = bb.max.z();
+    double gnd     = zmin - supportcfg.object_elevation_mm;
+    auto   layer_h = 0.05f;
+
     out.slicegrid = grid(float(gnd), float(zmax), layer_h);
     slicer.slice(out.slicegrid , CLOSING_RADIUS, &out.model_slices, []{});
     
@@ -158,9 +202,12 @@ void test_supports(const std::string &       obj_filename,
     }
     
     // Generate the actual support tree
-    sla::SLASupportTree supporttree(support_points, emesh, supportcfg);
+    sla::SupportTreeBuilder treebuilder;
+    treebuilder.build(sla::SupportableMesh{emesh, support_points, supportcfg});
     
-    const TriangleMesh &output_mesh = supporttree.merged_mesh();
+    check_support_tree_integrity(treebuilder, supportcfg);
+    
+    const TriangleMesh &output_mesh = treebuilder.retrieve_mesh();
     
     check_validity(output_mesh, validityflags);
     
@@ -171,7 +218,7 @@ void test_supports(const std::string &       obj_filename,
     
     // Move out the support tree into the byproducts, we can examine it further
     // in various tests.
-    out.supporttree = std::move(supporttree);
+    out.supporttree = std::move(treebuilder);
 }
 
 void test_supports(const std::string &       obj_filename,
@@ -231,6 +278,33 @@ const char *const SUPPORT_TEST_MODELS[] = {
 };
 
 } // namespace
+
+template <class I, class II> void test_pairhash()
+{
+    std::map<II, std::pair<I, I> > ints;
+    for (I i = 0; i < 1000; ++i)
+        for (I j = 0; j < 1000; ++j) {
+            if (j != i) {
+                II hash_ij = sla::pairhash<I, II>(i, j);
+                II hash_ji = sla::pairhash<I, II>(j, i);
+                ASSERT_EQ(hash_ij, hash_ji);
+                
+                auto it = ints.find(hash_ij);
+                
+                if (it != ints.end()) {
+                    ASSERT_TRUE(
+                        (it->second.first == i && it->second.second == j) ||
+                        (it->second.first == j && it->second.second == i));
+                } else ints[hash_ij] = std::make_pair(i, j);
+            }
+        }
+}
+
+TEST(SLASupportGeneration, PillarPairHashShouldBeUnique) {
+    test_pairhash<int, long>();
+    test_pairhash<unsigned, unsigned>();
+    test_pairhash<unsigned, unsigned long>();
+}
 
 TEST(SLASupportGeneration, FlatPadGeometryIsValid) {
     sla::PadConfig padcfg;

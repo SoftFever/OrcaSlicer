@@ -10,7 +10,7 @@
 
 namespace Slic3r { namespace sla {
 
-std::string SLARasterWriter::createIniContent(const std::string& projectname) const 
+std::string RasterWriter::createIniContent(const std::string& projectname) const 
 {
     std::string out("action = print\njobDir = ");
     out += projectname + "\n";
@@ -21,7 +21,7 @@ std::string SLARasterWriter::createIniContent(const std::string& projectname) co
     return out;
 }
 
-void SLARasterWriter::flpXY(ClipperLib::Polygon &poly)
+void RasterWriter::flpXY(ClipperLib::Polygon &poly)
 {
     for(auto& p : poly.Contour) std::swap(p.X, p.Y);
     std::reverse(poly.Contour.begin(), poly.Contour.end());
@@ -32,7 +32,7 @@ void SLARasterWriter::flpXY(ClipperLib::Polygon &poly)
     }
 }
 
-void SLARasterWriter::flpXY(ExPolygon &poly)
+void RasterWriter::flpXY(ExPolygon &poly)
 {
     for(auto& p : poly.contour.points) p = Point(p.y(), p.x());
     std::reverse(poly.contour.points.begin(), poly.contour.points.end());
@@ -43,7 +43,7 @@ void SLARasterWriter::flpXY(ExPolygon &poly)
     }
 }
 
-SLARasterWriter::SLARasterWriter(const Raster::Resolution  &res,
+RasterWriter::RasterWriter(const Raster::Resolution  &res,
                                  const Raster::PixelDim    &pixdim,
                                  const std::array<bool, 2> &mirror,
                                  double gamma)
@@ -53,7 +53,7 @@ SLARasterWriter::SLARasterWriter(const Raster::Resolution  &res,
     m_mirror[1] = !m_mirror[1];
 }
 
-void SLARasterWriter::save(const std::string &fpath, const std::string &prjname)
+void RasterWriter::save(const std::string &fpath, const std::string &prjname)
 {
     try {
         Zipper zipper(fpath); // zipper with no compression
@@ -103,7 +103,7 @@ std::string get_cfg_value(const DynamicPrintConfig &cfg, const std::string &key)
 
 } // namespace
 
-void SLARasterWriter::set_config(const DynamicPrintConfig &cfg)
+void RasterWriter::set_config(const DynamicPrintConfig &cfg)
 {
     m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
     m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
@@ -118,7 +118,7 @@ void SLARasterWriter::set_config(const DynamicPrintConfig &cfg)
     m_config["prusaSlicerVersion"]    = SLIC3R_BUILD_ID;
 }
 
-void SLARasterWriter::set_statistics(const PrintStatistics &stats)
+void RasterWriter::set_statistics(const PrintStatistics &stats)
 {
     m_config["usedMaterial"] = std::to_string(stats.used_material);
     m_config["numFade"]      = std::to_string(stats.num_fade);
