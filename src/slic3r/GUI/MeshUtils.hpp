@@ -4,6 +4,8 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/SLA/EigenMesh3D.hpp"
+#include "admesh/stl.h"
+
 
 
 #include <cfloat>
@@ -118,7 +120,8 @@ public:
         const Camera& camera, // current camera position
         Vec3f& position, // where to save the positibon of the hit (mesh coords)
         Vec3f& normal, // normal of the triangle that was hit
-        const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
+        const ClippingPlane* clipping_plane = nullptr, // clipping plane (if active)
+        size_t* facet_idx = nullptr // index of the facet hit
     ) const;
 
     // Given a vector of points in woorld coordinates, this returns vector
@@ -134,7 +137,10 @@ public:
     // Given a point in world coords, the method returns closest point on the mesh.
     // The output is in mesh coords.
     // normal* can be used to also get normal of the respective triangle.
+
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
+
+    static Vec3f get_triangle_normal(const indexed_triangle_set& its, size_t facet_idx);
 
 private:
     sla::EigenMesh3D m_emesh;

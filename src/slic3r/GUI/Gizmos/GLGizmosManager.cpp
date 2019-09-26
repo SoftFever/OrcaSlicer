@@ -388,9 +388,12 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
 
     if (m_current == SlaSupports)
         return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
-    if (m_current == Hollow)
+    else if (m_current == Hollow)
         return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
-    return false;
+    else if (m_current == FdmSupports)
+        return dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else
+        return false;
 }
 
 ClippingPlane GLGizmosManager::get_clipping_plane() const
@@ -444,7 +447,7 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 {
     bool processed = false;
 
-    if (m_current == SlaSupports || m_current == Hollow) {
+    if (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports) {
         float rot = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
         if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
             processed = true;
@@ -502,7 +505,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         if (evt.LeftDown())
         {
-            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports)
+              && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
@@ -530,7 +534,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports || m_current == Hollow))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
-        else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+        else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports )
+              && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
         {
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
@@ -603,9 +608,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow) && !m_parent.is_mouse_dragging())
+        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports) && !m_parent.is_mouse_dragging())
         {
-            // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
+            // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
@@ -702,7 +707,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         case 'r' :
         case 'R' :
         {
-            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
+            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
                 processed = true;
 
             break;

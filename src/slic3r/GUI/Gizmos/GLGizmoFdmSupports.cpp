@@ -105,13 +105,40 @@ void GLGizmoFdmSupports::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-
+    render_triangles(selection);
     render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
 }
 
+void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
+{
+    if (! m_mesh)
+        return;
 
+    // Get transformation of the instance
+    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
+    Transform3d trafo = vol->get_instance_transformation().get_matrix();
+
+    ::glColor3f(0.0f, 0.37f, 1.0f);
+
+    for (size_t facet_idx : m_selected_facets) {
+        stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(m_mesh->its, facet_idx);
+        ::glPushMatrix();
+        ::glTranslatef(normal(0), normal(1), normal(2));
+        ::glMultMatrixd(trafo.data());
+
+        ::glBegin(GL_TRIANGLES);
+        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](2));
+        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](2));
+        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](2));
+        ::glEnd();
+        ::glPopMatrix();
+    }
+
+
+
+}
 
 void GLGizmoFdmSupports::render_clipping_plane(const Selection& selection) const
 {
@@ -193,7 +220,7 @@ void GLGizmoFdmSupports::update_mesh()
 
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
-bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
+bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, size_t& facet_idx)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     if (! m_mesh_raycaster)
@@ -208,11 +235,8 @@ bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
-        // Return both the point and the facet normal.
-        pos_and_normal = std::make_pair(hit, normal);
+    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get(), &facet_idx))
         return true;
-    }
     else
         return false;
 }
@@ -237,6 +261,22 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::ResetClippingPlane) {
         update_clipping_plane();
+        return true;
+    }
+
+    if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
+        size_t facet_idx = 0;
+        if (unproject_on_mesh(mouse_position, facet_idx)) {
+            m_selected_facets.push_back(facet_idx);
+            m_wait_for_up_event = true;
+            return true;
+        }
+        if (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)
+            return true;
+    }
+
+    if (action == SLAGizmoEventType::LeftUp && m_wait_for_up_event) {
+        m_wait_for_up_event = false;
         return true;
     }
 
@@ -332,11 +372,9 @@ std::string GLGizmoFdmSupports::on_get_name() const
 
 void GLGizmoFdmSupports::on_set_state()
 {
-    if (m_state == On)
-        std::cout << "zapinam se..." << std::endl;
-    else
-        std::cout << "vypinam se..." << std::endl;
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     return;
+
     // m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
     m_model_object = nullptr;
@@ -351,7 +389,7 @@ void GLGizmoFdmSupports::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("FDM gizmo turned on")));
         if (is_mesh_update_necessary())
             update_mesh();
 

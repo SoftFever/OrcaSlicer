@@ -55,6 +55,7 @@ public:
     class hit_result {
         // m_t holds a distance from m_source to the intersection.
         double m_t = infty();
+        int m_face_id = -1;
         const EigenMesh3D *m_mesh = nullptr;
         Vec3d m_dir;
         Vec3d m_source;
@@ -74,6 +75,7 @@ public:
         inline const Vec3d& direction() const { return m_dir; }
         inline const Vec3d& source() const { return m_source; }
         inline Vec3d position() const { return m_source + m_dir * m_t; }
+        inline int face() const { return m_face_id; }
         inline bool is_valid() const { return m_mesh != nullptr; }
         inline bool is_hit() const { return !std::isinf(m_t); }
 

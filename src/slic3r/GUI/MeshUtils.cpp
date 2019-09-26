@@ -95,9 +95,16 @@ void MeshClipper::recalculate_triangles()
 }
 
 
+Vec3f MeshRaycaster::get_triangle_normal(const indexed_triangle_set& its, size_t facet_idx)
+{
+    Vec3f a(its.vertices[its.indices[facet_idx](1)] - its.vertices[its.indices[facet_idx](0)]);
+    Vec3f b(its.vertices[its.indices[facet_idx](2)] - its.vertices[its.indices[facet_idx](0)]);
+    return Vec3f(a.cross(b)).normalized();
+}
 
 bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane) const
+                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
+                                      size_t* facet_idx) const
 {
     const std::array<int, 4>& viewport = camera.get_viewport();
     const Transform3d& model_mat = camera.get_view_matrix();
@@ -112,7 +119,21 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     pt1 = inv * pt1;
     pt2 = inv * pt2;
 
-    std::vector<sla::EigenMesh3D::hit_result> hits = m_emesh.query_ray_hits(pt1, pt2-pt1);
+    point = pt1;
+    direction = pt2-pt1;
+}
+
+
+bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
+                                      size_t* facet_idx) const
+{
+    Vec3d point;
+    Vec3d direction;
+    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+
+    std::vector<sla::EigenMesh3D::hit_result> hits = m_emesh.query_ray_hits(point, direction);
+
     if (hits.empty())
         return false; // no intersection found
 
@@ -134,6 +155,10 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     // Now stuff the points in the provided vector and calculate normals if asked about them:
     position = hits[i].position().cast<float>();
     normal = hits[i].normal().cast<float>();
+
+    if (facet_idx)
+        *facet_idx = hits[i].face();
+
     return true;
 }
 

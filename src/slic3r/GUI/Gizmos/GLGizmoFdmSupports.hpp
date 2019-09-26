@@ -3,9 +3,6 @@
 
 #include "GLGizmoBase.hpp"
 
-//#include "libslic3r/SLA/SLACommon.hpp"
-//#include <wx/dialog.h>
-
 #include <cereal/types/vector.hpp>
 
 
@@ -24,7 +21,7 @@ private:
     ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
+    bool unproject_on_mesh(const Vec2d& mouse_pos,  size_t& facet_idx);
 
 
     GLUquadricObj* m_quadric;
@@ -33,6 +30,8 @@ private:
     const TriangleMesh* m_mesh;
     const indexed_triangle_set* m_its;
     mutable std::vector<Vec2f> m_triangles;
+
+    std::vector<size_t> m_selected_facets;
 
 
 public:
@@ -48,6 +47,7 @@ private:
     void on_render() const override;
     void on_render_for_picking() const override;
 
+    void render_triangles(const Selection& selection) const;
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
