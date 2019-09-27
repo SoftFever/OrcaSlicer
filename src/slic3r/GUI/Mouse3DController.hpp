@@ -2,8 +2,10 @@
 #define slic3r_Mouse3DController_hpp_
 
 #if ENABLE_3DCONNEXION_DEVICES
+#include "libslic3r/Point.hpp"
 
 #include "hidapi/hidapi.h"
+
 #include <thread>
 #include <mutex>
 #include <vector>
