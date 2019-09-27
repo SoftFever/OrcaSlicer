@@ -455,7 +455,7 @@ void BedShapePanel::update_shape()
     else if (page_idx == SHAPE_CUSTOM) 
         m_shape = m_loaded_shape;
 
-	update_preview();
+    update_preview();
 }
 
 // Loads an stl file, projects it to the XY plane and calculates a polygon.

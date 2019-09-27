@@ -227,9 +227,9 @@ size_t Index::load(const boost::filesystem::path &path)
 				// End of semver or keyword.
 				break;
     	}
-    	if (*key_end != 0 && *key_end != ' ' && *key_end != '\t' && *key_end != '=')
+        if (*key_end != 0 && *key_end != ' ' && *key_end != '\t' && *key_end != '=')
     		throw file_parser_error("Invalid keyword or semantic version", path, idx_line);
-		char *value = left_trim(key_end);
+        char *value = left_trim(key_end);
 		bool  key_value_pair = *value == '=';
 		if (key_value_pair)
 			value = left_trim(value + 1);
@@ -245,11 +245,11 @@ size_t Index::load(const boost::filesystem::path &path)
     		if (strcmp(key, "min_slic3r_version") == 0 || strcmp(key, "max_slic3r_version") == 0) {
     			if (! svalue.empty())
 					semver = Semver::parse(svalue);
-		    	if (! semver)
+                if (! semver)
 		    		throw file_parser_error(std::string(key) + " must referece a valid semantic version", path, idx_line);
-				if (strcmp(key, "min_slic3r_version") == 0)
+                if (strcmp(key, "min_slic3r_version") == 0)
     				ver.min_slic3r_version = *semver;
-    			else
+                else
     				ver.max_slic3r_version = *semver;
     		} else {
     			// Ignore unknown keys, as there may come new keys in the future.

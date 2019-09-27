@@ -138,9 +138,6 @@ Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
 
-void chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near);
-void chained_path(const Points &points, std::vector<Points::size_type> &retval);
-template<class T> void chained_path_items(Points &points, T &items, T &retval);
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 template<class T> bool contains(const std::vector<T> &vector, const Point &point);
 template<typename T> T rad2deg(T angle) { return T(180.0) * angle / T(PI); }

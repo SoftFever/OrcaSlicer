@@ -1,8 +1,8 @@
 #include "Layer.hpp"
 #include "ClipperUtils.hpp"
-#include "Geometry.hpp"
 #include "Print.hpp"
 #include "Fill/Fill.hpp"
+#include "ShortestPath.hpp"
 #include "SVG.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -57,8 +57,7 @@ void Layer::make_slices()
         ordering_points.push_back(ex.contour.first_point());
     
     // sort slices
-    std::vector<Points::size_type> order;
-    Slic3r::Geometry::chained_path(ordering_points, order);
+    std::vector<Points::size_type> order = chain_points(ordering_points);
     
     // populate slices vector
     for (size_t i : order)

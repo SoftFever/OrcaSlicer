@@ -15,4 +15,4 @@
 #undef clipper_hpp
 #undef use_xyz
 
-#endif clipper_z_hpp
+#endif // clipper_z_hpp

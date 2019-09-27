@@ -753,9 +753,9 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     }
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
@@ -773,9 +773,9 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
     wxGetApp().plater()->changed_objects(object_idxs);
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 #ifdef __WXOSX__
@@ -815,7 +815,9 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
         if (col == nullptr) {
             if (wxOSX)
                 UnselectAll();
-            else
+            else if (!evt_context_menu) 
+                // Case, when last item was deleted and under GTK was called wxEVT_DATAVIEW_SELECTION_CHANGED,
+                // which invoked next list_manipulation(false)
                 return;
         }
 
@@ -1720,9 +1722,9 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (sel_item)
         select_item(sel_item);
 
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_part( ModelObject* model_object,
@@ -1858,9 +1860,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
     select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
         new_volume->get_mesh_errors_count()>0));
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_shape_object(const std::string& type_name)
@@ -1898,6 +1900,9 @@ void ObjectList::load_shape_object(const std::string& type_name)
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
+
+    new_object->center_around_origin();
+    new_object->ensure_on_bed();
 
     const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
     new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));

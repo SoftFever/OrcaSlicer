@@ -783,7 +783,7 @@ namespace SupportMaterialInternal {
         for (const ExtrusionPath &ep : loop.paths)
             if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty())
                 return ep.size() >= (ep.is_closed() ? 3 : 2);
-            return false;
+        return false;
     }
     static bool has_bridging_perimeters(const ExtrusionEntityCollection &perimeters)
     {
@@ -2125,7 +2125,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 }
                 // $layer->slices contains the full shape of layer, thus including
                 // perimeter's width. $support contains the full shape of support
-                // material, thus including the width of its foremost extrusion.
+                // material, thus including the width of its foremost extrusion.
                 // We leave a gap equal to a full extrusion width.
                 support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
             }
@@ -2934,20 +2934,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     // Prepare fillers.
     SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
     bool                    with_sheath     = m_object_config->support_material_with_sheath;
-    InfillPattern           infill_pattern;
+    InfillPattern           infill_pattern = (support_pattern == smpHoneycomb ? ipHoneycomb : ipRectilinear);
     std::vector<float>      angles;
     angles.push_back(base_angle);
-    switch (support_pattern) {
-    case smpRectilinearGrid:
+
+    if (support_pattern == smpRectilinearGrid)
         angles.push_back(interface_angle);
-        // fall through
-    case smpRectilinear:
-        infill_pattern = ipRectilinear;
-        break;
-    case smpHoneycomb:
-        infill_pattern = ipHoneycomb;
-        break;
-    }
+
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
 
 //    const coordf_t link_max_length_factor = 3.;
@@ -3217,7 +3210,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     density = 0.5f;
                     flow = m_first_layer_flow;
                     // use the proper spacing for first layer as we don't need to align
-                    // its pattern to the other layers
+                    // its pattern to the other layers
                     //FIXME When paralellizing, each thread shall have its own copy of the fillers.
                     filler->spacing = flow.spacing();
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));

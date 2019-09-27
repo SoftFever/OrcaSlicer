@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/ShortestPath.hpp"
 %}
 
 
@@ -49,7 +50,7 @@ std::vector<Points::size_type>
 chained_path(points)
     Points      points
     CODE:
-        Slic3r::Geometry::chained_path(points, RETVAL);
+        RETVAL = chain_points(points);
     OUTPUT:
         RETVAL
 
@@ -58,7 +59,7 @@ chained_path_from(points, start_from)
     Points      points
     Point*      start_from
     CODE:
-        Slic3r::Geometry::chained_path(points, RETVAL, *start_from);
+        RETVAL = chain_points(points, start_from);
     OUTPUT:
         RETVAL
 

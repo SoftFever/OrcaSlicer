@@ -1,5 +1,6 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "ShortestPath.hpp"
 
 // #define CLIPPER_UTILS_DEBUG
 
@@ -671,21 +672,19 @@ void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     // collect ordering points
     Points ordering_points;
     ordering_points.reserve(nodes.size());
-    for (ClipperLib::PolyNodes::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
-        Point p((*it)->Contour.front().X, (*it)->Contour.front().Y);
-        ordering_points.emplace_back(p);
-    }
+    for (ClipperLib::PolyNode *pn : nodes)
+        ordering_points.emplace_back(Point(pn->Contour.front().X, pn->Contour.front().Y));
     
     // perform the ordering
-    ClipperLib::PolyNodes ordered_nodes;
-    Slic3r::Geometry::chained_path_items(ordering_points, nodes, ordered_nodes);
-    
+    ClipperLib::PolyNodes ordered_nodes = chain_clipper_polynodes(ordering_points, nodes);
+
     // push results recursively
-    for (ClipperLib::PolyNodes::iterator it = ordered_nodes.begin(); it != ordered_nodes.end(); ++it) {
+    for (ClipperLib::PolyNode *pn : ordered_nodes) {
         // traverse the next depth
-        traverse_pt((*it)->Childs, retval);
-        retval->emplace_back(ClipperPath_to_Slic3rPolygon((*it)->Contour));
-        if ((*it)->IsHole()) retval->back().reverse();  // ccw
+        traverse_pt(pn->Childs, retval);
+        retval->emplace_back(ClipperPath_to_Slic3rPolygon(pn->Contour));
+        if (pn->IsHole())
+        	retval->back().reverse(); // ccw
     }
 }
 

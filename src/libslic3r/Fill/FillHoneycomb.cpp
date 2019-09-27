@@ -1,5 +1,5 @@
 #include "../ClipperUtils.hpp"
-#include "../PolylineCollection.hpp"
+#include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 
 #include "FillHoneycomb.hpp"
@@ -93,22 +93,20 @@ void FillHoneycomb::_fill_surface_single(
 
         // connect paths
         if (! paths.empty()) { // prevent calling leftmost_point() on empty collections
-            Polylines chained = PolylineCollection::chained_path_from(
-                std::move(paths), 
-                PolylineCollection::leftmost_point(paths), false);
+            Polylines chained = chain_infill_polylines(std::move(paths));
             assert(paths.empty());
             paths.clear();
-            for (Polylines::iterator it_path = chained.begin(); it_path != chained.end(); ++ it_path) {
+            for (Polyline &path : chained) {
                 if (! paths.empty()) {
                     // distance between first point of this path and last point of last path
-                    double distance = (it_path->first_point() - paths.back().last_point()).cast<double>().norm();
+                    double distance = (path.first_point() - paths.back().last_point()).cast<double>().norm();
                     if (distance <= m.hex_width) {
-                        paths.back().points.insert(paths.back().points.end(), it_path->points.begin(), it_path->points.end());
+                        paths.back().points.insert(paths.back().points.end(), path.points.begin(), path.points.end());
                         continue;
                     }
                 }
                 // Don't connect the paths.
-                paths.push_back(*it_path);
+                paths.push_back(std::move(path));
             }
         }
         

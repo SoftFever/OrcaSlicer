@@ -1,6 +1,8 @@
 #include "PerimeterGenerator.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include "ShortestPath.hpp"
+
 #include <cmath>
 #include <cassert>
 
@@ -86,24 +88,24 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thi
     return paths;
 }
 
-static ExtrusionEntityCollection variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow flow)
+static void variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow flow, std::vector<ExtrusionEntity*> &out)
 {
 	// This value determines granularity of adaptive width, as G-code does not allow
 	// variable extrusion within a single move; this value shall only affect the amount
 	// of segments, and any pruning shall be performed before we apply this tolerance.
-	ExtrusionEntityCollection coll;
 	const float tolerance = float(scale_(0.05));
 	for (const ThickPolyline &p : polylines) {
 		ExtrusionPaths paths = thick_polyline_to_extrusion_paths(p, role, flow, tolerance);
 		// Append paths to collection.
 		if (! paths.empty()) {
 			if (paths.front().first_point() == paths.back().last_point())
-				coll.append(ExtrusionLoop(std::move(paths)));
-			else
-				coll.append(std::move(paths));
+				out.emplace_back(new ExtrusionLoop(std::move(paths)));
+			else {
+				for (ExtrusionPath &path : paths)
+					out.emplace_back(new ExtrusionPath(std::move(path)));
+			}
 		}
 	}
-	return coll;
 }
 
 // Hierarchy of perimeters.
@@ -186,43 +188,47 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             paths.push_back(path);
         }
         
-        coll.append(ExtrusionLoop(paths, loop_role));
+        coll.append(ExtrusionLoop(std::move(paths), loop_role));
     }
     
     // Append thin walls to the nearest-neighbor search (only for first iteration)
     if (! thin_walls.empty()) {
-        ExtrusionEntityCollection tw = variable_width(thin_walls, erExternalPerimeter, perimeter_generator.ext_perimeter_flow);
-        coll.append(tw.entities);
+        variable_width(thin_walls, erExternalPerimeter, perimeter_generator.ext_perimeter_flow, coll.entities);
         thin_walls.clear();
     }
     
-    // Sort entities into a new collection using a nearest-neighbor search,
-    // preserving the original indices which are useful for detecting thin walls.
-    ExtrusionEntityCollection sorted_coll;
-    coll.chained_path(&sorted_coll, false, erMixed, &sorted_coll.orig_indices);
-    
-    // traverse children and build the final collection
-    ExtrusionEntityCollection entities;
-    for (const size_t &idx : sorted_coll.orig_indices) {
-        if (idx >= loops.size()) {
-            // This is a thin wall. Let's get it from the sorted collection as it might have been reversed.
-            entities.append(std::move(*sorted_coll.entities[&idx - &sorted_coll.orig_indices.front()]));
+    // Traverse children and build the final collection.
+	Point zero_point(0, 0);
+	std::vector<std::pair<size_t, bool>> chain = chain_extrusion_entities(coll.entities, &zero_point);
+    ExtrusionEntityCollection out;
+    for (const std::pair<size_t, bool> &idx : chain) {
+		assert(coll.entities[idx.first] != nullptr);
+        if (idx.first >= loops.size()) {
+            // This is a thin wall.
+			out.entities.reserve(out.entities.size() + 1);
+            out.entities.emplace_back(coll.entities[idx.first]);
+			coll.entities[idx.first] = nullptr;
+            if (idx.second)
+				out.entities.back()->reverse();
         } else {
-            const PerimeterGeneratorLoop &loop = loops[idx];
-            ExtrusionLoop eloop = *dynamic_cast<ExtrusionLoop*>(coll.entities[idx]);
+            const PerimeterGeneratorLoop &loop = loops[idx.first];
+            assert(thin_walls.empty());
             ExtrusionEntityCollection children = traverse_loops(perimeter_generator, loop.children, thin_walls);
+            out.entities.reserve(out.entities.size() + children.entities.size() + 1);
+            ExtrusionLoop *eloop = static_cast<ExtrusionLoop*>(coll.entities[idx.first]);
+            coll.entities[idx.first] = nullptr;
             if (loop.is_contour) {
-                eloop.make_counter_clockwise();
-                entities.append(std::move(children.entities));
-                entities.append(std::move(eloop));
+                eloop->make_counter_clockwise();
+                out.append(std::move(children.entities));
+                out.entities.emplace_back(eloop);
             } else {
-                eloop.make_clockwise();
-                entities.append(std::move(eloop));
-                entities.append(std::move(children.entities));
+                eloop->make_clockwise();
+                out.entities.emplace_back(eloop);
+                out.append(std::move(children.entities));
             }
         }
     }
-    return entities;
+    return out;
 }
 
 void PerimeterGenerator::process()
@@ -445,8 +451,8 @@ void PerimeterGenerator::process()
             for (const ExPolygon &ex : gaps_ex)
                 ex.medial_axis(max, min, &polylines);
             if (! polylines.empty()) {
-                ExtrusionEntityCollection gap_fill = variable_width(polylines, erGapFill, this->solid_infill_flow);
-                this->gap_fill->append(gap_fill.entities);
+				ExtrusionEntityCollection gap_fill;
+				variable_width(polylines, erGapFill, this->solid_infill_flow, gap_fill.entities);
                 /*  Make sure we don't infill narrow parts that are already gap-filled
                     (we only consider this surface's gaps to reduce the diff() complexity).
                     Growing actual extrusions ensures that gaps not filled by medial axis
@@ -456,7 +462,8 @@ void PerimeterGenerator::process()
                 //FIXME Vojtech: This grows by a rounded extrusion width, not by line spacing,
                 // therefore it may cover the area, but no the volume.
                 last = diff_ex(to_polygons(last), gap_fill.polygons_covered_by_width(10.f));
-            }
+				this->gap_fill->append(std::move(gap_fill.entities));
+			}
         }
 
         // create one more offset to be used as boundary for fill

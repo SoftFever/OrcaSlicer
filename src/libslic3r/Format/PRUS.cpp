@@ -246,7 +246,7 @@ static void extract_model_from_archive(
                 sscanf(normal_buf[2], "%f", &facet.normal(2)) != 1) {
                 // Normal was mangled. Maybe denormals or "not a number" were stored?
                 // Just reset the normal and silently ignore it.
-                memset(&facet.normal, 0, sizeof(facet.normal));
+                facet.normal = stl_normal::Zero();
             }
             facets.emplace_back(facet);
         }
@@ -278,7 +278,7 @@ static void extract_model_from_archive(
         instance->set_rotation(instance_rotation);
         instance->set_scaling_factor(instance_scaling_factor);
         instance->set_offset(instance_offset);
-        if (group_id != (size_t)-1)
+        if (group_id != (unsigned int)(-1))
             group_to_model_object[group_id] = model_object;
     } else {
         // This is not the 1st mesh of a group. Add it to the ModelObject.

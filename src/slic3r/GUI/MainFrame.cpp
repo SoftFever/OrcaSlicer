@@ -924,7 +924,7 @@ void MainFrame::load_config_file()
 	wxString file;
     if (dlg.ShowModal() == wxID_OK)
         file = dlg.GetPath();
-	if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
+    if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         m_last_config = file;
     }
