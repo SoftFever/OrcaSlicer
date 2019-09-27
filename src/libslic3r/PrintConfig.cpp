@@ -2409,7 +2409,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Bottle volume");
     def->sidetext = L("ml");
     def->min = 50;
-    def->set_default_value(new ConfigOptionFloat(960.0));
+    def->set_default_value(new ConfigOptionFloat(1000.0));
 
     def = this->add("bottle_weight", coFloat);
     def->label = L("Bottle weight");
@@ -2423,7 +2423,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Density");
     def->sidetext = L("g/ml");
     def->min = 0;
-    def->set_default_value(new ConfigOptionFloat(0.960));
+    def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("bottle_cost", coFloat);
     def->label = L("Cost");

@@ -3417,8 +3417,8 @@ void TabSLAMaterial::build()
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
         if (opt_key == "material_density") {
-            double new_bottle_weight = new_conf.option("bottle_volume")->getFloat() * boost::any_cast<double>(value) / 1000;
-            new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
+            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() * boost::any_cast<double>(value) * 1000;
+            new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
 
         load_config(new_conf);
