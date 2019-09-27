@@ -486,6 +486,9 @@ public:
     void set_color_by(const std::string& value);
 
     const Camera& get_camera() const { return m_camera; }
+#if ENABLE_3DCONNEXION_DEVICES
+    Camera& get_camera() { return m_camera; }
+#endif // ENABLE_3DCONNEXION_DEVICES
 
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;

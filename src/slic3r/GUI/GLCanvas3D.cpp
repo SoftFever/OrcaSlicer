@@ -22,6 +22,9 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#if ENABLE_3DCONNEXION_DEVICES
+#include "Mouse3DController.hpp"
+#endif // ENABLE_3DCONNEXION_DEVICES
 #include "I18N.hpp"
 
 #if ENABLE_RETINA_GL
@@ -2305,14 +2308,28 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_main_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
+#if ENABLE_3DCONNEXION_DEVICES
+    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply();
+    m_dirty |= mouse3d_controller_applied;
+#endif // ENABLE_3DCONNEXION_DEVICES
 
     if (!m_dirty)
         return;
 
     _refresh_if_shown_on_screen();
 
+#if ENABLE_3DCONNEXION_DEVICES
+    if (m_keep_dirty || wxGetApp().plater()->get_mouse3d_controller().is_device_connected())
+    {
+        m_dirty = true;
+        evt.RequestMore();
+    }
+    else
+        m_dirty = false;
+#else
     if (m_keep_dirty)
         m_dirty = true;
+#endif // ENABLE_3DCONNEXION_DEVICES
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -2531,6 +2548,13 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 {
+#if ENABLE_3DCONNEXION_DEVICES
+    // try to filter out events coming from mouse 3d controller
+    const Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+    if (controller.has_rotation() || controller.has_translation())
+        return;
+#endif // ENABLE_3DCONNEXION_DEVICES
+
     if (!m_initialized)
         return;
 
@@ -3815,7 +3839,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     // updates camera
     m_camera.apply_viewport(0, 0, w, h);
 
+#if !ENABLE_3DCONNEXION_DEVICES
     m_dirty = false;
+#endif // !ENABLE_3DCONNEXION_DEVICES
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
