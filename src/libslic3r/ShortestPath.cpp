@@ -4,6 +4,7 @@
 	#undef assert
 #endif
 
+#include "clipper.hpp"
 #include "ShortestPath.hpp"
 #include "KDTreeIndirect.hpp"
 #include "MutablePriorityQueue.hpp"
@@ -34,7 +35,7 @@ std::vector<std::pair<size_t, bool>> chain_segments(SegmentEndPointFunc end_poin
 	{
 		// Just sort the end points so that the first point visited is closest to start_near.
 		out.emplace_back(0, start_near != nullptr && 
-			(end_point_func(0, true) - *start_near).cast<double>().squaredNorm() < (end_point_func(0, false) - *start_near).cast<double>().squaredNorm());
+            (end_point_func(0, true) - *start_near).template cast<double>().squaredNorm() < (end_point_func(0, false) - *start_near).template cast<double>().squaredNorm());
 	} 
 	else
 	{
@@ -55,8 +56,8 @@ std::vector<std::pair<size_t, bool>> chain_segments(SegmentEndPointFunc end_poin
 	    std::vector<EndPoint> end_points;
 	    end_points.reserve(num_segments * 2);
 	    for (size_t i = 0; i < num_segments; ++ i) {
-	    	end_points.emplace_back(end_point_func(i, true ).cast<double>());
-	    	end_points.emplace_back(end_point_func(i, false).cast<double>());
+            end_points.emplace_back(end_point_func(i, true ).template cast<double>());
+            end_points.emplace_back(end_point_func(i, false).template cast<double>());
 	    }
 
 	    // Construct the closest point KD tree over end points of segments.
@@ -125,7 +126,7 @@ std::vector<std::pair<size_t, bool>> chain_segments(SegmentEndPointFunc end_poin
 		EndPoint *first_point = nullptr;
 		size_t    first_point_idx = std::numeric_limits<size_t>::max();
 		if (start_near != nullptr) {
-			size_t idx = find_closest_point(kdtree, start_near->cast<double>());
+            size_t idx = find_closest_point(kdtree, start_near->template cast<double>());
 			assert(idx < end_points.size());
 			first_point = &end_points[idx];
 			first_point->distance_out = 0.;
@@ -309,7 +310,7 @@ std::vector<std::pair<size_t, bool>> chain_extrusion_entities(std::vector<Extrus
 	return out;
 }
 
-void reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, std::vector<std::pair<size_t, bool>> &chain)
+void reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const std::vector<std::pair<size_t, bool>> &chain)
 {
 	assert(entities.size() == chain.size());
 	std::vector<ExtrusionEntity*> out;
@@ -339,7 +340,7 @@ std::vector<size_t> chain_points(const Points &points, Point *start_near)
 	return out;
 }
 
-Polylines chain_infill_polylines(Polylines &polylines)
+Polylines chain_infill_polylines(Polylines &&polylines)
 {
 	auto segment_end_point = [&polylines](size_t idx, bool first_point) -> const Point& { return first_point ? polylines[idx].first_point() : polylines[idx].last_point(); };
 	std::vector<std::pair<size_t, bool>> ordered = chain_segments<Point, decltype(segment_end_point)>(segment_end_point, polylines.size(), nullptr);

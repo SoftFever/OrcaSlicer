@@ -15,10 +15,10 @@ namespace Slic3r {
 std::vector<size_t> 				 chain_points(const Points &points, Point *start_near = nullptr);
 
 std::vector<std::pair<size_t, bool>> chain_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const Point *start_near = nullptr);
-void                                 reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, std::vector<std::pair<size_t, bool>> &chain);
+void                                 reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const std::vector<std::pair<size_t, bool>> &chain);
 void                                 chain_and_reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const Point *start_near = nullptr);
 
-Polylines 							 chain_infill_polylines(Polylines &src);
+Polylines 							 chain_infill_polylines(Polylines &&src);
 
 std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points, const std::vector<ClipperLib::PolyNode*> &items);
 

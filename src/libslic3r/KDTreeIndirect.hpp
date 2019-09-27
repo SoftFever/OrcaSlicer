@@ -19,7 +19,10 @@ public:
 	static constexpr size_t NumDimensions = ANumDimensions;
 	using					CoordinateFn  = ACoordinateFn;
 	using					CoordType     = ACoordType;
-	static constexpr size_t npos		  = size_t(-1);
+    // Following could be static constexpr size_t, but that would not link in C++11
+    enum : size_t {
+        npos = size_t(-1)
+    };
 
 	KDTreeIndirect(CoordinateFn coordinate) : coordinate(coordinate) {}
 	KDTreeIndirect(CoordinateFn coordinate, std::vector<size_t>   indices) : coordinate(coordinate) { this->build(std::move(indices)); }
@@ -69,7 +72,7 @@ public:
 	template<typename Visitor>
 	void visit(Visitor &visitor) const
 	{
-		return m_nodes.empty() ? npos : visit_recursive(0, 0, visitor);
+        visit_recursive(0, 0, visitor);
 	}
 
 	CoordinateFn coordinate;
