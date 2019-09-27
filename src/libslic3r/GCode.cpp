@@ -1807,6 +1807,17 @@ void GCode::process_layer(
             layer_surface_bboxes.reserve(n_slices);
             for (const ExPolygon &expoly : layer.slices.expolygons)
                 layer_surface_bboxes.push_back(get_extents(expoly.contour));
+            // Traverse the slices in an increasing order of bounding box size, so that the islands inside another islands are tested first,
+            // so we can just test a point inside ExPolygon::contour and we may skip testing the holes.
+            std::vector<size_t> slices_test_order;
+            slices_test_order.reserve(n_slices);
+            for (size_t i = 0; i < n_slices; ++ i)
+            	slices_test_order.emplace_back(i);
+            std::sort(slices_test_order.begin(), slices_test_order.end(), [&layer_surface_bboxes](int i, int j) {
+            	const Vec2d s1 = layer_surface_bboxes[i].size().cast<double>();
+            	const Vec2d s2 = layer_surface_bboxes[j].size().cast<double>();
+            	return s1.x() * s1.y() < s2.x() * s2.y();
+            });
             auto point_inside_surface = [&layer, &layer_surface_bboxes](const size_t i, const Point &point) { 
                 const BoundingBox &bbox = layer_surface_bboxes[i];
                 return point(0) >= bbox.min(0) && point(0) < bbox.max(0) &&
@@ -1854,16 +1865,19 @@ void GCode::process_layer(
                                     extruder,
                                     &layer_to_print - layers.data(),
                                     layers.size(), n_slices+1);
-                                for (size_t i = 0; i <= n_slices; ++i)
+                                for (size_t i = 0; i <= n_slices; ++ i) {
+									bool   last = i == n_slices;
+                                	size_t island_idx = last ? n_slices : slices_test_order[i];
                                     if (// fill->first_point does not fit inside any slice
-                                        i == n_slices ||
+										last ||
                                         // fill->first_point fits inside ith slice
-                                        point_inside_surface(i, fill->first_point())) {
-                                        if (islands[i].by_region.empty())
-                                            islands[i].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
-                                        islands[i].by_region[region_id].append(entity_type, fill, entity_overrides, layer_to_print.object()->copies().size());
+                                        point_inside_surface(island_idx, fill->first_point())) {
+                                        if (islands[island_idx].by_region.empty())
+                                            islands[island_idx].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
+                                        islands[island_idx].by_region[region_id].append(entity_type, fill, entity_overrides, layer_to_print.object()->copies().size());
                                         break;
                                     }
+                                }
                             }
                         }
                     }
@@ -2574,12 +2588,10 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions()[&region - &by_region.front()]->config());
-		ExtrusionEntityCollection chained = region.infills.chained_path_from(m_last_pos, false);
-        for (ExtrusionEntity *fill : chained.entities) {
+        for (ExtrusionEntity *fill : region.infills.chained_path_from(m_last_pos, false).entities) {
             auto *eec = dynamic_cast<ExtrusionEntityCollection*>(fill);
             if (eec) {
-				ExtrusionEntityCollection chained2 = eec->chained_path_from(m_last_pos, false);
-				for (ExtrusionEntity *ee : chained2.entities)
+				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos, false).entities)
                     gcode += this->extrude_entity(*ee, "infill");
             } else
                 gcode += this->extrude_entity(*fill, "infill");

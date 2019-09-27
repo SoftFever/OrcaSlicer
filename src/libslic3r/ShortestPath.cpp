@@ -339,6 +339,20 @@ std::vector<size_t> chain_points(const Points &points, Point *start_near)
 	return out;
 }
 
+Polylines chain_infill_polylines(Polylines &polylines)
+{
+	auto segment_end_point = [&polylines](size_t idx, bool first_point) -> const Point& { return first_point ? polylines[idx].first_point() : polylines[idx].last_point(); };
+	std::vector<std::pair<size_t, bool>> ordered = chain_segments<Point, decltype(segment_end_point)>(segment_end_point, polylines.size(), nullptr);
+	Polylines out;
+	out.reserve(polylines.size());
+	for (auto &segment_and_reversal : ordered) {
+		out.emplace_back(std::move(polylines[segment_and_reversal.first]));
+		if (segment_and_reversal.second)
+			out.back().reverse();
+	}
+	return out;	
+}
+
 template<class T> static inline T chain_path_items(const Points &points, const T &items)
 {
 	auto segment_end_point = [&points](size_t idx, bool /* first_point */) -> const Point& { return points[idx]; };

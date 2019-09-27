@@ -62,7 +62,8 @@ public:
 
     operator Polylines() const;
     operator Line() const;
-    Point last_point() const;
+    Point    last_point() const override { return this->points.back(); }
+
     Point leftmost_point() const;
     virtual Lines lines() const;
     void clip_end(double distance);

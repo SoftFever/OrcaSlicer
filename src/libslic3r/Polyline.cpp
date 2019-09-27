@@ -24,12 +24,6 @@ Polyline::operator Line() const
 }
 
 Point
-Polyline::last_point() const
-{
-    return this->points.back();
-}
-
-Point
 Polyline::leftmost_point() const
 {
     Point p = this->points.front();
