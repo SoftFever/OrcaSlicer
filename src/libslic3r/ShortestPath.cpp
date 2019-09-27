@@ -45,11 +45,11 @@ std::vector<std::pair<size_t, bool>> chain_segments_closest_point(std::vector<En
 		end_point.chain_id = 1;
 		this_idx = next_idx ^ 1;
 	}
-#ifndef _NDEBUG
+#ifndef NDEBUG
 	assert(end_points[this_idx].chain_id == 0);
 	for (EndPointType &ep : end_points)
 		assert(&ep == &end_points[this_idx] || ep.chain_id == 1);
-#endif /* _NDEBUG */
+#endif /* NDEBUG */
 	return out;
 }
 
@@ -431,7 +431,7 @@ std::vector<std::pair<size_t, bool>> chain_extrusion_paths(std::vector<Extrusion
 	return chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, extrusion_paths.size(), start_near);
 }
 
-void reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, std::vector<std::pair<size_t, bool>> &chain)
+void reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const std::vector<std::pair<size_t, bool>> &chain)
 {
 	assert(extrusion_paths.size() == chain.size());
 	std::vector<ExtrusionPath> out;
