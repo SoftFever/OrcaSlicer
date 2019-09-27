@@ -81,8 +81,8 @@ public:
     virtual ExtrusionEntity* clone_move() = 0;
     virtual ~ExtrusionEntity() {}
     virtual void reverse() = 0;
-    virtual Point first_point() const = 0;
-    virtual Point last_point() const = 0;
+    virtual const Point& first_point() const = 0;
+    virtual const Point& last_point() const = 0;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const = 0;
@@ -139,8 +139,8 @@ public:
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionPath(std::move(*this)); }
     void reverse() override { this->polyline.reverse(); }
-    Point first_point() const override { return this->polyline.points.front(); }
-    Point last_point() const override { return this->polyline.points.back(); }
+    const Point& first_point() const override { return this->polyline.points.front(); }
+    const Point& last_point() const override { return this->polyline.points.back(); }
     size_t size() const { return this->polyline.size(); }
     bool empty() const { return this->polyline.empty(); }
     bool is_closed() const { return ! this->empty() && this->polyline.points.front() == this->polyline.points.back(); }
@@ -200,8 +200,8 @@ public:
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionMultiPath(std::move(*this)); }
     void reverse() override;
-    Point first_point() const override { return this->paths.front().polyline.points.front(); }
-    Point last_point() const override { return this->paths.back().polyline.points.back(); }
+    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
+    const Point& last_point() const override { return this->paths.back().polyline.points.back(); }
     double length() const override;
     ExtrusionRole role() const override { return this->paths.empty() ? erNone : this->paths.front().role(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
@@ -243,8 +243,8 @@ public:
     bool make_clockwise();
     bool make_counter_clockwise();
     void reverse() override;
-    Point first_point() const override { return this->paths.front().polyline.points.front(); }
-    Point last_point() const override { assert(first_point() == this->paths.back().polyline.points.back()); return first_point(); }
+    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
+    const Point& last_point() const override { assert(this->first_point() == this->paths.back().polyline.points.back()); return this->first_point(); }
     Polygon polygon() const;
     double length() const override;
     bool split_at_vertex(const Point &point);

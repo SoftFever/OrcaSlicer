@@ -61,8 +61,10 @@ public:
 	{
 		CoordType dist = point_coord - this->coordinate(idx, dimension);
 		return (dist * dist < search_radius + CoordType(EPSILON)) ?
+			// The plane intersects a hypersphere centered at point_coord of search_radius.
 			((unsigned int)(VisitorReturnMask::CONTINUE_LEFT) | (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT)) :
-			(dist < CoordType(0)) ? (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT) : (unsigned int)(VisitorReturnMask::CONTINUE_LEFT);
+			// The plane does not intersect the hypersphere.
+			(dist > CoordType(0)) ? (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT) : (unsigned int)(VisitorReturnMask::CONTINUE_LEFT);
 	}
 
 	// Visitor is supposed to return a bit mask of VisitorReturnMask.

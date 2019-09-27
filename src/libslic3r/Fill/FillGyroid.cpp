@@ -167,7 +167,7 @@ void FillGyroid::_fill_surface_single(
             }
         }
         bool first = true;
-        for (Polyline &polyline : chain_infill_polylines(std::move(polylines))) {
+        for (Polyline &polyline : chain_polylines(std::move(polylines))) {
             if (! first) {
                 // Try to connect the lines.
                 Points &pts_end = polylines_out.back().points;

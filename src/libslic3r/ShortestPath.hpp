@@ -18,7 +18,11 @@ std::vector<std::pair<size_t, bool>> chain_extrusion_entities(std::vector<Extrus
 void                                 reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, std::vector<std::pair<size_t, bool>> &chain);
 void                                 chain_and_reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const Point *start_near = nullptr);
 
-Polylines 							 chain_infill_polylines(Polylines &src);
+std::vector<std::pair<size_t, bool>> chain_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const Point *start_near = nullptr);
+void                                 reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, std::vector<std::pair<size_t, bool>> &chain);
+void                                 chain_and_reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const Point *start_near = nullptr);
+
+Polylines 							 chain_polylines(Polylines &src, const Point *start_near = nullptr);
 
 std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points, const std::vector<ClipperLib::PolyNode*> &items);
 

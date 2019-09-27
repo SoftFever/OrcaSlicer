@@ -34,7 +34,7 @@ public:
     void rotate(double angle, const Point &center);
     void reverse();
     Point first_point() const;
-    virtual Point last_point() const = 0;
+    virtual const Point& last_point() const = 0;
     virtual Lines lines() const = 0;
     size_t size() const { return points.size(); }
     bool   empty() const { return points.empty(); }
