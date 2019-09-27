@@ -15,40 +15,39 @@ namespace Slic3r {
 
 struct SurfaceFillParams
 {
-	SurfaceFillParams() : flow(0.f, 0.f, 0.f, false) { memset(this, 0, sizeof(*this)); }
 	// Zero based extruder ID.
-	unsigned int 	extruder;
+    unsigned int 	extruder = 0;
 	// Infill pattern, adjusted for the density etc.
-	InfillPattern  	pattern;
+    InfillPattern  	pattern = InfillPattern(0);
 
     // FillBase
     // in unscaled coordinates
-    coordf_t    	spacing;
+    coordf_t    	spacing = 0.;
     // infill / perimeter overlap, in unscaled coordinates
-    coordf_t    	overlap;
+    coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
-    float       	angle;
+    float       	angle = 0.f;
     // Non-negative for a bridge.
-    float 			bridge_angle;
+    float 			bridge_angle = 0.f;
 
     // FillParams
-    float       	density;
+    float       	density = 0.f;
     // Don't connect the fill lines around the inner perimeter.
-    bool        	dont_connect;
+    bool        	dont_connect = false;
     // Don't adjust spacing to fill the space evenly.
-    bool        	dont_adjust;
+    bool        	dont_adjust = false;
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
-	Flow 			flow;
+    Flow 			flow = Flow(0.f, 0.f, 0.f, false);
 
 	// For the output
-	ExtrusionRole	extrusion_role;
+    ExtrusionRole	extrusion_role = ExtrusionRole(0);
 
 	// Various print settings?
 
 	// Index of this entry in a linear vector.
-	size_t 			idx;
+    size_t 			idx = 0;
 
 
 	bool operator<(const SurfaceFillParams &rhs) const {

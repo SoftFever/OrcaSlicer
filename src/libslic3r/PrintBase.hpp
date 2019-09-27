@@ -268,8 +268,7 @@ public:
         std::string     text;
         // Bitmap of flags.
         enum FlagBits {
-            DEFAULT,
-            NO_RELOAD_SCENE                 = 0,
+            DEFAULT                         = 0,
             RELOAD_SCENE                    = 1 << 1,
             RELOAD_SLA_SUPPORT_POINTS       = 1 << 2,
             RELOAD_SLA_PREVIEW              = 1 << 3,

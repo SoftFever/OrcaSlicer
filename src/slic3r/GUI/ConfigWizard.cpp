@@ -1225,13 +1225,16 @@ bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater
 
 const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 {
-    // A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
+    // A different naming convention is used for the Wizard on Windows & GTK vs. OSX.
+    // Note: Don't call _() macro here.
+    //       This function just return the current name according to the OS.
+    //       Translation is implemented inside GUI_App::add_config_menu()
 #if __APPLE__
-    static const wxString config_wizard_name =  _(L("Configuration Assistant"));
-    static const wxString config_wizard_name_menu = _(L("Configuration &Assistant"));
+    static const wxString config_wizard_name =  L("Configuration Assistant");
+    static const wxString config_wizard_name_menu = L("Configuration &Assistant");
 #else
-    static const wxString config_wizard_name = _(L("Configuration Wizard"));
-    static const wxString config_wizard_name_menu = _(L("Configuration &Wizard"));
+    static const wxString config_wizard_name = L("Configuration Wizard");
+    static const wxString config_wizard_name_menu = L("Configuration &Wizard");
 #endif
     return from_menu ? config_wizard_name_menu : config_wizard_name;
 }

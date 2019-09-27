@@ -505,12 +505,19 @@ network connection to (TCP)
 on
 .Ar host
 is established.
+Square brackets may be placed around
+.Ar host
+to improve readability, for numeric IPv6 addresses (e.g.
+.Li net:[2001:db8::42]:1337 ) .
 The remote endpoint is assumed to be a terminal or console server
 that connects the network stream to a local serial port where the
 actual programmer has been attached to.
 The port is assumed to be properly configured, for example using a
 transparent 8-bit data connection without parity at 115200 Baud
 for a STK500.
+.Pp
+Note: The ability to handle IPv6 hostnames and addresses is limited to
+Posix systems (by now).
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.

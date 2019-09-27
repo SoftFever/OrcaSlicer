@@ -3322,7 +3322,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
-    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
+    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
             this->update_fff_scene();
@@ -4288,11 +4288,10 @@ void Plater::increase_instances(size_t num)
 
     sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
-    if (p->get_config("autocenter") == "1") {
+    if (p->get_config("autocenter") == "1")
         p->arrange();
-    } else {
-        p->update();
-    }
+
+    p->update();
 
     p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
 

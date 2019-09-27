@@ -36,6 +36,10 @@
 #error "SEEK_SET not defined"
 #endif
 
+#ifndef BOOST_LITTLE_ENDIAN
+extern void stl_internal_reverse_quads(char *buf, size_t cnt);
+#endif /* BOOST_LITTLE_ENDIAN */
+
 static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
   	// Open the file in binary mode first.
@@ -237,10 +241,6 @@ bool stl_open(stl_file *stl, const char *file)
   	fclose(fp);
   	return result;
 }
-
-#ifndef BOOST_LITTLE_ENDIAN
-extern void stl_internal_reverse_quads(char *buf, size_t cnt);
-#endif /* BOOST_LITTLE_ENDIAN */
 
 void stl_allocate(stl_file *stl) 
 {

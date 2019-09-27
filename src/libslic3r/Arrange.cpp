@@ -618,19 +618,21 @@ void arrange(ArrangePolygons &             arrangables,
     items.reserve(arrangables.size());
     
     // Create Item from Arrangeable
-    auto process_arrangeable =
-        [](const ArrangePolygon &arrpoly, std::vector<Item> &outp)
+    auto process_arrangeable = [](const ArrangePolygon &arrpoly,
+                                  std::vector<Item> &   outp)
     {
-        Polygon p        = arrpoly.poly.contour;
-        const Vec2crd &  offs     = arrpoly.translation;
-        double           rotation = arrpoly.rotation;
+        Polygon        p        = arrpoly.poly.contour;
+        const Vec2crd &offs     = arrpoly.translation;
+        double         rotation = arrpoly.rotation;
 
         if (p.is_counter_clockwise()) p.reverse();
 
         clppr::Polygon clpath(Slic3rMultiPoint_to_ClipperPath(p));
-
-        auto firstp = clpath.Contour.front();
-        clpath.Contour.emplace_back(firstp);
+        
+        if (!clpath.Contour.empty()) {
+            auto firstp = clpath.Contour.front();
+            clpath.Contour.emplace_back(firstp);
+        }
 
         outp.emplace_back(std::move(clpath));
         outp.back().rotation(rotation);

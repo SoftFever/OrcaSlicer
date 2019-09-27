@@ -660,7 +660,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     if (print->is_step_done(psGCodeExport) && boost::filesystem::exists(boost::filesystem::path(path)))
         return;
 
-	print->set_started(psGCodeExport);
+    print->set_started(psGCodeExport);
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code..." << log_memory_info();
 
@@ -1412,7 +1412,7 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
         // Skip the rest of the line.
         for (; *ptr != 0 && *ptr != '\r' && *ptr != '\n'; ++ ptr);
 		// Skip the end of line indicators.
-		for (; *ptr == '\r' || *ptr == '\n'; ++ ptr);
+        for (; *ptr == '\r' || *ptr == '\n'; ++ ptr);
 	}
     return temp_set_by_gcode;
 }

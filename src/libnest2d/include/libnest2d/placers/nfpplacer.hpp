@@ -3,9 +3,6 @@
 
 #include <cassert>
 
-// For caching nfps
-#include <unordered_map>
-
 // For parallel for
 #include <functional>
 #include <iterator>
@@ -73,55 +70,6 @@ inline void enumerate(
     for(TN fi = 0; fi < N; ++fi) rets[fi].wait();
 #endif
 }
-
-}
-
-namespace __itemhash {
-
-using Key = size_t;
-
-template<class S>
-Key hash(const _Item<S>& item) {
-    using Point = TPoint<S>;
-    using Segment = _Segment<Point>;
-
-    static const int N = 26;
-    static const int M = N*N - 1;
-
-    std::string ret;
-    auto& rhs = item.rawShape();
-    auto& ctr = sl::contour(rhs);
-    auto it = ctr.begin();
-    auto nx = std::next(it);
-
-    double circ = 0;
-    while(nx != ctr.end()) {
-        Segment seg(*it++, *nx++);
-        Radians a = seg.angleToXaxis();
-        double deg = Degrees(a);
-        int ms = 'A', ls = 'A';
-        while(deg > N) { ms++; deg -= N; }
-        ls += int(deg);
-        ret.push_back(char(ms)); ret.push_back(char(ls));
-        circ += std::sqrt(seg.template sqlength<double>());
-    }
-
-    it = ctr.begin(); nx = std::next(it);
-
-    while(nx != ctr.end()) {
-        Segment seg(*it++, *nx++);
-        auto l = int(M * std::sqrt(seg.template sqlength<double>()) / circ);
-        int ms = 'A', ls = 'A';
-        while(l > N) { ms++; l -= N; }
-        ls += l;
-        ret.push_back(char(ms)); ret.push_back(char(ls));
-    }
-
-    return std::hash<std::string>()(ret);
-}
-
-template<class S>
-using Hash = std::unordered_map<Key, nfp::NfpResult<S>>;
 
 }
 
@@ -529,16 +477,8 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin
 
     using MaxNfpLevel = nfp::MaxNfpLevel<RawShape>;
 
-    using ItemKeys = std::vector<__itemhash::Key>;
-
     // Norming factor for the optimization function
     const double norm_;
-
-    // Caching calculated nfps
-    __itemhash::Hash<RawShape> nfpcache_;
-
-    // Storing item hash keys
-    ItemKeys item_keys_;
 
 public:
 
@@ -636,15 +576,12 @@ public:
 private:
 
     using Shapes = TMultiShape<RawShape>;
-    using ItemRef = std::reference_wrapper<Item>;
-    using ItemWithHash = const std::pair<ItemRef, __itemhash::Key>;
 
-    Shapes calcnfp(const ItemWithHash itsh, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
+    Shapes calcnfp(const Item &trsh, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
     {
         using namespace nfp;
 
         Shapes nfps(items_.size());
-        const Item& trsh = itsh.first;
 
         // /////////////////////////////////////////////////////////////////////
         // TODO: this is a workaround and should be solved in Item with mutexes
@@ -678,12 +615,11 @@ private:
 
 
     template<class Level>
-    Shapes calcnfp( const ItemWithHash itsh, Level)
+    Shapes calcnfp(const Item &trsh, Level)
     { // Function for arbitrary level of nfp implementation
         using namespace nfp;
 
         Shapes nfps;
-        const Item& trsh = itsh.first;
 
         auto& orb = trsh.transformedShape();
         bool orbconvex = trsh.isContourConvex();
@@ -849,8 +785,6 @@ private:
             remlist.insert(remlist.end(), remaining.from, remaining.to);
         }
 
-        size_t itemhash = __itemhash::hash(item);
-
         if(items_.empty()) {
             setInitialPosition(item);
             best_overfit = overfit(item.transformedShape(), bin_);
@@ -875,7 +809,7 @@ private:
                 // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
 
-                nfps = calcnfp({item, itemhash}, Lvl<MaxNfpLevel::value>());
+                nfps = calcnfp(item, Lvl<MaxNfpLevel::value>());
 
                 auto iv = item.referenceVertex();
 
@@ -1112,7 +1046,6 @@ private:
 
         if(can_pack) {
             ret = PackResult(item);
-            item_keys_.emplace_back(itemhash);
         } else {
             ret = PackResult(best_overfit);
         }
