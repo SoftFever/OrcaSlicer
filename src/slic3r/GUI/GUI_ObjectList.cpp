@@ -131,7 +131,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         {
             wxDataViewItemArray sels;
             GetSelections(sels);
-            if (sels.front() == m_last_selected_item)
+            if (! sels.empty() && sels.front() == m_last_selected_item)
                 m_last_selected_item = sels.back();
             else
                 m_last_selected_item = event.GetItem();
