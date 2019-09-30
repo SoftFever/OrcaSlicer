@@ -866,7 +866,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             }
 
             // if layer not found, create and return it
-            layers.emplace_back(z, ExtrusionPaths());
+            layers.emplace_back(z, GCodePreviewData::Extrusion::Paths());
             return layers.back();
         }
 
@@ -875,14 +875,18 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             // if the polyline is valid, create the extrusion path from it and store it
             if (polyline.is_valid())
             {
-                ExtrusionPath path(data.extrusion_role, data.mm3_per_mm, data.width, data.height);
+				auto& paths = get_layer_at_z(preview_data.extrusion.layers, z).paths;
+				paths.emplace_back(GCodePreviewData::Extrusion::Path());
+				GCodePreviewData::Extrusion::Path &path = paths.back();
                 path.polyline = polyline;
+				path.extrusion_role = data.extrusion_role;
+				path.mm3_per_mm = data.mm3_per_mm;
+				path.width = data.width;
+				path.height = data.height;
                 path.feedrate = data.feedrate;
                 path.extruder_id = data.extruder_id;
-                path.fan_speed = data.fan_speed;
                 path.cp_color_id = data.cp_color_id;
-
-                get_layer_at_z(preview_data.extrusion.layers, z).paths.push_back(path);
+                path.fan_speed = data.fan_speed;
             }
         }
     };
