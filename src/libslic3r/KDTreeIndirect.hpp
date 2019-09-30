@@ -19,7 +19,10 @@ public:
 	static constexpr size_t NumDimensions = ANumDimensions;
 	using					CoordinateFn  = ACoordinateFn;
 	using					CoordType     = ACoordType;
-	static constexpr size_t npos		  = size_t(-1);
+    // Following could be static constexpr size_t, but that would not link in C++11
+    enum : size_t {
+        npos = size_t(-1)
+    };
 
 	KDTreeIndirect(CoordinateFn coordinate) : coordinate(coordinate) {}
 	KDTreeIndirect(CoordinateFn coordinate, std::vector<size_t>   indices) : coordinate(coordinate) { this->build(std::move(indices)); }
@@ -61,15 +64,17 @@ public:
 	{
 		CoordType dist = point_coord - this->coordinate(idx, dimension);
 		return (dist * dist < search_radius + CoordType(EPSILON)) ?
+			// The plane intersects a hypersphere centered at point_coord of search_radius.
 			((unsigned int)(VisitorReturnMask::CONTINUE_LEFT) | (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT)) :
-			(dist < CoordType(0)) ? (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT) : (unsigned int)(VisitorReturnMask::CONTINUE_LEFT);
+			// The plane does not intersect the hypersphere.
+			(dist > CoordType(0)) ? (unsigned int)(VisitorReturnMask::CONTINUE_RIGHT) : (unsigned int)(VisitorReturnMask::CONTINUE_LEFT);
 	}
 
 	// Visitor is supposed to return a bit mask of VisitorReturnMask.
 	template<typename Visitor>
 	void visit(Visitor &visitor) const
 	{
-		return m_nodes.empty() ? npos : visit_recursive(0, 0, visitor);
+        visit_recursive(0, 0, visitor);
 	}
 
 	CoordinateFn coordinate;

@@ -93,7 +93,7 @@ void FillHoneycomb::_fill_surface_single(
 
         // connect paths
         if (! paths.empty()) { // prevent calling leftmost_point() on empty collections
-            Polylines chained = chain_infill_polylines(std::move(paths));
+            Polylines chained = chain_polylines(std::move(paths));
             assert(paths.empty());
             paths.clear();
             for (Polyline &path : chained) {

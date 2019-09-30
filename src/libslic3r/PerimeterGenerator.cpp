@@ -175,10 +175,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 perimeter_generator.overhang_flow.width,
                 perimeter_generator.overhang_flow.height);
             
-            // reapply the nearest point search for starting point
-            // We allow polyline reversal because Clipper may have randomly
-            // reversed polylines during clipping.
-            paths = (ExtrusionPaths)ExtrusionEntityCollection(paths).chained_path();
+            // Reapply the nearest point search for starting point.
+            // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
+            chain_and_reorder_extrusion_paths(paths, &paths.front().first_point());
         } else {
             ExtrusionPath path(role);
             path.polyline   = loop.polygon.split_at_first_point();

@@ -3,11 +3,6 @@
 
 namespace Slic3r {
 
-MultiPoint::operator Points() const
-{
-    return this->points;
-}
-
 void MultiPoint::scale(double factor)
 {
     for (Point &pt : points)
@@ -57,18 +52,7 @@ void MultiPoint::rotate(double angle, const Point &center)
     }
 }
 
-void MultiPoint::reverse()
-{
-    std::reverse(this->points.begin(), this->points.end());
-}
-
-Point MultiPoint::first_point() const
-{
-    return this->points.front();
-}
-
-double
-MultiPoint::length() const
+double MultiPoint::length() const
 {
     Lines lines = this->lines();
     double len = 0;
@@ -78,8 +62,7 @@ MultiPoint::length() const
     return len;
 }
 
-int
-MultiPoint::find_point(const Point &point) const
+int MultiPoint::find_point(const Point &point) const
 {
     for (const Point &pt : this->points)
         if (pt == point)
@@ -87,21 +70,18 @@ MultiPoint::find_point(const Point &point) const
     return -1;  // not found
 }
 
-bool
-MultiPoint::has_boundary_point(const Point &point) const
+bool MultiPoint::has_boundary_point(const Point &point) const
 {
     double dist = (point.projection_onto(*this) - point).cast<double>().norm();
     return dist < SCALED_EPSILON;
 }
 
-BoundingBox
-MultiPoint::bounding_box() const
+BoundingBox MultiPoint::bounding_box() const
 {
     return BoundingBox(this->points);
 }
 
-bool 
-MultiPoint::has_duplicate_points() const
+bool MultiPoint::has_duplicate_points() const
 {
     for (size_t i = 1; i < points.size(); ++i)
         if (points[i-1] == points[i])
@@ -109,8 +89,7 @@ MultiPoint::has_duplicate_points() const
     return false;
 }
 
-bool
-MultiPoint::remove_duplicate_points()
+bool MultiPoint::remove_duplicate_points()
 {
     size_t j = 0;
     for (size_t i = 1; i < points.size(); ++i) {
@@ -129,8 +108,7 @@ MultiPoint::remove_duplicate_points()
     return false;
 }
 
-bool
-MultiPoint::intersection(const Line& line, Point* intersection) const
+bool MultiPoint::intersection(const Line& line, Point* intersection) const
 {
     Lines lines = this->lines();
     for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it) {

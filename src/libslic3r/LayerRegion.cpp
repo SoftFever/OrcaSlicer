@@ -272,7 +272,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->config().support_material) {
                         polygons_append(this->bridged, bd.coverage());
-                        this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+                        append(this->unsupported_bridge_edges, bd.unsupported_edges());
                     }
 				} else if (custom_angle > 0) {
 					// Bridge was not detected (likely it is only supported at one side). Still it is a surface filled in

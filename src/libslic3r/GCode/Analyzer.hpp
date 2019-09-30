@@ -54,10 +54,11 @@ public:
         float width;     // mm
         float height;    // mm
         float feedrate;  // mm/s
+        float fan_speed; // percentage
         unsigned int cp_color_id;
 
         Metadata();
-        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, unsigned int cp_color_id = 0);
+        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, float fan_speed, unsigned int cp_color_id = 0);
 
         bool operator != (const Metadata& other) const;
     };
@@ -81,7 +82,7 @@ public:
         Vec3d end_position;
         float delta_extruder;
 
-        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder, unsigned int cp_color_id = 0);
+        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder, float fan_speed, unsigned int cp_color_id = 0);
         GCodeMove(EType type, const Metadata& data, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
     };
 
@@ -171,6 +172,12 @@ private:
     // Set extruder to relative mode
     void _processM83(const GCodeReader::GCodeLine& line);
 
+    // Set fan speed
+    void _processM106(const GCodeReader::GCodeLine& line);
+
+    // Disable fan
+    void _processM107(const GCodeReader::GCodeLine& line);
+
     // Set tool (MakerWare and Sailfish flavor)
     void _processM108orM135(const GCodeReader::GCodeLine& line);
 
@@ -232,6 +239,9 @@ private:
 
     void _set_feedrate(float feedrate_mm_sec);
     float _get_feedrate() const;
+
+    void _set_fan_speed(float fan_speed_percentage);
+    float _get_fan_speed() const;
 
     void _set_axis_position(EAxis axis, float position);
     float _get_axis_position(EAxis axis) const;
