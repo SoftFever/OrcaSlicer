@@ -30,7 +30,7 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
     0xc629  // SPACEPILOTPRO = 50729
 };
 
-static const unsigned int _3DCONNEXION_BUTTONS_COUNT = 2;
+static const unsigned int _3DCONNEXION_MAX_BUTTONS_COUNT = 256;
 
 namespace Slic3r {
 namespace GUI {
@@ -41,7 +41,6 @@ const float Mouse3DController::State::DefaultRotationScale = 1.0;
 Mouse3DController::State::State()
     : m_translation(Vec3d::Zero())
     , m_rotation(Vec3f::Zero())
-    , m_buttons(_3DCONNEXION_BUTTONS_COUNT, false)
     , m_translation_scale(DefaultTranslationScale)
     , m_rotation_scale(DefaultRotationScale)
 {
@@ -62,8 +61,7 @@ void Mouse3DController::State::set_rotation(const Vec3f& rotation)
 void Mouse3DController::State::set_button(unsigned int id)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (id < _3DCONNEXION_BUTTONS_COUNT)
-        m_buttons[id] = true;
+    m_buttons.push_back(id);
 }
 
 bool Mouse3DController::State::has_translation() const
@@ -71,21 +69,23 @@ bool Mouse3DController::State::has_translation() const
     std::lock_guard<std::mutex> lock(m_mutex);
     return !m_translation.isApprox(Vec3d::Zero());
 }
+
 bool Mouse3DController::State::has_rotation() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return !m_rotation.isApprox(Vec3f::Zero());
 }
 
+bool Mouse3DController::State::has_translation_or_rotation() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return !m_translation.isApprox(Vec3d::Zero()) && !m_rotation.isApprox(Vec3f::Zero());
+}
+
 bool Mouse3DController::State::has_any_button() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (int i = 0; i < _3DCONNEXION_BUTTONS_COUNT; ++i)
-    {
-        if (m_buttons[i])
-            return true;
-    }
-    return false;
+    return !m_buttons.empty();
 }
 
 bool Mouse3DController::State::apply(GLCanvas3D& canvas)
@@ -116,12 +116,17 @@ bool Mouse3DController::State::apply(GLCanvas3D& canvas)
 
     if (has_any_button())
     {
-        if (m_buttons[0])
-            canvas.set_camera_zoom(1.0);
-        else if (m_buttons[1])
-            canvas.set_camera_zoom(-1.0);
+        for (unsigned int i : m_buttons)
+        {
+            switch (i)
+            {
+            case 0: { canvas.set_camera_zoom(1.0); break; }
+            case 1: { canvas.set_camera_zoom(-1.0); break; }
+            default: { break; }
+            }
+        }
 
-        m_buttons = std::vector<bool>(_3DCONNEXION_BUTTONS_COUNT, false);
+        m_buttons.clear();
         ret = true;
     }
 
@@ -314,7 +319,7 @@ void Mouse3DController::collect_input()
             }
         case Button:
             {
-                for (unsigned int i = 0; i < _3DCONNEXION_BUTTONS_COUNT; ++i)
+                for (unsigned int i = 0; i < _3DCONNEXION_MAX_BUTTONS_COUNT; ++i)
                 {
                     if (retrieved_data[1] & (0x1 << i))
                         m_state.set_button(i);

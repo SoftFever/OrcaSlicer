@@ -2551,7 +2551,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 #if ENABLE_3DCONNEXION_DEVICES
     // try to filter out events coming from mouse 3d controller
     const Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-    if (controller.has_rotation() || controller.has_translation())
+    if (controller.has_translation_or_rotation())
         return;
 #endif // ENABLE_3DCONNEXION_DEVICES
 

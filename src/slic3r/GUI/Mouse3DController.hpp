@@ -26,7 +26,7 @@ class Mouse3DController
 
         Vec3d m_translation;
         Vec3f m_rotation;
-        std::vector<bool> m_buttons;
+        std::vector<unsigned int> m_buttons;
 
         double m_translation_scale;
         float m_rotation_scale;
@@ -40,7 +40,14 @@ class Mouse3DController
 
         bool has_translation() const;
         bool has_rotation() const;
+        bool has_translation_or_rotation() const;
         bool has_any_button() const;
+
+        double get_translation_scale() const { return m_translation_scale; }
+        void set_translation_scale(double scale) { m_translation_scale = scale; }
+
+        float get_rotation_scale() const { return m_rotation_scale; }
+        void set_rotation_scale(float scale) { m_rotation_scale = scale; }
 
         // return true if any change to the camera took place
         bool apply(GLCanvas3D& canvas);
@@ -71,6 +78,7 @@ public:
 
     bool has_translation() const { return m_state.has_translation(); }
     bool has_rotation() const { return m_state.has_rotation(); }
+    bool has_translation_or_rotation() const { return m_state.has_translation_or_rotation(); }
     bool has_any_button() const { return m_state.has_any_button(); }
 
     bool apply()
