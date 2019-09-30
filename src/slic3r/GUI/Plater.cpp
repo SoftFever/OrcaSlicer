@@ -521,12 +521,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             const std::vector<double> &init_matrix = (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
             const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
-            const DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-            std::vector<std::string> extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
-            const std::vector<std::string>& filament_colours = (wxGetApp().plater()->get_plater_config()->option<ConfigOptionStrings>("filament_colour"))->values;
-            for (size_t i=0; i<extruder_colours.size(); ++i)
-                if (extruder_colours[i] == "" && i < filament_colours.size())
-                    extruder_colours[i] = filament_colours[i];
+            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
 
@@ -4889,6 +4884,18 @@ void Plater::on_activate()
 const DynamicPrintConfig* Plater::get_plater_config() const
 {
     return p->config;
+}
+
+std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
+{
+    const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    std::vector<std::string> extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
+    for (size_t i = 0; i < extruder_colors.size(); ++i)
+        if (extruder_colors[i] == "" && i < filament_colours.size())
+            extruder_colors[i] = filament_colours[i];
+
+    return extruder_colors;
 }
 
 wxString Plater::get_project_filename(const wxString& extension) const

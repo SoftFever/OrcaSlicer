@@ -7,6 +7,7 @@
 #include "libslic3r/Model.hpp"
 
 #include <wx/sizer.h>
+#include <wx/bmpcbox.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
@@ -20,6 +21,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
+#include "PresetBundle.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
@@ -1840,7 +1842,7 @@ void ObjectDataViewModel::DeleteWarningIcon(const wxDataViewItem& item, const bo
 }
 
 //-----------------------------------------------------------------------------
-// PrusaDataViewBitmapText
+// DataViewBitmapText
 //-----------------------------------------------------------------------------
 
 wxIMPLEMENT_DYNAMIC_CLASS(DataViewBitmapText, wxObject)
@@ -1961,6 +1963,138 @@ bool BitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value
 
     // But replace the text with the value entered by user.
     bmpText.SetText(text_editor->GetValue());
+
+    value << bmpText;
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// BitmapChoiseRenderer
+// ----------------------------------------------------------------------------
+
+bool BitmapChoiseRenderer::SetValue(const wxVariant& value)
+{
+    m_value << value;
+    return true;
+}
+bool BitmapChoiseRenderer::GetValue(wxVariant& value) const 
+{
+    value << m_value;
+    return true;
+}
+bool BitmapChoiseRenderer::Render(wxRect rect, wxDC* dc, int state)
+{
+    int xoffset = 0;
+
+    const wxBitmap& icon = m_value.GetBitmap();
+    if (icon.IsOk())
+    {
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+        xoffset = icon.GetWidth() + 4;
+    }
+
+    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+
+    return true;
+}
+
+wxSize BitmapChoiseRenderer::GetSize() const
+{
+    if (!m_value.GetText().empty())
+    {
+        wxSize size = GetTextExtent(m_value.GetText());
+
+        if (m_value.GetBitmap().IsOk())
+            size.x += m_value.GetBitmap().GetWidth() + 4;
+        return size;
+    }
+    return wxSize(80, 20);
+
+    /* from wxDataViewChoiceRenderer
+    wxSize sz;
+
+    for ( wxArrayString::const_iterator i = m_choices.begin(); i != m_choices.end(); ++i )
+        sz.IncTo(GetTextExtent(*i));
+
+    // Allow some space for the right-side button, which is approximately the
+    // size of a scrollbar (and getting pixel-exact value would be complicated).
+    // Also add some whitespace between the text and the button:
+    sz.x += wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
+    sz.x += GetTextExtent("M").x;
+
+    return sz;
+     */
+}
+
+static void update_extruder_color_icons_in_cache()
+{
+    // Create the bitmap with color bars.
+    std::vector<wxBitmap*> bmps;
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+    unsigned char rgb[3];
+
+    /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
+     * So set sizes for solid_colored icons used for filament preset
+     * and scale them in respect to em_unit value
+     */
+    const double em = Slic3r::GUI::wxGetApp().em_unit();
+    const int icon_width = lround(3.6 * em);
+    const int icon_height = lround(1.6 * em);
+
+    for (const std::string& color : colors)
+    {
+        wxBitmap* bitmap = m_bitmap_cache->find(color);
+        if (bitmap == nullptr) {
+            // Paint the color icon.
+            Slic3r::PresetBundle::parse_color(color, rgb);
+            bitmap = m_bitmap_cache->insert(color, m_bitmap_cache->mksolid(icon_width, icon_height, rgb));
+        }
+        bmps.emplace_back(bitmap);
+    }
+}
+
+
+wxWindow* BitmapChoiseRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value)
+{
+    wxDataViewCtrl* const dv_ctrl = GetOwner()->GetOwner();
+    ObjectDataViewModel* const model = dynamic_cast<ObjectDataViewModel*>(dv_ctrl->GetModel());
+
+    if (!(model->GetItemType(dv_ctrl->GetSelection()) & (itVolume | itObject)))
+        return nullptr;
+
+    DataViewBitmapText data;
+    data << value;
+
+//    m_was_unusable_symbol = false;
+
+    wxPoint position = labelRect.GetPosition();
+    if (data.GetBitmap().IsOk()) {
+        const int bmp_width = data.GetBitmap().GetWidth();
+        position.x += bmp_width;
+        labelRect.SetWidth(labelRect.GetWidth() - bmp_width);
+    }
+
+    auto c_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, //data.GetText(),
+        labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
+        0, nullptr , wxCB_READONLY);
+
+    c_editor->Move(labelRect.GetRight() - c_editor->GetRect().width, wxDefaultCoord);
+    c_editor->SetStringSelection(data.GetText());
+    return c_editor;
+}
+
+bool BitmapChoiseRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
+{
+    wxBitmapComboBox* c = (wxBitmapComboBox*)ctrl;
+    int selection = c->GetSelection();
+    if (selection < 0)
+        return false;
+   
+    DataViewBitmapText bmpText;
+
+    bmpText.SetText(c->GetString(selection));
+    bmpText.SetBitmap(c->GetItemBitmap(selection));
 
     value << bmpText;
     return true;

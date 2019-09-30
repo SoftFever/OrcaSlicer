@@ -564,6 +564,40 @@ private:
 
 
 // ----------------------------------------------------------------------------
+// BitmapChoiseRenderer
+// ----------------------------------------------------------------------------
+
+class BitmapChoiseRenderer : public wxDataViewCustomRenderer
+{
+public:
+    BitmapChoiseRenderer(wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT
+
+        , int align = wxDVR_DEFAULT_ALIGNMENT
+        ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
+
+    bool SetValue(const wxVariant& value);
+    bool GetValue(wxVariant& value) const;
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
+    virtual wxString GetAccessibleDescription() const override;
+#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+
+    virtual bool Render(wxRect cell, wxDC* dc, int state);
+    virtual wxSize GetSize() const;
+
+    bool        HasEditorCtrl() const override { return true; }
+    wxWindow* CreateEditorCtrl(wxWindow* parent,
+        wxRect labelRect,
+        const wxVariant& value) override;
+    bool        GetValueFromEditorCtrl(wxWindow* ctrl,
+        wxVariant& value) override;
+
+private:
+    DataViewBitmapText  m_value;
+    wxArrayString       m_choices;
+};
+
+
+// ----------------------------------------------------------------------------
 // MyCustomRenderer
 // ----------------------------------------------------------------------------
 
