@@ -365,25 +365,6 @@ include_directories(${GLEW_INCLUDE_DIRS})
 add_library(cereal INTERFACE)
 target_include_directories(cereal INTERFACE include)
 
-# Find the hidapi library
-if(WIN32)
-add_library(hidapi STATIC
-    ${LIBDIR}/hidapi/win/hid.c
-)
-elseif (APPLE)
-add_library(hidapi STATIC
-    ${LIBDIR}/hidapi/mac/hid.c
-)
-else ()
-add_library(hidapi STATIC
-    ${LIBDIR}/hidapi/linux/hid.c
-)
-endif ()
-set(HIDAPI_FOUND 1)
-set(HIDAPI_INCLUDE_DIRS ${LIBDIR}/hidapi/)
-set(HIDAPI_LIBRARIES hidapi)
-include_directories(${HIDAPI_INCLUDE_DIRS})
-
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
 add_custom_target(pot
