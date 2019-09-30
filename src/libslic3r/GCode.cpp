@@ -1969,7 +1969,7 @@ void GCode::process_layer(
                     m_layer = layers[instance_to_print.layer_id].support_layer;
                     gcode += this->extrude_support(
                         // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
-                        instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, false, instance_to_print.object_by_extruder.support_extrusion_role));
+                        instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
                     m_layer = layers[instance_to_print.layer_id].layer();
                 }
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
@@ -2588,10 +2588,10 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions()[&region - &by_region.front()]->config());
-        for (ExtrusionEntity *fill : region.infills.chained_path_from(m_last_pos, false).entities) {
+        for (ExtrusionEntity *fill : region.infills.chained_path_from(m_last_pos).entities) {
             auto *eec = dynamic_cast<ExtrusionEntityCollection*>(fill);
             if (eec) {
-				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos, false).entities)
+				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
                     gcode += this->extrude_entity(*ee, "infill");
             } else
                 gcode += this->extrude_entity(*fill, "infill");

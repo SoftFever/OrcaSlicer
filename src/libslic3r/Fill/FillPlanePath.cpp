@@ -1,5 +1,4 @@
 #include "../ClipperUtils.hpp"
-#include "../PolylineCollection.hpp"
 #include "../Surface.hpp"
 
 #include "FillPlanePath.hpp"

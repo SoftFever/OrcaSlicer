@@ -2,7 +2,11 @@
 
 %{
 #include <xsinit.h>
-#include "libslic3r/PolylineCollection.hpp"
+
+#include "libslic3r.h"
+#include "Polyline.hpp"
+#include "ShortestPath.hpp"
+
 %}
 
 %name{Slic3r::Polyline::Collection} class PolylineCollection {
@@ -14,16 +18,15 @@
     PolylineCollection* chained_path(bool no_reverse)
         %code{%
             RETVAL = new PolylineCollection();
-            THIS->chained_path(RETVAL, no_reverse);
+            RETVAL->polylines = chain_polylines(THIS->polylines, &THIS->polylines.front().first_point());
         %};
     PolylineCollection* chained_path_from(Point* start_near, bool no_reverse)
         %code{%
             RETVAL = new PolylineCollection();
-            THIS->chained_path_from(*start_near, RETVAL, no_reverse);
+            RETVAL->polylines = chain_polylines(THIS->polylines, start_near);
         %};
     int count()
         %code{% RETVAL = THIS->polylines.size(); %};
-    Clone<Point> leftmost_point();
 %{
 
 PolylineCollection*

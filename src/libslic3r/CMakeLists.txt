@@ -131,8 +131,6 @@ add_library(libslic3r STATIC
     PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
-    PolylineCollection.cpp
-    PolylineCollection.hpp
     Print.cpp
     Print.hpp
     PrintBase.cpp
