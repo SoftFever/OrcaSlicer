@@ -5026,6 +5026,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return path.width;
             case GCodePreviewData::Extrusion::Feedrate:
                 return path.feedrate;
+            case GCodePreviewData::Extrusion::FanSpeed:
+                return path.fan_speed;
             case GCodePreviewData::Extrusion::VolumetricRate:
                 return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
@@ -5051,6 +5053,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return data.get_width_color(value);
             case GCodePreviewData::Extrusion::Feedrate:
                 return data.get_feedrate_color(value);
+            case GCodePreviewData::Extrusion::FanSpeed:
+                return data.get_fan_speed_color(value);
             case GCodePreviewData::Extrusion::VolumetricRate:
                 return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:

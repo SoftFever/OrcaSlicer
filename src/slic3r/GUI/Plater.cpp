@@ -4866,6 +4866,34 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         this->p->schedule_background_process();
 }
 
+void Plater::force_filament_colors_update()
+{
+    bool update_scheduled = false;
+    DynamicPrintConfig* config = p->config;
+    const std::vector<std::string> filament_presets = wxGetApp().preset_bundle->filament_presets;
+    if (filament_presets.size() > 1 && 
+        p->config->option<ConfigOptionStrings>("filament_colour")->values.size() == filament_presets.size())
+    {
+        const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
+        std::vector<std::string> filament_colors;
+        filament_colors.reserve(filament_presets.size());
+
+        for (const std::string& filament_preset : filament_presets)
+            filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
+
+        if (config->option<ConfigOptionStrings>("filament_colour")->values != filament_colors) {
+            config->option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+            update_scheduled = true;
+        }
+    }
+
+    if (update_scheduled)
+        update();
+
+    if (p->main_frame->is_loaded())
+        this->p->schedule_background_process();
+}
+
 void Plater::on_activate()
 {
 #ifdef __linux__

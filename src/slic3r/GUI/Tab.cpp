@@ -3032,6 +3032,12 @@ void Tab::save_preset(std::string name /*= ""*/)
     if (m_type == Preset::TYPE_PRINTER)
         static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
     update_changed_ui();
+
+    /* If filament preset is saved for multi-material printer preset, 
+     * there are cases when filament comboboxs are updated for old (non-modified) colors, 
+     * but in full_config a filament_colors option aren't.*/
+    if (m_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
+        wxGetApp().plater()->force_filament_colors_update();
 }
 
 // Called for a currently selected preset.
