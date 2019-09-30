@@ -14,13 +14,17 @@
     void clear();
     ExtrusionEntityCollection* chained_path(bool no_reverse, ExtrusionRole role = erMixed)
         %code{%
+            if (no_reverse)
+                croak("no_reverse must be false");
             RETVAL = new ExtrusionEntityCollection();
-            THIS->chained_path(RETVAL, no_reverse, role);
+            *RETVAL = THIS->chained_path_from(THIS->entities.front()->first_point());
         %};
     ExtrusionEntityCollection* chained_path_from(Point* start_near, bool no_reverse, ExtrusionRole role = erMixed)
         %code{%
+            if (no_reverse)
+                croak("no_reverse must be false");
             RETVAL = new ExtrusionEntityCollection();
-            THIS->chained_path_from(*start_near, RETVAL, no_reverse, role);
+            *RETVAL = THIS->chained_path_from(*start_near, role);
         %};
     Clone<Point> first_point();
     Clone<Point> last_point();
@@ -31,13 +35,11 @@
     ExtrusionEntityCollection* flatten()
         %code{%
             RETVAL = new ExtrusionEntityCollection();
-            THIS->flatten(RETVAL);
+            *RETVAL = THIS->flatten();
         %};
     double min_mm3_per_mm();
     bool empty()
         %code{% RETVAL = THIS->entities.empty(); %};
-    std::vector<size_t> orig_indices()
-        %code{% RETVAL = THIS->orig_indices; %};
     Polygons polygons_covered_by_width();
     Polygons polygons_covered_by_spacing();
 %{

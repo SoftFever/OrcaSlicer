@@ -308,7 +308,7 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
                     LayerTools lt_new(0.5f * (lt.print_z + lt_object.print_z));
                     // Find the 1st layer above lt_new.
                     for (j = i + 1; j < m_layer_tools.size() && m_layer_tools[j].print_z < lt_new.print_z - EPSILON; ++ j);
-					if (std::abs(m_layer_tools[j].print_z - lt_new.print_z) < EPSILON) {
+                    if (std::abs(m_layer_tools[j].print_z - lt_new.print_z) < EPSILON) {
 						m_layer_tools[j].has_wipe_tower = true;
 					} else {
 						LayerTools &lt_extra = *m_layer_tools.insert(m_layer_tools.begin() + j, lt_new);

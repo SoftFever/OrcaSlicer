@@ -284,6 +284,9 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
                wxSize(8 * em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER)
 {
     this->SetFont(wxGetApp().normal_font());
+
+    // Reset m_enter_pressed flag to _false_, when value is editing
+    this->Bind(wxEVT_TEXT, [this](wxEvent&) { m_enter_pressed = false; }, this->GetId());
     
     this->Bind(wxEVT_TEXT_ENTER, [this, edit_fn](wxEvent&)
     {
@@ -307,7 +310,7 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
         if (!m_enter_pressed) {
 #ifndef __WXGTK__
             /* Update data for next editor selection.
-             * But under GTK it lucks like there is no information about selected control at e.GetWindow(),
+             * But under GTK it looks like there is no information about selected control at e.GetWindow(),
              * so we'll take it from wxEVT_LEFT_DOWN event
              * */
             LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());

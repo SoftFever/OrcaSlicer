@@ -7,6 +7,7 @@
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
+#include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
@@ -252,7 +253,7 @@ bool Print::is_step_done(PrintObjectStep step) const
 {
     if (m_objects.empty())
         return false;
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
         if (! object->is_step_done_unguarded(step))
             return false;
@@ -1236,7 +1237,8 @@ std::string Print::validate() const
 
                     // The comparison of the profiles is not just about element-wise equality, some layers may not be
                     // explicitely included. Always remember z and height of last reference layer that in the vector
-                    // and compare to that.
+                    // and compare to that. In case some layers are in the vectors multiple times, only the last entry is
+                    // taken into account and compared.
                     size_t i = 0; // index into tested profile
                     size_t j = 0; // index into reference profile
                     coordf_t ref_z = -1.;
@@ -1244,8 +1246,12 @@ std::string Print::validate() const
                     coordf_t ref_height = -1.;
                     while (i < layer_height_profile.size()) {
                         coordf_t this_z = layer_height_profile[i];
+                        // find the last entry with this z
+                        while (i+2 < layer_height_profile.size() && layer_height_profile[i+2] == this_z)
+                            i += 2;
+
                         coordf_t this_height = layer_height_profile[i+1];
-                        if (next_ref_z < this_z + EPSILON) {
+                        if (ref_height < -1. || next_ref_z < this_z + EPSILON) {
                             ref_z = next_ref_z;
                             do { // one layer can be in the vector several times
                                 ref_height = layer_height_profile_tallest[j+1];
@@ -1819,8 +1825,8 @@ void Print::_make_brim()
 				[](const std::pair<const ClipperLib_Z::Path*, size_t> &l, const std::pair<const ClipperLib_Z::Path*, size_t> &r) {
 					return l.second < r.second;
 				});
-			Vec3f last_pt(0.f, 0.f, 0.f);
 
+			Point last_pt(0, 0);
 			for (size_t i = 0; i < loops_trimmed_order.size();) {
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
@@ -1836,16 +1842,23 @@ void Print::_make_brim()
 		            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		            i = j;
 				} else {
-			    	//FIXME this is not optimal as the G-code generator will follow the sequence of paths verbatim without respect to minimum travel distance.
+			    	//FIXME The path chaining here may not be optimal.
+			    	ExtrusionEntityCollection this_loop_trimmed;
+					this_loop_trimmed.entities.reserve(j - i);
 			    	for (; i < j; ++ i) {
-			            m_brim.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
+			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = static_cast<ExtrusionPath*>(m_brim.entities.back())->polyline.points;
+			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
 			            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		           	}
+		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
+		           	m_brim.entities.reserve(m_brim.entities.size() + this_loop_trimmed.entities.size());
+		           	append(m_brim.entities, std::move(this_loop_trimmed.entities));
+		           	this_loop_trimmed.entities.clear();
 		        }
+		        last_pt = m_brim.last_point();
 			}
 		}
     } else {

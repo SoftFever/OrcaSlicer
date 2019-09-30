@@ -215,6 +215,7 @@ public:
 
     void on_extruders_change(size_t extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
+    void force_filament_colors_update();
     // On activating the parent window.
     void on_activate();
     const DynamicPrintConfig* get_plater_config() const;
@@ -229,6 +230,7 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
+    BoundingBoxf bed_shape_bb() const;
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);

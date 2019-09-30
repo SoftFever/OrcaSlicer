@@ -89,33 +89,34 @@ struct stl_neighbors {
 };
 
 struct stl_stats {
-	stl_stats() { this->reset(); }
-	void reset() { memset(this, 0, sizeof(stl_stats)); this->volume = -1.0; }
-	char          header[81];
-	stl_type      type;
-	uint32_t      number_of_facets;
-	stl_vertex    max;
-	stl_vertex    min;
-	stl_vertex    size;
-	float         bounding_diameter;
-	float         shortest_edge;
-	float         volume;
-	int           connected_edges;
-	int           connected_facets_1_edge;
-	int           connected_facets_2_edge;
-	int           connected_facets_3_edge;
-	int           facets_w_1_bad_edge;
-	int           facets_w_2_bad_edge;
-	int           facets_w_3_bad_edge;
-	int           original_num_facets;
-	int           edges_fixed;
-	int           degenerate_facets;
-	int           facets_removed;
-	int           facets_added;
-	int           facets_reversed;
-	int           backwards_edges;
-	int           normals_fixed;
-	int           number_of_parts;
+    stl_stats() { memset(&header, 0, 81); }
+    char          header[81];
+    stl_type      type                      = (stl_type)0;
+    uint32_t      number_of_facets          = 0;
+    stl_vertex    max                       = stl_vertex::Zero();
+    stl_vertex    min                       = stl_vertex::Zero();
+    stl_vertex    size                      = stl_vertex::Zero();
+    float         bounding_diameter         = 0.f;
+    float         shortest_edge             = 0.f;
+    float         volume                    = -1.f;
+    int           connected_edges           = 0;
+    int           connected_facets_1_edge   = 0;
+    int           connected_facets_2_edge   = 0;
+    int           connected_facets_3_edge   = 0;
+    int           facets_w_1_bad_edge       = 0;
+    int           facets_w_2_bad_edge       = 0;
+    int           facets_w_3_bad_edge       = 0;
+    int           original_num_facets       = 0;
+    int           edges_fixed               = 0;
+    int           degenerate_facets         = 0;
+    int           facets_removed            = 0;
+    int           facets_added              = 0;
+    int           facets_reversed           = 0;
+    int           backwards_edges           = 0;
+    int           normals_fixed             = 0;
+    int           number_of_parts           = 0;
+
+    void clear() { *this = stl_stats(); }
 };
 
 struct stl_file {
@@ -124,7 +125,7 @@ struct stl_file {
 	void clear() {
 		this->facet_start.clear();
 		this->neighbors_start.clear();
-		this->stats.reset();
+        this->stats.clear();
 	}
 
 	size_t memsize() const {

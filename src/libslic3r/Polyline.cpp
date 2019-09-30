@@ -23,24 +23,17 @@ Polyline::operator Line() const
     return Line(this->points.front(), this->points.back());
 }
 
-Point
-Polyline::last_point() const
+const Point& Polyline::leftmost_point() const
 {
-    return this->points.back();
-}
-
-Point
-Polyline::leftmost_point() const
-{
-    Point p = this->points.front();
-    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        if ((*it)(0) < p(0)) p = *it;
+    const Point *p = &this->points.front();
+    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++ it) {
+        if (it->x() < p->x()) 
+        	p = &(*it);
     }
-    return p;
+    return *p;
 }
 
-Lines
-Polyline::lines() const
+Lines Polyline::lines() const
 {
     Lines lines;
     if (this->points.size() >= 2) {
@@ -209,6 +202,20 @@ BoundingBox get_extents(const Polylines &polylines)
             bb.merge(polylines[i]);
     }
     return bb;
+}
+
+const Point& leftmost_point(const Polylines &polylines)
+{
+    if (polylines.empty())
+        throw std::invalid_argument("leftmost_point() called on empty PolylineCollection");
+    Polylines::const_iterator it = polylines.begin();
+    const Point *p = &it->leftmost_point();
+    for (++ it; it != polylines.end(); ++it) {
+        const Point *p2 = &it->leftmost_point();
+        if (p2->x() < p->x())
+            p = p2;
+    }
+    return *p;
 }
 
 bool remove_degenerate(Polylines &polylines)

@@ -979,7 +979,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             stream << layer_height_profile.front();
             for (size_t i = 1; i < layer_height_profile.size(); ++i)
                 stream << ";" << layer_height_profile[i];
-                stream << "\n    </metadata>\n";
+            stream << "\n    </metadata>\n";
         }
 
         // Export layer height ranges including the layer range specific config overrides.

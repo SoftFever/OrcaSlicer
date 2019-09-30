@@ -371,7 +371,7 @@ void WipingPanel::toggle_advanced(bool user_action) {
     else
         m_advanced = !advanced_matches_simple(); // if called from constructor, show what is appropriate
 
-	(m_advanced ? m_page_advanced : m_page_simple)->Show();
+    (m_advanced ? m_page_advanced : m_page_simple)->Show();
 	(!m_advanced ? m_page_advanced : m_page_simple)->Hide();
 
     m_widget_button->SetLabel(m_advanced ? _(L("Show simplified settings")) : _(L("Show advanced settings")));

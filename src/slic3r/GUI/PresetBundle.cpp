@@ -282,7 +282,7 @@ std::string PresetBundle::load_system_presets()
                 errors_cummulative += "\n";
             }
         }
-	if (first) {
+    if (first) {
 		// No config bundle loaded, reset.
 		this->reset(false);
 	}

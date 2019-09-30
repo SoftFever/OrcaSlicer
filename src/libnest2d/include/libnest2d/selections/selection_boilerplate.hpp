@@ -43,7 +43,7 @@ protected:
             
             Placer p{bin};
             p.configure(pcfg);
-            if (!p.pack(cpy)) it = c.erase(it);
+            if (itm.area() <= 0 || !p.pack(cpy)) it = c.erase(it);
             else it++;
         }
     }

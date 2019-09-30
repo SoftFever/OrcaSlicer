@@ -96,6 +96,7 @@ public:
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
     const Points&           copies() const          { return m_copies; }
+    const Point 			copy_center(size_t idx) const { return m_copies[idx] + m_copies_shift + Point(this->size.x() / 2, this->size.y() / 2); }
 
     // since the object is aligned to origin, bounding box coincides with size
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }

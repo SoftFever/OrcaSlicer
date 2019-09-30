@@ -152,8 +152,8 @@ Vec3f MeshRaycaster::AABBWrapper::get_hit_normal(const igl::Hit& hit) const
 }
 
 
-bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo,
-                                      const Camera& camera, std::vector<Vec3f>* positions, std::vector<Vec3f>* normals) const
+bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane) const
 {
     const std::array<int, 4>& viewport = camera.get_viewport();
     const Transform3d& model_mat = camera.get_view_matrix();
@@ -179,25 +179,30 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 
     std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
 
-    // Now stuff the points in the provided vector and calculate normals if asked about them:
-    if (positions != nullptr) {
-        positions->clear();
-        if (normals != nullptr)
-            normals->clear();
-        for (const igl::Hit& hit : hits) {
-            positions->push_back(m_AABB_wrapper->get_hit_pos(hit));
+    unsigned i = 0;
 
-            if (normals != nullptr)
-                normals->push_back(m_AABB_wrapper->get_hit_normal(hit));
+    // Remove points that are obscured or cut by the clipping plane
+    if (clipping_plane) {
+        for (i=0; i<hits.size(); ++i)
+            if (! clipping_plane->is_point_clipped(trafo * m_AABB_wrapper->get_hit_pos(hits[i]).cast<double>()))
+                break;
+
+        if (i==hits.size() || (hits.size()-i) % 2 != 0) {
+            // All hits are either clipped, or there is an odd number of unclipped
+            // hits - meaning the nearest must be from inside the mesh.
+            return false;
         }
     }
 
+    // Now stuff the points in the provided vector and calculate normals if asked about them:
+    position = m_AABB_wrapper->get_hit_pos(hits[i]);
+    normal = m_AABB_wrapper->get_hit_normal(hits[i]);
     return true;
 }
 
 
 std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera, const std::vector<Vec3f>& points,
-                                                       std::function<bool(const Vec3f&)> fn_ignore_hit) const
+                                                       const ClippingPlane* clipping_plane) const
 {
     std::vector<unsigned> out;
 
@@ -206,19 +211,24 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
     Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
     Vec3f scaling = trafo.get_scaling_factor().cast<float>();
     direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
+    const Transform3f inverse_trafo = trafo.get_matrix().inverse().cast<float>();
 
     for (size_t i=0; i<points.size(); ++i) {
         const Vec3f& pt = points[i];
+        if (clipping_plane && clipping_plane->is_point_clipped(pt.cast<double>()))
+            continue;
+
         bool is_obscured = false;
         // Cast a ray in the direction of the camera and look for intersection with the mesh:
         std::vector<igl::Hit> hits;
-        // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
+        // Offset the start of the ray by EPSILON to account for numerical inaccuracies.
         if (m_AABB_wrapper->m_AABB.intersect_ray(
                 AABBWrapper::MapMatrixXfUnaligned(m_mesh->its.vertices.front().data(), m_mesh->its.vertices.size(), 3),
                 AABBWrapper::MapMatrixXiUnaligned(m_mesh->its.indices.front().data(), m_mesh->its.indices.size(), 3),
-                pt + direction_to_camera_mesh * EPSILON, direction_to_camera_mesh, hits)) {
+                inverse_trafo * pt + direction_to_camera_mesh * EPSILON, direction_to_camera_mesh, hits)) {
 
             std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
+
             // If the closest hit facet normal points in the same direction as the ray,
             // we are looking through the mesh and should therefore discard the point:
             if (m_AABB_wrapper->get_hit_normal(hits.front()).dot(direction_to_camera_mesh) > 0.f)
@@ -227,11 +237,12 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
             // Eradicate all hits that the caller wants to ignore
             for (unsigned j=0; j<hits.size(); ++j) {
                 const igl::Hit& hit = hits[j];
-                if (fn_ignore_hit(m_AABB_wrapper->get_hit_pos(hit))) {
+                if (clipping_plane && clipping_plane->is_point_clipped(trafo.get_matrix() * m_AABB_wrapper->get_hit_pos(hit).cast<double>())) {
                     hits.erase(hits.begin()+j);
                     --j;
                 }
             }
+
             // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
             // Also, the threshold is in mesh coordinates, not in actual dimensions.
             if (! hits.empty())

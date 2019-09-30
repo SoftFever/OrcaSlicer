@@ -1347,6 +1347,8 @@ struct Plater::priv
     MenuWithSeparators part_menu;
     // SLA-Object popup menu
     MenuWithSeparators sla_object_menu;
+    // Default popup menu (when nothing is selected on 3DScene)
+    MenuWithSeparators default_menu;
 
     // Removed/Prepended Items according to the view mode
     std::vector<wxMenuItem*> items_increase;
@@ -1886,7 +1888,7 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
-    void on_right_click(Vec2dEvent&);
+    void on_right_click(RBtnEvent&);
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -2525,6 +2527,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (output_file.empty())
             // Find the file name of the first printable object.
             output_file = this->model.propose_export_file_name_and_path();
+
+        if (output_file.empty() && !model.objects.empty())
+            // Find the file name of the first object.
+            output_file = this->model.objects[0]->get_export_filename();
     }
 
     wxString dlg_title;
@@ -3323,7 +3329,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
-    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
+    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
             this->update_fff_scene();
@@ -3449,57 +3455,66 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
     selection_changed();
 }
 
-void Plater::priv::on_right_click(Vec2dEvent& evt)
+void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
+
+    wxMenu* menu = nullptr;
+
     if (obj_idx == -1)
-        return;
-
-    wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
-                   get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
-                   &object_menu : &part_menu;
-
-    sidebar->obj_list()->append_menu_item_settings(menu);
-
-    if (printer_technology != ptSLA)
-        sidebar->obj_list()->append_menu_item_change_extruder(menu);
-
-    if (menu != &part_menu)
+        menu = &default_menu;
+    else
     {
-        /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-         * Suppress to show those items for a Simple mode
-         */
-        const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
-        if (wxGetApp().get_mode() == comSimple) {
-            if (menu->FindItem(_(L("Add instance"))) != wxNOT_FOUND)
-            {
-                /* Detach an items from the menu, but don't delete them
-                 * so that they can be added back later
-                 * (after switching to the Advanced/Expert mode)
-                 */
-                menu->Remove(items_increase[id]);
-                menu->Remove(items_decrease[id]);
-                menu->Remove(items_set_number_of_copies[id]);
+        // If in 3DScene is(are) selected volume(s), but right button was clicked on empty space
+        if (evt.data.second)
+            return; 
+
+        menu = printer_technology == ptSLA ? &sla_object_menu :
+               get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
+               &object_menu : &part_menu;
+
+        sidebar->obj_list()->append_menu_item_settings(menu);
+
+        if (printer_technology != ptSLA)
+            sidebar->obj_list()->append_menu_item_change_extruder(menu);
+
+        if (menu != &part_menu)
+        {
+            /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
+             * Suppress to show those items for a Simple mode
+             */
+            const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
+            if (wxGetApp().get_mode() == comSimple) {
+                if (menu->FindItem(_(L("Add instance"))) != wxNOT_FOUND)
+                {
+                    /* Detach an items from the menu, but don't delete them
+                     * so that they can be added back later
+                     * (after switching to the Advanced/Expert mode)
+                     */
+                    menu->Remove(items_increase[id]);
+                    menu->Remove(items_decrease[id]);
+                    menu->Remove(items_set_number_of_copies[id]);
+                }
             }
-        }
-        else {
-            if (menu->FindItem(_(L("Add instance"))) == wxNOT_FOUND)
-            {
-                // Prepend items to the menu, if those aren't not there
-                menu->Prepend(items_set_number_of_copies[id]);
-                menu->Prepend(items_decrease[id]);
-                menu->Prepend(items_increase[id]);
+            else {
+                if (menu->FindItem(_(L("Add instance"))) == wxNOT_FOUND)
+                {
+                    // Prepend items to the menu, if those aren't not there
+                    menu->Prepend(items_set_number_of_copies[id]);
+                    menu->Prepend(items_decrease[id]);
+                    menu->Prepend(items_increase[id]);
+                }
             }
         }
     }
 
-    if (q != nullptr) {
+    if (q != nullptr && menu) {
 #ifdef __linux__
         // For some reason on Linux the menu isn't displayed if position is specified
         // (even though the position is sane).
         q->PopupMenu(menu);
 #else
-        q->PopupMenu(menu, (int)evt.data.x(), (int)evt.data.y());
+        q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
 #endif
     }
 }
@@ -3551,12 +3566,14 @@ bool Plater::priv::init_object_menu()
     init_common_menu(&part_menu, true);
     complit_init_part_menu();
 
+    sidebar->obj_list()->create_default_popupmenu(&default_menu);
+
     return true;
 }
 
 void Plater::priv::msw_rescale_object_menu()
 {
-    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu })
+    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu, &default_menu })
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
@@ -4278,11 +4295,10 @@ void Plater::increase_instances(size_t num)
 
     sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
-    if (p->get_config("autocenter") == "1") {
+    if (p->get_config("autocenter") == "1")
         p->arrange();
-    } else {
-        p->update();
-    }
+
+    p->update();
 
     p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
 
@@ -4326,14 +4342,14 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
     ModelObject* model_object = p->model.objects[obj_idx];
 
-    const auto num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
+    const int num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
                                     _("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
     if (num < 0)
         return;
 
     Plater::TakeSnapshot snapshot(this, wxString::Format(_(L("Set numbers of copies to %d")), num));
 
-    int diff = (int)num - (int)model_object->instances.size();
+    int diff = num - (int)model_object->instances.size();
     if (diff > 0)
         increase_instances(diff);
     else if (diff < 0)
@@ -4833,6 +4849,34 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         this->p->schedule_background_process();
 }
 
+void Plater::force_filament_colors_update()
+{
+    bool update_scheduled = false;
+    DynamicPrintConfig* config = p->config;
+    const std::vector<std::string> filament_presets = wxGetApp().preset_bundle->filament_presets;
+    if (filament_presets.size() > 1 && 
+        p->config->option<ConfigOptionStrings>("filament_colour")->values.size() == filament_presets.size())
+    {
+        const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
+        std::vector<std::string> filament_colors;
+        filament_colors.reserve(filament_presets.size());
+
+        for (const std::string& filament_preset : filament_presets)
+            filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
+
+        if (config->option<ConfigOptionStrings>("filament_colour")->values != filament_colors) {
+            config->option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+            update_scheduled = true;
+        }
+    }
+
+    if (update_scheduled)
+        update();
+
+    if (p->main_frame->is_loaded())
+        this->p->schedule_background_process();
+}
+
 void Plater::on_activate()
 {
 #ifdef __linux__
@@ -4882,6 +4926,11 @@ bool Plater::is_single_full_object_selection() const
 GLCanvas3D* Plater::canvas3D()
 {
     return p->view3D->get_canvas3d();
+}
+
+BoundingBoxf Plater::bed_shape_bb() const
+{
+    return p->bed_shape_bb();
 }
 
 PrinterTechnology Plater::printer_technology() const

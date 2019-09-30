@@ -342,7 +342,7 @@ static void copy_config_dir_single_level(const boost::filesystem::path &path_src
         ! boost::filesystem::create_directory(path_dst))
         throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + path_dst.string());
 
-	for (auto &dir_entry : boost::filesystem::directory_iterator(path_src))
+    for (auto &dir_entry : boost::filesystem::directory_iterator(path_src))
         if (Slic3r::is_ini_file(dir_entry))
 		    boost::filesystem::copy_file(dir_entry.path(), path_dst / dir_entry.path().filename(), boost::filesystem::copy_option::overwrite_if_exists);
 }
@@ -351,7 +351,7 @@ static void delete_existing_ini_files(const boost::filesystem::path &path)
 {
     if (! boost::filesystem::is_directory(path))
     	return;
-	for (auto &dir_entry : boost::filesystem::directory_iterator(path))
+    for (auto &dir_entry : boost::filesystem::directory_iterator(path))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
 		    boost::filesystem::remove(dir_entry.path());
 }
@@ -378,7 +378,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         sprintf(name, "filament_%u", i);
         if (! app_config.has("presets", name))
             break;
-	    snapshot.filaments.emplace_back(app_config.get("presets", name));
+        snapshot.filaments.emplace_back(app_config.get("presets", name));
     }
     // Vendor specific config bundles and installed printers.
     for (const std::pair<std::string, std::map<std::string, std::set<std::string>>> &vendor : app_config.vendors()) {
@@ -417,7 +417,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
     // Backup the presets.
     for (const char *subdir : { "print", "filament", "printer", "vendor" })
     	copy_config_dir_single_level(data_dir / subdir, snapshot_dir / subdir);
-	snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
+    snapshot.save_ini((snapshot_dir / "snapshot.ini").string());
     assert(m_snapshots.empty() || m_snapshots.back().time_captured <= snapshot.time_captured);
     m_snapshots.emplace_back(std::move(snapshot));
     return m_snapshots.back();

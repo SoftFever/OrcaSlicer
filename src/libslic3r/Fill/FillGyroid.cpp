@@ -1,5 +1,5 @@
 #include "../ClipperUtils.hpp"
-#include "../PolylineCollection.hpp"
+#include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 #include <cmath>
 #include <algorithm>
@@ -166,11 +166,8 @@ void FillGyroid::_fill_surface_single(
                 std::swap(expolygon_off, expolygons_off.front());
             }
         }
-        Polylines chained = PolylineCollection::chained_path_from(
-            std::move(polylines), 
-            PolylineCollection::leftmost_point(polylines), false); // reverse allowed
         bool first = true;
-        for (Polyline &polyline : chained) {
+        for (Polyline &polyline : chain_polylines(std::move(polylines))) {
             if (! first) {
                 // Try to connect the lines.
                 Points &pts_end = polylines_out.back().points;

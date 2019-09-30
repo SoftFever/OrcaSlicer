@@ -19,8 +19,6 @@
         %code%{ RETVAL = &THIS->fill_surfaces; %};
     Polygons bridged()
         %code%{ RETVAL = THIS->bridged; %};
-    Ref<PolylineCollection> unsupported_bridge_edges()
-        %code%{ RETVAL = &THIS->unsupported_bridge_edges; %};
     Ref<ExtrusionEntityCollection> perimeters()
         %code%{ RETVAL = &THIS->perimeters; %};
     Ref<ExtrusionEntityCollection> fills()

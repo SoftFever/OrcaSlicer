@@ -928,8 +928,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     if (items_count > 1)
         m_original_height += (items_count - 1) * scaled_square_contour;
 
-	m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
-	m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
+    m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
+    m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1094,7 +1094,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
@@ -1882,7 +1882,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
-	bool update_object_list = false;
+    bool update_object_list = false;
 
     if (m_volumes.volumes != glvolumes_new)
 		update_object_list = true;
@@ -3012,15 +3012,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
-
-                    Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-                    const float factor = m_retina_helper->get_scale_factor();
-                    logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-                    post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
                 }
             }
+            Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+            const float factor = m_retina_helper->get_scale_factor();
+            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+            if (!m_mouse.dragging)
+                // do not post the event if the user is panning the scene
+                post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
         }
 
         mouse_up_cleanup();
@@ -3372,7 +3373,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 void GLCanvas3D::set_camera_zoom(double zoom)
 {
     const Size& cnv_size = get_canvas_size();
-    m_camera.set_zoom(zoom, _max_bounding_box(false, false), cnv_size.get_width(), cnv_size.get_height());
+    m_camera.set_zoom(zoom, _max_bounding_box(false, true), cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
 
@@ -3388,10 +3389,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     m_sidebar_field = focus_on ? opt_key : "";
 
     if (!m_sidebar_field.empty())
-    {
         m_gizmos.reset_all_states();
-        m_dirty = true;
-    }
+
+    m_dirty = true;
 }
 
 void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
@@ -5000,6 +5000,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return path.width;
             case GCodePreviewData::Extrusion::Feedrate:
                 return path.feedrate;
+            case GCodePreviewData::Extrusion::FanSpeed:
+                return path.fan_speed;
             case GCodePreviewData::Extrusion::VolumetricRate:
                 return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
@@ -5025,6 +5027,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return data.get_width_color(value);
             case GCodePreviewData::Extrusion::Feedrate:
                 return data.get_feedrate_color(value);
+            case GCodePreviewData::Extrusion::FanSpeed:
+                return data.get_fan_speed_color(value);
             case GCodePreviewData::Extrusion::VolumetricRate:
                 return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
@@ -5069,14 +5073,14 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 		    for (const GCodePreviewData::Extrusion::Layer &layer : preview_data.extrusion.layers)
 		        for (const ExtrusionPath &path : layer.paths)
 		        	++ num_paths_per_role[size_t(path.role())];
-			std::vector<std::vector<float>> roles_values;
+            std::vector<std::vector<float>> roles_values;
 			roles_values.assign(size_t(erCount), std::vector<float>());
 		    for (size_t i = 0; i < roles_values.size(); ++ i)
 		    	roles_values[i].reserve(num_paths_per_role[i]);
-		    for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
+            for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
 		        for (const ExtrusionPath& path : layer.paths)
 		        	roles_values[size_t(path.role())].emplace_back(Helper::path_filter(preview_data.extrusion.view_type, path));
-			roles_filters.reserve(size_t(erCount));
+            roles_filters.reserve(size_t(erCount));
 			size_t num_buffers = 0;
 		    for (std::vector<float> &values : roles_values) {
 		    	sort_remove_duplicates(values);

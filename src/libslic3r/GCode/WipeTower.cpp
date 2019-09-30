@@ -698,7 +698,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_lay
         writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
               .append(";--------------------\n");
 
-	writer.speed_override_backup();
+    writer.speed_override_backup();
 	writer.speed_override(100);
 
 	Vec2f initial_position = cleaning_box.ld + Vec2f(0.f, m_depth_traversed);
@@ -748,7 +748,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool last_in_lay
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-	ToolChangeResult result;
+    ToolChangeResult result;
     result.priming      = false;
     result.initial_tool = int(old_tool);
     result.new_tool     = int(m_current_tool);
@@ -806,7 +806,7 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-	ToolChangeResult result;
+    ToolChangeResult result;
     result.priming      = false;
     result.initial_tool = int(old_tool);
     result.new_tool     = int(m_current_tool);
@@ -1163,7 +1163,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
                 writer.extrude(box.rd.x() - m_perimeter_width / 2.f, writer.y() + 0.5f * step);
                 writer.extrude(box.ld.x() + m_perimeter_width / 2.f, writer.y());
             }
-            writer.travel(box.rd.x()-m_perimeter_width/2.f,writer.y()); // wipe the nozzle
+        writer.travel(box.rd.x()-m_perimeter_width/2.f,writer.y()); // wipe the nozzle
     }
     else {  // Extrude a sparse infill to support the material to be printed above.
         const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
@@ -1196,7 +1196,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer()
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-	ToolChangeResult result;
+    ToolChangeResult result;
     result.priming      = false;
     result.initial_tool = int(old_tool);
     result.new_tool     = int(m_current_tool);

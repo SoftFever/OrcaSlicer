@@ -5,6 +5,8 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
+#include <assert.h>
+
 namespace Slic3r {
 
 class ExPolygonCollection;
@@ -79,8 +81,8 @@ public:
     virtual ExtrusionEntity* clone_move() = 0;
     virtual ~ExtrusionEntity() {}
     virtual void reverse() = 0;
-    virtual Point first_point() const = 0;
-    virtual Point last_point() const = 0;
+    virtual const Point& first_point() const = 0;
+    virtual const Point& last_point() const = 0;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const = 0;
@@ -121,24 +123,26 @@ public:
     unsigned int extruder_id;
     // Id of the color, used for visualization purposes in the color printing case.
     unsigned int cp_color_id;
+    // Fan speed for the extrusion, used for visualization purposes.
+    float fan_speed;
 
-    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
-    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), cp_color_id(0), m_role(role) {}
-    ExtrusionPath(const ExtrusionPath &rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
-	ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs) : polyline(polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
-	ExtrusionPath(ExtrusionPath &&rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
-	ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs) : polyline(std::move(polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), m_role(rhs.m_role) {}
+    ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), feedrate(0.0f), extruder_id(0), cp_color_id(0), fan_speed(0.0f), m_role(role) {};
+    ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height), feedrate(0.0f), extruder_id(0), cp_color_id(0), fan_speed(0.0f), m_role(role) {};
+    ExtrusionPath(const ExtrusionPath& rhs) : polyline(rhs.polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), fan_speed(rhs.fan_speed), m_role(rhs.m_role) {}
+    ExtrusionPath(ExtrusionPath&& rhs) : polyline(std::move(rhs.polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), fan_speed(rhs.fan_speed), m_role(rhs.m_role) {}
+    ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs) : polyline(polyline), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), fan_speed(rhs.fan_speed), m_role(rhs.m_role) {}
+    ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs) : polyline(std::move(polyline)), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), feedrate(rhs.feedrate), extruder_id(rhs.extruder_id), cp_color_id(rhs.cp_color_id), fan_speed(rhs.fan_speed), m_role(rhs.m_role) {}
 //    ExtrusionPath(ExtrusionRole role, const Flow &flow) : m_role(role), mm3_per_mm(flow.mm3_per_mm()), width(flow.width), height(flow.height), feedrate(0.0f), extruder_id(0) {};
 
-    ExtrusionPath& operator=(const ExtrusionPath &rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = rhs.polyline; return *this; }
-    ExtrusionPath& operator=(ExtrusionPath &&rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate; this->extruder_id = rhs.extruder_id; this->cp_color_id = rhs.cp_color_id; this->polyline = std::move(rhs.polyline); return *this; }
+    ExtrusionPath& operator=(const ExtrusionPath& rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->cp_color_id = rhs.cp_color_id, this->fan_speed = rhs.fan_speed, this->polyline = rhs.polyline; return *this; }
+    ExtrusionPath& operator=(ExtrusionPath&& rhs) { m_role = rhs.m_role; this->mm3_per_mm = rhs.mm3_per_mm; this->width = rhs.width; this->height = rhs.height; this->feedrate = rhs.feedrate, this->extruder_id = rhs.extruder_id, this->cp_color_id = rhs.cp_color_id, this->fan_speed = rhs.fan_speed, this->polyline = std::move(rhs.polyline); return *this; }
 
 	ExtrusionEntity* clone() const override { return new ExtrusionPath(*this); }
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionPath(std::move(*this)); }
     void reverse() override { this->polyline.reverse(); }
-    Point first_point() const override { return this->polyline.points.front(); }
-    Point last_point() const override { return this->polyline.points.back(); }
+    const Point& first_point() const override { return this->polyline.points.front(); }
+    const Point& last_point() const override { return this->polyline.points.back(); }
     size_t size() const { return this->polyline.size(); }
     bool empty() const { return this->polyline.empty(); }
     bool is_closed() const { return ! this->empty() && this->polyline.points.front() == this->polyline.points.back(); }
@@ -198,8 +202,8 @@ public:
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionMultiPath(std::move(*this)); }
     void reverse() override;
-    Point first_point() const override { return this->paths.front().polyline.points.front(); }
-    Point last_point() const override { return this->paths.back().polyline.points.back(); }
+    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
+    const Point& last_point() const override { return this->paths.back().polyline.points.back(); }
     double length() const override;
     ExtrusionRole role() const override { return this->paths.empty() ? erNone : this->paths.front().role(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
@@ -241,8 +245,8 @@ public:
     bool make_clockwise();
     bool make_counter_clockwise();
     void reverse() override;
-    Point first_point() const override { return this->paths.front().polyline.points.front(); }
-    Point last_point() const override { assert(first_point() == this->paths.back().polyline.points.back()); return first_point(); }
+    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
+    const Point& last_point() const override { assert(this->first_point() == this->paths.back().polyline.points.back()); return this->first_point(); }
     Polygon polygon() const;
     double length() const override;
     bool split_at_vertex(const Point &point);
