@@ -1659,25 +1659,26 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
                     // Trim volumes in a single layer, one by the other, possibly apply upscaling.
                     {
                         Polygons processed;
-                        for (SlicedVolume &sliced_volume : sliced_volumes) {
-                            ExPolygons slices = std::move(sliced_volume.expolygons_by_layer[layer_id]);
-                            if (upscale)
-                                slices = offset_ex(std::move(slices), delta);
-                            if (! processed.empty())
-                                // Trim by the slices of already processed regions.
-                                slices = diff_ex(to_polygons(std::move(slices)), processed);
-                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
-                                // Collect the already processed regions to trim the to be processed regions.
-                                polygons_append(processed, slices);
-                            sliced_volume.expolygons_by_layer[layer_id] = std::move(slices);
-                        }
+                        for (SlicedVolume &sliced_volume : sliced_volumes) 
+                        	if (! sliced_volume.expolygons_by_layer.empty()) {
+	                            ExPolygons slices = std::move(sliced_volume.expolygons_by_layer[layer_id]);
+	                            if (upscale)
+	                                slices = offset_ex(std::move(slices), delta);
+	                            if (! processed.empty())
+	                                // Trim by the slices of already processed regions.
+	                                slices = diff_ex(to_polygons(std::move(slices)), processed);
+	                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
+	                                // Collect the already processed regions to trim the to be processed regions.
+	                                polygons_append(processed, slices);
+	                            sliced_volume.expolygons_by_layer[layer_id] = std::move(slices);
+	                        }
                     }
                     // Collect and union volumes of a single region.
                     for (int region_id = 0; region_id < (int)this->region_volumes.size(); ++ region_id) {
                         ExPolygons expolygons;
                         size_t     num_volumes = 0;
                         for (SlicedVolume &sliced_volume : sliced_volumes)
-                            if (sliced_volume.region_id == region_id && ! sliced_volume.expolygons_by_layer[layer_id].empty()) {
+                            if (sliced_volume.region_id == region_id && ! sliced_volume.expolygons_by_layer.empty() && ! sliced_volume.expolygons_by_layer[layer_id].empty()) {
                                 ++ num_volumes;
                                 append(expolygons, std::move(sliced_volume.expolygons_by_layer[layer_id]));
                             }
