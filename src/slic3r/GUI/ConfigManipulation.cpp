@@ -354,8 +354,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("pad_wall_slope", pad_en);
     toggle_field("pad_around_object", pad_en);
 
-    bool has_suppad = pad_en && supports_en;
-    bool zero_elev = config->opt_bool("pad_around_object") && has_suppad;
+    bool zero_elev = config->opt_bool("pad_around_object") && pad_en;
 
     toggle_field("support_object_elevation", supports_en && !zero_elev);
     toggle_field("pad_object_gap", zero_elev);
