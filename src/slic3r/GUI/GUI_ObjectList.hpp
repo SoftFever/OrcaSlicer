@@ -183,8 +183,8 @@ public:
 
     void                create_objects_ctrl();
     void                create_popup_menus();
-    wxDataViewColumn*   create_objects_list_extruder_column(size_t extruders_count);
     void                update_objects_list_extruder_column(size_t extruders_count);
+    void                update_extruder_colors();
     // show/hide "Extruder" column for Objects List
     void                set_extruder_column_hidden(const bool hide) const;
     // update extruder in current config

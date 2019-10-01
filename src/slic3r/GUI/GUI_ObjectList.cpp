@@ -267,7 +267,8 @@ void ObjectList::create_objects_ctrl()
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
-    AppendColumn(create_objects_list_extruder_column(4));
+    AppendColumn(new wxDataViewColumn(_(L("Extruder")), new BitmapChoiceRenderer(),
+        colExtruder, 8*em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:
     AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
@@ -434,19 +435,6 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
                             (*m_objects)[obj_idx]->config;
 }
 
-wxDataViewColumn* ObjectList::create_objects_list_extruder_column(size_t extruders_count)
-{
-    wxArrayString choices;
-    choices.Add(_(L("default")));
-    for (int i = 1; i <= extruders_count; ++i)
-        choices.Add(wxString::Format("%d", i));
-    wxDataViewChoiceRenderer *c =
-        new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, colExtruder, 
-                               8*wxGetApp().em_unit()/*80*/, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-    return column;
-}
-
 void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
 {
     for (size_t i = 0; i < m_objects->size(); ++i)
@@ -462,7 +450,7 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
         else
             extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
 
-        m_objects_model->SetValue(extruder, item, colExtruder);
+        m_objects_model->SetExtruder(extruder, item);
 
         if (object->volumes.size() > 1) {
             for (size_t id = 0; id < object->volumes.size(); id++) {
@@ -474,7 +462,7 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 else
                     extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
 
-                m_objects_model->SetValue(extruder, item, colExtruder);
+                m_objects_model->SetExtruder(extruder, item);
             }
         }
     }
@@ -486,25 +474,24 @@ void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
     if (printer_technology() == ptSLA)
         extruders_count = 1;
 
-    wxDataViewChoiceRenderer* ch_render = dynamic_cast<wxDataViewChoiceRenderer*>(GetColumn(colExtruder)->GetRenderer());
-    if (ch_render->GetChoices().GetCount() - 1 == extruders_count)
-        return;
-    
     m_prevent_update_extruder_in_config = true;
 
     if (m_objects && extruders_count > 1)
         update_extruder_values_for_items(extruders_count);
 
-    // delete old extruder column
-    DeleteColumn(GetColumn(colExtruder));
-    // insert new created extruder column
-    InsertColumn(colExtruder, create_objects_list_extruder_column(extruders_count));
+    update_extruder_colors();
+
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
     //a workaround for a wrong last column width updating under OSX 
     GetColumn(colEditing)->SetWidth(25);
 
     m_prevent_update_extruder_in_config = false;
+}
+
+void ObjectList::update_extruder_colors()
+{
+    m_objects_model->UpdateColumValues(colExtruder);
 }
 
 void ObjectList::set_extruder_column_hidden(const bool hide) const
@@ -535,14 +522,10 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
             m_config = &get_item_config(item);
     }
 
-    wxVariant variant;
-    m_objects_model->GetValue(variant, item, colExtruder);
-    const wxString selection = variant.GetString();
-
-    if (!m_config || selection.empty())
+    if (!m_config)
         return;
 
-    const int extruder = /*selection.size() > 1 ? 0 : */atoi(selection.c_str());
+    const int extruder = m_objects_model->GetExtruderNumber(item);
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
     // update scene
@@ -2547,7 +2530,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                     (*m_objects)[item->obj_idx]->config.has("extruder"))
                 {
                     const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.option<ConfigOptionInt>("extruder")->value);
-                    m_objects_model->SetValue(extruder, m_objects_model->GetItemById(item->obj_idx), colExtruder);
+                    m_objects_model->SetExtruder(extruder, m_objects_model->GetItemById(item->obj_idx));
                 }
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
             }
@@ -3822,7 +3805,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
         /* We can change extruder for Object/Volume only.
          * So, if Instance is selected, get its Object item and change it
          */
-        m_objects_model->SetValue(extruder_str, type & itInstance ? m_objects_model->GetTopParent(item) : item, colExtruder);
+        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetTopParent(item) : item);
 
         const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
                             m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
