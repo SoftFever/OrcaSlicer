@@ -7,6 +7,7 @@
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
+#include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
@@ -253,7 +254,7 @@ bool Print::is_step_done(PrintObjectStep step) const
 {
     if (m_objects.empty())
         return false;
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
         if (! object->is_step_done_unguarded(step))
             return false;
@@ -1114,6 +1115,9 @@ std::string Print::validate() const
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
+    if (extruders().empty())
+        return L("The supplied settings will cause an empty print.");
+
     if (m_config.complete_objects) {
         // Check horizontal clearance.
         {
@@ -1271,10 +1275,7 @@ std::string Print::validate() const
     }
     
 	{
-		// find the smallest nozzle diameter
 		std::vector<unsigned int> extruders = this->extruders();
-		if (extruders.empty())
-			return L("The supplied settings will cause an empty print.");
 
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
@@ -1825,8 +1826,8 @@ void Print::_make_brim()
 				[](const std::pair<const ClipperLib_Z::Path*, size_t> &l, const std::pair<const ClipperLib_Z::Path*, size_t> &r) {
 					return l.second < r.second;
 				});
-			Vec3f last_pt(0.f, 0.f, 0.f);
 
+			Point last_pt(0, 0);
 			for (size_t i = 0; i < loops_trimmed_order.size();) {
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
@@ -1842,16 +1843,23 @@ void Print::_make_brim()
 		            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		            i = j;
 				} else {
-			    	//FIXME this is not optimal as the G-code generator will follow the sequence of paths verbatim without respect to minimum travel distance.
+			    	//FIXME The path chaining here may not be optimal.
+			    	ExtrusionEntityCollection this_loop_trimmed;
+					this_loop_trimmed.entities.reserve(j - i);
 			    	for (; i < j; ++ i) {
-			            m_brim.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
+			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = static_cast<ExtrusionPath*>(m_brim.entities.back())->polyline.points;
+			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
 			            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		           	}
+		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
+		           	m_brim.entities.reserve(m_brim.entities.size() + this_loop_trimmed.entities.size());
+		           	append(m_brim.entities, std::move(this_loop_trimmed.entities));
+		           	this_loop_trimmed.entities.clear();
 		        }
+		        last_pt = m_brim.last_point();
 			}
 		}
     } else {

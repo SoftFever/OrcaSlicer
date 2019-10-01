@@ -40,7 +40,7 @@ struct NfpImpl<S, NfpLevel::CONVEX_ONLY>
 }
 }
 
-std::vector<libnest2d::Item>& prusaParts() {
+static std::vector<libnest2d::Item>& prusaParts() {
     static std::vector<libnest2d::Item> ret;
     
     if(ret.empty()) {
@@ -51,7 +51,7 @@ std::vector<libnest2d::Item>& prusaParts() {
     return ret;
 }
 
-TEST(BasicFunctionality, Angles)
+TEST(GeometryAlgorithms, Angles)
 {
     
     using namespace libnest2d;
@@ -109,7 +109,7 @@ TEST(BasicFunctionality, Angles)
 }
 
 // Simple test, does not use gmock
-TEST(BasicFunctionality, creationAndDestruction)
+TEST(Nesting, ItemCreationAndDestruction)
 {
     using namespace libnest2d;
     
@@ -572,26 +572,74 @@ TEST(GeometryAlgorithms, convexHull) {
 }
 
 
-TEST(GeometryAlgorithms, NestTest) {
+TEST(Nesting, NestPrusaPartsShouldFitIntoTwoBins) {
+    
+    // Get the input items and define the bin.
     std::vector<Item> input = prusaParts();
-
-    libnest2d::nest(input, Box(250000000, 210000000), [](unsigned cnt) {
-        std::cout << "parts left: " << cnt << std::endl;
+    auto bin = Box(250000000, 210000000);
+    
+    // Do the nesting. Check in each step if the remaining items are less than
+    // in the previous step. (Some algorithms can place more items in one step)
+    size_t pcount = input.size();
+    libnest2d::nest(input, bin, [&pcount](unsigned cnt) {
+        ASSERT_TRUE(cnt < pcount);
+        pcount = cnt;
     });
-
+    
+    // Get the number of logical bins: search for the max binId...
     auto max_binid_it = std::max_element(input.begin(), input.end(),
                                          [](const Item &i1, const Item &i2) {
                                              return i1.binId() < i2.binId();
                                          });
-
-    size_t bins = max_binid_it == input.end() ? 0 : max_binid_it->binId() + 1;
     
-    ASSERT_EQ(bins, 2u);
-
+    auto bins = size_t(max_binid_it == input.end() ? 0 :
+                                                     max_binid_it->binId() + 1);
+    
+    // For prusa parts, 2 bins should be enough...
+    ASSERT_LE(bins, 2u);
+    
+    // All parts should be processed by the algorithm
     ASSERT_TRUE(
         std::all_of(input.begin(), input.end(), [](const Item &itm) {
             return itm.binId() != BIN_ID_UNSET;
         }));
+    
+    // Gather the items into piles of arranged polygons...
+    using Pile = TMultiShape<ClipperLib::Polygon>;
+    std::vector<Pile> piles(bins);
+    
+    for (auto &itm : input)
+        piles[size_t(itm.binId())].emplace_back(itm.transformedShape());
+    
+    // Now check all the piles, the bounding box of each pile should be inside
+    // the defined bin.
+    for (auto &pile : piles) {
+        auto bb = sl::boundingBox(pile);
+        ASSERT_TRUE(sl::isInside(bb, bin));
+    }
+}
+
+TEST(Nesting, NestEmptyItemShouldBeUntouched) {
+    auto bin = Box(250000000, 210000000); // dummy bin
+    
+    std::vector<Item> items;
+    items.emplace_back(Item{});   // Emplace empty item
+    items.emplace_back(Item{0, 200, 0});   // Emplace zero area item
+    
+    libnest2d::nest(items, bin);
+    
+    for (auto &itm : items) ASSERT_EQ(itm.binId(), BIN_ID_UNSET);
+}
+
+TEST(Nesting, NestLargeItemShouldBeUntouched) {
+    auto bin = Box(250000000, 210000000); // dummy bin
+    
+    std::vector<Item> items;
+    items.emplace_back(Rectangle{250000001, 210000001});  // Emplace large item
+    
+    libnest2d::nest(items, bin);
+    
+    ASSERT_EQ(items.front().binId(), BIN_ID_UNSET);
 }
 
 namespace {
@@ -966,26 +1014,20 @@ using Ratio = boost::rational<boost::multiprecision::int128_t>;
 
 }
 
-TEST(RotatingCalipers, MinAreaBBCClk) {
-    auto u = [](ClipperLib::cInt n) { return n*1000000; };
-    PolygonImpl poly({ {u(0), u(0)}, {u(4), u(1)}, {u(2), u(4)}});
+//TEST(GeometryAlgorithms, MinAreaBBCClk) {
+//    auto u = [](ClipperLib::cInt n) { return n*1000000; };
+//    PolygonImpl poly({ {u(0), u(0)}, {u(4), u(1)}, {u(2), u(4)}});
     
-    long double arearef = refMinAreaBox(poly);
-    long double area = minAreaBoundingBox<PolygonImpl, Unit, Ratio>(poly).area();
+//    long double arearef = refMinAreaBox(poly);
+//    long double area = minAreaBoundingBox<PolygonImpl, Unit, Ratio>(poly).area();
     
-    ASSERT_LE(std::abs(area - arearef), 500e6 );
-}
+//    ASSERT_LE(std::abs(area - arearef), 500e6 );
+//}
 
-TEST(RotatingCalipers, AllPrusaMinBB) {
-    //    /size_t idx = 0;
+TEST(GeometryAlgorithms, MinAreaBBWithRotatingCalipers) {
     long double err_epsilon = 500e6l;
     
     for(ClipperLib::Path rinput : PRINTER_PART_POLYGONS) {
-        //        ClipperLib::Path rinput = PRINTER_PART_POLYGONS[idx];
-        //        rinput.pop_back();
-        //        std::reverse(rinput.begin(), rinput.end());
-        
-        //        PolygonImpl poly(removeCollinearPoints<PathImpl, PointImpl, Unit>(rinput, 1000000));
         PolygonImpl poly(rinput);
         
         long double arearef = refMinAreaBox(poly);
@@ -993,8 +1035,6 @@ TEST(RotatingCalipers, AllPrusaMinBB) {
         long double area = cast<long double>(bb.area());
         
         bool succ = std::abs(arearef - area) < err_epsilon;
-        //        std::cout << idx++ << " " << (succ? "ok" : "failed") << " ref: " 
-//                  << arearef << " actual: " << area << std::endl;
         
         ASSERT_TRUE(succ);
     }
@@ -1011,8 +1051,6 @@ TEST(RotatingCalipers, AllPrusaMinBB) {
         
         
         bool succ = std::abs(arearef - area) < err_epsilon;
-        //        std::cout << idx++ << " " << (succ? "ok" : "failed") << " ref: " 
-//                  << arearef << " actual: " << area << std::endl;
         
         ASSERT_TRUE(succ);
     }

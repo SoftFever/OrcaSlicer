@@ -3,7 +3,6 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Fill/Fill.hpp"
-#include "libslic3r/PolylineCollection.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 %}

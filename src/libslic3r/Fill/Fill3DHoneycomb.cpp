@@ -1,5 +1,5 @@
 #include "../ClipperUtils.hpp"
-#include "../PolylineCollection.hpp"
+#include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 
 #include "Fill3DHoneycomb.hpp"
@@ -175,27 +175,24 @@ void Fill3DHoneycomb::_fill_surface_single(
                 std::swap(expolygon_off, expolygons_off.front());
             }
         }
-        Polylines chained = PolylineCollection::chained_path_from(
-            std::move(polylines), 
-            PolylineCollection::leftmost_point(polylines), false); // reverse allowed
         bool first = true;
-        for (Polylines::iterator it_polyline = chained.begin(); it_polyline != chained.end(); ++ it_polyline) {
+        for (Polyline &polyline : chain_polylines(std::move(polylines))) {
             if (! first) {
                 // Try to connect the lines.
                 Points &pts_end = polylines_out.back().points;
-                const Point &first_point = it_polyline->points.front();
+                const Point &first_point = polyline.points.front();
                 const Point &last_point = pts_end.back();
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
                 if ((last_point - first_point).cast<double>().norm() <= 1.5 * distance && 
                     expolygon_off.contains(Line(last_point, first_point))) {
                     // Append the polyline.
-                    pts_end.insert(pts_end.end(), it_polyline->points.begin(), it_polyline->points.end());
+                    pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
                     continue;
                 }
             }
             // The lines cannot be connected.
-            polylines_out.emplace_back(std::move(*it_polyline));
+            polylines_out.emplace_back(std::move(polyline));
             first = false;
         }
     }

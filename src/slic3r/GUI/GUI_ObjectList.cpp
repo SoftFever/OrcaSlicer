@@ -131,7 +131,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         {
             wxDataViewItemArray sels;
             GetSelections(sels);
-            if (sels.front() == m_last_selected_item)
+            if (! sels.empty() && sels.front() == m_last_selected_item)
                 m_last_selected_item = sels.back();
             else
                 m_last_selected_item = event.GetItem();
@@ -255,21 +255,32 @@ void ObjectList::create_objects_ctrl()
     EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
+    const int em = wxGetApp().em_unit();
+
     // column ItemName(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(),
-        colName, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, int(2 * wxGetApp().em_unit()),
+    AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
     // column Extruder of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
+    AppendBitmapColumn(_(L("Editing")), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+
+    // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
+    // Therefore, force set column width.
+    if (wxOSX)
+    {
+        GetColumn(colName)->SetWidth(20*em);
+        GetColumn(colPrint)->SetWidth(3*em);
+        GetColumn(colExtruder)->SetWidth(8*em);
+    }
 }
 
 void ObjectList::create_popup_menus()
@@ -742,9 +753,9 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     }
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
@@ -762,9 +773,9 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
     wxGetApp().plater()->changed_objects(object_idxs);
 
     select_items(items);
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 #ifdef __WXOSX__
@@ -801,8 +812,15 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
      */
 
     if (!item) {
-        if (wxOSX && col == nullptr)
-            UnselectAll();
+        if (col == nullptr) {
+            if (wxOSX)
+                UnselectAll();
+            else if (!evt_context_menu) 
+                // Case, when last item was deleted and under GTK was called wxEVT_DATAVIEW_SELECTION_CHANGED,
+                // which invoked next list_manipulation(false)
+                return;
+        }
+
         if (evt_context_menu) {
             show_context_menu(evt_context_menu);
             return;
@@ -822,12 +840,18 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
         show_context_menu(evt_context_menu);
     else if (title == _("Name"))
     {
-        int obj_idx, vol_idx;
-        get_selected_item_indexes(obj_idx, vol_idx, item);
+        if (wxOSX)
+            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
 
-        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
-            pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
-            fix_through_netfabb();
+        if (is_windows10())
+        {
+            int obj_idx, vol_idx;
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+
+            if (get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+                pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
+                fix_through_netfabb();
+        }
     }
 
 #ifndef __WXMSW__
@@ -1315,7 +1339,7 @@ wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeTy
 
     for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") })
     {
-        if (type == ModelVolumeType::INVALID && item == "Slab")
+        if (type == ModelVolumeType::INVALID && strncmp(item, "Slab", 4) == 0)
             continue;
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu);
@@ -1698,9 +1722,9 @@ void ObjectList::load_subobject(ModelVolumeType type)
     if (sel_item)
         select_item(sel_item);
 
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_part( ModelObject* model_object,
@@ -1836,9 +1860,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
     select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
         new_volume->get_mesh_errors_count()>0));
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+//#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
-#endif //no __WXOSX__ //__WXMSW__
+//#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::load_shape_object(const std::string& type_name)
@@ -1876,6 +1900,9 @@ void ObjectList::load_shape_object(const std::string& type_name)
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_object->invalidate_bounding_box();
+
+    new_object->center_around_origin();
+    new_object->ensure_on_bed();
 
     const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
     new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation(2)));
@@ -3662,10 +3689,10 @@ void ObjectList::msw_rescale()
     // update min size !!! A width of control shouldn't be a wxDefaultCoord
     SetMinSize(wxSize(1, 15 * em));
 
-    GetColumn(colName)->SetWidth(19 * em);
-    GetColumn(colPrint)->SetWidth( 2 * em);
+    GetColumn(colName    )->SetWidth(20 * em);
+    GetColumn(colPrint   )->SetWidth( 3 * em);
     GetColumn(colExtruder)->SetWidth( 8 * em);
-    GetColumn(colEditing)->SetWidth( 2 * em);
+    GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale all icons, used by ObjectList
     msw_rescale_icons();

@@ -62,8 +62,9 @@ public:
 
     operator Polylines() const;
     operator Line() const;
-    Point last_point() const;
-    Point leftmost_point() const;
+    const Point& last_point() const override { return this->points.back(); }
+
+    const Point& leftmost_point() const;
     virtual Lines lines() const;
     void clip_end(double distance);
     void clip_start(double distance);
@@ -75,6 +76,15 @@ public:
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
 };
+
+// Don't use this class in production code, it is used exclusively by the Perl binding for unit tests!
+#ifdef PERL_UCHAR_MIN
+class PolylineCollection
+{
+public:
+    Polylines polylines;
+};
+#endif /* PERL_UCHAR_MIN */
 
 extern BoundingBox get_extents(const Polyline &polyline);
 extern BoundingBox get_extents(const Polylines &polylines);
@@ -127,6 +137,8 @@ inline void polylines_append(Polylines &dst, Polylines &&src)
         src.clear();
     }
 }
+
+const Point& leftmost_point(const Polylines &polylines);
 
 bool remove_degenerate(Polylines &polylines);
 

@@ -50,6 +50,7 @@ public:
         return (-get_normal().dot(pt) + m_data[3]);
     }
 
+    bool is_point_clipped(const Vec3d& point) const { return distance(point) < 0.; }
     void set_normal(const Vec3d& normal) { for (size_t i=0; i<3; ++i) m_data[i] = normal(i); }
     void set_offset(double offset) { m_data[3] = offset; }
     Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
@@ -98,10 +99,10 @@ public:
     void set_camera(const Camera& camera);
 
     bool unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                           std::vector<Vec3f>* positions = nullptr, std::vector<Vec3f>* normals = nullptr) const;
+                           Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane = nullptr) const;
 
     std::vector<unsigned> get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera,
-                                              const std::vector<Vec3f>& points, std::function<bool(const Vec3f&)> fn_ignore_hit) const;
+                                              const std::vector<Vec3f>& points, const ClippingPlane* clipping_plane = nullptr) const;
 
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 

@@ -211,6 +211,7 @@ public:
 
     void on_extruders_change(size_t extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
+    void force_filament_colors_update();
     // On activating the parent window.
     void on_activate();
     const DynamicPrintConfig* get_plater_config() const;

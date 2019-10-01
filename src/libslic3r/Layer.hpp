@@ -6,8 +6,6 @@
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ExPolygonCollection.hpp"
-#include "PolylineCollection.hpp"
-
 
 namespace Slic3r {
 
@@ -48,7 +46,7 @@ public:
     Polygons                    bridged;
 
     // collection of polylines representing the unsupported bridge edges
-    PolylineCollection          unsupported_bridge_edges;
+    Polylines          			unsupported_bridge_edges;
 
     // ordered collection of extrusion paths/loops to build all perimeters
     // (this collection contains only ExtrusionEntityCollection objects)

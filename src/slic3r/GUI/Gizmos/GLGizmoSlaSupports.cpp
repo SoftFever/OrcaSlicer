@@ -252,7 +252,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         const sla::SupportPoint& support_point = m_editing_mode ? m_editing_cache[i].support_point : m_normal_cache[i];
         const bool& point_selected = m_editing_mode ? m_editing_cache[i].selected : false;
 
-        if (is_point_clipped(support_point.pos.cast<double>()))
+        if (is_mesh_point_clipped(support_point.pos.cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -335,14 +335,14 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
 
 
-bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
+bool GLGizmoSlaSupports::is_mesh_point_clipped(const Vec3d& point) const
 {
     if (m_clipping_plane_distance == 0.f)
         return false;
 
     Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
-    return m_clipping_plane->distance(transformed_point) < 0.;
+    return m_clipping_plane->is_point_clipped(transformed_point);
 }
 
 
@@ -391,27 +391,15 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
 
     // The raycaster query
-    std::vector<Vec3f> hits;
-    std::vector<Vec3f> normals;
-    m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, &hits, &normals);
-
-    // We must also take care of the clipping plane (if active)
-    unsigned i = 0;
-    if (m_clipping_plane_distance != 0.f) {
-        for (i=0; i<hits.size(); ++i)
-            if (! is_point_clipped(hits[i].cast<double>()))
-                break;
+    Vec3f hit;
+    Vec3f normal;
+    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+        // Return both the point and the facet normal.
+        pos_and_normal = std::make_pair(hit, normal);
+        return true;
     }
-
-    if (i==hits.size() || (hits.size()-i) % 2 != 0) {
-        // All hits are either clipped, or there is an odd number of unclipped
-        // hits - meaning the nearest must be from inside the mesh.
+    else
         return false;
-    }
-
-    // Calculate and return both the point and the facet normal.
-    pos_and_normal = std::make_pair(hits[i], normals[i]);
-    return true;
 }
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
@@ -481,19 +469,15 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             std::vector<Vec3f> points_inside;
             std::vector<unsigned int> points_idxs = m_selection_rectangle.stop_dragging(m_parent, points);
             for (size_t idx : points_idxs)
-                points_inside.push_back((trafo.get_matrix() * points[idx]).cast<float>());
+                points_inside.push_back(points[idx].cast<float>());
 
             // Only select/deselect points that are actually visible
-            for (size_t idx :  m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside,
-                          [this](const Vec3f& pt) { return is_point_clipped(pt.cast<double>()); }))
+            for (size_t idx :  m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_clipping_plane.get()))
             {
-                const sla::SupportPoint &support_point = m_editing_cache[points_idxs[idx]].support_point;
-                if (! is_point_clipped(support_point.pos.cast<double>())) {
-                    if (rectangle_status == GLSelectionRectangle::Deselect)
-                        unselect_point(points_idxs[idx]);
-                    else
-                        select_point(points_idxs[idx]);
-                }
+                if (rectangle_status == GLSelectionRectangle::Deselect)
+                    unselect_point(points_idxs[idx]);
+                else
+                    select_point(points_idxs[idx]);
             }
             return true;
         }

@@ -3322,7 +3322,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
-    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
+    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
             this->update_fff_scene();
@@ -4288,11 +4288,10 @@ void Plater::increase_instances(size_t num)
 
     sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
-    if (p->get_config("autocenter") == "1") {
+    if (p->get_config("autocenter") == "1")
         p->arrange();
-    } else {
-        p->update();
-    }
+
+    p->update();
 
     p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
 
@@ -4336,14 +4335,14 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
     ModelObject* model_object = p->model.objects[obj_idx];
 
-    const auto num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
+    const int num = wxGetNumberFromUser( " ", _("Enter the number of copies:"),
                                     _("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
     if (num < 0)
         return;
 
     Plater::TakeSnapshot snapshot(this, wxString::Format(_(L("Set numbers of copies to %d")), num));
 
-    int diff = (int)num - (int)model_object->instances.size();
+    int diff = num - (int)model_object->instances.size();
     if (diff > 0)
         increase_instances(diff);
     else if (diff < 0)
@@ -4835,6 +4834,34 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
             p->config->option<ConfigOptionString>("bed_custom_texture")->value,
             p->config->option<ConfigOptionString>("bed_custom_model")->value);
+
+    if (update_scheduled)
+        update();
+
+    if (p->main_frame->is_loaded())
+        this->p->schedule_background_process();
+}
+
+void Plater::force_filament_colors_update()
+{
+    bool update_scheduled = false;
+    DynamicPrintConfig* config = p->config;
+    const std::vector<std::string> filament_presets = wxGetApp().preset_bundle->filament_presets;
+    if (filament_presets.size() > 1 && 
+        p->config->option<ConfigOptionStrings>("filament_colour")->values.size() == filament_presets.size())
+    {
+        const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
+        std::vector<std::string> filament_colors;
+        filament_colors.reserve(filament_presets.size());
+
+        for (const std::string& filament_preset : filament_presets)
+            filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
+
+        if (config->option<ConfigOptionStrings>("filament_colour")->values != filament_colors) {
+            config->option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+            update_scheduled = true;
+        }
+    }
 
     if (update_scheduled)
         update();

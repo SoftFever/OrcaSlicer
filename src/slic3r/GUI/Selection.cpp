@@ -410,7 +410,7 @@ void Selection::set_deserialized(EMode mode, const std::vector<std::pair<size_t,
     if (! m_valid)
         return;
 
-	m_mode = mode;
+    m_mode = mode;
     for (unsigned int i : m_list)
         (*m_volumes)[i]->selected = false;
     m_list.clear();

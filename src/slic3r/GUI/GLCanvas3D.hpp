@@ -71,7 +71,6 @@ public:
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
-// #et_FIXME : RBtnEvent is used instead of Vec2dEvent on EVT_GLCANVAS_RIGHT_CLICK
 // _bool_ value is used as a indicator of selection in the 3DScene
 using RBtnEvent = Event<std::pair<Vec2d, bool>>;
 template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;

@@ -13,13 +13,14 @@ namespace Slic3r {
 class Polygon;
 typedef std::vector<Polygon> Polygons;
 
-class Polygon : public MultiPoint {
+class Polygon : public MultiPoint
+{
 public:
-    operator Polygons() const;
-    operator Polyline() const;
-    Point& operator[](Points::size_type idx);
-    const Point& operator[](Points::size_type idx) const;
-    
+    operator Polygons() const { Polygons pp; pp.push_back(*this); return pp; }
+    operator Polyline() const { return this->split_at_first_point(); }
+    Point& operator[](Points::size_type idx) { return this->points[idx]; }
+    const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
+
     Polygon() {}
     explicit Polygon(const Points &points): MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
@@ -34,20 +35,24 @@ public:
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
 
-    Point last_point() const;
+    // last point == first point for polygons
+    const Point& last_point() const override { return this->points.front(); }
+
     virtual Lines lines() const;
     Polyline split_at_vertex(const Point &point) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_index(int index) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
-    Polyline split_at_first_point() const;
-    Points equally_spaced_points(double distance) const;
+    Polyline split_at_first_point() const { return this->split_at_index(0); }
+    Points   equally_spaced_points(double distance) const { return this->split_at_first_point().equally_spaced_points(distance); }
+
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;
     bool make_counter_clockwise();
     bool make_clockwise();
-    bool is_valid() const;
+    bool is_valid() const { return this->points.size() >= 3; }
+
     // Does an unoriented polygon contain a point?
     // Tested by counting intersections along a horizontal line.
     bool contains(const Point &point) const;

@@ -669,7 +669,7 @@ wxDataViewItem ObjectDataViewModel::Add(const wxString &name,
     if (has_errors)
         root->m_bmp = *m_warning_bmp;
 
-	m_objects.push_back(root);
+    m_objects.push_back(root);
 	// notify control
 	wxDataViewItem child((void*)root);
 	wxDataViewItem parent((void*)NULL);
@@ -720,7 +720,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
         root->SetBitmap(*m_warning_bmp);
 
 	// notify control
-	const wxDataViewItem child((void*)node);
+    const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
     root->m_volumes_cnt++;
 
