@@ -100,7 +100,7 @@ add_library(libslic3r STATIC
     Geometry.cpp
     Geometry.hpp
     Int128.hpp
-    KdTreeIndirect.hpp
+    KDTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
     LayerRegion.cpp
@@ -131,8 +131,6 @@ add_library(libslic3r STATIC
     PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
-    PolylineCollection.cpp
-    PolylineCollection.hpp
     Print.cpp
     Print.hpp
     PrintBase.cpp

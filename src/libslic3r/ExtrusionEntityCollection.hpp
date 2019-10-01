@@ -65,13 +65,10 @@ public:
     }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
-    ExtrusionEntityCollection chained_path(bool no_reverse = false, ExtrusionRole role = erMixed) const;
-    void chained_path(ExtrusionEntityCollection* retval, bool no_reverse = false, ExtrusionRole role = erMixed) const;
-    ExtrusionEntityCollection chained_path_from(Point start_near, bool no_reverse = false, ExtrusionRole role = erMixed) const;
-    void chained_path_from(Point start_near, ExtrusionEntityCollection* retval, bool no_reverse = false, ExtrusionRole role = erMixed) const;
+    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const;
     void reverse();
-    Point first_point() const { return this->entities.front()->first_point(); }
-    Point last_point() const { return this->entities.back()->last_point(); }
+    const Point& first_point() const { return this->entities.front()->first_point(); }
+    const Point& last_point() const { return this->entities.back()->last_point(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;

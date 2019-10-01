@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Layer.hpp"
+#include "libslic3r/ExPolygonCollection.hpp"
 %}
 
 %name{Slic3r::Layer::Region} class LayerRegion {
@@ -19,8 +20,6 @@
         %code%{ RETVAL = &THIS->fill_surfaces; %};
     Polygons bridged()
         %code%{ RETVAL = THIS->bridged; %};
-    Ref<PolylineCollection> unsupported_bridge_edges()
-        %code%{ RETVAL = &THIS->unsupported_bridge_edges; %};
     Ref<ExtrusionEntityCollection> perimeters()
         %code%{ RETVAL = &THIS->perimeters; %};
     Ref<ExtrusionEntityCollection> fills()
@@ -61,8 +60,8 @@
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
 
-    Ref<ExPolygonCollection> slices()
-        %code%{ RETVAL = &THIS->slices; %};
+    ExPolygonCollection* slices()
+        %code%{ RETVAL = new ExPolygonCollection(THIS->slices); %};
 
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
@@ -110,8 +109,8 @@
     Ref<LayerRegion> get_region(int idx);
     Ref<LayerRegion> add_region(PrintRegion* print_region);
 
-    Ref<ExPolygonCollection> slices()
-        %code%{ RETVAL = &THIS->slices; %};
+    ExPolygonCollection* slices()
+        %code%{ RETVAL = new ExPolygonCollection(THIS->slices); %};
     
     void export_region_slices_to_svg(const char *path);
     void export_region_fill_surfaces_to_svg(const char *path);

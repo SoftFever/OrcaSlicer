@@ -180,7 +180,6 @@ private:
     void _slice(const std::vector<coordf_t> &layer_height_profile);
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
-    void _make_perimeters();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
@@ -383,7 +382,6 @@ private:
     void                _make_skirt();
     void                _make_brim();
     void                _make_wipe_tower();
-    void                _simplify_slices(double distance);
 
     // Declared here to have access to Model / ModelObject / ModelInstance
     static void         model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src);

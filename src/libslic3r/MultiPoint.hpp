@@ -17,7 +17,8 @@ class MultiPoint
 public:
     Points points;
     
-    operator Points() const;
+    operator Points() const { return this->points; }
+
     MultiPoint() {}
     MultiPoint(const MultiPoint &other) : points(other.points) {}
     MultiPoint(MultiPoint &&other) : points(std::move(other.points)) {}
@@ -32,9 +33,10 @@ public:
     void rotate(double angle) { this->rotate(cos(angle), sin(angle)); }
     void rotate(double cos_angle, double sin_angle);
     void rotate(double angle, const Point &center);
-    void reverse();
-    Point first_point() const;
-    virtual Point last_point() const = 0;
+    void reverse() { std::reverse(this->points.begin(), this->points.end()); }
+
+    const Point& first_point() const { return this->points.front(); }
+    virtual const Point& last_point() const = 0;
     virtual Lines lines() const = 0;
     size_t size() const { return points.size(); }
     bool   empty() const { return points.empty(); }

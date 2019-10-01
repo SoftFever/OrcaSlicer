@@ -2392,6 +2392,7 @@ void PrintConfigDef::init_sla_params()
                       "the threshold in the middle. This behaviour eliminates "
                       "antialiasing without losing holes in polygons.");
     def->min = 0;
+    def->max = 1;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
