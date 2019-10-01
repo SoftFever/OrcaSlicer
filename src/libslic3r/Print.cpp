@@ -1114,6 +1114,9 @@ std::string Print::validate() const
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
+    if (extruders().empty())
+        return L("The supplied settings will cause an empty print.");
+
     if (m_config.complete_objects) {
         // Check horizontal clearance.
         {
@@ -1271,10 +1274,7 @@ std::string Print::validate() const
     }
     
 	{
-		// find the smallest nozzle diameter
 		std::vector<unsigned int> extruders = this->extruders();
-		if (extruders.empty())
-			return L("The supplied settings will cause an empty print.");
 
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
