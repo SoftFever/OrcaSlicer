@@ -8,44 +8,14 @@
 #include <utility>
 #include <cstdint>
 
+#include <libslic3r/ExPolygon.hpp>
+
 namespace ClipperLib { struct Polygon; }
 
 namespace Slic3r { 
-
-class ExPolygon;
-
 namespace sla {
 
-// Raw byte buffer paired with its size. Suitable for compressed PNG data.
-class RawBytes {
-
-    std::vector<std::uint8_t> m_buffer;
-public:
-
-    RawBytes() = default;
-    RawBytes(std::vector<std::uint8_t>&& data): m_buffer(std::move(data)) {}
-    
-    size_t size() const { return m_buffer.size(); }
-    const uint8_t * data() { return m_buffer.data(); }
-    
-    RawBytes(const RawBytes&) = delete;
-    RawBytes& operator=(const RawBytes&) = delete;
-
-    // /////////////////////////////////////////////////////////////////////////
-    // FIXME: the following is needed for MSVC2013 compatibility
-    // /////////////////////////////////////////////////////////////////////////
-
-    // RawBytes(RawBytes&&) = default;
-    // RawBytes& operator=(RawBytes&&) = default;
-
-    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
-    RawBytes& operator=(RawBytes&& mv) {
-        m_buffer = std::move(mv.m_buffer);
-        return *this;
-    }
-
-    // /////////////////////////////////////////////////////////////////////////
-};
+class Raster;
 
 /**
  * @brief Raster captures an anti-aliased monochrome canvas where vectorial
@@ -59,11 +29,29 @@ class Raster {
     class Impl;
     std::unique_ptr<Impl> m_impl;
 public:
-
-    /// Supported compression types
-    enum class Format {
-        RAW,    //!> Uncompressed pixel data
-        PNG     //!> PNG compression
+    
+    // Raw byte buffer paired with its size. Suitable for compressed image data.
+    class RawData
+    {
+    protected:
+        std::vector<std::uint8_t> m_buffer;
+        const Impl& get_internals(const Raster& raster);
+    public:
+        RawData() = default;
+        RawData(std::vector<std::uint8_t>&& data): m_buffer(std::move(data)) {}
+        virtual ~RawData();
+        
+        RawData(const RawData &) = delete;
+        RawData &operator=(const RawData &) = delete;
+        
+        RawData(RawData &&) = default;
+        RawData &operator=(RawData &&) = default;
+        
+        size_t size() const { return m_buffer.size(); }
+        const uint8_t * data() const { return m_buffer.data(); }
+        
+        virtual RawData& serialize(const Raster &/*raster*/)  { return *this; }
+        virtual std::string get_file_extension() const = 0;
     };
 
     /// Type that represents a resolution in pixels.
@@ -85,11 +73,36 @@ public:
         inline PixelDim(double px_width_mm = 0.0, double px_height_mm = 0.0):
             w_mm(px_width_mm), h_mm(px_height_mm) {}
     };
-
-    /// Constructor taking the resolution and the pixel dimension.
-    template <class...Args> Raster(Args...args) { 
-        reset(std::forward<Args>(args)...); 
-    }
+    
+    enum Orientation { roLandscape, roPortrait };
+    
+    using TMirroring = std::array<bool, 2>;
+    static const TMirroring NoMirror;
+    static const TMirroring MirrorX;
+    static const TMirroring MirrorY;
+    static const TMirroring MirrorXY;
+    
+    struct Trafo {
+        bool mirror_x = false, mirror_y = false, flipXY = false;
+        coord_t origin_x = 0, origin_y = .0;
+        
+        // If gamma is zero, thresholding will be performed which disables AA.
+        double gamma = 1.;
+        
+        // Portrait orientation will make sure the drawed polygons are rotated
+        // by 90 degrees.
+        Trafo(Orientation o = roLandscape, const TMirroring &mirror = NoMirror)
+            // XY flipping implicitly does an X mirror
+            : mirror_x(o == roPortrait ? !mirror[0] : mirror[0])
+            , mirror_y(!mirror[1]) // Makes raster origin to be top left corner
+            , flipXY(o == roPortrait)
+        {}
+    };
+    
+    Raster();
+    Raster(const Resolution &r,
+           const PixelDim &  pd,
+           const Trafo &     tr = {});
     
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;
@@ -98,17 +111,9 @@ public:
     ~Raster();
 
     /// Reallocated everything for the given resolution and pixel dimension.
-    /// The third parameter is either the X, Y mirroring or a supported format 
-    /// for which the correct mirroring will be configured.
-    void reset(const Resolution&, 
-               const PixelDim&, 
-               const std::array<bool, 2>& mirror, 
-               double gamma = 1.0);
-    
     void reset(const Resolution& r, 
-               const PixelDim& pd, 
-               Format o, 
-               double gamma = 1.0);
+               const PixelDim& pd,
+               const Trafo &tr = {});
     
     /**
      * Release the allocated resources. Drawing in this state ends in
@@ -118,6 +123,7 @@ public:
 
     /// Get the resolution of the raster.
     Resolution resolution() const;
+    PixelDim   pixel_dimensions() const;
 
     /// Clear the raster with black color.
     void clear();
@@ -125,25 +131,29 @@ public:
     /// Draw a polygon with holes.
     void draw(const ExPolygon& poly);
     void draw(const ClipperLib::Polygon& poly);
-
-    // Saving the raster: 
-    // It is possible to override the format given in the constructor but
-    // be aware that the mirroring will not be modified.
+ 
+    uint8_t read_pixel(size_t w, size_t h) const;
     
-    /// Save the raster on the specified stream.
-    void save(std::ostream& stream, Format);
-    void save(std::ostream& stream);
-
-    /// Save into a continuous byte stream which is returned.
-    RawBytes save(Format fmt);
-    RawBytes save();
+    inline bool empty() const { return ! bool(m_impl); }
+      
 };
 
-// This prevents the duplicate default constructor warning on MSVC2013
-template<> Raster::Raster();
+class PNGImage: public Raster::RawData {
+public:
+    PNGImage& serialize(const Raster &raster) override;
+    std::string get_file_extension() const override { return "png"; }
+};
 
+class PPMImage: public Raster::RawData {
+public:
+    PPMImage& serialize(const Raster &raster) override;
+    std::string get_file_extension() const override { return "ppm"; }
+};
+
+std::ostream& operator<<(std::ostream &stream, const Raster::RawData &bytes);
 
 } // sla
 } // Slic3r
+
 
 #endif // SLARASTER_HPP

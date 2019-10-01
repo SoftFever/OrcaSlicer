@@ -8,7 +8,6 @@
 #include "SLABoilerPlate.hpp"
 #include "SLASpatIndex.hpp"
 #include "SLASupportTreeBuilder.hpp"
-#include "SLASupportTreeAlgorithm.hpp"
 
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>

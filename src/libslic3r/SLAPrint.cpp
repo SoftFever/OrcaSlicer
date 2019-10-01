@@ -1176,9 +1176,8 @@ void SLAPrint::process()
                 {
                     ClipperPolygon poly;
 
-                    // We need to reverse if flpXY OR is_lefthanded is true but
-                    // not if both are true which is a logical inequality (XOR)
-                    bool needreverse = /*flpXY !=*/ is_lefthanded;
+                    // We need to reverse if is_lefthanded is true but
+                    bool needreverse = is_lefthanded;
 
                     // should be a move
                     poly.Contour.reserve(polygon.contour.size() + 1);
@@ -1401,11 +1400,9 @@ void SLAPrint::process()
 
         SpinMutex slck;
         
-        auto orientation = get_printer_orientation();
-
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &printer, increment, &dstatus, &pst, orientation]
+        [this, &slck, &printer, increment, &dstatus, &pst]
             (unsigned level_id)
         {
             if(canceled()) return;
@@ -1416,7 +1413,7 @@ void SLAPrint::process()
             printer.begin_layer(level_id);
 
             for(const ClipperLib::Polygon& poly : printlayer.transformed_slices())
-                printer.draw_polygon(poly, level_id, orientation);
+                printer.draw_polygon(poly, level_id);
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
@@ -1644,7 +1641,6 @@ sla::RasterWriter & SLAPrint::init_printer()
     sla::Raster::Resolution res;
     sla::Raster::PixelDim   pxdim;
     std::array<bool, 2>     mirror;
-    double                  gamma;
 
     double w  = m_printer_config.display_width.getFloat();
     double h  = m_printer_config.display_height.getFloat();
@@ -1654,20 +1650,18 @@ sla::RasterWriter & SLAPrint::init_printer()
     mirror[X] = m_printer_config.display_mirror_x.getBool();
     mirror[Y] = m_printer_config.display_mirror_y.getBool();
 
-    if (get_printer_orientation() == sla::RasterWriter::roPortrait) {
+    auto orientation = get_printer_orientation();
+    if (orientation == sla::Raster::roPortrait) {
         std::swap(w, h);
         std::swap(pw, ph);
-
-        // XY flipping implicitly does an X mirror
-        mirror[X] = !mirror[X];
     }
 
     res   = sla::Raster::Resolution{pw, ph};
     pxdim = sla::Raster::PixelDim{w / pw, h / ph};
-
-    gamma = m_printer_config.gamma_correction.getFloat();
-
-    m_printer.reset(new sla::RasterWriter(res, pxdim, mirror, gamma));
+    sla::Raster::Trafo tr{orientation, mirror};
+    tr.gamma = m_printer_config.gamma_correction.getFloat();
+    
+    m_printer.reset(new sla::RasterWriter(res, pxdim, tr));
     m_printer->set_config(m_full_print_config);
     return *m_printer;
 }

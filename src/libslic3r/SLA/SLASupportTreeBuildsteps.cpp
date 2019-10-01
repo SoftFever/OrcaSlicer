@@ -1,4 +1,4 @@
-#include "SLASupportTreeAlgorithm.hpp"
+#include "SLASupportTreeBuildsteps.hpp"
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
@@ -7,7 +7,7 @@
 namespace Slic3r {
 namespace sla {
 
-SupportTreeAlgorithm::SupportTreeAlgorithm(SupportTreeBuilder &   builder,
+SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
                                            const SupportableMesh &sm)
     : m_cfg(sm.cfg)
     , m_mesh(sm.emesh)
@@ -29,12 +29,12 @@ SupportTreeAlgorithm::SupportTreeAlgorithm(SupportTreeBuilder &   builder,
     }
 }
 
-bool SupportTreeAlgorithm::execute(SupportTreeBuilder &   builder,
+bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
                                    const SupportableMesh &sm)
 {
     if(sm.pts.empty()) return false;
     
-    SupportTreeAlgorithm alg(builder, sm);
+    SupportTreeBuildsteps alg(builder, sm);
     
     // Let's define the individual steps of the processing. We can experiment
     // later with the ordering and the dependencies between them.
@@ -61,21 +61,21 @@ bool SupportTreeAlgorithm::execute(SupportTreeBuilder &   builder,
             // Potentially clear up the shared data (not needed for now)
         },
         
-        std::bind(&SupportTreeAlgorithm::filter, &alg),
+        std::bind(&SupportTreeBuildsteps::filter, &alg),
         
-        std::bind(&SupportTreeAlgorithm::add_pinheads, &alg),
+        std::bind(&SupportTreeBuildsteps::add_pinheads, &alg),
         
-        std::bind(&SupportTreeAlgorithm::classify, &alg),
+        std::bind(&SupportTreeBuildsteps::classify, &alg),
         
-        std::bind(&SupportTreeAlgorithm::routing_to_ground, &alg),
+        std::bind(&SupportTreeBuildsteps::routing_to_ground, &alg),
         
-        std::bind(&SupportTreeAlgorithm::routing_to_model, &alg),
+        std::bind(&SupportTreeBuildsteps::routing_to_model, &alg),
         
-        std::bind(&SupportTreeAlgorithm::interconnect_pillars, &alg),
+        std::bind(&SupportTreeBuildsteps::interconnect_pillars, &alg),
         
-        std::bind(&SupportTreeAlgorithm::routing_headless, &alg),
+        std::bind(&SupportTreeBuildsteps::routing_headless, &alg),
         
-        std::bind(&SupportTreeAlgorithm::merge_result, &alg),
+        std::bind(&SupportTreeBuildsteps::merge_result, &alg),
         
         [] () {
             // Done
@@ -158,7 +158,7 @@ bool SupportTreeAlgorithm::execute(SupportTreeBuilder &   builder,
     return pc == ABORT;
 }
 
-EigenMesh3D::hit_result SupportTreeAlgorithm::pinhead_mesh_intersect(
+EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     const Vec3d &s, const Vec3d &dir, double r_pin, double r_back, double width)
 {
     static const size_t SAMPLES = 8;
@@ -275,7 +275,7 @@ EigenMesh3D::hit_result SupportTreeAlgorithm::pinhead_mesh_intersect(
     return *mit;
 }
 
-EigenMesh3D::hit_result SupportTreeAlgorithm::bridge_mesh_intersect(
+EigenMesh3D::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
     const Vec3d &s, const Vec3d &dir, double r, bool ins_check)
 {
     static const size_t SAMPLES = 8;
@@ -344,7 +344,7 @@ EigenMesh3D::hit_result SupportTreeAlgorithm::bridge_mesh_intersect(
     return *mit;
 }
 
-bool SupportTreeAlgorithm::interconnect(const Pillar &pillar,
+bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
                                         const Pillar &nextpillar)
 {
     // We need to get the starting point of the zig-zag pattern. We have to
@@ -437,7 +437,7 @@ bool SupportTreeAlgorithm::interconnect(const Pillar &pillar,
     return was_connected;
 }
 
-bool SupportTreeAlgorithm::connect_to_nearpillar(const Head &head,
+bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
                                                  long        nearpillar_id)
 {
     auto nearpillar = [this, nearpillar_id]() {
@@ -514,7 +514,7 @@ bool SupportTreeAlgorithm::connect_to_nearpillar(const Head &head,
     return true;
 }
 
-bool SupportTreeAlgorithm::search_pillar_and_connect(const Head &head)
+bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &head)
 {
     PointIndex spindex = m_pillar_index.guarded_clone();
     
@@ -549,7 +549,7 @@ bool SupportTreeAlgorithm::search_pillar_and_connect(const Head &head)
     return nearest_id >= 0;
 }
 
-void SupportTreeAlgorithm::create_ground_pillar(const Vec3d &jp,
+void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                                                 const Vec3d &sourcedir,
                                                 double       radius,
                                                 long         head_id)
@@ -661,7 +661,7 @@ void SupportTreeAlgorithm::create_ground_pillar(const Vec3d &jp,
         m_pillar_index.guarded_insert(endp, unsigned(pillar_id));
 }
 
-void SupportTreeAlgorithm::filter()
+void SupportTreeBuildsteps::filter()
 {
     // Get the points that are too close to each other and keep only the
     // first one
@@ -806,7 +806,7 @@ void SupportTreeAlgorithm::filter()
     m_thr();
 }
 
-void SupportTreeAlgorithm::add_pinheads()
+void SupportTreeBuildsteps::add_pinheads()
 {
     for (unsigned i : m_iheads) {
         m_thr();
@@ -822,7 +822,7 @@ void SupportTreeAlgorithm::add_pinheads()
     }
 }
 
-void SupportTreeAlgorithm::classify()
+void SupportTreeBuildsteps::classify()
 {
     // We should first get the heads that reach the ground directly
     PtIndices ground_head_indices;
@@ -872,7 +872,7 @@ void SupportTreeAlgorithm::classify()
                                 m_cfg.max_bridges_on_pillar);
 }
 
-void SupportTreeAlgorithm::routing_to_ground()
+void SupportTreeBuildsteps::routing_to_ground()
 {
     const double pradius = m_cfg.head_back_radius_mm;
     
@@ -946,7 +946,7 @@ void SupportTreeAlgorithm::routing_to_ground()
     }
 }
 
-void SupportTreeAlgorithm::routing_to_model()
+void SupportTreeBuildsteps::routing_to_model()
 {   
     // We need to check if there is an easy way out to the bed surface.
     // If it can be routed there with a bridge shorter than
@@ -1131,7 +1131,7 @@ void SupportTreeAlgorithm::routing_to_model()
     }
 }
 
-void SupportTreeAlgorithm::interconnect_pillars()
+void SupportTreeBuildsteps::interconnect_pillars()
 {
     // Now comes the algorithm that connects pillars with each other.
     // Ideally every pillar should be connected with at least one of its
@@ -1337,7 +1337,7 @@ void SupportTreeAlgorithm::interconnect_pillars()
     }
 }
 
-void SupportTreeAlgorithm::routing_headless()
+void SupportTreeBuildsteps::routing_headless()
 {
     // For now we will just generate smaller headless sticks with a sharp
     // ending point that connects to the mesh surface.

@@ -1,5 +1,5 @@
 #include "SLASupportTreeBuilder.hpp"
-#include "SLASupportTreeAlgorithm.hpp"
+#include "SLASupportTreeBuildsteps.hpp"
 
 namespace Slic3r {
 namespace sla {
@@ -455,7 +455,7 @@ const TriangleMesh &SupportTreeBuilder::retrieve_mesh(MeshType meshtype) const
 bool SupportTreeBuilder::build(const SupportableMesh &sm)
 {
     ground_level = sm.emesh.ground_level() - sm.cfg.object_elevation_mm;
-    return SupportTreeAlgorithm::execute(*this, sm);
+    return SupportTreeBuildsteps::execute(*this, sm);
 }
 
 }

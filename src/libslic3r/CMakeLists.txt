@@ -179,8 +179,8 @@ add_library(libslic3r STATIC
     SLA/SLAPad.hpp
     SLA/SLAPad.cpp
     SLA/SLASupportTreeBuilder.hpp
-    SLA/SLASupportTreeAlgorithm.hpp
-    SLA/SLASupportTreeAlgorithm.cpp
+    SLA/SLASupportTreeBuildsteps.hpp
+    SLA/SLASupportTreeBuildsteps.cpp
     SLA/SLASupportTreeBuilder.cpp
     SLA/SLAConcurrency.hpp
     SLA/SLASupportTree.hpp

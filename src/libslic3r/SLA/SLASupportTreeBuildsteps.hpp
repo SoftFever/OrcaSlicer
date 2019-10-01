@@ -142,7 +142,7 @@ IntegerOnly<DoubleI> pairhash(I a, I b)
     return (DoubleI(g) << shift) + l;
 }
 
-class SupportTreeAlgorithm {
+class SupportTreeBuildsteps {
     const SupportConfig& m_cfg;
     const EigenMesh3D& m_mesh;
     const std::vector<SupportPoint>& m_support_pts;
@@ -227,15 +227,9 @@ class SupportTreeAlgorithm {
     void create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,
-                              long         head_id = ID_UNSET);
-
-    SupportTreeAlgorithm(SupportTreeBuilder & builder, const SupportableMesh &sm);
-
+                              long         head_id = ID_UNSET);    
 public:
-    SupportTreeAlgorithm(const SupportTreeAlgorithm &) = delete;
-    SupportTreeAlgorithm(SupportTreeAlgorithm &&) = delete;
-    SupportTreeAlgorithm& operator=(const SupportTreeAlgorithm &) = delete;
-    SupportTreeAlgorithm& operator=(SupportTreeAlgorithm &&) = delete;
+    SupportTreeBuildsteps(SupportTreeBuilder & builder, const SupportableMesh &sm);
     
     // Now let's define the individual steps of the support generation algorithm
     

@@ -461,12 +461,11 @@ private:
     
     sla::RasterWriter &init_printer();
     
-    inline sla::RasterWriter::Orientation get_printer_orientation() const
+    inline sla::Raster::Orientation get_printer_orientation() const
     {
         auto ro = m_printer_config.display_orientation.getInt();
-        return ro == sla::RasterWriter::roPortrait ?
-                   sla::RasterWriter::roPortrait :
-                   sla::RasterWriter::roLandscape;
+        return ro == sla::Raster::roPortrait ? sla::Raster::roPortrait :
+                                               sla::Raster::roLandscape;
     }
 
 	friend SLAPrintObject;
