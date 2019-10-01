@@ -117,11 +117,11 @@ Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectP
                      const Layer* layer1 = object->layers()[i * 2];
                      const Layer* layer2 = object->layers()[i * 2 + 1];
                      Polygons polys;
-                     polys.reserve(layer1->slices.expolygons.size() + layer2->slices.expolygons.size());
-                    for (const ExPolygon &expoly : layer1->slices.expolygons)
+                     polys.reserve(layer1->slices.size() + layer2->slices.size());
+                    for (const ExPolygon &expoly : layer1->slices)
                         //FIXME no holes?
                         polys.emplace_back(expoly.contour);
-                    for (const ExPolygon &expoly : layer2->slices.expolygons)
+                    for (const ExPolygon &expoly : layer2->slices)
                         //FIXME no holes?
                         polys.emplace_back(expoly.contour);
                      polygons_per_layer[i] = union_(polys);
@@ -130,8 +130,8 @@ Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectP
          if (object->layers().size() & 1) {
             const Layer *layer = object->layers().back();
             Polygons polys;
-            polys.reserve(layer->slices.expolygons.size());
-            for (const ExPolygon &expoly : layer->slices.expolygons)
+            polys.reserve(layer->slices.size());
+            for (const ExPolygon &expoly : layer->slices)
                 //FIXME no holes?
                 polys.emplace_back(expoly.contour);
              polygons_per_layer.back() = union_(polys);
@@ -1802,11 +1802,8 @@ void GCode::process_layer(
             // - for each island, we extrude perimeters first, unless user set the infill_first
             //   option
             // (Still, we have to keep track of regions because we need to apply their config)
-            size_t n_slices = layer.slices.expolygons.size();
-            std::vector<BoundingBox> layer_surface_bboxes;
-            layer_surface_bboxes.reserve(n_slices);
-            for (const ExPolygon &expoly : layer.slices.expolygons)
-                layer_surface_bboxes.push_back(get_extents(expoly.contour));
+            size_t n_slices = layer.slices.size();
+            const std::vector<BoundingBox> &layer_surface_bboxes = layer.slices_bboxes;
             // Traverse the slices in an increasing order of bounding box size, so that the islands inside another islands are tested first,
             // so we can just test a point inside ExPolygon::contour and we may skip testing the holes.
             std::vector<size_t> slices_test_order;
@@ -1822,7 +1819,7 @@ void GCode::process_layer(
                 const BoundingBox &bbox = layer_surface_bboxes[i];
                 return point(0) >= bbox.min(0) && point(0) < bbox.max(0) &&
                        point(1) >= bbox.min(1) && point(1) < bbox.max(1) &&
-                       layer.slices.expolygons[i].contour.contains(point);
+                       layer.slices[i].contour.contains(point);
             };
 
             for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
@@ -2418,7 +2415,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             static int iRun = 0;
             SVG svg(debug_out_path("GCode_extrude_loop-%d.svg", iRun ++));
             if (m_layer->lower_layer != NULL)
-                svg.draw(m_layer->lower_layer->slices.expolygons);
+                svg.draw(m_layer->lower_layer->slices);
             for (size_t i = 0; i < loop.paths.size(); ++ i)
                 svg.draw(loop.paths[i].as_polyline(), "red");
             Polylines polylines;

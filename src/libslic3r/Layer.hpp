@@ -110,7 +110,8 @@ public:
     // also known as 'islands' (all regions and surface types are merged here)
     // The slices are chained by the shortest traverse distance and this traversal
     // order will be recovered by the G-code generator.
-    ExPolygonCollection slices;
+    ExPolygons 			slices;
+    std::vector<BoundingBox> slices_bboxes;
 
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions.at(idx); }
