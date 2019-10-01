@@ -55,6 +55,9 @@ namespace Slic3r {
         struct Axis
         {
             float position;         // mm
+#if ENABLE_GIT_3010_FIX
+            float origin;           // mm
+#endif // ENABLE_GIT_3010_FIX
             float max_feedrate;     // mm/s
             float max_acceleration; // mm/s^2
             float max_jerk;         // mm/s
@@ -282,6 +285,10 @@ namespace Slic3r {
 
         // Set current position on the given axis with the given value
         void set_axis_position(EAxis axis, float position);
+#if ENABLE_GIT_3010_FIX
+        // Set current origin on the given axis with the given value
+        void set_axis_origin(EAxis axis, float position);
+#endif // ENABLE_GIT_3010_FIX
 
         void set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec);
         void set_axis_max_acceleration(EAxis axis, float acceleration);
@@ -289,6 +296,10 @@ namespace Slic3r {
 
         // Returns current position on the given axis
         float get_axis_position(EAxis axis) const;
+#if ENABLE_GIT_3010_FIX
+        // Returns current origin on the given axis
+        float get_axis_origin(EAxis axis) const;
+#endif // ENABLE_GIT_3010_FIX
 
         float get_axis_max_feedrate(EAxis axis) const;
         float get_axis_max_acceleration(EAxis axis) const;

@@ -32,4 +32,12 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
 
+//===================
+// 2.2.0.alpha1 techs
+//===================
+#define ENABLE_2_2_0_ALPHA1 1
+
+// Fixes git issue 3010
+#define ENABLE_GIT_3010_FIX (1 && ENABLE_2_2_0_ALPHA1)
+
 #endif // _technologies_h_

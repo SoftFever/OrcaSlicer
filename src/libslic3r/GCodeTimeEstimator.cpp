@@ -412,6 +412,13 @@ namespace Slic3r {
         m_state.axis[axis].position = position;
     }
 
+#if ENABLE_GIT_3010_FIX
+    void GCodeTimeEstimator::set_axis_origin(EAxis axis, float position)
+    {
+        m_state.axis[axis].origin = position;
+    }
+#endif // ENABLE_GIT_3010_FIX
+
     void GCodeTimeEstimator::set_axis_max_feedrate(EAxis axis, float feedrate_mm_sec)
     {
         m_state.axis[axis].max_feedrate = feedrate_mm_sec;
@@ -431,6 +438,13 @@ namespace Slic3r {
     {
         return m_state.axis[axis].position;
     }
+
+#if ENABLE_GIT_3010_FIX
+    float GCodeTimeEstimator::get_axis_origin(EAxis axis) const
+    {
+        return m_state.axis[axis].origin;
+    }
+#endif // ENABLE_GIT_3010_FIX
 
     float GCodeTimeEstimator::get_axis_max_feedrate(EAxis axis) const
     {
@@ -758,6 +772,12 @@ namespace Slic3r {
         set_axis_position(X, 0.0f);
         set_axis_position(Y, 0.0f);
         set_axis_position(Z, 0.0f);
+#if ENABLE_GIT_3010_FIX
+        set_axis_origin(X, 0.0f);
+        set_axis_origin(Y, 0.0f);
+        set_axis_origin(Z, 0.0f);
+#endif // ENABLE_GIT_3010_FIX
+
         if (get_e_local_positioning_type() == Absolute)
             set_axis_position(E, 0.0f);
 
@@ -954,6 +974,7 @@ namespace Slic3r {
         }
     }
 
+#if !ENABLE_GIT_3010_FIX
     // Returns the new absolute position on the given axis in dependence of the given parameters
     float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, bool is_relative, float current_absolute_position)
     {
@@ -966,22 +987,52 @@ namespace Slic3r {
         else
             return current_absolute_position;
     }
+#endif // !ENABLE_GIT_3010_FIX
 
     void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
     {
+#if ENABLE_GIT_3010_FIX
+        auto axis_absolute_position = [this](GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1) -> float
+        {
+            float current_absolute_position = get_axis_position(axis);
+            float current_origin = get_axis_origin(axis);
+            float lengthsScaleFactor = (get_units() == GCodeTimeEstimator::Inches) ? INCHES_TO_MM : 1.0f;
+
+            bool is_relative = (get_global_positioning_type() == Relative);
+            if (axis == E)
+                is_relative |= (get_e_local_positioning_type() == Relative);
+
+            if (lineG1.has(Slic3r::Axis(axis)))
+            {
+                float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
+                return is_relative ? current_absolute_position + ret : ret + current_origin;
+            }
+            else
+                return current_absolute_position;
+        };
+#endif // ENABLE_GIT_3010_FIX
+
         PROFILE_FUNC();
         increment_g1_line_id();
 
         // updates axes positions from line
+#if !ENABLE_GIT_3010_FIX
         EUnits units = get_units();
+#endif // !ENABLE_GIT_3010_FIX
         float new_pos[Num_Axis];
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
+#if !ENABLE_GIT_3010_FIX
             bool is_relative = (get_global_positioning_type() == Relative);
             if (a == E)
                 is_relative |= (get_e_local_positioning_type() == Relative);
+#endif // !ENABLE_GIT_3010_FIX
 
+#if ENABLE_GIT_3010_FIX
+            new_pos[a] = axis_absolute_position((EAxis)a, line);
+#else
             new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, get_axis_position((EAxis)a));
+#endif // !ENABLE_GIT_3010_FIX
         }
 
         // updates feedrate from line, if present
@@ -1225,25 +1276,41 @@ namespace Slic3r {
 
         if (line.has_x())
         {
+#if ENABLE_GIT_3010_FIX
+            set_axis_origin(X, get_axis_position(X) - line.x() * lengthsScaleFactor);
+#else
             set_axis_position(X, line.x() * lengthsScaleFactor);
+#endif // ENABLE_GIT_3010_FIX
             anyFound = true;
         }
 
         if (line.has_y())
         {
+#if ENABLE_GIT_3010_FIX
+            set_axis_origin(Y, get_axis_position(Y) - line.y() * lengthsScaleFactor);
+#else
             set_axis_position(Y, line.y() * lengthsScaleFactor);
+#endif // ENABLE_GIT_3010_FIX
             anyFound = true;
         }
 
         if (line.has_z())
         {
+#if ENABLE_GIT_3010_FIX
+            set_axis_origin(Z, get_axis_position(Z) - line.z() * lengthsScaleFactor);
+#else
             set_axis_position(Z, line.z() * lengthsScaleFactor);
+#endif // ENABLE_GIT_3010_FIX
             anyFound = true;
         }
 
         if (line.has_e())
         {
+#if ENABLE_GIT_3010_FIX
+            set_axis_origin(E, get_axis_position(E) - line.e() * lengthsScaleFactor);
+#else
             set_axis_position(E, line.e() * lengthsScaleFactor);
+#endif // ENABLE_GIT_3010_FIX
             anyFound = true;
         }
         else
@@ -1253,7 +1320,11 @@ namespace Slic3r {
         {
             for (unsigned char a = X; a < Num_Axis; ++a)
             {
+#if ENABLE_GIT_3010_FIX
+                set_axis_origin((EAxis)a, get_axis_position((EAxis)a));
+#else
                 set_axis_position((EAxis)a, 0.0f);
+#endif // ENABLE_GIT_3010_FIX
             }
         }
     }
