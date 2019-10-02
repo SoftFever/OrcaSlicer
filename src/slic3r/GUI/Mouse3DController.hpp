@@ -19,9 +19,11 @@ class Mouse3DController
 {
     class State
     {
+    public:
         static const double DefaultTranslationScale;
         static const float DefaultRotationScale;
 
+    private:
         mutable std::mutex m_mutex;
 
         Vec3d m_translation;
@@ -37,6 +39,11 @@ class Mouse3DController
         void set_translation(const Vec3d& translation);
         void set_rotation(const Vec3f& rotation);
         void set_button(unsigned int id);
+        void reset_buttons();
+
+        const Vec3d& get_translation() const;
+        const Vec3f& get_rotation() const;
+        const std::vector<unsigned int>& get_buttons() const;
 
         bool has_translation() const;
         bool has_rotation() const;
@@ -54,12 +61,13 @@ class Mouse3DController
     };
 
     bool m_initialized;
-    State m_state;
+    mutable State m_state;
     std::thread m_thread;
     GLCanvas3D* m_canvas;
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
     hid_device* m_device;
     bool m_running;
+    bool m_settings_dialog;
 
 public:
     Mouse3DController();
@@ -86,6 +94,10 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         return (m_canvas != nullptr) ? m_state.apply(*m_canvas) : false;
     }
+
+    bool is_settings_dialog_shown() const { return m_settings_dialog; }
+    void show_settings_dialog(bool show) { m_settings_dialog = show; }
+    void render_settings_dialog() const;
 
 private:
     void connect_device();

@@ -9,6 +9,10 @@
 
 #include <wx/glcanvas.h>
 
+#include <boost/nowide/convert.hpp>
+
+#include "I18N.hpp"
+
 // WARN: If updating these lists, please also update resources/udev/90-3dconnexion.rules
 
 static const std::vector<int> _3DCONNEXION_VENDORS =
@@ -64,6 +68,30 @@ void Mouse3DController::State::set_button(unsigned int id)
     m_buttons.push_back(id);
 }
 
+void Mouse3DController::State::reset_buttons()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_buttons.clear();
+}
+
+const Vec3d& Mouse3DController::State::get_translation() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_translation;
+}
+
+const Vec3f& Mouse3DController::State::get_rotation() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_rotation;
+}
+
+const std::vector<unsigned int>& Mouse3DController::State::get_buttons() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_buttons;
+}
+
 bool Mouse3DController::State::has_translation() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -98,25 +126,28 @@ bool Mouse3DController::State::apply(GLCanvas3D& canvas)
 
     if (has_translation())
     {
-        camera.set_target(camera.get_target() + m_translation_scale * (m_translation(0) * camera.get_dir_right() + m_translation(1) * camera.get_dir_forward() + m_translation(2) * camera.get_dir_up()));
-        m_translation = Vec3d::Zero();
+        Vec3d translation = get_translation();
+        camera.set_target(camera.get_target() + m_translation_scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
+        set_translation(Vec3d::Zero());
         ret = true;
     }
 
     if (has_rotation())
     {
-        float theta = m_rotation_scale * m_rotation(0);
-        float phi = m_rotation_scale * m_rotation(2);
+        Vec3f rotation = get_rotation();
+        float theta = m_rotation_scale * rotation(0);
+        float phi = m_rotation_scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-        m_rotation = Vec3f::Zero();
+        set_rotation(Vec3f::Zero());
         ret = true;
     }
 
     if (has_any_button())
     {
-        for (unsigned int i : m_buttons)
+        std::vector<unsigned int> buttons = get_buttons();
+        for (unsigned int i : buttons)
         {
             switch (i)
             {
@@ -126,7 +157,7 @@ bool Mouse3DController::State::apply(GLCanvas3D& canvas)
             }
         }
 
-        m_buttons.clear();
+        reset_buttons();
         ret = true;
     }
 
@@ -138,6 +169,7 @@ Mouse3DController::Mouse3DController()
     , m_canvas(nullptr)
     , m_device(nullptr)
     , m_running(false)
+    , m_settings_dialog(false)
 {
 }
 
@@ -172,6 +204,51 @@ void Mouse3DController::shutdown()
     // Finalize the hidapi library
     hid_exit();
     m_initialized = false;
+}
+
+void Mouse3DController::render_settings_dialog() const
+{
+    if ((m_canvas == nullptr) || !m_running || !m_settings_dialog)
+        return;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+    Size cnv_size = m_canvas->get_canvas_size();
+
+    imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
+    imgui.set_next_window_bg_alpha(0.5f);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+    imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+    std::vector<wchar_t> product(1024, 0);
+    hid_get_product_string(m_device, product.data(), 1024);
+
+    const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text(_(L("Device:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(boost::nowide::narrow(product.data()));
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text(_(L("Speed:")));
+    ImGui::PopStyleColor();
+
+    float translation = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
+    if (ImGui::SliderFloat(_(L("Translation")), &translation, 0.5f, 2.0f, "%.1f"))
+        m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation);
+
+    float rotation = (float)m_state.get_rotation_scale() / State::DefaultRotationScale;
+    if (ImGui::SliderFloat(_(L("Rotation")), &rotation, 0.5f, 2.0f, "%.1f"))
+        m_state.set_rotation_scale(State::DefaultRotationScale * rotation);
+
+    imgui.end();
+
+    ImGui::PopStyleVar();
 }
 
 void Mouse3DController::connect_device()

@@ -1636,6 +1636,10 @@ void GLCanvas3D::render()
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
+#if ENABLE_3DCONNEXION_DEVICES
+    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog();
+#endif // ENABLE_3DCONNEXION_DEVICES
+
     wxGetApp().imgui()->render();
 
     m_canvas->SwapBuffers();
@@ -2374,6 +2378,21 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
+
+#if ENABLE_3DCONNEXION_DEVICES
+#ifdef __APPLE__
+        case 'm':
+        case 'M':
+#else /* __APPLE__ */
+        case WXK_CONTROL_M:
+#endif /* __APPLE__ */
+            {
+                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                break;
+            }
+#endif // ENABLE_3DCONNEXION_DEVICES
+
 #ifdef __APPLE__
         case 'v':
         case 'V':
