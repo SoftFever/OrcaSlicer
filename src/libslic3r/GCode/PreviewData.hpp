@@ -87,12 +87,34 @@ public:
         static const std::string Default_Extrusion_Role_Names[erCount];
         static const EViewType Default_View_Type;
 
+		class Path
+		{
+		public:
+		    Polyline 		polyline;
+		    ExtrusionRole 	extrusion_role;
+		    // Volumetric velocity. mm^3 of plastic per mm of linear head motion. Used by the G-code generator.
+		    float			mm3_per_mm;
+		    // Width of the extrusion, used for visualization purposes.
+		    float 			width;
+		    // Height of the extrusion, used for visualization purposes.
+		    float 			height;
+		    // Feedrate of the extrusion, used for visualization purposes.
+		    float 			feedrate;
+		    // Id of the extruder, used for visualization purposes.
+		    uint32_t		extruder_id;
+		    // Id of the color, used for visualization purposes in the color printing case.
+		    uint32_t	 	cp_color_id;
+		    // Fan speed for the extrusion, used for visualization purposes.
+		    float 			fan_speed;
+		};
+		using Paths = std::vector<Path>;
+
         struct Layer
         {
             float z;
-            ExtrusionPaths paths;
+            Paths paths;
 
-            Layer(float z, const ExtrusionPaths& paths);
+            Layer(float z, const Paths& paths);
         };
 
         typedef std::vector<Layer> LayersList;

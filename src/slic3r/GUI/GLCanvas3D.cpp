@@ -5013,13 +5013,13 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
     // helper functions to select data in dependence of the extrusion view type
     struct Helper
     {
-        static float path_filter(GCodePreviewData::Extrusion::EViewType type, const ExtrusionPath& path)
+        static float path_filter(GCodePreviewData::Extrusion::EViewType type, const GCodePreviewData::Extrusion::Path& path)
         {
             switch (type)
             {
             case GCodePreviewData::Extrusion::FeatureType:
             	// The role here is used for coloring.
-                return (float)path.role();
+                return (float)path.extrusion_role;
             case GCodePreviewData::Extrusion::Height:
                 return path.height;
             case GCodePreviewData::Extrusion::Width:
@@ -5097,15 +5097,15 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 	    {
 		    std::vector<size_t> num_paths_per_role(size_t(erCount), 0);
 		    for (const GCodePreviewData::Extrusion::Layer &layer : preview_data.extrusion.layers)
-		        for (const ExtrusionPath &path : layer.paths)
-		        	++ num_paths_per_role[size_t(path.role())];
+		        for (const GCodePreviewData::Extrusion::Path &path : layer.paths)
+		        	++ num_paths_per_role[size_t(path.extrusion_role)];
             std::vector<std::vector<float>> roles_values;
 			roles_values.assign(size_t(erCount), std::vector<float>());
 		    for (size_t i = 0; i < roles_values.size(); ++ i)
 		    	roles_values[i].reserve(num_paths_per_role[i]);
             for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
-		        for (const ExtrusionPath& path : layer.paths)
-		        	roles_values[size_t(path.role())].emplace_back(Helper::path_filter(preview_data.extrusion.view_type, path));
+		        for (const GCodePreviewData::Extrusion::Path &path : layer.paths)
+		        	roles_values[size_t(path.extrusion_role)].emplace_back(Helper::path_filter(preview_data.extrusion.view_type, path));
             roles_filters.reserve(size_t(erCount));
 			size_t num_buffers = 0;
 		    for (std::vector<float> &values : roles_values) {
@@ -5133,9 +5133,9 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 	    // populates volumes
 		for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
 		{
-			for (const ExtrusionPath& path : layer.paths)
+			for (const GCodePreviewData::Extrusion::Path& path : layer.paths)
 			{
-				std::vector<std::pair<float, GLVolume*>> &filters = roles_filters[size_t(path.role())];
+				std::vector<std::pair<float, GLVolume*>> &filters = roles_filters[size_t(path.extrusion_role)];
 				auto key = std::make_pair<float, GLVolume*>(Helper::path_filter(preview_data.extrusion.view_type, path), nullptr);
 				auto it_filter = std::lower_bound(filters.begin(), filters.end(), key);
 				assert(it_filter != filters.end() && key.first == it_filter->first);
@@ -5145,7 +5145,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 				vol.offsets.push_back(vol.indexed_vertex_array.quad_indices.size());
 				vol.offsets.push_back(vol.indexed_vertex_array.triangle_indices.size());
 
-				_3DScene::extrusionentity_to_verts(path, layer.z, vol);
+				_3DScene::extrusionentity_to_verts(path.polyline, path.width, path.height, layer.z, vol);
 			}
 			// Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
 		    for (std::vector<std::pair<float, GLVolume*>> &filters : roles_filters) {

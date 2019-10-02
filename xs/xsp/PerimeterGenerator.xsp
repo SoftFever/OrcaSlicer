@@ -19,7 +19,7 @@
     ~PerimeterGenerator();
     
     void set_lower_slices(ExPolygonCollection* lower_slices)
-        %code{% THIS->lower_slices = lower_slices; %};
+        %code{% THIS->lower_slices = &lower_slices->expolygons; %};
     void set_layer_id(int layer_id)
         %code{% THIS->layer_id = layer_id; %};
     void set_perimeter_flow(Flow* flow)
