@@ -1444,7 +1444,7 @@ public:
     std::vector<std::string> cli_args(const std::string &key) const;
 
     // Assign this key to cli to disable CLI for this option.
-    static std::string                  nocli;
+    static const constexpr char *nocli =  "~~~noCLI";
 };
 
 // Map from a config option name to its definition.
