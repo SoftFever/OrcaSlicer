@@ -839,7 +839,8 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
                 fix_through_netfabb();
         }
     }
-    else if (/*wxOSX &&*/evt_context_menu && title == _("Extruder"))
+    // workaround for extruder editing under OSX 
+    else if (wxOSX && evt_context_menu && title == _("Extruder"))
         extruder_editing();
 
 #ifndef __WXMSW__
@@ -895,15 +896,12 @@ void ObjectList::extruder_editing()
     const int column_width = GetColumn(colExtruder)->GetWidth();
 
     wxPoint pos = get_mouse_position_in_control();
-
-    pos.y -= 2*GetTextExtent("m").y;
-
-    wxWindow* parent = this;//this->GetMainWindow();
+    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth();
+//    pos.y -= 2*GetTextExtent("m").y;
 
     if (!m_extruder_editor)
-        m_extruder_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
-                                                    pos, wxSize(column_width, -1),
-                                                    0, nullptr, wxCB_READONLY);
+        m_extruder_editor = new wxBitmapComboBox(this, wxID_ANY, wxEmptyString, pos, wxSize(column_width, -1),
+                                                 0, nullptr, wxCB_READONLY);
     else
     {
         m_extruder_editor->SetPosition(pos);
