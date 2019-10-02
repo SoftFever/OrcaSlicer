@@ -13,12 +13,12 @@ typedef std::vector<ExPolygonCollection> ExPolygonCollections;
 
 class ExPolygonCollection
 {
-    public:
+public:
     ExPolygons expolygons;
     
-    ExPolygonCollection() {};
+    ExPolygonCollection() {}
     ExPolygonCollection(const ExPolygon &expolygon);
-    ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {};
+    ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {}
     operator Points() const;
     operator Polygons() const;
     operator ExPolygons&();

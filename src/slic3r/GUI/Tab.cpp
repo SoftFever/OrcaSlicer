@@ -1808,7 +1808,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("single_extruder_multi_material");
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-            size_t extruders_count = boost::any_cast<size_t>(optgroup->get_value("extruders_count"));
+            // optgroup->get_value() return int for def.type == coInt,
+            // Thus, there should be boost::any_cast<int> !
+            // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
+            size_t extruders_count = size_t(boost::any_cast<int>(optgroup->get_value("extruders_count")));
             wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
                 if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
                     extruders_count_changed(extruders_count);

@@ -328,17 +328,6 @@ unsigned int Print::num_object_instances() const
     return instances;
 }
 
-void Print::_simplify_slices(double distance)
-{
-    for (PrintObject *object : m_objects) {
-        for (Layer *layer : object->m_layers) {
-            layer->slices.simplify(distance);
-            for (LayerRegion *layerm : layer->regions())
-                layerm->slices.simplify(distance);
-        }
-    }
-}
-
 double Print::max_allowed_layer_height() const
 {
     double nozzle_diameter_max = 0.;
@@ -1114,6 +1103,9 @@ std::string Print::validate() const
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
+    if (extruders().empty())
+        return L("The supplied settings will cause an empty print.");
+
     if (m_config.complete_objects) {
         // Check horizontal clearance.
         {
@@ -1271,10 +1263,7 @@ std::string Print::validate() const
     }
     
 	{
-		// find the smallest nozzle diameter
 		std::vector<unsigned int> extruders = this->extruders();
-		if (extruders.empty())
-			return L("The supplied settings will cause an empty print.");
 
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
@@ -1593,7 +1582,7 @@ void Print::_make_skirt()
         for (const Layer *layer : object->m_layers) {
             if (layer->print_z > skirt_height_z)
                 break;
-            for (const ExPolygon &expoly : layer->slices.expolygons)
+            for (const ExPolygon &expoly : layer->slices)
                 // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
                 append(object_points, expoly.contour.points);
         }
@@ -1704,7 +1693,7 @@ void Print::_make_brim()
     Polygons    islands;
     for (PrintObject *object : m_objects) {
         Polygons object_islands;
-        for (ExPolygon &expoly : object->m_layers.front()->slices.expolygons)
+        for (ExPolygon &expoly : object->m_layers.front()->slices)
             object_islands.push_back(expoly.contour);
         if (! object->support_layers().empty())
             object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
