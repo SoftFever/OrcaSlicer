@@ -318,13 +318,23 @@ namespace Slic3r {
 
             assert((g1_line_id >= (int)data->g1_line_ids.size()) || (data->g1_line_ids[g1_line_id].first >= g1_lines_count));
             const Block* block = nullptr;
+#if ENABLE_GIT_3010_FIX
+            if (g1_line_id < (int)data->g1_line_ids.size())
+            {
+                const G1LineIdToBlockId& map_item = data->g1_line_ids[g1_line_id];
+                if (map_item.first == g1_lines_count)
+#else
             const G1LineIdToBlockId& map_item = data->g1_line_ids[g1_line_id];
             if ((g1_line_id < (int)data->g1_line_ids.size()) && (map_item.first == g1_lines_count))
-            {
-                if (line.has_e() && (map_item.second < (unsigned int)data->blocks.size()))
-                    block = &data->blocks[map_item.second];
-                ++g1_line_id;
+#endif // ENABLE_GIT_3010_FIX
+                {
+                    if (line.has_e() && (map_item.second < (unsigned int)data->blocks.size()))
+                        block = &data->blocks[map_item.second];
+                    ++g1_line_id;
+                }
+#if ENABLE_GIT_3010_FIX
             }
+#endif // ENABLE_GIT_3010_FIX
 
             if ((block != nullptr) && (block->elapsed_time != -1.0f))
             {
