@@ -12,6 +12,7 @@
 #include "wxExtensions.hpp"
 
 class wxBoxSizer;
+class wxBitmapComboBox;
 class wxMenuItem;
 class ObjectDataViewModel;
 class MenuWithSeparators;
