@@ -5,6 +5,7 @@
 #include <utility>
 #include <functional>
 #include <type_traits>
+#include <system_error>
 
 #include "libslic3r.h"
 
