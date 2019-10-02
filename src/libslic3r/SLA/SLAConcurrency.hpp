@@ -10,7 +10,7 @@ namespace sla {
 
 // Set this to true to enable full parallelism in this module.
 // Only the well tested parts will be concurrent if this is set to false.
-const constexpr bool USE_FULL_CONCURRENCY = false;
+const constexpr bool USE_FULL_CONCURRENCY = true;
 
 template<bool> struct _ccr {};
 

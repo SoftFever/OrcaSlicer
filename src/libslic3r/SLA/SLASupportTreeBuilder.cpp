@@ -360,6 +360,66 @@ const TriangleMesh &SupportTreeBuilder::add_pad(const ExPolygons &modelbase,
     return m_pad.tmesh;
 }
 
+SupportTreeBuilder::SupportTreeBuilder(SupportTreeBuilder &&o)
+    : m_heads(std::move(o.m_heads))
+    , m_head_indices{std::move(o.m_head_indices)}
+    , m_pillars{std::move(o.m_pillars)}
+    , m_bridges{std::move(o.m_bridges)}
+    , m_crossbridges{std::move(o.m_crossbridges)}
+    , m_compact_bridges{std::move(o.m_compact_bridges)}
+    , m_pad{std::move(o.m_pad)}
+    , m_meshcache{std::move(o.m_meshcache)}
+    , m_meshcache_valid{o.m_meshcache_valid}
+    , m_model_height{o.m_model_height}
+    , ground_level{o.ground_level}
+{}
+
+SupportTreeBuilder::SupportTreeBuilder(const SupportTreeBuilder &o)
+    : m_heads(o.m_heads)
+    , m_head_indices{o.m_head_indices}
+    , m_pillars{o.m_pillars}
+    , m_bridges{o.m_bridges}
+    , m_crossbridges{o.m_crossbridges}
+    , m_compact_bridges{o.m_compact_bridges}
+    , m_pad{o.m_pad}
+    , m_meshcache{o.m_meshcache}
+    , m_meshcache_valid{o.m_meshcache_valid}
+    , m_model_height{o.m_model_height}
+    , ground_level{o.ground_level}
+{}
+
+SupportTreeBuilder &SupportTreeBuilder::operator=(SupportTreeBuilder &&o)
+{
+    m_heads = std::move(o.m_heads);
+    m_head_indices = std::move(o.m_head_indices);
+    m_pillars = std::move(o.m_pillars);
+    m_bridges = std::move(o.m_bridges);
+    m_crossbridges = std::move(o.m_crossbridges);
+    m_compact_bridges = std::move(o.m_compact_bridges);
+    m_pad = std::move(o.m_pad);
+    m_meshcache = std::move(o.m_meshcache);
+    m_meshcache_valid = o.m_meshcache_valid;
+    m_model_height = o.m_model_height;
+    ground_level = o.ground_level;
+    return *this;
+}
+
+SupportTreeBuilder &SupportTreeBuilder::operator=(const SupportTreeBuilder &o)
+{
+    m_heads = o.m_heads;
+    m_head_indices = o.m_head_indices;
+    m_pillars = o.m_pillars;
+    m_bridges = o.m_bridges;
+    m_crossbridges = o.m_crossbridges;
+    m_compact_bridges = o.m_compact_bridges;
+    m_pad = o.m_pad;
+    m_meshcache = o.m_meshcache;
+    m_meshcache_valid = o.m_meshcache_valid;
+    m_model_height = o.m_model_height;
+    ground_level = o.ground_level;
+    return *this;
+}
+
 const TriangleMesh &SupportTreeBuilder::merged_mesh() const
 {
     if (m_meshcache_valid) return m_meshcache;

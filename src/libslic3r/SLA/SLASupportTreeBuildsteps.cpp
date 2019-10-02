@@ -213,7 +213,7 @@ EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     // Now a and b vectors are perpendicular to v and to each other.
     // Together they define the plane where we have to iterate with the
     // given angles in the 'phis' vector
-    ccr_par::enumerate(
+    ccr::enumerate(
         phis.begin(), phis.end(),
         [&hits, &m, sd, r_pin, r_back, s, a, b, c](double phi, size_t i) {
            double sinphi = std::sin(phi);
@@ -310,7 +310,7 @@ EigenMesh3D::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
     // Hit results
     std::array<HitResult, SAMPLES> hits;
     
-    ccr_par::enumerate(
+    ccr::enumerate(
         phis.begin(), phis.end(),
         [&m, a, b, sd, dir, r, s, ins_check, &hits] (double phi, size_t i) {
             double sinphi = std::sin(phi);

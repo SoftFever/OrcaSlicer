@@ -287,7 +287,11 @@ public:
     double ground_level = 0;
     
     SupportTreeBuilder() = default;
-    
+    SupportTreeBuilder(SupportTreeBuilder &&o);
+    SupportTreeBuilder(const SupportTreeBuilder &o);
+    SupportTreeBuilder& operator=(SupportTreeBuilder &&o);
+    SupportTreeBuilder& operator=(const SupportTreeBuilder &o);
+
     template<class...Args> Head& add_head(unsigned id, Args&&... args)
     {
         std::lock_guard<Mutex> lk(m_mutex);
