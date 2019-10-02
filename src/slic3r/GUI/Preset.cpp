@@ -819,6 +819,21 @@ bool PresetCollection::delete_current_preset()
     return true;
 }
 
+bool PresetCollection::delete_preset(const std::string& name)
+{
+    auto it = this->find_preset_internal(name);
+
+    const Preset& preset = *it;
+    if (preset.is_default)
+        return false;
+    if (!preset.is_external && !preset.is_system) {
+        // Erase the preset file.
+        boost::nowide::remove(preset.file.c_str());
+    }
+    m_presets.erase(it);
+    return true;
+}
+
 void PresetCollection::load_bitmap_default(wxWindow *window, const std::string &file_name)
 {
     // XXX: See note in PresetBundle::load_compatible_bitmaps()
