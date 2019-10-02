@@ -893,11 +893,11 @@ void ObjectList::extruder_editing()
     if (icons.empty())
         return;
 
-    const int column_width = GetColumn(colExtruder)->GetWidth();
+    const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
     wxPoint pos = get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
-    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth();
+    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
     pos.y -= GetTextExtent("m").y;
 
     if (!m_extruder_editor)
@@ -2938,6 +2938,7 @@ int ObjectList::get_selected_layers_range_idx() const
 
 void ObjectList::update_selections()
 {
+    if (m_extruder_editor) m_extruder_editor->Hide();
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
