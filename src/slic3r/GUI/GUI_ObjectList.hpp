@@ -140,6 +140,8 @@ private:
     DynamicPrintConfig          *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
 
+    wxBitmapComboBox            *m_extruder_editor { nullptr };
+
     std::vector<wxBitmap*>      m_bmp_vector;
 
     t_layer_config_ranges       m_layer_config_ranges_cache;
@@ -210,6 +212,7 @@ public:
 
     void                selection_changed();
     void                show_context_menu(const bool evt_context_menu);
+    void                extruder_editing();
 #ifndef __WXOSX__
     void                key_event(wxKeyEvent& event);
 #endif /* __WXOSX__ */

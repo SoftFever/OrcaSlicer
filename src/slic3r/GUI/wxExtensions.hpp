@@ -55,6 +55,8 @@ int     em_unit(wxWindow* win);
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name,
     const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
+std::vector<wxBitmap*> get_extruder_color_icons();
+
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;

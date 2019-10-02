@@ -449,7 +449,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 
 
 Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
-static std::vector<wxBitmap*> get_extruder_color_icons()
+/*static*/ std::vector<wxBitmap*> get_extruder_color_icons()
 {
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;

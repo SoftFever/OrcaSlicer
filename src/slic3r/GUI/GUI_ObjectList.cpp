@@ -788,6 +788,9 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
     const wxPoint pt = get_mouse_position_in_control();
     HitTest(pt, item, col);
 
+    if (m_extruder_editor)
+        m_extruder_editor->Hide();
+
     /* Note: Under OSX right click doesn't send "selection changed" event.
      * It means that Selection() will be return still previously selected item.
      * Thus under OSX we should force UnselectAll(), when item and col are nullptr,
@@ -836,6 +839,8 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
                 fix_through_netfabb();
         }
     }
+    else if (/*wxOSX &&*/evt_context_menu && title == _("Extruder"))
+        extruder_editing();
 
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
@@ -875,6 +880,72 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
 
     if (menu)
         wxGetApp().plater()->PopupMenu(menu);
+}
+
+void ObjectList::extruder_editing()
+{
+    wxDataViewItem item = GetSelection();
+    if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+        return;
+
+    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    if (icons.empty())
+        return;
+
+    const int column_width = GetColumn(colExtruder)->GetWidth();
+
+    wxPoint pos = get_mouse_position_in_control();
+
+    pos.y -= 2*GetTextExtent("m").y;
+
+    wxWindow* parent = this;//this->GetMainWindow();
+
+    if (!m_extruder_editor)
+        m_extruder_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
+                                                    pos, wxSize(column_width, -1),
+                                                    0, nullptr, wxCB_READONLY);
+    else
+    {
+        m_extruder_editor->SetPosition(pos);
+        m_extruder_editor->Clear();
+        m_extruder_editor->Show();
+    }
+
+
+    int i = 0;
+    for (wxBitmap* bmp : icons) {
+        if (i == 0) {
+            m_extruder_editor->Append(_(L("default")), *bmp);
+            ++i;
+        }
+
+        m_extruder_editor->Append(wxString::Format("%d", i), *bmp);
+        ++i;
+    }
+    m_extruder_editor->SetSelection(m_objects_model->GetExtruderNumber(item));
+
+    auto set_extruder = [this, item]()
+    {
+        const int selection = m_extruder_editor->GetSelection();
+        if (selection >= 0) 
+            m_objects_model->SetExtruder(m_extruder_editor->GetString(selection), item);
+
+        m_extruder_editor->Hide();
+    };
+
+    // to avoid event propagation to other sidebar items
+    m_extruder_editor->Bind(wxEVT_COMBOBOX, [set_extruder](wxCommandEvent& evt)
+    {
+        set_extruder();
+        evt.StopPropagation();
+    });
+
+    m_extruder_editor->Bind(wxEVT_KILL_FOCUS, [set_extruder](wxFocusEvent& evt)
+    {
+        set_extruder();
+        evt.Skip();
+    });
+
 }
 
 void ObjectList::copy()
