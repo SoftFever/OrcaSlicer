@@ -345,7 +345,7 @@ EigenMesh3D::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
 }
 
 bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
-                                        const Pillar &nextpillar)
+                                         const Pillar &nextpillar)
 {
     // We need to get the starting point of the zig-zag pattern. We have to
     // be aware that the two head junctions are at different heights. We
@@ -438,13 +438,14 @@ bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
 }
 
 bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
-                                                 long        nearpillar_id)
+                                                  long        nearpillar_id)
 {
     auto nearpillar = [this, nearpillar_id]() {
         return m_builder.pillar(nearpillar_id);
     };
     
-    if (nearpillar().bridges > m_cfg.max_bridges_on_pillar) return false;
+    if (m_builder.bridgecount(nearpillar()) > m_cfg.max_bridges_on_pillar) 
+        return false;
     
     Vec3d headjp = head.junction_point();
     Vec3d nearjp_u = nearpillar().startpoint();
@@ -502,14 +503,21 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
     // Cannot insert the bridge. (further search might not worth the hassle)
     if(t < distance(bridgestart, bridgeend)) return false;
     
-    // A partial pillar is needed under the starting head.
-    if(zdiff > 0) {
-        m_builder.add_pillar(unsigned(head.id), bridgestart, r);
-        m_builder.add_junction(bridgestart, r);
-    }
+    std::lock_guard<ccr::BlockingMutex> lk(m_bridge_mutex);
     
-    m_builder.add_bridge(bridgestart, bridgeend, r);
-    m_builder.increment_bridges(nearpillar());
+    if (m_builder.bridgecount(nearpillar()) < m_cfg.max_bridges_on_pillar) {
+        // A partial pillar is needed under the starting head.
+        if(zdiff > 0) {
+            m_builder.add_pillar(unsigned(head.id), bridgestart, r);
+            m_builder.add_junction(bridgestart, r);
+        }
+        
+        auto &br = m_builder.add_bridge(bridgestart, bridgeend, r);
+        m_builder.increment_bridges(nearpillar());
+        if (head.pillar_id == ID_UNSET) 
+            m_builder.head(unsigned(head.id)).bridge_id = br.id;
+        
+    } else return false;
     
     return true;
 }
@@ -550,9 +558,9 @@ bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &head)
 }
 
 void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
-                                                const Vec3d &sourcedir,
-                                                double       radius,
-                                                long         head_id)
+                                                 const Vec3d &sourcedir,
+                                                 double       radius,
+                                                 long         head_id)
 {
     // People were killed for this number (seriously)
     static const double SQR2 = std::sqrt(2.0);
@@ -646,10 +654,8 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
     
     if (normal_mode) {
         Pillar &plr = head_id >= 0
-                          ? m_builder.add_pillar(unsigned(head_id),
-                                               endp,
-                                               radius)
-                          : m_builder.add_pillar(jp, endp, radius);
+                ? m_builder.add_pillar(unsigned(head_id), endp, radius)
+                : m_builder.add_pillar(jp, endp, radius);
         
         if (can_add_base)
             plr.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
@@ -963,7 +969,7 @@ void SupportTreeBuildsteps::routing_to_model()
         m_builder.add_bridge(hjp, endp, head.r_back_mm);
         m_builder.add_junction(endp, head.r_back_mm);
         
-        this->create_ground_pillar(endp, dir, head.r_back_mm);
+        this->create_ground_pillar(endp, dir, head.r_back_mm, head.id);
     };
     
     std::vector<unsigned> modelpillars;
@@ -1240,11 +1246,14 @@ void SupportTreeBuildsteps::interconnect_pillars()
             needpillars = 3;
         else if (pillar().links < 2 && pillar().height > H2) {
             // Not enough neighbors to support this pillar
-            needpillars = 2 - pillar().links;
+            needpillars = 2;
         } else if (pillar().links < 1 && pillar().height > H1) {
             // No neighbors could be found and the pillar is too long.
             needpillars = 1;
         }
+        
+        needpillars = std::max(pillar().links, needpillars) - pillar().links;
+        if (needpillars == 0) continue;
         
         // Search for new pillar locations:
         
@@ -1318,6 +1327,7 @@ void SupportTreeBuildsteps::interconnect_pillars()
 
                     newpills.emplace_back(pp.id);
                     m_builder.increment_links(pillar());
+                    m_builder.increment_links(pp);
                 }
             }
 

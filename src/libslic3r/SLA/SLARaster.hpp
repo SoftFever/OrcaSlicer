@@ -15,8 +15,6 @@ namespace ClipperLib { struct Polygon; }
 namespace Slic3r { 
 namespace sla {
 
-class Raster;
-
 /**
  * @brief Raster captures an anti-aliased monochrome canvas where vectorial
  * polygons can be rasterized. Fill color is always white and the background is

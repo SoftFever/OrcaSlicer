@@ -216,22 +216,22 @@ ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
     using ClipperLib::etClosedPolygon;
     using ClipperLib::Paths;
     using ClipperLib::Path;
-    
+
     ClipperOffset offs;
     offs.ArcTolerance = scaled<double>(0.01);
-    
+
     for (auto &p : paths)
         // If the input is not at least a triangle, we can not do this algorithm
         if(p.size() < 3) {
             BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
             return {};
         }
-    
+
     offs.AddPaths(paths, jointype, etClosedPolygon);
-    
-    Paths result; 
+
+    Paths result;
     offs.Execute(result, static_cast<double>(delta));
-    
+
     return result;
 }
 
@@ -249,25 +249,25 @@ void breakstick_holes(Points& pts,
 {
     if(stride <= EPSILON || stick_width <= EPSILON || padding <= EPSILON)
         return;
-    
+
     // SVG svg("bridgestick_plate.svg");
     // svg.draw(poly);
-    
+
     // The connector stick will be a small rectangle with dimensions
     // stick_width x (penetration + padding) to have some penetration
     // into the input polygon.
-    
+
     Points out;
     out.reserve(2 * pts.size()); // output polygon points
-    
+
     // stick bottom and right edge dimensions
     double sbottom = scaled(stick_width);
     double sright  = scaled(penetration + padding);
-    
+
     // scaled stride distance
     double sstride = scaled(stride);
     double t       = 0;
-    
+
     // process pairs of vertices as an edge, start with the last and
     // first point
     for (size_t i = pts.size() - 1, j = 0; j < pts.size(); i = j, ++j) {
@@ -277,16 +277,16 @@ void breakstick_holes(Points& pts,
         double       nrm = dir.norm();
         dir /= nrm;
         Vec2d dirp(-dir(Y), dir(X));
-        
+
         // Insert start point
         out.emplace_back(a);
-        
+
         // dodge the start point, do not make sticks on the joins
         while (t < sbottom) t += sbottom;
         double tend = nrm - sbottom;
-        
+
         while (t < tend) { // insert the stick on the polygon perimeter
-            
+
             // calculate the stick rectangle vertices and insert them
             // into the output.
             Point p1 = a + (t * dir).cast<coord_t>();
@@ -294,38 +294,31 @@ void breakstick_holes(Points& pts,
             Point p3 = p2 + (sbottom * dir).cast<coord_t>();
             Point p4 = p3 + (sright * -dirp).cast<coord_t>();
             out.insert(out.end(), {p1, p2, p3, p4});
-            
+
             // continue along the perimeter
             t += sstride;
         }
-        
+
         t = t - nrm;
-        
+
         // Insert edge endpoint
         out.emplace_back(b);
     }
-    
+
     // move the new points
     out.shrink_to_fit();
     pts.swap(out);
 }
 
-void breakstick_holes(Points &pts, const PadConfig::EmbedObject &c)
+template<class...Args>
+ExPolygons breakstick_holes(const ExPolygons &input, Args...args)
 {
-    breakstick_holes(pts, c.object_gap_mm, c.stick_stride_mm,
-                     c.stick_width_mm, c.stick_penetration_mm);
-}
-
-ExPolygons breakstick_holes(const ExPolygons &input,
-                      const PadConfig::EmbedObject &cfg)
-{
-    ExPolygons ret = offset_ex(input, scaled(cfg.object_gap_mm), ClipperLib::jtMiter, 1);
-    
+    ExPolygons ret = input;
     for (ExPolygon &p : ret) {
-        breakstick_holes(p.contour.points, cfg);
-        for (auto &h : p.holes) breakstick_holes(h.points, cfg);
+        breakstick_holes(p.contour.points, args...);
+        for (auto &h : p.holes) breakstick_holes(h.points, args...);
     }
-    
+
     return ret;
 }
 
@@ -335,7 +328,7 @@ ExPolygons breakstick_holes(const ExPolygons &input,
 /// centroids (a star is created...)
 class ConcaveHull {
     Polygons m_polys;
-    
+
     Point centroid(const Points& pp) const
     {
         Point c;
@@ -347,7 +340,7 @@ class ConcaveHull {
             auto MAX = std::numeric_limits<Point::coord_type>::max();
             auto MIN = std::numeric_limits<Point::coord_type>::min();
             Point min = {MAX, MAX}, max = {MIN, MIN};
-            
+
             for(auto& p : pp) {
                 if(p(0) < min(0)) min(0) = p(0);
                 if(p(1) < min(1)) min(1) = p(1);
@@ -359,7 +352,7 @@ class ConcaveHull {
             break;
         }
         }
-        
+
         return c;
     }
 
@@ -372,10 +365,10 @@ class ConcaveHull {
         std::transform(m_polys.begin(), m_polys.end(),
                        std::back_inserter(centroids),
                        [this](const Polygon &poly) { return centroid(poly); });
-        
+
         return centroids;
     }
-    
+
     void merge_polygons() { m_polys = union_(m_polys); }
 
     void add_connector_rectangles(const Points &centroids,
@@ -385,78 +378,78 @@ class ConcaveHull {
         namespace bgi = boost::geometry::index;
         using PointIndexElement = std::pair<Point, unsigned>;
         using PointIndex = bgi::rtree<PointIndexElement, bgi::rstar<16, 4>>;
-        
+
         // Centroid of the centroids of islands. This is where the additional
         // connector sticks are routed.
         Point cc = centroid(centroids);
-        
+
         PointIndex ctrindex;
         unsigned  idx = 0;
         for(const Point &ct : centroids)
             ctrindex.insert(std::make_pair(ct, idx++));
-        
+
         m_polys.reserve(m_polys.size() + centroids.size());
-        
+
         idx = 0;
         for (const Point &c : centroids) {
             thr();
-            
+
             double dx = c.x() - cc.x(), dy = c.y() - cc.y();
             double l  = std::sqrt(dx * dx + dy * dy);
             double nx = dx / l, ny = dy / l;
-            
+
             const Point &ct = centroids[idx];
-            
+
             std::vector<PointIndexElement> result;
             ctrindex.query(bgi::nearest(ct, 2), std::back_inserter(result));
-            
+
             double dist = max_dist;
             for (const PointIndexElement &el : result)
                 if (el.second != idx) {
                     dist = Line(el.first, ct).length();
                     break;
                 }
-            
+
             idx++;
-            
+
             if (dist >= max_dist) return;
-            
+
             Polygon r;
             r.points.reserve(3);
             r.points.emplace_back(cc);
-            
+
             Point d(scaled(nx), scaled(ny));
             r.points.emplace_back(c + Point(-d.y(), d.x()));
             r.points.emplace_back(c + Point(d.y(), -d.x()));
-            offset(r, scaled(1.));
-            
+            offset(r, scaled<float>(1.));
+
             m_polys.emplace_back(r);
         }
     }
 
 public:
-    
+
     ConcaveHull(const ExPolygons& polys, double merge_dist, ThrowOnCancel thr)
         : ConcaveHull{to_polygons(polys), merge_dist, thr} {}
-        
+
     ConcaveHull(const Polygons& polys, double mergedist, ThrowOnCancel thr)
-    {        
+    {
         if(polys.empty()) return;
-        
+
         m_polys = polys;
         merge_polygons();
-        
+
         if(m_polys.size() == 1) return;
-        
-        Points centroids = calculate_centroids();        
-        
+
+        Points centroids = calculate_centroids();
+
         add_connector_rectangles(centroids, scaled(mergedist), thr);
-        
+
         merge_polygons();
     }
 
     // const Polygons & polygons() const { return m_polys; }
-    
+
     ExPolygons to_expolygons() const
     {
         auto ret = reserve_vector<ExPolygon>(m_polys.size());
@@ -470,12 +463,12 @@ public:
         paths = fast_offset(paths, -delta, ClipperLib::jtRound);
         m_polys = ClipperPaths_to_Slic3rPolygons(paths);
     }
-    
+
     static inline coord_t get_waffle_offset(const PadConfig &c)
     {
-        return scaled(c.brim_size_mm + c.wing_distance() + c.wall_thickness_mm);  
+        return scaled(c.brim_size_mm + c.wing_distance());
     }
-    
+
     static inline double get_merge_distance(const PadConfig &c)
     {
         return 2. * (1.8 * c.wall_thickness_mm) + c.max_merge_dist_mm;
@@ -508,26 +501,26 @@ struct PadSkeleton { ExPolygons inner, outer; };
 PadSkeleton divide_blueprint(const ExPolygons &bp)
 {
     ClipperLib::PolyTree ptree = union_pt(bp);
-    
+
     PadSkeleton ret;
     ret.inner.reserve(size_t(ptree.Total()));
     ret.outer.reserve(size_t(ptree.Total()));
-    
+
     for (ClipperLib::PolyTree::PolyNode *node : ptree.Childs) {
         ExPolygon poly(ClipperPath_to_Slic3rPolygon(node->Contour));
         for (ClipperLib::PolyTree::PolyNode *child : node->Childs) {
             if (child->IsHole()) {
                 poly.holes.emplace_back(
                     ClipperPath_to_Slic3rPolygon(child->Contour));
-                
+
                 traverse_pt_unordered(child->Childs, &ret.inner);
             }
             else traverse_pt_unordered(child, &ret.inner);
         }
-        
+
         ret.outer.emplace_back(poly);
     }
-    
+
     return ret;
 }
 
@@ -536,32 +529,32 @@ PadSkeleton divide_blueprint(const ExPolygons &bp)
 class Intersector {
     BoxIndex       m_index;
     ExPolygons     m_polys;
-    
+
 public:
-    
+
     // Add a new polygon to the index
     void add(const ExPolygon &ep)
     {
         m_polys.emplace_back(ep);
         m_index.insert(BoundingBox{ep}, unsigned(m_index.size()));
     }
-    
+
     // Check an arbitrary polygon for intersection with the indexed polygons
     bool intersects(const ExPolygon &poly)
     {
         // Create a suitable query bounding box.
         auto bb = poly.contour.bounding_box();
-        
+
         std::vector<BoxIndexEl> qres = m_index.query(bb, BoxIndex::qtIntersects);
-        
+
         // Now check intersections on the actual polygons (not just the boxes)
         bool is_overlap = false;
         auto qit        = qres.begin();
         while (!is_overlap && qit != qres.end())
             is_overlap = is_overlap || poly.overlaps(m_polys[(qit++)->second]);
-        
+
         return is_overlap;
-    }  
+    }
 };
 
 // This dummy intersector to implement the "force pad everywhere" feature
@@ -577,7 +570,7 @@ class _AroundPadSkeleton : public PadSkeleton
     // A spatial index used to be able to efficiently find intersections of
     // support polygons with the model polygons.
     _Intersector m_intersector;
-    
+
 public:
     _AroundPadSkeleton(const ExPolygons &support_blueprint,
                        const ExPolygons &model_blueprint,
@@ -589,33 +582,41 @@ public:
         // support contours. The pad has to have a hole in which the model can
         // fit perfectly (thus the substraction -- diff_ex). Also, the pad has
         // to be eliminated from areas where there is no need for a pad, due
-        // to missing supports.  
+        // to missing supports.
 
         add_supports_to_index(support_blueprint);
-        
+
+        auto model_bp_offs =
+            offset_ex(model_blueprint,
+                      scaled<float>(cfg.embed_object.object_gap_mm),
+                      ClipperLib::jtMiter, 1);
+
         ConcaveHull fullcvh =
-            wafflized_concave_hull(support_blueprint, model_blueprint, cfg, thr);
-        
+            wafflized_concave_hull(support_blueprint, model_bp_offs, cfg, thr);
+
         auto model_bp_sticks =
-            breakstick_holes(model_blueprint, cfg.embed_object);
-        
+            breakstick_holes(model_bp_offs, cfg.embed_object.object_gap_mm,
+                             cfg.embed_object.stick_stride_mm,
+                             cfg.embed_object.stick_width_mm,
+                             cfg.embed_object.stick_penetration_mm);
+
         ExPolygons fullpad = diff_ex(fullcvh.to_expolygons(), model_bp_sticks);
-        
+
         remove_redundant_parts(fullpad);
-        
+
         PadSkeleton divided = divide_blueprint(fullpad);
         outer = std::move(divided.outer);
         inner = std::move(divided.inner);
     }
-    
+
 private:
-    
+
     // Add the support blueprint to the search index to be queried later
     void add_supports_to_index(const ExPolygons &supp_bp)
     {
         for (auto &ep : supp_bp) m_intersector.add(ep);
     }
-    
+
     // Create the wafflized pad around all object in the scene. This pad doesnt
     // have any holes yet.
     ConcaveHull wafflized_concave_hull(const ExPolygons &supp_bp,
@@ -624,16 +625,16 @@ private:
                                        ThrowOnCancel     thr)
     {
         auto allin = reserve_vector<ExPolygon>(supp_bp.size() + model_bp.size());
-        
+
         for (auto &ep : supp_bp) allin.emplace_back(ep.contour);
         for (auto &ep : model_bp) allin.emplace_back(ep.contour);
-        
+
         ConcaveHull ret{allin, ConcaveHull::get_merge_distance(cfg), thr};
         ret.offset_waffle_style(ConcaveHull::get_waffle_offset(cfg));
-        
+
         return ret;
     }
-    
+
     // To remove parts of the pad skeleton which do not host any supports
     void remove_redundant_parts(ExPolygons &parts)
     {
@@ -641,7 +642,7 @@ private:
                                     [this](const ExPolygon &p) {
                                         return !m_intersector.intersects(p);
                                     });
-        
+
         parts.erase(endit, parts.end());
     }
 };
@@ -661,9 +662,9 @@ public:
 
         for (auto &ep : support_blueprint) outer.emplace_back(ep.contour);
         for (auto &ep : model_blueprint) outer.emplace_back(ep.contour);
-        
+
         ConcaveHull ochull{outer, ConcaveHull::get_merge_distance(cfg), thr};
-        
+
         ochull.offset_waffle_style(ConcaveHull::get_waffle_offset(cfg));
         outer = ochull.to_expolygons();
     }
@@ -673,17 +674,17 @@ public:
 template<class...Args>
 ExPolygon offset_contour_only(const ExPolygon &poly, coord_t delta, Args...args)
 {
-    ExPolygons tmp = offset_ex(poly.contour, delta, args...);
-    
+    ExPolygons tmp = offset_ex(poly.contour, float(delta), args...);
+
     if (tmp.empty()) return {};
-    
+
     Polygons holes = poly.holes;
     for (auto &h : holes) h.reverse();
-    
+
     tmp = diff_ex(to_polygons(tmp), holes);
-    
+
     if (tmp.empty()) return {};
-    
+
     return tmp.front();
 }
 
@@ -691,17 +692,17 @@ bool add_cavity(Contour3D &pad, ExPolygon &top_poly, const PadConfig3D &cfg,
                 ThrowOnCancel thr)
 {
     auto logerr = []{BOOST_LOG_TRIVIAL(error)<<"Could not create pad cavity";};
-    
+
     double    wing_distance = cfg.wing_height / std::tan(cfg.slope);
     coord_t   delta_inner   = -scaled(cfg.thickness + wing_distance);
     coord_t   delta_middle  = -scaled(cfg.thickness);
     ExPolygon inner_base    = offset_contour_only(top_poly, delta_inner);
     ExPolygon middle_base   = offset_contour_only(top_poly, delta_middle);
-    
+
     if (inner_base.empty() || middle_base.empty()) { logerr(); return false; }
-    
+
     ExPolygons pdiff = diff_ex(top_poly, middle_base.contour);
-    
+
     if (pdiff.size() != 1) { logerr(); return false; }
 
     top_poly = pdiff.front();
@@ -721,28 +722,28 @@ Contour3D create_outer_pad_geometry(const ExPolygons & skeleton,
                                     ThrowOnCancel      thr)
 {
     Contour3D ret;
-    
+
     for (const ExPolygon &pad_part : skeleton) {
         ExPolygon top_poly{pad_part};
         ExPolygon bottom_poly =
             offset_contour_only(pad_part, -scaled(cfg.bottom_offset()));
-        
+
         if (bottom_poly.empty()) continue;
-        
+
         double z_min = -cfg.height, z_max = 0;
         ret.merge(walls(top_poly.contour, bottom_poly.contour, z_max, z_min,
                         cfg.bottom_offset(), thr));
-        
-        if (cfg.wing_height > 0. && add_cavity(ret, top_poly, cfg, thr))     
+
+        if (cfg.wing_height > 0. && add_cavity(ret, top_poly, cfg, thr))
             z_max = -cfg.wing_height;
-        
+
         for (auto &h : bottom_poly.holes)
             ret.merge(straight_walls(h, z_max, z_min, thr));
-        
+
         ret.merge(triangulate_expolygon_3d(bottom_poly, z_min, NORMALS_DOWN));
-        ret.merge(triangulate_expolygon_3d(top_poly, NORMALS_UP));  
+        ret.merge(triangulate_expolygon_3d(top_poly, NORMALS_UP));
     }
-    
+
     return ret;
 }
 
@@ -751,18 +752,18 @@ Contour3D create_inner_pad_geometry(const ExPolygons & skeleton,
                                     ThrowOnCancel      thr)
 {
     Contour3D ret;
-    
+
     double z_max = 0., z_min = -cfg.height;
     for (const ExPolygon &pad_part : skeleton) {
         ret.merge(straight_walls(pad_part.contour, z_max, z_min,thr));
-        
+
         for (auto &h : pad_part.holes)
             ret.merge(straight_walls(h, z_max, z_min, thr));
-        
+
         ret.merge(triangulate_expolygon_3d(pad_part, z_min, NORMALS_DOWN));
         ret.merge(triangulate_expolygon_3d(pad_part, z_max, NORMALS_UP));
     }
-    
+
     return ret;
 }
 
@@ -776,7 +777,7 @@ Contour3D create_pad_geometry(const PadSkeleton &skelet,
     svg.draw(skelet.inner, "blue");
     svg.Close();
 #endif
-    
+
     PadConfig3D cfg3d(cfg);
     return create_outer_pad_geometry(skelet.outer, cfg3d, thr)
         .merge(create_inner_pad_geometry(skelet.inner, cfg3d, thr));
@@ -809,13 +810,13 @@ void pad_blueprint(const TriangleMesh &      mesh,
 {
     if (mesh.empty()) return;
     TriangleMeshSlicer slicer(&mesh);
-    
+
     auto out = reserve_vector<ExPolygons>(heights.size());
     slicer.slice(heights, 0.f, &out, thrfn);
-    
+
     size_t count = 0;
     for(auto& o : out) count += o.size();
-    
+
     // Unification is expensive, a simplify also speeds up the pad generation
     auto tmp = reserve_vector<ExPolygon>(count);
     for(ExPolygons& o : out)
@@ -823,9 +824,9 @@ void pad_blueprint(const TriangleMesh &      mesh,
             auto&& exss = e.simplify(scaled<double>(0.1));
             for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
         }
-    
+
     ExPolygons utmp = union_ex(tmp);
-    
+
     for(auto& o : utmp) {
         auto&& smp = o.simplify(scaled<double>(0.1));
         output.insert(output.end(), smp.begin(), smp.end());
@@ -839,7 +840,7 @@ void pad_blueprint(const TriangleMesh &mesh,
                    ThrowOnCancel       thrfn)
 {
     float gnd = float(mesh.bounding_box().min(Z));
-    
+
     std::vector<float> slicegrid = grid(gnd, gnd + h, layerh);
     pad_blueprint(mesh, output, slicegrid, thrfn);
 }
@@ -855,10 +856,14 @@ void create_pad(const ExPolygons &sup_blueprint,
 }
 
 std::string PadConfig::validate() const
-{   
-    if (bottom_offset() > brim_size_mm + wing_distance())
-        return L("Pad brim size is too low for the current slope.");
-    
+{
+    static const double constexpr MIN_BRIM_SIZE_MM = .1;
+
+    if (brim_size_mm < MIN_BRIM_SIZE_MM ||
+        bottom_offset() > brim_size_mm + wing_distance() ||
+        ConcaveHull::get_waffle_offset(*this) <= MIN_BRIM_SIZE_MM)
+        return L("Pad brim size is too small for the current configuration.");
+
     return "";
 }
 

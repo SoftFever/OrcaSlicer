@@ -70,7 +70,7 @@ std::vector<ExPolygons> SupportTree::slice(
         auto bb = pad_mesh.bounding_box();
         auto maxzit = std::upper_bound(grid.begin(), grid.end(), bb.max.z());
         
-        long cap = grid.end() - maxzit;
+        auto cap = grid.end() - maxzit;
         auto padgrid = reserve_vector<float>(size_t(cap > 0 ? cap : 0));
         std::copy(grid.begin(), maxzit, std::back_inserter(padgrid));
 

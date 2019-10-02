@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 #include <cmath>
+#include <string>
 
 namespace Slic3r {
 
@@ -26,8 +27,8 @@ void pad_blueprint(
     ThrowOnCancel thrfn = [] {}); // Function that throws if cancel was requested
 
 void pad_blueprint(
-    const TriangleMesh &mesh,                   
-    ExPolygons &        output,                 
+    const TriangleMesh &mesh,
+    ExPolygons &        output,
     float               samplingheight = 0.1f,  // The height range to sample
     float               layerheight    = 0.05f, // The sampling height
     ThrowOnCancel       thrfn = [] {});
@@ -38,7 +39,7 @@ struct PadConfig {
     double max_merge_dist_mm = 50;
     double wall_slope = std::atan(1.0);          // Universal constant for Pi/4
     double brim_size_mm = 1.6;
-    
+
     struct EmbedObject {
         double object_gap_mm = 1.;
         double stick_stride_mm = 10.;
@@ -48,7 +49,7 @@ struct PadConfig {
         bool everywhere = false;
         operator bool() const { return enabled; }
     } embed_object;
-    
+
     inline PadConfig() = default;
     inline PadConfig(double thickness,
                      double height,
@@ -74,10 +75,10 @@ struct PadConfig {
     {
         return wall_height_mm + wall_thickness_mm;
     }
-    
-    /// Returns the elevation needed for compensating the pad.    
+
+    /// Returns the elevation needed for compensating the pad.
     inline double required_elevation() const { return wall_thickness_mm; }
-    
+
     std::string validate() const;
 };
 

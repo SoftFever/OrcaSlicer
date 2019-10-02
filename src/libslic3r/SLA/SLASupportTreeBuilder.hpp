@@ -96,6 +96,8 @@ struct Head {
     // If there is a pillar connecting to this head, then the id will be set.
     long pillar_id = ID_UNSET;
     
+    long bridge_id = ID_UNSET;
+    
     inline void invalidate() { id = ID_UNSET; }
     inline bool is_valid() const { return id >= 0; }
     
@@ -331,8 +333,14 @@ public:
         std::lock_guard<Mutex> lk(m_mutex);
         assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
         
-        if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size())
+        if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size()) 
             m_pillars[size_t(pillar.id)].links++;
+    }
+    
+    unsigned bridgecount(const Pillar &pillar) const {
+        std::lock_guard<Mutex> lk(m_mutex);
+        assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
+        return pillar.bridges;
     }
     
     template<class...Args> Pillar& add_pillar(Args&&...args)
