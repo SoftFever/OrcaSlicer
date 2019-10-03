@@ -293,6 +293,7 @@ bool AppConfig::get_mouse_device_translation_speed(const std::string& name, doub
         return false;
 
     translation_speed = ::atof(it_val->second.c_str());
+    return true;
 }
 
 bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& rotation_speed)
@@ -307,6 +308,7 @@ bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& 
         return false;
 
     rotation_speed = (float)::atof(it_val->second.c_str());
+    return true;
 }
 #endif // ENABLE_3DCONNEXION_DEVICES
 
