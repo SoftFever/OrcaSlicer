@@ -440,7 +440,7 @@ bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
 bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
                                                   long        nearpillar_id)
 {
-    auto nearpillar = [this, nearpillar_id]() {
+    auto nearpillar = [this, nearpillar_id]() -> const Pillar& {
         return m_builder.pillar(nearpillar_id);
     };
     
@@ -543,9 +543,8 @@ bool SupportTreeBuildsteps::search_pillar_and_connect(const Head &head)
         nearest_id = ne.second;
         
         if(nearest_id >= 0) {
-            auto nearpillarID = unsigned(nearest_id);
-            if(nearpillarID < m_builder.pillarcount()) {
-                if(!connect_to_nearpillar(head, nearpillarID)) {
+            if(size_t(nearest_id) < m_builder.pillarcount()) {
+                if(!connect_to_nearpillar(head, nearest_id)) {
                     nearest_id = ID_UNSET;    // continue searching
                     spindex.remove(ne);       // without the current pillar
                 }
@@ -1361,22 +1360,21 @@ void SupportTreeBuildsteps::routing_headless()
         
         // This is only for checking
         double idist = bridge_mesh_intersect(sph, dir, R, true);
-        double dist = ray_mesh_intersect(sj, dir);
-        if (std::isinf(dist))
-            dist = sph(Z) - m_mesh.ground_level()
-                   + m_mesh.ground_level_offset();
+        double realdist = ray_mesh_intersect(sj, dir);
+        double dist = realdist;
         
-        if(std::isnan(idist) || idist < 2*R ||
-            std::isnan(dist)  || dist  < 2*R)
-        {
+        if (std::isinf(dist)) dist = sph(Z) - m_builder.ground_level;
+        
+        if(std::isnan(idist) || idist < 2*R || std::isnan(dist) || dist < 2*R) {
             BOOST_LOG_TRIVIAL(warning) << "Can not find route for headless"
                                        << " support stick at: "
                                        << sj.transpose();
             continue;
         }
         
-        Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
-        m_builder.add_compact_bridge(sp, ej, n, R, !std::isinf(dist));
+        bool use_endball = !std::isinf(realdist);
+        Vec3d ej = sj + (dist + HWIDTH_MM) * dir;
+        m_builder.add_compact_bridge(sp, ej, n, R, use_endball);
     }
 }
 

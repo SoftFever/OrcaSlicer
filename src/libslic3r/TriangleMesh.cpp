@@ -236,7 +236,7 @@ bool TriangleMesh::needed_repair() const
         || this->stl.stats.backwards_edges      > 0;
 }
 
-void TriangleMesh::WriteOBJFile(const char* output_file)
+void TriangleMesh::WriteOBJFile(const char* output_file) const
 {
     its_write_obj(this->its, output_file);
 }

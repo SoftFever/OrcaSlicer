@@ -19,6 +19,7 @@
 #include "libslic3r/MTUtils.hpp"
 
 #include "libslic3r/SVG.hpp"
+#include "libslic3r/Format/OBJ.hpp"
 
 #if defined(WIN32) || defined(_WIN32)
 #define PATH_SEPARATOR R"(\)"
@@ -202,7 +203,7 @@ void test_supports(const std::string &       obj_filename,
 
     // If there is no elevation, support points shall be removed from the
     // bottom of the object.
-    if (supportcfg.object_elevation_mm < EPSILON) {
+    if (std::abs(supportcfg.object_elevation_mm) < EPSILON) {
         sla::remove_bottom_points(support_points, zmin,
                                   supportcfg.base_height_mm);
     } else {
@@ -225,7 +226,16 @@ void test_supports(const std::string &       obj_filename,
 
     // Quick check if the dimensions and placement of supports are correct
     auto obb = output_mesh.bounding_box();
-    ASSERT_DOUBLE_EQ(obb.min.z(), zmin - supportcfg.object_elevation_mm);
+    
+    double allowed_zmin = zmin - supportcfg.object_elevation_mm;
+    
+    if (std::abs(supportcfg.object_elevation_mm) < EPSILON)
+        allowed_zmin = zmin - 2 * supportcfg.head_back_radius_mm;
+
+    if (std::abs(obb.min.z() - allowed_zmin) > EPSILON)
+        output_mesh.WriteOBJFile("outmesh_supports.obj");
+    
+    ASSERT_GE(obb.min.z(), allowed_zmin);
     ASSERT_LE(obb.max.z(), zmax);
 
     // Move out the support tree into the byproducts, we can examine it further
@@ -286,7 +296,8 @@ const char * const AROUND_PAD_TEST_OBJECTS[] = {
 };
 
 const char *const SUPPORT_TEST_MODELS[] = {
-    "cube_with_concave_hole_enlarged_standing.obj"
+    "cube_with_concave_hole_enlarged_standing.obj",
+    "A_upsidedown.obj"
 };
 
 } // namespace
