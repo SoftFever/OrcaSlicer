@@ -16,6 +16,28 @@ namespace GUI {
 
 class Selection;
 
+class ObjectManipulation;
+class ManipulationEditor : public wxTextCtrl
+{
+    std::string         m_opt_key;
+    int                 m_axis;
+    bool                m_enter_pressed { false };
+    wxString            m_valid_value {wxEmptyString};
+
+    std::string         m_full_opt_name;
+
+public:
+    ManipulationEditor(ObjectManipulation* parent, const std::string& opt_key, int axis);
+    ~ManipulationEditor() {}
+
+    void                msw_rescale();
+    void                set_value(const wxString& new_value);
+
+private:
+    double              get_value();
+};
+
+
 class ObjectManipulation : public OG_Settings
 {
     struct Cache
@@ -53,6 +75,9 @@ class ObjectManipulation : public OG_Settings
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
+    wxStaticText*   m_item_name = nullptr;
+    wxStaticText*   m_empty_str = nullptr;
+
     // Non-owning pointers to the reset buttons, so we can hide and show them.
     ScalableButton* m_reset_scale_button = nullptr;
     ScalableButton* m_reset_rotation_button = nullptr;
@@ -81,7 +106,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_rotation;
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
-    bool            m_new_enabled;
+    bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
@@ -95,6 +120,15 @@ class ObjectManipulation : public OG_Settings
     // Currently focused option name (empty if none)
     std::string     m_focused_option;
 #endif // __APPLE__
+
+    wxFlexGridSizer* m_main_grid_sizer;
+    wxFlexGridSizer* m_labels_grid_sizer;
+
+    // sizers, used for msw_rescale
+    wxBoxSizer*     m_word_local_combo_sizer;
+    std::vector<wxBoxSizer*>            m_rescalable_sizers;
+
+    std::vector<ManipulationEditor*>    m_editors;
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -122,8 +156,10 @@ public:
     void emulate_kill_focus();
 #endif // __APPLE__
 
+    void update_item_name(const wxString &item_name);
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
+    void on_change(const std::string& opt_key, int axis, double new_value);
 
 private:
     void reset_settings_value();

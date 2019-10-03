@@ -112,7 +112,310 @@ void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
     combo->SetValue(selection);
 }
 
+static void set_font_and_background_style(wxWindow* win, const wxFont& font)
+{
+    win->SetFont(font);
+    win->SetBackgroundStyle(wxBG_STYLE_PAINT);
+}
 
+ObjectManipulation::ObjectManipulation(wxWindow* parent) :
+    OG_Settings(parent, true)
+#ifndef __APPLE__
+    , m_focused_option("")
+#endif // __APPLE__
+{
+    m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
+
+    // Load bitmaps to be used for the mirroring buttons:
+    m_mirror_bitmap_on     = ScalableBitmap(parent, "mirroring_on");
+    m_mirror_bitmap_off    = ScalableBitmap(parent, "mirroring_off");
+    m_mirror_bitmap_hidden = ScalableBitmap(parent, "mirroring_transparent.png");
+
+    const int border = wxOSX ? 0 : 4;
+    const int em = wxGetApp().em_unit();
+    m_main_grid_sizer = new wxFlexGridSizer(2, 3, 3); // "Name/label", "String name / Editors"
+    m_main_grid_sizer->SetFlexibleDirection(wxBOTH);
+
+    // Add "Name" label with warning icon
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_fix_throught_netfab_bitmap = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
+    if (is_windows10())
+        m_fix_throught_netfab_bitmap->Bind(wxEVT_CONTEXT_MENU, [this](wxCommandEvent& e)
+            {
+                // if object/sub-object has no errors
+                if (m_fix_throught_netfab_bitmap->GetBitmap().GetRefData() == wxNullBitmap.GetRefData())
+                    return;
+
+                wxGetApp().obj_list()->fix_through_netfabb();
+                update_warning_icon_state(wxGetApp().obj_list()->get_mesh_errors_list());
+            });
+
+    sizer->Add(m_fix_throught_netfab_bitmap);
+
+    auto name_label = new wxStaticText(m_parent, wxID_ANY, _(L("Name"))+":");
+    set_font_and_background_style(name_label, wxGetApp().normal_font());
+    name_label->SetToolTip(_(L("Object name")));
+    sizer->Add(name_label);
+
+    m_main_grid_sizer->Add(sizer);
+
+    // Add name of the item
+    const wxSize name_size = wxSize(20 * em, wxDefaultCoord);
+    m_item_name = new wxStaticText(m_parent, wxID_ANY, "", wxDefaultPosition, name_size, wxST_ELLIPSIZE_MIDDLE);
+    set_font_and_background_style(m_item_name, wxGetApp().bold_font());
+
+    m_main_grid_sizer->Add(m_item_name, 0, wxEXPAND);
+
+    // Add labels grid sizer
+    m_labels_grid_sizer = new wxFlexGridSizer(1, 3, 3); // "Name/label", "String name / Editors"
+    m_labels_grid_sizer->SetFlexibleDirection(wxBOTH);
+
+    // Add world local combobox
+    m_word_local_combo = create_word_local_combo(parent);
+    m_word_local_combo->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent& evt) {
+        this->set_world_coordinates(evt.GetSelection() != 1);
+    }), m_word_local_combo->GetId());
+
+    // Small trick to correct layouting in different view_mode :
+    // Show empty string of a same height as a m_word_local_combo, when m_word_local_combo is hidden
+    m_word_local_combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_empty_str = new wxStaticText(parent, wxID_ANY, "");
+    m_word_local_combo_sizer->Add(m_word_local_combo);
+    m_word_local_combo_sizer->Add(m_empty_str);
+    m_word_local_combo_sizer->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
+    m_labels_grid_sizer->Add(m_word_local_combo_sizer);
+
+    // Text trick to grid sizer layout:
+    // Height of labels should be equivalent to the edit boxes
+    int height = wxTextCtrl(parent, wxID_ANY, "Br").GetBestHeight(-1);
+#ifdef __WXGTK__
+    // On Linux button with bitmap has bigger height then regular button or regular TextCtrl 
+    // It can cause a wrong alignment on show/hide of a reset buttons 
+    const int bmp_btn_height = ScalableButton(parent, wxID_ANY, "undo") .GetBestHeight(-1);
+    if (bmp_btn_height > height)
+        height = bmp_btn_height;
+#endif //__WXGTK__
+
+    auto add_label = [this, height](wxStaticText** label, const std::string& name, wxSizer* reciver = nullptr)
+    {
+        *label = new wxStaticText(m_parent, wxID_ANY, _(name) + ":");
+        set_font_and_background_style(m_move_Label, wxGetApp().normal_font());
+
+        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->SetMinSize(wxSize(-1, height));
+        sizer->Add(*label, 0, wxALIGN_CENTER_VERTICAL);
+      
+        if (reciver)
+            reciver->Add(sizer);
+        else
+            m_labels_grid_sizer->Add(sizer);
+
+        m_rescalable_sizers.push_back(sizer);
+    };
+
+    // Add labels
+    add_label(&m_move_Label,    L("Position"));
+    add_label(&m_rotate_Label,  L("Rotation"));
+
+    // additional sizer for lock and labels "Scale" & "Size"
+    sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_lock_bnt = new LockButton(parent, wxID_ANY);
+    m_lock_bnt->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        event.Skip();
+        wxTheApp->CallAfter([this]() { set_uniform_scaling(m_lock_bnt->IsLocked()); });
+    });
+    sizer->Add(m_lock_bnt, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto v_sizer = new wxGridSizer(1, 3, 3);
+
+    add_label(&m_scale_Label,   L("Scale"), v_sizer);
+    wxStaticText* size_Label {nullptr};
+    add_label(&size_Label,      L("Size"), v_sizer);
+    if (wxOSX) set_font_and_background_style(size_Label, wxGetApp().normal_font());
+
+    sizer->Add(v_sizer, 0, wxLEFT, border);
+    m_labels_grid_sizer->Add(sizer);
+    m_main_grid_sizer->Add(m_labels_grid_sizer, 0, wxEXPAND);
+
+
+    // Add editors grid sizer
+    wxFlexGridSizer* editors_grid_sizer = new wxFlexGridSizer(5, 3, 3); // "Name/label", "String name / Editors"
+    editors_grid_sizer->SetFlexibleDirection(wxBOTH);
+
+    // Add Axes labels with icons
+    static const char axes[] = { 'X', 'Y', 'Z' };
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++) {
+        const char label = axes[axis_idx];
+
+        wxStaticText* axis_name = new wxStaticText(m_parent, wxID_ANY, wxString(label));
+        set_font_and_background_style(axis_name, wxGetApp().bold_font());
+
+        sizer = new wxBoxSizer(wxHORIZONTAL);
+        // Under OSX we use font, smaller than default font, so
+        // there is a next trick for an equivalent layout of coordinates combobox and axes labels in they own sizers
+        if (wxOSX) 
+            sizer->SetMinSize(-1, m_word_local_combo->GetBestHeight(-1));
+        sizer->Add(axis_name, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, border);
+
+        // We will add a button to toggle mirroring to each axis:
+        auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
+        btn->SetToolTip(wxString::Format(_(L("Toggle %c axis mirroring")), (int)label));
+        btn->SetBitmapDisabled_(m_mirror_bitmap_hidden);
+
+        m_mirror_buttons[axis_idx].first = btn;
+        m_mirror_buttons[axis_idx].second = mbShown;
+
+        sizer->AddStretchSpacer(2);
+        sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
+
+        btn->Bind(wxEVT_BUTTON, [this, axis_idx](wxCommandEvent&) {
+            Axis axis = (Axis)(axis_idx + X);
+            if (m_mirror_buttons[axis_idx].second == mbHidden)
+                return;
+
+            GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+            Selection& selection = canvas->get_selection();
+
+            if (selection.is_single_volume() || selection.is_single_modifier()) {
+                GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
+                volume->set_volume_mirror(axis, -volume->get_volume_mirror(axis));
+            }
+            else if (selection.is_single_full_instance()) {
+                for (unsigned int idx : selection.get_volume_idxs()) {
+                    GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+                    volume->set_instance_mirror(axis, -volume->get_instance_mirror(axis));
+                }
+            }
+            else
+                return;
+
+            // Update mirroring at the GLVolumes.
+            selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+            selection.synchronize_unselected_volumes();
+            // Copy mirroring values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
+            canvas->do_mirror(L("Set Mirror"));
+            UpdateAndShow(true);
+        });
+
+        editors_grid_sizer->Add(sizer, 0, wxALIGN_CENTER_HORIZONTAL);
+    }
+
+    editors_grid_sizer->AddStretchSpacer(1);
+    editors_grid_sizer->AddStretchSpacer(1);
+
+    // add EditBoxes 
+    auto add_edit_boxes = [this, editors_grid_sizer](const std::string& opt_key, int axis)
+    {
+        ManipulationEditor* editor = new ManipulationEditor(this, opt_key, axis);
+        m_editors.push_back(editor);
+
+        editors_grid_sizer->Add(editor, 0, wxALIGN_CENTER_VERTICAL);
+    };
+    
+    // add Units 
+    auto add_unit_text = [this, parent, editors_grid_sizer, height](std::string unit)
+    {
+        wxStaticText* unit_text = new wxStaticText(parent, wxID_ANY, _(unit));
+        set_font_and_background_style(unit_text, wxGetApp().normal_font()); 
+
+        // Unit text should be the same height as labels      
+        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->SetMinSize(wxSize(-1, height));
+        sizer->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        editors_grid_sizer->Add(sizer);
+        m_rescalable_sizers.push_back(sizer);
+    };
+
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
+        add_edit_boxes("position", axis_idx);
+    add_unit_text(L("mm"));
+
+    // Add drop to bed button
+    m_drop_to_bed_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "drop_to_bed"));
+    m_drop_to_bed_button->SetToolTip(_(L("Drop to bed")));
+    m_drop_to_bed_button->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
+        // ???
+        GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+        Selection& selection = canvas->get_selection();
+
+        if (selection.is_single_volume() || selection.is_single_modifier()) {
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+
+            const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
+            Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(volume));
+
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Drop to bed")));
+            change_position_value(0, diff.x());
+            change_position_value(1, diff.y());
+            change_position_value(2, diff.z());
+        }
+        });
+    editors_grid_sizer->Add(m_drop_to_bed_button);
+
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
+        add_edit_boxes("rotation", axis_idx);
+    add_unit_text("°");
+
+    // Add reset rotation button
+    m_reset_rotation_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
+    m_reset_rotation_button->SetToolTip(_(L("Reset rotation")));
+    m_reset_rotation_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+        Selection& selection = canvas->get_selection();
+
+        if (selection.is_single_volume() || selection.is_single_modifier()) {
+            GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
+            volume->set_volume_rotation(Vec3d::Zero());
+        }
+        else if (selection.is_single_full_instance()) {
+            for (unsigned int idx : selection.get_volume_idxs()) {
+                GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+                volume->set_instance_rotation(Vec3d::Zero());
+            }
+        }
+        else
+            return;
+
+        // Update rotation at the GLVolumes.
+        selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+        selection.synchronize_unselected_volumes();
+        // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
+        canvas->do_rotate(L("Reset Rotation"));
+
+        UpdateAndShow(true);
+    });
+    editors_grid_sizer->Add(m_reset_rotation_button);
+
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
+        add_edit_boxes("scale", axis_idx);
+    add_unit_text("%");
+
+    // Add reset scale button
+    m_reset_scale_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
+    m_reset_scale_button->SetToolTip(_(L("Reset scale")));
+    m_reset_scale_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Reset scale")));
+        change_scale_value(0, 100.);
+        change_scale_value(1, 100.);
+        change_scale_value(2, 100.);
+    });
+    editors_grid_sizer->Add(m_reset_scale_button);
+
+    for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++)
+        add_edit_boxes("size", axis_idx);
+    add_unit_text("mm");
+    editors_grid_sizer->AddStretchSpacer(1);
+
+    m_main_grid_sizer->Add(editors_grid_sizer, 1, wxEXPAND);
+
+    m_og->sizer->Clear(true);
+    m_og->sizer->Add(m_main_grid_sizer, 1, wxEXPAND | wxALL, border);
+}
+
+/*
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
@@ -180,7 +483,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = field_width - mirror_btn_width;//field_width/*50*/;
+    def.width = field_width - mirror_btn_width;
 
     // Load bitmaps to be used for the mirroring buttons:
     m_mirror_bitmap_on  = ScalableBitmap(parent, "mirroring_on");
@@ -254,7 +557,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         ConfigOptionDef def;
         def.type = coFloat;
         def.set_default_value(new ConfigOptionFloat(0.0));
-        def.width = field_width/*50*/;
+        def.width = field_width;
 
         if (option_name == "Scale") {
             // Add "uniform scaling" button in front of "Scale" option
@@ -395,7 +698,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             win->SetMinSize(create_scaled_bitmap(m_parent, "one_layer_lock_on.png").GetSize());
     };
 }
- 
+*/ 
  
 
 void ObjectManipulation::Show(const bool show)
@@ -407,9 +710,9 @@ void ObjectManipulation::Show(const bool show)
         if (show && wxGetApp().get_mode() != comSimple) {
             // Show the label and the name of the STL in simple mode only.
             // Label "Name: "
-            m_og->get_grid_sizer()->Show(size_t(0), false);
+            /*m_og->get_grid_sizer()*/m_main_grid_sizer->Show(size_t(0), false);
             // The actual name of the STL.
-            m_og->get_grid_sizer()->Show(size_t(1), false);
+            /*m_og->get_grid_sizer()*/m_main_grid_sizer->Show(size_t(1), false);
         }
     }
 
@@ -417,6 +720,7 @@ void ObjectManipulation::Show(const bool show)
 		// Show the "World Coordinates" / "Local Coordintes" Combo in Advanced / Expert mode only.
 		bool show_world_local_combo = wxGetApp().plater()->canvas3D()->get_selection().is_single_full_instance() && wxGetApp().get_mode() != comSimple;
 		m_word_local_combo->Show(show_world_local_combo);
+        m_empty_str->Show(!show_world_local_combo);
 	}
 }
 
@@ -522,12 +826,14 @@ void ObjectManipulation::update_if_dirty()
         if (label_cache != new_label_localized) {
             label_cache = new_label_localized;
             widget->SetLabel(new_label_localized);
+            if (wxOSX) set_font_and_background_style(widget, wxGetApp().normal_font());
         }
     };
     update_label(m_cache.move_label_string,   m_new_move_label_string,   m_move_Label);
     update_label(m_cache.rotate_label_string, m_new_rotate_label_string, m_rotate_Label);
     update_label(m_cache.scale_label_string,  m_new_scale_label_string,  m_scale_Label);
 
+    /*
     char axis[2] = "x";
     for (int i = 0; i < 3; ++ i, ++ axis[0]) {
         auto update = [this, i, &axis](Vec3d &cached, Vec3d &cached_rounded, const char *key, const Vec3d &new_value) {
@@ -545,6 +851,34 @@ void ObjectManipulation::update_if_dirty()
         update(m_cache.size,     m_cache.size_rounded,     "size_",     m_new_size);
         update(m_cache.rotation, m_cache.rotation_rounded, "rotation_", m_new_rotation);
     }
+    */
+
+    enum ManipulationEditorKey
+    {
+        mePosition = 0,
+        meRotation,
+        meScale,
+        meSize
+    };
+
+    for (int i = 0; i < 3; ++ i) {
+        auto update = [this, i](Vec3d &cached, Vec3d &cached_rounded, ManipulationEditorKey key_id, const Vec3d &new_value) {
+			wxString new_text = double_to_string(new_value(i), 2);
+			double new_rounded;
+			new_text.ToDouble(&new_rounded);
+			if (std::abs(cached_rounded(i) - new_rounded) > EPSILON) {
+				cached_rounded(i) = new_rounded;
+                const int id = key_id*3+i;
+                if (id >= 0) m_editors[id]->set_value(new_text);
+            }
+			cached(i) = new_value(i);
+		};
+        update(m_cache.position, m_cache.position_rounded, mePosition, m_new_position);
+        update(m_cache.scale,    m_cache.scale_rounded,    meScale,    m_new_scale);
+        update(m_cache.size,     m_cache.size_rounded,     meSize,     m_new_size);
+        update(m_cache.rotation, m_cache.rotation_rounded, meRotation, m_new_rotation);
+    }
+
 
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
@@ -686,6 +1020,11 @@ void ObjectManipulation::emulate_kill_focus()
         on_change(option, 0);
 }
 #endif // __APPLE__
+
+void ObjectManipulation::update_item_name(const wxString& item_name)
+{
+    m_item_name->SetLabel(item_name);
+}
 
 void ObjectManipulation::update_warning_icon_state(const wxString& tooltip)
 {
@@ -851,6 +1190,21 @@ void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any
         change_size_value(axis, new_value);
 }
 
+void ObjectManipulation::on_change(const std::string& opt_key, int axis, double new_value)
+{
+    if (!m_cache.is_valid())
+        return;
+
+    if (opt_key == "position")
+        change_position_value(axis, new_value);
+    else if (opt_key == "rotation")
+        change_rotation_value(axis, new_value);
+    else if (opt_key == "scale")
+        change_scale_value(axis, new_value);
+    else if (opt_key == "size")
+        change_size_value(axis, new_value);
+}
+
 void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
 {
     // needed to hide the visual hints in 3D scene
@@ -923,7 +1277,10 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
 
 void ObjectManipulation::msw_rescale()
 {
+    const int em = wxGetApp().em_unit();
+    m_item_name->SetMinSize(wxSize(20*em, wxDefaultCoord));
     msw_rescale_word_local_combo(m_word_local_combo);
+    m_word_local_combo_sizer->SetMinSize(wxSize(-1, m_word_local_combo->GetBestHeight(-1)));
     m_manifold_warning_bmp.msw_rescale();
 
     const wxString& tooltip = m_fix_throught_netfab_bitmap->GetToolTipText();
@@ -936,11 +1293,128 @@ void ObjectManipulation::msw_rescale()
     m_reset_scale_button->msw_rescale();
     m_reset_rotation_button->msw_rescale();
     m_drop_to_bed_button->msw_rescale();
+    m_lock_bnt->msw_rescale();
 
     for (int id = 0; id < 3; ++id)
         m_mirror_buttons[id].first->msw_rescale();
 
+    // rescale label-heights
+    // Text trick to grid sizer layout:
+    // Height of labels should be equivalent to the edit boxes
+    const int height = wxTextCtrl(parent(), wxID_ANY, "Br").GetBestHeight(-1);
+    for (wxBoxSizer* sizer : m_rescalable_sizers)
+        sizer->SetMinSize(wxSize(-1, height));
+
+    // rescale edit-boxes
+    for (ManipulationEditor* editor : m_editors)
+        editor->msw_rescale();
+
     get_og()->msw_rescale();
+}
+
+static const char axes[] = { 'x', 'y', 'z' };
+ManipulationEditor::ManipulationEditor(ObjectManipulation* parent,
+                                       const std::string& opt_key,
+                                       int axis) :
+    wxTextCtrl(parent->parent(), wxID_ANY, wxEmptyString, wxDefaultPosition,
+        wxSize(5*int(wxGetApp().em_unit()), wxDefaultCoord), wxTE_PROCESS_ENTER),
+    m_opt_key(opt_key),
+    m_axis(axis)
+{
+    set_font_and_background_style(this, wxGetApp().normal_font());
+#ifdef __WXOSX__
+    this->OSXDisableAllSmartSubstitutions();
+#endif // __WXOSX__
+
+    // A name used to call handle_sidebar_focus_event()
+    m_full_opt_name = m_opt_key+"_"+axes[axis];
+
+    // Reset m_enter_pressed flag to _false_, when value is editing
+    this->Bind(wxEVT_TEXT, [this](wxEvent&) { m_enter_pressed = false; }, this->GetId());
+
+    this->Bind(wxEVT_TEXT_ENTER, [this, parent](wxEvent&)
+    {
+        m_enter_pressed = true;
+        parent->on_change(m_opt_key, m_axis, get_value());
+    }, this->GetId());
+
+    this->Bind(wxEVT_KILL_FOCUS, [this, parent/*, edit_fn*/](wxFocusEvent& e)
+    {
+        if (!m_enter_pressed) {
+            parent->on_change(m_opt_key, m_axis, get_value());
+
+            // if the change does not come from the user pressing the ENTER key
+            // we need to hide the visual hints in 3D scene
+            wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(m_full_opt_name, false);
+// #ifndef __WXGTK__
+//             /* Update data for next editor selection.
+//              * But under GTK it looks like there is no information about selected control at e.GetWindow(),
+//              * so we'll take it from wxEVT_LEFT_DOWN event
+//              * */
+//             LayerRangeEditor* new_editor = dynamic_cast<LayerRangeEditor*>(e.GetWindow());
+//             if (new_editor)
+//                 new_editor->set_focus_data();
+// #endif // not __WXGTK__
+        }
+        
+        e.Skip();
+    }, this->GetId());
+
+    this->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e)
+    {
+        // needed to show the visual hints in 3D scene
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(m_full_opt_name, true);
+        e.Skip();
+    }, this->GetId());
+
+// #ifdef __WXGTK__ // Workaround! To take information about selectable range
+//     this->Bind(wxEVT_LEFT_DOWN, [this](wxEvent& e)
+//     {
+//         set_focus_data();
+//         e.Skip();
+//     }, this->GetId());
+// #endif //__WXGTK__
+
+    this->Bind(wxEVT_CHAR, ([this](wxKeyEvent& event)
+    {
+        // select all text using Ctrl+A
+        if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+            this->SetSelection(-1, -1); //select all
+        event.Skip();
+    }));
+}
+
+void ManipulationEditor::msw_rescale()
+{
+    const int em = wxGetApp().em_unit();
+    SetMinSize(wxSize(5 * em, wxDefaultCoord));
+}
+
+double ManipulationEditor::get_value()
+{
+    wxString str = GetValue();
+
+    double value;
+    // Replace the first occurence of comma in decimal number.
+    str.Replace(",", ".", false);
+    if (str == ".")
+        value = 0.0;
+
+    if ((str.IsEmpty() || !str.ToCDouble(&value)) && !m_valid_value.IsEmpty()) {
+        str = m_valid_value;
+        SetValue(str);
+        str.ToCDouble(&value);
+    }
+
+    return value;
+}
+
+void ManipulationEditor::set_value(const wxString& new_value)
+{
+    if (new_value.IsEmpty())
+        return;
+    m_valid_value = new_value;
+    SetValue(m_valid_value);
 }
 
 } //namespace GUI

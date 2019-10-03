@@ -2987,6 +2987,8 @@ void LockButton::msw_rescale()
     m_bmp_lock_closed_f.msw_rescale();
     m_bmp_lock_open.msw_rescale();
     m_bmp_lock_open_f.msw_rescale();
+
+    update_button_bitmaps();
 }
 
 void LockButton::update_button_bitmaps()
