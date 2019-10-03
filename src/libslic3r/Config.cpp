@@ -271,8 +271,6 @@ ConfigOptionDef* ConfigDef::add_nullable(const t_config_option_key &opt_key, Con
 	return def;
 }
 
-std::string ConfigOptionDef::nocli = "~~~noCLI";
-
 std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults, std::function<bool(const ConfigOptionDef &)> filter) const
 {
     // prepare a function for wrapping text

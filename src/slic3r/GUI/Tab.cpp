@@ -3019,6 +3019,18 @@ void Tab::save_preset(std::string name /*= ""*/)
             show_error(this, _(L("Cannot overwrite an external profile.")));
             return;
         }
+        if (existing && name != preset.name)
+        {
+            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exist."))) % name).str());
+            msg_text += "\n" + _(L("Replace?"));
+            wxMessageDialog dialog(nullptr, msg_text, _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+
+            if (dialog.ShowModal() == wxID_NO)
+                return;
+
+            // Remove the preset from the list.
+            m_presets->delete_preset(name);
+        }
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
