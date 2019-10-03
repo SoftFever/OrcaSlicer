@@ -208,6 +208,11 @@ struct Bridge {
            const Vec3d &j2,
            double       r_mm  = 0.8,
            size_t       steps = 45);
+    
+    Bridge(const Head  &h,
+           const Vec3d &j2,
+           size_t       steps = 45)
+        : Bridge{h.junction_point(), j2, h.r_back_mm, steps} {}
 };
 
 // A bridge that spans from model surface to model surface with small connecting
@@ -378,9 +383,23 @@ public:
         return m_junctions.back();
     }
     
-    template<class...Args> const Bridge& add_bridge(Args&&... args)
+    template<class...Args> const Bridge& 
+    add_bridge(const Vec3d &sp, const Vec3d &ep, double r, size_t steps = 45)
     {
-        return _add_bridge(m_bridges, std::forward<Args>(args)...);
+        return _add_bridge(m_bridges, sp, ep, r, steps);
+    }
+    
+    template<class...Args> 
+    const Bridge& add_bridge(const Head &h, const Vec3d &endp, size_t steps = 45)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        m_bridges.emplace_back(h, endp, steps);
+        m_bridges.back().id = long(m_bridges.size() - 1);
+        
+        assert(h.id >= 0 && h.id < m_head_indices.size());
+        m_heads[m_head_indices[size_t(h.id)]].bridge_id = m_bridges.back().id;
+        m_meshcache_valid = false;
+        return m_bridges.back();
     }
     
     template<class...Args> const Bridge& add_crossbridge(Args&&... args)

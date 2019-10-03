@@ -582,7 +582,7 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         // the ground level only.
         
         normal_mode     = false;
-        double mind       = min_dist - dist;
+        double mind     = min_dist - dist;
         double azimuth  = std::atan2(sourcedir(Y), sourcedir(X));
         double sinpolar = std::sin(PI - m_cfg.bridge_slope);
         double cospolar = std::cos(PI - m_cfg.bridge_slope);
@@ -964,12 +964,11 @@ void SupportTreeBuildsteps::routing_to_model()
     auto routedown = [this](Head& head, const Vec3d& dir, double dist)
     {
         head.transform();
-        Vec3d hjp = head.junction_point();
-        Vec3d endp = hjp + dist * dir;
-        m_builder.add_bridge(hjp, endp, head.r_back_mm);
+        Vec3d endp = head.junction_point() + dist * dir;
+        m_builder.add_bridge(head, endp);
         m_builder.add_junction(endp, head.r_back_mm);
         
-        this->create_ground_pillar(endp, dir, head.r_back_mm, head.id);
+        this->create_ground_pillar(endp, dir, head.r_back_mm);
     };
     
     std::vector<unsigned> modelpillars;
