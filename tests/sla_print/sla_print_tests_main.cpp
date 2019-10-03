@@ -260,7 +260,7 @@ void test_support_model_collision(
 
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
-    supportcfg.head_penetration_mm = -input_supportcfg.head_front_radius_mm;
+    supportcfg.head_penetration_mm = -1.; // 1 mm should be more than enough
 
     test_supports(obj_filename, supportcfg, byproducts);
 
@@ -297,7 +297,8 @@ const char * const AROUND_PAD_TEST_OBJECTS[] = {
 
 const char *const SUPPORT_TEST_MODELS[] = {
     "cube_with_concave_hole_enlarged_standing.obj",
-    "A_upsidedown.obj"
+    "A_upsidedown.obj",
+    "extruder_idler.obj"
 };
 
 } // namespace
@@ -411,10 +412,19 @@ TEST(SLASupportGeneration, FloorSupportGeometryIsValid) {
     for (auto &fname: SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
 }
 
-TEST(SLASupportGeneration, SupportsDoNotPierceModel) {
+TEST(SLASupportGeneration, ElevatedSupportsDoNotPierceModel) {
 
     sla::SupportConfig supportcfg;
 
+    for (auto fname : SUPPORT_TEST_MODELS)
+        test_support_model_collision(fname, supportcfg);
+}
+
+TEST(SLASupportGeneration, FloorSupportsDoNotPierceModel) {
+    
+    sla::SupportConfig supportcfg;
+    supportcfg.object_elevation_mm = 0;
+    
     for (auto fname : SUPPORT_TEST_MODELS)
         test_support_model_collision(fname, supportcfg);
 }
