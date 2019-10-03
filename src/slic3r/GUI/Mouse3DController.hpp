@@ -66,6 +66,7 @@ class Mouse3DController
     GLCanvas3D* m_canvas;
     mutable std::mutex m_mutex;
     hid_device* m_device;
+    std::string m_device_str;
     bool m_running;
     bool m_settings_dialog;
 

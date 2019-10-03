@@ -268,6 +268,48 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
+#if ENABLE_3DCONNEXION_DEVICES
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, float rotation_speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type(key, std::map<std::string, std::string>())).first;
+
+    it->second.clear();
+    it->second["translation_speed"] = std::to_string(translation_speed);
+    it->second["rotation_speed"] = std::to_string(rotation_speed);
+}
+
+bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& translation_speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("translation_speed");
+    if (it_val == it->second.end())
+        return false;
+
+    translation_speed = ::atof(it_val->second.c_str());
+}
+
+bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& rotation_speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("rotation_speed");
+    if (it_val == it->second.end())
+        return false;
+
+    rotation_speed = (float)::atof(it_val->second.c_str());
+}
+#endif // ENABLE_3DCONNEXION_DEVICES
+
 void AppConfig::update_config_dir(const std::string &dir)
 {
     this->set("recent", "config_directory", dir);

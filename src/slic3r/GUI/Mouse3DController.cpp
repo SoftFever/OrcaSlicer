@@ -6,6 +6,7 @@
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
+#include "AppConfig.hpp"
 
 #include <wx/glcanvas.h>
 
@@ -33,8 +34,6 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
     0xc625, // SPACEPILOT = 50725
     0xc629  // SPACEPILOTPRO = 50729
 };
-
-static const unsigned int _3DCONNEXION_MAX_BUTTONS_COUNT = 256;
 
 namespace Slic3r {
 namespace GUI {
@@ -168,6 +167,7 @@ Mouse3DController::Mouse3DController()
     : m_initialized(false)
     , m_canvas(nullptr)
     , m_device(nullptr)
+    , m_device_str("")
     , m_running(false)
     , m_settings_dialog(false)
 {
@@ -223,15 +223,12 @@ void Mouse3DController::render_settings_dialog() const
 
     imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    std::vector<wchar_t> product(1024, 0);
-    hid_get_product_string(m_device, product.data(), 1024);
-
     const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
     ImGui::PushStyleColor(ImGuiCol_Text, color);
     imgui.text(_(L("Device:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    imgui.text(boost::nowide::narrow(product.data()));
+    imgui.text(m_device_str);
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -306,6 +303,22 @@ void Mouse3DController::connect_device()
 
     // Open the 3Dconnexion device using the VID, PID
     m_device = hid_open(vendor_id, product_id, nullptr);
+
+    if (m_device != nullptr)
+    {
+        std::vector<wchar_t> product(1024, 0);
+        hid_get_product_string(m_device, product.data(), 1024);
+        m_device_str = boost::nowide::narrow(product.data());
+
+        // gets device parameters from the config, if present
+        double translation = 1.0;
+        float rotation = 1.0;
+        wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation);
+        wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation);
+        // clamp to valid values
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::max(0.5, std::min(2.0, translation)));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation)));
+    }
 }
 
 void Mouse3DController::disconnect_device()
@@ -313,9 +326,14 @@ void Mouse3DController::disconnect_device()
     if (m_device == nullptr)
         return;
     
+    // stores current device parameters into the config
+    wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_rotation_scale() / State::DefaultRotationScale);
+    wxGetApp().app_config->save();
+
     // Close the 3Dconnexion device
     hid_close(m_device);
     m_device = nullptr;
+    m_device_str = "";
 }
 
 void Mouse3DController::start()
@@ -396,11 +414,23 @@ void Mouse3DController::collect_input()
             }
         case Button:
             {
-                for (unsigned int i = 0; i < _3DCONNEXION_MAX_BUTTONS_COUNT; ++i)
+                // Because of lack of documentation, it is not clear how we should interpret the retrieved data for the button case.
+                // Experiments made with SpaceNavigator:
+                // retrieved_data[1] == 0 if no button pressed
+                // retrieved_data[1] == 1 if left button pressed
+                // retrieved_data[1] == 2 if right button pressed
+                // retrieved_data[1] == 3 if left and right button pressed
+                // seems to show that each button is associated to a bit of retrieved_data[1], which means that at max 8 buttons can be supported.
+                for (unsigned int i = 0; i < 8; ++i)
                 {
                     if (retrieved_data[1] & (0x1 << i))
                         m_state.set_button(i);
                 }
+
+//                // On the other hand, other libraries, as in https://github.com/koenieee/CrossplatformSpacemouseDriver/blob/master/SpaceMouseDriver/driver/SpaceMouseController.cpp
+//                // interpret retrieved_data[1] as the button id
+//                if (retrieved_data[1] > 0)
+//                    m_state.set_button((unsigned int)retrieved_data[1]);
 
                 break;
             }
