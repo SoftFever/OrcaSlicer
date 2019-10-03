@@ -171,6 +171,9 @@ Head::Head(double       r_big_mm,
     , width_mm(length_mm)
     , penetration_mm(penetration)
 {
+    assert(width_mm > 0.);
+    assert(r_back_mm > 0.);
+    assert(r_pin_mm > 0.);
     
     // We create two spheres which will be connected with a robe that fits
     // both circles perfectly.

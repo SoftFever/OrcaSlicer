@@ -260,7 +260,7 @@ void test_support_model_collision(
 
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
-    supportcfg.head_penetration_mm = -1.; // 1 mm should be more than enough
+    supportcfg.head_penetration_mm = -0.1;
 
     test_supports(obj_filename, supportcfg, byproducts);
 
@@ -277,6 +277,7 @@ void test_support_model_collision(
         const ExPolygons &mod_slice = byproducts.model_slices[n];
 
         Polygons intersections = intersection(sup_slice, mod_slice);
+        
         notouch = notouch && intersections.empty();
     }
 

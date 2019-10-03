@@ -311,7 +311,7 @@ public:
         if (m_pillars.capacity() < m_heads.size())
             m_pillars.reserve(m_heads.size() * 10);
         
-        assert(headid >= 0 && headid < m_head_indices.size());
+        assert(headid >= 0 && size_t(headid) < m_head_indices.size());
         Head &head = m_heads[m_head_indices[size_t(headid)]];
         
         m_pillars.emplace_back(head, std::forward<Args>(args)...);
@@ -328,7 +328,7 @@ public:
     void add_pillar_base(long pid, double baseheight = 3, double radius = 2)
     {
         std::lock_guard<Mutex> lk(m_mutex);
-        assert(pid >= 0 && pid < m_pillars.size());
+        assert(pid >= 0 && size_t(pid) < m_pillars.size());
         m_pillars[size_t(pid)].add_base(baseheight, radius);
     }
     
@@ -398,7 +398,7 @@ public:
     const Bridge& add_bridge(long headid, const Vec3d &endp, size_t s = 45)
     {
         std::lock_guard<Mutex> lk(m_mutex);
-        assert(headid >= 0 && headid < m_head_indices.size());
+        assert(headid >= 0 && size_t(headid) < m_head_indices.size());
         
         Head &h = m_heads[m_head_indices[size_t(headid)]];
         m_bridges.emplace_back(h.junction_point(), endp, h.r_back_mm, s);

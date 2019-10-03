@@ -1096,6 +1096,11 @@ void SupportTreeBuildsteps::routing_to_model()
             double dist = distance(endp, hitp) + m_cfg.head_penetration_mm;
             double w = dist - 2 * head.r_pin_mm - head.r_back_mm;
             
+            if (w < 0.) {
+                BOOST_LOG_TRIVIAL(error) << "Pinhead width is negative!";
+                w = 0.;
+            }
+                
             Head tailhead(head.r_back_mm,
                           head.r_pin_mm,
                           w,
@@ -1348,7 +1353,7 @@ void SupportTreeBuildsteps::routing_headless()
         m_thr();
         
         const auto R = double(m_support_pts[i].head_front_radius);
-        const double HWIDTH_MM = R/3;
+        const double HWIDTH_MM = m_cfg.head_penetration_mm;
         
         // Exact support position
         Vec3d sph = m_support_pts[i].pos.cast<double>();
