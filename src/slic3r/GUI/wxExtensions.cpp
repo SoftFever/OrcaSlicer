@@ -7,6 +7,7 @@
 #include "libslic3r/Model.hpp"
 
 #include <wx/sizer.h>
+#include <wx/bmpcbox.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
@@ -20,6 +21,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
+#include "PresetBundle.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
@@ -445,6 +447,47 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
     return *bmp;
 }
 
+
+Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
+/*static*/ std::vector<wxBitmap*> get_extruder_color_icons()
+{
+    // Create the bitmap with color bars.
+    std::vector<wxBitmap*> bmps;
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+    unsigned char rgb[3];
+
+    /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
+     * So set sizes for solid_colored icons used for filament preset
+     * and scale them in respect to em_unit value
+     */
+    const double em = Slic3r::GUI::wxGetApp().em_unit();
+    const int icon_width = lround(3.2 * em);
+    const int icon_height = lround(1.6 * em);
+
+    for (const std::string& color : colors)
+    {
+        wxBitmap* bitmap = m_bitmap_cache->find(color);
+        if (bitmap == nullptr) {
+            // Paint the color icon.
+            Slic3r::PresetBundle::parse_color(color, rgb);
+            bitmap = m_bitmap_cache->insert(color, m_bitmap_cache->mksolid(icon_width, icon_height, rgb));
+        }
+        bmps.emplace_back(bitmap);
+    }
+
+    return bmps;
+}
+
+
+static wxBitmap get_extruder_color_icon(size_t extruder_idx)
+{
+    // Create the bitmap with color bars.
+    std::vector<wxBitmap*> bmps = get_extruder_color_icons();
+
+    return *bmps[extruder_idx >= bmps.size() ? 0 : extruder_idx];
+}
+
 // *****************************************************************************
 // ----------------------------------------------------------------------------
 // ObjectDataViewModelNode
@@ -477,7 +520,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
         m_idx = parent->GetChildCount();
         m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
 
-        set_action_icon();
+        set_action_and_extruder_icons();
     }
     else if (type == itLayerRoot)
     {
@@ -512,7 +555,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
     m_bmp = create_scaled_bitmap(nullptr, LAYER_ICON);    // FIXME: pass window ptr
 
-    set_action_icon();
+    set_action_and_extruder_icons();
     init_container();
 }
 
@@ -525,11 +568,16 @@ bool ObjectDataViewModelNode::valid()
 }
 #endif /* NDEBUG */
 
-void ObjectDataViewModelNode::set_action_icon()
+void ObjectDataViewModelNode::set_action_and_extruder_icons()
 {
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);    // FIXME: pass window ptr
+
+    // set extruder bitmap
+    int extruder_idx = atoi(m_extruder.c_str());
+    if (extruder_idx > 0) --extruder_idx;
+    m_extruder_bmp = get_extruder_color_icon(extruder_idx);
 }
 
 void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
@@ -539,7 +587,6 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
                        create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
-Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
 void ObjectDataViewModelNode::update_settings_digest_bitmaps()
 {
     m_bmp = m_empty_bmp;
@@ -605,8 +652,10 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_name = data.GetText();
         return true; }
     case colExtruder: {
-        const wxString & val = variant.GetString();
-        m_extruder = val == "0" ? _(L("default")) : val;
+        DataViewBitmapText data;
+        data << variant;
+        m_extruder_bmp = data.GetBitmap();
+        m_extruder = data.GetText() == "0" ? _(L("default")) : data.GetText();
         return true; }
     case colEditing:
         m_action_icon << variant;
@@ -1379,6 +1428,51 @@ t_layer_height_range ObjectDataViewModel::GetLayerRangeByItem(const wxDataViewIt
     return node->GetLayerRange();
 }
 
+bool ObjectDataViewModel::UpdateColumValues(unsigned col)
+{
+    switch (col)
+    {
+    case colPrint:
+    case colName:
+    case colEditing:
+        return true;
+    case colExtruder:
+    {
+        wxDataViewItemArray items;
+        GetAllChildren(wxDataViewItem(nullptr), items);
+
+        if (items.IsEmpty()) return false;
+
+        for (auto item : items)
+            UpdateExtruderBitmap(item);
+
+        return true;
+    }
+    default:
+        printf("MyObjectTreeModel::SetValue: wrong column");
+    }
+    return false;
+}
+
+
+void ObjectDataViewModel::UpdateExtruderBitmap(wxDataViewItem item)
+{
+    wxString extruder = GetExtruder(item);
+    if (extruder.IsEmpty())
+        return;
+
+    // set extruder bitmap
+    int extruder_idx = atoi(extruder.c_str());
+    if (extruder_idx > 0) --extruder_idx;
+
+    const DataViewBitmapText extruder_val(extruder, get_extruder_color_icon(extruder_idx));
+
+    wxVariant value;
+    value << extruder_val;
+
+    SetValue(value, item, colExtruder);
+}
+
 void ObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx)
 {
     wxASSERT(item.IsOk());
@@ -1475,6 +1569,24 @@ wxBitmap& ObjectDataViewModel::GetBitmap(const wxDataViewItem &item) const
     return node->m_bmp;
 }
 
+wxString ObjectDataViewModel::GetExtruder(const wxDataViewItem& item) const
+{
+	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return wxEmptyString;
+
+	return node->m_extruder;
+}
+
+int ObjectDataViewModel::GetExtruderNumber(const wxDataViewItem& item) const
+{
+	ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return 0;
+
+	return atoi(node->m_extruder.c_str());
+}
+
 void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &item, unsigned int col) const
 {
 	wxASSERT(item.IsOk());
@@ -1489,7 +1601,7 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
         variant << DataViewBitmapText(node->m_name, node->m_bmp);
 		break;
 	case colExtruder:
-		variant = node->m_extruder;
+		variant << DataViewBitmapText(node->m_extruder, node->m_extruder_bmp);
 		break;
 	case colEditing:
 		variant << node->m_action_icon;
@@ -1513,6 +1625,22 @@ bool ObjectDataViewModel::SetValue(const wxVariant &variant, const int item_idx,
 		return false;
 
 	return m_objects[item_idx]->SetValue(variant, col);
+}
+
+void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem item)
+{
+    DataViewBitmapText extruder_val;
+    extruder_val.SetText(extruder);
+
+    // set extruder bitmap
+    int extruder_idx = atoi(extruder.c_str());
+    if (extruder_idx > 0) --extruder_idx;
+    extruder_val.SetBitmap(get_extruder_color_icon(extruder_idx));
+
+    wxVariant value;
+    value << extruder_val;
+    
+    SetValue(value, item, colExtruder);
 }
 
 wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume_id, 
@@ -1840,7 +1968,7 @@ void ObjectDataViewModel::DeleteWarningIcon(const wxDataViewItem& item, const bo
 }
 
 //-----------------------------------------------------------------------------
-// PrusaDataViewBitmapText
+// DataViewBitmapText
 //-----------------------------------------------------------------------------
 
 wxIMPLEMENT_DYNAMIC_CLASS(DataViewBitmapText, wxObject)
@@ -1961,6 +2089,104 @@ bool BitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value
 
     // But replace the text with the value entered by user.
     bmpText.SetText(text_editor->GetValue());
+
+    value << bmpText;
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// BitmapChoiceRenderer
+// ----------------------------------------------------------------------------
+
+bool BitmapChoiceRenderer::SetValue(const wxVariant& value)
+{
+    m_value << value;
+    return true;
+}
+
+bool BitmapChoiceRenderer::GetValue(wxVariant& value) const 
+{
+    value << m_value;
+    return true;
+}
+
+bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
+{
+    int xoffset = 0;
+
+    const wxBitmap& icon = m_value.GetBitmap();
+    if (icon.IsOk())
+    {
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+        xoffset = icon.GetWidth() + 4;
+    }
+
+    if (rect.height==0)
+        rect.height= icon.GetHeight();
+    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+
+    return true;
+}
+
+wxSize BitmapChoiceRenderer::GetSize() const
+{
+    wxSize sz = GetTextExtent(m_value.GetText());
+
+    if (m_value.GetBitmap().IsOk())
+        sz.x += m_value.GetBitmap().GetWidth() + 4;
+
+    return sz;
+}
+
+
+wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value)
+{
+    wxDataViewCtrl* const dv_ctrl = GetOwner()->GetOwner();
+    ObjectDataViewModel* const model = dynamic_cast<ObjectDataViewModel*>(dv_ctrl->GetModel());
+
+    if (!(model->GetItemType(dv_ctrl->GetSelection()) & (itVolume | itObject)))
+        return nullptr;
+
+    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    if (icons.empty())
+        return nullptr;
+
+    DataViewBitmapText data;
+    data << value;
+
+    auto c_editor = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString,
+        labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
+        0, nullptr , wxCB_READONLY);
+
+    int i=0;
+    for (wxBitmap* bmp : icons) {
+        if (i==0) {
+            c_editor->Append(_(L("default")), *bmp);
+            ++i;
+        }
+
+        c_editor->Append(wxString::Format("%d", i), *bmp);
+        ++i;
+    }
+    c_editor->SetSelection(atoi(data.GetText().c_str()));
+
+    // to avoid event propagation to other sidebar items
+    c_editor->Bind(wxEVT_COMBOBOX, [](wxCommandEvent& evt) { evt.StopPropagation(); });
+
+    return c_editor;
+}
+
+bool BitmapChoiceRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
+{
+    wxBitmapComboBox* c = (wxBitmapComboBox*)ctrl;
+    int selection = c->GetSelection();
+    if (selection < 0)
+        return false;
+   
+    DataViewBitmapText bmpText;
+
+    bmpText.SetText(c->GetString(selection));
+    bmpText.SetBitmap(c->GetItemBitmap(selection));
 
     value << bmpText;
     return true;

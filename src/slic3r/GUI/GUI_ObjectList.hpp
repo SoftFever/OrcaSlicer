@@ -12,6 +12,7 @@
 #include "wxExtensions.hpp"
 
 class wxBoxSizer;
+class wxBitmapComboBox;
 class wxMenuItem;
 class ObjectDataViewModel;
 class MenuWithSeparators;
@@ -140,6 +141,8 @@ private:
     DynamicPrintConfig          *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
 
+    wxBitmapComboBox            *m_extruder_editor { nullptr };
+
     std::vector<wxBitmap*>      m_bmp_vector;
 
     t_layer_config_ranges       m_layer_config_ranges_cache;
@@ -183,8 +186,8 @@ public:
 
     void                create_objects_ctrl();
     void                create_popup_menus();
-    wxDataViewColumn*   create_objects_list_extruder_column(size_t extruders_count);
     void                update_objects_list_extruder_column(size_t extruders_count);
+    void                update_extruder_colors();
     // show/hide "Extruder" column for Objects List
     void                set_extruder_column_hidden(const bool hide) const;
     // update extruder in current config
@@ -210,6 +213,7 @@ public:
 
     void                selection_changed();
     void                show_context_menu(const bool evt_context_menu);
+    void                extruder_editing();
 #ifndef __WXOSX__
     void                key_event(wxKeyEvent& event);
 #endif /* __WXOSX__ */

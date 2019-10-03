@@ -55,6 +55,8 @@ int     em_unit(wxWindow* win);
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name,
     const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
+std::vector<wxBitmap*> get_extruder_color_icons();
+
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;
@@ -209,6 +211,7 @@ class ObjectDataViewModelNode
     int                             m_idx = -1;
     bool					        m_container = false;
     wxString				        m_extruder = "default";
+    wxBitmap                        m_extruder_bmp;
     wxBitmap				        m_action_icon;
     PrintIndicator                  m_printable {piUndef};
     wxBitmap				        m_printable_icon;
@@ -224,7 +227,7 @@ public:
         m_type(itObject),
         m_extruder(extruder)
     {
-        set_action_icon();
+        set_action_and_extruder_icons();
         init_container();
 	}
 
@@ -240,7 +243,7 @@ public:
         m_extruder  (extruder)
     {
         m_bmp = bmp;
-        set_action_icon();
+        set_action_and_extruder_icons();
         init_container();
     }
 
@@ -356,7 +359,7 @@ public:
     }
 
     // Set action icons for node
-    void        set_action_icon();
+    void        set_action_and_extruder_icons();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
 
@@ -438,6 +441,8 @@ public:
 
     wxString    GetName(const wxDataViewItem &item) const;
     wxBitmap&   GetBitmap(const wxDataViewItem &item) const;
+    wxString    GetExtruder(const wxDataViewItem &item) const;
+    int         GetExtruderNumber(const wxDataViewItem &item) const;
 
     // helper methods to change the model
 
@@ -453,6 +458,8 @@ public:
     bool SetValue(  const wxVariant &variant,
                     const int item_idx,
                     unsigned int col);
+
+    void SetExtruder(const wxString& extruder, wxDataViewItem item);
 
     // For parent move child from cur_volume_id place to new_volume_id
     // Remaining items will moved up/down accordingly
@@ -503,6 +510,9 @@ public:
                               const bool is_marked = false);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     t_layer_height_range    GetLayerRangeByItem(const wxDataViewItem& item) const;
+
+    bool        UpdateColumValues(unsigned col);
+    void        UpdateExtruderBitmap(wxDataViewItem item);
 
 private:
     wxDataViewItem AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
@@ -560,6 +570,40 @@ public:
 private:
     DataViewBitmapText m_value;
     bool                    m_was_unusable_symbol {false};
+};
+
+
+// ----------------------------------------------------------------------------
+// BitmapChoiceRenderer
+// ----------------------------------------------------------------------------
+
+class BitmapChoiceRenderer : public wxDataViewCustomRenderer
+{
+public:
+    BitmapChoiceRenderer(wxDataViewCellMode mode =
+#ifdef __WXOSX__
+                                                    wxDATAVIEW_CELL_INERT
+#else
+                                                    wxDATAVIEW_CELL_EDITABLE
+#endif
+                         ,int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL
+        ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
+
+    bool SetValue(const wxVariant& value);
+    bool GetValue(wxVariant& value) const;
+
+    virtual bool Render(wxRect cell, wxDC* dc, int state);
+    virtual wxSize GetSize() const;
+
+    bool        HasEditorCtrl() const override { return true; }
+    wxWindow*   CreateEditorCtrl(wxWindow* parent,
+                                 wxRect labelRect,
+                                 const wxVariant& value) override;
+    bool        GetValueFromEditorCtrl( wxWindow* ctrl,
+                                        wxVariant& value) override;
+
+private:
+    DataViewBitmapText  m_value;
 };
 
 
