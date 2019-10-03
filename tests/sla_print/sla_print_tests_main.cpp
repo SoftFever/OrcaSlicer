@@ -250,7 +250,7 @@ void test_support_model_collision(
 
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
-    supportcfg.head_penetration_mm = -0.1;
+    supportcfg.head_penetration_mm = -input_supportcfg.head_front_radius_mm;
 
     test_supports(obj_filename, supportcfg, byproducts);
 
@@ -286,7 +286,7 @@ const char * const AROUND_PAD_TEST_OBJECTS[] = {
 };
 
 const char *const SUPPORT_TEST_MODELS[] = {
-    "cube_with_concave_hole_enlarged_standing.obj",
+    "cube_with_concave_hole_enlarged_standing.obj"
 };
 
 } // namespace

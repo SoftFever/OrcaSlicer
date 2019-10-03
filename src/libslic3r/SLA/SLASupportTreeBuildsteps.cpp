@@ -508,15 +508,14 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
     if (m_builder.bridgecount(nearpillar()) < m_cfg.max_bridges_on_pillar) {
         // A partial pillar is needed under the starting head.
         if(zdiff > 0) {
-            m_builder.add_pillar(unsigned(head.id), bridgestart, r);
+            m_builder.add_pillar(head.id, bridgestart, r);
             m_builder.add_junction(bridgestart, r);
+            m_builder.add_bridge(bridgestart, bridgeend, head.r_back_mm);
+        } else {
+            m_builder.add_bridge(head.id, bridgeend);
         }
         
-        auto &br = m_builder.add_bridge(bridgestart, bridgeend, r);
         m_builder.increment_bridges(nearpillar());
-        if (head.pillar_id == ID_UNSET) 
-            m_builder.head(unsigned(head.id)).bridge_id = br.id;
-        
     } else return false;
     
     return true;
@@ -631,13 +630,11 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                 auto hit = bridge_mesh_intersect(endp, DOWN, radius);
                 if (!std::isinf(hit.distance())) abort_in_shame();
                 
-                Pillar &plr = m_builder.add_pillar(endp, pgnd, radius);
+                pillar_id = m_builder.add_pillar(endp, pgnd, radius);
                 
                 if (can_add_base)
-                    plr.add_base(m_cfg.base_height_mm,
-                                 m_cfg.base_radius_mm);
-                
-                pillar_id = plr.id;
+                    m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
+                                              m_cfg.base_radius_mm);
             }
             
             m_builder.add_bridge(jp, endp, radius);
@@ -648,19 +645,17 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
             // prevent from queries of head_pillar() to have non-existing
             // pillar when the head should have one.
             if (head_id >= 0)
-                m_builder.add_pillar(unsigned(head_id), jp, radius);
+                m_builder.add_pillar(head_id, jp, radius);
         }
     }
     
     if (normal_mode) {
-        Pillar &plr = head_id >= 0
-                ? m_builder.add_pillar(unsigned(head_id), endp, radius)
-                : m_builder.add_pillar(jp, endp, radius);
-        
+        pillar_id = head_id >= 0 ? m_builder.add_pillar(head_id, endp, radius) :
+                                   m_builder.add_pillar(jp, endp, radius);
+
         if (can_add_base)
-            plr.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
-        
-        pillar_id = plr.id;
+            m_builder.add_pillar_base(pillar_id, m_cfg.base_height_mm,
+                                      m_cfg.base_radius_mm);
     }
     
     if(pillar_id >= 0) // Save the pillar endpoint in the spatial index
@@ -871,10 +866,8 @@ void SupportTreeBuildsteps::classify()
         return d2d < 2 * m_cfg.base_radius_mm
                && d3d < m_cfg.max_bridge_length_mm;
     };
-    
-    m_pillar_clusters = cluster(ground_head_indices,
-                                pointfn,
-                                predicate,
+
+    m_pillar_clusters = cluster(ground_head_indices, pointfn, predicate,
                                 m_cfg.max_bridges_on_pillar);
 }
 
@@ -965,7 +958,7 @@ void SupportTreeBuildsteps::routing_to_model()
     {
         head.transform();
         Vec3d endp = head.junction_point() + dist * dir;
-        m_builder.add_bridge(head, endp);
+        m_builder.add_bridge(head.id, endp);
         m_builder.add_junction(endp, head.r_back_mm);
         
         this->create_ground_pillar(endp, dir, head.r_back_mm);
@@ -1096,11 +1089,10 @@ void SupportTreeBuildsteps::routing_to_model()
                              center_hit.position() : hit.position();
             
             head.transform();
-            
-            Pillar& pill = m_builder.add_pillar(unsigned(head.id),
-                                                endp,
-                                                head.r_back_mm);
-            
+
+            long pillar_id = m_builder.add_pillar(head.id, endp, head.r_back_mm);
+            Pillar &pill = m_builder.pillar(pillar_id);
+
             Vec3d taildir = endp - hitp;
             double dist = distance(endp, hitp) + m_cfg.head_penetration_mm;
             double w = dist - 2 * head.r_pin_mm - head.r_back_mm;
@@ -1310,7 +1302,7 @@ void SupportTreeBuildsteps::interconnect_pillars()
                 p.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
                 if (interconnect(pillar(), p)) {
-                    Pillar &pp = m_builder.add_pillar(p);
+                    Pillar &pp = m_builder.pillar(m_builder.add_pillar(p));
                     m_pillar_index.insert(pp.endpoint(), unsigned(pp.id));
 
                     m_builder.add_junction(s, pillar().r);

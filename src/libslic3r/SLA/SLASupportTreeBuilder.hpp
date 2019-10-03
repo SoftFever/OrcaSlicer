@@ -208,11 +208,6 @@ struct Bridge {
            const Vec3d &j2,
            double       r_mm  = 0.8,
            size_t       steps = 45);
-    
-    Bridge(const Head  &h,
-           const Vec3d &j2,
-           size_t       steps = 45)
-        : Bridge{h.junction_point(), j2, h.r_back_mm, steps} {}
 };
 
 // A bridge that spans from model surface to model surface with small connecting
@@ -310,12 +305,12 @@ public:
         return m_heads.back();
     }
     
-    template<class...Args> Pillar& add_pillar(unsigned headid, Args&&... args)
+    template<class...Args> long add_pillar(long headid, Args&&... args)
     {
         std::lock_guard<Mutex> lk(m_mutex);
         
-        assert(headid < m_head_indices.size());
-        Head &head = m_heads[m_head_indices[headid]];
+        assert(headid >= 0 && headid < m_head_indices.size());
+        Head &head = m_heads[m_head_indices[size_t(headid)]];
         
         m_pillars.emplace_back(head, std::forward<Args>(args)...);
         Pillar& pillar = m_pillars.back();
@@ -325,7 +320,14 @@ public:
         pillar.starts_from_head = true;
         
         m_meshcache_valid = false;
-        return m_pillars.back();
+        return pillar.id;
+    }
+    
+    void add_pillar_base(long pid, double baseheight = 3, double radius = 2)
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        assert(pid >= 0 && pid < m_pillars.size());
+        m_pillars[size_t(pid)].add_base(baseheight, radius);
     }
     
     void increment_bridges(const Pillar& pillar)
@@ -352,7 +354,7 @@ public:
         return pillar.bridges;
     }
     
-    template<class...Args> Pillar& add_pillar(Args&&...args)
+    template<class...Args> long add_pillar(Args&&...args)
     {
         std::lock_guard<Mutex> lk(m_mutex);
         m_pillars.emplace_back(std::forward<Args>(args)...);
@@ -360,7 +362,7 @@ public:
         pillar.id = long(m_pillars.size() - 1);
         pillar.starts_from_head = false;
         m_meshcache_valid = false;
-        return m_pillars.back();
+        return pillar.id;
     }
     
     const Pillar& head_pillar(unsigned headid) const
@@ -383,21 +385,21 @@ public:
         return m_junctions.back();
     }
     
-    template<class...Args> const Bridge& 
-    add_bridge(const Vec3d &sp, const Vec3d &ep, double r, size_t steps = 45)
+    const Bridge& add_bridge(const Vec3d &s, const Vec3d &e, double r, size_t n = 45)
     {
-        return _add_bridge(m_bridges, sp, ep, r, steps);
+        return _add_bridge(m_bridges, s, e, r, n);
     }
     
-    template<class...Args> 
-    const Bridge& add_bridge(const Head &h, const Vec3d &endp, size_t steps = 45)
+    const Bridge& add_bridge(long headid, const Vec3d &endp, size_t s = 45)
     {
         std::lock_guard<Mutex> lk(m_mutex);
-        m_bridges.emplace_back(h, endp, steps);
+        assert(headid >= 0 && headid < m_head_indices.size());
+        
+        Head &h = m_heads[m_head_indices[size_t(headid)]];
+        m_bridges.emplace_back(h.junction_point(), endp, h.r_back_mm, s);
         m_bridges.back().id = long(m_bridges.size() - 1);
         
-        assert(h.id >= 0 && h.id < m_head_indices.size());
-        m_heads[m_head_indices[size_t(h.id)]].bridge_id = m_bridges.back().id;
+        h.bridge_id = m_bridges.back().id;
         m_meshcache_valid = false;
         return m_bridges.back();
     }
@@ -436,6 +438,15 @@ public:
     inline const std::vector<Bridge> &crossbridges() const { return m_crossbridges; }
     
     template<class T> inline IntegerOnly<T, const Pillar&> pillar(T id) const
+    {
+        std::lock_guard<Mutex> lk(m_mutex);
+        assert(id >= 0 && size_t(id) < m_pillars.size() &&
+               size_t(id) < std::numeric_limits<size_t>::max());
+        
+        return m_pillars[size_t(id)];
+    }
+    
+    template<class T> inline IntegerOnly<T, Pillar&> pillar(T id) 
     {
         std::lock_guard<Mutex> lk(m_mutex);
         assert(id >= 0 && size_t(id) < m_pillars.size() &&
