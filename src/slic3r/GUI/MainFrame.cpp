@@ -111,10 +111,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         }
         
         if(m_plater) m_plater->stop_jobs();
-#if ENABLE_3DCONNEXION_DEVICES
-        if (m_plater != nullptr)
-            m_plater->get_mouse3d_controller().set_canvas(nullptr);
-#endif // ENABLE_3DCONNEXION_DEVICES
 
         // Weird things happen as the Paint messages are floating around the windows being destructed.
         // Avoid the Paint messages by hiding the main window.

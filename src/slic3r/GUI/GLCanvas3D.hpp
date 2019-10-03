@@ -567,7 +567,9 @@ public:
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
     void do_mirror(const std::string& snapshot_type);
 
+#if !ENABLE_3DCONNEXION_DEVICES
     void set_camera_zoom(double zoom);
+#endif // !ENABLE_3DCONNEXION_DEVICES
 
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
@@ -640,6 +642,9 @@ private:
     BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
     void _zoom_to_box(const BoundingBoxf3& box);
+#if ENABLE_3DCONNEXION_DEVICES
+    void _update_camera_zoom(double zoom);
+#endif // ENABLE_3DCONNEXION_DEVICES
 
     void _refresh_if_shown_on_screen();
 

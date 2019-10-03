@@ -3,7 +3,7 @@
 
 #if ENABLE_3DCONNEXION_DEVICES
 
-#include "GLCanvas3D.hpp"
+#include "Camera.hpp"
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "AppConfig.hpp"
@@ -115,13 +115,12 @@ bool Mouse3DController::State::has_any_button() const
     return !m_buttons.empty();
 }
 
-bool Mouse3DController::State::apply(GLCanvas3D& canvas)
+bool Mouse3DController::State::apply(Camera& camera)
 {
     if (!wxGetApp().IsActive())
         return false;
 
     bool ret = false;
-    Camera& camera = canvas.get_camera();
 
     if (has_translation())
     {
@@ -150,8 +149,8 @@ bool Mouse3DController::State::apply(GLCanvas3D& canvas)
         {
             switch (i)
             {
-            case 0: { canvas.set_camera_zoom(1.0); break; }
-            case 1: { canvas.set_camera_zoom(-1.0); break; }
+            case 0: { camera.update_zoom(1.0); break; }
+            case 1: { camera.update_zoom(-1.0); break; }
             default: { break; }
             }
         }
@@ -165,7 +164,6 @@ bool Mouse3DController::State::apply(GLCanvas3D& canvas)
 
 Mouse3DController::Mouse3DController()
     : m_initialized(false)
-    , m_canvas(nullptr)
     , m_device(nullptr)
     , m_device_str("")
     , m_running(false)
@@ -206,17 +204,14 @@ void Mouse3DController::shutdown()
     m_initialized = false;
 }
 
-void Mouse3DController::render_settings_dialog() const
+void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
 {
-    if ((m_canvas == nullptr) || !m_running || !m_settings_dialog)
+    if (!m_running || !m_settings_dialog)
         return;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-    Size cnv_size = m_canvas->get_canvas_size();
-
-    imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
+    imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
     imgui.set_next_window_bg_alpha(0.5f);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);

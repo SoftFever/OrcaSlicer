@@ -13,7 +13,7 @@
 namespace Slic3r {
 namespace GUI {
 
-class GLCanvas3D;
+struct Camera;
 
 class Mouse3DController
 {
@@ -57,14 +57,12 @@ class Mouse3DController
         void set_rotation_scale(float scale) { m_rotation_scale = scale; }
 
         // return true if any change to the camera took place
-        bool apply(GLCanvas3D& canvas);
+        bool apply(Camera& camera);
     };
 
     bool m_initialized;
     mutable State m_state;
     std::thread m_thread;
-    GLCanvas3D* m_canvas;
-    mutable std::mutex m_mutex;
     hid_device* m_device;
     std::string m_device_str;
     bool m_running;
@@ -79,26 +77,16 @@ public:
     bool is_device_connected() const { return m_device != nullptr; }
     bool is_running() const { return m_running; }
 
-    void set_canvas(GLCanvas3D* canvas)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_canvas = canvas;
-    }
-
     bool has_translation() const { return m_state.has_translation(); }
     bool has_rotation() const { return m_state.has_rotation(); }
     bool has_translation_or_rotation() const { return m_state.has_translation_or_rotation(); }
     bool has_any_button() const { return m_state.has_any_button(); }
 
-    bool apply()
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        return (m_canvas != nullptr) ? m_state.apply(*m_canvas) : false;
-    }
+    bool apply(Camera& camera) { return m_state.apply(camera); }
 
     bool is_settings_dialog_shown() const { return m_settings_dialog; }
     void show_settings_dialog(bool show) { m_settings_dialog = show; }
-    void render_settings_dialog() const;
+    void render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const;
 
 private:
     void connect_device();

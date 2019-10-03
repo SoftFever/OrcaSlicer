@@ -103,6 +103,25 @@ void Camera::set_theta(float theta, bool apply_limit)
     }
 }
 
+#if ENABLE_3DCONNEXION_DEVICES
+void Camera::update_zoom(double delta_zoom)
+{
+    set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1));
+}
+
+void Camera::set_zoom(double zoom)
+{
+    // Don't allow to zoom too far outside the scene.
+    double zoom_min = calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
+    if (zoom_min > 0.0)
+        zoom = std::max(zoom, zoom_min * 0.7);
+
+    // Don't allow to zoom too close to the scene.
+    zoom = std::min(zoom, 100.0);
+
+    m_zoom = zoom;
+}
+#else
 void Camera::set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h)
 {
     zoom = std::max(std::min(zoom, 4.0), -4.0) / 10.0;
@@ -118,6 +137,7 @@ void Camera::set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, i
 
     m_zoom = zoom;
 }
+#endif // ENABLE_3DCONNEXION_DEVICES
 
 bool Camera::select_view(const std::string& direction)
 {

@@ -1394,7 +1394,11 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
+#if ENABLE_3DCONNEXION_DEVICES
+    bb.merge(m_bed.get_bounding_box(true));
+#else
     bb.merge(m_bed.get_bounding_box(false));
+#endif // ENABLE_3DCONNEXION_DEVICES
 
     if (m_config != nullptr)
     {
@@ -1542,10 +1546,16 @@ void GLCanvas3D::render()
         return;
     }
 
+#if ENABLE_3DCONNEXION_DEVICES
+    const Size& cnv_size = get_canvas_size();
+#endif // ENABLE_3DCONNEXION_DEVICES
+
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
+#if !ENABLE_3DCONNEXION_DEVICES
         const Size& cnv_size = get_canvas_size();
+#endif // !ENABLE_3DCONNEXION_DEVICES
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_camera.requires_zoom_to_bed = false;
     }
@@ -1637,7 +1647,7 @@ void GLCanvas3D::render()
 #endif // ENABLE_CAMERA_STATISTICS
 
 #if ENABLE_3DCONNEXION_DEVICES
-    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog();
+    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
 #endif // ENABLE_3DCONNEXION_DEVICES
 
     wxGetApp().imgui()->render();
@@ -2313,7 +2323,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 #if ENABLE_3DCONNEXION_DEVICES
-    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply();
+    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
     m_dirty |= mouse3d_controller_applied;
 #endif // ENABLE_3DCONNEXION_DEVICES
 
@@ -2460,11 +2470,19 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
+#if ENABLE_3DCONNEXION_DEVICES
+        case 'i': { _update_camera_zoom(1.0); break; }
+#else
         case 'i': { set_camera_zoom(1.0); break; }
+#endif // ENABLE_3DCONNEXION_DEVICES
         case 'K':
         case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
+#if ENABLE_3DCONNEXION_DEVICES
+        case 'o': { _update_camera_zoom(-1.0); break; }
+#else
         case 'o': { set_camera_zoom(-1.0); break; }
+#endif // ENABLE_3DCONNEXION_DEVICES
 #if ENABLE_RENDER_PICKING_PASS
         case 'T':
         case 't': {
@@ -2618,7 +2636,11 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
+#if ENABLE_3DCONNEXION_DEVICES
+    _update_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+#else
     set_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+#endif // ENABLE_3DCONNEXION_DEVICES
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -3413,12 +3435,14 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     m_dirty = true;
 }
 
+#if !ENABLE_3DCONNEXION_DEVICES
 void GLCanvas3D::set_camera_zoom(double zoom)
 {
     const Size& cnv_size = get_canvas_size();
     m_camera.set_zoom(zoom, _max_bounding_box(false, true), cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
+#endif // !ENABLE_3DCONNEXION_DEVICES
 
 void GLCanvas3D::update_gizmos_on_off_state()
 {
@@ -3886,6 +3910,14 @@ void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
     m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
+
+#if ENABLE_3DCONNEXION_DEVICES
+void GLCanvas3D::_update_camera_zoom(double zoom)
+{
+    m_camera.update_zoom(zoom);
+    m_dirty = true;
+}
+#endif // ENABLE_3DCONNEXION_DEVICES
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {

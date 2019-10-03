@@ -3263,10 +3263,6 @@ void Plater::priv::set_current_panel(wxPanel* panel)
                 view3D->reload_scene(true);
         }
 
-#if ENABLE_3DCONNEXION_DEVICES
-        mouse3d_controller.set_canvas(view3D->get_canvas3d());
-#endif // ENABLE_3DCONNEXION_DEVICES
-
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
         view_toolbar.select_item("3D");
@@ -3281,10 +3277,6 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             this->q->reslice();
         // keeps current gcode preview, if any
         preview->reload_print(true);
-
-#if ENABLE_3DCONNEXION_DEVICES
-        mouse3d_controller.set_canvas(preview->get_canvas3d());
-#endif // ENABLE_3DCONNEXION_DEVICES
 
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
