@@ -309,7 +309,7 @@ public:
     {
         std::lock_guard<Mutex> lk(m_mutex);
         if (m_pillars.capacity() < m_heads.size())
-            m_pillars.reserve(m_heads.size() * 2);
+            m_pillars.reserve(m_heads.size() * 10);
         
         assert(headid >= 0 && headid < m_head_indices.size());
         Head &head = m_heads[m_head_indices[size_t(headid)]];
@@ -360,7 +360,8 @@ public:
     {
         std::lock_guard<Mutex> lk(m_mutex);
         if (m_pillars.capacity() < m_heads.size())
-            m_pillars.reserve(m_heads.size() * 2);
+            m_pillars.reserve(m_heads.size() * 10);
+        
         m_pillars.emplace_back(std::forward<Args>(args)...);
         Pillar& pillar = m_pillars.back();
         pillar.id = long(m_pillars.size() - 1);
