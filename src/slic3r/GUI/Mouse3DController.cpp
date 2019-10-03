@@ -49,72 +49,6 @@ Mouse3DController::State::State()
 {
 }
 
-void Mouse3DController::State::set_translation(const Vec3d& translation)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_translation = translation;
-}
-
-void Mouse3DController::State::set_rotation(const Vec3f& rotation)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_rotation = rotation;
-}
-
-void Mouse3DController::State::set_button(unsigned int id)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_buttons.push_back(id);
-}
-
-void Mouse3DController::State::reset_buttons()
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_buttons.clear();
-}
-
-const Vec3d& Mouse3DController::State::get_translation() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_translation;
-}
-
-const Vec3f& Mouse3DController::State::get_rotation() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_rotation;
-}
-
-const std::vector<unsigned int>& Mouse3DController::State::get_buttons() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_buttons;
-}
-
-bool Mouse3DController::State::has_translation() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return !m_translation.isApprox(Vec3d::Zero());
-}
-
-bool Mouse3DController::State::has_rotation() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return !m_rotation.isApprox(Vec3f::Zero());
-}
-
-bool Mouse3DController::State::has_translation_or_rotation() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return !m_translation.isApprox(Vec3d::Zero()) && !m_rotation.isApprox(Vec3f::Zero());
-}
-
-bool Mouse3DController::State::has_any_button() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return !m_buttons.empty();
-}
-
 bool Mouse3DController::State::apply(Camera& camera)
 {
     if (!wxGetApp().IsActive())
@@ -124,28 +58,25 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_translation())
     {
-        Vec3d translation = get_translation();
-        camera.set_target(camera.get_target() + m_translation_scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
-        set_translation(Vec3d::Zero());
+        camera.set_target(camera.get_target() + m_translation_scale * (m_translation(0) * camera.get_dir_right() + m_translation(1) * camera.get_dir_forward() + m_translation(2) * camera.get_dir_up()));
+        m_translation = Vec3d::Zero();
         ret = true;
     }
 
     if (has_rotation())
     {
-        Vec3f rotation = get_rotation();
-        float theta = m_rotation_scale * rotation(0);
-        float phi = m_rotation_scale * rotation(2);
+        float theta = m_rotation_scale * m_rotation(0);
+        float phi = m_rotation_scale * m_rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-        set_rotation(Vec3f::Zero());
+        m_rotation = Vec3f::Zero();
         ret = true;
     }
 
     if (has_any_button())
     {
-        std::vector<unsigned int> buttons = get_buttons();
-        for (unsigned int i : buttons)
+        for (unsigned int i : m_buttons)
         {
             switch (i)
             {
@@ -202,6 +133,12 @@ void Mouse3DController::shutdown()
     // Finalize the hidapi library
     hid_exit();
     m_initialized = false;
+}
+
+bool Mouse3DController::apply(Camera& camera)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_state.apply(camera);
 }
 
 void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
@@ -382,6 +319,8 @@ void Mouse3DController::collect_input()
         stop();
         return;
     }
+
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     if (res > 0)
     {
