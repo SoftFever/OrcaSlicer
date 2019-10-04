@@ -1,3 +1,6 @@
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
 #include <unordered_set>
 #include <unordered_map>
 #include <random>
@@ -5,7 +8,7 @@
 // Debug
 #include <fstream>
 
-#include <gtest/gtest.h>
+//#include <gtest/gtest.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/OBJ.hpp"
@@ -51,23 +54,23 @@ void check_validity(const TriangleMesh &input_mesh,
     TriangleMesh mesh{input_mesh};
 
     if (flags & ASSUME_NO_EMPTY) {
-        ASSERT_FALSE(mesh.empty());
+        REQUIRE_FALSE(mesh.empty());
     } else if (mesh.empty())
         return; // If it can be empty and it is, there is nothing left to do.
 
-    ASSERT_TRUE(stl_validate(&mesh.stl));
+    REQUIRE(stl_validate(&mesh.stl));
 
     bool do_update_shared_vertices = false;
     mesh.repair(do_update_shared_vertices);
 
     if (flags & ASSUME_NO_REPAIR) {
-        ASSERT_FALSE(mesh.needed_repair());
+        REQUIRE_FALSE(mesh.needed_repair());
     }
 
     if (flags & ASSUME_MANIFOLD) {
         mesh.require_shared_vertices();
         if (!mesh.is_manifold()) mesh.WriteOBJFile("non_manifold.obj");
-        ASSERT_TRUE(mesh.is_manifold());
+        REQUIRE(mesh.is_manifold());
     }
 }
 
@@ -82,16 +85,16 @@ void test_pad(const std::string &   obj_filename,
               const sla::PadConfig &padcfg,
               PadByproducts &       out)
 {
-    ASSERT_TRUE(padcfg.validate().empty());
+    REQUIRE(padcfg.validate().empty());
 
     TriangleMesh mesh = load_model(obj_filename);
 
-    ASSERT_FALSE(mesh.empty());
+    REQUIRE_FALSE(mesh.empty());
 
     // Create pad skeleton only from the model
     Slic3r::sla::pad_blueprint(mesh, out.model_contours);
 
-    ASSERT_FALSE(out.model_contours.empty());
+    REQUIRE_FALSE(out.model_contours.empty());
 
     // Create the pad geometry for the model contours only
     Slic3r::sla::create_pad({}, out.model_contours, out.mesh, padcfg);
@@ -99,8 +102,7 @@ void test_pad(const std::string &   obj_filename,
     check_validity(out.mesh);
 
     auto bb = out.mesh.bounding_box();
-    ASSERT_DOUBLE_EQ(bb.max.z() - bb.min.z(),
-                     padcfg.full_height());
+    REQUIRE(bb.max.z() - bb.min.z() == Approx(padcfg.full_height()));
 }
 
 void test_pad(const std::string &   obj_filename,
@@ -125,23 +127,22 @@ void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
     double gnd  = stree.ground_level;
     double H1   = cfg.max_solo_pillar_height_mm;
     double H2   = cfg.max_dual_pillar_height_mm;
-    
+
     for (const sla::Head &head : stree.heads()) {
-        ASSERT_TRUE(!head.is_valid() || 
-                     head.pillar_id != sla::ID_UNSET || 
-                     head.bridge_id != sla::ID_UNSET);
+        REQUIRE((!head.is_valid() || head.pillar_id != sla::ID_UNSET ||
+                 head.bridge_id != sla::ID_UNSET));
     }
 
     for (const sla::Pillar &pillar : stree.pillars()) {
         if (std::abs(pillar.endpoint().z() - gnd) < EPSILON) {
             double h = pillar.height;
 
-            if (h > H1) ASSERT_GE(pillar.links, 1);
-            else if(h > H2) { ASSERT_GE(pillar.links, 2); }
+            if (h > H1) REQUIRE(pillar.links >= 1);
+            else if(h > H2) { REQUIRE(pillar.links >= 2); }
         }
 
-        ASSERT_LE(pillar.links, cfg.pillar_cascade_neighbors);
-        ASSERT_LE(pillar.bridges, cfg.max_bridges_on_pillar);
+        REQUIRE(pillar.links <= cfg.pillar_cascade_neighbors);
+        REQUIRE(pillar.bridges <= cfg.max_bridges_on_pillar);
     }
 
     double max_bridgelen = 0.;
@@ -153,17 +154,17 @@ void check_support_tree_integrity(const sla::SupportTreeBuilder &stree,
         double z     = n.z();
         double polar = std::acos(z / d);
         double slope = -polar + PI / 2.;
-        ASSERT_GE(std::abs(slope), cfg.bridge_slope - EPSILON);
+        REQUIRE(std::abs(slope) >= cfg.bridge_slope - EPSILON);
     };
 
     for (auto &bridge : stree.bridges()) chck_bridge(bridge, max_bridgelen);
-    ASSERT_LE(max_bridgelen, cfg.max_bridge_length_mm);
+    REQUIRE(max_bridgelen <= cfg.max_bridge_length_mm);
 
     max_bridgelen = 0;
     for (auto &bridge : stree.crossbridges()) chck_bridge(bridge, max_bridgelen);
 
     double md = cfg.max_pillar_link_distance_mm / std::cos(-cfg.bridge_slope);
-    ASSERT_LE(max_bridgelen, md);
+    REQUIRE(max_bridgelen <= md);
 }
 
 void test_supports(const std::string &       obj_filename,
@@ -173,7 +174,7 @@ void test_supports(const std::string &       obj_filename,
     using namespace Slic3r;
     TriangleMesh mesh = load_model(obj_filename);
 
-    ASSERT_FALSE(mesh.empty());
+    REQUIRE_FALSE(mesh.empty());
 
     TriangleMeshSlicer slicer{&mesh};
 
@@ -208,7 +209,7 @@ void test_supports(const std::string &       obj_filename,
                                   supportcfg.base_height_mm);
     } else {
         // Should be support points at least on the bottom of the model
-        ASSERT_FALSE(support_points.empty());
+        REQUIRE_FALSE(support_points.empty());
 
         // Also the support mesh should not be empty.
         validityflags |= ASSUME_NO_EMPTY;
@@ -226,17 +227,17 @@ void test_supports(const std::string &       obj_filename,
 
     // Quick check if the dimensions and placement of supports are correct
     auto obb = output_mesh.bounding_box();
-    
+
     double allowed_zmin = zmin - supportcfg.object_elevation_mm;
-    
+
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON)
         allowed_zmin = zmin - 2 * supportcfg.head_back_radius_mm;
 
     if (std::abs(obb.min.z() - allowed_zmin) > EPSILON)
         output_mesh.WriteOBJFile("outmesh_supports.obj");
-    
-    ASSERT_GE(obb.min.z(), allowed_zmin);
-    ASSERT_LE(obb.max.z(), zmax);
+
+    REQUIRE(obb.min.z() >= allowed_zmin);
+    REQUIRE(obb.max.z() <= zmax);
 
     // Move out the support tree into the byproducts, we can examine it further
     // in various tests.
@@ -269,7 +270,7 @@ void test_support_model_collision(
         byproducts.supporttree.slice(byproducts.slicegrid, CLOSING_RADIUS);
 
     // The slices originate from the same slice grid so the numbers must match
-    ASSERT_EQ(support_slices.size(), byproducts.model_slices.size());
+    REQUIRE(support_slices.size() == byproducts.model_slices.size());
 
     bool notouch = true;
     for (size_t n = 0; notouch && n < support_slices.size(); ++n) {
@@ -277,11 +278,11 @@ void test_support_model_collision(
         const ExPolygons &mod_slice = byproducts.model_slices[n];
 
         Polygons intersections = intersection(sup_slice, mod_slice);
-        
+
         notouch = notouch && intersections.empty();
     }
 
-    ASSERT_TRUE(notouch);
+    REQUIRE(notouch);
 }
 
 const char * const BELOW_PAD_TEST_OBJECTS[] = {
@@ -335,30 +336,31 @@ template <class I, class II> void test_pairhash()
     for (size_t i = 0; i < nums; ++i) {
         I a = A[i], b = B[i];
 
-        ASSERT_TRUE(a != b);
+        REQUIRE(a != b);
 
         II hash_ab = sla::pairhash<I, II>(a, b);
         II hash_ba = sla::pairhash<I, II>(b, a);
-        ASSERT_EQ(hash_ab, hash_ba);
+        REQUIRE(hash_ab == hash_ba);
 
         auto it = ints.find(hash_ab);
 
         if (it != ints.end()) {
-            ASSERT_TRUE(
+            REQUIRE((
                 (it->second.first == a && it->second.second == b) ||
-                (it->second.first == b && it->second.second == a));
+                (it->second.first == b && it->second.second == a)
+            ));
         } else
             ints[hash_ab] = std::make_pair(a, b);
     }
 }
 
-TEST(SLASupportGeneration, PillarPairHashShouldBeUnique) {
+TEST_CASE("Pillar pairhash should be unique", "[SLASupportGeneration]") {
     test_pairhash<int, long>();
     test_pairhash<unsigned, unsigned>();
     test_pairhash<unsigned, unsigned long>();
 }
 
-TEST(SLASupportGeneration, FlatPadGeometryIsValid) {
+TEST_CASE("Flat pad geometry is valid", "[SLASupportGeneration]") {
     sla::PadConfig padcfg;
 
     // Disable wings
@@ -367,7 +369,7 @@ TEST(SLASupportGeneration, FlatPadGeometryIsValid) {
     for (auto &fname : BELOW_PAD_TEST_OBJECTS) test_pad(fname, padcfg);
 }
 
-TEST(SLASupportGeneration, WingedPadGeometryIsValid) {
+TEST_CASE("WingedPadGeometryIsValid", "[SLASupportGeneration]") {
     sla::PadConfig padcfg;
 
     // Add some wings to the pad to test the cavity
@@ -376,7 +378,7 @@ TEST(SLASupportGeneration, WingedPadGeometryIsValid) {
     for (auto &fname : BELOW_PAD_TEST_OBJECTS) test_pad(fname, padcfg);
 }
 
-TEST(SLASupportGeneration, FlatPadAroundObjectIsValid) {
+TEST_CASE("FlatPadAroundObjectIsValid", "[SLASupportGeneration]") {
     sla::PadConfig padcfg;
 
     // Add some wings to the pad to test the cavity
@@ -388,7 +390,7 @@ TEST(SLASupportGeneration, FlatPadAroundObjectIsValid) {
     for (auto &fname : AROUND_PAD_TEST_OBJECTS) test_pad(fname, padcfg);
 }
 
-TEST(SLASupportGeneration, WingedPadAroundObjectIsValid) {
+TEST_CASE("WingedPadAroundObjectIsValid", "[SLASupportGeneration]") {
     sla::PadConfig padcfg;
 
     // Add some wings to the pad to test the cavity
@@ -399,21 +401,21 @@ TEST(SLASupportGeneration, WingedPadAroundObjectIsValid) {
     for (auto &fname : AROUND_PAD_TEST_OBJECTS) test_pad(fname, padcfg);
 }
 
-TEST(SLASupportGeneration, ElevatedSupportGeometryIsValid) {
+TEST_CASE("ElevatedSupportGeometryIsValid", "[SLASupportGeneration]") {
     sla::SupportConfig supportcfg;
     supportcfg.object_elevation_mm = 5.;
 
     for (auto fname : SUPPORT_TEST_MODELS) test_supports(fname);
 }
 
-TEST(SLASupportGeneration, FloorSupportGeometryIsValid) {
+TEST_CASE("FloorSupportGeometryIsValid", "[SLASupportGeneration]") {
     sla::SupportConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
 
     for (auto &fname: SUPPORT_TEST_MODELS) test_supports(fname, supportcfg);
 }
 
-TEST(SLASupportGeneration, ElevatedSupportsDoNotPierceModel) {
+TEST_CASE("ElevatedSupportsDoNotPierceModel", "[SLASupportGeneration]") {
 
     sla::SupportConfig supportcfg;
 
@@ -421,32 +423,32 @@ TEST(SLASupportGeneration, ElevatedSupportsDoNotPierceModel) {
         test_support_model_collision(fname, supportcfg);
 }
 
-TEST(SLASupportGeneration, FloorSupportsDoNotPierceModel) {
-    
+TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
+
     sla::SupportConfig supportcfg;
     supportcfg.object_elevation_mm = 0;
-    
+
     for (auto fname : SUPPORT_TEST_MODELS)
         test_support_model_collision(fname, supportcfg);
 }
 
-TEST(SLARasterOutput, DefaultRasterShouldBeEmpty) {
+TEST_CASE("DefaultRasterShouldBeEmpty", "[SLARasterOutput]") {
     sla::Raster raster;
-    ASSERT_TRUE(raster.empty());
+    REQUIRE(raster.empty());
 }
 
-TEST(SLARasterOutput, InitializedRasterShouldBeNONEmpty) {
+TEST_CASE("InitializedRasterShouldBeNONEmpty", "[SLARasterOutput]") {
     // Default Prusa SL1 display parameters
     sla::Raster::Resolution res{2560, 1440};
     sla::Raster::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
 
     sla::Raster raster;
     raster.reset(res, pixdim);
-    ASSERT_FALSE(raster.empty());
-    ASSERT_EQ(raster.resolution().width_px, res.width_px);
-    ASSERT_EQ(raster.resolution().height_px, res.height_px);
-    ASSERT_DOUBLE_EQ(raster.pixel_dimensions().w_mm, pixdim.w_mm);
-    ASSERT_DOUBLE_EQ(raster.pixel_dimensions().h_mm, pixdim.h_mm);
+    REQUIRE_FALSE(raster.empty());
+    REQUIRE(raster.resolution().width_px == res.width_px);
+    REQUIRE(raster.resolution().height_px == res.height_px);
+    REQUIRE(raster.pixel_dimensions().w_mm == Approx(pixdim.w_mm));
+    REQUIRE(raster.pixel_dimensions().h_mm == Approx(pixdim.h_mm));
 }
 
 using TPixel = uint8_t;
@@ -498,7 +500,7 @@ static void check_raster_transformations(sla::Raster::Orientation o,
     auto w = size_t(std::floor(rx));
     auto h = res.height_px - size_t(std::floor(ry));
 
-    ASSERT_TRUE(w < res.width_px && h < res.height_px);
+    REQUIRE((w < res.width_px && h < res.height_px));
 
     auto px = raster.read_pixel(w, h);
 
@@ -509,10 +511,10 @@ static void check_raster_transformations(sla::Raster::Orientation o,
         outf << img.serialize(raster);
     }
 
-    ASSERT_EQ(px, FullWhite);
+    REQUIRE(px == FullWhite);
 }
 
-TEST(SLARasterOutput, MirroringShouldBeCorrect) {
+TEST_CASE("MirroringShouldBeCorrect", "[SLARasterOutput]") {
     sla::Raster::TMirroring mirrorings[] = {sla::Raster::NoMirror,
                                             sla::Raster::MirrorX,
                                             sla::Raster::MirrorY,
@@ -574,7 +576,7 @@ static double predict_error(const ExPolygon &p, const sla::Raster::PixelDim &pd)
     return error;
 }
 
-TEST(SLARasterOutput, RasterizedPolygonAreaShouldMatch) {
+TEST_CASE("RasterizedPolygonAreaShouldMatch", "[SLARasterOutput]") {
     double disp_w = 120., disp_h = 68.;
     sla::Raster::Resolution res{2560, 1440};
     sla::Raster::PixelDim pixdim{disp_w / res.width_px, disp_h / res.height_px};
@@ -590,7 +592,7 @@ TEST(SLARasterOutput, RasterizedPolygonAreaShouldMatch) {
     double ra = raster_white_area(raster);
     double diff = std::abs(a - ra);
 
-    ASSERT_LE(diff, predict_error(poly, pixdim));
+    REQUIRE(diff <= predict_error(poly, pixdim));
 
     raster.clear();
     poly = square_with_hole(60.);
@@ -601,10 +603,5 @@ TEST(SLARasterOutput, RasterizedPolygonAreaShouldMatch) {
     ra = raster_white_area(raster);
     diff = std::abs(a - ra);
 
-    ASSERT_LE(diff, predict_error(poly, pixdim));
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    REQUIRE(diff <= predict_error(poly, pixdim));
 }

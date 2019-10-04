@@ -12,7 +12,7 @@
 
 namespace ClipperLib { struct Polygon; }
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace sla {
 
 /**
@@ -27,7 +27,7 @@ class Raster {
     class Impl;
     std::unique_ptr<Impl> m_impl;
 public:
-    
+
     // Raw byte buffer paired with its size. Suitable for compressed image data.
     class RawData
     {
@@ -38,16 +38,16 @@ public:
         RawData() = default;
         RawData(std::vector<std::uint8_t>&& data): m_buffer(std::move(data)) {}
         virtual ~RawData();
-        
+
         RawData(const RawData &) = delete;
         RawData &operator=(const RawData &) = delete;
-        
+
         RawData(RawData &&) = default;
         RawData &operator=(RawData &&) = default;
-        
+
         size_t size() const { return m_buffer.size(); }
         const uint8_t * data() const { return m_buffer.data(); }
-        
+
         virtual RawData& serialize(const Raster &/*raster*/)  { return *this; }
         virtual std::string get_file_extension() const = 0;
     };
@@ -71,22 +71,22 @@ public:
         inline PixelDim(double px_width_mm = 0.0, double px_height_mm = 0.0):
             w_mm(px_width_mm), h_mm(px_height_mm) {}
     };
-    
+
     enum Orientation { roLandscape, roPortrait };
-    
+
     using TMirroring = std::array<bool, 2>;
     static const TMirroring NoMirror;
     static const TMirroring MirrorX;
     static const TMirroring MirrorY;
     static const TMirroring MirrorXY;
-    
+
     struct Trafo {
         bool mirror_x = false, mirror_y = false, flipXY = false;
-        coord_t origin_x = 0, origin_y = .0;
-        
+        coord_t origin_x = 0, origin_y = 0;
+
         // If gamma is zero, thresholding will be performed which disables AA.
         double gamma = 1.;
-        
+
         // Portrait orientation will make sure the drawed polygons are rotated
         // by 90 degrees.
         Trafo(Orientation o = roLandscape, const TMirroring &mirror = NoMirror)
@@ -96,12 +96,12 @@ public:
             , flipXY(o == roPortrait)
         {}
     };
-    
+
     Raster();
     Raster(const Resolution &r,
            const PixelDim &  pd,
            const Trafo &     tr = {});
-    
+
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;
     Raster(Raster&& m);
@@ -109,10 +109,10 @@ public:
     ~Raster();
 
     /// Reallocated everything for the given resolution and pixel dimension.
-    void reset(const Resolution& r, 
+    void reset(const Resolution& r,
                const PixelDim& pd,
                const Trafo &tr = {});
-    
+
     /**
      * Release the allocated resources. Drawing in this state ends in
      * unspecified behavior.
@@ -129,11 +129,11 @@ public:
     /// Draw a polygon with holes.
     void draw(const ExPolygon& poly);
     void draw(const ClipperLib::Polygon& poly);
- 
+
     uint8_t read_pixel(size_t w, size_t h) const;
-    
+
     inline bool empty() const { return ! bool(m_impl); }
-      
+
 };
 
 class PNGImage: public Raster::RawData {
