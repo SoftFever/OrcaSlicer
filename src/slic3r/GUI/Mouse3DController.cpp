@@ -11,6 +11,7 @@
 #include <wx/glcanvas.h>
 
 #include <boost/nowide/convert.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
 
@@ -110,12 +111,12 @@ void Mouse3DController::init()
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
         return;
+    }
 
     m_initialized = true;
-
-    connect_device();
-    start();
 }
 
 void Mouse3DController::shutdown()
@@ -124,10 +125,6 @@ void Mouse3DController::shutdown()
         return;
 
     stop();
-
-    if (m_thread.joinable())
-        m_thread.join();
-
     disconnect_device();
 
     // Finalize the hidapi library
@@ -137,8 +134,24 @@ void Mouse3DController::shutdown()
 
 bool Mouse3DController::apply(Camera& camera)
 {
+    if (!m_initialized)
+        return false;
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_state.apply(camera);
+
+    // check if the user unplugged the device
+    if (!m_running && is_device_connected())
+    {
+        disconnect_device();
+        // hides the settings dialog if the user re-plug the device
+        m_settings_dialog = false;
+    }
+
+    // check if the user plugged the device
+    if (connect_device())
+        start();
+
+    return is_device_connected() ? m_state.apply(camera) : false;
 }
 
 void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
@@ -180,15 +193,18 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::PopStyleVar();
 }
 
-void Mouse3DController::connect_device()
+bool Mouse3DController::connect_device()
 {
-    if (m_device != nullptr)
-        return;
+    if (is_device_connected())
+        return false;
 
     // Enumerates devices
     hid_device_info* devices = hid_enumerate(0, 0);
     if (devices == nullptr)
-        return;
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to enumerate HID devices";
+        return false;
+    }
 
     // Searches for 1st connected 3Dconnexion device
     unsigned short vendor_id = 0;
@@ -231,7 +247,7 @@ void Mouse3DController::connect_device()
     hid_free_enumeration(devices);
 
     if (vendor_id == 0)
-        return;
+        return false;
 
     // Open the 3Dconnexion device using the VID, PID
     m_device = hid_open(vendor_id, product_id, nullptr);
@@ -242,7 +258,9 @@ void Mouse3DController::connect_device()
         hid_get_product_string(m_device, product.data(), 1024);
         m_device_str = boost::nowide::narrow(product.data());
 
-        // gets device parameters from the config, if present
+        BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
+
+        // get device parameters from the config, if present
         double translation = 1.0;
         float rotation = 1.0;
         wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation);
@@ -251,26 +269,35 @@ void Mouse3DController::connect_device()
         m_state.set_translation_scale(State::DefaultTranslationScale * std::max(0.5, std::min(2.0, translation)));
         m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation)));
     }
+
+    return (m_device != nullptr);
 }
 
 void Mouse3DController::disconnect_device()
 {
-    if (m_device == nullptr)
+    if (!is_device_connected())
         return;
     
-    // stores current device parameters into the config
+    // Stop the secondary thread, if running
+    if (m_thread.joinable())
+        m_thread.join();
+
+    // Store current device parameters into the config
     wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_rotation_scale() / State::DefaultRotationScale);
     wxGetApp().app_config->save();
 
     // Close the 3Dconnexion device
     hid_close(m_device);
     m_device = nullptr;
+
+    BOOST_LOG_TRIVIAL(info) << "Disconnected device: " << m_device_str;
+
     m_device_str = "";
 }
 
 void Mouse3DController::start()
 {
-    if ((m_device == nullptr) || m_running)
+    if (!is_device_connected() || m_running)
         return;
 
     m_thread = std::thread(&Mouse3DController::run, this);

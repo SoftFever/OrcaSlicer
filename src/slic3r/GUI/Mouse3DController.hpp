@@ -72,23 +72,24 @@ public:
     bool is_device_connected() const { return m_device != nullptr; }
     bool is_running() const { return m_running; }
 
-    bool has_translation() const { return m_state.has_translation(); }
-    bool has_rotation() const { return m_state.has_rotation(); }
+//    bool has_translation() const { return m_state.has_translation(); }
+//    bool has_rotation() const { return m_state.has_rotation(); }
     bool has_translation_or_rotation() const { return m_state.has_translation_or_rotation(); }
-    bool has_any_button() const { return m_state.has_any_button(); }
+//    bool has_any_button() const { return m_state.has_any_button(); }
 
     bool apply(Camera& camera);
 
     bool is_settings_dialog_shown() const { return m_settings_dialog; }
-    void show_settings_dialog(bool show) { m_settings_dialog = show; }
+    void show_settings_dialog(bool show) { m_settings_dialog = show && is_running(); }
     void render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const;
 
 private:
-    void connect_device();
+    bool connect_device();
     void disconnect_device();
     void start();
     void stop() { m_running = false; }
 
+    // secondary thread methods
     void run();
     void collect_input();
 };
