@@ -25,7 +25,7 @@
         %code{% RETVAL = THIS->contains(*polyline); %};
     void simplify(double tolerance);
     Polygons polygons()
-        %code{% RETVAL = *THIS; %};
+        %code{% RETVAL = (Polygons)*THIS; %};
     Clone<Polygon> convex_hull();
 %{
 
