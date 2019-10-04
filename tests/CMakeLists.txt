@@ -27,20 +27,6 @@ add_library(test_gtest_common INTERFACE)
 target_compile_definitions(test_gtest_common INTERFACE TEST_DATA_DIR="${TEST_DATA_DIR}")
 target_link_libraries(test_gtest_common INTERFACE GTest::GTest GTest::Main)
 
-macro(subdirlist result curdir)
-  file(GLOB children RELATIVE ${curdir} ${curdir}/*)
-  set(dirlist "")
-  foreach(child ${children})
-    if(IS_DIRECTORY ${curdir}/${child} AND NOT ${child} STREQUAL "catch2" )
-      list(APPEND dirlist ${child})
-    endif()
-  endforeach()
-  set(${result} ${dirlist})
-endmacro()
-
-subdirlist(SUBDIRS ${CMAKE_CURRENT_LIST_DIR})
-
-foreach(subdir ${SUBDIRS})
-  add_subdirectory(${subdir})
-endforeach()
+add_subdirectory(libnest2d)
+add_subdirectory(timeutils)
 
