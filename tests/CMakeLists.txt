@@ -27,10 +27,6 @@ add_library(test_gtest_common INTERFACE)
 target_compile_definitions(test_gtest_common INTERFACE TEST_DATA_DIR="${TEST_DATA_DIR}")
 target_link_libraries(test_gtest_common INTERFACE GTest::GTest GTest::Main)
 
-function(prusaslicer_discover_tests TARGET)
-    catch_discover_tests(${TARGET})
-endfunction()
-
 macro(subdirlist result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
@@ -47,7 +43,4 @@ subdirlist(SUBDIRS ${CMAKE_CURRENT_LIST_DIR})
 foreach(subdir ${SUBDIRS})
   add_subdirectory(${subdir})
 endforeach()
-
-#add_subdirectory(timeutils)
-#add_subdirectory(example)
 
