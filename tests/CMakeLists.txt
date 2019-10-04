@@ -15,6 +15,10 @@ target_compile_definitions(test_catch2_common INTERFACE TEST_DATA_DIR="${TEST_DA
 target_link_libraries(test_catch2_common INTERFACE Catch2::Catch2)
 
 add_library(test_common INTERFACE)
+if (APPLE)
+    target_link_libraries(test_common INTERFACE "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
+endif()
+
 target_link_libraries(test_common INTERFACE test_catch2_common)
 
 # DEPRECATED:
