@@ -156,7 +156,7 @@ namespace agg
 
         //-------------------------------------------------------------------
         template<class VertexSource>
-        void add_path(VertexSource& vs, unsigned path_id=0)
+        void add_path(VertexSource &&vs, unsigned path_id=0)
         {
             double x;
             double y;

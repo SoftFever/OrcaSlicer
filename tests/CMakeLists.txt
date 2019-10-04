@@ -29,4 +29,5 @@ target_link_libraries(test_gtest_common INTERFACE GTest::GTest GTest::Main)
 
 add_subdirectory(libnest2d)
 add_subdirectory(timeutils)
+add_subdirectory(sla_print)
 

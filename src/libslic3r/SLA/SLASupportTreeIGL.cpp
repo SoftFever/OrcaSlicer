@@ -77,7 +77,7 @@ bool PointIndex::remove(const PointIndexEl& el)
 }
 
 std::vector<PointIndexEl>
-PointIndex::query(std::function<bool(const PointIndexEl &)> fn)
+PointIndex::query(std::function<bool(const PointIndexEl &)> fn) const
 {
     namespace bgi = boost::geometry::index;
 
@@ -86,7 +86,7 @@ PointIndex::query(std::function<bool(const PointIndexEl &)> fn)
     return ret;
 }
 
-std::vector<PointIndexEl> PointIndex::nearest(const Vec3d &el, unsigned k = 1)
+std::vector<PointIndexEl> PointIndex::nearest(const Vec3d &el, unsigned k = 1) const
 {
     namespace bgi = boost::geometry::index;
     std::vector<PointIndexEl> ret; ret.reserve(k);
@@ -102,6 +102,11 @@ size_t PointIndex::size() const
 void PointIndex::foreach(std::function<void (const PointIndexEl &)> fn)
 {
     for(auto& el : m_impl->m_store) fn(el);
+}
+
+void PointIndex::foreach(std::function<void (const PointIndexEl &)> fn) const
+{
+    for(const auto &el : m_impl->m_store) fn(el);
 }
 
 /* **************************************************************************
@@ -274,6 +279,8 @@ double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
  * Misc functions
  * ****************************************************************************/
 
+namespace  {
+
 bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
                    double eps = 0.05)
 {
@@ -289,11 +296,13 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return std::sqrt(p.transpose() * p);
 }
 
+}
+
 PointSet normals(const PointSet& points,
                  const EigenMesh3D& mesh,
                  double eps,
                  std::function<void()> thr, // throw on cancel
-                 const std::vector<unsigned>& pt_indices = {})
+                 const std::vector<unsigned>& pt_indices)
 {
     if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
@@ -419,8 +428,16 @@ PointSet normals(const PointSet& points,
 
     return ret;
 }
+
 namespace bgi = boost::geometry::index;
 using Index3D = bgi::rtree< PointIndexEl, bgi::rstar<16, 4> /* ? */ >;
+
+namespace {
+
+bool cmp_ptidx_elements(const PointIndexEl& e1, const PointIndexEl& e2)
+{
+    return e1.second < e2.second;
+};
 
 ClusteredPoints cluster(Index3D &sindex,
                         unsigned max_points,
@@ -433,25 +450,22 @@ ClusteredPoints cluster(Index3D &sindex,
     // each other
     std::function<void(Elems&, Elems&)> group =
     [&sindex, &group, max_points, qfn](Elems& pts, Elems& cluster)
-    {
+    {        
         for(auto& p : pts) {
             std::vector<PointIndexEl> tmp = qfn(sindex, p);
-            auto cmp = [](const PointIndexEl& e1, const PointIndexEl& e2){
-                return e1.second < e2.second;
-            };
-
-            std::sort(tmp.begin(), tmp.end(), cmp);
+           
+            std::sort(tmp.begin(), tmp.end(), cmp_ptidx_elements);
 
             Elems newpts;
             std::set_difference(tmp.begin(), tmp.end(),
                                 cluster.begin(), cluster.end(),
-                                std::back_inserter(newpts), cmp);
+                                std::back_inserter(newpts), cmp_ptidx_elements);
 
             int c = max_points && newpts.size() + cluster.size() > max_points?
                         int(max_points - cluster.size()) : int(newpts.size());
 
             cluster.insert(cluster.end(), newpts.begin(), newpts.begin() + c);
-            std::sort(cluster.begin(), cluster.end(), cmp);
+            std::sort(cluster.begin(), cluster.end(), cmp_ptidx_elements);
 
             if(!newpts.empty() && (!max_points || cluster.size() < max_points))
                 group(newpts, cluster);
@@ -479,7 +493,6 @@ ClusteredPoints cluster(Index3D &sindex,
     return result;
 }
 
-namespace {
 std::vector<PointIndexEl> distance_queryfn(const Index3D& sindex,
                                           const PointIndexEl& p,
                                           double dist,
@@ -496,7 +509,8 @@ std::vector<PointIndexEl> distance_queryfn(const Index3D& sindex,
 
     return tmp;
 }
-}
+
+} // namespace
 
 // Clustering a set of points by the given criteria
 ClusteredPoints cluster(
@@ -558,5 +572,5 @@ ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
     });
 }
 
-}
-}
+} // namespace sla
+} // namespace Slic3r

@@ -8,35 +8,19 @@
 #include <libslic3r/ExPolygon.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 
+#include "SLACommon.hpp"
+#include "SLASpatIndex.hpp"
+
 namespace Slic3r {
 namespace sla {
-
-/// Get x and y coordinates (because we are eigenizing...)
-inline coord_t x(const Point& p) { return p(0); }
-inline coord_t y(const Point& p) { return p(1); }
-inline coord_t& x(Point& p) { return p(0); }
-inline coord_t& y(Point& p) { return p(1); }
-
-inline coordf_t x(const Vec3d& p) { return p(0); }
-inline coordf_t y(const Vec3d& p) { return p(1); }
-inline coordf_t z(const Vec3d& p) { return p(2); }
-inline coordf_t& x(Vec3d& p) { return p(0); }
-inline coordf_t& y(Vec3d& p) { return p(1); }
-inline coordf_t& z(Vec3d& p) { return p(2); }
-
-inline coord_t& x(Vec3crd& p) { return p(0); }
-inline coord_t& y(Vec3crd& p) { return p(1); }
-inline coord_t& z(Vec3crd& p) { return p(2); }
-inline coord_t x(const Vec3crd& p) { return p(0); }
-inline coord_t y(const Vec3crd& p) { return p(1); }
-inline coord_t z(const Vec3crd& p) { return p(2); }
 
 /// Intermediate struct for a 3D mesh
 struct Contour3D {
     Pointf3s points;
     std::vector<Vec3i> indices;
 
-    void merge(const Contour3D& ctr) {
+    Contour3D& merge(const Contour3D& ctr)
+    {
         auto s3 = coord_t(points.size());
         auto s = indices.size();
 
@@ -44,21 +28,27 @@ struct Contour3D {
         indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
 
         for(size_t n = s; n < indices.size(); n++) {
-            auto& idx = indices[n]; x(idx) += s3; y(idx) += s3; z(idx) += s3;
+            auto& idx = indices[n]; idx.x() += s3; idx.y() += s3; idx.z() += s3;
         }
+        
+        return *this;
     }
 
-    void merge(const Pointf3s& triangles) {
+    Contour3D& merge(const Pointf3s& triangles)
+    {
         const size_t offs = points.size();
         points.insert(points.end(), triangles.begin(), triangles.end());
         indices.reserve(indices.size() + points.size() / 3);
-
-        for(int i = (int)offs; i < (int)points.size(); i += 3)
+        
+        for(int i = int(offs); i < int(points.size()); i += 3)
             indices.emplace_back(i, i + 1, i + 2);
+        
+        return *this;
     }
 
     // Write the index triangle structure to OBJ file for debugging purposes.
-    void to_obj(std::ostream& stream) {
+    void to_obj(std::ostream& stream)
+    {
         for(auto& p : points) {
             stream << "v " << p.transpose() << "\n";
         }
@@ -71,6 +61,31 @@ struct Contour3D {
 
 using ClusterEl = std::vector<unsigned>;
 using ClusteredPoints = std::vector<ClusterEl>;
+
+// Clustering a set of points by the given distance.
+ClusteredPoints cluster(const std::vector<unsigned>& indices,
+                        std::function<Vec3d(unsigned)> pointfn,
+                        double dist,
+                        unsigned max_points);
+
+ClusteredPoints cluster(const PointSet& points,
+                        double dist,
+                        unsigned max_points);
+
+ClusteredPoints cluster(
+    const std::vector<unsigned>& indices,
+    std::function<Vec3d(unsigned)> pointfn,
+    std::function<bool(const PointIndexEl&, const PointIndexEl&)> predicate,
+    unsigned max_points);
+
+
+// Calculate the normals for the selected points (from 'points' set) on the
+// mesh. This will call squared distance for each point.
+PointSet normals(const PointSet& points,
+                 const EigenMesh3D& mesh,
+                 double eps = 0.05,  // min distance from edges
+                 std::function<void()> throw_on_cancel = [](){},
+                 const std::vector<unsigned>& selected_points = {});
 
 /// Mesh from an existing contour.
 inline TriangleMesh mesh(const Contour3D& ctour) {
