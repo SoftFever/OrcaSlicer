@@ -285,24 +285,22 @@ void Mouse3DController::run()
     }
 }
 
-double convert_input(int first, unsigned char val)
-{
-    int ret = 0;
-
-    switch (val)
-    {
-    case 0: { ret = first; break; }
-    case 1: { ret = first + 255; break; }
-    case 254: { ret = -511 + first; break; }
-    case 255: { ret = -255 + first; break; }
-    default: { break; }
-    }
-
-    return (double)ret / 349.0;
-}
-
 void Mouse3DController::collect_input()
 {
+    auto convert_input = [](unsigned char first, unsigned char second)-> double
+    {
+        int ret = 0;
+        switch (second)
+        {
+        case 0: { ret = (int)first; break; }
+        case 1: { ret = (int)first + 255; break; }
+        case 254: { ret = -511 + (int)first; break; }
+        case 255: { ret = -255 + (int)first; break; }
+        default: { break; }
+        }
+        return (double)ret / 349.0;
+    };
+
     // Read data from device
     enum EDataType
     {
@@ -328,19 +326,19 @@ void Mouse3DController::collect_input()
         {
         case Translation:
             {
-                Vec3d translation(-convert_input((int)retrieved_data[1], retrieved_data[2]),
-                        convert_input((int)retrieved_data[3], retrieved_data[4]),
-                        convert_input((int)retrieved_data[5], retrieved_data[6]));
-                if (!translation.isApprox(Vec3d::Zero()))
+                Vec3d translation(-convert_input(retrieved_data[1], retrieved_data[2]),
+                    convert_input(retrieved_data[3], retrieved_data[4]),
+                    convert_input(retrieved_data[5], retrieved_data[6]));
+            if (!translation.isApprox(Vec3d::Zero()))
                     m_state.set_translation(translation);
 
                 break;
             }
         case Rotation:
             {
-                Vec3f rotation(-(float)convert_input((int)retrieved_data[1], retrieved_data[2]),
-                    (float)convert_input((int)retrieved_data[3], retrieved_data[4]),
-                    -(float)convert_input((int)retrieved_data[5], retrieved_data[6]));
+                Vec3f rotation(-(float)convert_input(retrieved_data[1], retrieved_data[2]),
+                    (float)convert_input(retrieved_data[3], retrieved_data[4]),
+                    -(float)convert_input(retrieved_data[5], retrieved_data[6]));
                 if (!rotation.isApprox(Vec3f::Zero()))
                     m_state.set_rotation(rotation);
 

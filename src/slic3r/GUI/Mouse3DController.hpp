@@ -39,10 +39,6 @@ class Mouse3DController
         void set_button(unsigned int id) { m_buttons.push_back(id); }
         void reset_buttons() { return m_buttons.clear(); }
 
-        const Vec3d& get_translation() const { return m_translation; }
-        const Vec3f& get_rotation() const { return m_rotation; }
-        const std::vector<unsigned int>& get_buttons() const { return m_buttons; }
-
         bool has_translation() const { return !m_translation.isApprox(Vec3d::Zero()); }
         bool has_rotation() const { return !m_rotation.isApprox(Vec3f::Zero()); }
         bool has_translation_or_rotation() const { return !m_translation.isApprox(Vec3d::Zero()) && !m_rotation.isApprox(Vec3f::Zero()); }
