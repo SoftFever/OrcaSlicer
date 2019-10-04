@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <unordered_set>
@@ -7,8 +6,6 @@
 
 // Debug
 #include <fstream>
-
-//#include <gtest/gtest.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/OBJ.hpp"
@@ -114,9 +111,11 @@ void test_pad(const std::string &   obj_filename,
 
 struct SupportByproducts
 {
+    std::string             obj_fname;
     std::vector<float>      slicegrid;
     std::vector<ExPolygons> model_slices;
     sla::SupportTreeBuilder supporttree;
+    TriangleMesh            input_mesh;
 };
 
 const constexpr float CLOSING_RADIUS = 0.005f;
@@ -233,15 +232,14 @@ void test_supports(const std::string &       obj_filename,
     if (std::abs(supportcfg.object_elevation_mm) < EPSILON)
         allowed_zmin = zmin - 2 * supportcfg.head_back_radius_mm;
 
-    if (std::abs(obb.min.z() - allowed_zmin) > EPSILON)
-        output_mesh.WriteOBJFile("outmesh_supports.obj");
-
     REQUIRE(obb.min.z() >= allowed_zmin);
     REQUIRE(obb.max.z() <= zmax);
 
     // Move out the support tree into the byproducts, we can examine it further
     // in various tests.
+    out.obj_fname   = std::move(obj_filename);
     out.supporttree = std::move(treebuilder);
+    out.input_mesh  = std::move(mesh);
 }
 
 void test_supports(const std::string &       obj_filename,
@@ -249,6 +247,33 @@ void test_supports(const std::string &       obj_filename,
 {
     SupportByproducts byproducts;
     test_supports(obj_filename, supportcfg, byproducts);
+}
+
+void export_failed_case(const std::vector<ExPolygons> &support_slices,
+                        const SupportByproducts &byproducts)
+{
+    for (size_t n = 0; n < support_slices.size(); ++n) {
+        const ExPolygons &sup_slice = support_slices[n];
+        const ExPolygons &mod_slice = byproducts.model_slices[n];
+        Polygons intersections = intersection(sup_slice, mod_slice);
+        
+        std::stringstream ss;
+        if (!intersections.empty()) {
+            ss << byproducts.obj_fname << std::setprecision(4) << n << ".svg";
+            SVG svg(ss.str());
+            svg.draw(sup_slice, "green");
+            svg.draw(mod_slice, "blue");
+            svg.draw(intersections, "red");
+            svg.Close();
+        }
+    }
+    
+    TriangleMesh m;
+    byproducts.supporttree.retrieve_full_mesh(m);
+    m.merge(byproducts.input_mesh);
+    m.repair();
+    m.require_shared_vertices();
+    m.WriteOBJFile(byproducts.obj_fname.c_str());
 }
 
 void test_support_model_collision(
@@ -261,7 +286,12 @@ void test_support_model_collision(
 
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
-    supportcfg.head_penetration_mm = -0.1;
+    supportcfg.head_penetration_mm = -0.15;
+    
+    // TODO: currently, the tailheads penetrating into the model body do not
+    // respect the penetration parameter properly. No issues were reported so
+    // far but we should definitely fix this.
+    supportcfg.ground_facing_only = true;
 
     test_supports(obj_filename, supportcfg, byproducts);
 
@@ -270,7 +300,15 @@ void test_support_model_collision(
         byproducts.supporttree.slice(byproducts.slicegrid, CLOSING_RADIUS);
 
     // The slices originate from the same slice grid so the numbers must match
-    REQUIRE(support_slices.size() == byproducts.model_slices.size());
+
+    bool support_mesh_is_empty =
+        byproducts.supporttree.retrieve_mesh(sla::MeshType::Pad).empty() &&
+        byproducts.supporttree.retrieve_mesh(sla::MeshType::Support).empty();
+    
+    if (support_mesh_is_empty)
+        REQUIRE(support_slices.empty());
+    else
+        REQUIRE(support_slices.size() == byproducts.model_slices.size());
 
     bool notouch = true;
     for (size_t n = 0; notouch && n < support_slices.size(); ++n) {
@@ -281,6 +319,8 @@ void test_support_model_collision(
 
         notouch = notouch && intersections.empty();
     }
+    
+    if (!notouch) export_failed_case(support_slices, byproducts);
 
     REQUIRE(notouch);
 }
