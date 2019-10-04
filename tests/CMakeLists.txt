@@ -43,7 +43,6 @@ macro(subdirlist result curdir)
 endmacro()
 
 subdirlist(SUBDIRS ${CMAKE_CURRENT_LIST_DIR})
-message(STATUS ${SUBDIRS})
 
 foreach(subdir ${SUBDIRS})
   add_subdirectory(${subdir})
