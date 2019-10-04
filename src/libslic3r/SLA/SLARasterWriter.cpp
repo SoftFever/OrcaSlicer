@@ -114,7 +114,7 @@ void SLARasterWriter::set_config(const DynamicPrintConfig &cfg)
     m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
     m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
 
-    m_config["fileCreationTimestamp"] = Utils::current_utc_time2str();
+    m_config["fileCreationTimestamp"] = Utils::utc_timestamp();
     m_config["prusaSlicerVersion"]    = SLIC3R_BUILD_ID;
 }
 

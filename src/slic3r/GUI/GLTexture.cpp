@@ -107,8 +107,8 @@ void GLTexture::Compressor::compress()
             break;
 
         // stb_dxt library, despite claiming that the needed size of the destination buffer is equal to (source buffer size)/4,
-        // crashes if doing so, so we start with twice the required size
-        level.compressed_data = std::vector<unsigned char>(level.w * level.h * 2, 0);
+        // crashes if doing so, requiring a minimum of 16 bytes and up to a third of the source buffer size, so we set the destination buffer initial size to be half the source buffer size
+        level.compressed_data = std::vector<unsigned char>(std::max((unsigned int)16, level.w * level.h * 2), 0);
         int compressed_size = 0;
         rygCompress(level.compressed_data.data(), level.src_data.data(), level.w, level.h, 1, compressed_size);
         level.compressed_data.resize(compressed_size);
@@ -455,8 +455,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
         int lod_w = m_width;
         int lod_h = m_height;
         GLint level = 0;
-        // we do not need to generate all levels down to 1x1
-        while ((lod_w > 16) || (lod_h > 16))
+        while ((lod_w > 1) || (lod_h > 1))
         {
             ++level;
 
@@ -600,8 +599,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
         int lod_w = m_width;
         int lod_h = m_height;
         GLint level = 0;
-        // we do not need to generate all levels down to 1x1
-        while ((lod_w > 16) || (lod_h > 16))
+        while ((lod_w > 1) || (lod_h > 1))
         {
             ++level;
 
