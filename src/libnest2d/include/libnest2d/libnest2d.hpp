@@ -129,8 +129,12 @@ public:
         sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
     
     inline bool isFixed() const noexcept { return fixed_; }
-    inline void markAsFixed(bool fixed = true) { fixed_ = fixed; }
-    
+    inline void markAsFixedInBin(int binid)
+    {
+        fixed_ = binid >= 0;
+        binid_ = binid;
+    }
+
     inline void binId(int idx) { binid_ = idx; }
     inline int binId() const noexcept { return binid_; }
     
@@ -748,6 +752,7 @@ template<class PlacementStrategy, class SelectionStrategy >
 class _Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
+    
 public:
     using Item = typename PlacementStrategy::Item;
     using ShapeType = typename Item::ShapeType;
@@ -824,7 +829,7 @@ public:
      * the selection algorithm.
      */
     template<class It>
-    inline ItemIteratorOnly<It, void> execute(It from, It to)
+    inline ItemIteratorOnly<It, size_t> execute(It from, It to)
     {
         auto infl = static_cast<Coord>(std::ceil(min_obj_distance_/2.0));
         if(infl > 0) std::for_each(from, to, [this, infl](Item& item) {
@@ -837,6 +842,8 @@ public:
         if(min_obj_distance_ > 0) std::for_each(from, to, [infl](Item& item) {
             item.inflate(-infl);
         });
+        
+        return selector_.getResult().size();
     }
 
     /// Set a progress indicator function object for the selector.
