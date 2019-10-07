@@ -1617,24 +1617,37 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     std::string preferred_model;
 
-    // Figure out the default pre-selected printer based on the seletions in the picker.
+    // Figure out the default pre-selected printer based on the selections in the pickers.
     // The default is the first selected printer model (one with at least 1 variant selected).
     // The default is only applied by load_presets() if the user doesn't have a (visible) printer
     // selected already.
-// TODO:
-    // const auto vendor_prusa = bundle.vendors.find("PrusaResearch");
-    // const auto config_prusa = enabled_vendors.find("PrusaResearch");
-    // if (vendor_prusa != bundle.vendors.end() && config_prusa != enabled_vendors.end()) {
-    //     for (const auto &model : vendor_prusa->second.models) {
-    //         const auto model_it = config_prusa->second.find(model.id);
-    //         if (model_it != config_prusa->second.end() && model_it->second.size() > 0) {
-    //             preferred_model = model.id;
-    //             break;
-    //         }
-    //     }
-    // }
+    // Prusa printers are considered first, then 3rd party.
+    const auto config_prusa = enabled_vendors.find("PrusaResearch");
+    if (config_prusa != enabled_vendors.end()) {
+        for (const auto &model : bundles.prusa_bundle().vendor_profile->models) {
+            const auto model_it = config_prusa->second.find(model.id);
+            if (model_it != config_prusa->second.end() && model_it->second.size() > 0) {
+                preferred_model = model.id;
+                break;
+            }
+        }
+    }
+    if (preferred_model.empty()) {
+        for (const auto &bundle : bundles) {
+            if (bundle.second.is_prusa_bundle) { continue; }
 
-    // preset_bundle->load_presets(*app_config, preferred_model);
+            const auto config = enabled_vendors.find(bundle.first);
+            for (const auto &model : bundle.second.vendor_profile->models) {
+                const auto model_it = config->second.find(model.id);
+                if (model_it != config->second.end() && model_it->second.size() > 0) {
+                    preferred_model = model.id;
+                    break;
+                }
+            }
+        }
+    }
+
+    preset_bundle->load_presets(*app_config, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);
@@ -1753,7 +1766,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         p->load_pages();
         p->page_fff->select_all(true, false);
         p->page_msla->select_all(true, false);
-        p->index->go_to(p->page_update);
+        p->index->go_to(p->page_mode);
     });
 
     p->index->Bind(EVT_INDEX_PAGE, [this](const wxCommandEvent &) {
