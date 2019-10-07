@@ -46,7 +46,7 @@ time_t str2time(const std::string &str, TimeZone zone, TimeFormat fmt);
 
 inline std::string iso_utc_timestamp(time_t t)
 {
-    return time2str(t, TimeZone::utc, TimeFormat::gcode);
+    return time2str(t, TimeZone::utc, TimeFormat::iso8601Z);
 }
 
 inline std::string iso_utc_timestamp()
