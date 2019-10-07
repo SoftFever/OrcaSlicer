@@ -349,6 +349,8 @@ void Mouse3DController::collect_input()
 
     if (res > 0)
     {
+        bool updated = false;
+
         switch (retrieved_data[0])
         {
         case Translation:
@@ -356,8 +358,11 @@ void Mouse3DController::collect_input()
                 Vec3d translation(-convert_input(retrieved_data[1], retrieved_data[2]),
                     convert_input(retrieved_data[3], retrieved_data[4]),
                     convert_input(retrieved_data[5], retrieved_data[6]));
-            if (!translation.isApprox(Vec3d::Zero()))
+                if (!translation.isApprox(Vec3d::Zero()))
+                {
+                    updated = true;
                     m_state.set_translation(translation);
+                }
 
                 break;
             }
@@ -367,7 +372,10 @@ void Mouse3DController::collect_input()
                     (float)convert_input(retrieved_data[3], retrieved_data[4]),
                     -(float)convert_input(retrieved_data[5], retrieved_data[6]));
                 if (!rotation.isApprox(Vec3f::Zero()))
+                {
+                    updated = true;
                     m_state.set_rotation(rotation);
+                }
 
                 break;
             }
@@ -383,7 +391,10 @@ void Mouse3DController::collect_input()
                 for (unsigned int i = 0; i < 8; ++i)
                 {
                     if (retrieved_data[1] & (0x1 << i))
+                    {
+                        updated = true;
                         m_state.set_button(i);
+                    }
                 }
 
 //                // On the other hand, other libraries, as in https://github.com/koenieee/CrossplatformSpacemouseDriver/blob/master/SpaceMouseDriver/driver/SpaceMouseController.cpp
@@ -396,6 +407,10 @@ void Mouse3DController::collect_input()
         default:
             break;
         }
+
+        if (updated)
+            // ask for an idle event to update 3D scene
+            wxWakeUpIdle();
     }
 }
 

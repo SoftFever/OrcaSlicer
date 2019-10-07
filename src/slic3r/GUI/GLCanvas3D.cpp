@@ -2323,8 +2323,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 #if ENABLE_3DCONNEXION_DEVICES
-    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
-    m_dirty |= mouse3d_controller_applied;
+    m_dirty |= wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
 #endif // ENABLE_3DCONNEXION_DEVICES
 
     if (!m_dirty)
@@ -2333,7 +2332,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     _refresh_if_shown_on_screen();
 
 #if ENABLE_3DCONNEXION_DEVICES
-    if (m_keep_dirty || wxGetApp().plater()->get_mouse3d_controller().is_device_connected())
+    if (m_keep_dirty)
     {
         m_dirty = true;
         evt.RequestMore();
