@@ -466,7 +466,7 @@ struct ConfigWizard::priv
     void set_start_page(ConfigWizard::StartPage start_page);
     void create_3rdparty_pages();
     void set_run_reason(RunReason run_reason);
-    void update_materials();
+    void update_materials(Technology technology);
 
     void on_custom_setup();
     void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);

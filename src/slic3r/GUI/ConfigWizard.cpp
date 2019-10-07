@@ -515,9 +515,6 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     , list_l1(new StringList(this))
     , list_l2(new StringList(this))
     , list_l3(new PresetList(this))
-    , sel1_prev(wxNOT_FOUND)
-    , sel2_prev(wxNOT_FOUND)
-    , presets_loaded(false)
 {
     append_spacer(VERTICAL_SPACING);
 
@@ -567,7 +564,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
 
 void PageMaterials::reload_presets()
 {
-    list_l1->Clear();
+    clear();
 
     list_l1->append(_(L("(All)")), &EMPTY);
 
@@ -675,7 +672,7 @@ void PageMaterials::clear()
 void PageMaterials::on_activate()
 {
     if (! presets_loaded) {
-        wizard_p()->update_materials();
+        wizard_p()->update_materials(materials->technology);
         reload_presets();
     }
 }
@@ -753,8 +750,8 @@ PageMode::PageMode(ConfigWizard *parent)
 {
     append_text(_(L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
         "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
-        "The other two offer progressivly more specialized fine-tuning, "
-        "they are suitable for advanced and expert usiser, respectively. (FIXME: review this text)")));
+        "The other two offer progressivly more sophisticated fine-tuning, "
+        "they are suitable for advanced and expert usiser, respectively.")));
 
     radio_simple = new wxRadioButton(this, wxID_ANY, _(L("Simple mode")));
     radio_advanced = new wxRadioButton(this, wxID_ANY, _(L("Advanced mode")));
@@ -1384,7 +1381,7 @@ void ConfigWizard::priv::load_vendors()
         pair.second.preset_bundle->load_installed_printers(appconfig_new);
     }
 
-    update_materials();
+    update_materials(T_ANY);
 
     if (app_config->has_section(AppConfig::SECTION_FILAMENTS)) {
         appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
@@ -1437,12 +1434,11 @@ void ConfigWizard::priv::set_run_reason(RunReason run_reason)
     }
 }
 
-void ConfigWizard::priv::update_materials()
+void ConfigWizard::priv::update_materials(Technology technology)
 {
-    filaments.clear();
-    sla_materials.clear();
-
-    if (any_fff_selected) {
+    if (any_fff_selected && (technology & T_FFF)) {
+        filaments.clear();
+    
         // Iterate filaments in all bundles
         for (const auto &pair : bundles) {
             for (const auto &filament : pair.second.preset_bundle->filaments) {
@@ -1466,7 +1462,9 @@ void ConfigWizard::priv::update_materials()
         }
     }
 
-    if (any_sla_selected) {
+    if (any_sla_selected && (technology & T_SLA)) {
+        sla_materials.clear();
+
         // Iterate SLA materials in all bundles
         for (const auto &pair : bundles) {
             for (const auto &material : pair.second.preset_bundle->sla_materials) {
