@@ -31,7 +31,7 @@ public:
     float volume();
     void check_topology();
     bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == (int)this->stl.stats.number_of_facets; }
-    void WriteOBJFile(const char* output_file);
+    void WriteOBJFile(const char* output_file) const;
     void scale(float factor);
     void scale(const Vec3d &versor);
     void translate(float x, float y, float z);

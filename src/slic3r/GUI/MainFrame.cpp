@@ -264,7 +264,7 @@ bool MainFrame::can_export_supports() const
     const PrintObjects& objects = m_plater->sla_print().objects();
     for (const SLAPrintObject* object : objects)
     {
-        if (object->has_mesh(slaposBasePool) || object->has_mesh(slaposSupportTree))
+        if (object->has_mesh(slaposPad) || object->has_mesh(slaposSupportTree))
         {
             can_export = true;
             break;

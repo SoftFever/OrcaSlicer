@@ -14,12 +14,12 @@ namespace Slic3r {
     
 void ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(intersection_pl(this->polyline, collection), retval);
+    this->_inflate_collection(intersection_pl(this->polyline, (Polygons)collection), retval);
 }
 
 void ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(diff_pl(this->polyline, collection), retval);
+    this->_inflate_collection(diff_pl(this->polyline, (Polygons)collection), retval);
 }
 
 void ExtrusionPath::clip_end(double distance)

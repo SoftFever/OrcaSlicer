@@ -4478,10 +4478,10 @@ void Plater::export_stl(bool extended, bool selection_only)
                 bool is_left_handed = object->is_left_handed();
 
                 TriangleMesh pad_mesh;
-                bool has_pad_mesh = object->has_mesh(slaposBasePool);
+                bool has_pad_mesh = object->has_mesh(slaposPad);
                 if (has_pad_mesh)
                 {
-                    pad_mesh = object->get_mesh(slaposBasePool);
+                    pad_mesh = object->get_mesh(slaposPad);
                     pad_mesh.transform(mesh_trafo_inv);
                 }
 
@@ -4657,7 +4657,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error
     // Otherwise calculate everything, but start with the provided object.
     if (!this->p->background_processing_enabled()) {
         task.single_model_instance_only = true;
-        task.to_object_step = slaposBasePool;
+        task.to_object_step = slaposPad;
     }
     this->p->background_process.set_task(task);
     // and let the background processing start.

@@ -1784,7 +1784,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     // SLA steps to pull the preview meshes for.
 	typedef std::array<SLAPrintObjectStep, 2> SLASteps;
-	SLASteps sla_steps = { slaposSupportTree, slaposBasePool };
+	SLASteps sla_steps = { slaposSupportTree, slaposPad };
     struct SLASupportState {
 		std::array<PrintStateBase::StateWithTimeStamp, std::tuple_size<SLASteps>::value> step;
     };
@@ -5416,8 +5416,8 @@ void GLCanvas3D::_load_sla_shells()
                 m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();
                 if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
                     add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
-                if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
+                if (obj->is_step_done(slaposPad) && obj->has_mesh(slaposPad))
+                    add_volume(*obj, -int(slaposPad), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, false);
             }
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
