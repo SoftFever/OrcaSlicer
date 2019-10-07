@@ -1571,7 +1571,8 @@ struct Plater::priv
 
             size_t count = 0; // To know how much space to reserve
             for (auto obj : model.objects) count += obj->instances.size();
-            m_selected.clear(), m_unselected.clear();
+            m_selected.clear();
+            m_unselected.clear();
             m_selected.reserve(count + 1 /* for optional wti */);
             m_unselected.reserve(count + 1 /* for optional wti */);
         }
@@ -1585,11 +1586,12 @@ struct Plater::priv
         // Set up arrange polygon for a ModelInstance and Wipe tower
         template<class T> ArrangePolygon get_arrange_poly(T *obj) const {
             ArrangePolygon ap = obj->get_arrange_polygon();
-            ap.priority = 0;
-            ap.bed_idx = ap.translation.x() / bed_stride();
-            ap.setter = [obj, this](const ArrangePolygon &p) {
+            ap.priority       = 0;
+            ap.bed_idx        = ap.translation.x() / bed_stride();
+            ap.setter         = [obj, this](const ArrangePolygon &p) {
                 if (p.is_arranged()) {
-                    auto t = p.translation; t.x() += p.bed_idx * bed_stride();
+                    auto t = p.translation;
+                    t.x() += p.bed_idx * bed_stride();
                     obj->apply_arrange_result(t, p.rotation);
                 }
             };
@@ -1620,7 +1622,8 @@ struct Plater::priv
                 obj_sel(model.objects.size(), nullptr);
 
             for (auto &s : plater().get_selection().get_content())
-                if (s.first < int(obj_sel.size())) obj_sel[s.first] = &s.second;
+                if (s.first < int(obj_sel.size()))
+                    obj_sel[size_t(s.first)] = &s.second;
 
             // Go through the objects and check if inside the selection
             for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
@@ -1630,7 +1633,8 @@ struct Plater::priv
                 std::vector<bool> inst_sel(mo->instances.size(), false);
 
                 if (instlist)
-                    for (auto inst_id : *instlist) inst_sel[inst_id] = true;
+                    for (auto inst_id : *instlist)
+                        inst_sel[size_t(inst_id)] = true;
 
                 for (size_t i = 0; i < inst_sel.size(); ++i) {
                     ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
@@ -2759,9 +2763,8 @@ void Plater::priv::ArrangeJob::process() {
     try {
         arrangement::arrange(m_selected, m_unselected, min_d, bedshape,
                              [this, count](unsigned st) {
-                                 if (st >
-                                     0) // will not finalize after last one
-                                     update_status(count - st, arrangestr);
+                                 if (st > 0) // will not finalize after last one
+                                    update_status(int(count - st), arrangestr);
                              },
                              [this]() { return was_canceled(); });
     } catch (std::exception & /*e*/) {

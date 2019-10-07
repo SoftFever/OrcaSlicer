@@ -11,7 +11,7 @@ add_library(Catch2::Catch2 ALIAS Catch2)
 include(Catch)
 
 add_library(test_catch2_common INTERFACE)
-target_compile_definitions(test_catch2_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)")
+target_compile_definitions(test_catch2_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
 target_link_libraries(test_catch2_common INTERFACE Catch2::Catch2)
 
 add_library(test_common INTERFACE)

@@ -1,5 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
+#include <catch2/catch_reporter_teamcity.hpp>
+
 #include <fstream>
 
 #include <libnest2d.h>
@@ -224,12 +226,12 @@ TEST_CASE("Area", "[Geometry]") {
     using namespace libnest2d;
 
     RectangleItem rect(10, 10);
-
-    REQUIRE(rect.area() == 100);
+    
+    REQUIRE(rect.area() == Approx(100));
 
     RectangleItem rect2 = {100, 100};
-
-    REQUIRE(rect2.area() == 10000);
+    
+    REQUIRE(rect2.area() == Approx(10000));
 
     Item item = {
         {61, 97},
@@ -288,10 +290,8 @@ TEST_CASE("IsPointInsidePolygon", "[Geometry]") {
 //    REQUIRE_FALSE(ShapeLike::intersects(s1, s2));
 //}
 
-// Simple TEST_CASE, does not use gmock
 TEST_CASE("LeftAndDownPolygon", "[Geometry]")
 {
-    using namespace libnest2d;
     using namespace libnest2d;
 
     Box bin(100, 100);
@@ -339,7 +339,6 @@ TEST_CASE("LeftAndDownPolygon", "[Geometry]")
     }
 }
 
-// Simple TEST_CASE, does not use gmock
 TEST_CASE("ArrangeRectanglesTight", "[Nesting]")
 {
     using namespace libnest2d;
@@ -449,8 +448,8 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
                                       [](const Item &i1, const Item &i2) {
                                           return i1.binId() < i2.binId();
                                       });
-
-    size_t groups = max_group == rects.end() ? 0 : max_group->binId() + 1;
+    
+    auto groups = size_t(max_group == rects.end() ? 0 : max_group->binId() + 1);
 
     REQUIRE(groups == 1u);
     REQUIRE(
@@ -477,8 +476,6 @@ using namespace libnest2d;
 
 template<long long SCALE = 1, class Bin>
 void exportSVG(std::vector<std::reference_wrapper<Item>>& result, const Bin& bin, int idx = 0) {
-
-
     std::string loc = "out";
 
     static std::string svg_header =
@@ -494,20 +491,20 @@ void exportSVG(std::vector<std::reference_wrapper<Item>>& result, const Bin& bin
     if(out.is_open()) {
         out << svg_header;
         Item rbin( RectangleItem(bin.width(), bin.height()) );
-        for(unsigned i = 0; i < rbin.vertexCount(); i++) {
-            auto v = rbin.vertex(i);
+        for(unsigned j = 0; j < rbin.vertexCount(); j++) {
+            auto v = rbin.vertex(j);
             setY(v, -getY(v)/SCALE + 500 );
             setX(v, getX(v)/SCALE);
-            rbin.setVertex(i, v);
+            rbin.setVertex(j, v);
         }
         out << shapelike::serialize<Formats::SVG>(rbin.rawShape()) << std::endl;
         for(Item& sh : r) {
             Item tsh(sh.transformedShape());
-            for(unsigned i = 0; i < tsh.vertexCount(); i++) {
-                auto v = tsh.vertex(i);
+            for(unsigned j = 0; j < tsh.vertexCount(); j++) {
+                auto v = tsh.vertex(j);
                 setY(v, -getY(v)/SCALE + 500);
                 setX(v, getX(v)/SCALE);
-                tsh.setVertex(i, v);
+                tsh.setVertex(j, v);
             }
             out << shapelike::serialize<Formats::SVG>(tsh.rawShape()) << std::endl;
         }
@@ -570,7 +567,7 @@ TEST_CASE("convexHull", "[Geometry]") {
     REQUIRE(chull.size() == poly.size());
 }
 
-TEST_CASE("NestPrusaPartsShouldFitIntoTwoBins", "[Nesting]") {
+TEST_CASE("PrusaPartsShouldFitIntoTwoBins", "[Nesting]") {
 
     // Get the input items and define the bin.
     std::vector<Item> input = prusaParts();
@@ -579,21 +576,15 @@ TEST_CASE("NestPrusaPartsShouldFitIntoTwoBins", "[Nesting]") {
     // Do the nesting. Check in each step if the remaining items are less than
     // in the previous step. (Some algorithms can place more items in one step)
     size_t pcount = input.size();
-    libnest2d::nest(input, bin, [&pcount](unsigned cnt) {
-        REQUIRE(cnt < pcount);
-        pcount = cnt;
-    });
 
-    // Get the number of logical bins: search for the max binId...
-    auto max_binid_it = std::max_element(input.begin(), input.end(),
-                                         [](const Item &i1, const Item &i2) {
-                                             return i1.binId() < i2.binId();
-                                         });
-
-    auto bins = size_t(max_binid_it == input.end() ? 0 :
-                                                     max_binid_it->binId() + 1);
+    size_t bins = libnest2d::nest(input, bin, 0, {},
+                                  ProgressFunction{[&pcount](unsigned cnt) {
+                                      REQUIRE(cnt < pcount);
+                                      pcount = cnt;
+                                  }});
 
     // For prusa parts, 2 bins should be enough...
+    REQUIRE(bins > 0u);
     REQUIRE(bins <= 2u);
 
     // All parts should be processed by the algorithm
@@ -617,27 +608,81 @@ TEST_CASE("NestPrusaPartsShouldFitIntoTwoBins", "[Nesting]") {
     }
 }
 
-TEST_CASE("NestEmptyItemShouldBeUntouched", "[Nesting]") {
+TEST_CASE("EmptyItemShouldBeUntouched", "[Nesting]") {
     auto bin = Box(250000000, 210000000); // dummy bin
 
     std::vector<Item> items;
     items.emplace_back(Item{});   // Emplace empty item
     items.emplace_back(Item{0, 200, 0});   // Emplace zero area item
 
-    libnest2d::nest(items, bin);
-
+    size_t bins = libnest2d::nest(items, bin);
+    
+    REQUIRE(bins == 0u);
     for (auto &itm : items) REQUIRE(itm.binId() == BIN_ID_UNSET);
 }
 
-TEST_CASE("NestLargeItemShouldBeUntouched", "[Nesting]") {
+TEST_CASE("LargeItemShouldBeUntouched", "[Nesting]") {
     auto bin = Box(250000000, 210000000); // dummy bin
 
     std::vector<Item> items;
     items.emplace_back(RectangleItem{250000001, 210000001});  // Emplace large item
 
-    libnest2d::nest(items, bin);
-
+    size_t bins = libnest2d::nest(items, bin);
+    
+    REQUIRE(bins == 0u);
     REQUIRE(items.front().binId() == BIN_ID_UNSET);
+}
+
+TEST_CASE("Items can be preloaded", "[Nesting]") {
+    auto bin = Box({0, 0}, {250000000, 210000000}); // dummy bin
+    
+    std::vector<Item> items;
+    items.reserve(2);
+    
+    NestConfig<> cfg;
+    cfg.placer_config.alignment = NestConfig<>::Placement::Alignment::DONT_ALIGN;
+    
+    items.emplace_back(RectangleItem{10000000, 10000000});
+    Item &fixed_rect = items.back();
+    fixed_rect.translate(bin.center());
+    
+    items.emplace_back(RectangleItem{20000000, 20000000});
+    Item &movable_rect = items.back();
+    movable_rect.translate(bin.center());
+    
+    SECTION("Preloaded Item should be untouched") {
+        fixed_rect.markAsFixedInBin(0);
+        
+        size_t bins = libnest2d::nest(items, bin, 0, cfg);
+        
+        REQUIRE(bins == 1);
+        
+        REQUIRE(fixed_rect.binId() == 0);
+        REQUIRE(fixed_rect.translation().X == bin.center().X);
+        REQUIRE(fixed_rect.translation().Y == bin.center().Y);
+        
+        REQUIRE(movable_rect.binId() == 0);
+        REQUIRE(movable_rect.translation().X != bin.center().X);
+        REQUIRE(movable_rect.translation().Y != bin.center().Y);    
+    }
+    
+    SECTION("Preloaded Item should not affect free bins") {
+        fixed_rect.markAsFixedInBin(1);
+        
+        size_t bins = libnest2d::nest(items, bin, 0, cfg);
+        
+        REQUIRE(bins == 2);
+        
+        REQUIRE(fixed_rect.binId() == 1);
+        REQUIRE(fixed_rect.translation().X == bin.center().X);
+        REQUIRE(fixed_rect.translation().Y == bin.center().Y);
+        
+        REQUIRE(movable_rect.binId() == 0);
+        
+        auto bb = movable_rect.boundingBox();
+        REQUIRE(bb.center().X == bin.center().X);
+        REQUIRE(bb.center().Y == bin.center().Y);
+    }
 }
 
 namespace {
@@ -969,8 +1014,8 @@ TEST_CASE("mergePileWithPolygon", "[Geometry]") {
     REQUIRE(result.size() == 1);
 
     RectangleItem ref(45, 15);
-
-    REQUIRE(shapelike::area(result.front()) == ref.area());
+    
+    REQUIRE(shapelike::area(result.front()) == Approx(ref.area()));
 }
 
 namespace {
