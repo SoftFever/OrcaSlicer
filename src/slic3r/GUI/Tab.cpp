@@ -227,9 +227,9 @@ void Tab::create_preset_tab()
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
     m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) {
-        //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
+        //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
         //! but the OSX version derived from wxOwnerDrawnCombo, instead of:
-        //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data());
+        //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
         //! we doing next:
         int selected_item = m_presets_choice->GetSelection();
         if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
@@ -241,7 +241,7 @@ void Tab::create_preset_tab()
                 selected_string == "-------  User presets  -------"*/) {
                 m_presets_choice->SetSelection(m_selected_preset_item);
                 if (wxString::FromUTF8(selected_string.c_str()) == PresetCollection::separator(L("Add a new printer")))
-                    wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
+                    wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER); });
                 return;
             }
             m_selected_preset_item = selected_item;

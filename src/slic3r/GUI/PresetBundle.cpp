@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -40,6 +41,8 @@ static std::vector<std::string> s_project_options {
     "wiping_volumes_extruders",
     "wiping_volumes_matrix"
 };
+
+const char *PresetBundle::PRUSA_BUNDLE = "PrusaResearch";
 
 PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
@@ -194,7 +197,7 @@ void PresetBundle::setup_directories()
     }
 }
 
-void PresetBundle::load_presets(const AppConfig &config, const std::string &preferred_model_id)
+void PresetBundle::load_presets(AppConfig &config, const std::string &preferred_model_id)
 {
     // First load the vendor specific system presets.
     std::string errors_cummulative = this->load_system_presets();
@@ -325,12 +328,70 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
     }
 }
 
+void PresetBundle::load_installed_filaments(AppConfig &config)
+{
+    if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
+        std::unordered_set<const Preset*> comp_filaments;
+
+        for (const Preset &printer : printers) {
+            if (! printer.is_visible || printer.printer_technology() != ptFFF) {
+                continue;
+            }
+
+            for (const Preset &filament : filaments) {
+                if (filament.is_compatible_with_printer(printer)) {
+                    comp_filaments.insert(&filament);
+                }
+            }
+        }
+
+        for (const auto &filament: comp_filaments) {
+            config.set(AppConfig::SECTION_FILAMENTS, filament->name, "1");
+        }
+    }
+
+    for (auto &preset : filaments) {
+        preset.set_visible_from_appconfig(config);
+    }
+}
+
+void PresetBundle::load_installed_sla_materials(AppConfig &config)
+{
+    if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
+        std::unordered_set<const Preset*> comp_sla_materials;
+
+        for (const Preset &printer : printers) {
+            if (! printer.is_visible || printer.printer_technology() != ptSLA) {
+                continue;
+            }
+
+            for (const Preset &material : sla_materials) {
+                if (material.is_compatible_with_printer(printer)) {
+                    comp_sla_materials.insert(&material);
+                }
+            }
+        }
+
+        for (const auto &material: comp_sla_materials) {
+            config.set(AppConfig::SECTION_MATERIALS, material->name, "1");
+        }
+    }
+
+    for (auto &preset : sla_materials) {
+        preset.set_visible_from_appconfig(config);
+    }
+}
+
 // Load selections (current print, current filaments, current printer) from config.ini
 // This is done on application start up or after updates are applied.
-void PresetBundle::load_selections(const AppConfig &config, const std::string &preferred_model_id)
+void PresetBundle::load_selections(AppConfig &config, const std::string &preferred_model_id)
 {
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
+
+    // Update visibility of filament and sla material presets
+    this->load_installed_filaments(config);
+    this->load_installed_sla_materials(config);
 
     // Parse the initial print / filament / printer profile names.
     std::string initial_print_profile_name        = remove_ini_suffix(config.get("presets", "print"));
@@ -1032,9 +1093,9 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         auto vp = VendorProfile::from_ini(tree, path);
         if (vp.num_variants() == 0)
             return 0;
-        vendor_profile = &(*this->vendors.insert(vp).first);
+        vendor_profile = &this->vendors.insert({vp.id, vp}).first->second;
     }
-    
+
     if (flags & LOAD_CFGBUNDLE_VENDOR_ONLY) {
         return 0;
     }
@@ -1572,6 +1633,9 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
+
+    ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove filaments")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_FILAMENTS);
+
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();

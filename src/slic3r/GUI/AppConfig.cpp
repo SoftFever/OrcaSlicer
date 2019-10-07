@@ -28,6 +28,9 @@ static const std::string VENDOR_PREFIX = "vendor:";
 static const std::string MODEL_PREFIX = "model:";
 static const std::string VERSION_CHECK_URL = "https://files.prusa3d.com/wp-content/uploads/repository/PrusaSlicer-settings-master/live/PrusaSlicer.version";
 
+const std::string AppConfig::SECTION_FILAMENTS = "filaments";
+const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
+
 void AppConfig::reset()
 {
     m_storage.clear();

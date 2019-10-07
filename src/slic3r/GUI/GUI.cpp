@@ -101,49 +101,6 @@ const std::string& shortkey_alt_prefix()
 	return str;
 }
 
-bool config_wizard_startup(bool app_config_exists)
-{
-    if (!app_config_exists || wxGetApp().preset_bundle->printers.size() <= 1) {
-		config_wizard(ConfigWizard::RR_DATA_EMPTY);
-		return true;
-	} else if (get_app_config()->legacy_datadir()) {
-		// Looks like user has legacy pre-vendorbundle data directory,
-		// explain what this is and run the wizard
-
-		MsgDataLegacy dlg;
-		dlg.ShowModal();
-
-		config_wizard(ConfigWizard::RR_DATA_LEGACY);
-		return true;
-	}
-	return false;
-}
-
-void config_wizard(int reason)
-{
-    // Exit wizard if there are unsaved changes and the user cancels the action.
-    if (! wxGetApp().check_unsaved_changes())
-    	return;
-
-    try {
-		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
-        wizard.run(wxGetApp().preset_bundle, wxGetApp().preset_updater);
-	}
-	catch (const std::exception &e) {
-		show_error(nullptr, e.what());
-	}
-
-	wxGetApp().load_current_presets();
-
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA && model_has_multi_part_objects(wxGetApp().model()))
-    {
-        show_info(nullptr,
-            _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
-            _(L("Please check and fix your object list.")),
-            _(L("Attention!")));
-    }
-}
-
 // opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 {

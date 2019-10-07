@@ -393,9 +393,9 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
         bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
-        for (const VendorProfile &vp : bundle.vendors)
-            if (vp.id == cfg.name)
-                cfg.version.config_version = vp.config_version;
+        for (const auto &vp : bundle.vendors)
+            if (vp.second.id == cfg.name)
+                cfg.version.config_version = vp.second.config_version;
         // Fill-in the min/max slic3r version from the config index, if possible.
         try {
             // Load the config index for the vendor.
