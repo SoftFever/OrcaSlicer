@@ -455,6 +455,9 @@ Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
     std::vector<wxBitmap*> bmps;
     std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
+    if (bmps.empty())
+        return bmps;
+
     unsigned char rgb[3];
 
     /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
@@ -484,6 +487,8 @@ static wxBitmap get_extruder_color_icon(size_t extruder_idx)
 {
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps = get_extruder_color_icons();
+    if (bmps.empty())
+        return wxNullBitmap;
 
     return *bmps[extruder_idx >= bmps.size() ? 0 : extruder_idx];
 }

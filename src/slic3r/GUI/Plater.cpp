@@ -4893,7 +4893,11 @@ const DynamicPrintConfig* Plater::get_plater_config() const
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    std::vector<std::string> extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    std::vector<std::string> extruder_colors;
+    if (!config->has("extruder_colour")) // in case of a SLA print
+        return extruder_colors;
+
+    extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
     const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
     for (size_t i = 0; i < extruder_colors.size(); ++i)
         if (extruder_colors[i] == "" && i < filament_colours.size())
