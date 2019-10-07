@@ -3,7 +3,6 @@
 
 #include "libslic3r.h"
 #include "ExPolygon.hpp"
-#include "ExPolygonCollection.hpp"
 #include <string>
 
 namespace Slic3r {
@@ -21,7 +20,7 @@ public:
     // In case the caller gaves us the input polygons by a value, make a copy.
     ExPolygons                   expolygons_owned;
     // Lower slices, all regions.
-    const ExPolygonCollection   &lower_slices;
+    const ExPolygons   			&lower_slices;
     // Scaled extrusion width of the infill.
     coord_t                      spacing;
     // Angle resolution for the brute force search of the best bridging angle.
@@ -29,8 +28,8 @@ public:
     // The final optimal angle.
     double                       angle;
     
-    BridgeDetector(ExPolygon _expolygon, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
-    BridgeDetector(const ExPolygons &_expolygons, const ExPolygonCollection &_lower_slices, coord_t _extrusion_width);
+    BridgeDetector(ExPolygon _expolygon, const ExPolygons &_lower_slices, coord_t _extrusion_width);
+    BridgeDetector(const ExPolygons &_expolygons, const ExPolygons &_lower_slices, coord_t _extrusion_width);
     // If bridge_direction_override != 0, then the angle is used instead of auto-detect.
     bool detect_angle(double bridge_direction_override = 0.);
     Polygons coverage(double angle = -1) const;

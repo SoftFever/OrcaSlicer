@@ -23,7 +23,7 @@ std::vector<unsigned char> GCodePreviewData::Color::as_bytes() const
     return ret;
 }
 
-GCodePreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPaths& paths)
+GCodePreviewData::Extrusion::Layer::Layer(float z, const Paths& paths)
     : z(z)
     , paths(paths)
 {
@@ -171,8 +171,8 @@ size_t GCodePreviewData::Extrusion::memory_used() const
     size_t out = sizeof(*this);
     out += SLIC3R_STDVEC_MEMSIZE(this->layers, Layer);
     for (const Layer &layer : this->layers) {
-        out += SLIC3R_STDVEC_MEMSIZE(layer.paths, ExtrusionPath);
-        for (const ExtrusionPath &path : layer.paths)
+        out += SLIC3R_STDVEC_MEMSIZE(layer.paths, Path);
+        for (const Path &path : layer.paths)
 			out += SLIC3R_STDVEC_MEMSIZE(path.polyline.points, Point);
     }
 	return out;

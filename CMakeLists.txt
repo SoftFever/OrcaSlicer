@@ -37,7 +37,7 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 # Proposal for C++ unit tests and sandboxes
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
-option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
+option(SLIC3R_BUILD_TESTS       "Build unit tests" ON)
 
 # Print out the SLIC3R_* cache options
 get_cmake_property(_cache_vars CACHE_VARIABLES)

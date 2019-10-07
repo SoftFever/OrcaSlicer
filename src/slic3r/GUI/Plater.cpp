@@ -528,12 +528,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             const std::vector<double> &init_matrix = (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
             const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
-            const DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-            std::vector<std::string> extruder_colours = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
-            const std::vector<std::string>& filament_colours = (wxGetApp().plater()->get_plater_config()->option<ConfigOptionStrings>("filament_colour"))->values;
-            for (size_t i=0; i<extruder_colours.size(); ++i)
-                if (extruder_colours[i] == "" && i < filament_colours.size())
-                    extruder_colours[i] = filament_colours[i];
+            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
 
@@ -4474,10 +4469,10 @@ void Plater::export_stl(bool extended, bool selection_only)
                 bool is_left_handed = object->is_left_handed();
 
                 TriangleMesh pad_mesh;
-                bool has_pad_mesh = object->has_mesh(slaposBasePool);
+                bool has_pad_mesh = object->has_mesh(slaposPad);
                 if (has_pad_mesh)
                 {
-                    pad_mesh = object->get_mesh(slaposBasePool);
+                    pad_mesh = object->get_mesh(slaposPad);
                     pad_mesh.transform(mesh_trafo_inv);
                 }
 
@@ -4653,7 +4648,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error
     // Otherwise calculate everything, but start with the provided object.
     if (!this->p->background_processing_enabled()) {
         task.single_model_instance_only = true;
-        task.to_object_step = slaposBasePool;
+        task.to_object_step = slaposPad;
     }
     this->p->background_process.set_task(task);
     // and let the background processing start.
@@ -4797,6 +4792,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                     filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
 
                 p->config->option<ConfigOptionStrings>(opt_key)->values = filament_colors;
+                p->sidebar->obj_list()->update_extruder_colors();
                 continue;
             }
         }
@@ -4822,6 +4818,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
+            p->sidebar->obj_list()->update_extruder_colors();
         } else if(opt_key == "max_print_height") {
             update_scheduled = true;
         }
@@ -4870,8 +4867,10 @@ void Plater::force_filament_colors_update()
         }
     }
 
-    if (update_scheduled)
+    if (update_scheduled) {
         update();
+        p->sidebar->obj_list()->update_extruder_colors();
+    }
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
@@ -4896,6 +4895,22 @@ void Plater::on_activate()
 const DynamicPrintConfig* Plater::get_plater_config() const
 {
     return p->config;
+}
+
+std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
+{
+    const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    std::vector<std::string> extruder_colors;
+    if (!config->has("extruder_colour")) // in case of a SLA print
+        return extruder_colors;
+
+    extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
+    for (size_t i = 0; i < extruder_colors.size(); ++i)
+        if (extruder_colors[i] == "" && i < filament_colours.size())
+            extruder_colors[i] = filament_colours[i];
+
+    return extruder_colors;
 }
 
 wxString Plater::get_project_filename(const wxString& extension) const

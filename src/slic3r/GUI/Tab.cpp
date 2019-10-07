@@ -1808,7 +1808,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("single_extruder_multi_material");
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-            size_t extruders_count = boost::any_cast<size_t>(optgroup->get_value("extruders_count"));
+            // optgroup->get_value() return int for def.type == coInt,
+            // Thus, there should be boost::any_cast<int> !
+            // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
+            size_t extruders_count = size_t(boost::any_cast<int>(optgroup->get_value("extruders_count")));
             wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
                 if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
                     extruders_count_changed(extruders_count);
@@ -3016,6 +3019,18 @@ void Tab::save_preset(std::string name /*= ""*/)
             show_error(this, _(L("Cannot overwrite an external profile.")));
             return;
         }
+        if (existing && name != preset.name)
+        {
+            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exist."))) % name).str());
+            msg_text += "\n" + _(L("Replace?"));
+            wxMessageDialog dialog(nullptr, msg_text, _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+
+            if (dialog.ShowModal() == wxID_NO)
+                return;
+
+            // Remove the preset from the list.
+            m_presets->delete_preset(name);
+        }
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
@@ -3536,12 +3551,14 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_enable");
     optgroup->append_single_option_line("pad_wall_thickness");
     optgroup->append_single_option_line("pad_wall_height");
+    optgroup->append_single_option_line("pad_brim_size");
     optgroup->append_single_option_line("pad_max_merge_distance");
     // TODO: Disabling this parameter for the beta release
 //    optgroup->append_single_option_line("pad_edge_radius");
     optgroup->append_single_option_line("pad_wall_slope");
 
     optgroup->append_single_option_line("pad_around_object");
+    optgroup->append_single_option_line("pad_around_object_everywhere");
     optgroup->append_single_option_line("pad_object_gap");
     optgroup->append_single_option_line("pad_object_connector_stride");
     optgroup->append_single_option_line("pad_object_connector_width");

@@ -252,22 +252,15 @@ template<class T> struct remove_cvref
 
 template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
-template<template<class> class C, class T>
-class Container : public C<remove_cvref_t<T>>
-{
-public:
-    explicit Container(size_t count, T &&initval)
-        : C<remove_cvref_t<T>>(count, initval)
-    {}
-};
-
 template<class T> using DefaultContainer = std::vector<T>;
 
 /// Exactly like Matlab https://www.mathworks.com/help/matlab/ref/linspace.html
-template<class T, class I, template<class> class C = DefaultContainer>
-inline C<remove_cvref_t<T>> linspace(const T &start, const T &stop, const I &n)
+template<class T, class I, template<class> class Container = DefaultContainer>
+inline Container<remove_cvref_t<T>> linspace(const T &start,
+                                             const T &stop,
+                                             const I &n)
 {
-    Container<C, T> vals(n, T());
+    Container<remove_cvref_t<T>> vals(n, T());
 
     T      stride = (stop - start) / n;
     size_t i      = 0;
@@ -282,10 +275,13 @@ inline C<remove_cvref_t<T>> linspace(const T &start, const T &stop, const I &n)
 /// in the closest multiple of 'stride' less than or equal to 'end' and
 /// leaving 'stride' space between each value. 
 /// Very similar to Matlab [start:stride:end] notation.
-template<class T, template<class> class C = DefaultContainer>
-inline C<remove_cvref_t<T>> grid(const T &start, const T &stop, const T &stride)
+template<class T, template<class> class Container = DefaultContainer>
+inline Container<remove_cvref_t<T>> grid(const T &start,
+                                         const T &stop,
+                                         const T &stride)
 {
-    Container<C, T> vals(size_t(std::ceil((stop - start) / stride)), T());
+    Container<remove_cvref_t<T>>
+        vals(size_t(std::ceil((stop - start) / stride)), T());
     
     int i = 0;
     std::generate(vals.begin(), vals.end(), [&i, start, stride] {
@@ -387,10 +383,12 @@ unscaled(const Eigen::Matrix<Tin, N, EigenArgs...> &v) noexcept
     return v.template cast<Tout>() * SCALING_FACTOR;
 }
 
-template<class T> inline std::vector<T> reserve_vector(size_t capacity)
+template<class T, class I, class... Args> // Arbitrary allocator can be used
+inline IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 {
-    std::vector<T> ret;
-    ret.reserve(capacity);
+    std::vector<T, Args...> ret;
+    if (capacity > I(0)) ret.reserve(size_t(capacity));
+    
     return ret;
 }
 

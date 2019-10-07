@@ -289,6 +289,9 @@ public:
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
     bool            delete_current_preset();
+    // Delete the current preset, activate the first visible preset.
+    // returns true if the preset was deleted successfully.
+    bool            delete_preset(const std::string& name);
 
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
     void            load_bitmap_default(wxWindow *window, const std::string &file_name);

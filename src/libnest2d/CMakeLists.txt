@@ -13,11 +13,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED)
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules/)
 
-option(LIBNEST2D_UNITTESTS "If enabled, googletest framework will be downloaded
-    and the provided unit tests will be included in the build." OFF)
-
-option(LIBNEST2D_BUILD_EXAMPLES "If enabled, examples will be built." OFF)
-
 option(LIBNEST2D_HEADER_ONLY "If enabled static library will not be built." ON)
 
 set(GEOMETRY_BACKENDS clipper boost eigen)
@@ -108,27 +103,4 @@ if(NOT LIBNEST2D_HEADER_ONLY)
     add_library(${LIBNAME} ${PROJECT_SOURCE_DIR}/src/libnest2d.cpp)
     target_link_libraries(${LIBNAME} PUBLIC libnest2d)
     target_compile_definitions(${LIBNAME} PUBLIC LIBNEST2D_STATIC)
-endif()
-
-if(LIBNEST2D_BUILD_EXAMPLES)
-
-    add_executable(example     examples/main.cpp
-    #                           tools/libnfpglue.hpp
-    #                           tools/libnfpglue.cpp
-                               tools/nfp_svgnest.hpp
-                               tools/nfp_svgnest_glue.hpp
-                               tools/svgtools.hpp
-                               tests/printer_parts.cpp
-                               tests/printer_parts.h
-                               )
-
-    if(NOT LIBNEST2D_HEADER_ONLY)
-        target_link_libraries(example ${LIBNAME})
-    else()
-        target_link_libraries(example libnest2d)
-    endif()
-endif()
-
-if(LIBNEST2D_UNITTESTS)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 endif()

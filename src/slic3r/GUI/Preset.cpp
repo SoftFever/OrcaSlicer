@@ -508,11 +508,13 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_enable",
             "pad_wall_thickness",
             "pad_wall_height",
+            "pad_brim_size",
             "pad_max_merge_distance",
             // "pad_edge_radius",
             "pad_wall_slope",
             "pad_object_gap",
             "pad_around_object",
+            "pad_around_object_everywhere",
             "pad_object_connector_stride",
             "pad_object_connector_width",
             "pad_object_connector_penetration",
@@ -850,6 +852,21 @@ bool PresetCollection::delete_current_preset()
     if (new_selected_idx == m_presets.size())
         for (--new_selected_idx; new_selected_idx > 0 && !m_presets[new_selected_idx].is_visible; --new_selected_idx);
     this->select_preset(new_selected_idx);
+    return true;
+}
+
+bool PresetCollection::delete_preset(const std::string& name)
+{
+    auto it = this->find_preset_internal(name);
+
+    const Preset& preset = *it;
+    if (preset.is_default)
+        return false;
+    if (!preset.is_external && !preset.is_system) {
+        // Erase the preset file.
+        boost::nowide::remove(preset.file.c_str());
+    }
+    m_presets.erase(it);
     return true;
 }
 

@@ -47,8 +47,8 @@ void Layer::make_slices()
         slices = union_ex(slices_p);
     }
     
-    this->slices.expolygons.clear();
-    this->slices.expolygons.reserve(slices.size());
+    this->slices.clear();
+    this->slices.reserve(slices.size());
     
     // prepare ordering points
     Points ordering_points;
@@ -61,7 +61,7 @@ void Layer::make_slices()
     
     // populate slices vector
     for (size_t i : order)
-        this->slices.expolygons.push_back(std::move(slices[i]));
+        this->slices.push_back(std::move(slices[i]));
 }
 
 // Merge typed slices into untyped slices. This method is used to revert the effects of detect_surfaces_type() called for posPrepareInfill.
@@ -70,7 +70,7 @@ void Layer::merge_slices()
     if (m_regions.size() == 1) {
         // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
         // but use the non-split islands of a layer. For a single region print, these shall be equal.
-        m_regions.front()->slices.set(this->slices.expolygons, stInternal);
+        m_regions.front()->slices.set(this->slices, stInternal);
     } else {
         for (LayerRegion *layerm : m_regions)
             // without safety offset, artifacts are generated (GH #2494)

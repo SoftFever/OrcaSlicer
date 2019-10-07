@@ -219,6 +219,7 @@ public:
     // On activating the parent window.
     void on_activate();
     const DynamicPrintConfig* get_plater_config() const;
+    std::vector<std::string> get_extruder_colors_from_plater_config() const;
 
     void update_object_menu();
 

@@ -417,7 +417,7 @@ void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 }
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
-bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposBasePool); }
+bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposPad); }
 
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
@@ -501,7 +501,7 @@ void GLVolumeCollection::load_object_auxiliary(
     TriangleMesh convex_hull = mesh.convex_hull_3d();
     for (const std::pair<size_t, size_t>& instance_idx : instances) {
         const ModelInstance& model_instance = *print_object->model_object()->instances[instance_idx.first];
-        this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
+        this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
         v.indexed_vertex_array.load_mesh(mesh);
 	    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
@@ -1717,13 +1717,18 @@ static void thick_point_to_verts(const Vec3crd& point,
     point_to_indexed_vertex_array(point, width, height, volume.indexed_vertex_array);
 }
 
+void _3DScene::extrusionentity_to_verts(const Polyline &polyline, float width, float height, float print_z, GLVolume& volume)
+{
+	if (polyline.size() >= 2) {
+		size_t num_segments = polyline.size() - 1;
+		thick_lines_to_verts(polyline.lines(), std::vector<double>(num_segments, width), std::vector<double>(num_segments, height), false, print_z, volume);
+	}
+}
+
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
 void _3DScene::extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, GLVolume &volume)
 {
-    Lines               lines = extrusion_path.polyline.lines();
-    std::vector<double> widths(lines.size(), extrusion_path.width);
-    std::vector<double> heights(lines.size(), extrusion_path.height);
-    thick_lines_to_verts(lines, widths, heights, false, print_z, volume);
+	extrusionentity_to_verts(extrusion_path.polyline, extrusion_path.width, extrusion_path.height, print_z, volume);
 }
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
