@@ -104,6 +104,13 @@ private:
     // secondary thread methods
     void run();
     void collect_input();
+
+    typedef std::array<unsigned char, 13> DataPacket;
+    bool handle_packet(const DataPacket& packet);
+    bool handle_wireless_packet(const DataPacket& packet);
+    bool handle_packet_translation(const DataPacket& packet);
+    bool handle_packet_rotation(const DataPacket& packet, unsigned int first_byte);
+    bool handle_packet_button(const DataPacket& packet, unsigned int packet_size);
 };
 
 } // namespace GUI

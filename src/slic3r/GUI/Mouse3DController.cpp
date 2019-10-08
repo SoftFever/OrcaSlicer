@@ -22,18 +22,30 @@ static const std::vector<int> _3DCONNEXION_VENDORS =
     0x256F   // 3DCONNECTION = 9583 // 3Dconnexion
 };
 
-// See: https://github.com/FreeSpacenav/spacenavd/blob/a9eccf34e7cac969ee399f625aef827f4f4aaec6/src/dev.c#L202 for a wider list of devices
+// See: https://github.com/FreeSpacenav/spacenavd/blob/a9eccf34e7cac969ee399f625aef827f4f4aaec6/src/dev.c#L202
 static const std::vector<int> _3DCONNEXION_DEVICES =
 {
-    0xC623, // TRAVELER = 50723
-    0xC626, // NAVIGATOR = 50726 *TESTED*
-    0xc628,	// NAVIGATOR_FOR_NOTEBOOKS = 50728
-    0xc627, // SPACEEXPLORER = 50727
-    0xC603, // SPACEMOUSE = 50691
-    0xC62B, // SPACEMOUSEPRO = 50731
-    0xc621, // SPACEBALL5000 = 50721
-    0xc625, // SPACEPILOT = 50725
-    0xc652, // SPACEMOUSE PRO WIRELESS = 50770 *TESTED*
+    0xc603,	/* 50691 spacemouse plus XT */
+    0xc605,	/* 50693 cadman */
+    0xc606,	/* 50694 spacemouse classic */
+    0xc621,	/* 50721 spaceball 5000 */
+    0xc623,	/* 50723 space traveller */
+    0xc625,	/* 50725 space pilot */
+    0xc626,	/* 50726 space navigator *TESTED* */
+    0xc627,	/* 50727 space explorer */
+    0xc628,	/* 50728 space navigator for notebooks*/
+    0xc629,	/* 50729 space pilot pro*/
+    0xc62b,	/* 50731 space mouse pro*/
+    0xc62e,	/* 50734 spacemouse wireless (USB cable) */
+    0xc62f,	/* 50735 spacemouse wireless  receiver */
+    0xc631,	/* 50737 spacemouse pro wireless *TESTED* */
+    0xc632,	/* 50738 spacemouse pro wireless receiver */
+    0xc633,	/* 50739 spacemouse enterprise */
+    0xc635,	/* 50741 spacemouse compact */
+    0xc636,	/* 50742 spacemouse module */
+    0xc640,	/* 50752 nulooq */
+
+//    0xc652, /* 50770 3Dconnexion universal receiver */ 
 };
 
 namespace Slic3r {
@@ -51,18 +63,18 @@ Mouse3DController::State::State()
 
 bool Mouse3DController::State::process_mouse_wheel()
 {
-    if (m_mouse_wheel_counter > 0)
+    if (m_mouse_wheel_counter == 0)
+        return false;
+    else if (!m_rotation.empty())
     {
         --m_mouse_wheel_counter;
         return true;
     }
-    else if (m_rotation.empty())
+    else
     {
         m_mouse_wheel_counter = 0;
         return true;
     }
-
-    return false;
 }
 
 bool Mouse3DController::State::apply(Camera& camera)
@@ -225,20 +237,29 @@ bool Mouse3DController::connect_device()
     unsigned short vendor_id = 0;
     unsigned short product_id = 0;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    hid_device_info* cur = devices;
+    while (cur != nullptr)
+    {
+        std::cout << "Detected device '";
+
+        if (cur->manufacturer_string != nullptr)
+            std::wcout << cur->manufacturer_string << L" ";
+        else
+            std::wcout << "MMM ";
+        if (cur->product_string != nullptr)
+            std::wcout << cur->product_string;
+        else
+            std::wcout << "PPP";
+        std::cout << "' code: " << cur->product_id << " (" << std::hex << cur->product_id << std::dec << ")" << std::endl;
+
+        cur = cur->next;
+    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     hid_device_info* current = devices;
     while (current != nullptr)
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        if (current->manufacturer_string != nullptr)
-        {
-            std::string aaa = boost::nowide::narrow(current->manufacturer_string);
-            if (aaa == "3Dconnexion")
-            {
-                std::cout << "Detected 3Dconnexion device code: " << current->product_id << " (" << std::hex << current->product_id << std::dec << ")" << std::endl;
-            }
-        }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
         for (size_t i = 0; i < _3DCONNEXION_VENDORS.size(); ++i)
         {
             if (_3DCONNEXION_VENDORS[i] == current->vendor_id)
@@ -340,30 +361,8 @@ void Mouse3DController::run()
 
 void Mouse3DController::collect_input()
 {
-    auto convert_input = [](unsigned char first, unsigned char second)-> double
-    {
-        int ret = 0;
-        switch (second)
-        {
-        case 0: { ret = (int)first; break; }
-        case 1: { ret = (int)first + 255; break; }
-        case 254: { ret = -511 + (int)first; break; }
-        case 255: { ret = -255 + (int)first; break; }
-        default: { break; }
-        }
-        return (double)ret / 349.0;
-    };
-
-    // Read data from device
-    enum EDataType
-    {
-        Translation = 1,
-        Rotation,
-        Button
-    };
-
-    unsigned char retrieved_data[8] = { 0 };
-    int res = hid_read_timeout(m_device, retrieved_data, sizeof(retrieved_data), 100);
+    DataPacket packet = { 0 };
+    int res = hid_read_timeout(m_device, packet.data(), packet.size(), 100);
     if (res < 0)
     {
         // An error occourred (device detached from pc ?)
@@ -371,73 +370,148 @@ void Mouse3DController::collect_input()
         return;
     }
 
+    if (!wxGetApp().IsActive())
+        return;
+
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (res > 0)
+    bool updated = false;
+
+    if (res == 7)
+        updated = handle_packet(packet);
+    else if (res == 13)
+        updated = handle_wireless_packet(packet);
+    else if (res > 0)
+        std::cout << "Got unknown data packet of length: " << res << ", code:" << (int)packet[0] << std::endl;
+
+    if (updated)
+        // ask for an idle event to update 3D scene
+        wxWakeUpIdle();
+}
+
+bool Mouse3DController::handle_packet(const DataPacket& packet)
+{
+    switch (packet[0])
     {
-        bool updated = false;
-
-        switch (retrieved_data[0])
+    case 1: // Translation
         {
-        case Translation:
-            {
-                Vec3d translation(-convert_input(retrieved_data[1], retrieved_data[2]),
-                    convert_input(retrieved_data[3], retrieved_data[4]),
-                    convert_input(retrieved_data[5], retrieved_data[6]));
-                if (!translation.isApprox(Vec3d::Zero()))
-                {
-                    updated = true;
-                    m_state.append_translation(translation);
-                }
+            if (handle_packet_translation(packet))
+                return true;
 
-                break;
-            }
-        case Rotation:
-            {
-                Vec3f rotation(-(float)convert_input(retrieved_data[1], retrieved_data[2]),
-                    (float)convert_input(retrieved_data[3], retrieved_data[4]),
-                    -(float)convert_input(retrieved_data[5], retrieved_data[6]));
-                if (!rotation.isApprox(Vec3f::Zero()))
-                {
-                    updated = true;
-                    m_state.append_rotation(rotation);
-                }
-
-                break;
-            }
-        case Button:
-            {
-                // Because of lack of documentation, it is not clear how we should interpret the retrieved data for the button case.
-                // Experiments made with SpaceNavigator:
-                // retrieved_data[1] == 0 if no button pressed
-                // retrieved_data[1] == 1 if left button pressed
-                // retrieved_data[1] == 2 if right button pressed
-                // retrieved_data[1] == 3 if left and right button pressed
-                // seems to show that each button is associated to a bit of retrieved_data[1], which means that at max 8 buttons can be supported.
-                for (unsigned int i = 0; i < 8; ++i)
-                {
-                    if (retrieved_data[1] & (0x1 << i))
-                    {
-                        updated = true;
-                        m_state.append_button(i);
-                    }
-                }
-
-//                // On the other hand, other libraries, as in https://github.com/koenieee/CrossplatformSpacemouseDriver/blob/master/SpaceMouseDriver/driver/SpaceMouseController.cpp
-//                // interpret retrieved_data[1] as the button id
-//                if (retrieved_data[1] > 0)
-//                    m_state.set_button((unsigned int)retrieved_data[1]);
-
-                break;
-            }
-        default:
             break;
         }
+    case 2: // Rotation
+        {
+            if (handle_packet_rotation(packet, 1))
+                return true;
 
-        if (updated)
-            // ask for an idle event to update 3D scene
-            wxWakeUpIdle();
+            break;
+        }
+    case 3: // Button
+        {
+            if (handle_packet_button(packet, 6))
+                return true;
+
+            break;
+        }
+    default:
+        {
+            std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+            break;
+        }
     }
+
+    return false;
+}
+
+bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
+{
+    switch (packet[0])
+    {
+    case 1: // Translation + Rotation
+        {
+            bool updated = handle_packet_translation(packet);
+            updated |= handle_packet_rotation(packet, 7);
+
+            if (updated)
+                return true;
+
+            break;
+        }
+    case 3: // Button
+        {
+            if (handle_packet_button(packet, 12))
+                return true;
+
+            break;
+        }
+    default:
+        {
+            std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+            break;
+        }
+    }
+    
+    return false;
+}
+
+double convert_input(unsigned char first, unsigned char second)
+{
+    int ret = 0;
+    switch (second)
+    {
+    case 0: { ret = (int)first; break; }
+    case 1: { ret = (int)first + 255; break; }
+    case 254: { ret = -511 + (int)first; break; }
+    case 255: { ret = -255 + (int)first; break; }
+    default: { break; }
+    }
+    return (double)ret / 349.0;
+};
+
+bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
+{
+    Vec3d translation(-convert_input(packet[1], packet[2]),
+        convert_input(packet[3], packet[4]),
+        convert_input(packet[5], packet[6]));
+    if (!translation.isApprox(Vec3d::Zero()))
+    {
+        m_state.append_translation(translation);
+        return true;
+    }
+
+    return false;
+}
+
+bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
+{
+    Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1]),
+        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3]),
+        -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5]));
+    if (!rotation.isApprox(Vec3f::Zero()))
+    {
+        m_state.append_rotation(rotation);
+        return true;
+    }
+
+    return false;
+}
+
+bool Mouse3DController::handle_packet_button(const DataPacket& packet, unsigned int packet_size)
+{
+    for (unsigned int i = 0, base = 0; i < packet_size; ++i, base += 8)
+    {
+        for (unsigned int j = 0; j < 8; ++j)
+        {
+            if (packet[i + 1] & (0x1 << j))
+            {
+                m_state.append_button(base + j);
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 } // namespace GUI
