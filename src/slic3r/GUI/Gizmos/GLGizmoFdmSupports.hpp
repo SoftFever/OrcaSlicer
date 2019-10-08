@@ -21,7 +21,7 @@ private:
     ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    bool unproject_on_mesh(const Vec2d& mouse_pos,  size_t& facet_idx);
+    bool unproject_on_mesh(const Vec2d& mouse_pos,  size_t& facet_idx, Vec3f* position = nullptr);
 
 
     GLUquadricObj* m_quadric;
@@ -30,9 +30,9 @@ private:
     const TriangleMesh* m_mesh;
     const indexed_triangle_set* m_its;
     mutable std::vector<Vec2f> m_triangles;
+    float m_cursor_radius = 2.f;
 
-    std::vector<size_t> m_selected_facets;
-
+    std::vector<bool> m_selected_facets;
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -40,6 +40,7 @@ public:
     void set_fdm_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     ClippingPlane get_fdm_clipping_plane() const;
+    using NeighborData = std::pair<size_t, size_t>;
 
 
 private:
@@ -49,6 +50,7 @@ private:
 
     void render_triangles(const Selection& selection) const;
     void render_clipping_plane(const Selection& selection) const;
+    void render_cursor_circle() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
 
@@ -63,6 +65,8 @@ private:
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
     mutable std::unique_ptr<MeshClipper> m_object_clipper;
+
+    std::vector<NeighborData> m_neighbors; // pairs of vertex_index - facet_index
 
 
     bool is_point_clipped(const Vec3d& point) const;

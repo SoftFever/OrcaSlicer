@@ -85,11 +85,11 @@ void MeshClipper::recalculate_triangles()
     tr = m_trafo.get_matrix().cast<float>() * tr;
 
     m_triangles3d.clear();
-    m_triangles3d.reserve(m_triangles2d.size());
-    for (const Vec2f& pt : m_triangles2d) {
-        m_triangles3d.push_back(Vec3f(pt(0), pt(1), height_mesh+0.001f));
-        m_triangles3d.back() = tr * m_triangles3d.back();
-    }
+        m_triangles3d.reserve(m_triangles2d.size());
+        for (const Vec2f& pt : m_triangles2d) {
+            m_triangles3d.push_back(Vec3f(pt(0), pt(1), height_mesh+0.001f));
+            m_triangles3d.back() = tr * m_triangles3d.back();
+        }
 
     m_triangles_valid = true;
 }
@@ -102,9 +102,8 @@ Vec3f MeshRaycaster::get_triangle_normal(const indexed_triangle_set& its, size_t
     return Vec3f(a.cross(b)).normalized();
 }
 
-bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                                      Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
-                                      size_t* facet_idx) const
+void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+                                        Vec3d& point, Vec3d& direction) const
 {
     const std::array<int, 4>& viewport = camera.get_viewport();
     const Transform3d& model_mat = camera.get_view_matrix();

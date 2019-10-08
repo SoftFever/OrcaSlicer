@@ -107,6 +107,7 @@ void GLGizmoFdmSupports::on_render() const
 
     render_triangles(selection);
     render_clipping_plane(selection);
+    render_cursor_circle();
 
     glsafe(::glDisable(GL_BLEND));
 }
@@ -122,7 +123,9 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 
     ::glColor3f(0.0f, 0.37f, 1.0f);
 
-    for (size_t facet_idx : m_selected_facets) {
+    for (size_t facet_idx=0; facet_idx<m_selected_facets.size(); ++facet_idx) {
+        if (! m_selected_facets[facet_idx])
+            continue;
         stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(m_mesh->its, facet_idx);
         ::glPushMatrix();
         ::glTranslatef(normal(0), normal(1), normal(2));
@@ -135,9 +138,6 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         ::glEnd();
         ::glPopMatrix();
     }
-
-
-
 }
 
 void GLGizmoFdmSupports::render_clipping_plane(const Selection& selection) const
@@ -168,6 +168,53 @@ void GLGizmoFdmSupports::render_clipping_plane(const Selection& selection) const
         ::glEnd();
 		::glPopMatrix();
 	}
+}
+
+void GLGizmoFdmSupports::render_cursor_circle() const
+{
+    const Camera& camera = m_parent.get_camera();
+    float zoom = (float)camera.get_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    std::cout << zoom << " " << inv_zoom << std::endl;
+
+    Size cnv_size = m_parent.get_canvas_size();
+    float cnv_half_width = 0.5f * (float)cnv_size.get_width();
+    float cnv_half_height = 0.5f * (float)cnv_size.get_height();
+    if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
+        return;
+    Vec2d mouse_pos(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
+    Vec2d center(mouse_pos(0) - cnv_half_width, cnv_half_height - mouse_pos(1));
+    center = center * inv_zoom;
+
+    glsafe(::glLineWidth(1.5f));
+    float color[3];
+    color[2] = 0.3f;
+    glsafe(::glColor3fv(color));
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    // ensure that the circle is renderered inside the frustrum
+    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
+    // ensure that the overlay fits the frustrum near z plane
+    double gui_scale = camera.get_gui_scale();
+    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
+
+    glsafe(::glPushAttrib(GL_ENABLE_BIT));
+    glsafe(::glLineStipple(4, 0xAAAA));
+    glsafe(::glEnable(GL_LINE_STIPPLE));
+
+    ::glBegin(GL_LINE_LOOP);
+    for (double angle=0; angle<2*M_PI; angle+=M_PI/20.)
+        ::glVertex2f(GLfloat(center.x()+m_cursor_radius*cos(angle)), GLfloat(center.y()+m_cursor_radius*sin(angle)));
+    glsafe(::glEnd());
+
+    glsafe(::glPopAttrib());
+
+    glsafe(::glPopMatrix());
+
 }
 
 
@@ -209,6 +256,20 @@ void GLGizmoFdmSupports::update_mesh()
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
 
+    m_selected_facets.clear();
+    m_selected_facets.resize(m_mesh->its.indices.size());
+
+    // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
+    m_neighbors.clear();
+    m_neighbors.resize(3 * m_mesh->its.indices.size());
+    for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
+        const stl_triangle_vertex_indices& ind  = m_mesh->its.indices[i];
+        m_neighbors.emplace_back(ind(0), i);
+        m_neighbors.emplace_back(ind(1), i);
+        m_neighbors.emplace_back(ind(2), i);
+    }
+    std::sort(m_neighbors.begin(), m_neighbors.end());
+
     // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
     if (m_model_object_id != m_model_object->id() || ! m_mesh_raycaster)
         m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
@@ -218,9 +279,10 @@ void GLGizmoFdmSupports::update_mesh()
 
 
 
-// Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
-// Return false if no intersection was found, true otherwise.
-bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, size_t& facet_idx)
+// Unprojects the mouse position on the mesh and saves hit facet index into facet_idx
+// Position of the hit in mesh coords is copied into *position, if provided.
+// Returns false if no intersection was found, true otherwise.
+bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, size_t& facet_idx, Vec3f* position)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     if (! m_mesh_raycaster)
@@ -235,11 +297,20 @@ bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, size_t& facet
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get(), &facet_idx))
+    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get(), &facet_idx)) {
+        if (position)
+            *position = hit;
         return true;
+    }
     else
         return false;
 }
+
+bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSupports::NeighborData& b) {
+    return a.first < b.first;
+}
+
+
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
 // The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
@@ -266,9 +337,51 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
         size_t facet_idx = 0;
-        if (unproject_on_mesh(mouse_position, facet_idx)) {
-            m_selected_facets.push_back(facet_idx);
+        Vec3f hit_pos;
+        if (unproject_on_mesh(mouse_position, facet_idx, &hit_pos)) {
+            bool select = ! shift_down;
+
+            // Calculate direction from camera to the hit (in mesh coords):
+            const Selection& selection = m_parent.get_selection();
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            Geometry::Transformation trafo = volume->get_instance_transformation();
+            trafo.set_offset(trafo.get_offset());
+            Vec3f dir = ((trafo.get_matrix().inverse() * m_parent.get_camera().get_position()).cast<float>() - hit_pos).normalized();
+
+            // Calculate how far can a point be from the line (in mesh coords).
+            // FIXME: This should account for (possibly non-uniform) scaling of the mesh.
+            float limit = pow(m_cursor_radius, 2.f);
+
+
+            // A lambda to calculate distance from the line:
+            auto squared_distance_from_line = [&hit_pos, &dir](const Vec3f point) -> float {
+                Vec3f diff = hit_pos - point;
+                return (diff - diff.dot(dir) * dir).squaredNorm();
+            };
+
+            // Now go through the facets and de/select those close enough to the line (FIXME: efficiency)
+            for (size_t i=0; i<m_selected_facets.size(); ++i) {
+                float dist = squared_distance_from_line(m_mesh->its.vertices[m_mesh->its.indices[i](0)]);
+                if (dist < limit)
+                    m_selected_facets[i] = select;
+            }
+
+
+
+            //size_t vertex_idx = m_mesh->its.indices[facet_idx](0);
+            //auto it = m_neighbors.begin();
+            //std::vector<bool> visited(m_mesh->its.indices.size(), false);
+
+            //while (it != m_neighbors.end() && it->second == facet_idx)
+            //    it = std::lower_bound(it, m_neighbors.end(), std::make_pair(vertex_idx, size_t(0)));
+
+            //facet_idx = it->second;
+            //vertex_idx = m_mesh->its.indices[facet_idx](0);
+
+
+
             m_wait_for_up_event = true;
+            m_parent.set_as_dirty();
             return true;
         }
         if (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)
@@ -293,8 +406,6 @@ ClippingPlane GLGizmoFdmSupports::get_fdm_clipping_plane() const
     else
         return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
 }
-
-
 
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -337,6 +448,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
+     ImGui::SliderFloat(" ", &m_cursor_radius, 0.f, 8.f, "%.2f");
 
     m_imgui->end();
 }
