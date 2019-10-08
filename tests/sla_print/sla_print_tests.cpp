@@ -1,3 +1,4 @@
+#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
 #include <unordered_set>
@@ -358,10 +359,13 @@ template <class I, class II> void test_pairhash()
 
     const I Ibits = int(sizeof(I) * CHAR_BIT);
     const II IIbits = int(sizeof(II) * CHAR_BIT);
-    const int bits = IIbits / 2 < Ibits ? Ibits / 2 : Ibits;
-
+    
+    int bits = IIbits / 2 < Ibits ? Ibits / 2 : Ibits;
+    if (std::is_signed<I>::value) bits -= 1;
+    const I Imin = std::is_signed<I>::value ? -I(std::pow(2., bits)) : 0;
     const I Imax = I(std::pow(2., bits) - 1);
-    std::uniform_int_distribution<I> dis(0, Imax);
+    
+    std::uniform_int_distribution<I> dis(Imin, Imax);
 
     for (size_t i = 0; i < nums;) {
         I a = dis(gen);
@@ -395,6 +399,7 @@ template <class I, class II> void test_pairhash()
 }
 
 TEST_CASE("Pillar pairhash should be unique", "[SLASupportGeneration]") {
+    test_pairhash<int, int>();
     test_pairhash<int, long>();
     test_pairhash<unsigned, unsigned>();
     test_pairhash<unsigned, unsigned long>();

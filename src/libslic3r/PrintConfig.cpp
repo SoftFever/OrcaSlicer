@@ -749,6 +749,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "" });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("fill_angle", coFloat);
     def->label = L("Fill angle");
     def->category = L("Infill");
@@ -2398,6 +2402,18 @@ void PrintConfigDef::init_sla_params()
 
 
     // SLA Material settings.
+    def = this->add("material_type", coString);
+    def->label = L("SLA material type");
+    def->tooltip = L("SLA material type");
+    def->gui_type = "f_enum_open";   // TODO: ???
+    def->gui_flags = "show_value";
+    def->enum_values.push_back("Tough");
+    def->enum_values.push_back("Flexible");
+    def->enum_values.push_back("Casting");
+    def->enum_values.push_back("Dental");
+    def->enum_values.push_back("Heat-resistant");
+    def->set_default_value(new ConfigOptionString("Tough"));
+
     def = this->add("initial_layer_height", coFloat);
     def->label = L("Initial layer height");
     def->tooltip = L("Initial layer height");
@@ -2474,6 +2490,10 @@ void PrintConfigDef::init_sla_params()
     def->height = 13;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("material_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("default_sla_material_profile", coString);
     def->label = L("Default SLA material profile");

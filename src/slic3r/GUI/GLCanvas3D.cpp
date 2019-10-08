@@ -2323,7 +2323,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
 #if ENABLE_3DCONNEXION_DEVICES
-    m_dirty |= wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
+    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
+    m_dirty |= mouse3d_controller_applied;
 #endif // ENABLE_3DCONNEXION_DEVICES
 
     if (!m_dirty)
@@ -2332,7 +2333,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     _refresh_if_shown_on_screen();
 
 #if ENABLE_3DCONNEXION_DEVICES
-    if (m_keep_dirty)
+    if (m_keep_dirty || mouse3d_controller_applied)
     {
         m_dirty = true;
         evt.RequestMore();
@@ -2585,9 +2586,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 {
 #if ENABLE_3DCONNEXION_DEVICES
-    // try to filter out events coming from mouse 3d controller
-    const Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-    if (controller.has_translation_or_rotation())
+    // try to filter out events coming from mouse 3d 
+    Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+    if (controller.process_mouse_wheel())
         return;
 #endif // ENABLE_3DCONNEXION_DEVICES
 

@@ -12,7 +12,6 @@
 
 #include <boost/nowide/convert.hpp>
 #include <boost/log/trivial.hpp>
-
 #include "I18N.hpp"
 
 // WARN: If updating these lists, please also update resources/udev/90-3dconnexion.rules
@@ -23,6 +22,7 @@ static const std::vector<int> _3DCONNEXION_VENDORS =
     0x256F   // 3DCONNECTION = 9583 // 3Dconnexion
 };
 
+// See: https://github.com/FreeSpacenav/spacenavd/blob/a9eccf34e7cac969ee399f625aef827f4f4aaec6/src/dev.c#L202 for a wider list of devices
 static const std::vector<int> _3DCONNEXION_DEVICES =
 {
     0xC623, // TRAVELER = 50723
@@ -43,11 +43,26 @@ const double Mouse3DController::State::DefaultTranslationScale = 2.5;
 const float Mouse3DController::State::DefaultRotationScale = 1.0;
 
 Mouse3DController::State::State()
-    : m_translation(Vec3d::Zero())
-    , m_rotation(Vec3f::Zero())
-    , m_translation_scale(DefaultTranslationScale)
+    : m_translation_scale(DefaultTranslationScale)
     , m_rotation_scale(DefaultRotationScale)
+    , m_mouse_wheel_counter(0)
 {
+}
+
+bool Mouse3DController::State::process_mouse_wheel()
+{
+    if (m_mouse_wheel_counter > 0)
+    {
+        --m_mouse_wheel_counter;
+        return true;
+    }
+    else if (m_rotation.empty())
+    {
+        m_mouse_wheel_counter = 0;
+        return true;
+    }
+
+    return false;
 }
 
 bool Mouse3DController::State::apply(Camera& camera)
@@ -59,35 +74,35 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_translation())
     {
-        camera.set_target(camera.get_target() + m_translation_scale * (m_translation(0) * camera.get_dir_right() + m_translation(1) * camera.get_dir_forward() + m_translation(2) * camera.get_dir_up()));
-        m_translation = Vec3d::Zero();
+        const Vec3d& translation = m_translation.front();
+        camera.set_target(camera.get_target() + m_translation_scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
+        m_translation.pop();
         ret = true;
     }
 
     if (has_rotation())
     {
-        float theta = m_rotation_scale * m_rotation(0);
-        float phi = m_rotation_scale * m_rotation(2);
+        const Vec3f& rotation = m_rotation.front();
+        float theta = m_rotation_scale * rotation(0);
+        float phi = m_rotation_scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-        m_rotation = Vec3f::Zero();
+        m_rotation.pop();
+
         ret = true;
     }
 
     if (has_any_button())
     {
-        for (unsigned int i : m_buttons)
+        unsigned int button = m_buttons.front();
+        switch (button)
         {
-            switch (i)
-            {
-            case 0: { camera.update_zoom(1.0); break; }
-            case 1: { camera.update_zoom(-1.0); break; }
-            default: { break; }
-            }
+        case 0: { camera.update_zoom(1.0); break; }
+        case 1: { camera.update_zoom(-1.0); break; }
+        default: { break; }
         }
-
-        reset_buttons();
+        m_buttons.pop();
         ret = true;
     }
 
@@ -361,7 +376,7 @@ void Mouse3DController::collect_input()
                 if (!translation.isApprox(Vec3d::Zero()))
                 {
                     updated = true;
-                    m_state.set_translation(translation);
+                    m_state.append_translation(translation);
                 }
 
                 break;
@@ -374,7 +389,7 @@ void Mouse3DController::collect_input()
                 if (!rotation.isApprox(Vec3f::Zero()))
                 {
                     updated = true;
-                    m_state.set_rotation(rotation);
+                    m_state.append_rotation(rotation);
                 }
 
                 break;
@@ -393,7 +408,7 @@ void Mouse3DController::collect_input()
                     if (retrieved_data[1] & (0x1 << i))
                     {
                         updated = true;
-                        m_state.set_button(i);
+                        m_state.append_button(i);
                     }
                 }
 

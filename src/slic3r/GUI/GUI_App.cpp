@@ -38,7 +38,6 @@
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/MacDarkMode.hpp"
-#include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "FirmwareDialog.hpp"
@@ -46,6 +45,7 @@
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
+#include "UpdateDialogs.hpp"
 
 #ifdef __WXMSW__
 #include <Shlobj.h>
@@ -148,6 +148,7 @@ GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
+    , m_wizard(nullptr)
 {}
 
 GUI_App::~GUI_App()
@@ -204,7 +205,6 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-    app_conf_exists = app_config->exists();
     // load settings
     app_conf_exists = app_config->exists();
     if (app_conf_exists) {
@@ -287,7 +287,7 @@ bool GUI_App::on_init_inner()
             }
 
             CallAfter([this] {
-                config_wizard_startup(app_conf_exists);
+                config_wizard_startup();
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
@@ -826,7 +826,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case ConfigMenuWizard:
-            config_wizard(ConfigWizard::RR_USER);
+            run_wizard(ConfigWizard::RR_USER);
             break;
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
@@ -1057,6 +1057,31 @@ void GUI_App::open_web_page_localized(const std::string &http_address)
     wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
 }
 
+bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
+{
+    wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
+
+    if (! m_wizard) {
+        m_wizard = new ConfigWizard(mainframe);
+    }
+
+    const bool res = m_wizard->run(reason, start_page);
+
+    if (res) {
+        load_current_presets();
+
+        if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
+            && Slic3r::model_has_multi_part_objects(wxGetApp().model())) {
+            GUI::show_info(nullptr,
+                _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
+                _(L("Please check and fix your object list.")),
+                _(L("Attention!")));
+        }
+    }
+
+    return res;
+}
+
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
@@ -1103,6 +1128,24 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
     if (window->GetScreenRect() != metrics.get_rect()) {
         window->SetSize(metrics.get_rect());
     }
+}
+
+bool GUI_App::config_wizard_startup()
+{
+    if (!app_conf_exists || preset_bundle->printers.size() <= 1) {
+        run_wizard(ConfigWizard::RR_DATA_EMPTY);
+        return true;
+    } else if (get_app_config()->legacy_datadir()) {
+        // Looks like user has legacy pre-vendorbundle data directory,
+        // explain what this is and run the wizard
+
+        MsgDataLegacy dlg;
+        dlg.ShowModal();
+
+        run_wizard(ConfigWizard::RR_DATA_LEGACY);
+        return true;
+    }
+    return false;
 }
 
 // static method accepting a wxWindow object as first parameter

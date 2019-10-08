@@ -6,6 +6,7 @@
 
 #include "hidapi.h"
 
+#include <queue>
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -24,25 +25,39 @@ class Mouse3DController
         static const float DefaultRotationScale;
 
     private:
-        Vec3d m_translation;
-        Vec3f m_rotation;
-        std::vector<unsigned int> m_buttons;
+        std::queue<Vec3d> m_translation;
+        std::queue<Vec3f> m_rotation;
+        std::queue<unsigned int> m_buttons;
 
         double m_translation_scale;
         float m_rotation_scale;
 
+        // When the 3Dconnexion driver is running the system gets, by default, mouse wheel events when rotations around the X axis are detected.
+        // We want to filter these out because we are getting the data directly from the device, bypassing the driver, and those mouse wheel events interfere
+        // by triggering unwanted zoom in/out of the scene
+        // The following variable is used to count the potential mouse wheel events triggered and is updated by: 
+        // Mouse3DController::collect_input() through the call to the append_rotation() method
+        // GLCanvas3D::on_mouse_wheel() through the call to the process_mouse_wheel() method
+        // GLCanvas3D::on_idle() through the call to the apply() method
+        unsigned int m_mouse_wheel_counter;
+
     public:
         State();
 
-        void set_translation(const Vec3d& translation) { m_translation = translation; }
-        void set_rotation(const Vec3f& rotation) { m_rotation = rotation; }
-        void set_button(unsigned int id) { m_buttons.push_back(id); }
-        void reset_buttons() { return m_buttons.clear(); }
+        void append_translation(const Vec3d& translation) { m_translation.push(translation); }
+        void append_rotation(const Vec3f& rotation)
+        {
+            m_rotation.push(rotation);
+            if (rotation(0) != 0.0f)
+                ++m_mouse_wheel_counter;
+        }
+        void append_button(unsigned int id) { m_buttons.push(id); }
 
-        bool has_translation() const { return !m_translation.isApprox(Vec3d::Zero()); }
-        bool has_rotation() const { return !m_rotation.isApprox(Vec3f::Zero()); }
-        bool has_translation_or_rotation() const { return !m_translation.isApprox(Vec3d::Zero()) && !m_rotation.isApprox(Vec3f::Zero()); }
+        bool has_translation() const { return !m_translation.empty(); }
+        bool has_rotation() const { return !m_rotation.empty(); }
         bool has_any_button() const { return !m_buttons.empty(); }
+
+        bool process_mouse_wheel();
 
         double get_translation_scale() const { return m_translation_scale; }
         void set_translation_scale(double scale) { m_translation_scale = scale; }
@@ -72,10 +87,7 @@ public:
     bool is_device_connected() const { return m_device != nullptr; }
     bool is_running() const { return m_running; }
 
-//    bool has_translation() const { return m_state.has_translation(); }
-//    bool has_rotation() const { return m_state.has_rotation(); }
-    bool has_translation_or_rotation() const { return m_state.has_translation_or_rotation(); }
-//    bool has_any_button() const { return m_state.has_any_button(); }
+    bool process_mouse_wheel() { std::lock_guard<std::mutex> lock(m_mutex); return m_state.process_mouse_wheel(); }
 
     bool apply(Camera& camera);
 

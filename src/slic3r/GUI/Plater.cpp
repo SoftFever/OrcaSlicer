@@ -254,11 +254,18 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         auto selected_item = this->GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_CONFIG_WIZARD) {
+        if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
             this->SetSelection(this->last_selected);
             evt.StopPropagation();
-            if (marker == LABEL_ITEM_CONFIG_WIZARD)
-                wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
+            if (marker >= LABEL_ITEM_WIZARD_PRINTERS) {
+                ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
+                switch (marker) {
+                    case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
+                    case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
+                    case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
+                }
+                wxTheApp->CallAfter([sp]() { wxGetApp().run_wizard(ConfigWizard::RR_USER, sp); });
+            }
         } else if ( this->last_selected != selected_item ||
                     wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
             this->last_selected = selected_item;
@@ -1577,7 +1584,8 @@ struct Plater::priv
 
             size_t count = 0; // To know how much space to reserve
             for (auto obj : model.objects) count += obj->instances.size();
-            m_selected.clear(), m_unselected.clear();
+            m_selected.clear();
+            m_unselected.clear();
             m_selected.reserve(count + 1 /* for optional wti */);
             m_unselected.reserve(count + 1 /* for optional wti */);
         }
@@ -1591,11 +1599,12 @@ struct Plater::priv
         // Set up arrange polygon for a ModelInstance and Wipe tower
         template<class T> ArrangePolygon get_arrange_poly(T *obj) const {
             ArrangePolygon ap = obj->get_arrange_polygon();
-            ap.priority = 0;
-            ap.bed_idx = ap.translation.x() / bed_stride();
-            ap.setter = [obj, this](const ArrangePolygon &p) {
+            ap.priority       = 0;
+            ap.bed_idx        = ap.translation.x() / bed_stride();
+            ap.setter         = [obj, this](const ArrangePolygon &p) {
                 if (p.is_arranged()) {
-                    auto t = p.translation; t.x() += p.bed_idx * bed_stride();
+                    auto t = p.translation;
+                    t.x() += p.bed_idx * bed_stride();
                     obj->apply_arrange_result(t, p.rotation);
                 }
             };
@@ -1626,7 +1635,8 @@ struct Plater::priv
                 obj_sel(model.objects.size(), nullptr);
 
             for (auto &s : plater().get_selection().get_content())
-                if (s.first < int(obj_sel.size())) obj_sel[s.first] = &s.second;
+                if (s.first < int(obj_sel.size()))
+                    obj_sel[size_t(s.first)] = &s.second;
 
             // Go through the objects and check if inside the selection
             for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
@@ -1636,7 +1646,8 @@ struct Plater::priv
                 std::vector<bool> inst_sel(mo->instances.size(), false);
 
                 if (instlist)
-                    for (auto inst_id : *instlist) inst_sel[inst_id] = true;
+                    for (auto inst_id : *instlist)
+                        inst_sel[size_t(inst_id)] = true;
 
                 for (size_t i = 0; i < inst_sel.size(); ++i) {
                     ArrangePolygon &&ap = get_arrange_poly(mo->instances[i]);
@@ -2773,9 +2784,8 @@ void Plater::priv::ArrangeJob::process() {
     try {
         arrangement::arrange(m_selected, m_unselected, min_d, bedshape,
                              [this, count](unsigned st) {
-                                 if (st >
-                                     0) // will not finalize after last one
-                                     update_status(count - st, arrangestr);
+                                 if (st > 0) // will not finalize after last one
+                                    update_status(int(count - st), arrangestr);
                              },
                              [this]() { return was_canceled(); });
     } catch (std::exception & /*e*/) {
@@ -4909,7 +4919,11 @@ const DynamicPrintConfig* Plater::get_plater_config() const
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    std::vector<std::string> extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    std::vector<std::string> extruder_colors;
+    if (!config->has("extruder_colour")) // in case of a SLA print
+        return extruder_colors;
+
+    extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
     const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
     for (size_t i = 0; i < extruder_colors.size(); ++i)
         if (extruder_colors[i] == "" && i < filament_colours.size())
