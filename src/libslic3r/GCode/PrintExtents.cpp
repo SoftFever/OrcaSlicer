@@ -179,8 +179,8 @@ std::vector<Vec2d> get_wipe_tower_extrusions_points(const Print &print, const co
                 const WipeTower::Extrusion &e = tcr.extrusions[i];
                 if (e.width > 0) {
                     Vec2d delta = 0.5 * Vec2d(e.width, e.width);
-                    Vec2d p1 = Vec2d((&e - 1)->pos.x, (&e - 1)->pos.y);
-                    Vec2d p2 = Vec2d(e.pos.x, e.pos.y);
+                    Vec2d p1 = Vec2d((&e - 1)->pos.x(), (&e - 1)->pos.y());
+                    Vec2d p2 = Vec2d(e.pos.x(), e.pos.y());
                     bbox.merge(p1.cwiseMin(p2) - delta);
                     bbox.merge(p1.cwiseMax(p2) + delta);
                 }

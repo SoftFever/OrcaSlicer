@@ -1873,6 +1873,22 @@ bool Print::has_wipe_tower() const
         m_config.nozzle_diameter.values.size() > 1;
 }
 
+const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt, double first_layer_height, double nozzle_diameter) const
+{
+    // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
+    if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
+
+        float width = m_config.wipe_tower_width;
+        float brim_spacing = nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4);
+
+        const_cast<Print*>(this)->m_wipe_tower_data.depth = (900.f/width) * float(extruders_cnt - 1);
+        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = 4.5f * brim_spacing;
+    }
+
+    return m_wipe_tower_data;
+}
+
+
 void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
@@ -1981,6 +1997,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate(m_wipe_tower_data.tool_changes);
     m_wipe_tower_data.depth = wipe_tower.get_depth();
+    m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
 
     // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
