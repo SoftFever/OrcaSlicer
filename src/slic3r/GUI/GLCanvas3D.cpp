@@ -1999,19 +1999,17 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
 
             const Print *print = m_process->fff_print();
-            float depth = print->get_wipe_tower_depth();
 
-            // Calculate wipe tower brim spacing.
             const DynamicPrintConfig &print_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             double layer_height                     = print_config.opt_float("layer_height");
             double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
-            float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
+            double nozzle_diameter                  = print->config().nozzle_diameter.values[0];
+            float depth = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).depth;
+            float brim_width = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).brim_width;
 
-            if (!print->is_step_done(psWipeTower))
-                depth = (900.f/w) * (float)(extruders_count - 1);
             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                 1000, x, y, w, depth, (float)height, a, !print->is_step_done(psWipeTower),
-                brim_spacing * 4.5f, m_initialized);
+                brim_width, m_initialized);
             if (volume_idx_wipe_tower_old != -1)
                 map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
         }
@@ -5284,20 +5282,18 @@ void GLCanvas3D::_load_fff_shells()
         // adds wipe tower's volume
         double max_z = print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print->config();
-        unsigned int extruders_count = config.nozzle_diameter.size();
+        size_t extruders_count = config.nozzle_diameter.size();
         if ((extruders_count > 1) && config.wipe_tower && !config.complete_objects) {
-            float depth = print->get_wipe_tower_depth();
 
-            // Calculate wipe tower brim spacing.
             const DynamicPrintConfig &print_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             double layer_height                     = print_config.opt_float("layer_height");
             double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
-            float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
+            double nozzle_diameter                  = print->config().nozzle_diameter.values[0];
+            float depth = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).depth;
+            float brim_width = print->wipe_tower_data(extruders_count, first_layer_height, nozzle_diameter).brim_width;
 
-            if (!print->is_step_done(psWipeTower))
-                depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1);
             m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                !print->is_step_done(psWipeTower), brim_spacing * 4.5f, m_initialized);
+                !print->is_step_done(psWipeTower), brim_width, m_initialized);
         }
     }
 }
