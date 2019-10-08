@@ -22,10 +22,6 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 // The projection does not contain the priming regions.
 BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z);
 
-// Returns a vector of points of a projection of the wipe tower for the layers <= max_print_z.
-// The projection does not contain the priming regions.
-std::vector<Vec2d> get_wipe_tower_extrusions_points(const Print &print, const coordf_t max_print_z);
-
 // Returns a bounding box of the wipe tower priming extrusions.
 BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print);
 

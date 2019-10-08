@@ -160,43 +160,6 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
     return bbox;
 }
 
-// Returns a vector of points of a projection of the wipe tower for the layers <= max_print_z.
-// The projection does not contain the priming regions.
-std::vector<Vec2d> get_wipe_tower_extrusions_points(const Print &print, const coordf_t max_print_z)
-{
-    // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
-    // We need to get position and angle of the wipe tower to transform them to actual position.
-    Transform2d trafo =
-        Eigen::Translation2d(print.config().wipe_tower_x.value, print.config().wipe_tower_y.value) *
-        Eigen::Rotation2Dd(Geometry::deg2rad(print.config().wipe_tower_rotation_angle.value));
-
-    BoundingBoxf bbox;
-    for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.wipe_tower_data().tool_changes) {
-        if (!tool_changes.empty() && tool_changes.front().print_z > max_print_z)
-            break;
-        for (const WipeTower::ToolChangeResult &tcr : tool_changes) {
-            for (size_t i = 1; i < tcr.extrusions.size(); ++i) {
-                const WipeTower::Extrusion &e = tcr.extrusions[i];
-                if (e.width > 0) {
-                    Vec2d delta = 0.5 * Vec2d(e.width, e.width);
-                    Vec2d p1 = Vec2d((&e - 1)->pos.x(), (&e - 1)->pos.y());
-                    Vec2d p2 = Vec2d(e.pos.x(), e.pos.y());
-                    bbox.merge(p1.cwiseMin(p2) - delta);
-                    bbox.merge(p1.cwiseMax(p2) + delta);
-                }
-            }
-        }
-    }
-
-    std::vector<Vec2d> points;
-    points.push_back(trafo * Vec2d(bbox.min.x(), bbox.max.y()));
-    points.push_back(trafo * Vec2d(bbox.max.x(), bbox.max.y()));
-    points.push_back(trafo * Vec2d(bbox.max.x(), bbox.min.y()));
-    points.push_back(trafo * Vec2d(bbox.min.x(), bbox.min.y()));
-
-    return points;
-}
-
 // Returns a bounding box of the wipe tower priming extrusions.
 BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
 {

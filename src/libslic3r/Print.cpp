@@ -11,7 +11,6 @@
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
-#include "GCode/PrintExtents.hpp"
 #include "Utils.hpp"
 
 //#include "PrintExport.hpp"
@@ -1607,9 +1606,15 @@ void Print::_make_skirt()
     }
 
     // Include the wipe tower.
-    if (has_wipe_tower())
-        for (const Vec2d& point : get_wipe_tower_extrusions_points(*this, skirt_height_z))
-            points.push_back(Point(scale_(point.x()), scale_(point.y())));
+    if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
+        double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
+        double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
+        Vec2d pt = Vec2d(m_config.wipe_tower_x-m_wipe_tower_data.brim_width, m_config.wipe_tower_y-m_wipe_tower_data.brim_width);
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y()+depth)));
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y()+depth)));
+    }
 
     if (points.size() < 3)
         // At least three points required for a convex hull.
