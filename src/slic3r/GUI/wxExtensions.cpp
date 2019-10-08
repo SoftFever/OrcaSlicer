@@ -455,7 +455,7 @@ Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
     std::vector<wxBitmap*> bmps;
     std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
-    if (bmps.empty())
+    if (colors.empty())
         return bmps;
 
     unsigned char rgb[3];
