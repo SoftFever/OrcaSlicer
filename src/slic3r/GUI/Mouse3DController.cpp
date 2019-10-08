@@ -26,21 +26,21 @@ static const std::vector<int> _3DCONNEXION_VENDORS =
 static const std::vector<int> _3DCONNEXION_DEVICES =
 {
     0xC623, // TRAVELER = 50723
-    0xC626, // NAVIGATOR = 50726
+    0xC626, // NAVIGATOR = 50726 *TESTED*
     0xc628,	// NAVIGATOR_FOR_NOTEBOOKS = 50728
     0xc627, // SPACEEXPLORER = 50727
     0xC603, // SPACEMOUSE = 50691
     0xC62B, // SPACEMOUSEPRO = 50731
     0xc621, // SPACEBALL5000 = 50721
     0xc625, // SPACEPILOT = 50725
-    0xc629  // SPACEPILOTPRO = 50729
+    0xc652, // SPACEMOUSE PRO WIRELESS = 50770 *TESTED*
 };
 
 namespace Slic3r {
 namespace GUI {
     
 const double Mouse3DController::State::DefaultTranslationScale = 2.5;
-const float Mouse3DController::State::DefaultRotationScale = 1.0;
+const float Mouse3DController::State::DefaultRotationScale = 1.0f;
 
 Mouse3DController::State::State()
     : m_translation_scale(DefaultTranslationScale)
@@ -189,8 +189,8 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::PopStyleColor();
     ImGui::SameLine();
     imgui.text(m_device_str);
-    ImGui::Separator();
 
+    ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, color);
     imgui.text(_(L("Speed:")));
     ImGui::PopStyleColor();
@@ -199,7 +199,7 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     if (ImGui::SliderFloat(_(L("Translation")), &translation, 0.5f, 2.0f, "%.1f"))
         m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation);
 
-    float rotation = (float)m_state.get_rotation_scale() / State::DefaultRotationScale;
+    float rotation = m_state.get_rotation_scale() / State::DefaultRotationScale;
     if (ImGui::SliderFloat(_(L("Rotation")), &rotation, 0.5f, 2.0f, "%.1f"))
         m_state.set_rotation_scale(State::DefaultRotationScale * rotation);
 
@@ -228,6 +228,17 @@ bool Mouse3DController::connect_device()
     hid_device_info* current = devices;
     while (current != nullptr)
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (current->manufacturer_string != nullptr)
+        {
+            std::string aaa = boost::nowide::narrow(current->manufacturer_string);
+            if (aaa == "3Dconnexion")
+            {
+                std::cout << "Detected 3Dconnexion device code: " << current->product_id << " (" << std::hex << current->product_id << std::dec << ")" << std::endl;
+            }
+        }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
         for (size_t i = 0; i < _3DCONNEXION_VENDORS.size(); ++i)
         {
             if (_3DCONNEXION_VENDORS[i] == current->vendor_id)
