@@ -2399,6 +2399,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             {
                 Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
                 controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                m_dirty = true;
                 break;
             }
 #endif // ENABLE_3DCONNEXION_DEVICES

@@ -22,15 +22,28 @@ class Mouse3DController
     {
     public:
         static const double DefaultTranslationScale;
+        static const double MaxTranslationDeadzone;
+        static const double DefaultTranslationDeadzone;
         static const float DefaultRotationScale;
+        static const float MaxRotationDeadzone;
+        static const float DefaultRotationDeadzone;
 
     private:
+        template <typename Number>
+        struct CustomParameters
+        {
+            Number scale;
+            Number deadzone;
+
+            CustomParameters(Number scale, Number deadzone) : scale(scale), deadzone(deadzone) {}
+        };
+
         std::queue<Vec3d> m_translation;
         std::queue<Vec3f> m_rotation;
         std::queue<unsigned int> m_buttons;
 
-        double m_translation_scale;
-        float m_rotation_scale;
+        CustomParameters<double> m_translation_params;
+        CustomParameters<float> m_rotation_params;
 
         // When the 3Dconnexion driver is running the system gets, by default, mouse wheel events when rotations around the X axis are detected.
         // We want to filter these out because we are getting the data directly from the device, bypassing the driver, and those mouse wheel events interfere
@@ -59,11 +72,17 @@ class Mouse3DController
 
         bool process_mouse_wheel();
 
-        double get_translation_scale() const { return m_translation_scale; }
-        void set_translation_scale(double scale) { m_translation_scale = scale; }
+        double get_translation_scale() const { return m_translation_params.scale; }
+        void set_translation_scale(double scale) { m_translation_params.scale = scale; }
 
-        float get_rotation_scale() const { return m_rotation_scale; }
-        void set_rotation_scale(float scale) { m_rotation_scale = scale; }
+        float get_rotation_scale() const { return m_rotation_params.scale; }
+        void set_rotation_scale(float scale) { m_rotation_params.scale = scale; }
+
+        double get_translation_deadzone() const { return m_translation_params.deadzone; }
+        void set_translation_deadzone(double deadzone) { m_translation_params.deadzone = deadzone; }
+
+        float get_rotation_deadzone() const { return m_rotation_params.deadzone; }
+        void set_rotation_deadzone(float deadzone) { m_rotation_params.deadzone = deadzone; }
 
         // return true if any change to the camera took place
         bool apply(Camera& camera);

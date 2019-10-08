@@ -52,11 +52,15 @@ namespace Slic3r {
 namespace GUI {
     
 const double Mouse3DController::State::DefaultTranslationScale = 2.5;
+const double Mouse3DController::State::MaxTranslationDeadzone = 0.1;
+const double Mouse3DController::State::DefaultTranslationDeadzone = 0.5 * Mouse3DController::State::MaxTranslationDeadzone;
 const float Mouse3DController::State::DefaultRotationScale = 1.0f;
+const float Mouse3DController::State::MaxRotationDeadzone = 0.1f;
+const float Mouse3DController::State::DefaultRotationDeadzone = 0.5f * Mouse3DController::State::MaxRotationDeadzone;
 
 Mouse3DController::State::State()
-    : m_translation_scale(DefaultTranslationScale)
-    , m_rotation_scale(DefaultRotationScale)
+    : m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
+    , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
     , m_mouse_wheel_counter(0)
 {
 }
@@ -87,7 +91,7 @@ bool Mouse3DController::State::apply(Camera& camera)
     if (has_translation())
     {
         const Vec3d& translation = m_translation.front();
-        camera.set_target(camera.get_target() + m_translation_scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
+        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
         m_translation.pop();
         ret = true;
     }
@@ -95,8 +99,8 @@ bool Mouse3DController::State::apply(Camera& camera)
     if (has_rotation())
     {
         const Vec3f& rotation = m_rotation.front();
-        float theta = m_rotation_scale * rotation(0);
-        float phi = m_rotation_scale * rotation(2);
+        float theta = m_rotation_params.scale * rotation(0);
+        float phi = m_rotation_params.scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
@@ -207,13 +211,26 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     imgui.text(_(L("Speed:")));
     ImGui::PopStyleColor();
 
-    float translation = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-    if (ImGui::SliderFloat(_(L("Translation")), &translation, 0.5f, 2.0f, "%.1f"))
-        m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation);
+    float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
+    if (ImGui::SliderFloat(_(L("Translation##1")), &translation_scale, 0.5f, 2.0f, "%.1f"))
+        m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
 
-    float rotation = m_state.get_rotation_scale() / State::DefaultRotationScale;
-    if (ImGui::SliderFloat(_(L("Rotation")), &rotation, 0.5f, 2.0f, "%.1f"))
-        m_state.set_rotation_scale(State::DefaultRotationScale * rotation);
+    float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
+    if (ImGui::SliderFloat(_(L("Rotation##1")), &rotation_scale, 0.5f, 2.0f, "%.1f"))
+        m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
+
+    ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text(_(L("Deadzone:")));
+    ImGui::PopStyleColor();
+
+    float translation_deadzone = (float)m_state.get_translation_deadzone();
+    if (ImGui::SliderFloat(_(L("Translation##2")), &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
+        m_state.set_translation_deadzone((double)translation_deadzone);
+
+    float rotation_deadzone = m_state.get_rotation_deadzone();
+    if (ImGui::SliderFloat(_(L("Rotation##2")), &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
+        m_state.set_rotation_deadzone(rotation_deadzone);
 
     imgui.end();
 
@@ -308,13 +325,19 @@ bool Mouse3DController::connect_device()
         BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
 
         // get device parameters from the config, if present
-        double translation = 1.0;
-        float rotation = 1.0;
-        wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation);
-        wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation);
+        double translation_speed = 1.0;
+        float rotation_speed = 1.0;
+        double translation_deadzone = State::DefaultTranslationDeadzone;
+        float rotation_deadzone = State::DefaultRotationDeadzone;
+        wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
+        wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
+        wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation_speed);
+        wxGetApp().app_config->get_mouse_device_rotation_deadzone(m_device_str, rotation_deadzone);
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale * std::max(0.5, std::min(2.0, translation)));
-        m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation)));
+        m_state.set_translation_scale(State::DefaultTranslationScale* std::max(0.5, std::min(2.0, translation_speed)));
+        m_state.set_translation_deadzone(std::max(0.0, std::min(State::MaxTranslationDeadzone, translation_deadzone)));
+        m_state.set_rotation_scale(State::DefaultRotationScale* std::max(0.5f, std::min(2.0f, rotation_speed)));
+        m_state.set_rotation_deadzone(std::max(0.0f, std::min(State::MaxRotationDeadzone, rotation_deadzone)));
     }
 
     return (m_device != nullptr);
@@ -330,7 +353,8 @@ void Mouse3DController::disconnect_device()
         m_thread.join();
 
     // Store current device parameters into the config
-    wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_rotation_scale() / State::DefaultRotationScale);
+    wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_translation_deadzone(),
+        m_state.get_rotation_scale() / State::DefaultRotationScale, m_state.get_rotation_deadzone());
     wxGetApp().app_config->save();
 
     // Close the 3Dconnexion device
@@ -474,7 +498,9 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
     Vec3d translation(-convert_input(packet[1], packet[2]),
         convert_input(packet[3], packet[4]),
         convert_input(packet[5], packet[6]));
-    if (!translation.isApprox(Vec3d::Zero()))
+
+    double deadzone = m_state.get_translation_deadzone();
+    if ((std::abs(translation(0)) > deadzone) || (std::abs(translation(1)) > deadzone) || (std::abs(translation(2)) > deadzone))
     {
         m_state.append_translation(translation);
         return true;
@@ -488,7 +514,9 @@ bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigne
     Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1]),
         (float)convert_input(packet[first_byte + 2], packet[first_byte + 3]),
         -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5]));
-    if (!rotation.isApprox(Vec3f::Zero()))
+
+    float deadzone = m_state.get_rotation_deadzone();
+    if ((std::abs(rotation(0)) > deadzone) || (std::abs(rotation(1)) > deadzone) || (std::abs(rotation(2)) > deadzone))
     {
         m_state.append_rotation(rotation);
         return true;

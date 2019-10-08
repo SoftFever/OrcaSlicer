@@ -272,7 +272,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
 }
 
 #if ENABLE_3DCONNEXION_DEVICES
-void AppConfig::set_mouse_device(const std::string& name, double translation_speed, float rotation_speed)
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -281,10 +281,12 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
 
     it->second.clear();
     it->second["translation_speed"] = std::to_string(translation_speed);
+    it->second["translation_deadzone"] = std::to_string(translation_deadzone);
     it->second["rotation_speed"] = std::to_string(rotation_speed);
+    it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
 }
 
-bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& translation_speed)
+bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& speed)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -295,11 +297,26 @@ bool AppConfig::get_mouse_device_translation_speed(const std::string& name, doub
     if (it_val == it->second.end())
         return false;
 
-    translation_speed = ::atof(it_val->second.c_str());
+    speed = ::atof(it_val->second.c_str());
     return true;
 }
 
-bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& rotation_speed)
+bool AppConfig::get_mouse_device_translation_deadzone(const std::string& name, double& deadzone)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("translation_deadzone");
+    if (it_val == it->second.end())
+        return false;
+
+    deadzone = ::atof(it_val->second.c_str());
+    return true;
+}
+
+bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& speed)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -310,7 +327,22 @@ bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& 
     if (it_val == it->second.end())
         return false;
 
-    rotation_speed = (float)::atof(it_val->second.c_str());
+    speed = (float)::atof(it_val->second.c_str());
+    return true;
+}
+
+bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("rotation_deadzone");
+    if (it_val == it->second.end())
+        return false;
+
+    deadzone = (float)::atof(it_val->second.c_str());
     return true;
 }
 #endif // ENABLE_3DCONNEXION_DEVICES
