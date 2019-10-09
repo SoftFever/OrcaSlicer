@@ -26,7 +26,15 @@ public:
         RR_USER,                        // User requested the Wizard from the menus
     };
 
-    ConfigWizard(wxWindow *parent, RunReason run_reason);
+    // What page should wizard start on
+    enum StartPage {
+        SP_WELCOME,
+        SP_PRINTERS,
+        SP_FILAMENTS,
+        SP_MATERIALS,
+    };
+
+    ConfigWizard(wxWindow *parent);
     ConfigWizard(ConfigWizard &&) = delete;
     ConfigWizard(const ConfigWizard &) = delete;
     ConfigWizard &operator=(ConfigWizard &&) = delete;
@@ -34,7 +42,7 @@ public:
     ~ConfigWizard();
 
     // Run the Wizard. Return whether it was completed.
-    bool run(PresetBundle *preset_bundle, const PresetUpdater *updater);
+    bool run(RunReason reason, StartPage start_page = SP_WELCOME);
 
     static const wxString& name(const bool from_menu = false);
 

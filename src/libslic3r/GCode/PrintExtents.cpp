@@ -138,7 +138,7 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
     // We need to get position and angle of the wipe tower to transform them to actual position.
     Transform2d trafo =
         Eigen::Translation2d(print.config().wipe_tower_x.value, print.config().wipe_tower_y.value) *
-        Eigen::Rotation2Dd(print.config().wipe_tower_rotation_angle.value);
+        Eigen::Rotation2Dd(Geometry::deg2rad(print.config().wipe_tower_rotation_angle.value));
 
     BoundingBoxf bbox;
     for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.wipe_tower_data().tool_changes) {

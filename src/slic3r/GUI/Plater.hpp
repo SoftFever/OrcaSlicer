@@ -56,8 +56,12 @@ public:
     ScalableButton* edit_btn { nullptr };
 
 	enum LabelItemType {
-		LABEL_ITEM_MARKER = 0x4d,
-		LABEL_ITEM_CONFIG_WIZARD = 0x4e
+		LABEL_ITEM_MARKER = 0xffffff01,
+		LABEL_ITEM_WIZARD_PRINTERS,
+        LABEL_ITEM_WIZARD_FILAMENTS,
+        LABEL_ITEM_WIZARD_MATERIALS,
+
+        LABEL_ITEM_MAX,
 	};
 
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
@@ -183,6 +187,7 @@ public:
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+    void reload_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
@@ -249,6 +254,7 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
+    bool can_reload_from_disk() const;
 
     void msw_rescale();
 

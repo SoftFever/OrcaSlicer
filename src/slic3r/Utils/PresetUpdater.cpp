@@ -153,7 +153,7 @@ struct PresetUpdater::priv
 	bool get_file(const std::string &url, const fs::path &target_path) const;
 	void prune_tmps() const;
 	void sync_version() const;
-	void sync_config(const std::set<VendorProfile> vendors);
+	void sync_config(const VendorMap vendors);
 
 	void check_install_indices() const;
 	Updates get_config_updates() const;
@@ -266,7 +266,7 @@ void PresetUpdater::priv::sync_version() const
 
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
+void PresetUpdater::priv::sync_config(const VendorMap vendors)
 {
 	BOOST_LOG_TRIVIAL(info) << "Syncing configuration cache";
 
@@ -276,13 +276,13 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 	for (auto &index : index_db) {
 		if (cancel) { return; }
 
-		const auto vendor_it = vendors.find(VendorProfile(index.vendor()));
+		const auto vendor_it = vendors.find(index.vendor());
 		if (vendor_it == vendors.end()) {
 			BOOST_LOG_TRIVIAL(warning) << "No such vendor: " << index.vendor();
 			continue;
 		}
 
-		const VendorProfile &vendor = *vendor_it;
+		const VendorProfile &vendor = vendor_it->second;
 		if (vendor.config_update_url.empty()) {
 			BOOST_LOG_TRIVIAL(info) << "Vendor has no config_update_url: " << vendor.name;
 			continue;
@@ -574,7 +574,7 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 	// Copy the whole vendors data for use in the background thread
 	// Unfortunatelly as of C++11, it needs to be copied again
 	// into the closure (but perhaps the compiler can elide this).
-	std::set<VendorProfile> vendors = preset_bundle->vendors;
+	VendorMap vendors = preset_bundle->vendors;
 
 	p->thread = std::move(std::thread([this, vendors]() {
 		this->p->prune_tmps();
@@ -643,13 +643,10 @@ PresetUpdater::UpdateResult PresetUpdater::config_update() const
 			// (snapshot is taken beforehand)
 			p->perform_updates(std::move(updates));
 
-			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-
-			if (! wizard.run(GUI::wxGetApp().preset_bundle, this)) {
+			if (! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT)) {
 				return R_INCOMPAT_EXIT;
 			}
 
-			GUI::wxGetApp().load_current_presets();
 			return R_INCOMPAT_CONFIGURED;
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
@@ -694,8 +691,8 @@ void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool 
 	BOOST_LOG_TRIVIAL(info) << boost::format("Installing %1% bundles from resources ...") % bundles.size();
 
 	for (const auto &bundle : bundles) {
-		auto path_in_rsrc = p->rsrc_path / bundle;
-		auto path_in_vendors = p->vendor_path / bundle;
+		auto path_in_rsrc = (p->rsrc_path / bundle).replace_extension(".ini");
+		auto path_in_vendors = (p->vendor_path / bundle).replace_extension(".ini");
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), "", "");
 	}
 

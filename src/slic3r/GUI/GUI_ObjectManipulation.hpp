@@ -32,6 +32,7 @@ public:
 
     void                msw_rescale();
     void                set_value(const wxString& new_value);
+    void                kill_focus(ObjectManipulation *parent);
 
 private:
     double              get_value();
@@ -118,7 +119,7 @@ class ObjectManipulation : public OG_Settings
 
 #ifndef __APPLE__
     // Currently focused option name (empty if none)
-    std::string     m_focused_option;
+    ManipulationEditor* m_focused_editor {nullptr};
 #endif // __APPLE__
 
     wxFlexGridSizer* m_main_grid_sizer;
@@ -160,6 +161,7 @@ public:
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
     void on_change(const std::string& opt_key, int axis, double new_value);
+    void set_focused_editor(ManipulationEditor* focused_editor) { m_focused_editor = focused_editor; }
 
 private:
     void reset_settings_value();
@@ -176,9 +178,6 @@ private:
     void change_scale_value(int axis, double value);
     void change_size_value(int axis, double value);
     void do_scale(int axis, const Vec3d &scale) const;
-
-    void on_change(t_config_option_key opt_key, const boost::any& value);
-    void on_fill_empty_value(const std::string& opt_key);
 };
 
 }}
