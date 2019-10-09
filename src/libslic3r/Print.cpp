@@ -143,10 +143,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "use_relative_e_distances",
         "use_volumetric_e",
         "variable_layer_height",
-        "wipe",
-        "wipe_tower_x",
-        "wipe_tower_y",
-        "wipe_tower_rotation_angle"
+        "wipe"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -167,7 +164,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "skirt_height"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
-            || opt_key == "ooze_prevention") {
+            || opt_key == "ooze_prevention"
+            || opt_key == "wipe_tower_x"
+            || opt_key == "wipe_tower_y"
+            || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirt);
         } else if (opt_key == "brim_width") {
             steps.emplace_back(psBrim);
@@ -208,6 +208,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "extra_loading_move"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
+            steps.emplace_back(psSkirt);
         } else if (
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
@@ -1186,6 +1187,8 @@ std::string Print::validate() const
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
+        if (m_config.use_volumetric_e)
+            return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1502,6 +1505,14 @@ void Print::process()
         obj->infill();
     for (PrintObject *obj : m_objects)
         obj->generate_support_material();
+    if (this->set_started(psWipeTower)) {
+        m_wipe_tower_data.clear();
+        if (this->has_wipe_tower()) {
+            //this->set_status(95, L("Generating wipe tower"));
+            this->_make_wipe_tower();
+        }
+        this->set_done(psWipeTower);
+    }
     if (this->set_started(psSkirt)) {
         m_skirt.clear();
         if (this->has_skirt()) {
@@ -1517,14 +1528,6 @@ void Print::process()
             this->_make_brim();
         }
        this->set_done(psBrim);
-    }
-    if (this->set_started(psWipeTower)) {
-        m_wipe_tower_data.clear();
-        if (this->has_wipe_tower()) {
-            //this->set_status(95, L("Generating wipe tower"));
-            this->_make_wipe_tower();
-        }
-       this->set_done(psWipeTower);
     }
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
@@ -1600,6 +1603,17 @@ void Print::_make_skirt()
                 pt += shift;
             append(points, copy_points);
         }
+    }
+
+    // Include the wipe tower.
+    if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
+        double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
+        double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
+        Vec2d pt = Vec2d(m_config.wipe_tower_x-m_wipe_tower_data.brim_width, m_config.wipe_tower_y-m_wipe_tower_data.brim_width);
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y()+depth)));
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y()+depth)));
     }
 
     if (points.size() < 3)
@@ -1864,6 +1878,22 @@ bool Print::has_wipe_tower() const
         m_config.nozzle_diameter.values.size() > 1;
 }
 
+const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt, double first_layer_height, double nozzle_diameter) const
+{
+    // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
+    if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
+
+        float width = m_config.wipe_tower_width;
+        float brim_spacing = nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4);
+
+        const_cast<Print*>(this)->m_wipe_tower_data.depth = (900.f/width) * float(extruders_cnt - 1);
+        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = 4.5f * brim_spacing;
+    }
+
+    return m_wipe_tower_data;
+}
+
+
 void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
@@ -1972,6 +2002,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate(m_wipe_tower_data.tool_changes);
     m_wipe_tower_data.depth = wipe_tower.get_depth();
+    m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
 
     // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
