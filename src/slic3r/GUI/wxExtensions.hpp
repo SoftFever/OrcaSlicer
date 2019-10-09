@@ -883,6 +883,14 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_is_action_icon_focesed = false;
+    enum FocusedIcon
+    {
+        fiNone = 0,
+        fiAdd,
+        fiDelColorChange,
+        fiDelPause,
+        fiDelCustomCode
+    } m_action_icon_focesed { fiNone };
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;

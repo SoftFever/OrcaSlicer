@@ -2577,12 +2577,19 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
     if (tick == 0)
         return;
 
-    wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     // #ys_FIXME_COLOR
+    // wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     // if (m_ticks.find(tick) != m_ticks.end())
     //     icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
-    if (m_ticks_.find(tick) != m_ticks_.end())
-        icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
+    wxBitmap* icon = m_action_icon_focesed > 0 ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
+    auto tick_code_it = m_ticks_.find(tick);
+    if (tick_code_it != m_ticks_.end()) {
+        icon = m_action_icon_focesed > 0 ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
+
+        if (m_action_icon_focesed > 0)
+            m_action_icon_focesed = tick_code_it->gcode == "M600" ? fiDelColorChange :
+                                    tick_code_it->gcode == "M25"  ? fiDelPause : fiDelCustomCode;
+    }
 
     wxCoord x_draw, y_draw;
     is_horizontal() ? x_draw = pt_beg.x - 0.5*m_tick_icon_dim : y_draw = pt_beg.y - 0.5*m_tick_icon_dim;
@@ -3010,9 +3017,10 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     bool is_revert_icon_focused = false;
 
     if (!m_is_left_down && !m_is_one_layer) {
-        m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
         // #ys_FIXME_COLOR
+        // m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
         // is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
+        m_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action) ? fiAdd : fiNone;
         is_revert_icon_focused = !m_ticks_.empty() && is_point_in_rect(pos, m_rect_revert_icon);
     }
     else if (m_is_left_down || m_is_right_down) {
@@ -3028,7 +3036,6 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
             correct_higher_value();
             action = (current_value != m_higher_value);
         }
-        if (m_is_right_down) m_is_mouse_move = true;
     }
     Refresh();
     Update();
@@ -3036,7 +3043,11 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
 
     // Set tooltips with information for each icon
     const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
-                             m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
+                             // m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
+                             m_action_icon_focesed == fiAdd             ? _(L("Add color change")) :
+                             m_action_icon_focesed == fiDelColorChange  ? _(L("Delete color change")) :
+                             m_action_icon_focesed == fiDelPause        ? _(L("Delete pause")) :
+                             m_action_icon_focesed == fiDelCustomCode   ? _(L("Delete custom code")) :
                              is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
     this->SetToolTip(tooltip);
 
