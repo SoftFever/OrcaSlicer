@@ -2728,19 +2728,6 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
-    auto mouse_up_cleanup = [this](){
-        m_moving = false;
-        m_mouse.drag.move_volume_idx = -1;
-        m_mouse.set_start_position_3D_as_invalid();
-        m_mouse.set_start_position_2D_as_invalid();
-        m_mouse.dragging = false;
-        m_mouse.ignore_left_up = false;
-        m_dirty = true;
-
-        if (m_canvas->HasCapture())
-            m_canvas->ReleaseMouse();
-    };
-
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor();
     evt.SetX(evt.GetX() * scale);
@@ -3577,6 +3564,20 @@ bool GLCanvas3D::has_toolpaths_to_export() const
 void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 {
     m_volumes.export_toolpaths_to_obj(filename);
+}
+
+void GLCanvas3D::mouse_up_cleanup()
+{
+    m_moving = false;
+    m_mouse.drag.move_volume_idx = -1;
+    m_mouse.set_start_position_3D_as_invalid();
+    m_mouse.set_start_position_2D_as_invalid();
+    m_mouse.dragging = false;
+    m_mouse.ignore_left_up = false;
+    m_dirty = true;
+
+    if (m_canvas->HasCapture())
+        m_canvas->ReleaseMouse();
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
