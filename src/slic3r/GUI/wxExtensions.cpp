@@ -579,6 +579,9 @@ void ObjectDataViewModelNode::set_action_and_extruder_icons()
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);    // FIXME: pass window ptr
 
+    if (m_type & itInstance)
+        return; // don't set colored bitmap for Instance
+
     // set extruder bitmap
     int extruder_idx = atoi(m_extruder.c_str());
     if (extruder_idx > 0) --extruder_idx;
@@ -2149,7 +2152,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     wxDataViewCtrl* const dv_ctrl = GetOwner()->GetOwner();
     ObjectDataViewModel* const model = dynamic_cast<ObjectDataViewModel*>(dv_ctrl->GetModel());
 
-    if (!(model->GetItemType(dv_ctrl->GetSelection()) & (itVolume | itObject)))
+    if (!(model->GetItemType(dv_ctrl->GetSelection()) & (itVolume | itLayer | itObject)))
         return nullptr;
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons();
