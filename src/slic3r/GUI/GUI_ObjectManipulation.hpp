@@ -118,7 +118,7 @@ class ObjectManipulation : public OG_Settings
     wxStaticBitmap* m_fix_throught_netfab_bitmap;
 
 #ifndef __APPLE__
-    // Currently focused option name (empty if none)
+    // Currently focused editor (nullptr if none)
     ManipulationEditor* m_focused_editor {nullptr};
 #endif // __APPLE__
 
@@ -161,7 +161,11 @@ public:
     void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
     void on_change(const std::string& opt_key, int axis, double new_value);
-    void set_focused_editor(ManipulationEditor* focused_editor) { m_focused_editor = focused_editor; }
+    void set_focused_editor(ManipulationEditor* focused_editor) {
+#ifndef __APPLE__
+        m_focused_editor = focused_editor;
+#endif // __APPLE__        
+    }
 
 private:
     void reset_settings_value();
