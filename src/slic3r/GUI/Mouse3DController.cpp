@@ -64,6 +64,13 @@ Mouse3DController::State::State()
     : m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
     , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
     , m_mouse_wheel_counter(0)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    , m_translation_queue_max_size(0)
+    , m_rotation_queue_max_size(0)
+    , m_buttons_queue_max_size(0)
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
 }
 
@@ -235,15 +242,51 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
         m_state.set_rotation_deadzone(rotation_deadzone);
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    ImGui::Separator();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text(_(L("DEBUG:")));
+    imgui.text("DEBUG:");
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    imgui.text("Vectors:");
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::PopStyleColor();
     Vec3f translation = m_state.get_translation().cast<float>();
     Vec3f rotation = m_state.get_rotation();
     unsigned int button = m_state.get_button();
     ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text("Queue size:");
+    ImGui::PopStyleColor();
+
+    int translation_size[2] = { (int)m_state.get_translation_queue_size(), (int)m_state.get_translation_queue_max_size() };
+    int rotation_size[2] = { (int)m_state.get_rotation_queue_size(), (int)m_state.get_rotation_queue_max_size() };
+    int buttons_size[2] = { (int)m_state.get_buttons_queue_size(), (int)m_state.get_buttons_queue_max_size() };
+
+    ImGui::InputInt2("Translation##4", translation_size, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
+
+/*
+    int translation_size = (int)m_state.get_translation_queue_size();
+    int translation_max_size = (int)m_state.get_translation_queue_max_size();
+    int rotation_size = (int)m_state.get_rotation_queue_size();
+    int rotation_max_size = (int)m_state.get_rotation_queue_max_size();
+    int buttons_size = (int)m_state.get_buttons_queue_size();
+    int buttons_max_size = (int)m_state.get_buttons_queue_max_size();
+
+    ImGui::InputInt("Translation size", &translation_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Translation max", &translation_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Rotation size", &rotation_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Rotation max", &rotation_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Button size", &buttons_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputInt("Button max", &buttons_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
+*/
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     imgui.end();

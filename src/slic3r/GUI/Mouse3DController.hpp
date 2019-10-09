@@ -54,17 +54,53 @@ class Mouse3DController
         // GLCanvas3D::on_idle() through the call to the apply() method
         unsigned int m_mouse_wheel_counter;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        unsigned int m_translation_queue_max_size;
+        unsigned int m_rotation_queue_max_size;
+        unsigned int m_buttons_queue_max_size;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     public:
         State();
 
-        void append_translation(const Vec3d& translation) { m_translation.push(translation); }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        void append_translation(const Vec3d& translation)
+        {
+            m_translation.push(translation);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            m_translation_queue_max_size = std::max(m_translation_queue_max_size, (unsigned int)m_translation.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        }
+
         void append_rotation(const Vec3f& rotation)
         {
             m_rotation.push(rotation);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            m_rotation_queue_max_size = std::max(m_rotation_queue_max_size, (unsigned int)m_rotation.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             if (rotation(0) != 0.0f)
                 ++m_mouse_wheel_counter;
         }
-        void append_button(unsigned int id) { m_buttons.push(id); }
+        
+        void append_button(unsigned int id)
+        {
+            m_buttons.push(id);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, (unsigned int)m_buttons.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        }
+
+//        void append_translation(const Vec3d& translation) { m_translation.push(translation); }
+//        void append_rotation(const Vec3f& rotation)
+//        {
+//            m_rotation.push(rotation);
+//            if (rotation(0) != 0.0f)
+//                ++m_mouse_wheel_counter;
+//        }
+//        void append_button(unsigned int id) { m_buttons.push(id); }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         bool has_translation() const { return !m_translation.empty(); }
         bool has_rotation() const { return !m_rotation.empty(); }
@@ -89,6 +125,18 @@ class Mouse3DController
 
         float get_rotation_deadzone() const { return m_rotation_params.deadzone; }
         void set_rotation_deadzone(float deadzone) { m_rotation_params.deadzone = deadzone; }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        unsigned int get_translation_queue_size() const { return (unsigned int)m_translation.size(); }
+        unsigned int get_rotation_queue_size() const { return (unsigned int)m_rotation.size(); }
+        unsigned int get_buttons_queue_size() const { return (unsigned int)m_buttons.size(); }
+
+        unsigned int get_translation_queue_max_size() const { return m_translation_queue_max_size; }
+        unsigned int get_rotation_queue_max_size() const { return m_rotation_queue_max_size; }
+        unsigned int get_buttons_queue_max_size() const { return m_buttons_queue_max_size; }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         // return true if any change to the camera took place
         bool apply(Camera& camera);
