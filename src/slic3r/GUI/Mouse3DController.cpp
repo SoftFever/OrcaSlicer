@@ -14,6 +14,8 @@
 #include <boost/log/trivial.hpp>
 #include "I18N.hpp"
 
+#include <bitset>
+
 // WARN: If updating these lists, please also update resources/udev/90-3dconnexion.rules
 
 static const std::vector<int> _3DCONNEXION_VENDORS =
@@ -36,16 +38,16 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
     0xc628,	/* 50728 space navigator for notebooks*/
     0xc629,	/* 50729 space pilot pro*/
     0xc62b,	/* 50731 space mouse pro*/
-    0xc62e,	/* 50734 spacemouse wireless (USB cable) */
-    0xc62f,	/* 50735 spacemouse wireless  receiver */
+    0xc62e,	/* 50734 spacemouse wireless (USB cable) *TESTED* */
+    0xc62f,	/* 50735 spacemouse wireless receiver */
     0xc631,	/* 50737 spacemouse pro wireless *TESTED* */
     0xc632,	/* 50738 spacemouse pro wireless receiver */
     0xc633,	/* 50739 spacemouse enterprise */
-    0xc635,	/* 50741 spacemouse compact */
+    0xc635,	/* 50741 spacemouse compact *TESTED* */
     0xc636,	/* 50742 spacemouse module */
     0xc640,	/* 50752 nulooq */
 
-//    0xc652, /* 50770 3Dconnexion universal receiver */ 
+//    0xc652, /* 50770 3Dconnexion universal receiver */
 };
 
 namespace Slic3r {
@@ -254,26 +256,6 @@ bool Mouse3DController::connect_device()
     unsigned short vendor_id = 0;
     unsigned short product_id = 0;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    hid_device_info* cur = devices;
-    while (cur != nullptr)
-    {
-        std::cout << "Detected device '";
-
-        if (cur->manufacturer_string != nullptr)
-            std::wcout << cur->manufacturer_string << L" ";
-        else
-            std::wcout << "MMM ";
-        if (cur->product_string != nullptr)
-            std::wcout << cur->product_string;
-        else
-            std::wcout << "PPP";
-        std::cout << "' code: " << cur->product_id << " (" << std::hex << cur->product_id << std::dec << ")" << std::endl;
-
-        cur = cur->next;
-    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     hid_device_info* current = devices;
     while (current != nullptr)
     {
@@ -481,17 +463,9 @@ bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
 
 double convert_input(unsigned char first, unsigned char second)
 {
-    int ret = 0;
-    switch (second)
-    {
-    case 0: { ret = (int)first; break; }
-    case 1: { ret = (int)first + 255; break; }
-    case 254: { ret = -511 + (int)first; break; }
-    case 255: { ret = -255 + (int)first; break; }
-    default: { break; }
-    }
-    return (double)ret / 349.0;
-};
+    short value = first | second << 8;
+    return (double)value / 350.0;
+}
 
 bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 {
@@ -527,15 +501,14 @@ bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigne
 
 bool Mouse3DController::handle_packet_button(const DataPacket& packet, unsigned int packet_size)
 {
-    for (unsigned int i = 0, base = 0; i < packet_size; ++i, base += 8)
+    unsigned int data = packet[1] | packet[2] << 8 | packet[3] << 16 | packet[4] << 24;
+    const std::bitset<32> data_bits{ data };
+    for (size_t i = 0; i < data_bits.size(); ++i)
     {
-        for (unsigned int j = 0; j < 8; ++j)
+        if (data_bits.test(i))
         {
-            if (packet[i + 1] & (0x1 << j))
-            {
-                m_state.append_button(base + j);
-                return true;
-            }
+            m_state.append_button((unsigned int)i);
+            return true;
         }
     }
 
