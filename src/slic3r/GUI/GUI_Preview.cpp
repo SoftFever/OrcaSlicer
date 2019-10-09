@@ -583,6 +583,25 @@ void Preview::create_double_slider()
     m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
     m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
+    /*
+    auto extruder_selector = new wxComboBox(this, wxID_ANY);
+    extruder_selector->Append("Whole print");
+    int extruder_cnt = wxGetApp().extruders_edited_cnt();
+    int i = 0;
+    while (i < extruder_cnt)
+    {
+        i++;
+        extruder_selector->Append(wxString::Format("Extruder %d", i));
+    }
+    extruder_selector->SetSelection(0);
+
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(extruder_selector, 0, wxEXPAND, 0);
+    sizer->Add(m_slider, 1, wxEXPAND, 0);
+
+    m_double_slider_sizer->Add(sizer, 0, wxEXPAND, 0);
+    */
+
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
 

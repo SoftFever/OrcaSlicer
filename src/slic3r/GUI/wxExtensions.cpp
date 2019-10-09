@@ -2451,10 +2451,16 @@ std::vector<double> DoubleSlider::GetTicksValues() const
 
     const int val_size = m_values.size();
     if (!m_values.empty())
-        for (int tick : m_ticks) {
-            if (tick > val_size)
+        // #ys_FIXME_COLOR
+        // for (int tick : m_ticks) { 
+        //     if (tick > val_size)
+        //         break;
+        //     values.push_back(m_values[tick]);
+        // }
+        for (const TICK_CODE& tick : m_ticks_) {
+            if (tick.tick > val_size)
                 break;
-            values.push_back(m_values[tick]);
+            values.push_back(m_values[tick.tick]);
         }
 
     return values;
@@ -2465,19 +2471,36 @@ void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
     if (m_values.empty())
         return;
 
-    const bool was_empty = m_ticks.empty();
+    // #ys_FIXME_COLOR
+    // const bool was_empty = m_ticks.empty();
+    //
+    // m_ticks.clear();
+    // for (auto h : heights) {
+    //     auto it = std::lower_bound(m_values.begin(), m_values.end(), h - epsilon());
+    //
+    //     if (it == m_values.end())
+    //         continue;
+    //
+    //     m_ticks.insert(it-m_values.begin());
+    // }
+    //
+    // if (!was_empty && m_ticks.empty())
+    //     // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
+    //     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 
-    m_ticks.clear();
+    const bool was_empty = m_ticks_.empty();
+
+    m_ticks_.clear();
     for (auto h : heights) {
         auto it = std::lower_bound(m_values.begin(), m_values.end(), h - epsilon());
 
         if (it == m_values.end())
             continue;
 
-        m_ticks.insert(it-m_values.begin());
+        m_ticks_.insert(it-m_values.begin());
     }
     
-    if (!was_empty && m_ticks.empty())
+    if (!was_empty && m_ticks_.empty())
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
@@ -2552,7 +2575,10 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
         return;
 
     wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
-    if (m_ticks.find(tick) != m_ticks.end())
+    // #ys_FIXME_COLOR
+    // if (m_ticks.find(tick) != m_ticks.end())
+    //     icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
+    if (m_ticks_.find(tick) != m_ticks_.end())
         icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
 
     wxCoord x_draw, y_draw;
@@ -2695,9 +2721,13 @@ void DoubleSlider::draw_ticks(wxDC& dc)
     int height, width;
     get_size(&width, &height);
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
-    for (auto tick : m_ticks)
+    // #ys_FIXME_COLOR
+    // for (auto tick : m_ticks)
+    for (auto tick : m_ticks_)
     {
-        const wxCoord pos = get_position_from_value(tick);
+        // #ys_FIXME_COLOR
+        // const wxCoord pos = get_position_from_value(tick);
+        const wxCoord pos = get_position_from_value(tick.tick);
 
         is_horizontal() ?   dc.DrawLine(pos, mid-14, pos, mid-9) :
                             dc.DrawLine(mid - 14, pos/* - 1*/, mid - 9, pos/* - 1*/);
@@ -2727,7 +2757,9 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
         main_band.SetBottom(height - SLIDER_MARGIN + 1);
     }
 
-    if (m_ticks.empty()) {
+    // #ys_FIXME_COLOR
+    // if (m_ticks.empty()) {
+    if (m_ticks_.empty()) {
         dc.SetPen(GetParent()->GetBackgroundColour());
         dc.SetBrush(GetParent()->GetBackgroundColour());
         dc.DrawRectangle(main_band);
@@ -2743,11 +2775,15 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
     dc.DrawRectangle(main_band);
 
     size_t i = 1;
-    for (auto tick : m_ticks)
+    // #ys_FIXME_COLOR
+    // for (auto tick : m_ticks)
+    for (auto tick : m_ticks_)
     {
         if (i == colors_cnt)
             i = 0;
-        const wxCoord pos = get_position_from_value(tick);
+        // #ys_FIXME_COLOR
+        //const wxCoord pos = get_position_from_value(tick);
+        const wxCoord pos = get_position_from_value(tick.tick);
         is_horizontal() ?   main_band.SetLeft(SLIDER_MARGIN + pos) :
                             main_band.SetBottom(pos-1);
 
@@ -2780,7 +2816,9 @@ void DoubleSlider::draw_one_layer_icon(wxDC& dc)
 
 void DoubleSlider::draw_revert_icon(wxDC& dc)
 {
-    if (m_ticks.empty() || !m_is_enabled_tick_manipulation)
+    // #ys_FIXME_COLOR
+    // if (m_ticks.empty() || !m_is_enabled_tick_manipulation)
+    if (m_ticks_.empty() || !m_is_enabled_tick_manipulation)
         return;
 
     int width, height;
@@ -2832,16 +2870,24 @@ bool DoubleSlider::is_point_in_rect(const wxPoint& pt, const wxRect& rect)
 
 int DoubleSlider::is_point_near_tick(const wxPoint& pt)
 {
-    for (auto tick : m_ticks) {
-        const wxCoord pos = get_position_from_value(tick);
+    // #ys_FIXME_COLOR
+    // for (auto tick : m_ticks) {
+    for (auto tick : m_ticks_) {
+        // #ys_FIXME_COLOR
+        // const wxCoord pos = get_position_from_value(tick);
+        const wxCoord pos = get_position_from_value(tick.tick);
 
         if (is_horizontal()) {
             if (pos - 4 <= pt.x && pt.x <= pos + 4)
-                return tick;
+                // #ys_FIXME_COLOR
+                // return tick;
+                return tick.tick;
         }
         else {
             if (pos - 4 <= pt.y && pt.y <= pos + 4) 
-                return tick;
+                // #ys_FIXME_COLOR
+                // return tick;
+                return tick.tick;
         }
     }
     return -1;
@@ -2893,7 +2939,9 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
 
-        m_ticks.clear();
+        // #ys_FIXME_COLOR
+        // m_ticks.clear();
+        m_ticks_.clear();
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
     }
     else
@@ -2960,7 +3008,9 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
 
     if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
-        is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
+        // #ys_FIXME_COLOR
+        // is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
+        is_revert_icon_focused = !m_ticks_.empty() && is_point_in_rect(pos, m_rect_revert_icon);
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
@@ -2975,6 +3025,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
             correct_higher_value();
             action = (current_value != m_higher_value);
         }
+        if (m_is_right_down) m_is_mouse_move = true;
     }
     Refresh();
     Update();
@@ -3051,16 +3102,29 @@ void DoubleSlider::action_tick(const TicksAction action)
 
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
+    // #ys_FIXME_COLOR
+    // if (action == taOnIcon) {
+    //     if (!m_ticks.insert(tick).second)
+    //         m_ticks.erase(tick);
+    // }
+    // else {
+    //     const auto it = m_ticks.find(tick);
+    //     if (it == m_ticks.end() && action == taAdd)
+    //         m_ticks.insert(tick);
+    //     else if (it != m_ticks.end() && action == taDel)
+    //         m_ticks.erase(tick);
+    // }
+
     if (action == taOnIcon) {
-        if (!m_ticks.insert(tick).second)
-            m_ticks.erase(tick);
+        if (!m_ticks_.insert(TICK_CODE(tick)).second)
+            m_ticks_.erase(TICK_CODE(tick));
     }
     else {
-        const auto it = m_ticks.find(tick);
-        if (it == m_ticks.end() && action == taAdd)
-            m_ticks.insert(tick);
-        else if (it != m_ticks.end() && action == taDel)
-            m_ticks.erase(tick);
+        const auto it = m_ticks_.find(tick);
+        if (it == m_ticks_.end() && action == taAdd)
+            m_ticks_.insert(tick);
+        else if (it != m_ticks_.end() && action == taDel)
+            m_ticks_.erase(tick);
     }
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
@@ -3140,6 +3204,22 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
     this->CaptureMouse();
 
     const wxClientDC dc(this);
+
+    wxPoint pos = event.GetLogicalPosition(dc);
+    if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation)
+    {
+        const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+        // if on this Y doesn't exist tick
+        // #ys_FIXME_COLOR
+        // if (m_ticks.find(tick) == m_ticks.end())
+        if (m_ticks_.find(tick) == m_ticks_.end())
+        {
+            // show context menu on OnRightUp()
+            m_show_context_menu = true;
+            return;
+        }
+    }
+
     detect_selected_slider(event.GetLogicalPosition(dc));
     if (!m_selection)
         return;
@@ -3149,6 +3229,7 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
     else
         m_lower_value = m_higher_value;
 
+    // set slider to "one layer" mode
     m_is_right_down = m_is_one_layer = true;
 
     Refresh();
@@ -3163,9 +3244,53 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
     this->ReleaseMouse();
     m_is_right_down = m_is_one_layer = false;
 
+    if (m_show_context_menu) {
+        wxMenu menu;
+    
+        append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
+            [this](wxCommandEvent&) { add_code("M600"); }, "colorchange_add_off.png", &menu);
+    
+        append_menu_item(&menu, wxID_ANY, _(L("Add pause SD print")) + " (M25)", "",
+            [this](wxCommandEvent&) { add_code("M25"); }, "pause_add.png", &menu);
+    
+        append_menu_item(&menu, wxID_ANY, _(L("Add custom G-code")), "",
+            [this](wxCommandEvent&) { add_code(""); }, "add_gcode", &menu);
+    
+        Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
+
+        m_show_context_menu = false;
+    }
+
     Refresh();
     Update();
     event.Skip();
+}
+
+void DoubleSlider::add_code(std::string code)
+{
+    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+    // if on this Y doesn't exist tick
+    if (m_ticks_.find(tick) == m_ticks_.end())
+    {
+        if (code.empty())
+        {
+            wxString msg_text = from_u8(_utf8(L("Enter custom G-code used on current layer"))) + " :";
+            wxString msg_header = from_u8((boost::format(_utf8(L("Custom Gcode on current layer (%1% mm)."))) % m_values[tick]).str());
+
+            // get custom gcode
+            wxString custom_code = wxGetTextFromUser(msg_text, msg_header);
+
+            if (custom_code.IsEmpty()) 
+                return;
+            code = custom_code.c_str();
+        }
+
+        m_ticks_.insert(TICK_CODE(tick, code));
+
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+        Refresh();
+        Update();
+    }
 }
 
 

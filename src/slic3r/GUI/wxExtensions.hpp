@@ -821,6 +821,7 @@ public:
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
     void OnRightUp(wxMouseEvent& event);
+    void add_code(std::string code);
 
 protected:
 
@@ -884,6 +885,7 @@ private:
     bool        m_is_action_icon_focesed = false;
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
+    bool        m_show_context_menu = false;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
@@ -912,6 +914,25 @@ private:
     std::vector<wxPen*> m_segm_pens;
     std::set<int>       m_ticks;
     std::vector<double> m_values;
+
+    struct TICK_CODE
+    {
+        TICK_CODE(int tick):tick(tick), gcode("M600"), extruder(0) {}
+        TICK_CODE(int tick, const std::string& code) : 
+                            tick(tick), gcode(code), extruder(0) {}
+        TICK_CODE(int tick, int extruder) :
+                            tick(tick), gcode("M600"), extruder(extruder) {}
+        TICK_CODE(int tick, const std::string& code, int extruder) : 
+                            tick(tick), gcode(code), extruder(extruder) {}
+
+        bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
+
+        int         tick;
+        std::string gcode;
+        int         extruder;
+    };
+
+    std::set<TICK_CODE> m_ticks_;
 };
 
 
