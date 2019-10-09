@@ -487,20 +487,21 @@ bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
     return false;
 }
 
-double convert_input(unsigned char first, unsigned char second)
+double convert_input(unsigned char first, unsigned char second, double deadzone)
 {
     short value = first | second << 8;
-    return (double)value / 350.0;
+    double ret = (double)value / 350.0;
+    return (std::abs(ret) > deadzone) ? ret : 0.0;
 }
 
 bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 {
-    Vec3d translation(-convert_input(packet[1], packet[2]),
-        convert_input(packet[3], packet[4]),
-        convert_input(packet[5], packet[6]));
-
     double deadzone = m_state.get_translation_deadzone();
-    if ((std::abs(translation(0)) > deadzone) || (std::abs(translation(1)) > deadzone) || (std::abs(translation(2)) > deadzone))
+    Vec3d translation(-convert_input(packet[1], packet[2], deadzone),
+        convert_input(packet[3], packet[4], deadzone),
+        convert_input(packet[5], packet[6], deadzone));
+
+    if (!translation.isApprox(Vec3d::Zero()))
     {
         m_state.append_translation(translation);
         return true;
@@ -511,12 +512,12 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 
 bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
 {
-    Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1]),
-        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3]),
-        -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5]));
+    double deadzone = (double)m_state.get_rotation_deadzone();
+    Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
+        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
+        -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
 
-    float deadzone = m_state.get_rotation_deadzone();
-    if ((std::abs(rotation(0)) > deadzone) || (std::abs(rotation(1)) > deadzone) || (std::abs(rotation(2)) > deadzone))
+    if (!rotation.isApprox(Vec3f::Zero()))
     {
         m_state.append_rotation(rotation);
         return true;
