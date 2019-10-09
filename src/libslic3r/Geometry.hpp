@@ -280,6 +280,7 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
+    void set_from_string(const std::string& transform_str);
 
     void reset();
 
