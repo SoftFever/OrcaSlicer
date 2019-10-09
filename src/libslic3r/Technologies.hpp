@@ -39,6 +39,8 @@
 
 // Enabled 3Dconnexion devices
 #define ENABLE_3DCONNEXION_DEVICES (1 && ENABLE_2_0_0_ALPHA1)
+// Enabled 3Dconnexion devices debug output
+#define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT (1 && ENABLE_3DCONNEXION_DEVICES)
 
 
 #endif // _technologies_h_

@@ -111,7 +111,7 @@ bool Mouse3DController::State::apply(Camera& camera)
         ret = true;
     }
 
-    if (has_any_button())
+    if (has_button())
     {
         unsigned int button = m_buttons.front();
         switch (button)
@@ -234,6 +234,18 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     if (ImGui::SliderFloat(_(L("Rotation##2")), &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
         m_state.set_rotation_deadzone(rotation_deadzone);
 
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text(_(L("DEBUG:")));
+    ImGui::PopStyleColor();
+    Vec3f translation = m_state.get_translation().cast<float>();
+    Vec3f rotation = m_state.get_rotation();
+    unsigned int button = m_state.get_button();
+    ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+
     imgui.end();
 
     ImGui::PopStyleVar();
@@ -255,6 +267,20 @@ bool Mouse3DController::connect_device()
     // Searches for 1st connected 3Dconnexion device
     unsigned short vendor_id = 0;
     unsigned short product_id = 0;
+
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    hid_device_info* cur = devices;
+    while (cur != nullptr)
+    {
+        std::cout << "Detected device '";
+        std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
+        std::cout << "::";
+        std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
+        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")" << std::endl;
+
+        cur = cur->next;
+    }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     hid_device_info* current = devices;
     while (current != nullptr)

@@ -68,7 +68,13 @@ class Mouse3DController
 
         bool has_translation() const { return !m_translation.empty(); }
         bool has_rotation() const { return !m_rotation.empty(); }
-        bool has_any_button() const { return !m_buttons.empty(); }
+        bool has_button() const { return !m_buttons.empty(); }
+
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        Vec3d get_translation() const { return has_translation() ? m_translation.front() : Vec3d::Zero(); }
+        Vec3f get_rotation() const { return has_rotation() ? m_rotation.front() : Vec3f::Zero(); }
+        unsigned int get_button() const { return has_button() ? m_buttons.front() : 0; }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         bool process_mouse_wheel();
 
