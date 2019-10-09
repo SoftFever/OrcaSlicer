@@ -778,7 +778,13 @@ void ObjectList::OnChar(wxKeyEvent& event)
 
 void ObjectList::OnContextMenu(wxDataViewEvent&)
 {
-    list_manipulation(true);
+    // Do not show the context menu if the user pressed the right mouse button on the 3D scene and released it on the objects list
+    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+    bool evt_context_menu = (canvas != nullptr) ? !canvas->is_mouse_dragging() : true;
+    if (!evt_context_menu)
+        canvas->mouse_up_cleanup();
+
+    list_manipulation(evt_context_menu);
 }
 
 void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
