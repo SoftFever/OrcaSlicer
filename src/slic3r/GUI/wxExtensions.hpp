@@ -16,6 +16,7 @@
 #include <vector>
 #include <set>
 #include <functional>
+#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
     enum class ModelVolumeType : int;
@@ -795,6 +796,8 @@ public:
     }
     void ChangeOneLayerLock();
     std::vector<double> GetTicksValues() const;
+    std::vector<Slic3r::Model::CustomGCode> GetTicksValues_() const;
+    void SetTicksValues_(const std::vector<Slic3r::Model::CustomGCode> &heights);
     void SetTicksValues(const std::vector<double>& heights);
     void EnableTickManipulation(bool enable = true) {
         m_is_enabled_tick_manipulation = enable;
@@ -883,14 +886,6 @@ private:
     bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_is_action_icon_focesed = false;
-    enum FocusedIcon
-    {
-        fiNone = 0,
-        fiAdd,
-        fiDelColorChange,
-        fiDelPause,
-        fiDelCustomCode
-    } m_action_icon_focesed { fiNone };
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;

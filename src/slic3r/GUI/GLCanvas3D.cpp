@@ -839,6 +839,8 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
         wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
     {
+        /*
+        // #ys_FIXME_COLOR
         auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
         
@@ -847,6 +849,27 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
             for (auto cp_value : color_print_values)
             {
                 auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value - DoubleSlider::epsilon());
+
+                if (lower_b == print_zs.end())
+                    continue;
+
+                double current_z    = *lower_b;
+                double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
+
+                // to avoid duplicate values, check adding values
+                if (cp_legend_values.empty() || 
+                    !(cp_legend_values.back().first == previous_z && cp_legend_values.back().second == current_z) )
+                    cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
+            }
+        }
+        */
+        std::vector<Model::CustomGCode> custom_gcode_per_height = wxGetApp().plater()->model().custom_gcode_per_height;
+        
+        if (!custom_gcode_per_height.empty()) {
+            std::vector<double> print_zs = canvas.get_current_print_zs(true);
+            for (auto custom_code : custom_gcode_per_height)
+            {
+                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.height - DoubleSlider::epsilon());
 
                 if (lower_b == print_zs.end())
                     continue;

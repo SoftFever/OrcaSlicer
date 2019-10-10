@@ -749,6 +749,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     delete model_object;
             }
         }
+        if (model.custom_gcode_per_height != m_model.custom_gcode_per_height)
+        {
+            update_apply_status(this->invalidate_step(psGCodeExport));
+            m_model.custom_gcode_per_height = model.custom_gcode_per_height;
+        }
     }
 
     // 2) Map print objects including their transformation matrices.

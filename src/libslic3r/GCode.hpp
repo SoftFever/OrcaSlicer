@@ -353,6 +353,8 @@ protected:
     // Layer heights for colorprint - updated before the export and erased during the process
     // so no toolchange occurs twice.
     std::vector<float> m_colorprint_heights;
+    // extensions for colorprint - now it's not a just color_print, there can be some custom gcode
+    std::vector<Model::CustomGCode> m_custom_g_code_heights;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;

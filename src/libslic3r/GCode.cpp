@@ -870,8 +870,11 @@ void GCode::_do_export(Print &print, FILE *file)
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
     
-    // Initialize colorprint.
+    //  #ys_FIXME_COLOR // Initialize colorprint.
     m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
+    // Initialize custom gcode
+    Model* model = print.get_object(0)->model_object()->get_model();
+    m_custom_g_code_heights = model->custom_gcode_per_height;
 
     // Initialize autospeed.
     {
@@ -1676,8 +1679,15 @@ void GCode::process_layer(
     // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
     // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
     bool colorprint_change = false;
-    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
-        m_colorprint_heights.erase(m_colorprint_heights.begin());
+    //  #ys_FIXME_COLOR
+    // while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
+    //     m_colorprint_heights.erase(m_colorprint_heights.begin());
+    //     colorprint_change = true;
+    // } 
+    std::string custom_code = "";
+    while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
+        custom_code = m_custom_g_code_heights.front().gcode;
+        m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
         colorprint_change = true;
     }
 
@@ -1688,7 +1698,9 @@ void GCode::process_layer(
         gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
         // add tag for time estimator
         gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-        gcode += "M600\n";
+        //  #ys_FIXME_COLOR
+        // gcode += "M600\n";
+        gcode += custom_code + "\n";
     }
 
 

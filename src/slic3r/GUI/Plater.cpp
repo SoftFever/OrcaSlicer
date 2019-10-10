@@ -2688,8 +2688,10 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    auto& config = wxGetApp().preset_bundle->project_config;
-    config.option<ConfigOptionFloats>("colorprint_heights")->values.clear();
+    // #ys_FIXME_COLOR
+    // auto& config = wxGetApp().preset_bundle->project_config;
+    // config.option<ConfigOptionFloats>("colorprint_heights")->values.clear();
+    model.custom_gcode_per_height.clear();
 }
 
 void Plater::priv::mirror(Axis axis)

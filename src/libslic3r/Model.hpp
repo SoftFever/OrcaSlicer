@@ -745,6 +745,32 @@ public:
     ModelObjectPtrs     objects;
     // Wipe tower object.
     ModelWipeTower	    wipe_tower;
+
+    // Extensions for 
+    struct CustomGCode
+    {
+        CustomGCode(double height, const std::string& code, int extruder) :
+            height(height), gcode(code), extruder(extruder) {}
+
+        bool operator<(const CustomGCode& other) const { return other.height > this->height; }
+        bool operator==(const CustomGCode& other) const
+        {
+            return (other.height    == this->height)     && 
+                   (other.gcode     == this->gcode)      && 
+                   (other.extruder  == this->extruder   );
+        }
+        bool operator!=(const CustomGCode& other) const
+        {
+            return (other.height    != this->height)     || 
+                   (other.gcode     != this->gcode)      || 
+                   (other.extruder  != this->extruder   );
+        }
+        
+        double      height;
+        std::string gcode;
+        int         extruder;
+    };
+    std::vector<CustomGCode> custom_gcode_per_height;
     
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }

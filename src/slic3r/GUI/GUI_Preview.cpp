@@ -562,7 +562,17 @@ void Preview::update_view_type()
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
 
+    /*
+    // #ys_FIXME_COLOR
     const wxString& choice = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty() && 
+                             wxGetApp().extruders_edited_cnt()==1 ? 
+                                _(L("Color Print")) :
+                                config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
+                                    _(L("Tool")) : 
+                                    _(L("Feature type"));
+    */
+
+    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() &&
                              wxGetApp().extruders_edited_cnt()==1 ? 
                                 _(L("Color Print")) :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
@@ -609,7 +619,11 @@ void Preview::create_double_slider()
 
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
-        wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights")->values = m_slider->GetTicksValues();
+        // #ys_FIXME_COLOR
+        // wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights")->values = m_slider->GetTicksValues();
+
+        Model& model = wxGetApp().plater()->model();
+        model.custom_gcode_per_height = m_slider->GetTicksValues_();
         m_schedule_background_process();
 
         update_view_type();
@@ -645,6 +659,24 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
+void Preview::check_slider_values(std::vector<Model::CustomGCode>& ticks_from_model,
+                                  const std::vector<double>& layers_z)
+{
+    // All ticks that would end up outside the slider range should be erased.
+    // TODO: this should be placed into more appropriate part of code,
+    // this function is e.g. not called when the last object is deleted
+    unsigned int old_size = ticks_from_model.size();
+    ticks_from_model.erase(std::remove_if(ticks_from_model.begin(), ticks_from_model.end(),
+                     [layers_z](Model::CustomGCode val)
+        {
+            auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val.height - DoubleSlider::epsilon());
+            return it == layers_z.end();
+        }),
+        ticks_from_model.end());
+    if (ticks_from_model.size() != old_size)
+        m_schedule_background_process();
+}
+
 void Preview::update_double_slider(const std::vector<double>& layers_z, bool keep_z_range)
 {
     // Save the initial slider span.
@@ -660,8 +692,11 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
-    check_slider_values(ticks_from_config, layers_z);
+    // #ys_FIXME_COLOR
+    // std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+    // check_slider_values(ticks_from_config, layers_z);
+    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
+    check_slider_values(ticks_from_model, layers_z);
 
     m_slider->SetSliderValues(layers_z);
     assert(m_slider->GetMinValue() == 0);
@@ -683,7 +718,9 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->SetSelectionSpan(idx_low, idx_high);
 
-    m_slider->SetTicksValues(ticks_from_config);
+    // #ys_FIXME_COLOR
+    // m_slider->SetTicksValues(ticks_from_config);
+    m_slider->SetTicksValues_(ticks_from_model);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     if (color_print_enable) {
@@ -693,7 +730,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->EnableTickManipulation(color_print_enable);
 }
-
+//  #ys_FIXME_COLOR
 void Preview::check_slider_values(std::vector<double>& ticks_from_config,
                                  const std::vector<double> &layers_z)
 {
@@ -799,10 +836,13 @@ void Preview::load_print_as_fff(bool keep_z_range)
     {
         colors = GCodePreviewData::ColorPrintColors();
         if (! gcode_preview_data_valid) {
-            //FIXME accessing full_config() is pretty expensive.
-            // Only initialize color_print_values for the initial preview, not for the full preview where the color_print_values is extracted from the G-code.
-            const auto& config = wxGetApp().preset_bundle->project_config;
-            color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+            // #ys_FIXME_COLOR
+            // const auto& config = wxGetApp().preset_bundle->project_config;
+            // color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+            const std::vector<Model::CustomGCode>& custom_codes = wxGetApp().plater()->model().custom_gcode_per_height;
+            color_print_values.reserve(custom_codes.size());
+            for (const Model::CustomGCode& code : custom_codes)
+                color_print_values.push_back(code.height);
         }
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )

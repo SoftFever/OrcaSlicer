@@ -2469,6 +2469,44 @@ std::vector<double> DoubleSlider::GetTicksValues() const
     return values;
 }
 
+using t_custom_code = Slic3r::Model::CustomGCode;
+std::vector<t_custom_code> DoubleSlider::GetTicksValues_() const
+{
+    std::vector<t_custom_code> values;
+
+    const int val_size = m_values.size();
+    if (!m_values.empty())
+        for (const TICK_CODE& tick : m_ticks_) {
+            if (tick.tick > val_size)
+                break;
+            values.push_back(t_custom_code(m_values[tick.tick], tick.gcode, tick.extruder));
+        }
+
+    return values;
+}
+
+void DoubleSlider::SetTicksValues_(const std::vector<t_custom_code>& heights)
+{
+    if (m_values.empty())
+        return;
+
+    const bool was_empty = m_ticks_.empty();
+
+    m_ticks_.clear();
+    for (auto h : heights) {
+        auto it = std::lower_bound(m_values.begin(), m_values.end(), h.height - epsilon());
+
+        if (it == m_values.end())
+            continue;
+
+        m_ticks_.insert(TICK_CODE(it-m_values.begin(), h.gcode, h.extruder));
+    }
+    
+    if (!was_empty && m_ticks_.empty())
+        // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+}
+
 void DoubleSlider::SetTicksValues(const std::vector<double>& heights)
 {
     if (m_values.empty())
@@ -2577,19 +2615,12 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
     if (tick == 0)
         return;
 
+    wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     // #ys_FIXME_COLOR
-    // wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     // if (m_ticks.find(tick) != m_ticks.end())
     //     icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
-    wxBitmap* icon = m_action_icon_focesed > 0 ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
-    auto tick_code_it = m_ticks_.find(tick);
-    if (tick_code_it != m_ticks_.end()) {
-        icon = m_action_icon_focesed > 0 ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
-
-        if (m_action_icon_focesed > 0)
-            m_action_icon_focesed = tick_code_it->gcode == "M600" ? fiDelColorChange :
-                                    tick_code_it->gcode == "M25"  ? fiDelPause : fiDelCustomCode;
-    }
+    if (m_ticks_.find(tick) != m_ticks_.end())
+        icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
 
     wxCoord x_draw, y_draw;
     is_horizontal() ? x_draw = pt_beg.x - 0.5*m_tick_icon_dim : y_draw = pt_beg.y - 0.5*m_tick_icon_dim;
@@ -3017,10 +3048,9 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     bool is_revert_icon_focused = false;
 
     if (!m_is_left_down && !m_is_one_layer) {
+        m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
         // #ys_FIXME_COLOR
-        // m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
         // is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
-        m_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action) ? fiAdd : fiNone;
         is_revert_icon_focused = !m_ticks_.empty() && is_point_in_rect(pos, m_rect_revert_icon);
     }
     else if (m_is_left_down || m_is_right_down) {
@@ -3042,13 +3072,25 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     event.Skip();
 
     // Set tooltips with information for each icon
-    const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
-                             // m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
-                             m_action_icon_focesed == fiAdd             ? _(L("Add color change")) :
-                             m_action_icon_focesed == fiDelColorChange  ? _(L("Delete color change")) :
-                             m_action_icon_focesed == fiDelPause        ? _(L("Delete pause")) :
-                             m_action_icon_focesed == fiDelCustomCode   ? _(L("Delete custom code")) :
-                             is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
+    // #ys_FIXME_COLOR
+    // const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
+    //                          m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
+    //                          is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
+    wxString tooltip(wxEmptyString);
+    if (m_is_one_layer_icon_focesed)
+        tooltip = _(L("One layer mode"));
+    if (is_revert_icon_focused)
+        tooltip = _(L("Discard all custom changes"));
+    else if (m_is_action_icon_focesed)
+    {
+        const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+        const auto tick_code_it = m_ticks_.find(tick);
+        tooltip = tick_code_it == m_ticks_.end()    ? _(L("Add color change")) :
+                  tick_code_it->gcode == "M600"     ? _(L("Delete color change")) :
+                  tick_code_it->gcode == "M25"      ? _(L("Delete pause")) : 
+                  from_u8((boost::format(_utf8(L("Delete \"%1%\" code"))) % tick_code_it->gcode).str());
+    }
+
     this->SetToolTip(tooltip);
 
     if (action)

@@ -5,6 +5,7 @@
 #include "libslic3r/Point.hpp"
 
 #include <string>
+#include "libslic3r/Model.hpp"
 
 class wxNotebook;
 class wxGLCanvas;
@@ -154,9 +155,11 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
+    void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
+                             const std::vector<double> &layers_z);
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void check_slider_values(std::vector<double> &ticks_from_config,
-                            const std::vector<double> &layers_z);
+                            const std::vector<double> &layers_z); //  #ys_FIXME_COLOR
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
