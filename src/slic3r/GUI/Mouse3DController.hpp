@@ -47,8 +47,10 @@ class Mouse3DController
         template <class T>
         struct InputQueue
         {
-            size_t max_size{ 20 };
+            size_t max_size;
             std::queue<T> queue;
+
+            InputQueue() : max_size(20) {}
         };
 
         InputQueue<Vec3d> m_translation;

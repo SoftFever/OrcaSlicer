@@ -301,7 +301,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::PopStyleColor();
     Vec3f translation = m_state.get_translation().cast<float>();
     Vec3f rotation = m_state.get_rotation();
-    unsigned int button = m_state.get_button();
     ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
