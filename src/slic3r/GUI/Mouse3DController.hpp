@@ -2,6 +2,10 @@
 #define slic3r_Mouse3DController_hpp_
 
 #if ENABLE_3DCONNEXION_DEVICES
+
+// Enabled debug output and extended imgui dialog
+#define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT 0
+
 #include "libslic3r/Point.hpp"
 
 #include "hidapi.h"
@@ -10,10 +14,6 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#define ENABLE_QUEUE_MAX_SIZE 1
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 namespace Slic3r {
 namespace GUI {
@@ -42,29 +42,21 @@ class Mouse3DController
             CustomParameters(Number scale, Number deadzone) : scale(scale), deadzone(deadzone) {}
         };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
         template <class T>
         struct InputQueue
         {
             size_t max_size;
             std::queue<T> queue;
 
-            InputQueue() : max_size(20) {}
+            // The default value of 5 for max_size seems to work fine on all platforms
+            // The effects of changing this value can be tested by setting ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT to 1
+            // and playing with the imgui dialog which shows by pressing CTRL+M
+            InputQueue() : max_size(5) {}
         };
 
         InputQueue<Vec3d> m_translation;
         InputQueue<Vec3f> m_rotation;
-        InputQueue<unsigned int> m_buttons;
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        std::queue<Vec3d> m_translation;
-        std::queue<Vec3f> m_rotation;
         std::queue<unsigned int> m_buttons;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 
         CustomParameters<double> m_translation_params;
         CustomParameters<float> m_rotation_params;
@@ -79,116 +71,21 @@ class Mouse3DController
         unsigned int m_mouse_wheel_counter;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-        unsigned int m_translation_queue_max_size;
-        unsigned int m_rotation_queue_max_size;
-        unsigned int m_buttons_queue_max_size;
+        size_t m_translation_queue_max_size;
+        size_t m_rotation_queue_max_size;
+        size_t m_buttons_queue_max_size;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     public:
         State();
 
-        void append_translation(const Vec3d& translation)
-        {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
-            while (m_translation.queue.size() >= m_translation.max_size)
-            {
-                m_translation.queue.pop();
-            }
-            m_translation.queue.push(translation);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_translation_queue_max_size = std::max(m_translation_queue_max_size, (unsigned int)m_translation.queue.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            m_translation.push(translation);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_translation_queue_max_size = std::max(m_translation_queue_max_size, (unsigned int)m_translation.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        }
+        void append_translation(const Vec3d& translation);
+        void append_rotation(const Vec3f& rotation);
+        void append_button(unsigned int id);
 
-        void append_rotation(const Vec3f& rotation)
-        {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
-            while (m_rotation.queue.size() >= m_rotation.max_size)
-            {
-                m_rotation.queue.pop();
-            }
-            m_rotation.queue.push(rotation);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_rotation_queue_max_size = std::max(m_rotation_queue_max_size, (unsigned int)m_rotation.queue.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            if (rotation(0) != 0.0f)
-                ++m_mouse_wheel_counter;
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            m_rotation.push(rotation);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_rotation_queue_max_size = std::max(m_rotation_queue_max_size, (unsigned int)m_rotation.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            if (rotation(0) != 0.0f)
-                ++m_mouse_wheel_counter;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            }
-        
-        void append_button(unsigned int id)
-        {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
-            while (m_buttons.queue.size() >= m_buttons.max_size)
-            {
-                m_buttons.queue.pop();
-            }
-            m_buttons.queue.push(id);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, (unsigned int)m_buttons.queue.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            m_buttons.push(id);
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-            m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, (unsigned int)m_buttons.size());
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
         bool has_translation() const { return !m_translation.queue.empty(); }
         bool has_rotation() const { return !m_rotation.queue.empty(); }
-        bool has_button() const { return !m_buttons.queue.empty(); }
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        bool has_translation() const { return !m_translation.empty(); }
-        bool has_rotation() const { return !m_rotation.empty(); }
         bool has_button() const { return !m_buttons.empty(); }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
-        Vec3d get_translation() const { return has_translation() ? m_translation.queue.front() : Vec3d::Zero(); }
-        Vec3f get_rotation() const { return has_rotation() ? m_rotation.queue.front() : Vec3f::Zero(); }
-        unsigned int get_button() const { return has_button() ? m_buttons.queue.front() : 0; }
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        Vec3d get_translation() const { return has_translation() ? m_translation.front() : Vec3d::Zero(); }
-        Vec3f get_rotation() const { return has_rotation() ? m_rotation.front() : Vec3f::Zero(); }
-        unsigned int get_button() const { return has_button() ? m_buttons.front() : 0; }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         bool process_mouse_wheel();
 
@@ -205,45 +102,21 @@ class Mouse3DController
         void set_rotation_deadzone(float deadzone) { m_rotation_params.deadzone = deadzone; }
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
+        Vec3d get_translation() const { return has_translation() ? m_translation.queue.front() : Vec3d::Zero(); }
+        Vec3f get_rotation() const { return has_rotation() ? m_rotation.queue.front() : Vec3f::Zero(); }
+        unsigned int get_button() const { return has_button() ? m_buttons.front() : 0; }
+
         unsigned int get_translation_queue_size() const { return (unsigned int)m_translation.queue.size(); }
         unsigned int get_rotation_queue_size() const { return (unsigned int)m_rotation.queue.size(); }
-        unsigned int get_buttons_queue_size() const { return (unsigned int)m_buttons.queue.size(); }
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        unsigned int get_translation_queue_size() const { return (unsigned int)m_translation.size(); }
-        unsigned int get_rotation_queue_size() const { return (unsigned int)m_rotation.size(); }
         unsigned int get_buttons_queue_size() const { return (unsigned int)m_buttons.size(); }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-        unsigned int get_translation_queue_max_size() const { return m_translation_queue_max_size; }
-        unsigned int get_rotation_queue_max_size() const { return m_rotation_queue_max_size; }
-        unsigned int get_buttons_queue_max_size() const { return m_buttons_queue_max_size; }
+        size_t get_translation_queue_max_size() const { return m_translation_queue_max_size; }
+        size_t get_rotation_queue_max_size() const { return m_rotation_queue_max_size; }
+        size_t get_buttons_queue_max_size() const { return m_buttons_queue_max_size; }
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
         size_t get_queues_max_size() const { return m_translation.max_size; }
-        void set_queues_max_size(size_t size)
-        {
-            if (size > 0)
-            {
-                std::cout << "New queues max size: " << size << std::endl;
-
-                m_translation.max_size = size;
-                m_rotation.max_size = size;
-                m_buttons.max_size = size;
-
-                m_translation_queue_max_size = 0;
-                m_rotation_queue_max_size = 0;
-                m_buttons_queue_max_size = 0;
-            }
-        }
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        void set_queues_max_size(size_t size);
 
         // return true if any change to the camera took place
         bool apply(Camera& camera);

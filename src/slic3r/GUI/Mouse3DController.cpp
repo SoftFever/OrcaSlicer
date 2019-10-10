@@ -72,19 +72,45 @@ Mouse3DController::State::State()
 {
 }
 
+void Mouse3DController::State::append_translation(const Vec3d& translation)
+{
+    while (m_translation.queue.size() >= m_translation.max_size)
+    {
+        m_translation.queue.pop();
+    }
+    m_translation.queue.push(translation);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    m_translation_queue_max_size = std::max(m_translation_queue_max_size, m_translation.queue.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+}
+
+void Mouse3DController::State::append_rotation(const Vec3f& rotation)
+{
+    while (m_rotation.queue.size() >= m_rotation.max_size)
+    {
+        m_rotation.queue.pop();
+    }
+    m_rotation.queue.push(rotation);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    m_rotation_queue_max_size = std::max(m_rotation_queue_max_size, m_rotation.queue.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    if (rotation(0) != 0.0f)
+        ++m_mouse_wheel_counter;
+}
+
+void Mouse3DController::State::append_button(unsigned int id)
+{
+    m_buttons.push(id);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, m_buttons.size());
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+}
+
 bool Mouse3DController::State::process_mouse_wheel()
 {
     if (m_mouse_wheel_counter == 0)
         return false;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
     else if (!m_rotation.queue.empty())
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    else if (!m_rotation.empty())
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         --m_mouse_wheel_counter;
         return true;
@@ -93,6 +119,21 @@ bool Mouse3DController::State::process_mouse_wheel()
     {
         m_mouse_wheel_counter = 0;
         return true;
+    }
+}
+
+void Mouse3DController::State::set_queues_max_size(size_t size)
+{
+    if (size > 0)
+    {
+        m_translation.max_size = size;
+        m_rotation.max_size = size;
+
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        m_translation_queue_max_size = 0;
+        m_rotation_queue_max_size = 0;
+        m_buttons_queue_max_size = 0;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     }
 }
 
@@ -105,26 +146,14 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_translation())
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
         const Vec3d& translation = m_translation.queue.front();
         camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
         m_translation.queue.pop();
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        const Vec3d& translation = m_translation.front();
-        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
-        m_translation.pop();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         ret = true;
     }
 
     if (has_rotation())
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
         const Vec3f& rotation = m_rotation.queue.front();
         float theta = m_rotation_params.scale * rotation(0);
         float phi = m_rotation_params.scale * rotation(2);
@@ -132,36 +161,11 @@ bool Mouse3DController::State::apply(Camera& camera)
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
         m_rotation.queue.pop();
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        const Vec3f& rotation = m_rotation.front();
-        float theta = m_rotation_params.scale * rotation(0);
-        float phi = m_rotation_params.scale * rotation(2);
-        float sign = camera.inverted_phi ? -1.0f : 1.0f;
-        camera.phi += sign * phi;
-        camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-        m_rotation.pop();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
         ret = true;
     }
 
     if (has_button())
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
-        unsigned int button = m_buttons.queue.front();
-        switch (button)
-        {
-        case 0: { camera.update_zoom(1.0); break; }
-        case 1: { camera.update_zoom(-1.0); break; }
-        default: { break; }
-        }
-        m_buttons.queue.pop();
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         unsigned int button = m_buttons.front();
         switch (button)
         {
@@ -170,9 +174,6 @@ bool Mouse3DController::State::apply(Camera& camera)
         default: { break; }
         }
         m_buttons.pop();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         ret = true;
     }
 
@@ -310,16 +311,12 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
     ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_QUEUE_MAX_SIZE
     int queue_size = (int)m_state.get_queues_max_size();
     if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
     {
         if (queue_size > 0)
             m_state.set_queues_max_size(queue_size);
     }
-#endif // ENABLE_QUEUE_MAX_SIZE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     imgui.end();
@@ -424,7 +421,7 @@ bool Mouse3DController::connect_device()
         std::cout << "Manufacturer id/product id....: " << vendor_id << "/" << product_id << std::endl;
         std::cout << "Manufacturer id/product id hex: " << std::hex << vendor_id << "/" << product_id << std::dec << std::endl;
         std::cout << "Usage page....................: " << usage_page << std::endl;
-        std::cout << "Usage.........................: " << usage << std::endl;
+        std::cout << "Usage.........................: " << usage << std::endl << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         // get device parameters from the config, if present
