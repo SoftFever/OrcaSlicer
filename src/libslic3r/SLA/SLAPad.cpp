@@ -1,6 +1,7 @@
 #include "SLAPad.hpp"
 #include "SLABoilerPlate.hpp"
 #include "SLASpatIndex.hpp"
+#include "ConcaveHull.hpp"
 
 #include "boost/log/trivial.hpp"
 #include "SLABoostAdapter.hpp"
@@ -206,36 +207,6 @@ Contour3D inline straight_walls(const Polygon &plate,
     return walls(plate, plate, lo_z, hi_z, .0 /*offset_diff*/, thr);
 }
 
-// As it shows, the current offset_ex in ClipperUtils hangs if used in jtRound
-// mode
-ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
-                              coord_t                  delta,
-                              ClipperLib::JoinType     jointype)
-{
-    using ClipperLib::ClipperOffset;
-    using ClipperLib::etClosedPolygon;
-    using ClipperLib::Paths;
-    using ClipperLib::Path;
-
-    ClipperOffset offs;
-    offs.ArcTolerance = scaled<double>(0.01);
-
-    for (auto &p : paths)
-        // If the input is not at least a triangle, we can not do this algorithm
-        if(p.size() < 3) {
-            BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
-            return {};
-        }
-
-    offs.AddPaths(paths, jointype, etClosedPolygon);
-
-    Paths result;
-    offs.Execute(result, static_cast<double>(delta));
-
-    return result;
-}
-
-
 // Function to cut tiny connector cavities for a given polygon. The input poly
 // will be offsetted by "padding" and small rectangle shaped cavities will be
 // inserted along the perimeter in every "stride" distance. The stick rectangles
@@ -322,158 +293,15 @@ ExPolygons breakstick_holes(const ExPolygons &input, Args...args)
     return ret;
 }
 
-/// A fake concave hull that is constructed by connecting separate shapes
-/// with explicit bridges. Bridges are generated from each shape's centroid
-/// to the center of the "scene" which is the centroid calculated from the shape
-/// centroids (a star is created...)
-class ConcaveHull {
-    Polygons m_polys;
+static inline coord_t get_waffle_offset(const PadConfig &c)
+{
+    return scaled(c.brim_size_mm + c.wing_distance());
+}
 
-    Point centroid(const Points& pp) const
-    {
-        Point c;
-        switch(pp.size()) {
-        case 0: break;
-        case 1: c = pp.front(); break;
-        case 2: c = (pp[0] + pp[1]) / 2; break;
-        default: {
-            auto MAX = std::numeric_limits<Point::coord_type>::max();
-            auto MIN = std::numeric_limits<Point::coord_type>::min();
-            Point min = {MAX, MAX}, max = {MIN, MIN};
-
-            for(auto& p : pp) {
-                if(p(0) < min(0)) min(0) = p(0);
-                if(p(1) < min(1)) min(1) = p(1);
-                if(p(0) > max(0)) max(0) = p(0);
-                if(p(1) > max(1)) max(1) = p(1);
-            }
-            c(0) = min(0) + (max(0) - min(0)) / 2;
-            c(1) = min(1) + (max(1) - min(1)) / 2;
-            break;
-        }
-        }
-
-        return c;
-    }
-
-    inline Point centroid(const Polygon &poly) const { return poly.centroid(); }
-
-    Points calculate_centroids() const
-    {
-        // We get the centroids of all the islands in the 2D slice
-        Points centroids = reserve_vector<Point>(m_polys.size());
-        std::transform(m_polys.begin(), m_polys.end(),
-                       std::back_inserter(centroids),
-                       [this](const Polygon &poly) { return centroid(poly); });
-
-        return centroids;
-    }
-
-    void merge_polygons() { m_polys = union_(m_polys); }
-
-    void add_connector_rectangles(const Points &centroids,
-                                  coord_t       max_dist,
-                                  ThrowOnCancel thr)
-    {
-        namespace bgi = boost::geometry::index;
-        using PointIndexElement = std::pair<Point, unsigned>;
-        using PointIndex = bgi::rtree<PointIndexElement, bgi::rstar<16, 4>>;
-
-        // Centroid of the centroids of islands. This is where the additional
-        // connector sticks are routed.
-        Point cc = centroid(centroids);
-
-        PointIndex ctrindex;
-        unsigned  idx = 0;
-        for(const Point &ct : centroids)
-            ctrindex.insert(std::make_pair(ct, idx++));
-
-        m_polys.reserve(m_polys.size() + centroids.size());
-
-        idx = 0;
-        for (const Point &c : centroids) {
-            thr();
-
-            double dx = c.x() - cc.x(), dy = c.y() - cc.y();
-            double l  = std::sqrt(dx * dx + dy * dy);
-            double nx = dx / l, ny = dy / l;
-
-            const Point &ct = centroids[idx];
-
-            std::vector<PointIndexElement> result;
-            ctrindex.query(bgi::nearest(ct, 2), std::back_inserter(result));
-
-            double dist = max_dist;
-            for (const PointIndexElement &el : result)
-                if (el.second != idx) {
-                    dist = Line(el.first, ct).length();
-                    break;
-                }
-
-            idx++;
-
-            if (dist >= max_dist) return;
-
-            Polygon r;
-            r.points.reserve(3);
-            r.points.emplace_back(cc);
-
-            Point d(scaled(nx), scaled(ny));
-            r.points.emplace_back(c + Point(-d.y(), d.x()));
-            r.points.emplace_back(c + Point(d.y(), -d.x()));
-            offset(r, scaled<float>(1.));
-
-            m_polys.emplace_back(r);
-        }
-    }
-
-public:
-
-    ConcaveHull(const ExPolygons& polys, double merge_dist, ThrowOnCancel thr)
-        : ConcaveHull{to_polygons(polys), merge_dist, thr} {}
-
-    ConcaveHull(const Polygons& polys, double mergedist, ThrowOnCancel thr)
-    {
-        if(polys.empty()) return;
-
-        m_polys = polys;
-        merge_polygons();
-
-        if(m_polys.size() == 1) return;
-
-        Points centroids = calculate_centroids();
-
-        add_connector_rectangles(centroids, scaled(mergedist), thr);
-
-        merge_polygons();
-    }
-
-    // const Polygons & polygons() const { return m_polys; }
-
-    ExPolygons to_expolygons() const
-    {
-        auto ret = reserve_vector<ExPolygon>(m_polys.size());
-        for (const Polygon &p : m_polys) ret.emplace_back(ExPolygon(p));
-        return ret;
-    }
-
-    void offset_waffle_style(coord_t delta) {
-        ClipperLib::Paths paths = Slic3rMultiPoints_to_ClipperPaths(m_polys);
-        paths = fast_offset(paths, 2 * delta, ClipperLib::jtRound);
-        paths = fast_offset(paths, -delta, ClipperLib::jtRound);
-        m_polys = ClipperPaths_to_Slic3rPolygons(paths);
-    }
-
-    static inline coord_t get_waffle_offset(const PadConfig &c)
-    {
-        return scaled(c.brim_size_mm + c.wing_distance());
-    }
-
-    static inline double get_merge_distance(const PadConfig &c)
-    {
-        return 2. * (1.8 * c.wall_thickness_mm) + c.max_merge_dist_mm;
-    }
-};
+static inline double get_merge_distance(const PadConfig &c)
+{
+    return 2. * (1.8 * c.wall_thickness_mm) + c.max_merge_dist_mm;
+}
 
 // Part of the pad configuration that is used for 3D geometry generation
 struct PadConfig3D {
@@ -591,7 +419,7 @@ public:
                       scaled<float>(cfg.embed_object.object_gap_mm),
                       ClipperLib::jtMiter, 1);
 
-        ConcaveHull fullcvh =
+        ExPolygons fullcvh =
             wafflized_concave_hull(support_blueprint, model_bp_offs, cfg, thr);
 
         auto model_bp_sticks =
@@ -600,7 +428,7 @@ public:
                              cfg.embed_object.stick_width_mm,
                              cfg.embed_object.stick_penetration_mm);
 
-        ExPolygons fullpad = diff_ex(fullcvh.to_expolygons(), model_bp_sticks);
+        ExPolygons fullpad = diff_ex(fullcvh, model_bp_sticks);
 
         remove_redundant_parts(fullpad);
 
@@ -619,7 +447,7 @@ private:
 
     // Create the wafflized pad around all object in the scene. This pad doesnt
     // have any holes yet.
-    ConcaveHull wafflized_concave_hull(const ExPolygons &supp_bp,
+    ExPolygons wafflized_concave_hull(const ExPolygons &supp_bp,
                                        const ExPolygons &model_bp,
                                        const PadConfig  &cfg,
                                        ThrowOnCancel     thr)
@@ -629,10 +457,8 @@ private:
         for (auto &ep : supp_bp) allin.emplace_back(ep.contour);
         for (auto &ep : model_bp) allin.emplace_back(ep.contour);
 
-        ConcaveHull ret{allin, ConcaveHull::get_merge_distance(cfg), thr};
-        ret.offset_waffle_style(ConcaveHull::get_waffle_offset(cfg));
-
-        return ret;
+        ConcaveHull cchull{allin, get_merge_distance(cfg), thr};
+        return offset_waffle_style_ex(cchull, get_waffle_offset(cfg));
     }
 
     // To remove parts of the pad skeleton which do not host any supports
@@ -663,10 +489,9 @@ public:
         for (auto &ep : support_blueprint) outer.emplace_back(ep.contour);
         for (auto &ep : model_blueprint) outer.emplace_back(ep.contour);
 
-        ConcaveHull ochull{outer, ConcaveHull::get_merge_distance(cfg), thr};
+        ConcaveHull ochull{outer, get_merge_distance(cfg), thr};
 
-        ochull.offset_waffle_style(ConcaveHull::get_waffle_offset(cfg));
-        outer = ochull.to_expolygons();
+        outer = offset_waffle_style_ex(ochull, get_waffle_offset(cfg));
     }
 };
 
@@ -861,7 +686,7 @@ std::string PadConfig::validate() const
 
     if (brim_size_mm < MIN_BRIM_SIZE_MM ||
         bottom_offset() > brim_size_mm + wing_distance() ||
-        ConcaveHull::get_waffle_offset(*this) <= MIN_BRIM_SIZE_MM)
+        get_waffle_offset(*this) <= MIN_BRIM_SIZE_MM)
         return L("Pad brim size is too small for the current configuration.");
 
     return "";
