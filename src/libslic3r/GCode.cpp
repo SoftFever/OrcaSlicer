@@ -507,7 +507,7 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
 std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, bool finish_layer)
 {
     std::string gcode;
-	assert(m_layer_idx >= 0 && size_t(m_layer_idx) <= m_tool_changes.size());
+    assert(m_layer_idx >= 0);
     if (! m_brim_done || gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
 		if (m_layer_idx < (int)m_tool_changes.size()) {
 			if (! (size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))

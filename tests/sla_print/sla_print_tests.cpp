@@ -17,6 +17,7 @@
 #include "libslic3r/SLA/SLASupportTreeBuildsteps.hpp"
 #include "libslic3r/SLA/SLAAutoSupports.hpp"
 #include "libslic3r/SLA/SLARaster.hpp"
+#include "libslic3r/SLA/ConcaveHull.hpp"
 #include "libslic3r/MTUtils.hpp"
 
 #include "libslic3r/SVG.hpp"
@@ -79,6 +80,43 @@ struct PadByproducts
     TriangleMesh mesh;
 };
 
+void _test_concave_hull(const Polygons &hull, const ExPolygons &polys)
+{
+    REQUIRE(polys.size() >=hull.size());
+
+    double polys_area = 0;
+    for (const ExPolygon &p : polys) polys_area += p.area();
+
+    double cchull_area = 0;
+    for (const Slic3r::Polygon &p : hull) cchull_area += p.area();
+
+    REQUIRE(cchull_area >= Approx(polys_area));
+
+    size_t cchull_holes = 0;
+    for (const Slic3r::Polygon &p : hull)
+        cchull_holes += p.is_clockwise() ? 1 : 0;
+
+    REQUIRE(cchull_holes == 0);
+
+    Polygons intr = diff(to_polygons(polys), hull);
+    REQUIRE(intr.empty());
+}
+
+void test_concave_hull(const ExPolygons &polys) {
+    sla::PadConfig pcfg;
+
+    Slic3r::sla::ConcaveHull cchull{polys, pcfg.max_merge_dist_mm, []{}};
+
+    _test_concave_hull(cchull.polygons(), polys);
+
+    coord_t delta = scaled(pcfg.brim_size_mm + pcfg.wing_distance());
+    ExPolygons wafflex = sla::offset_waffle_style_ex(cchull, delta);
+    Polygons waffl = sla::offset_waffle_style(cchull, delta);
+
+    _test_concave_hull(to_polygons(wafflex), polys);
+    _test_concave_hull(waffl, polys);
+}
+
 void test_pad(const std::string &   obj_filename,
               const sla::PadConfig &padcfg,
               PadByproducts &       out)
@@ -91,6 +129,8 @@ void test_pad(const std::string &   obj_filename,
 
     // Create pad skeleton only from the model
     Slic3r::sla::pad_blueprint(mesh, out.model_contours);
+
+    test_concave_hull(out.model_contours);
 
     REQUIRE_FALSE(out.model_contours.empty());
 
@@ -257,7 +297,7 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices,
         const ExPolygons &sup_slice = support_slices[n];
         const ExPolygons &mod_slice = byproducts.model_slices[n];
         Polygons intersections = intersection(sup_slice, mod_slice);
-        
+
         std::stringstream ss;
         if (!intersections.empty()) {
             ss << byproducts.obj_fname << std::setprecision(4) << n << ".svg";
@@ -268,7 +308,7 @@ void export_failed_case(const std::vector<ExPolygons> &support_slices,
             svg.Close();
         }
     }
-    
+
     TriangleMesh m;
     byproducts.supporttree.retrieve_full_mesh(m);
     m.merge(byproducts.input_mesh);
@@ -288,7 +328,7 @@ void test_support_model_collision(
     // Set head penetration to a small negative value which should ensure that
     // the supports will not touch the model body.
     supportcfg.head_penetration_mm = -0.15;
-    
+
     // TODO: currently, the tailheads penetrating into the model body do not
     // respect the penetration parameter properly. No issues were reported so
     // far but we should definitely fix this.
@@ -305,7 +345,7 @@ void test_support_model_collision(
     bool support_mesh_is_empty =
         byproducts.supporttree.retrieve_mesh(sla::MeshType::Pad).empty() &&
         byproducts.supporttree.retrieve_mesh(sla::MeshType::Support).empty();
-    
+
     if (support_mesh_is_empty)
         REQUIRE(support_slices.empty());
     else
@@ -320,7 +360,7 @@ void test_support_model_collision(
 
         notouch = notouch && intersections.empty();
     }
-    
+
     if (!notouch) export_failed_case(support_slices, byproducts);
 
     REQUIRE(notouch);
@@ -359,12 +399,12 @@ template <class I, class II> void test_pairhash()
 
     const I Ibits = int(sizeof(I) * CHAR_BIT);
     const II IIbits = int(sizeof(II) * CHAR_BIT);
-    
+
     int bits = IIbits / 2 < Ibits ? Ibits / 2 : Ibits;
     if (std::is_signed<I>::value) bits -= 1;
-    const I Imin = std::is_signed<I>::value ? -I(std::pow(2., bits)) : 0;
+    const I Imin = 0;
     const I Imax = I(std::pow(2., bits) - 1);
-    
+
     std::uniform_int_distribution<I> dis(Imin, Imax);
 
     for (size_t i = 0; i < nums;) {
