@@ -64,13 +64,11 @@ Mouse3DController::State::State()
     : m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
     , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
     , m_mouse_wheel_counter(0)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     , m_translation_queue_max_size(0)
     , m_rotation_queue_max_size(0)
     , m_buttons_queue_max_size(0)
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
 }
 
@@ -289,22 +287,17 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
         m_state.set_rotation_deadzone(rotation_deadzone);
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::Separator();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, color);
     imgui.text("DEBUG:");
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     imgui.text("Vectors:");
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::PopStyleColor();
     Vec3f translation = m_state.get_translation().cast<float>();
     Vec3f rotation = m_state.get_rotation();
     ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ImGui::PushStyleColor(ImGuiCol_Text, color);
     imgui.text("Queue size:");
     ImGui::PopStyleColor();
@@ -317,6 +310,7 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
     ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_QUEUE_MAX_SIZE
     int queue_size = (int)m_state.get_queues_max_size();
     if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
@@ -351,10 +345,8 @@ bool Mouse3DController::connect_device()
     unsigned short product_id = 0;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     unsigned short usage_page = 0;
     unsigned short usage = 0;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     hid_device_info* cur = devices;
     while (cur != nullptr)
     {
@@ -387,12 +379,10 @@ bool Mouse3DController::connect_device()
                 if (_3DCONNEXION_DEVICES[i] == current->product_id)
                 {
                     product_id = current->product_id;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                     usage_page = current->usage_page;
                     usage = current->usage;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     break;
                 }
             }
@@ -418,21 +408,16 @@ bool Mouse3DController::connect_device()
 
     if (m_device != nullptr)
     {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         std::vector<wchar_t> manufacturer(1024, 0);
         hid_get_manufacturer_string(m_device, manufacturer.data(), 1024);
         m_device_str = boost::nowide::narrow(manufacturer.data());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         std::vector<wchar_t> product(1024, 0);
         hid_get_product_string(m_device, product.data(), 1024);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_device_str += "/" + boost::nowide::narrow(product.data());
-//        m_device_str = boost::nowide::narrow(product.data());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         std::cout << std::endl << "Connected device:" << std::endl;
         std::cout << "Manufacturer/product..........: " << m_device_str << std::endl;
@@ -441,8 +426,6 @@ bool Mouse3DController::connect_device()
         std::cout << "Usage page....................: " << usage_page << std::endl;
         std::cout << "Usage.........................: " << usage << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 
         // get device parameters from the config, if present
         double translation_speed = 1.0;
