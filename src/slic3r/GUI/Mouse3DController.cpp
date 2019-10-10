@@ -54,10 +54,10 @@ namespace Slic3r {
 namespace GUI {
     
 const double Mouse3DController::State::DefaultTranslationScale = 2.5;
-const double Mouse3DController::State::MaxTranslationDeadzone = 0.1;
+const double Mouse3DController::State::MaxTranslationDeadzone = 0.2;
 const double Mouse3DController::State::DefaultTranslationDeadzone = 0.5 * Mouse3DController::State::MaxTranslationDeadzone;
 const float Mouse3DController::State::DefaultRotationScale = 1.0f;
-const float Mouse3DController::State::MaxRotationDeadzone = 0.1f;
+const float Mouse3DController::State::MaxRotationDeadzone = (float)Mouse3DController::State::MaxTranslationDeadzone;
 const float Mouse3DController::State::DefaultRotationDeadzone = 0.5f * Mouse3DController::State::MaxRotationDeadzone;
 
 Mouse3DController::State::State()
@@ -78,7 +78,15 @@ bool Mouse3DController::State::process_mouse_wheel()
 {
     if (m_mouse_wheel_counter == 0)
         return false;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_QUEUE_MAX_SIZE
+    else if (!m_rotation.queue.empty())
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     else if (!m_rotation.empty())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_QUEUE_MAX_SIZE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         --m_mouse_wheel_counter;
         return true;
@@ -99,14 +107,35 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_translation())
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_QUEUE_MAX_SIZE
+        const Vec3d& translation = m_translation.queue.front();
+        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
+        m_translation.queue.pop();
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         const Vec3d& translation = m_translation.front();
         camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
         m_translation.pop();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_QUEUE_MAX_SIZE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         ret = true;
     }
 
     if (has_rotation())
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_QUEUE_MAX_SIZE
+        const Vec3f& rotation = m_rotation.queue.front();
+        float theta = m_rotation_params.scale * rotation(0);
+        float phi = m_rotation_params.scale * rotation(2);
+        float sign = camera.inverted_phi ? -1.0f : 1.0f;
+        camera.phi += sign * phi;
+        camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+        m_rotation.queue.pop();
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         const Vec3f& rotation = m_rotation.front();
         float theta = m_rotation_params.scale * rotation(0);
         float phi = m_rotation_params.scale * rotation(2);
@@ -114,12 +143,27 @@ bool Mouse3DController::State::apply(Camera& camera)
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
         m_rotation.pop();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_QUEUE_MAX_SIZE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         ret = true;
     }
 
     if (has_button())
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_QUEUE_MAX_SIZE
+        unsigned int button = m_buttons.queue.front();
+        switch (button)
+        {
+        case 0: { camera.update_zoom(1.0); break; }
+        case 1: { camera.update_zoom(-1.0); break; }
+        default: { break; }
+        }
+        m_buttons.queue.pop();
+#else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         unsigned int button = m_buttons.front();
         switch (button)
         {
@@ -128,6 +172,9 @@ bool Mouse3DController::State::apply(Camera& camera)
         default: { break; }
         }
         m_buttons.pop();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_QUEUE_MAX_SIZE
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         ret = true;
     }
 
@@ -271,21 +318,14 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
     ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
 
-/*
-    int translation_size = (int)m_state.get_translation_queue_size();
-    int translation_max_size = (int)m_state.get_translation_queue_max_size();
-    int rotation_size = (int)m_state.get_rotation_queue_size();
-    int rotation_max_size = (int)m_state.get_rotation_queue_max_size();
-    int buttons_size = (int)m_state.get_buttons_queue_size();
-    int buttons_max_size = (int)m_state.get_buttons_queue_max_size();
-
-    ImGui::InputInt("Translation size", &translation_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt("Translation max", &translation_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt("Rotation size", &rotation_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt("Rotation max", &rotation_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt("Button size", &buttons_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt("Button max", &buttons_max_size, 0, 0, ImGuiInputTextFlags_ReadOnly);
-*/
+#if ENABLE_QUEUE_MAX_SIZE
+    int queue_size = (int)m_state.get_queues_max_size();
+    if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
+    {
+        if (queue_size > 0)
+            m_state.set_queues_max_size(queue_size);
+    }
+#endif // ENABLE_QUEUE_MAX_SIZE
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
@@ -312,6 +352,10 @@ bool Mouse3DController::connect_device()
     unsigned short product_id = 0;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    unsigned short usage_page = 0;
+    unsigned short usage = 0;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     hid_device_info* cur = devices;
     while (cur != nullptr)
     {
@@ -344,6 +388,12 @@ bool Mouse3DController::connect_device()
                 if (_3DCONNEXION_DEVICES[i] == current->product_id)
                 {
                     product_id = current->product_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+                    usage_page = current->usage_page;
+                    usage = current->usage;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     break;
                 }
             }
@@ -369,11 +419,31 @@ bool Mouse3DController::connect_device()
 
     if (m_device != nullptr)
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        std::vector<wchar_t> manufacturer(1024, 0);
+        hid_get_manufacturer_string(m_device, manufacturer.data(), 1024);
+        m_device_str = boost::nowide::narrow(manufacturer.data());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
         std::vector<wchar_t> product(1024, 0);
         hid_get_product_string(m_device, product.data(), 1024);
-        m_device_str = boost::nowide::narrow(product.data());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        m_device_str += "/" + boost::nowide::narrow(product.data());
+//        m_device_str = boost::nowide::narrow(product.data());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        std::cout << std::endl << "Connected device:" << std::endl;
+        std::cout << "Manufacturer/product..........: " << m_device_str << std::endl;
+        std::cout << "Manufacturer id/product id....: " << vendor_id << "/" << product_id << std::endl;
+        std::cout << "Manufacturer id/product id hex: " << std::hex << vendor_id << "/" << product_id << std::dec << std::endl;
+        std::cout << "Usage page....................: " << usage_page << std::endl;
+        std::cout << "Usage.........................: " << usage << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
         // get device parameters from the config, if present
         double translation_speed = 1.0;
