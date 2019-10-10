@@ -243,11 +243,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Add Axes labels with icons
     static const char axes[] = { 'X', 'Y', 'Z' };
+//    std::vector<wxString> axes_color = {"#990000", "#009900","#000099"};
     for (size_t axis_idx = 0; axis_idx < sizeof(axes); axis_idx++) {
         const char label = axes[axis_idx];
 
         wxStaticText* axis_name = new wxStaticText(m_parent, wxID_ANY, wxString(label));
         set_font_and_background_style(axis_name, wxGetApp().bold_font());
+//        axis_name->SetForegroundColour(wxColour(axes_color[axis_idx]));
 
         sizer = new wxBoxSizer(wxHORIZONTAL);
         // Under OSX we use font, smaller than default font, so
