@@ -417,6 +417,9 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 {
+    // used to set a right up event as processed when needed
+    static bool pending_right_up = false;
+
     Point pos(evt.GetX(), evt.GetY());
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
 
@@ -442,7 +445,14 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     else if (evt.MiddleUp())
         m_mouse_capture.middle = false;
     else if (evt.RightUp())
+    {
         m_mouse_capture.right = false;
+        if (pending_right_up)
+        {
+            pending_right_up = false;
+            processed = true;
+        }
+    }
     else if (evt.Dragging() && m_mouse_capture.any())
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
@@ -473,8 +483,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             }
         }
         else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::RightDown))
+        {
+            // we need to set the following right up as processed to avoid showing the context menu if the user release the mouse over the object
+            pending_right_up = true;
             // event was taken care of by the SlaSupports gizmo
             processed = true;
+        }
         else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports))
                         // don't allow dragging objects with the Sla gizmo on
             processed = true;
