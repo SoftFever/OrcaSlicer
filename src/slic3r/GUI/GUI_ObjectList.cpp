@@ -2331,6 +2331,7 @@ void ObjectList::changed_object(const int obj_idx/* = -1*/) const
 
 void ObjectList::part_selection_changed()
 {
+    if (m_extruder_editor) m_extruder_editor->Hide();
     int obj_idx = -1;
     int volume_id = -1;
     m_config = nullptr;
@@ -2954,7 +2955,6 @@ int ObjectList::get_selected_layers_range_idx() const
 
 void ObjectList::update_selections()
 {
-    if (m_extruder_editor) m_extruder_editor->Hide();
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
