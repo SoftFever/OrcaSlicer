@@ -46,8 +46,7 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
     0xc635,	/* 50741 spacemouse compact *TESTED* */
     0xc636,	/* 50742 spacemouse module */
     0xc640,	/* 50752 nulooq */
-
-//    0xc652, /* 50770 3Dconnexion universal receiver */
+    0xc652, /* 50770 3Dconnexion universal receiver *TESTED* */
 };
 
 namespace Slic3r {
@@ -336,12 +335,11 @@ bool Mouse3DController::connect_device()
     }
 
     // Searches for 1st connected 3Dconnexion device
+    std::string path = "";
     unsigned short vendor_id = 0;
     unsigned short product_id = 0;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    unsigned short usage_page = 0;
-    unsigned short usage = 0;
     hid_device_info* cur = devices;
     while (cur != nullptr)
     {
@@ -371,13 +369,10 @@ bool Mouse3DController::connect_device()
         {
             for (size_t i = 0; i < _3DCONNEXION_DEVICES.size(); ++i)
             {
-                if (_3DCONNEXION_DEVICES[i] == current->product_id)
+                if ((_3DCONNEXION_DEVICES[i] == current->product_id) && (current->usage_page == 1) && (current->usage == 8))
                 {
                     product_id = current->product_id;
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-                    usage_page = current->usage_page;
-                    usage = current->usage;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+                    path = current->path;
                     break;
                 }
             }
@@ -398,8 +393,8 @@ bool Mouse3DController::connect_device()
     if (vendor_id == 0)
         return false;
 
-    // Open the 3Dconnexion device using the VID, PID
-    m_device = hid_open(vendor_id, product_id, nullptr);
+    // Open the 3Dconnexion device using the device path
+    m_device = hid_open_path(path.c_str());
 
     if (m_device != nullptr)
     {
@@ -415,27 +410,9 @@ bool Mouse3DController::connect_device()
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         std::cout << std::endl << "Connected device:" << std::endl;
-        std::cout << "Manufacturer/product..........: " << m_device_str << std::endl;
-        std::cout << "Manufacturer id/product id....: " << vendor_id << "/" << product_id << std::endl;
-        std::cout << "Manufacturer id/product id hex: " << std::hex << vendor_id << "/" << product_id << std::dec << std::endl;
-        std::cout << "Usage page....................: " << usage_page << std::endl;
-        std::cout << "Usage.........................: " << usage << std::endl << std::endl;
-
-        std::cout << "Feature reports:" << std::endl;
-        for (int i = 0; i < 256; ++i)
-        {
-            DataPacket packet = { 0 };
-            packet[0] = (unsigned char)i;
-            int res = hid_get_feature_report(m_device, packet.data(), packet.size());
-            if (res > 0)
-            {
-                for (int j = 0; j < res; ++j)
-                {
-                    std::cout << " " << (int)packet[j];
-                }
-                std::cout << std::endl;
-            }
-        }
+        std::cout << "Manufacturer/product: " << m_device_str << std::endl;
+        std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
+        std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         // get device parameters from the config, if present
@@ -554,6 +531,13 @@ bool Mouse3DController::handle_packet(const DataPacket& packet)
 
             break;
         }
+    case 23: // Battery charge
+        {
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            std::cout << m_device_str << " - battery level: " << (int)packet[1] << " percent" << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            break;
+        }
     default:
         {
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -585,6 +569,13 @@ bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
             if (handle_packet_button(packet, 12))
                 return true;
 
+            break;
+        }
+    case 23: // Battery charge
+        {
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            std::cout << m_device_str << " - battery level: " << (int)packet[1] << " percent" << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
     default:
