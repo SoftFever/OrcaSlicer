@@ -115,11 +115,9 @@ bool Mouse3DController::State::process_mouse_wheel()
         --m_mouse_wheel_counter;
         return true;
     }
-    else
-    {
-        m_mouse_wheel_counter = 0;
-        return true;
-    }
+
+    m_mouse_wheel_counter = 0;
+    return true;
 }
 
 void Mouse3DController::State::set_queues_max_size(size_t size)
@@ -422,6 +420,22 @@ bool Mouse3DController::connect_device()
         std::cout << "Manufacturer id/product id hex: " << std::hex << vendor_id << "/" << product_id << std::dec << std::endl;
         std::cout << "Usage page....................: " << usage_page << std::endl;
         std::cout << "Usage.........................: " << usage << std::endl << std::endl;
+
+        std::cout << "Feature reports:" << std::endl;
+        for (int i = 0; i < 256; ++i)
+        {
+            DataPacket packet = { 0 };
+            packet[0] = (unsigned char)i;
+            int res = hid_get_feature_report(m_device, packet.data(), packet.size());
+            if (res > 0)
+            {
+                for (int j = 0; j < res; ++j)
+                {
+                    std::cout << " " << (int)packet[j];
+                }
+                std::cout << std::endl;
+            }
+        }
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         // get device parameters from the config, if present
@@ -434,9 +448,9 @@ bool Mouse3DController::connect_device()
         wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation_speed);
         wxGetApp().app_config->get_mouse_device_rotation_deadzone(m_device_str, rotation_deadzone);
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale* std::max(0.5, std::min(2.0, translation_speed)));
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::max(0.5, std::min(2.0, translation_speed)));
         m_state.set_translation_deadzone(std::max(0.0, std::min(State::MaxTranslationDeadzone, translation_deadzone)));
-        m_state.set_rotation_scale(State::DefaultRotationScale* std::max(0.5f, std::min(2.0f, rotation_speed)));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation_speed)));
         m_state.set_rotation_deadzone(std::max(0.0f, std::min(State::MaxRotationDeadzone, rotation_deadzone)));
     }
 
@@ -505,8 +519,10 @@ void Mouse3DController::collect_input()
         updated = handle_packet(packet);
     else if (res == 13)
         updated = handle_wireless_packet(packet);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else if (res > 0)
         std::cout << "Got unknown data packet of length: " << res << ", code:" << (int)packet[0] << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     if (updated)
         // ask for an idle event to update 3D scene
@@ -540,7 +556,9 @@ bool Mouse3DController::handle_packet(const DataPacket& packet)
         }
     default:
         {
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
     }
@@ -571,7 +589,9 @@ bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
         }
     default:
         {
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             std::cout << "Got unknown data packet of code: " << (int)packet[0] << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             break;
         }
     }
