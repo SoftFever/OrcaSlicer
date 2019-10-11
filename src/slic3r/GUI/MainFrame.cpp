@@ -24,9 +24,7 @@
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
-#if ENABLE_3DCONNEXION_DEVICES
 #include "Mouse3DController.hpp"
-#endif // ENABLE_3DCONNEXION_DEVICES
 #include "I18N.hpp"
 
 #include <fstream>

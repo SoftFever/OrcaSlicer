@@ -85,7 +85,6 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-#if ENABLE_3DCONNEXION_DEVICES
     // We may let these factors be customizable
     static const double ScaleFactor = 1.1;
     BoundingBoxf3 test_box = m_scene_box;
@@ -94,12 +93,6 @@ void Camera::set_target(const Vec3d& target)
     m_target(0) = clamp(test_box.min(0), test_box.max(0), m_target(0));
     m_target(1) = clamp(test_box.min(1), test_box.max(1), m_target(1));
     m_target(2) = clamp(test_box.min(2), test_box.max(2), m_target(2));
-#else
-    m_target = target;
-    m_target(0) = clamp(m_scene_box.min(0), m_scene_box.max(0), m_target(0));
-    m_target(1) = clamp(m_scene_box.min(1), m_scene_box.max(1), m_target(1));
-    m_target(2) = clamp(m_scene_box.min(2), m_scene_box.max(2), m_target(2));
-#endif // ENABLE_3DCONNEXION_DEVICES
 }
 
 void Camera::set_theta(float theta, bool apply_limit)
@@ -114,7 +107,6 @@ void Camera::set_theta(float theta, bool apply_limit)
     }
 }
 
-#if ENABLE_3DCONNEXION_DEVICES
 void Camera::update_zoom(double delta_zoom)
 {
     set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1));
@@ -130,23 +122,6 @@ void Camera::set_zoom(double zoom)
     // Don't allow to zoom too close to the scene.
     m_zoom = std::min(zoom, 100.0);
 }
-#else
-void Camera::set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h)
-{
-    zoom = std::max(std::min(zoom, 4.0), -4.0) / 10.0;
-    zoom = m_zoom / (1.0 - zoom);
-
-    // Don't allow to zoom too far outside the scene.
-    double zoom_min = calc_zoom_to_bounding_box_factor(max_box, canvas_w, canvas_h);
-    if (zoom_min > 0.0)
-        zoom = std::max(zoom, zoom_min * 0.7);
-
-    // Don't allow to zoom too close to the scene.
-    zoom = std::min(zoom, 100.0);
-
-    m_zoom = zoom;
-}
-#endif // ENABLE_3DCONNEXION_DEVICES
 
 bool Camera::select_view(const std::string& direction)
 {

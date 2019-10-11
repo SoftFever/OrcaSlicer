@@ -32,13 +32,4 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
 
-//====================
-// 2.0.0.alpha1 techs
-//====================
-#define ENABLE_2_0_0_ALPHA1 1
-
-// Enabled 3Dconnexion devices
-#define ENABLE_3DCONNEXION_DEVICES (1 && ENABLE_2_0_0_ALPHA1)
-
-
 #endif // _technologies_h_

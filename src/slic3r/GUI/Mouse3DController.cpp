@@ -1,8 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "Mouse3DController.hpp"
 
-#if ENABLE_3DCONNEXION_DEVICES
-
 #include "Camera.hpp"
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
@@ -647,5 +645,3 @@ bool Mouse3DController::handle_packet_button(const DataPacket& packet, unsigned 
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_3DCONNEXION_DEVICES

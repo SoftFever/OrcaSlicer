@@ -271,7 +271,6 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
-#if ENABLE_3DCONNEXION_DEVICES
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone)
 {
     std::string key = std::string("mouse_device:") + name;
@@ -345,7 +344,6 @@ bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, floa
     deadzone = (float)::atof(it_val->second.c_str());
     return true;
 }
-#endif // ENABLE_3DCONNEXION_DEVICES
 
 void AppConfig::update_config_dir(const std::string &dir)
 {

@@ -486,9 +486,7 @@ public:
     void set_color_by(const std::string& value);
 
     const Camera& get_camera() const { return m_camera; }
-#if ENABLE_3DCONNEXION_DEVICES
     Camera& get_camera() { return m_camera; }
-#endif // ENABLE_3DCONNEXION_DEVICES
 
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;
@@ -567,10 +565,6 @@ public:
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
     void do_mirror(const std::string& snapshot_type);
 
-#if !ENABLE_3DCONNEXION_DEVICES
-    void set_camera_zoom(double zoom);
-#endif // !ENABLE_3DCONNEXION_DEVICES
-
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
@@ -644,9 +638,7 @@ private:
     BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
     void _zoom_to_box(const BoundingBoxf3& box);
-#if ENABLE_3DCONNEXION_DEVICES
     void _update_camera_zoom(double zoom);
-#endif // ENABLE_3DCONNEXION_DEVICES
 
     void _refresh_if_shown_on_screen();
 

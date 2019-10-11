@@ -529,10 +529,8 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_SliderGrab, COL_ORANGE_DARK);
     set_color(ImGuiCol_SliderGrabActive, COL_ORANGE_LIGHT);
 
-#if ENABLE_3DCONNEXION_DEVICES
     // Separator
     set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
-#endif // ENABLE_3DCONNEXION_DEVICES
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

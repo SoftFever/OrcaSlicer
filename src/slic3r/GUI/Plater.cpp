@@ -62,9 +62,7 @@
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
 #include "Camera.hpp"
-#if ENABLE_3DCONNEXION_DEVICES
 #include "Mouse3DController.hpp"
-#endif // ENABLE_3DCONNEXION_DEVICES
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -1373,9 +1371,7 @@ struct Plater::priv
     Sidebar *sidebar;
     Bed3D bed;
     Camera camera;
-#if ENABLE_3DCONNEXION_DEVICES
     Mouse3DController mouse3d_controller;
-#endif // ENABLE_3DCONNEXION_DEVICES
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
@@ -2107,9 +2103,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // updates camera type from .ini file
     camera.set_type(get_config("use_perspective_camera"));
 
-#if ENABLE_3DCONNEXION_DEVICES
     mouse3d_controller.init();
-#endif // ENABLE_3DCONNEXION_DEVICES
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));
@@ -2117,9 +2111,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 Plater::priv::~priv()
 {
-#if ENABLE_3DCONNEXION_DEVICES
     mouse3d_controller.shutdown();
-#endif // ENABLE_3DCONNEXION_DEVICES
 
     if (config != nullptr)
         delete config;
@@ -5159,7 +5151,6 @@ const Camera& Plater::get_camera() const
     return p->camera;
 }
 
-#if ENABLE_3DCONNEXION_DEVICES
 const Mouse3DController& Plater::get_mouse3d_controller() const
 {
     return p->mouse3d_controller;
@@ -5169,7 +5160,6 @@ Mouse3DController& Plater::get_mouse3d_controller()
 {
     return p->mouse3d_controller;
 }
-#endif // ENABLE_3DCONNEXION_DEVICES
 
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }

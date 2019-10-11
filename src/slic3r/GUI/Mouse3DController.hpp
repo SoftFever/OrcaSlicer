@@ -1,9 +1,7 @@
 #ifndef slic3r_Mouse3DController_hpp_
 #define slic3r_Mouse3DController_hpp_
 
-#if ENABLE_3DCONNEXION_DEVICES
-
-// Enabled debug output and extended imgui dialog
+// Enabled debug output to console and extended imgui dialog
 #define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT 0
 
 #include "libslic3r/Point.hpp"
@@ -168,8 +166,6 @@ private:
 
 } // namespace GUI
 } // namespace Slic3r
-
-#endif // ENABLE_3DCONNEXION_DEVICES
 
 #endif // slic3r_Mouse3DController_hpp_
 
