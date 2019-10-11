@@ -746,7 +746,7 @@ public:
     // Wipe tower object.
     ModelWipeTower	    wipe_tower;
 
-    // Extensions for 
+    // Extensions for color print
     struct CustomGCode
     {
         CustomGCode(double height, const std::string& code, int extruder) :
