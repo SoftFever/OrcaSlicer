@@ -502,6 +502,8 @@ void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_ra
     m_enabled = true;
     update_double_slider(layers_z, keep_z_range);
     m_double_slider_sizer->Show((size_t)0);
+    if (m_slider->GetManipulationState() != DoubleSlider::msMultiExtruder)
+        m_double_slider_sizer->GetItem(size_t(0))->GetSizer()->Hide((size_t)0);
     Layout();
 }
 
@@ -572,8 +574,8 @@ void Preview::update_view_type()
                                     _(L("Feature type"));
     */
 
-    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() &&
-                             wxGetApp().extruders_edited_cnt()==1 ? 
+    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty()// &&
+                             /*wxGetApp().extruders_edited_cnt()==1*/ ? 
                                 _(L("Color Print")) :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
                                     _(L("Tool")) : 
@@ -591,9 +593,9 @@ void Preview::update_view_type()
 void Preview::create_double_slider()
 {
     m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
-    m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
+    // #ys_FIXME_COLOR
+    // m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
-    /*
     auto extruder_selector = new wxComboBox(this, wxID_ANY);
     extruder_selector->Append("Whole print");
     int extruder_cnt = wxGetApp().extruders_edited_cnt();
@@ -610,7 +612,6 @@ void Preview::create_double_slider()
     sizer->Add(m_slider, 1, wxEXPAND, 0);
 
     m_double_slider_sizer->Add(sizer, 0, wxEXPAND, 0);
-    */
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
@@ -723,12 +724,25 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     m_slider->SetTicksValues_(ticks_from_model);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
+    //  #ys_FIXME_COLOR
+    // if (color_print_enable) {
+    //     const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    //     if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
+    //         color_print_enable = false;
+    // }
+    // m_slider->EnableTickManipulation(color_print_enable);
+
+    m_slider->EnableTickManipulation(color_print_enable);
+    m_slider->SetManipulationState(DoubleSlider::msSingleExtruder);
     if (color_print_enable) {
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-        if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
-            color_print_enable = false;
+        if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) {
+            // ys_TODO : fill is_detected_one_extruder_print value
+            bool is_detected_one_extruder_print = wxGetApp().plater()->fff_print().extruders().size() == 1;
+            m_slider->SetManipulationState(is_detected_one_extruder_print ? 
+                                           DoubleSlider::msMultiExtruderSimple : DoubleSlider::msMultiExtruder);
+        }
     }
-    m_slider->EnableTickManipulation(color_print_enable);
 }
 //  #ys_FIXME_COLOR
 void Preview::check_slider_values(std::vector<double>& ticks_from_config,
@@ -875,8 +889,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
             m_loaded = true;
         } else {
             // disable color change information for multi-material presets
-            if (wxGetApp().extruders_edited_cnt() > 1)
-                color_print_values.clear();
+            // if (wxGetApp().extruders_edited_cnt() > 1) // #ys_FIXME_COLOR
+            //     color_print_values.clear();
 
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);

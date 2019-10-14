@@ -806,6 +806,16 @@ public:
         EnableTickManipulation(false);
     }
 
+    static enum ManipulationState {
+        msSingleExtruder,           // single extruder printer preset is selected
+        msMultiExtruder,            // multiple extruder printer preset is selected
+        msMultiExtruderSimple       // multiple extruder printer preset is selected, but one-extruder print is detected 
+    };
+    void SetManipulationState(ManipulationState state) {
+        m_state = state;
+    }
+    ManipulationState GetManipulationState() const { return m_state; }
+
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
     bool is_lower_at_min() const { return m_lower_value == m_min_value; }
@@ -823,8 +833,10 @@ public:
     void OnKeyUp(wxKeyEvent &event);
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
+    int get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
     void add_code(std::string code);
+    void change_extruder(int extruder);
 
 protected:
 
@@ -846,6 +858,7 @@ protected:
     void    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
+    wxString get_tooltip(bool is_revert_icon_focused);
     void    move_current_thumb(const bool condition);
     void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
@@ -889,6 +902,7 @@ private:
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
+    ManipulationState m_state = msSingleExtruder;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
@@ -929,6 +943,7 @@ private:
                             tick(tick), gcode(code), extruder(extruder) {}
 
         bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
+        bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
 
         int         tick;
         std::string gcode;

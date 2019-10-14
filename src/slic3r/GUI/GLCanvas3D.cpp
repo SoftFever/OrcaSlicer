@@ -836,8 +836,8 @@ GLCanvas3D::LegendTexture::LegendTexture()
 void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
                                                                std::vector<std::pair<double, double>>& cp_legend_values)
 {
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
-        wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint /*&& 
+        wxGetApp().extruders_edited_cnt() == 1*/) // show color change legend only for single-material presets
     {
         /*
         // #ys_FIXME_COLOR
