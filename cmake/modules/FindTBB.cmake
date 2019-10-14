@@ -290,6 +290,11 @@ if(NOT TBB_FOUND)
           IMPORTED_LOCATION_MINSIZEREL     ${TBB_LIBRARIES_RELEASE}
           )
     endif()
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+       find_package(Threads QUIET REQUIRED)
+       set_target_properties(TBB::tbb PROPERTIES INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS};Threads::Threads")
+    endif()
   endif()
 
   mark_as_advanced(TBB_INCLUDE_DIRS TBB_LIBRARIES)
