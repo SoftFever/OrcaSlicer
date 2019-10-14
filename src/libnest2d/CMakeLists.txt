@@ -28,4 +28,4 @@ add_library(libnest2d ${LIBNEST2D_SRCFILES})
 
 target_include_directories(libnest2d PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(libnest2d PUBLIC clipper NLopt::nlopt TBB::tbb Boost::boost)
-target_compile_definitions(libnest2d PUBLIC LIBNEST2D_STATIC LIBNEST2D_OPTIMIZER_nlopt LIBNEST2D_GEOMETRIES_clipper)
+target_compile_definitions(libnest2d PUBLIC USE_TBB LIBNEST2D_STATIC LIBNEST2D_OPTIMIZER_nlopt LIBNEST2D_GEOMETRIES_clipper)
