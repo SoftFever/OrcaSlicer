@@ -141,9 +141,7 @@ void GCodeAnalyzer::reset()
     _set_start_extrusion(DEFAULT_START_EXTRUSION);
     _set_fan_speed(DEFAULT_FAN_SPEED);
     _reset_axes_position();
-#if ENABLE_GIT_3010_FIX
     _reset_axes_origin();
-#endif // ENABLE_GIT_3010_FIX
     _reset_cached_position();
 
     m_moves_map.clear();
@@ -313,24 +311,8 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
     m_process_output += line.raw() + "\n";
 }
 
-#if !ENABLE_GIT_3010_FIX
-// Returns the new absolute position on the given axis in dependence of the given parameters
-float axis_absolute_position_from_G1_line(GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeAnalyzer::EUnits units, bool is_relative, float current_absolute_position)
-{
-    float lengthsScaleFactor = (units == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
-    if (lineG1.has(Slic3r::Axis(axis)))
-    {
-        float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-        return is_relative ? current_absolute_position + ret : ret;
-    }
-    else
-        return current_absolute_position;
-}
-#endif // !ENABLE_GIT_3010_FIX
-
 void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
 {
-#if ENABLE_GIT_3010_FIX
     auto axis_absolute_position = [this](GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1) -> float
     {
         float current_absolute_position = _get_axis_position(axis);
@@ -349,26 +331,12 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
         else
             return current_absolute_position;
     };
-#endif // ENABLE_GIT_3010_FIX
 
     // updates axes positions from line
-#if !ENABLE_GIT_3010_FIX
-    EUnits units = _get_units();
-#endif // !ENABLE_GIT_3010_FIX
     float new_pos[Num_Axis];
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-#if !ENABLE_GIT_3010_FIX
-        bool is_relative = (_get_global_positioning_type() == Relative);
-        if (a == E)
-            is_relative |= (_get_e_local_positioning_type() == Relative);
-#endif // !ENABLE_GIT_3010_FIX
-
-#if ENABLE_GIT_3010_FIX
         new_pos[a] = axis_absolute_position((EAxis)a, line);
-#else
-        new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, _get_axis_position((EAxis)a));
-#endif // ENABLE_GIT_3010_FIX
     }
 
     // updates feedrate from line, if present
@@ -458,41 +426,25 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
 
     if (line.has_x())
     {
-#if ENABLE_GIT_3010_FIX
         _set_axis_origin(X, _get_axis_position(X) - line.x() * lengthsScaleFactor);
-#else
-        _set_axis_position(X, line.x() * lengthsScaleFactor);
-#endif // ENABLE_GIT_3010_FIX
         anyFound = true;
     }
 
     if (line.has_y())
     {
-#if ENABLE_GIT_3010_FIX
         _set_axis_origin(Y, _get_axis_position(Y) - line.y() * lengthsScaleFactor);
-#else
-        _set_axis_position(Y, line.y() * lengthsScaleFactor);
-#endif // ENABLE_GIT_3010_FIX
         anyFound = true;
     }
 
     if (line.has_z())
     {
-#if ENABLE_GIT_3010_FIX
         _set_axis_origin(Z, _get_axis_position(Z) - line.z() * lengthsScaleFactor);
-#else
-        _set_axis_position(Z, line.z() * lengthsScaleFactor);
-#endif // ENABLE_GIT_3010_FIX
         anyFound = true;
     }
 
     if (line.has_e())
     {
-#if ENABLE_GIT_3010_FIX
         _set_axis_origin(E, _get_axis_position(E) - line.e() * lengthsScaleFactor);
-#else
-        _set_axis_position(E, line.e() * lengthsScaleFactor);
-#endif // ENABLE_GIT_3010_FIX
         anyFound = true;
     }
 
@@ -500,11 +452,7 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
     {
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-#if ENABLE_GIT_3010_FIX
             _set_axis_origin((EAxis)a, _get_axis_position((EAxis)a));
-#else
-            _set_axis_position((EAxis)a, 0.0f);
-#endif // ENABLE_GIT_3010_FIX
         }
     }
 }
@@ -835,7 +783,6 @@ float GCodeAnalyzer::_get_axis_position(EAxis axis) const
     return m_state.position[axis];
 }
 
-#if ENABLE_GIT_3010_FIX
 void GCodeAnalyzer::_set_axis_origin(EAxis axis, float position)
 {
     m_state.origin[axis] = position;
@@ -845,19 +792,16 @@ float GCodeAnalyzer::_get_axis_origin(EAxis axis) const
 {
     return m_state.origin[axis];
 }
-#endif // ENABLE_GIT_3010_FIX
 
 void GCodeAnalyzer::_reset_axes_position()
 {
     ::memset((void*)m_state.position, 0, Num_Axis * sizeof(float));
 }
 
-#if ENABLE_GIT_3010_FIX
 void GCodeAnalyzer::_reset_axes_origin()
 {
     ::memset((void*)m_state.origin, 0, Num_Axis * sizeof(float));
 }
-#endif // ENABLE_GIT_3010_FIX
 
 void GCodeAnalyzer::_set_start_position(const Vec3d& position)
 {

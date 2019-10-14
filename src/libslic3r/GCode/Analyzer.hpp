@@ -101,9 +101,7 @@ private:
         float cached_position[5];
         float start_extrusion;
         float position[Num_Axis];
-#if ENABLE_GIT_3010_FIX
         float origin[Num_Axis];
-#endif // ENABLE_GIT_3010_FIX
         unsigned int cur_cp_color_id = 0;
     };
 
@@ -249,17 +247,13 @@ private:
     void _set_axis_position(EAxis axis, float position);
     float _get_axis_position(EAxis axis) const;
 
-#if ENABLE_GIT_3010_FIX
     void _set_axis_origin(EAxis axis, float position);
     float _get_axis_origin(EAxis axis) const;
-#endif // ENABLE_GIT_3010_FIX
 
     // Sets axes position to zero
     void _reset_axes_position();
-#if ENABLE_GIT_3010_FIX
     // Sets origin position to zero
     void _reset_axes_origin();
-#endif // ENABLE_GIT_3010_FIX
 
     void _set_start_position(const Vec3d& position);
     const Vec3d& _get_start_position() const;
