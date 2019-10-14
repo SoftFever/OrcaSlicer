@@ -4,7 +4,9 @@
 #include "AppConfig.hpp"
 #include "Preset.hpp"
 
+#include <memory>
 #include <set>
+#include <unordered_map>
 #include <boost/filesystem/path.hpp>
 
 class wxWindow;
@@ -31,7 +33,7 @@ public:
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.
-    void            load_presets(const AppConfig &config, const std::string &preferred_model_id = "");
+    void            load_presets(AppConfig &config, const std::string &preferred_model_id = "");
 
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
@@ -52,7 +54,8 @@ public:
 
     // There will be an entry for each system profile loaded, 
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
-    std::set<VendorProfile>     vendors;
+    // std::set<VendorProfile>     vendors;
+    VendorMap                      vendors;
 
     struct ObsoletePresets {
         std::vector<std::string> prints;
@@ -131,19 +134,25 @@ public:
 
     void                        load_default_preset_bitmaps(wxWindow *window);
 
+    // Set the is_visible flag for printer vendors, printer models and printer variants
+    // based on the user configuration.
+    // If the "vendor" section is missing, enable all models and variants of the particular vendor.
+    void                        load_installed_printers(const AppConfig &config);
+
+    static const char *PRUSA_BUNDLE;
 private:
     std::string                 load_system_presets();
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
 
-    // Set the "enabled" flag for printer vendors, printer models and printer variants
-    // based on the user configuration.
-    // If the "vendor" section is missing, enable all models and variants of the particular vendor.
-    void                        load_installed_printers(const AppConfig &config);
+    // Set the is_visible flag for filaments and sla materials,
+    // apply defaults based on enabled printers when no filaments/materials are installed.
+    void                        load_installed_filaments(AppConfig &config);
+    void                        load_installed_sla_materials(AppConfig &config);
 
     // Load selections (current print, current filaments, current printer) from config.ini
     // This is done just once on application start up.
-    void                        load_selections(const AppConfig &config, const std::string &preferred_model_id = "");
+    void                        load_selections(AppConfig &config, const std::string &preferred_model_id = "");
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

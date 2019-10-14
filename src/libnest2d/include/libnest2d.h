@@ -49,91 +49,84 @@ using BottomLeftPlacer = placers::_BottomLeftPlacer<PolygonImpl>;
 
 extern template class Nester<NfpPlacer, FirstFitSelection>;
 extern template class Nester<BottomLeftPlacer, FirstFitSelection>;
-extern template PackGroup Nester<NfpPlacer, FirstFitSelection>::execute(
+extern template std::size_t Nester<NfpPlacer, FirstFitSelection>::execute(
         std::vector<Item>::iterator, std::vector<Item>::iterator);
-extern template PackGroup Nester<BottomLeftPlacer, FirstFitSelection>::execute(
+extern template std::size_t Nester<BottomLeftPlacer, FirstFitSelection>::execute(
         std::vector<Item>::iterator, std::vector<Item>::iterator);
 
 #endif
 
-template<class Placer = NfpPlacer,
-         class Selector = FirstFitSelection,
-         class Iterator = std::vector<Item>::iterator>
-void nest(Iterator from, Iterator to,
-               const typename Placer::BinType& bin,
-               Coord dist = 0,
-               const typename Placer::Config& pconf = {},
-               const typename Selector::Config& sconf = {})
-{
-    _Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
-    nester.execute(from, to);
-}
+template<class Placer = NfpPlacer, class Selector = FirstFitSelection>
+struct NestConfig {
+    typename Placer::Config placer_config;
+    typename Selector::Config selector_config;
+    using Placement = typename Placer::Config;
+    using Selection = typename Selector::Config;
+    
+    NestConfig() = default;
+    NestConfig(const typename Placer::Config &cfg)   : placer_config{cfg} {}
+    NestConfig(const typename Selector::Config &cfg) : selector_config{cfg} {}
+    NestConfig(const typename Placer::Config &  pcfg,
+               const typename Selector::Config &scfg)
+        : placer_config{pcfg}, selector_config{scfg} {}
+};
+
+struct NestControl {
+    ProgressFunction progressfn;
+    StopCondition stopcond = []{ return false; };
+    
+    NestControl() = default;
+    NestControl(ProgressFunction pr) : progressfn{std::move(pr)} {}
+    NestControl(StopCondition sc) : stopcond{std::move(sc)} {}
+    NestControl(ProgressFunction pr, StopCondition sc)
+        : progressfn{std::move(pr)}, stopcond{std::move(sc)}
+    {}
+};
 
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Iterator = std::vector<Item>::iterator>
-void nest(Iterator from, Iterator to,
-               const typename Placer::BinType& bin,
-               ProgressFunction prg,
-               StopCondition scond = []() { return false; },
-               Coord dist = 0,
-               const typename Placer::Config& pconf = {},
-               const typename Selector::Config& sconf = {})
+std::size_t nest(Iterator from, Iterator to,
+                 const typename Placer::BinType & bin,
+                 Coord dist = 0,
+                 const NestConfig<Placer, Selector> &cfg = {},
+                 NestControl ctl = {})
 {
-    _Nester<Placer, Selector> nester(bin, dist, pconf, sconf);
-    if(prg) nester.progressIndicator(prg);
-    if(scond) nester.stopCondition(scond);
-    nester.execute(from, to);
+    _Nester<Placer, Selector> nester{bin, dist, cfg.placer_config, cfg.selector_config};
+    if(ctl.progressfn) nester.progressIndicator(ctl.progressfn);
+    if(ctl.stopcond) nester.stopCondition(ctl.stopcond);
+    return nester.execute(from, to);
 }
 
 #ifdef LIBNEST2D_STATIC
 
 extern template class Nester<NfpPlacer, FirstFitSelection>;
 extern template class Nester<BottomLeftPlacer, FirstFitSelection>;
-
-extern template void nest(std::vector<Item>::iterator from, 
-                               std::vector<Item>::iterator to,
-                               const Box& bin,
-                               Coord dist = 0,
-                               const NfpPlacer::Config& pconf,
-                               const FirstFitSelection::Config& sconf);
-
-extern template void nest(std::vector<Item>::iterator from, 
-                               std::vector<Item>::iterator to,
-                               const Box& bin,
-                               ProgressFunction prg,
-                               StopCondition scond,
-                               Coord dist = 0,
-                               const NfpPlacer::Config& pconf,
-                               const FirstFitSelection::Config& sconf);
+extern template std::size_t nest(std::vector<Item>::iterator from,
+                                 std::vector<Item>::iterator from to,
+                                 const Box & bin,
+                                 Coord dist,
+                                 const NestConfig<NfpPlacer, FirstFitSelection> &cfg,
+                                 NestControl ctl);
+extern template std::size_t nest(std::vector<Item>::iterator from,
+                                 std::vector<Item>::iterator from to,
+                                 const Box & bin,
+                                 Coord dist,
+                                 const NestConfig<BottomLeftPlacer, FirstFitSelection> &cfg,
+                                 NestControl ctl);
 
 #endif
 
 template<class Placer = NfpPlacer,
          class Selector = FirstFitSelection,
          class Container = std::vector<Item>>
-void nest(Container&& cont,
-               const typename Placer::BinType& bin,
-               Coord dist = 0,
-               const typename Placer::Config& pconf = {},
-               const typename Selector::Config& sconf = {})
+std::size_t nest(Container&& cont,
+                 const typename Placer::BinType & bin,
+                 Coord dist = 0,
+                 const NestConfig<Placer, Selector> &cfg = {},
+                 NestControl ctl = {})
 {
-    nest<Placer, Selector>(cont.begin(), cont.end(), bin, dist, pconf, sconf);
-}
-
-template<class Placer = NfpPlacer,
-         class Selector = FirstFitSelection,
-         class Container = std::vector<Item>>
-void nest(Container&& cont,
-               const typename Placer::BinType& bin,
-               ProgressFunction prg,
-               StopCondition scond = []() { return false; },
-               Coord dist = 0,
-               const typename Placer::Config& pconf = {},
-               const typename Selector::Config& sconf = {})
-{
-    nest<Placer, Selector>(cont.begin(), cont.end(), bin, prg, scond, dist,
-                           pconf, sconf);
+    return nest<Placer, Selector>(cont.begin(), cont.end(), bin, dist, cfg, ctl);
 }
 
 }

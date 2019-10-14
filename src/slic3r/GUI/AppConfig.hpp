@@ -80,6 +80,12 @@ public:
 		}
 	}
 
+	bool                has_section(const std::string &section) const
+		{ return m_storage.find(section) != m_storage.end(); }
+	const std::map<std::string, std::string>& get_section(const std::string &section) const
+		{ return m_storage.find(section)->second; }
+	void set_section(const std::string &section, const std::map<std::string, std::string>& data)
+		{ m_storage[section] = data; }
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 
@@ -125,6 +131,8 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
+	static const std::string SECTION_FILAMENTS;
+    static const std::string SECTION_MATERIALS;
 private:
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;

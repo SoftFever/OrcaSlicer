@@ -6,9 +6,9 @@
 namespace Slic3r {
 
 BridgeDetector::BridgeDetector(
-    ExPolygon                   _expolygon,
-    const ExPolygonCollection  &_lower_slices, 
-    coord_t                     _spacing) :
+    ExPolygon         _expolygon,
+    const ExPolygons &_lower_slices, 
+    coord_t           _spacing) :
     // The original infill polygon, not inflated.
     expolygons(expolygons_owned),
     // All surfaces of the object supporting this region.
@@ -20,9 +20,9 @@ BridgeDetector::BridgeDetector(
 }
 
 BridgeDetector::BridgeDetector(
-    const ExPolygons           &_expolygons,
-    const ExPolygonCollection  &_lower_slices,
-    coord_t                     _spacing) : 
+    const ExPolygons  &_expolygons,
+    const ExPolygons  &_lower_slices,
+    coord_t            _spacing) : 
     // The original infill polygon, not inflated.
     expolygons(_expolygons),
     // All surfaces of the object supporting this region.
@@ -46,7 +46,11 @@ void BridgeDetector::initialize()
     // Detect what edges lie on lower slices by turning bridge contour and holes
     // into polylines and then clipping them with each lower slice's contour.
     // Currently _edges are only used to set a candidate direction of the bridge (see bridge_direction_candidates()).
-    this->_edges = intersection_pl(to_polylines(grown), this->lower_slices.contours());
+	Polygons contours;
+	contours.reserve(this->lower_slices.size());
+	for (const ExPolygon &expoly : this->lower_slices)
+		contours.push_back(expoly.contour);
+    this->_edges = intersection_pl(to_polylines(grown), contours);
     
     #ifdef SLIC3R_DEBUG
     printf("  bridge has " PRINTF_ZU " support(s)\n", this->_edges.size());
@@ -54,7 +58,7 @@ void BridgeDetector::initialize()
     
     // detect anchors as intersection between our bridge expolygon and the lower slices
     // safety offset required to avoid Clipper from detecting empty intersection while Boost actually found some edges
-    this->_anchor_regions = intersection_ex(grown, to_polygons(this->lower_slices.expolygons), true);
+    this->_anchor_regions = intersection_ex(grown, to_polygons(this->lower_slices), true);
     
     /*
     if (0) {
@@ -271,7 +275,7 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
     if (angle == -1) angle = this->angle;
     if (angle == -1) return;
 
-    Polygons grown_lower = offset(this->lower_slices.expolygons, float(this->spacing));
+    Polygons grown_lower = offset(this->lower_slices, float(this->spacing));
 
     for (ExPolygons::const_iterator it_expoly = this->expolygons.begin(); it_expoly != this->expolygons.end(); ++ it_expoly) {    
         // get unsupported bridge edges (both contour and holes)

@@ -176,8 +176,13 @@ add_library(libslic3r STATIC
     miniz_extension.cpp
     SLA/SLACommon.hpp
     SLA/SLABoilerPlate.hpp
-    SLA/SLABasePool.hpp
-    SLA/SLABasePool.cpp
+    SLA/SLAPad.hpp
+    SLA/SLAPad.cpp
+    SLA/SLASupportTreeBuilder.hpp
+    SLA/SLASupportTreeBuildsteps.hpp
+    SLA/SLASupportTreeBuildsteps.cpp
+    SLA/SLASupportTreeBuilder.cpp
+    SLA/SLAConcurrency.hpp
     SLA/SLASupportTree.hpp
     SLA/SLASupportTree.cpp
     SLA/SLASupportTreeIGL.cpp
@@ -189,6 +194,8 @@ add_library(libslic3r STATIC
     SLA/SLARaster.cpp
     SLA/SLARasterWriter.hpp
     SLA/SLARasterWriter.cpp
+    SLA/ConcaveHull.hpp
+    SLA/ConcaveHull.cpp
 )
 
 encoding_check(libslic3r)
@@ -215,6 +222,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     tbb
+    ${CMAKE_DL_LIBS}
     )
 
 if(WIN32)

@@ -787,8 +787,10 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
     // The tool is supposed to be active and primed at the time when the wipe tower brim is extruded.
     // Extrude 4 rounds of a brim around the future wipe tower.
     box_coordinates box(wipeTower_box);
+    // the brim shall have 'normal' spacing with no extra void space
+    float spacing = m_perimeter_width - m_layer_height*float(1.-M_PI_4);
     for (size_t i = 0; i < 4; ++ i) {
-        box.expand(m_perimeter_width - m_layer_height*float(1.-M_PI_4)); // the brim shall have 'normal' spacing with no extra void space
+        box.expand(spacing);
         writer.travel (box.ld, 7000)
                 .extrude(box.lu, 2100).extrude(box.ru)
                 .extrude(box.rd      ).extrude(box.ld);
@@ -799,6 +801,10 @@ WipeTower::ToolChangeResult WipeTower::toolchange_Brim(bool sideOnly, float y_of
           .travel(wipeTower_box.ld);
     writer.append("; CP WIPE TOWER FIRST LAYER BRIM END\n"
                   ";-----------------------------------\n");
+
+    // Save actual brim width to be later passed to the Print object, which will use it
+    // for skirt calculation and pass it to GLCanvas for precise preview box
+    m_wipe_tower_brim_width = wipeTower_box.ld.x() - box.ld.x() + spacing/2.f;
 
     m_print_brim = false;  // Mark the brim as extruded
 

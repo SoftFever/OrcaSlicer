@@ -472,7 +472,7 @@ void Selection::volumes_changed(const std::vector<size_t> &map_volume_old_to_new
     for (unsigned int idx : m_list)
         if (map_volume_old_to_new[idx] != size_t(-1)) {
             unsigned int new_idx = (unsigned int)map_volume_old_to_new[idx];
-            assert((*m_volumes)[new_idx]->selected);
+            (*m_volumes)[new_idx]->selected = true;
             list_new.insert(new_idx);
         }
     m_list = std::move(list_new);

@@ -17,11 +17,11 @@ public:
     ExPolygons expolygons;
     
     ExPolygonCollection() {}
-    ExPolygonCollection(const ExPolygon &expolygon);
-    ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {}
-    operator Points() const;
-    operator Polygons() const;
-    operator ExPolygons&();
+    explicit ExPolygonCollection(const ExPolygon &expolygon);
+    explicit ExPolygonCollection(const ExPolygons &expolygons) : expolygons(expolygons) {}
+    explicit operator Points() const;
+    explicit operator Polygons() const;
+    explicit operator ExPolygons&();
     void scale(double factor);
     void translate(double x, double y);
     void rotate(double angle, const Point &center);

@@ -107,7 +107,9 @@ void GLCanvas3DManager::GLInfo::detect() const
         m_renderer = data;
 
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
-    
+
+    m_max_tex_size /= 2;
+
     if (GLEW_EXT_texture_filter_anisotropic)
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
 

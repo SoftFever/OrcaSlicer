@@ -35,9 +35,14 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     text += snapshot_active ? "#B3FFCB" : (row_even ? "#FFFFFF" : "#D5D5D5");
     text += "\">";
     text += "<td>";
+    
+    static const constexpr char *LOCALE_TIME_FMT = "%x %X";
+    wxString datetime = wxDateTime(snapshot.time_captured).Format(LOCALE_TIME_FMT);
+    
     // Format the row header.
-    text += wxString("<font size=\"5\"><b>") + (snapshot_active ? _(L("Active")) + ": " : "") + 
-        Utils::format_local_date_time(snapshot.time_captured) + ": " + format_reason(snapshot.reason);
+    text += wxString("<font size=\"5\"><b>") + (snapshot_active ? _(L("Active")) + ": " : "") +
+            datetime + ": " + format_reason(snapshot.reason);
+    
     if (! snapshot.comment.empty())
         text += " (" + wxString::FromUTF8(snapshot.comment.data()) + ")";
     text += "</b></font><br>";

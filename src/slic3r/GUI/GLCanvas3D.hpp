@@ -624,6 +624,8 @@ public:
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj(const char* filename) const;
 
+    void mouse_up_cleanup();
+
 private:
     bool _is_shown_on_screen() const;
 

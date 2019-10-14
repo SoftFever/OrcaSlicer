@@ -25,7 +25,7 @@ BridgeDetector::new(expolygon, lower_slices, extrusion_width)
     ExPolygonCollection*    lower_slices;
     int                     extrusion_width;
     CODE:
-        RETVAL = new BridgeDetector(*expolygon, *lower_slices, extrusion_width);
+        RETVAL = new BridgeDetector(*expolygon, lower_slices->expolygons, extrusion_width);
     OUTPUT:
         RETVAL
 
@@ -35,7 +35,7 @@ BridgeDetector::new_expolygons(expolygons, lower_slices, extrusion_width)
     ExPolygonCollection*    lower_slices;
     int                     extrusion_width;
     CODE:
-        RETVAL = new BridgeDetector(expolygons->expolygons, *lower_slices, extrusion_width);
+        RETVAL = new BridgeDetector(expolygons->expolygons, lower_slices->expolygons, extrusion_width);
     OUTPUT:
         RETVAL
 

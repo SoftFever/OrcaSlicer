@@ -417,7 +417,7 @@ void GLVolume::render(int color_id, int detection_id, int worldmatrix_id) const
 }
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
-bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposBasePool); }
+bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposPad); }
 
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
@@ -501,7 +501,7 @@ void GLVolumeCollection::load_object_auxiliary(
     TriangleMesh convex_hull = mesh.convex_hull_3d();
     for (const std::pair<size_t, size_t>& instance_idx : instances) {
         const ModelInstance& model_instance = *print_object->model_object()->instances[instance_idx.first];
-        this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
+        this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
         v.indexed_vertex_array.load_mesh(mesh);
 	    v.indexed_vertex_array.finalize_geometry(opengl_initialized);

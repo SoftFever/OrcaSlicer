@@ -35,14 +35,6 @@ extern AppConfig* get_app_config();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
-// Checks if configuration wizard needs to run, calls config_wizard if so.
-// Returns whether the Wizard ran.
-extern bool config_wizard_startup(bool app_config_exists);
-
-// Opens the configuration wizard, returns true if wizard is finished & accepted.
-// The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
-extern void config_wizard(int run_reason);
-
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 

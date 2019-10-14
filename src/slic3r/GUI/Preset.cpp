@@ -99,6 +99,9 @@ static const std::unordered_map<std::string, std::string> pre_family_model_map {
 VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
 {
     static const std::string printer_model_key = "printer_model:";
+    static const std::string filaments_section = "default_filaments";
+    static const std::string materials_section = "default_sla_materials";
+
     const std::string id = path.stem().string();
 
     if (! boost::filesystem::exists(path)) {
@@ -107,6 +110,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
 
     VendorProfile res(id);
 
+    // Helper to get compulsory fields
     auto get_or_throw = [&](const ptree &tree, const std::string &key) -> ptree::const_assoc_iterator
     {
         auto res = tree.find(key);
@@ -116,6 +120,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
         return res;
     };
 
+    // Load the header
     const auto &vendor_section = get_or_throw(tree, "vendor")->second;
     res.name = get_or_throw(vendor_section, "name")->second.data();
 
@@ -127,6 +132,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
         res.config_version = std::move(*config_version);
     }
 
+    // Load URLs
     const auto config_update_url = vendor_section.find("config_update_url");
     if (config_update_url != vendor_section.not_found()) {
         res.config_update_url = config_update_url->second.data();
@@ -141,6 +147,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
         return res;
     }
 
+    // Load printer models
     for (auto &section : tree) {
         if (boost::starts_with(section.first, printer_model_key)) {
             VendorProfile::PrinterModel model;
@@ -179,6 +186,24 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             }
             if (! model.id.empty() && ! model.variants.empty())
                 res.models.push_back(std::move(model));
+        }
+    }
+
+    // Load filaments and sla materials to be installed by default
+    const auto filaments = tree.find(filaments_section);
+    if (filaments != tree.not_found()) {
+        for (auto &pair : filaments->second) {
+            if (pair.second.data() == "1") {
+                res.default_filaments.insert(pair.first);
+            }
+        }
+    }
+    const auto materials = tree.find(materials_section);
+    if (materials != tree.not_found()) {
+        for (auto &pair : materials->second) {
+            if (pair.second.data() == "1") {
+                res.default_sla_materials.insert(pair.first);
+            }
         }
     }
 
@@ -351,10 +376,17 @@ bool Preset::update_compatible(const Preset &active_printer, const DynamicPrintC
 void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 {
     if (vendor == nullptr) { return; }
-    const std::string &model = config.opt_string("printer_model");
-    const std::string &variant = config.opt_string("printer_variant");
-    if (model.empty() || variant.empty()) { return; }
-    is_visible = app_config.get_variant(vendor->id, model, variant);
+
+    if (type == TYPE_PRINTER) {
+        const std::string &model = config.opt_string("printer_model");
+        const std::string &variant = config.opt_string("printer_variant");
+        if (model.empty() || variant.empty()) { return; }
+        is_visible = app_config.get_variant(vendor->id, model, variant);
+    } else if (type == TYPE_FILAMENT) {
+        is_visible = app_config.has("filaments", name);
+    } else if (type == TYPE_SLA_MATERIAL) {
+        is_visible = app_config.has("sla_materials", name);
+    }
 }
 
 const std::vector<std::string>& Preset::print_options()
@@ -404,7 +436,7 @@ const std::vector<std::string>& Preset::filament_options()
         "filament_retract_length", "filament_retract_lift", "filament_retract_lift_above", "filament_retract_lift_below", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
         "filament_retract_layer_change", "filament_wipe", "filament_retract_before_wipe",
         // Profile compatibility
-        "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits"
+        "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -476,11 +508,13 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_enable",
             "pad_wall_thickness",
             "pad_wall_height",
+            "pad_brim_size",
             "pad_max_merge_distance",
             // "pad_edge_radius",
             "pad_wall_slope",
             "pad_object_gap",
             "pad_around_object",
+            "pad_around_object_everywhere",
             "pad_object_connector_stride",
             "pad_object_connector_width",
             "pad_object_connector_penetration",
@@ -499,11 +533,13 @@ const std::vector<std::string>& Preset::sla_material_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
+            "material_type",
             "initial_layer_height",
             "exposure_time",
             "initial_exposure_time",
             "material_correction",
             "material_notes",
+            "material_vendor",
             "default_sla_material_profile",
             "compatible_prints", "compatible_prints_condition",
             "compatible_printers", "compatible_printers_condition", "inherits"
@@ -819,6 +855,21 @@ bool PresetCollection::delete_current_preset()
     return true;
 }
 
+bool PresetCollection::delete_preset(const std::string& name)
+{
+    auto it = this->find_preset_internal(name);
+
+    const Preset& preset = *it;
+    if (preset.is_default)
+        return false;
+    if (!preset.is_external && !preset.is_system) {
+        // Erase the preset file.
+        boost::nowide::remove(preset.file.c_str());
+    }
+    m_presets.erase(it);
+    return true;
+}
+
 void PresetCollection::load_bitmap_default(wxWindow *window, const std::string &file_name)
 {
     // XXX: See note in PresetBundle::load_compatible_bitmaps()
@@ -1037,7 +1088,9 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
             bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
             bmp = m_bitmap_cache->insert(bitmap_key, bmps);
         }
-        ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add a new printer")), *bmp), GUI::PresetComboBox::LABEL_ITEM_CONFIG_WIZARD);
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add a new printer")), *bmp), GUI::PresetComboBox::LABEL_ITEM_WIZARD_PRINTERS);
+    } else if (m_type == Preset::TYPE_SLA_MATERIAL) {
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove materials")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_MATERIALS);
     }
 
     ui->SetSelection(selected_preset_item);
@@ -1283,7 +1336,7 @@ bool PresetCollection::select_preset_by_name_strict(const std::string &name)
 }
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
-std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&other, const std::set<VendorProfile> &new_vendors)
+std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&other, const VendorMap &new_vendors)
 {
     std::vector<std::string> duplicates;
     for (Preset &preset : other.m_presets) {
@@ -1294,9 +1347,9 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
         if (it == m_presets.end() || it->name != preset.name) {
             if (preset.vendor != nullptr) {
                 // Re-assign a pointer to the vendor structure in the new PresetBundle.
-                auto it = new_vendors.find(*preset.vendor);
+                auto it = new_vendors.find(preset.vendor->id);
                 assert(it != new_vendors.end());
-                preset.vendor = &(*it);
+                preset.vendor = &it->second;
             }
             this->m_presets.emplace(it, std::move(preset));
         } else

@@ -226,6 +226,7 @@ struct WipeTowerData
 
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
+    float                                                 brim_width;
 
     void clear() {
         tool_ordering.clear();
@@ -235,6 +236,7 @@ struct WipeTowerData
         used_filament.clear();
         number_of_toolchanges = -1;
         depth = 0.f;
+        brim_width = 0.f;
     }
 };
 
@@ -314,7 +316,6 @@ public:
 
     bool                has_infinite_skirt() const;
     bool                has_skirt() const;
-    float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
 
     // Returns an empty string if valid, otherwise returns an error message.
     std::string         validate() const override;
@@ -353,7 +354,7 @@ public:
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;
-    const WipeTowerData&        wipe_tower_data() const { return m_wipe_tower_data; }
+    const WipeTowerData&        wipe_tower_data(size_t extruders_cnt = 0, double first_layer_height = 0., double nozzle_diameter = 0.) const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 

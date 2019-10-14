@@ -749,6 +749,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "" });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("fill_angle", coFloat);
     def->label = L("Fill angle");
     def->category = L("Infill");
@@ -2398,6 +2402,18 @@ void PrintConfigDef::init_sla_params()
 
 
     // SLA Material settings.
+    def = this->add("material_type", coString);
+    def->label = L("SLA material type");
+    def->tooltip = L("SLA material type");
+    def->gui_type = "f_enum_open";   // TODO: ???
+    def->gui_flags = "show_value";
+    def->enum_values.push_back("Tough");
+    def->enum_values.push_back("Flexible");
+    def->enum_values.push_back("Casting");
+    def->enum_values.push_back("Dental");
+    def->enum_values.push_back("Heat-resistant");
+    def->set_default_value(new ConfigOptionString("Tough"));
+
     def = this->add("initial_layer_height", coFloat);
     def->label = L("Initial layer height");
     def->tooltip = L("Initial layer height");
@@ -2474,6 +2490,10 @@ void PrintConfigDef::init_sla_params()
     def->height = 13;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("material_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("default_sla_material_profile", coString);
     def->label = L("Default SLA material profile");
@@ -2694,6 +2714,17 @@ void PrintConfigDef::init_sla_params()
     def->max = 30;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0.));
+    
+    def = this->add("pad_brim_size", coFloat);
+    def->label = L("Pad brim size");
+    def->tooltip = L("How far should the pad extend around the contained geometry");
+    def->category = L("Pad");
+    //     def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 30;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.6));
 
     def = this->add("pad_max_merge_distance", coFloat);
     def->label = L("Max merge distance");
@@ -2732,6 +2763,13 @@ void PrintConfigDef::init_sla_params()
     def->label = L("Pad around object");
     def->category = L("Pad");
     def->tooltip = L("Create pad around object and ignore the support elevation");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("pad_around_object_everywhere", coBool);
+    def->label = L("Pad around object everywhere");
+    def->category = L("Pad");
+    def->tooltip = L("Force pad around object everywhere");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 

@@ -11,7 +11,7 @@ ExPolygonCollection::ExPolygonCollection(const ExPolygon &expolygon)
 ExPolygonCollection::operator Points() const
 {
     Points points;
-    Polygons pp = *this;
+    Polygons pp = (Polygons)*this;
     for (Polygons::const_iterator poly = pp.begin(); poly != pp.end(); ++poly) {
         for (Points::const_iterator point = poly->points.begin(); point != poly->points.end(); ++point)
             points.push_back(*point);

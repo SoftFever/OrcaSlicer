@@ -14,6 +14,11 @@
 using boost::polygon::voronoi_builder;
 using boost::polygon::voronoi_diagram;
 
+namespace ClipperLib {
+class PolyNode;
+using PolyNodes = std::vector<PolyNode*>;
+}
+
 namespace Slic3r { namespace Geometry {
 
 // Generic result of an orientation predicate.
@@ -275,6 +280,7 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
+    void set_from_string(const std::string& transform_str);
 
     void reset();
 

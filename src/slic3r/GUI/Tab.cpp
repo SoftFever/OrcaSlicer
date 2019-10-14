@@ -227,9 +227,9 @@ void Tab::create_preset_tab()
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
     m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) {
-        //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
+        //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
         //! but the OSX version derived from wxOwnerDrawnCombo, instead of:
-        //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data());
+        //! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
         //! we doing next:
         int selected_item = m_presets_choice->GetSelection();
         if (m_selected_preset_item == size_t(selected_item) && !m_presets->current_is_dirty())
@@ -241,7 +241,7 @@ void Tab::create_preset_tab()
                 selected_string == "-------  User presets  -------"*/) {
                 m_presets_choice->SetSelection(m_selected_preset_item);
                 if (wxString::FromUTF8(selected_string.c_str()) == PresetCollection::separator(L("Add a new printer")))
-                    wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
+                    wxTheApp->CallAfter([]() { wxGetApp().run_wizard(ConfigWizard::RR_USER); });
                 return;
             }
             m_selected_preset_item = selected_item;
@@ -3019,6 +3019,18 @@ void Tab::save_preset(std::string name /*= ""*/)
             show_error(this, _(L("Cannot overwrite an external profile.")));
             return;
         }
+        if (existing && name != preset.name)
+        {
+            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exist."))) % name).str());
+            msg_text += "\n" + _(L("Replace?"));
+            wxMessageDialog dialog(nullptr, msg_text, _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+
+            if (dialog.ShowModal() == wxID_NO)
+                return;
+
+            // Remove the preset from the list.
+            m_presets->delete_preset(name);
+        }
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
@@ -3539,12 +3551,14 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_enable");
     optgroup->append_single_option_line("pad_wall_thickness");
     optgroup->append_single_option_line("pad_wall_height");
+    optgroup->append_single_option_line("pad_brim_size");
     optgroup->append_single_option_line("pad_max_merge_distance");
     // TODO: Disabling this parameter for the beta release
 //    optgroup->append_single_option_line("pad_edge_radius");
     optgroup->append_single_option_line("pad_wall_slope");
 
     optgroup->append_single_option_line("pad_around_object");
+    optgroup->append_single_option_line("pad_around_object_everywhere");
     optgroup->append_single_option_line("pad_object_gap");
     optgroup->append_single_option_line("pad_object_connector_stride");
     optgroup->append_single_option_line("pad_object_connector_width");
