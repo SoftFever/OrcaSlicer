@@ -18,6 +18,8 @@ if (APPLE)
     target_link_libraries(test_common INTERFACE "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 endif()
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 add_subdirectory(libnest2d)
 add_subdirectory(timeutils)
 add_subdirectory(sla_print)

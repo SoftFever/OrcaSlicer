@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+
 #include <libnest2d/libnest2d.hpp>
 #include "printer_parts.hpp"
 //#include <libnest2d/geometry_traits_nfp.hpp>
@@ -371,7 +372,7 @@ TEST_CASE("ArrangeRectanglesTight", "[Nesting]")
     REQUIRE(getX(bin.center()) == 105);
     REQUIRE(getY(bin.center()) == 125);
 
-    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin);
+    _Nester<BottomLeftPlacer, FirstFitSelection> arrange(bin);
 
     arrange.execute(rects.begin(), rects.end());
 
@@ -439,7 +440,7 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
 
     Coord min_obj_distance = 5;
 
-    _Nester<BottomLeftPlacer, DJDHeuristic> arrange(bin, min_obj_distance);
+    _Nester<BottomLeftPlacer, FirstFitSelection> arrange(bin, min_obj_distance);
 
     arrange.execute(rects.begin(), rects.end());
 
