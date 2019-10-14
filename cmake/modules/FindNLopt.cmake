@@ -21,8 +21,7 @@
 set(NLopt_FOUND        FALSE)
 set(NLopt_ERROR_REASON "")
 set(NLopt_DEFINITIONS  "")
-set(NLopt_LIBS)
-
+unset(NLopt_LIBS CACHE)
 
 set(NLopt_DIR $ENV{NLOPT})
 if(NOT NLopt_DIR)
@@ -48,15 +47,14 @@ if(NOT NLopt_DIR)
 		set(NLopt_ERROR_REASON "${NLopt_ERROR_REASON} Cannot find NLopt header file '${_NLopt_HEADER_FILE_NAME}'.")
 	endif()
 	unset(_NLopt_HEADER_FILE_NAME)
-	unset(_NLopt_HEADER_FILE)
-
+	
 	if(NOT NLopt_FOUND)
 		set(NLopt_ERROR_REASON "${NLopt_ERROR_REASON} NLopt not found in system directories (and environment variable NLOPT is not set).")
 	else()
 	get_filename_component(NLopt_INCLUDE_DIR ${_NLopt_HEADER_FILE} DIRECTORY )
 	endif()
 
-
+    unset(_NLopt_HEADER_FILE CACHE)
 
 else()
 
@@ -95,7 +93,7 @@ else()
 		set(NLopt_ERROR_REASON "${NLopt_ERROR_REASON} Cannot find NLopt header file '${_NLopt_HEADER_FILE_NAME}' in '${NLopt_INCLUDE_DIR}'.")
 	endif()
 	unset(_NLopt_HEADER_FILE_NAME)
-	unset(_NLopt_HEADER_FILE)
+	unset(_NLopt_HEADER_FILE CACHE)
 
 endif()
 
@@ -114,10 +112,10 @@ if(NLopt_FOUND)
 	message(STATUS "Found NLopt in '${NLopt_DIR}'.")
 	message(STATUS "Using NLopt include directory '${NLopt_INCLUDE_DIR}'.")
 	message(STATUS "Using NLopt library '${NLopt_LIBS}'.")
-	add_library(Nlopt::Nlopt INTERFACE IMPORTED)
-	set_target_properties(Nlopt::Nlopt PROPERTIES INTERFACE_LINK_LIBRARIES ${NLopt_LIBS})
-	set_target_properties(Nlopt::Nlopt PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${NLopt_INCLUDE_DIR})
-	set_target_properties(Nlopt::Nlopt PROPERTIES INTERFACE_COMPILE_DEFINITIONS "${NLopt_DEFINITIONS}")
+	add_library(NLopt::nlopt INTERFACE IMPORTED)
+	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_LINK_LIBRARIES ${NLopt_LIBS})
+	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${NLopt_INCLUDE_DIR})
+	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_COMPILE_DEFINITIONS "${NLopt_DEFINITIONS}")
 	# target_link_libraries(Nlopt::Nlopt INTERFACE ${NLopt_LIBS})
 	# target_include_directories(Nlopt::Nlopt INTERFACE ${NLopt_INCLUDE_DIR})
     # target_compile_definitions(Nlopt::Nlopt INTERFACE ${NLopt_DEFINITIONS})

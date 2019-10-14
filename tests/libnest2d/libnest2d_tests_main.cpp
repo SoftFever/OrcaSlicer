@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-#include <libnest2d.h>
+#include <libnest2d/libnest2d.hpp>
 #include "printer_parts.hpp"
 //#include <libnest2d/geometry_traits_nfp.hpp>
 #include "../tools/svgtools.hpp"
@@ -225,11 +225,11 @@ TEST_CASE("Area", "[Geometry]") {
     using namespace libnest2d;
 
     RectangleItem rect(10, 10);
-    
+
     REQUIRE(rect.area() == Approx(100));
 
     RectangleItem rect2 = {100, 100};
-    
+
     REQUIRE(rect2.area() == Approx(10000));
 
     Item item = {
@@ -447,7 +447,7 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
                                       [](const Item &i1, const Item &i2) {
                                           return i1.binId() < i2.binId();
                                       });
-    
+
     auto groups = size_t(max_group == rects.end() ? 0 : max_group->binId() + 1);
 
     REQUIRE(groups == 1u);
@@ -615,7 +615,7 @@ TEST_CASE("EmptyItemShouldBeUntouched", "[Nesting]") {
     items.emplace_back(Item{0, 200, 0});   // Emplace zero area item
 
     size_t bins = libnest2d::nest(items, bin);
-    
+
     REQUIRE(bins == 0u);
     for (auto &itm : items) REQUIRE(itm.binId() == BIN_ID_UNSET);
 }
@@ -627,57 +627,57 @@ TEST_CASE("LargeItemShouldBeUntouched", "[Nesting]") {
     items.emplace_back(RectangleItem{250000001, 210000001});  // Emplace large item
 
     size_t bins = libnest2d::nest(items, bin);
-    
+
     REQUIRE(bins == 0u);
     REQUIRE(items.front().binId() == BIN_ID_UNSET);
 }
 
 TEST_CASE("Items can be preloaded", "[Nesting]") {
     auto bin = Box({0, 0}, {250000000, 210000000}); // dummy bin
-    
+
     std::vector<Item> items;
     items.reserve(2);
-    
+
     NestConfig<> cfg;
     cfg.placer_config.alignment = NestConfig<>::Placement::Alignment::DONT_ALIGN;
-    
+
     items.emplace_back(RectangleItem{10000000, 10000000});
     Item &fixed_rect = items.back();
     fixed_rect.translate(bin.center());
-    
+
     items.emplace_back(RectangleItem{20000000, 20000000});
     Item &movable_rect = items.back();
     movable_rect.translate(bin.center());
-    
+
     SECTION("Preloaded Item should be untouched") {
         fixed_rect.markAsFixedInBin(0);
-        
+
         size_t bins = libnest2d::nest(items, bin, 0, cfg);
-        
+
         REQUIRE(bins == 1);
-        
+
         REQUIRE(fixed_rect.binId() == 0);
         REQUIRE(fixed_rect.translation().X == bin.center().X);
         REQUIRE(fixed_rect.translation().Y == bin.center().Y);
-        
+
         REQUIRE(movable_rect.binId() == 0);
         REQUIRE(movable_rect.translation().X != bin.center().X);
-        REQUIRE(movable_rect.translation().Y != bin.center().Y);    
+        REQUIRE(movable_rect.translation().Y != bin.center().Y);
     }
-    
+
     SECTION("Preloaded Item should not affect free bins") {
         fixed_rect.markAsFixedInBin(1);
-        
+
         size_t bins = libnest2d::nest(items, bin, 0, cfg);
-        
+
         REQUIRE(bins == 2);
-        
+
         REQUIRE(fixed_rect.binId() == 1);
         REQUIRE(fixed_rect.translation().X == bin.center().X);
         REQUIRE(fixed_rect.translation().Y == bin.center().Y);
-        
+
         REQUIRE(movable_rect.binId() == 0);
-        
+
         auto bb = movable_rect.boundingBox();
         REQUIRE(bb.center().X == bin.center().X);
         REQUIRE(bb.center().Y == bin.center().Y);
@@ -1013,7 +1013,7 @@ TEST_CASE("mergePileWithPolygon", "[Geometry]") {
     REQUIRE(result.size() == 1);
 
     RectangleItem ref(45, 15);
-    
+
     REQUIRE(shapelike::area(result.front()) == Approx(ref.area()));
 }
 
