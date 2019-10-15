@@ -836,6 +836,9 @@ public:
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
+    // from custom_gcode_per_height get just tool_change codes
+    std::vector<std::pair<double, DynamicPrintConfig>> get_custom_tool_changes(double default_layer_height) const;
+
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
 	void assign_new_unique_ids_recursive();

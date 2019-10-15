@@ -128,6 +128,11 @@ public:
     // This "finished" flag does not account for the final export of the output file (.gcode or zipped PNGs),
     // and it does not account for the OctoPrint scheduling.
     bool    finished() const { return m_print->finished(); }
+
+    void    set_force_update_print_regions(bool force_update_print_regions) {
+        if (m_fff_print)
+	        m_fff_print->set_force_update_print_regions(force_update_print_regions);
+	}
     
 private:
 	void 	thread_proc();

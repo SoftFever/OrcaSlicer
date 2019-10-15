@@ -586,6 +586,21 @@ std::string Model::propose_export_file_name_and_path(const std::string &new_exte
     return boost::filesystem::path(this->propose_export_file_name_and_path()).replace_extension(new_extension).string();
 }
 
+std::vector<std::pair<double, DynamicPrintConfig>> Model:: get_custom_tool_changes(double default_layer_height) const
+{
+    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes;
+    if (!custom_gcode_per_height.empty()) {
+        for (const CustomGCode& custom_gcode : custom_gcode_per_height)
+            if (custom_gcode.gcode == "tool_change") {
+                DynamicPrintConfig config;
+                config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder));
+                // For correct extruders(tools) changing, we should decrease custom_gcode.height value by one default layer height
+                custom_tool_changes.push_back({ custom_gcode.height - default_layer_height, config });
+            }
+    }
+    return custom_tool_changes;
+}
+
 ModelObject::~ModelObject()
 {
     this->clear_volumes();

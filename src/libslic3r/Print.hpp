@@ -361,6 +361,9 @@ public:
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
 
+    // force update of PrintRegions, when custom_tool_change is not empty and (Re)Slicing is started
+    void set_force_update_print_regions(bool force_update_print_regions) { m_force_update_print_regions = force_update_print_regions; }
+
 protected:
     // methods for handling regions
     PrintRegion*        get_region(size_t idx)        { return m_regions[idx]; }
@@ -402,6 +405,9 @@ private:
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
+
+    // flag used
+    bool                                    m_force_update_print_regions = false;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;
