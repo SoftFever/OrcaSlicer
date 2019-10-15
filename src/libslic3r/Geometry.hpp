@@ -162,6 +162,15 @@ template<typename T> T angle_to_0_2PI(T angle)
 
     return angle;
 }
+
+/// Find the center of the circle corresponding to the vector of Points as an arc.
+Point circle_taubin_newton(const Points::const_iterator& input_start, const Points::const_iterator& input_end, size_t cycles = 20);
+inline Point circle_taubin_newton(const Points& input, size_t cycles = 20) { return circle_taubin_newton(input.cbegin(), input.cend(), cycles); }
+
+/// Find the center of the circle corresponding to the vector of Pointfs as an arc.
+Vec2d circle_taubin_newton(const Vec2ds::const_iterator& input_start, const Vec2ds::const_iterator& input_end, size_t cycles = 20);
+inline Vec2d circle_taubin_newton(const Vec2ds& input, size_t cycles = 20) { return circle_taubin_newton(input.cbegin(), input.cend(), cycles); }
+
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);

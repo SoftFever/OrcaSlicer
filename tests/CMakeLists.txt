@@ -21,6 +21,7 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(libnest2d)
+add_subdirectory(libslic3r)
 add_subdirectory(timeutils)
+add_subdirectory(fff_print)
 add_subdirectory(sla_print)
-

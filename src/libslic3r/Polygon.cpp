@@ -175,16 +175,16 @@ Point Polygon::centroid() const
 Points Polygon::concave_points(double angle) const
 {
     Points points;
-    angle = 2*PI - angle;
+    angle = 2. * PI - angle + EPSILON;
     
     // check whether first point forms a concave angle
     if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) <= angle)
         points.push_back(this->points.front());
     
     // check whether points 1..(n-1) form concave angles
-    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
-        if (p->ccw_angle(*(p-1), *(p+1)) <= angle) points.push_back(*p);
-    }
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++ p)
+        if (p->ccw_angle(*(p-1), *(p+1)) <= angle)
+        	points.push_back(*p);
     
     // check whether last point forms a concave angle
     if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) <= angle)
@@ -198,7 +198,7 @@ Points Polygon::concave_points(double angle) const
 Points Polygon::convex_points(double angle) const
 {
     Points points;
-    angle = 2*PI - angle;
+    angle = 2*PI - angle - EPSILON;
     
     // check whether first point forms a convex angle
     if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) >= angle)
