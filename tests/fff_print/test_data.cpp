@@ -11,7 +11,6 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
 
-using namespace std::string_literals;
 using namespace std;
 
 namespace Slic3r { namespace Test {

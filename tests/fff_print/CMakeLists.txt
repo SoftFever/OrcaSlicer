@@ -4,6 +4,7 @@ add_executable(${_TEST_NAME}_tests
 	test_data.cpp
 	test_data.hpp
 	test_flow.cpp
+	test_gcodewriter.cpp
 	test_skirt_brim.cpp
 	test_trianglemesh.cpp
 	)

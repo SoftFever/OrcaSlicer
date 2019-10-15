@@ -269,7 +269,7 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
     assert(F > 0.);
     assert(F < 100000.);
     std::ostringstream gcode;
-    gcode << "G1 F" << F;
+    gcode << "G1 F" << XYZF_NUM(F);
     COMMENT(comment);
     gcode << cooling_marker;
     gcode << "\n";
