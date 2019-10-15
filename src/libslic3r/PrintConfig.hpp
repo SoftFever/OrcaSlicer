@@ -193,6 +193,8 @@ public:
 
     static void handle_legacy(t_config_option_key &opt_key, std::string &value);
 
+    // Array options growing with the number of extruders
+    const std::vector<std::string>& extruder_option_keys() const { return m_extruder_option_keys; }
     // Options defining the extruder retract properties. These keys are sorted lexicographically.
     // The extruder retract keys could be overidden by the same values defined at the Filament level
     // (then the key is further prefixed with the "filament_" prefix).
@@ -201,9 +203,10 @@ public:
 private:
     void init_common_params();
     void init_fff_params();
-    void init_extruder_retract_keys();
+    void init_extruder_option_keys();
     void init_sla_params();
 
+    std::vector<std::string> 	m_extruder_option_keys;
     std::vector<std::string> 	m_extruder_retract_keys;
 };
 
@@ -230,6 +233,8 @@ public:
     const ConfigDef*    def() const override { return &print_config_def; }
 
     void                normalize();
+
+    void 				set_num_extruders(unsigned int num_extruders);
 
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string         validate();

@@ -226,11 +226,14 @@ std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r
 
 	model.arrange_objects(PrintConfig::min_object_distance(config.get()));
     model.center_instances_around_point(Slic3r::Vec2d(100,100));
-    for (ModelObject *mo : model.objects)
+    for (ModelObject *mo : model.objects) {
+        mo->ensure_on_bed();
         print->auto_assign_extruders(mo);
+    }
 
 	print->apply(model, *config);
     print->validate();
+    print->set_status_silent();
     return print;
 }
 
@@ -255,11 +258,14 @@ std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Sl
 	}
 	model.arrange_objects(PrintConfig::min_object_distance(config.get()));
 	model.center_instances_around_point(Slic3r::Vec2d(100, 100));
-	for (ModelObject *mo : model.objects)
+	for (ModelObject *mo : model.objects) {
+        mo->ensure_on_bed();
 		print->auto_assign_extruders(mo);
+    }
 
 	print->apply(model, *config);
     print->validate();
+    print->set_status_silent();
     return print;
 }
 

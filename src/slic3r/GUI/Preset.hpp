@@ -202,7 +202,7 @@ public:
     void                set_visible_from_appconfig(const AppConfig &app_config);
 
     // Resize the extruder specific fields, initialize them with the content of the 1st extruder.
-    void                set_num_extruders(unsigned int n) { set_num_extruders(this->config, n); }
+    void                set_num_extruders(unsigned int n) { this->config.set_num_extruders(n); }
 
     // Sort lexicographically by a preset name. The preset name shall be unique across a single PresetCollection.
     bool                operator<(const Preset &other) const { return this->name < other.name; }
@@ -227,8 +227,6 @@ public:
 protected:
     friend class        PresetCollection;
     friend class        PresetBundle;
-    // Resize the extruder specific vectors ()
-    static void         set_num_extruders(DynamicPrintConfig &config, unsigned int n);
     static std::string  remove_suffix_modified(const std::string &name);
 };
 
