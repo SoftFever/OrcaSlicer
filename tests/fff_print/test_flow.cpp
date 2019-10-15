@@ -28,11 +28,11 @@ SCENARIO("Extrusion width specifics", "[!mayfail]") {
         WHEN("first layer width set to 2mm") {
             Slic3r::Model model;
             config->set_deserialize("first_layer_extrusion_width", "2");
-            auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+            std::shared_ptr<Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
 
             std::vector<double> E_per_mm_bottom;
-            std::string gcode = ::Test::gcode(print);
-            auto parser {Slic3r::GCodeReader()};
+            std::string gcode = Test::gcode(print);
+            Slic3r::GCodeReader parser;
             const auto layer_height { config->opt_float("layer_height") };
             parser.parse_buffer(gcode, [&E_per_mm_bottom, layer_height] (Slic3r::GCodeReader& self, const Slic3r::GCodeReader::GCodeLine& line)
             { 

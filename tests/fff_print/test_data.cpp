@@ -203,15 +203,21 @@ TriangleMesh mesh(TestMesh m)
     return _mesh;
 }
 
+static bool verbose_gcode() 
+{
+    const char *v = std::getenv("SLIC3R_TESTS_GCODE");
+    if (v == nullptr)
+    	return false;
+    std::string s(v);
+    return s == "1" || s == "on" || s == "yes";
+}
+
 std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, std::shared_ptr<DynamicPrintConfig> _config, bool comments)
 {
 	std::shared_ptr<DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
     config->apply(*_config);
 
-    const char* v {std::getenv("SLIC3R_TESTS_GCODE")};
-    auto tests_gcode {(v == nullptr ? "" : std::string(v))};
-
-    if (tests_gcode != "")
+    if (verbose_gcode())
         config->set_key_value("gcode_comments", new ConfigOptionBool(true));
 
     std::shared_ptr<Print> print {std::make_shared<Slic3r::Print>()};
@@ -241,10 +247,7 @@ std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Sl
 	std::shared_ptr<DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
     config->apply(*_config);
 
-    const char* v {std::getenv("SLIC3R_TESTS_GCODE")};
-    auto tests_gcode {(v == nullptr ? "" : std::string(v))};
-
-    if (tests_gcode != "")
+    if (verbose_gcode())
         config->set_key_value("gcode_comments", new ConfigOptionBool(true));
 
 	std::shared_ptr<Print> print { std::make_shared<Slic3r::Print>() };
