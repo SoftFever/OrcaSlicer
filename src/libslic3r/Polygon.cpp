@@ -15,7 +15,7 @@ Polyline Polygon::split_at_vertex(const Point &point) const
     // find index of point
     for (const Point &pt : this->points)
         if (pt == point)
-            return this->split_at_index(&pt - &this->points.front());
+            return this->split_at_index(int(&pt - &this->points.front()));
     throw std::invalid_argument("Point not found");
     return Polyline();
 }
@@ -392,6 +392,47 @@ bool remove_small(Polygons &polys, double min_area)
     if (j < polys.size())
         polys.erase(polys.begin() + j, polys.end());
     return modified;
+}
+
+void remove_collinear(Polygon &poly)
+{
+    if (poly.points.size() > 2) {
+        // copy points and append both 1 and last point in place to cover the boundaries
+        Points pp;
+        pp.reserve(poly.points.size()+2);
+        pp.push_back(poly.points.back());
+        pp.insert(pp.begin()+1, poly.points.begin(), poly.points.end());
+        pp.push_back(poly.points.front());
+        // delete old points vector. Will be re-filled in the loop
+        poly.points.clear();
+
+        size_t i = 0;
+        size_t k = 0;
+        while (i < pp.size()-2) {
+            k = i+1;
+            const Point &p1 = pp[i];
+            while (k < pp.size()-1) {
+                const Point &p2 = pp[k];
+                const Point &p3 = pp[k+1];
+                Line l(p1, p3);
+                if(l.distance_to(p2) < SCALED_EPSILON) {
+                    k++;
+                } else {
+                    if(i > 0) poly.points.push_back(p1); // implicitly removes the first point we appended above
+                    i = k;
+                    break;
+                }
+            }
+            if(k > pp.size()-2) break; // all remaining points are collinear and can be skipped
+        }
+        poly.points.push_back(pp[i]);
+    }
+}
+
+void remove_collinear(Polygons &polys)
+{
+	for (Polygon &poly : polys)
+		remove_collinear(poly);
 }
 
 }
