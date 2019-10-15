@@ -210,7 +210,7 @@ std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r
     config->apply(*_config);
 
     const char* v {std::getenv("SLIC3R_TESTS_GCODE")};
-    auto tests_gcode {(v == nullptr ? ""s : std::string(v))};
+    auto tests_gcode {(v == nullptr ? "" : std::string(v))};
 
     if (tests_gcode != "")
         config->set_key_value("gcode_comments", new ConfigOptionBool(true));
@@ -240,9 +240,9 @@ std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Sl
     config->apply(*_config);
 
     const char* v {std::getenv("SLIC3R_TESTS_GCODE")};
-    auto tests_gcode {(v == nullptr ? ""s : std::string(v))};
+    auto tests_gcode {(v == nullptr ? "" : std::string(v))};
 
-    if (tests_gcode != ""s)
+    if (tests_gcode != "")
         config->set_key_value("gcode_comments", new ConfigOptionBool(true));
 
 	std::shared_ptr<Print> print { std::make_shared<Slic3r::Print>() };
@@ -279,7 +279,7 @@ Slic3r::Model model(const std::string& model_name, TriangleMesh&& _mesh)
 {
     Slic3r::Model result;
 	ModelObject *object = result.add_object();
-	object->name += model_name + ".stl"s;
+	object->name += model_name + ".stl";
     object->add_volume(_mesh);
     object->add_instance();
     return result;
@@ -294,3 +294,26 @@ void add_testmesh_to_model(Slic3r::Model& result, const std::string& model_name,
 }
 
 } } // namespace Slic3r::Test
+
+#include <catch2/catch.hpp>
+
+SCENARIO("init_print functionality") {
+	GIVEN("A default config") {
+		std::shared_ptr<Slic3r::DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
+		std::stringstream gcode;
+		WHEN("init_print is called with a single mesh.") {
+			Slic3r::Model model;
+			auto print = Slic3r::Test::init_print({ Slic3r::Test::TestMesh::cube_20x20x20 }, model, config, true);
+			gcode.clear();
+			THEN("One mesh/printobject is in the resulting Print object.") {
+				REQUIRE(print->objects().size() == 1);
+			}
+			THEN("print->process() doesn't crash.") {
+				REQUIRE_NOTHROW(print->process());
+			}
+			THEN("Export gcode functions outputs text.") {
+				REQUIRE(!Slic3r::Test::gcode(print).empty());
+			}
+		}
+	}
+}
