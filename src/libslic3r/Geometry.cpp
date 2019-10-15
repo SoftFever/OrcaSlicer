@@ -9,6 +9,7 @@
 #include <cmath>
 #include <list>
 #include <map>
+#include <numeric>
 #include <set>
 #include <utility>
 #include <stack>
