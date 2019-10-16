@@ -28,10 +28,10 @@ SCENARIO( "TriangleMesh: Basic mesh statistics") {
         }
 
         THEN( "Vertices array matches input.") {
-            for (auto i = 0U; i < cube.its.vertices.size(); i++) {
+            for (size_t i = 0U; i < cube.its.vertices.size(); i++) {
                 REQUIRE(cube.its.vertices.at(i) == vertices.at(i).cast<float>());
             }
-            for (auto i = 0U; i < vertices.size(); i++) {
+            for (size_t i = 0U; i < vertices.size(); i++) {
                 REQUIRE(vertices.at(i).cast<float>() == cube.its.vertices.at(i));
             }
         }
@@ -40,11 +40,11 @@ SCENARIO( "TriangleMesh: Basic mesh statistics") {
         }
 
         THEN( "Facet array matches input.") {
-            for (auto i = 0U; i < cube.its.indices.size(); i++) {
+            for (size_t i = 0U; i < cube.its.indices.size(); i++) {
                 REQUIRE(cube.its.indices.at(i) == facets.at(i));
             }
 
-            for (auto i = 0U; i < facets.size(); i++) {
+            for (size_t i = 0U; i < facets.size(); i++) {
                 REQUIRE(facets.at(i) == cube.its.indices.at(i));
             }
         }
@@ -79,10 +79,10 @@ SCENARIO( "TriangleMesh: Basic mesh statistics") {
         }
 
         THEN( "Vertices array matches input.") {
-            for (auto i = 0U; i < cube.its.vertices.size(); i++) {
+            for (size_t i = 0U; i < cube.its.vertices.size(); i++) {
                 REQUIRE(cube.its.vertices.at(i) == vertices.at(i).cast<float>());
             }
-            for (auto i = 0U; i < vertices.size(); i++) {
+            for (size_t i = 0U; i < vertices.size(); i++) {
                 REQUIRE(vertices.at(i).cast<float>() == cube.its.vertices.at(i));
             }
         }
@@ -91,11 +91,11 @@ SCENARIO( "TriangleMesh: Basic mesh statistics") {
         }
 
         THEN( "Facet array matches input.") {
-            for (auto i = 0U; i < cube.its.indices.size(); i++) {
+            for (size_t i = 0U; i < cube.its.indices.size(); i++) {
                 REQUIRE(cube.its.indices.at(i) == facets.at(i));
             }
 
-            for (auto i = 0U; i < facets.size(); i++) {
+            for (size_t i = 0U; i < facets.size(); i++) {
                 REQUIRE(facets.at(i) == cube.its.indices.at(i));
             }
         }
@@ -191,14 +191,14 @@ SCENARIO( "TriangleMesh: slice behavior.") {
 
         WHEN("Cube is sliced with z = [0+EPSILON,2,4,8,6,8,10,12,14,16,18,20]") {
             std::vector<double> z { 0+EPSILON,2,4,8,6,8,10,12,14,16,18,20 };
-            auto result {cube.slice(z)};
+			std::vector<ExPolygons> result = cube.slice(z);
             THEN( "The correct number of polygons are returned per layer.") {
-                for (auto i = 0U; i < z.size(); i++) {
+                for (size_t i = 0U; i < z.size(); i++) {
                     REQUIRE(result.at(i).size() == 1);
                 }
             }
             THEN( "The area of the returned polygons is correct.") {
-                for (auto i = 0U; i < z.size(); i++) {
+                for (size_t i = 0U; i < z.size(); i++) {
                     REQUIRE(result.at(i).at(0).area() == 20.0*20/(std::pow(SCALING_FACTOR,2)));
                 }
             }
@@ -211,7 +211,7 @@ SCENARIO( "TriangleMesh: slice behavior.") {
 		TriangleMesh cube(vertices, facets);
         cube.repair();
         WHEN(" a top tangent plane is sliced") {
-            auto slices {cube.slice({5.0, 10.0})};
+			std::vector<ExPolygons> slices = cube.slice({5.0, 10.0});
             THEN( "its area is included") {
                 REQUIRE(slices.at(0).at(0).area() > 0);
                 REQUIRE(slices.at(1).at(0).area() > 0);
@@ -219,7 +219,7 @@ SCENARIO( "TriangleMesh: slice behavior.") {
         }
         WHEN(" a model that has been transformed is sliced") {
             cube.mirror_z();
-            auto slices {cube.slice({-5.0, -10.0})};
+			std::vector<ExPolygons> slices = cube.slice({-5.0, -10.0});
             THEN( "it is sliced properly (mirrored bottom plane area is included)") {
                 REQUIRE(slices.at(0).at(0).area() > 0);
                 REQUIRE(slices.at(1).at(0).area() > 0);
@@ -233,7 +233,7 @@ SCENARIO( "make_xxx functions produce meshes.") {
         WHEN("make_cube() is called with arguments 20,20,20") {
 			TriangleMesh cube = make_cube(20,20,20);
             THEN("The resulting mesh has one and only one vertex at 0,0,0") {
-                auto verts {cube.its.vertices};
+                const std::vector<Vec3f> &verts = cube.its.vertices;
                 REQUIRE(std::count_if(verts.begin(), verts.end(), [](const Vec3f& t) { return t.x() == 0 && t.y() == 0 && t.z() == 0; } ) == 1);
             }
             THEN("The mesh volume is 20*20*20") {
@@ -252,11 +252,11 @@ SCENARIO( "make_xxx functions produce meshes.") {
             TriangleMesh cyl = make_cylinder(10, 10, PI / 243.0);
             double angle = (2*PI / floor(2*PI / (PI / 243.0)));
             THEN("The resulting mesh has one and only one vertex at 0,0,0") {
-                auto verts {cyl.its.vertices};
+                const std::vector<Vec3f> &verts = cyl.its.vertices;
                 REQUIRE(std::count_if(verts.begin(), verts.end(), [](const Vec3f& t) { return t.x() == 0 && t.y() == 0 && t.z() == 0; } ) == 1);
             }
             THEN("The resulting mesh has one and only one vertex at 0,0,10") {
-                auto verts {cyl.its.vertices};
+                const std::vector<Vec3f> &verts = cyl.its.vertices;
                 REQUIRE(std::count_if(verts.begin(), verts.end(), [](const Vec3f& t) { return t.x() == 0 && t.y() == 0 && t.z() == 10; } ) == 1);
             }
             THEN("Resulting mesh has 2 + (2*PI/angle * 2) vertices.") { 
@@ -301,7 +301,7 @@ SCENARIO( "TriangleMesh: split functionality.") {
 		TriangleMesh cube(vertices, facets);
         cube.repair();
         WHEN( "The mesh is split into its component parts.") {
-            auto meshes {cube.split()};
+            std::vector<TriangleMesh*> meshes = cube.split();
             THEN(" The bounding box statistics are propagated to the split copies") {
                 REQUIRE(meshes.size() == 1);
                 REQUIRE((meshes.at(0)->bounding_box() == cube.bounding_box()));
@@ -320,7 +320,7 @@ SCENARIO( "TriangleMesh: split functionality.") {
         cube.merge(cube2);
         cube.repair();
         WHEN( "The combined mesh is split") {
-            auto meshes {cube.split()};
+            std::vector<TriangleMesh*> meshes = cube.split();
             THEN( "Two meshes are in the output vector.") {
                 REQUIRE(meshes.size() == 2);
             }
@@ -384,7 +384,7 @@ SCENARIO( "TriangleMeshSlicer: Cut behavior.") {
 #ifdef TEST_PERFORMANCE
 TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
     TriangleMesh mesh;
-    auto config {Slic3r::Config::new_from_defaults()};
+    std::shared_ptr<Slic3r::DynamicPrintConfig> config = Slic3r::DynamicPrintConfig::new_from_defaults();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/100_000.stl");
     mesh.repair();
 
@@ -393,7 +393,7 @@ TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
     config->set("nozzle_diameter", 500);
 
     Slic3r::Model model;
-    auto print {Slic3r::Test::init_print({mesh}, model, config)};
+    auto print = Slic3r::Test::init_print({mesh}, model, config);
 
     print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 
@@ -411,7 +411,7 @@ TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
 #ifdef BUILD_PROFILE
 TEST_CASE("Profile test for issue #4486 - files take forever to slice") {
     TriangleMesh mesh;
-    auto config {Slic3r::Config::new_from_defaults()};
+    std::shared_ptr<Slic3r::DynamicPrintConfig> config = Slic3r::DynamicPrintConfig::new_from_defaults();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/10_000.stl");
     mesh.repair();
 
@@ -421,7 +421,7 @@ TEST_CASE("Profile test for issue #4486 - files take forever to slice") {
     config->set("fill_density", "5%");
 
     Slic3r::Model model;
-    auto print {Slic3r::Test::init_print({mesh}, model, config)};
+    auto print = Slic3r::Test::init_print({mesh}, model, config);
 
     print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 

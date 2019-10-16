@@ -13,7 +13,7 @@ using namespace Slic3r;
 
 TEST_CASE("Polygon::contains works properly", ""){
    // this test was failing on Windows (GH #1950)
-    auto polygon = Slic3r::Polygon(std::vector<Point>({
+    Slic3r::Polygon polygon(std::vector<Point>({
         Point(207802834,-57084522),
         Point(196528149,-37556190),
         Point(173626821,-25420928),
@@ -25,14 +25,14 @@ TEST_CASE("Polygon::contains works properly", ""){
         Point(129714478,-84542120),
         Point(160244873,-84542120)
     }));
-    auto point = Point(95706562, -57294774);
+    Point point(95706562, -57294774);
     REQUIRE(polygon.contains(point));
 }
 
 SCENARIO("Intersections of line segments"){
     GIVEN("Integer coordinates"){
-        auto line1 = Line(Point(5,15),Point(30,15));
-        auto line2 = Line(Point(10,20), Point(10,10));
+        Line line1(Point(5,15),Point(30,15));
+        Line line2(Point(10,20), Point(10,10));
         THEN("The intersection is valid"){
             Point point;
             line1.intersection(line2,&point);
@@ -41,8 +41,8 @@ SCENARIO("Intersections of line segments"){
     }
 
     GIVEN("Scaled coordinates"){
-        auto line1 = Line(Point(73.6310778185108 / 0.00001, 371.74239268924 / 0.00001), Point(73.6310778185108 / 0.00001, 501.74239268924 / 0.00001));
-        auto line2 = Line(Point(75/0.00001, 437.9853/0.00001), Point(62.7484/0.00001, 440.4223/0.00001));
+        Line line1(Point(73.6310778185108 / 0.00001, 371.74239268924 / 0.00001), Point(73.6310778185108 / 0.00001, 501.74239268924 / 0.00001));
+        Line line2(Point(75/0.00001, 437.9853/0.00001), Point(62.7484/0.00001, 440.4223/0.00001));
         THEN("There is still an intersection"){
             Point point;
             REQUIRE(line1.intersection(line2,&point));
@@ -128,7 +128,7 @@ SCENARIO("polygon_is_convex works"){
 
 
 TEST_CASE("Creating a polyline generates the obvious lines"){
-    auto polyline = Slic3r::Polyline();
+    Slic3r::Polyline polyline;
     polyline.points = std::vector<Point>({Point(0, 0), Point(10, 0), Point(20, 0)});
     REQUIRE(polyline.lines().at(0).a == Point(0,0));
     REQUIRE(polyline.lines().at(0).b == Point(10,0));
@@ -137,8 +137,8 @@ TEST_CASE("Creating a polyline generates the obvious lines"){
 }
 
 TEST_CASE("Splitting a Polygon generates a polyline correctly"){
-    auto polygon = Slic3r::Polygon(std::vector<Point>({Point(0, 0), Point(10, 0), Point(5, 5)}));
-    auto split = polygon.split_at_index(1);
+    Slic3r::Polygon polygon(std::vector<Point>({Point(0, 0), Point(10, 0), Point(5, 5)}));
+    Slic3r::Polyline split = polygon.split_at_index(1);
     REQUIRE(split.points[0]==Point(10,0));
     REQUIRE(split.points[1]==Point(5,5));
     REQUIRE(split.points[2]==Point(0,0));
@@ -147,7 +147,7 @@ TEST_CASE("Splitting a Polygon generates a polyline correctly"){
 
 
 TEST_CASE("Bounding boxes are scaled appropriately"){
-    auto bb = BoundingBox(std::vector<Point>({Point(0, 1), Point(10, 2), Point(20, 2)}));
+    BoundingBox bb(std::vector<Point>({Point(0, 1), Point(10, 2), Point(20, 2)}));
     bb.scale(2);
     REQUIRE(bb.min == Point(0,2));
     REQUIRE(bb.max == Point(40,4));
@@ -265,7 +265,7 @@ TEST_CASE("Chained path working correctly"){
 
 SCENARIO("Line distances"){
     GIVEN("A line"){
-        auto line = Line(Point(0, 0), Point(20, 0));
+        Line line(Point(0, 0), Point(20, 0));
         THEN("Points on the line segment have 0 distance"){
             REQUIRE(line.distance_to(Point(0, 0))  == 0);
             REQUIRE(line.distance_to(Point(20, 0)) == 0);

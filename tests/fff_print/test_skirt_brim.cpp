@@ -39,7 +39,7 @@ TEST_CASE("Skirt height is honored") {
     // avoid altering speeds unexpectedly
     config->set_deserialize("cooling", "0");
     config->set_deserialize("first_layer_speed", "100%");
-    auto support_speed = config->opt<Slic3r::ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
+    double support_speed = config->opt<Slic3r::ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
 
     std::map<double, bool> layers_with_skirt;
 	std::string gcode;
@@ -47,12 +47,12 @@ TEST_CASE("Skirt height is honored") {
     Slic3r::Model model;
 
     SECTION("printing a single object") {
-        auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+        auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
         gcode = Slic3r::Test::gcode(print);
     }
 
     SECTION("printing multiple objects") {
-        auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20, TestMesh::cube_20x20x20}, model, config)};
+        auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20, TestMesh::cube_20x20x20}, model, config);
 		gcode = Slic3r::Test::gcode(print);
     }
     parser.parse_buffer(gcode, [&layers_with_skirt, &support_speed] (Slic3r::GCodeReader& self, const Slic3r::GCodeReader::GCodeLine& line)
@@ -66,7 +66,7 @@ TEST_CASE("Skirt height is honored") {
 }
 
 SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
-    auto parser {Slic3r::GCodeReader()};
+    Slic3r::GCodeReader parser;
     Slic3r::Model model;
 	std::string gcode;
     GIVEN("A default configuration") {
@@ -88,10 +88,10 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 			config->opt_int("skirts") = 0;
             config->opt_float("brim_width") = 5;
             THEN("Brim is generated") {
-                auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+                auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 gcode = Slic3r::Test::gcode(print);
                 bool brim_generated = false;
-                auto support_speed = config->opt<Slic3r::ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
+                double support_speed = config->opt<Slic3r::ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
                 parser.parse_buffer(gcode, [&brim_generated, support_speed] (Slic3r::GCodeReader& self, const Slic3r::GCodeReader::GCodeLine& line)
                     {
                         if (self.z() == Approx(0.3) || line.new_Z(self) == Approx(0.3)) {
@@ -107,7 +107,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
         WHEN("Skirt area is smaller than the brim") {
             config->opt_int("skirts") = 1;
             config->opt_float("brim_width") = 10;
-            auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+            auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
             THEN("Gcode generates") {
                 REQUIRE(! Slic3r::Test::gcode(print).empty());
             }
@@ -117,7 +117,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 			config->opt_int("skirts") = 2;
 			config->opt_int("skirt_height") = 0;
 
-            auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+            auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
             THEN("Gcode generates") {
                 REQUIRE(! Slic3r::Test::gcode(print).empty());
             }
@@ -129,7 +129,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 			config->opt_int("perimeter_extruder") = 2;
 			config->opt_int("support_material_extruder") = 3;
             THEN("Brim is printed with the extruder used for the perimeters of first object") {
-                auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+                auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 gcode = Slic3r::Test::gcode(print);
                 int tool = get_brim_tool(gcode, parser);
                 REQUIRE(tool == config->opt_int("perimeter_extruder") - 1);
@@ -142,7 +142,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
             config->opt_int("support_material_extruder") = 3;
             config->opt_int("raft_layers") = 1;
             THEN("brim is printed with same extruder as skirt") {
-                auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+                auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 gcode = Slic3r::Test::gcode(print);
                 int tool = get_brim_tool(gcode, parser);
                 REQUIRE(tool == config->opt_int("support_material_extruder") - 1);
@@ -155,7 +155,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 			
             THEN("2 brim lines") {
                 Slic3r::Model model;
-                auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+                auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 print->process();
                 REQUIRE(print->brim().entities.size() == 2);
             }
@@ -170,7 +170,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
             config->set("brim_ears_max_angle", 91);
 			
             Slic3r::Model model;
-            auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+            auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
             print->process();
 
             THEN("Four brim ears") {
@@ -187,7 +187,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 			
             THEN("no brim") {
                 Slic3r::Model model;
-                auto print {Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config)};
+                auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 print->process();
                 REQUIRE(print->brim.size() == 0);
             }
@@ -207,7 +207,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
             config->set_deserialize("first_layer_speed", "100%");		// to prevent speeds to be altered
 
             Slic3r::Model model;
-            auto print {Slic3r::Test::init_print({TestMesh::overhang}, model, config)};
+            auto print = Slic3r::Test::init_print({TestMesh::overhang}, model, config);
             print->process();
 
             // config->set("support_material", true);      // to prevent speeds to be altered
@@ -221,7 +221,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
                 auto print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
                 std::string gcode = Slic3r::Test::gcode(print);
 
-                auto support_speed = config->opt<ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
+                double support_speed = config->opt<ConfigOptionFloat>("support_material_speed")->value * MM_PER_MIN;
                 parser.parse_buffer(gcode, [config, &extrusion_points, &tool, &skirt_length, support_speed] (Slic3r::GCodeReader& self, const Slic3r::GCodeReader::GCodeLine& line)
                     {
                         // std::cerr << line.cmd() << "\n";
@@ -230,7 +230,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 						} else if (self.z() == Approx(config->opt<ConfigOptionFloat>("first_layer_height")->value)) {
                             // on first layer
 							if (line.extruding(self) && line.dist_XY(self) > 0) {
-                                auto speed = ( self.f() > 0 ?  self.f() : line.new_F(self));
+                                float speed = ( self.f() > 0 ?  self.f() : line.new_F(self));
                                 // std::cerr << "Tool " << tool << "\n";
                                 if (speed == Approx(support_speed) && tool == config->opt_int("perimeter_extruder") - 1) {
                                     // Skirt uses first material extruder, support material speed.
