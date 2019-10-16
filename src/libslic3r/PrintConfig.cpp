@@ -2898,9 +2898,13 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 
 const PrintConfigDef print_config_def;
 
-DynamicPrintConfig* DynamicPrintConfig::new_from_defaults()
+DynamicPrintConfig DynamicPrintConfig::full_print_config()
 {
-    return new_from_defaults_keys(FullPrintConfig::defaults().keys());
+	return DynamicPrintConfig((const PrintRegionConfig&)FullPrintConfig::defaults());
+}
+
+DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfig(rhs, rhs.keys_ref())
+{
 }
 
 DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector<std::string> &keys)

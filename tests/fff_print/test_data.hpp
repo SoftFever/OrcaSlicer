@@ -66,8 +66,8 @@ bool _equiv(const T& a, const T& b, double epsilon) { return abs(a - b) < epsilo
 
 Slic3r::Model model(const std::string& model_name, TriangleMesh&& _mesh);
 
-std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, std::shared_ptr<Slic3r::DynamicPrintConfig> _config = std::shared_ptr<Slic3r::DynamicPrintConfig>(Slic3r::DynamicPrintConfig::new_from_defaults()), bool comments = false);
-std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Model& model, std::shared_ptr<Slic3r::DynamicPrintConfig> _config = std::shared_ptr<Slic3r::DynamicPrintConfig>(Slic3r::DynamicPrintConfig::new_from_defaults()), bool comments = false);
+std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config(), bool comments = false);
+std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Model& model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config(), bool comments = false);
 
 std::string gcode(std::shared_ptr<Print> print);
 

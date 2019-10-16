@@ -1580,9 +1580,11 @@ class DynamicConfig : public virtual ConfigBase
 {
 public:
     DynamicConfig() {}
-    DynamicConfig(const DynamicConfig& other) { *this = other; }
-    DynamicConfig(DynamicConfig&& other) : options(std::move(other.options)) { other.options.clear(); }
-    virtual ~DynamicConfig() override { clear(); }
+    DynamicConfig(const DynamicConfig &rhs) { *this = rhs; }
+    DynamicConfig(DynamicConfig &&rhs) : options(std::move(rhs.options)) { rhs.options.clear(); }
+	explicit DynamicConfig(const ConfigBase &rhs, const t_config_option_keys &keys);
+	explicit DynamicConfig(const ConfigBase& rhs) : DynamicConfig(rhs, rhs.keys()) {}
+	virtual ~DynamicConfig() override { clear(); }
 
     // Copy a content of one DynamicConfig to another DynamicConfig.
     // If rhs.def() is not null, then it has to be equal to this->def(). 

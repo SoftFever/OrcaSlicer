@@ -212,15 +212,15 @@ static bool verbose_gcode()
     return s == "1" || s == "on" || s == "yes";
 }
 
-std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, std::shared_ptr<DynamicPrintConfig> _config, bool comments)
+std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, const Slic3r::DynamicPrintConfig &config_in, bool comments)
 {
-	std::shared_ptr<DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
-    config->apply(*_config);
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.apply(config_in);
 
     if (verbose_gcode())
-        config->set_key_value("gcode_comments", new ConfigOptionBool(true));
+        config.set_key_value("gcode_comments", new ConfigOptionBool(true));
 
-    std::shared_ptr<Print> print {std::make_shared<Slic3r::Print>()};
+	std::shared_ptr<Print> print(std::make_shared<Slic3r::Print>());
 
     for (const TestMesh &t : meshes) {
         ModelObject *object = model.add_object();
@@ -229,28 +229,28 @@ std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r
         object->add_instance();
     }
 
-	model.arrange_objects(PrintConfig::min_object_distance(config.get()));
+	model.arrange_objects(PrintConfig::min_object_distance(&config));
     model.center_instances_around_point(Slic3r::Vec2d(100,100));
     for (ModelObject *mo : model.objects) {
         mo->ensure_on_bed();
         print->auto_assign_extruders(mo);
     }
 
-	print->apply(model, *config);
+	print->apply(model, config);
     print->validate();
     print->set_status_silent();
     return print;
 }
 
-std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Model& model, std::shared_ptr<DynamicPrintConfig> _config, bool comments)
+std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Model& model, const DynamicPrintConfig &config_in, bool comments)
 {
-	std::shared_ptr<DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
-    config->apply(*_config);
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.apply(config_in);
 
     if (verbose_gcode())
-        config->set_key_value("gcode_comments", new ConfigOptionBool(true));
+        config.set_key_value("gcode_comments", new ConfigOptionBool(true));
 
-	std::shared_ptr<Print> print { std::make_shared<Slic3r::Print>() };
+	std::shared_ptr<Print> print(std::make_shared<Slic3r::Print>());
 
 	for (const TriangleMesh &t : meshes) {
 		ModelObject *object = model.add_object();
@@ -258,14 +258,14 @@ std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Sl
 		object->add_volume(t);
 		object->add_instance();
 	}
-	model.arrange_objects(PrintConfig::min_object_distance(config.get()));
+	model.arrange_objects(PrintConfig::min_object_distance(&config));
 	model.center_instances_around_point(Slic3r::Vec2d(100, 100));
 	for (ModelObject *mo : model.objects) {
         mo->ensure_on_bed();
 		print->auto_assign_extruders(mo);
     }
 
-	print->apply(model, *config);
+	print->apply(model, config);
     print->validate();
     print->set_status_silent();
     return print;
@@ -307,7 +307,7 @@ void add_testmesh_to_model(Slic3r::Model& result, const std::string& model_name,
 
 SCENARIO("init_print functionality") {
 	GIVEN("A default config") {
-		std::shared_ptr<Slic3r::DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
+		Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
 		std::stringstream gcode;
 		WHEN("init_print is called with a single mesh.") {
 			Slic3r::Model model;

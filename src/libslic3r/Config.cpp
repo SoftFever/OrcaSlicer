@@ -668,6 +668,12 @@ void ConfigBase::null_nullables()
     }
 }
 
+DynamicConfig::DynamicConfig(const ConfigBase& rhs, const t_config_option_keys& keys)
+{
+	for (const t_config_option_key& opt_key : keys)
+		this->options[opt_key] = std::unique_ptr<ConfigOption>(rhs.option(opt_key)->clone());
+}
+
 bool DynamicConfig::operator==(const DynamicConfig &rhs) const
 {
     auto it1     = this->options.begin();
