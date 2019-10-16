@@ -73,11 +73,10 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 REQUIRE(std::regex_search(gcode, has_match, skirt_regex));
             }
             THEN("final Z height is 20mm") {
-                double final_z {0.0};
-                auto reader {GCodeReader()};
+                double final_z = 0.0;
+                GCodeReader reader;
                 reader.apply_config(print->config());
-                reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) 
-                {
+                reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max<double>(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
                 REQUIRE(final_z == Approx(20.));
@@ -114,22 +113,20 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 REQUIRE(gcode.find("; between-object-gcode") != std::string::npos);
             }
             THEN("final Z height is 20.1mm") {
-                double final_z {0.0};
-                auto reader {GCodeReader()};
+                double final_z = 0.0;
+                GCodeReader reader;
                 reader.apply_config(print->config());
-                reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) 
-                {
+                reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
                 REQUIRE(final_z == Approx(20.1));
             }
             THEN("Z height resets on object change") {
-                double final_z {0.0};
-                bool reset {false};
-                auto reader {GCodeReader()};
+                double final_z = 0.0;
+                bool reset = false;
+                GCodeReader reader;
                 reader.apply_config(print->config());
-                reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) 
-                {
+                reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     if (final_z > 0 && std::abs(self.z() - 0.3) < 0.01 ) { // saw higher Z before this, now it's lower
                         reset = true;
                     } else {
@@ -139,12 +136,11 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 REQUIRE(reset == true);
             }
             THEN("Shorter object is printed before taller object.") {
-                double final_z {0.0};
-                bool reset {false};
-                auto reader {GCodeReader()};
+                double final_z = 0.0;
+                bool reset = false;
+                GCodeReader reader;
                 reader.apply_config(print->config());
-                reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) 
-                {
+                reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     if (final_z > 0 && std::abs(self.z() - 0.3) < 0.01 ) { 
                         reset = (final_z > 20.0);
                     } else {

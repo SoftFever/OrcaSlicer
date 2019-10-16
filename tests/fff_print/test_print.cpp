@@ -13,10 +13,10 @@ SCENARIO("PrintObject: Perimeter generation", "[PrintObject]") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
         TestMesh m = TestMesh::cube_20x20x20;
         Slic3r::Model model;
-        auto event_counter {0U};
+        size_t event_counter = 0;
         std::string stage;
-        int value {0};
-        auto callback {[&event_counter, &stage, &value] (int a, const char* b) { stage = std::string(b); event_counter++; value = a; }};
+        int value = 0;
+        auto callback = [&event_counter, &stage, &value] (int a, const char* b) { stage = std::string(b); ++ event_counter; value = a; };
         config.set_deserialize("fill_density", "0");
 
         WHEN("make_perimeters() is called")  {
@@ -43,11 +43,10 @@ SCENARIO("PrintObject: Perimeter generation", "[PrintObject]") {
 SCENARIO("Print: Skirt generation", "[Print]") {
     GIVEN("20mm cube and default config") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-        TestMesh m { TestMesh::cube_20x20x20 };
+        TestMesh m = TestMesh::cube_20x20x20;
         Slic3r::Model model;
-        auto event_counter {0U};
         std::string stage;
-        int value {0};
+        int value = 0;
         config.opt_int("skirt_height") = 1;
         config.opt_float("skirt_distance") = 1.f;
         WHEN("Skirts is set to 2 loops")  {
@@ -78,13 +77,12 @@ void test_is_solid_infill(std::shared_ptr<Slic3r::Print> p, size_t obj_id, size_
 SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces to become internal.", "[Print]") {
     GIVEN("sliced 20mm cube and config with top_solid_surfaces = 2 and bottom_solid_surfaces = 1") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-        TestMesh m { TestMesh::cube_20x20x20 };
+        TestMesh m = TestMesh::cube_20x20x20;
         config.opt_int("top_solid_layers") = 2;
         config.opt_int("bottom_solid_layers") = 1;
         config.opt_float("layer_height") = 0.5; // get a known number of layers
         config.set_deserialize("first_layer_height", "0.5");
         Slic3r::Model model;
-        auto event_counter {0U};
         std::string stage;
         std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({m}, model, config);
         print->process();
@@ -112,11 +110,10 @@ SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces t
 SCENARIO("Print: Brim generation", "[Print]") {
     GIVEN("20mm cube and default config, 1mm first layer width") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-        TestMesh m { TestMesh::cube_20x20x20 };
+        TestMesh m = TestMesh::cube_20x20x20;
         Slic3r::Model model;
-        auto event_counter {0U};
         std::string stage;
-        int value {0};
+        int value = 0;
         config.set_deserialize("first_layer_extrusion_width", "1");
         WHEN("Brim is set to 3mm")  {
             config.opt_float("brim_width") = 3;
