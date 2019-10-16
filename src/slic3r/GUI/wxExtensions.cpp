@@ -3055,7 +3055,7 @@ wxString DoubleSlider::get_tooltip(bool is_revert_icon_focused)
         const auto tick_code_it = m_ticks_.find(tick);
         tooltip = tick_code_it == m_ticks_.end()            ? _(L("Add color change")) :
                   tick_code_it->gcode == "M600"             ? _(L("Delete color change")) :
-                  tick_code_it->gcode == "M25"              ? _(L("Delete pause")) :
+                  tick_code_it->gcode == "M601"             ? _(L("Delete pause")) :
                   tick_code_it->gcode == "tool_change"      ? ( m_state == msSingleExtruder ? _(L("Delete color change")) :
                   from_u8((boost::format(_utf8(L("Delete extruder change to \"%1%\""))) % tick_code_it->extruder).str()) ) :
                   from_u8((boost::format(_utf8(L("Delete \"%1%\" code"))) % tick_code_it->gcode).str());
@@ -3353,8 +3353,8 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
             append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
             [this](wxCommandEvent&) { add_code("M600"); }, "colorchange_add_off.png", &menu);
     
-        append_menu_item(&menu, wxID_ANY, _(L("Add pause SD print")) + " (M25)", "",
-            [this](wxCommandEvent&) { add_code("M25"); }, "pause_add.png", &menu);
+        append_menu_item(&menu, wxID_ANY, _(L("Add pause SD print")) + " (M601)", "",
+            [this](wxCommandEvent&) { add_code("M601"); }, "pause_add.png", &menu);
     
         append_menu_item(&menu, wxID_ANY, _(L("Add custom G-code")), "",
             [this](wxCommandEvent&) { add_code(""); }, "add_gcode", &menu);

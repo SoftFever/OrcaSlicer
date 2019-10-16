@@ -1703,13 +1703,14 @@ void GCode::process_layer(
     //     gcode += "M600\n";
     // }
     if (colorprint_change) {
-        if (print.config().nozzle_diameter.size() == 1)
+        const bool single_material_print = print.config().nozzle_diameter.size() == 1;
+        if (single_material_print || custom_code != "tool_change")
         {
             // add tag for analyzer
             gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
             // add tag for time estimator
             gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-            if (custom_code == "tool_change")
+            if (single_material_print && custom_code == "tool_change")
                 custom_code = "M600"; 
             gcode += custom_code + "\n";
         }
