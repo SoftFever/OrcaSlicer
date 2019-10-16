@@ -35,10 +35,10 @@ TEST_CASE("Fill: Pattern Path Length", "[Fill]") {
 	//fill_params.endpoints_overlap = false;
 	fill_params.density = float(filler->spacing / 50.0);
 
-    auto test {[&filler, &fill_params] (const ExPolygon& poly) -> Slic3r::Polylines {
-        auto surface {Slic3r::Surface(stTop, poly)};
+    auto test = [&filler, &fill_params] (const ExPolygon& poly) -> Slic3r::Polylines {
+        Slic3r::Surface surface(stTop, poly);
         return filler->fill_surface(&surface, fill_params);
-    }};
+    };
 
     SECTION("Square") {
         Slic3r::Points test_set;
@@ -125,8 +125,8 @@ TEST_CASE("Fill: Pattern Path Length", "[Fill]") {
 		filler->bounding_box = get_extents(expolygon.contour);
         filler->angle = 0;
         
-        auto surface {Surface(stTop, expolygon)};
-        auto flow {Slic3r::Flow(0.69, 0.4, 0.50)};
+        Surface surface(stTop, expolygon);
+        auto flow = Slic3r::Flow(0.69, 0.4, 0.50);
 
 		FillParams fill_params;
 		fill_params.density = 1.0;
@@ -134,7 +134,7 @@ TEST_CASE("Fill: Pattern Path Length", "[Fill]") {
 
         for (auto angle : { 0.0, 45.0}) {
             surface.expolygon.rotate(angle, Point(0,0));
-            auto paths {filler->fill_surface(&surface, fill_params)};
+            Polylines paths = filler->fill_surface(&surface, fill_params);
             REQUIRE(paths.size() == 1);
         }
     }
