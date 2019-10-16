@@ -6,6 +6,8 @@ add_executable(${_TEST_NAME}_tests
 	test_flow.cpp
 	test_gcodewriter.cpp
 	test_model.cpp
+	test_print.cpp
+	test_printobject.cpp
 	test_skirt_brim.cpp
 	test_trianglemesh.cpp
 	)
