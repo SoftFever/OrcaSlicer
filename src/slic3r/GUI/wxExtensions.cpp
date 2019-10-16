@@ -3056,8 +3056,8 @@ wxString DoubleSlider::get_tooltip(bool is_revert_icon_focused)
         tooltip = tick_code_it == m_ticks_.end()            ? _(L("Add color change")) :
                   tick_code_it->gcode == "M600"             ? _(L("Delete color change")) :
                   tick_code_it->gcode == "M25"              ? _(L("Delete pause")) :
-                  tick_code_it->gcode == "tool_change"      ? 
-                  from_u8((boost::format(_utf8(L("Delete extruder change to \"%1%\""))) % tick_code_it->extruder).str()) :
+                  tick_code_it->gcode == "tool_change"      ? ( m_state == msSingleExtruder ? _(L("Delete color change")) :
+                  from_u8((boost::format(_utf8(L("Delete extruder change to \"%1%\""))) % tick_code_it->extruder).str()) ) :
                   from_u8((boost::format(_utf8(L("Delete \"%1%\" code"))) % tick_code_it->gcode).str());
     }
 
@@ -3329,7 +3329,7 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
     if (m_show_context_menu) {
         wxMenu menu;
 
-        if (m_state == msMultiExtruderSimple)
+        if (m_state == msMultiExtruderWholePrint)
         {
             const wxString name = _(L("Change extruder"));
 
@@ -3349,9 +3349,8 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
                 menu.AppendSubMenu(change_extruder_menu, name, _(L("Use another extruder")));
             }
         }
-
-        if (m_state != msMultiExtruderSimple)
-        append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
+        else
+            append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
             [this](wxCommandEvent&) { add_code("M600"); }, "colorchange_add_off.png", &menu);
     
         append_menu_item(&menu, wxID_ANY, _(L("Add pause SD print")) + " (M25)", "",
@@ -3382,16 +3381,17 @@ void DoubleSlider::add_code(std::string code)
             wxString msg_header = from_u8((boost::format(_utf8(L("Custom Gcode on current layer (%1% mm)."))) % m_values[tick]).str());
 
             // get custom gcode
-            wxTextEntryDialog dlg(nullptr, msg_text, msg_header, wxEmptyString, 
+            wxTextEntryDialog dlg(nullptr, msg_text, msg_header, m_custom_gcode,
                                   wxTextEntryDialogStyle | wxTE_MULTILINE);
             if (dlg.ShowModal() != wxID_OK || dlg.GetValue().IsEmpty())
                 return;
 
-            code = dlg.GetValue().c_str();
+            m_custom_gcode = dlg.GetValue();
+            code = m_custom_gcode.c_str();
         }
 
         int extruder = 0;
-        if (m_state == msMultiExtruderSimple)
+        if (m_state == msMultiExtruderWholePrint)
             extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
 
         m_ticks_.insert(TICK_CODE(tick, code, extruder));

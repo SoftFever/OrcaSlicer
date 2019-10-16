@@ -809,7 +809,7 @@ public:
     static enum ManipulationState {
         msSingleExtruder,           // single extruder printer preset is selected
         msMultiExtruder,            // multiple extruder printer preset is selected
-        msMultiExtruderSimple       // multiple extruder printer preset is selected, but one-extruder print is detected 
+        msMultiExtruderWholePrint   // multiple extruder printer preset is selected, and "Whole print" is selected 
     };
     void SetManipulationState(ManipulationState state) {
         m_state = state;
@@ -903,6 +903,7 @@ private:
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
     ManipulationState m_state = msSingleExtruder;
+    wxString    m_custom_gcode = wxEmptyString;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;

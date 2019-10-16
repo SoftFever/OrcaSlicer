@@ -834,7 +834,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     for (PrintObject *print_object : m_objects)
         print_object_status.emplace(PrintObjectStatus(print_object));
 
-    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes = m_model.get_custom_tool_changes(m_default_object_config.layer_height);
+    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes = 
+        m_model.get_custom_tool_changes(m_default_object_config.layer_height, num_extruders);
 
     // 3) Synchronize ModelObjects & PrintObjects.
     for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {

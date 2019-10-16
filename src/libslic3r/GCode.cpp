@@ -1692,15 +1692,27 @@ void GCode::process_layer(
     }
 
     // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
-    if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
-    {
-        // add tag for analyzer
-        gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
-        // add tag for time estimator
-        gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-        //  #ys_FIXME_COLOR
-        // gcode += "M600\n";
-        gcode += custom_code + "\n";
+    //  #ys_FIXME_COLOR
+    // if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
+    // {
+    //     // add tag for analyzer
+    //     gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
+    //     // add tag for time estimator
+    //     gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+    //     
+    //     gcode += "M600\n";
+    // }
+    if (colorprint_change) {
+        if (print.config().nozzle_diameter.size() == 1)
+        {
+            // add tag for analyzer
+            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
+            // add tag for time estimator
+            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+            if (custom_code == "tool_change")
+                custom_code = "M600"; 
+            gcode += custom_code + "\n";
+        }
     }
 
 
