@@ -9,6 +9,7 @@
 #include <cmath>
 #include <list>
 #include <map>
+#include <numeric>
 #include <set>
 #include <utility>
 #include <stack>
@@ -16,6 +17,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/log/trivial.hpp>
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -333,6 +335,93 @@ double rad2deg_dir(double angle)
     angle = (angle < PI) ? (-angle + PI/2.0) : (angle + PI/2.0);
     if (angle < 0) angle += PI;
     return rad2deg(angle);
+}
+
+Point circle_taubin_newton(const Points::const_iterator& input_begin, const Points::const_iterator& input_end, size_t cycles)
+{
+    Vec2ds tmp;
+    tmp.reserve(std::distance(input_begin, input_end));
+    std::transform(input_begin, input_end, std::back_inserter(tmp), [] (const Point& in) { return unscale(in); } );
+    Vec2d center = circle_taubin_newton(tmp.cbegin(), tmp.end(), cycles);
+	return Point::new_scale(center.x(), center.y());
+}
+
+/// Adapted from work in "Circular and Linear Regression: Fitting circles and lines by least squares", pg 126
+/// Returns a point corresponding to the center of a circle for which all of the points from input_begin to input_end
+/// lie on.
+Vec2d circle_taubin_newton(const Vec2ds::const_iterator& input_begin, const Vec2ds::const_iterator& input_end, size_t cycles)
+{
+    // calculate the centroid of the data set
+    const Vec2d sum = std::accumulate(input_begin, input_end, Vec2d(0,0));
+    const size_t n = std::distance(input_begin, input_end);
+    const double n_flt = static_cast<double>(n);
+    const Vec2d centroid { sum / n_flt };
+
+    // Compute the normalized moments of the data set.
+    double Mxx = 0, Myy = 0, Mxy = 0, Mxz = 0, Myz = 0, Mzz = 0;
+    for (auto it = input_begin; it < input_end; ++it) {
+        // center/normalize the data.
+        double Xi {it->x() - centroid.x()};
+        double Yi {it->y() - centroid.y()};
+        double Zi {Xi*Xi + Yi*Yi};
+        Mxy += (Xi*Yi);
+        Mxx += (Xi*Xi);
+        Myy += (Yi*Yi);
+        Mxz += (Xi*Zi);
+        Myz += (Yi*Zi);
+        Mzz += (Zi*Zi);
+    }
+
+    // divide by number of points to get the moments
+    Mxx /= n_flt;
+    Myy /= n_flt;
+    Mxy /= n_flt;
+    Mxz /= n_flt;
+    Myz /= n_flt;
+    Mzz /= n_flt;
+
+    // Compute the coefficients of the characteristic polynomial for the circle
+    // eq 5.60
+    const double Mz {Mxx + Myy}; // xx + yy = z
+    const double Cov_xy {Mxx*Myy - Mxy*Mxy}; // this shows up a couple times so cache it here.
+    const double C3 {4.0*Mz};
+    const double C2 {-3.0*(Mz*Mz) - Mzz};
+    const double C1 {Mz*(Mzz - (Mz*Mz)) + 4.0*Mz*Cov_xy - (Mxz*Mxz) - (Myz*Myz)};
+    const double C0 {(Mxz*Mxz)*Myy + (Myz*Myz)*Mxx - 2.0*Mxz*Myz*Mxy - Cov_xy*(Mzz - (Mz*Mz))};
+
+    const double C22 = {C2 + C2};
+    const double C33 = {C3 + C3 + C3};
+
+    // solve the characteristic polynomial with Newton's method.
+    double xnew = 0.0;
+    double ynew = 1e20;
+
+    for (size_t i = 0; i < cycles; ++i) {
+        const double yold {ynew};
+        ynew = C0 + xnew * (C1 + xnew*(C2 + xnew * C3));
+        if (std::abs(ynew) > std::abs(yold)) {
+			BOOST_LOG_TRIVIAL(error) << "Geometry: Fit is going in the wrong direction.\n";
+            return Vec2d(std::nan(""), std::nan(""));
+        }
+        const double Dy {C1 + xnew*(C22 + xnew*C33)};
+
+        const double xold {xnew};
+        xnew = xold - (ynew / Dy);
+
+        if (std::abs((xnew-xold) / xnew) < 1e-12) i = cycles; // converged, we're done here
+
+        if (xnew < 0) {
+            // reset, we went negative
+            xnew = 0.0;
+        }
+    }
+    
+    // compute the determinant and the circle's parameters now that we've solved.
+    double DET = xnew*xnew - xnew*Mz + Cov_xy;
+
+    Vec2d center(Mxz * (Myy - xnew) - Myz * Mxy, Myz * (Mxx - xnew) - Mxz*Mxy);
+    center /= (DET * 2.);
+    return center + centroid;
 }
 
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)

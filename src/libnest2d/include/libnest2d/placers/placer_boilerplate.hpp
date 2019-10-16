@@ -1,7 +1,7 @@
 #ifndef PLACER_BOILERPLATE_HPP
 #define PLACER_BOILERPLATE_HPP
 
-#include <libnest2d/libnest2d.hpp>
+#include <libnest2d/nester.hpp>
 
 namespace libnest2d { namespace placers {
 

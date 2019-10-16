@@ -86,6 +86,8 @@ extern bool        remove_sticks(Polygons &polys);
 // Remove polygons with less than 3 edges.
 extern bool        remove_degenerate(Polygons &polys);
 extern bool        remove_small(Polygons &polys, double min_area);
+extern void 	   remove_collinear(Polygon &poly);
+extern void 	   remove_collinear(Polygons &polys);
 
 // Append a vector of polygons at the end of another vector of polygons.
 inline void        polygons_append(Polygons &dst, const Polygons &src) { dst.insert(dst.end(), src.begin(), src.end()); }

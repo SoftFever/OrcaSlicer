@@ -245,27 +245,13 @@ std::string Preset::remove_suffix_modified(const std::string &name)
         name;
 }
 
-void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extruders)
-{
-    const auto &defaults = FullPrintConfig::defaults();
-    for (const std::string &key : Preset::nozzle_options()) {
-        if (key == "default_filament_profile")
-            continue;
-        auto *opt = config.option(key, false);
-        assert(opt != nullptr);
-        assert(opt->is_vector());
-        if (opt != nullptr && opt->is_vector())
-            static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
-    }
-}
-
 // Update new extruder fields at the printer profile.
 void Preset::normalize(DynamicPrintConfig &config)
 {
     auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
     if (nozzle_diameter != nullptr)
         // Loaded the FFF Printer settings. Verify, that all extruder dependent values have enough values.
-        set_num_extruders(config, (unsigned int)nozzle_diameter->values.size());
+        config.set_num_extruders((unsigned int)nozzle_diameter->values.size());
     if (config.option("filament_diameter") != nullptr) {
         // This config contains single or multiple filament presets.
         // Ensure that the filament preset vector options contain the correct number of values.
@@ -469,15 +455,7 @@ const std::vector<std::string>& Preset::printer_options()
 // of the nozzle_diameter vector.
 const std::vector<std::string>& Preset::nozzle_options()
 {
-    // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
-    static std::vector<std::string> s_opts {
-        "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
-        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
-        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
-        "default_filament_profile"
-    };
-    return s_opts;
+	return print_config_def.extruder_option_keys();
 }
 
 const std::vector<std::string>& Preset::sla_print_options()
