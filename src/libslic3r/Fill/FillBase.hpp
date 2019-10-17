@@ -15,6 +15,7 @@
 
 namespace Slic3r {
 
+class ExPolygon;
 class Surface;
 
 struct FillParams

@@ -29,7 +29,7 @@ PrintConfigDef::PrintConfigDef()
     this->init_common_params();
     assign_printer_technology_to_unknown(this->options, ptAny);
     this->init_fff_params();
-    this->init_extruder_retract_keys();
+    this->init_extruder_option_keys();
     assign_printer_technology_to_unknown(this->options, ptFFF);
     this->init_sla_params();
     assign_printer_technology_to_unknown(this->options, ptSLA);
@@ -2270,8 +2270,17 @@ void PrintConfigDef::init_fff_params()
     }
 }
 
-void PrintConfigDef::init_extruder_retract_keys()
+void PrintConfigDef::init_extruder_option_keys()
 {
+    // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
+    m_extruder_option_keys = {
+        "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
+        "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
+        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
+        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
+        "default_filament_profile"
+    };
+
     m_extruder_retract_keys = {
         "deretract_speed",
         "retract_before_travel",
@@ -2889,9 +2898,13 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 
 const PrintConfigDef print_config_def;
 
-DynamicPrintConfig* DynamicPrintConfig::new_from_defaults()
+DynamicPrintConfig DynamicPrintConfig::full_print_config()
 {
-    return new_from_defaults_keys(FullPrintConfig::defaults().keys());
+	return DynamicPrintConfig((const PrintRegionConfig&)FullPrintConfig::defaults());
+}
+
+DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfig(rhs, rhs.keys_ref())
+{
 }
 
 DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector<std::string> &keys)
@@ -2935,6 +2948,20 @@ void DynamicPrintConfig::normalize()
             this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("fill_density", true)->value = 0;
         }
+    }
+}
+
+void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
+{
+    const auto &defaults = FullPrintConfig::defaults();
+    for (const std::string &key : print_config_def.extruder_option_keys()) {
+        if (key == "default_filament_profile")
+            continue;
+        auto *opt = this->option(key, false);
+        assert(opt != nullptr);
+        assert(opt->is_vector());
+        if (opt != nullptr && opt->is_vector())
+            static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
 }
 

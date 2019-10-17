@@ -18,14 +18,19 @@ class ExPolygon
 {
 public:
     ExPolygon() {}
-    ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
+	ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
     ExPolygon(ExPolygon &&other) : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
+	explicit ExPolygon(const Polygon &contour) : contour(contour) {}
+	explicit ExPolygon(Polygon &&contour) : contour(std::move(contour)) {}
+	explicit ExPolygon(const Points &contour) : contour(contour) {}
+	explicit ExPolygon(Points &&contour) : contour(std::move(contour)) {}
+	explicit ExPolygon(const Polygon &contour, const Polygon &hole) : contour(contour) { holes.emplace_back(hole); }
+	explicit ExPolygon(Polygon &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
+	explicit ExPolygon(const Points &contour, const Points &hole) : contour(contour) { holes.emplace_back(hole); }
+	explicit ExPolygon(Points &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
 
     ExPolygon& operator=(const ExPolygon &other) { contour = other.contour; holes = other.holes; return *this; }
     ExPolygon& operator=(ExPolygon &&other) { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
-
-    inline explicit ExPolygon(const Polygon &p): contour(p) {}
-    inline explicit ExPolygon(Polygon &&p): contour(std::move(p)) {}
 
     Polygon contour;
     Polygons holes;

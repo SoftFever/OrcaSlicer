@@ -16,7 +16,6 @@ add_subdirectory(semver)
 add_subdirectory(libigl)
 
 # Adding libnest2d project for bin packing...
-set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
 add_subdirectory(libnest2d)
 
 add_subdirectory(libslic3r)

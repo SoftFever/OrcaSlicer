@@ -291,14 +291,14 @@ if(SLIC3R_STATIC)
 endif()
 set(TBB_DEBUG 1)
 find_package(TBB REQUIRED)
-include_directories(${TBB_INCLUDE_DIRS})
-add_definitions(${TBB_DEFINITIONS})
-if(MSVC)
-    # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
-    add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
-endif()
+# include_directories(${TBB_INCLUDE_DIRS})
+# add_definitions(${TBB_DEFINITIONS})
+# if(MSVC)
+#     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
+#     add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
+# endif()
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
-add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
+# add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
@@ -374,6 +374,8 @@ add_custom_target(pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
+
+find_package(NLopt 1.4 REQUIRED)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)
