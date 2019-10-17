@@ -32,12 +32,12 @@ static int get_brim_tool(const std::string &gcode)
 TEST_CASE("Skirt height is honored") {
     DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     config.set_deserialize({
-    	{ "skirts",					"1" },
-    	{ "skirt_height", 			"5" },
-    	{ "perimeters", 			"0" },
-    	{ "support_material_speed", "99" },
+    	{ "skirts",					1 },
+    	{ "skirt_height", 			5 },
+    	{ "perimeters", 			0 },
+    	{ "support_material_speed", 99 },
 		// avoid altering speeds unexpectedly
-    	{ "cooling", 				"0" },
+    	{ "cooling", 				false },
     	{ "first_layer_speed", 		"100%" }
     });
 
@@ -65,22 +65,22 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 	    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
 		config.set_num_extruders(4);
 		config.set_deserialize({ 
-			{ "support_material_speed", 		"99" },
-			{ "first_layer_height", 			"0.3" },
-        	{ "gcode_comments", 				"1" },
+			{ "support_material_speed", 		99 },
+			{ "first_layer_height", 			0.3 },
+        	{ "gcode_comments", 				true },
         	// avoid altering speeds unexpectedly
-        	{ "cooling", 						"0" },
+        	{ "cooling", 						false },
         	{ "first_layer_speed", 				"100%" },
         	// remove noise from top/solid layers
-        	{ "top_solid_layers", 				"0" },
-        	{ "bottom_solid_layers", 			"1" }
+        	{ "top_solid_layers", 				0 },
+        	{ "bottom_solid_layers", 			1 }
         });
 
         WHEN("Brim width is set to 5") {
         	config.set_deserialize({
-				{ "perimeters", 		"0" },
-				{ "skirts", 			"0" },
-				{ "brim_width", 		"5" }
+				{ "perimeters", 		0 },
+				{ "skirts", 			0 },
+				{ "brim_width", 		5 }
 			});
 			THEN("Brim is generated") {
 		        std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
@@ -100,8 +100,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 
         WHEN("Skirt area is smaller than the brim") {
             config.set_deserialize({
-            	{ "skirts", 	"1" },
-            	{ "brim_width", "10"}
+            	{ "skirts", 	1 },
+            	{ "brim_width", 10}
             });
             THEN("Gcode generates") {
                 REQUIRE(! Slic3r::Test::slice({TestMesh::cube_20x20x20}, config).empty());
@@ -110,8 +110,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 
         WHEN("Skirt height is 0 and skirts > 0") {
             config.set_deserialize({
-            	{ "skirts", 	  "2" },
-            	{ "skirt_height", "0"}
+            	{ "skirts", 	  2 },
+            	{ "skirt_height", 0 }
             });
             THEN("Gcode generates") {
                 REQUIRE(! Slic3r::Test::slice({TestMesh::cube_20x20x20}, config).empty());
@@ -121,10 +121,10 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
         WHEN("Perimeter extruder = 2 and support extruders = 3") {
             THEN("Brim is printed with the extruder used for the perimeters of first object") {
 		        std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, {
-					{ "skirts", 					"0" },
-					{ "brim_width", 				"5" },
-					{ "perimeter_extruder", 		"2" },
-					{ "support_material_extruder", 	"3" }
+					{ "skirts", 					0 },
+					{ "brim_width", 				5 },
+					{ "perimeter_extruder", 		2 },
+					{ "support_material_extruder", 	3 }
 		        });
                 int tool = get_brim_tool(gcode);
                 REQUIRE(tool == config.opt_int("perimeter_extruder") - 1);
@@ -133,11 +133,11 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
         WHEN("Perimeter extruder = 2, support extruders = 3, raft is enabled") {
             THEN("brim is printed with same extruder as skirt") {
 		        std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, {
-		            { "skirts", 					"0" },
-		            { "brim_width", 				"5" },
-		            { "perimeter_extruder", 		"2" },
-		            { "support_material_extruder", 	"3" },
-		            { "raft_layers", 				"1" }
+		            { "skirts", 					0 },
+		            { "brim_width", 				5 },
+		            { "perimeter_extruder", 		2 },
+		            { "support_material_extruder", 	3 },
+		            { "raft_layers", 				1 }
 		        });
                 int tool = get_brim_tool(gcode);
                 REQUIRE(tool == config.opt_int("support_material_extruder") - 1);
@@ -145,9 +145,9 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
         }
         WHEN("brim width to 1 with layer_width of 0.5") {
         	config.set_deserialize({
-				{ "skirts", 						"0" },
-				{ "first_layer_extrusion_width", 	"0.5" },
-				{ "brim_width", 					"1" }
+				{ "skirts", 						0 },
+				{ "first_layer_extrusion_width", 	0.5 },
+				{ "brim_width", 					1 }
         	});			
             THEN("2 brim lines") {
 		        Slic3r::Print print;
@@ -159,11 +159,11 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 #if 0
         WHEN("brim ears on a square") {
 			config.set_deserialize({
-				{ "skirts",							"0" },
-				{ "first_layer_extrusion_width",	"0.5" },
-				{ "brim_width",						"1" },
-				{ "brim_ears",						"1" },
-				{ "brim_ears_max_angle",			"91" }
+				{ "skirts",							0 },
+				{ "first_layer_extrusion_width",	0.5 },
+				{ "brim_width",						1 },
+				{ "brim_ears",						1 },
+				{ "brim_ears_max_angle",			91 }
 			});
 	        Slic3r::Print print;
 	        Slic3r::Test::init_and_process_print({TestMesh::cube_20x20x20}, print, config);
@@ -174,11 +174,11 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 
         WHEN("brim ears on a square but with a too small max angle") {
 			config.set_deserialize({
-				{ "skirts",							"0" },
-				{ "first_layer_extrusion_width",	"0.5" },
-				{ "brim_width",						"1" },
-				{ "brim_ears",						"1" },
-				{ "brim_ears_max_angle",			"89" }
+				{ "skirts",							0 },
+				{ "first_layer_extrusion_width",	0.5 },
+				{ "brim_width",						1 },
+				{ "brim_ears",						1 },
+				{ "brim_ears_max_angle",			89 }
 				});
             THEN("no brim") {
 		        Slic3r::Print print;
@@ -190,15 +190,15 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
 
         WHEN("Object is plated with overhang support and a brim") {
         	config.set_deserialize({
-	            { "layer_height", 				"0.4" },
-	            { "first_layer_height", 		"0.4" },
-	            { "skirts", 					"1" },
-	            { "skirt_distance", 			"0" },
-	            { "support_material_speed", 	"99" },
-	            { "perimeter_extruder", 		"1" },
-	            { "support_material_extruder", 	"2" },
-	            { "infill_extruder", 			"3" },			// ensure that a tool command gets emitted.
-	            { "cooling", 					"0" },			// to prevent speeds to be altered
+	            { "layer_height", 				0.4 },
+	            { "first_layer_height", 		0.4 },
+	            { "skirts", 					1 },
+	            { "skirt_distance", 			0 },
+	            { "support_material_speed", 	99 },
+	            { "perimeter_extruder", 		1 },
+	            { "support_material_extruder", 	2 },
+	            { "infill_extruder", 			3 },			// ensure that a tool command gets emitted.
+	            { "cooling", 					false },		// to prevent speeds to be altered
 	            { "first_layer_speed", 			"100%" },		// to prevent speeds to be altered
         	});
 

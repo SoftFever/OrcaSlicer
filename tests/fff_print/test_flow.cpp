@@ -20,9 +20,9 @@ SCENARIO("Extrusion width specifics", "[!mayfail]") {
         // this is a sharedptr
         DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
 		config.set_deserialize({
-			{ "brim_width",			"2" },
-			{ "skirts",				"1" },
-			{ "perimeters",			"3" },
+			{ "brim_width",			2 },
+			{ "skirts",				1 },
+			{ "perimeters",			3 },
 			{ "fill_density",		"40%" },
 			{ "first_layer_height", "100%" }
 			});

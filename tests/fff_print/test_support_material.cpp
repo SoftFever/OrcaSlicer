@@ -11,8 +11,8 @@ TEST_CASE("SupportMaterial: Three raft layers created", "[SupportMaterial]")
 {
 	Slic3r::Print print;
 	Slic3r::Test::init_and_process_print({ TestMesh::cube_20x20x20 }, print, {
-		{ "support_material", "1" },
-		{ "raft_layers", "3" }
+		{ "support_material", 1 },
+		{ "raft_layers",      3 }
 		});
     REQUIRE(print.objects().front()->support_layers().size() == 3);
 }
@@ -72,9 +72,9 @@ SCENARIO("SupportMaterial: support_layers_z and contact_distance", "[SupportMate
         WHEN("First layer height = 0.4") {
 			Slic3r::Print print;
 			Slic3r::Test::init_and_process_print({ mesh }, print, {
-				{ "support_material",	"1" },
-				{ "layer_height",		"0.2" },
-				{ "first_layer_height", "0.4" },
+				{ "support_material",	1 },
+				{ "layer_height",		0.2 },
+				{ "first_layer_height", 0.4 },
 				});
 			bool a, b, c, d;
             check(print, a, b, c, d);
@@ -86,9 +86,9 @@ SCENARIO("SupportMaterial: support_layers_z and contact_distance", "[SupportMate
         WHEN("Layer height = 0.2 and, first layer height = 0.3") {
 			Slic3r::Print print;
 			Slic3r::Test::init_and_process_print({ mesh }, print, {
-				{ "support_material",	"1" },
-				{ "layer_height",		"0.2" },
-				{ "first_layer_height", "0.3" },
+				{ "support_material",	1 },
+				{ "layer_height",		0.2 },
+				{ "first_layer_height", 0.3 },
 				});
             bool a, b, c, d;
             check(print, a, b, c, d);
@@ -100,9 +100,9 @@ SCENARIO("SupportMaterial: support_layers_z and contact_distance", "[SupportMate
         WHEN("Layer height = nozzle_diameter[0]") {
 			Slic3r::Print print;
 			Slic3r::Test::init_and_process_print({ mesh }, print, {
-				{ "support_material",	"1" },
-				{ "layer_height",		"0.2" },
-				{ "first_layer_height", "0.3" },
+				{ "support_material",	1 },
+				{ "layer_height",		0.2 },
+				{ "first_layer_height", 0.3 },
 				});
             bool a, b, c, d;
             check(print, a, b, c, d);

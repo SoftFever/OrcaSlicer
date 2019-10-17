@@ -21,10 +21,10 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             Slic3r::Print print;
             Slic3r::Model model;
             Slic3r::Test::init_print({TestMesh::cube_20x20x20}, print, model, {
-                { "layer_height",					"0.2" },
-                { "first_layer_height",				"0.2" },
-                { "first_layer_extrusion_width",	"0" },
-                { "gcode_comments",					"1" },
+                { "layer_height",					0.2 },
+                { "first_layer_height",				0.2 },
+                { "first_layer_extrusion_width",	0 },
+                { "gcode_comments",					true },
                 { "start_gcode",					"" }
                 });
             std::string gcode = Slic3r::Test::gcode(print);
@@ -86,13 +86,13 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             Slic3r::Print print;
             Slic3r::Model model;
             Slic3r::Test::init_print({TestMesh::cube_20x20x20,TestMesh::cube_20x20x20}, print, model, {
-                { "first_layer_extrusion_width",    "0" },
-                { "first_layer_height",             "0.3" },
-                { "layer_height",                   "0.2" },
-                { "support_material",               "0" },
-                { "raft_layers",                    "0" },
-                { "complete_objects",               "1" },
-                { "gcode_comments",                 "1" },
+                { "first_layer_extrusion_width",    0 },
+                { "first_layer_height",             0.3 },
+                { "layer_height",                   0.2 },
+                { "support_material",               false },
+                { "raft_layers",                    0 },
+                { "complete_objects",               true },
+                { "gcode_comments",                 true },
                 { "between_objects_gcode",          "; between-object-gcode" }
                 });
             std::string gcode = Slic3r::Test::gcode(print);
@@ -154,10 +154,10 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
         }
         WHEN("the output is executed with support material") {
             std::string gcode = ::Test::slice({TestMesh::cube_20x20x20}, {
-                { "first_layer_extrusion_width",    "0" },
-                { "support_material",               "1" },
-                { "raft_layers",                    "3" },
-                { "gcode_comments",                 "1" }
+                { "first_layer_extrusion_width",    0 },
+                { "support_material",               true },
+                { "raft_layers",                    3 },
+                { "gcode_comments",                 true }
                 });
             THEN("Some text output is generated.") {
                 REQUIRE(gcode.size() > 0);
@@ -194,8 +194,8 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
         }
         WHEN("Cooling is enabled and the fan is disabled.") {
 			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
-				{ "cooling",                    "1" },
-                { "disable_fan_first_layers",   "5" }
+				{ "cooling",                    true },
+                { "disable_fan_first_layers",   5 }
                 });
             THEN("GCode to disable fan is emitted."){
                 REQUIRE(gcode.find("M107") != std::string::npos);
@@ -204,8 +204,8 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
         WHEN("end_gcode exists with layer_num and layer_z") {
 			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
 				{ "end_gcode",              "; Layer_num [layer_num]\n; Layer_z [layer_z]" },
-                { "layer_height",           "0.1" },
-                { "first_layer_height",     "0.1" }
+                { "layer_height",           0.1 },
+                { "first_layer_height",     0.1 }
                 });
             THEN("layer_num and layer_z are processed in the end gcode") {
                 REQUIRE(gcode.find("; Layer_num 199") != std::string::npos);
@@ -226,11 +226,11 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 config.set_num_extruders(4);
                 config.set_deserialize({ 
                     { "start_gcode",                    "; Extruder [current_extruder]" },
-                    { "infill_extruder",                "2" },
-                    { "solid_infill_extruder",          "2" },
-                    { "perimeter_extruder",             "2" },
-                    { "support_material_extruder",      "2" },
-                    { "support_material_interface_extruder", "2" }
+                    { "infill_extruder",                2 },
+                    { "solid_infill_extruder",          2 },
+                    { "perimeter_extruder",             2 },
+                    { "support_material_extruder",      2 },
+                    { "support_material_interface_extruder", 2 }
                 });
                 std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
                 THEN("current_extruder is processed in the start gcode and set for second extruder") {
@@ -241,11 +241,11 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 
         WHEN("layer_num represents the layer's index from z=0") {
 			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20, TestMesh::cube_20x20x20 }, {
-				{ "complete_objects",               "1" },
-                { "gcode_comments",                 "1" },
+				{ "complete_objects",               true },
+                { "gcode_comments",                 true },
                 { "layer_gcode",                    ";Layer:[layer_num] ([layer_z] mm)" },
-                { "layer_height",                   "1.0" },
-                { "first_layer_height",             "1.0" }
+                { "layer_height",                   1.0 },
+                { "first_layer_height",             1.0 }
                 });
 			// End of the 1st object.
 			size_t pos = gcode.find(";Layer:19 ");
