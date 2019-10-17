@@ -392,12 +392,13 @@ TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
     config.set("first_layer_height", 250);
     config.set("nozzle_diameter", 500);
 
+    Slic3r::Print print;
     Slic3r::Model model;
-    auto print = Slic3r::Test::init_print({mesh}, model, config);
+    Slic3r::Test::init_print({mesh}, print, model, config);
 
-    print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
+    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 
-    std::future<void> fut = std::async([&print] () { print->process(); });
+    std::future<void> fut = std::async([&print] () { print.process(); });
     std::chrono::milliseconds span {120000};
     bool timedout {false};
     if(fut.wait_for(span) == std::future_status::timeout) {
@@ -420,12 +421,13 @@ TEST_CASE("Profile test for issue #4486 - files take forever to slice") {
     config.set("nozzle_diameter", 500);
     config.set("fill_density", "5%");
 
+    Slic3r::Print print;
     Slic3r::Model model;
-    auto print = Slic3r::Test::init_print({mesh}, model, config);
+    Slic3r::Test::init_print({mesh}, print, model, config);
 
-    print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
+    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 
-    print->process();
+    print.process();
 
     REQUIRE(true);
 

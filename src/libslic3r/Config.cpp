@@ -438,6 +438,14 @@ bool ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const s
     return this->set_deserialize_raw(opt_key, value, append);
 }
 
+bool ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items)
+{
+	bool deserialized = true;
+	for (const SetDeserializeItem &item : items)
+		deserialized &= this->set_deserialize(item.opt_key, item.opt_value, item.append);
+	return deserialized;
+}
+
 bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &value, bool append)
 {
     t_config_option_key opt_key = opt_key_src;

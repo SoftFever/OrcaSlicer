@@ -17,16 +17,16 @@ std::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
 
 SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
     GIVEN("A default configuration and a print test object") {
-        Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-
         WHEN("the output is executed with no support material") {
-			config.set_deserialize("layer_height", "0.2");
-			config.set_deserialize("first_layer_height", "0.2");
-            config.set_deserialize("first_layer_extrusion_width", "0");
-            config.set_deserialize("gcode_comments", "1");
-            config.set_deserialize("start_gcode", "");
+            Slic3r::Print print;
             Slic3r::Model model;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
+            Slic3r::Test::init_print({TestMesh::cube_20x20x20}, print, model, {
+                { "layer_height",					"0.2" },
+                { "first_layer_height",				"0.2" },
+                { "first_layer_extrusion_width",	"0" },
+                { "gcode_comments",					"1" },
+                { "start_gcode",					"" }
+                });
             std::string gcode = Slic3r::Test::gcode(print);
             THEN("Some text output is generated.") {
                 REQUIRE(gcode.size() > 0);
@@ -75,7 +75,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             THEN("final Z height is 20mm") {
                 double final_z = 0.0;
                 GCodeReader reader;
-                reader.apply_config(print->config());
+                reader.apply_config(print.config());
                 reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max<double>(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
@@ -83,16 +83,18 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             }
         }
         WHEN("output is executed with complete objects and two differently-sized meshes") {
+            Slic3r::Print print;
             Slic3r::Model model;
-            config.set_deserialize("first_layer_extrusion_width", "0");
-            config.set_deserialize("first_layer_height", "0.3");
-			config.set_deserialize("layer_height", "0.2");
-			config.set_deserialize("support_material", "0");
-            config.set_deserialize("raft_layers", "0");
-            config.set_deserialize("complete_objects", "1");
-            config.set_deserialize("gcode_comments", "1");
-            config.set_deserialize("between_objects_gcode", "; between-object-gcode");
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20,TestMesh::cube_20x20x20}, model, config);
+            Slic3r::Test::init_print({TestMesh::cube_20x20x20,TestMesh::cube_20x20x20}, print, model, {
+                { "first_layer_extrusion_width",    "0" },
+                { "first_layer_height",             "0.3" },
+                { "layer_height",                   "0.2" },
+                { "support_material",               "0" },
+                { "raft_layers",                    "0" },
+                { "complete_objects",               "1" },
+                { "gcode_comments",                 "1" },
+                { "between_objects_gcode",          "; between-object-gcode" }
+                });
             std::string gcode = Slic3r::Test::gcode(print);
             THEN("Some text output is generated.") {
                 REQUIRE(gcode.size() > 0);
@@ -115,7 +117,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             THEN("final Z height is 20.1mm") {
                 double final_z = 0.0;
                 GCodeReader reader;
-                reader.apply_config(print->config());
+                reader.apply_config(print.config());
                 reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
@@ -125,7 +127,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 double final_z = 0.0;
                 bool reset = false;
                 GCodeReader reader;
-                reader.apply_config(print->config());
+                reader.apply_config(print.config());
                 reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     if (final_z > 0 && std::abs(self.z() - 0.3) < 0.01 ) { // saw higher Z before this, now it's lower
                         reset = true;
@@ -139,7 +141,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 double final_z = 0.0;
                 bool reset = false;
                 GCodeReader reader;
-                reader.apply_config(print->config());
+                reader.apply_config(print.config());
                 reader.parse_buffer(gcode, [&final_z, &reset] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     if (final_z > 0 && std::abs(self.z() - 0.3) < 0.01 ) { 
                         reset = (final_z > 20.0);
@@ -151,13 +153,12 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             }
         }
         WHEN("the output is executed with support material") {
-            Slic3r::Model model;
-            config.set_deserialize("first_layer_extrusion_width", "0");
-            config.set_deserialize("support_material", "1");
-            config.set_deserialize("raft_layers", "3");
-            config.set_deserialize("gcode_comments", "1");
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-            std::string gcode = Slic3r::Test::gcode(print);
+            std::string gcode = ::Test::slice({TestMesh::cube_20x20x20}, {
+                { "first_layer_extrusion_width",    "0" },
+                { "support_material",               "1" },
+                { "raft_layers",                    "3" },
+                { "gcode_comments",                 "1" }
+                });
             THEN("Some text output is generated.") {
                 REQUIRE(gcode.size() > 0);
             }
@@ -175,10 +176,9 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             }
         }
         WHEN("the output is executed with a separate first layer extrusion width") {
-            Slic3r::Model model;
-            config.set_deserialize("first_layer_extrusion_width", "0.5");
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-            std::string gcode = Slic3r::Test::gcode(print);
+			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
+                { "first_layer_extrusion_width", "0.5" }
+                });
             THEN("Some text output is generated.") {
                 REQUIRE(gcode.size() > 0);
             }
@@ -193,48 +193,46 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
             }
         }
         WHEN("Cooling is enabled and the fan is disabled.") {
-            config.set_deserialize("cooling", "1");
-            config.set_deserialize("disable_fan_first_layers", "5");
-            Slic3r::Model model;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-            std::string gcode = Slic3r::Test::gcode(print);
+			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
+				{ "cooling",                    "1" },
+                { "disable_fan_first_layers",   "5" }
+                });
             THEN("GCode to disable fan is emitted."){
                 REQUIRE(gcode.find("M107") != std::string::npos);
             }
         }
         WHEN("end_gcode exists with layer_num and layer_z") {
-            config.set_deserialize("end_gcode", "; Layer_num [layer_num]\n; Layer_z [layer_z]");
-            config.set_deserialize("layer_height", "0.1");
-            config.set_deserialize("first_layer_height", "0.1");
-
-            Slic3r::Model model;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-            std::string gcode = Slic3r::Test::gcode(print);
+			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
+				{ "end_gcode",              "; Layer_num [layer_num]\n; Layer_z [layer_z]" },
+                { "layer_height",           "0.1" },
+                { "first_layer_height",     "0.1" }
+                });
             THEN("layer_num and layer_z are processed in the end gcode") {
                 REQUIRE(gcode.find("; Layer_num 199") != std::string::npos);
                 REQUIRE(gcode.find("; Layer_z 20") != std::string::npos);
             }
         }
         WHEN("current_extruder exists in start_gcode") {
-            config.set_deserialize("start_gcode", "; Extruder [current_extruder]");
             {
-                Slic3r::Model model;
-                std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-                std::string gcode = Slic3r::Test::gcode(print);
+				std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20 }, {
+					{ "start_gcode", "; Extruder [current_extruder]" }
+                });
                 THEN("current_extruder is processed in the start gcode and set for first extruder") {
                     REQUIRE(gcode.find("; Extruder 0") != std::string::npos);
                 }
             }
-			config.set_num_extruders(4);
-			config.set_deserialize("infill_extruder", "2");
-			config.set_deserialize("solid_infill_extruder", "2");
-			config.set_deserialize("perimeter_extruder", "2");
-			config.set_deserialize("support_material_extruder", "2");
-			config.set_deserialize("support_material_interface_extruder", "2");
 			{
-                Slic3r::Model model;
-                std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
-                std::string gcode = Slic3r::Test::gcode(print);
+                DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+                config.set_num_extruders(4);
+                config.set_deserialize({ 
+                    { "start_gcode",                    "; Extruder [current_extruder]" },
+                    { "infill_extruder",                "2" },
+                    { "solid_infill_extruder",          "2" },
+                    { "perimeter_extruder",             "2" },
+                    { "support_material_extruder",      "2" },
+                    { "support_material_interface_extruder", "2" }
+                });
+                std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
                 THEN("current_extruder is processed in the start gcode and set for second extruder") {
                     REQUIRE(gcode.find("; Extruder 1") != std::string::npos);
                 }
@@ -242,15 +240,13 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
         }
 
         WHEN("layer_num represents the layer's index from z=0") {
-			config.set_deserialize("complete_objects", "1");
-			config.set_deserialize("gcode_comments", "1");
-			config.set_deserialize("layer_gcode", ";Layer:[layer_num] ([layer_z] mm)");
-            config.set_deserialize("layer_height", "1.0");
-            config.set_deserialize("first_layer_height", "1.0");
-
-            Slic3r::Model model;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20,TestMesh::cube_20x20x20}, model, config);
-            std::string gcode = Slic3r::Test::gcode(print);
+			std::string gcode = ::Test::slice({ TestMesh::cube_20x20x20, TestMesh::cube_20x20x20 }, {
+				{ "complete_objects",               "1" },
+                { "gcode_comments",                 "1" },
+                { "layer_gcode",                    ";Layer:[layer_num] ([layer_z] mm)" },
+                { "layer_height",                   "1.0" },
+                { "first_layer_height",             "1.0" }
+                });
 			// End of the 1st object.
 			size_t pos = gcode.find(";Layer:19 ");
 			THEN("First and second object last layer is emitted") {

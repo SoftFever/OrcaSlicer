@@ -1554,6 +1554,8 @@ public:
     // Set a configuration value from a string, it will call an overridable handle_legacy() 
     // to resolve renamed and removed configuration keys.
     bool set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false);
+    struct SetDeserializeItem { std::string opt_key; std::string opt_value; bool append = false; };
+    bool set_deserialize(std::initializer_list<SetDeserializeItem> items);
 
     double get_abs_value(const t_config_option_key &opt_key) const;
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;

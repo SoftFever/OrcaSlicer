@@ -19,9 +19,10 @@ SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
         WHEN("generate_object_layers() is called for 2mm layer heights and nozzle diameter of 3mm") {
             config.opt_float("nozzle_diameter", 0) = 3;
 			config.opt_float("layer_height") = 2.0;
-			std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({m}, model, config);
-			print->process();
-			const std::vector<Slic3r::Layer*> &layers = print->objects().front()->layers();
+            Slic3r::Print print;
+            Slic3r::Test::init_print({m}, print, model, config);
+			print.process();
+			const std::vector<Slic3r::Layer*> &layers = print.objects().front()->layers();
             THEN("The output vector has 10 entries") {
                 REQUIRE(layers.size() == 10);
             }
@@ -36,9 +37,10 @@ SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
         WHEN("generate_object_layers() is called for 10mm layer heights and nozzle diameter of 11mm") {
             config.opt_float("nozzle_diameter", 0) = 11;
 			config.opt_float("layer_height") = 10;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({m}, model, config);
-			print->process();
-			const std::vector<Slic3r::Layer*> &layers = print->objects().front()->layers();
+            Slic3r::Print print;
+            Slic3r::Test::init_print({m}, print, model, config);
+			print.process();
+			const std::vector<Slic3r::Layer*> &layers = print.objects().front()->layers();
 			THEN("The output vector has 3 entries") {
                 REQUIRE(layers.size() == 3);
             }
@@ -52,9 +54,10 @@ SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
         WHEN("generate_object_layers() is called for 15mm layer heights and nozzle diameter of 16mm") {
             config.opt_float("nozzle_diameter", 0) = 16;
             config.opt_float("layer_height") = 15.0;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({m}, model, config);
-			print->process();
-			const std::vector<Slic3r::Layer*> &layers = print->objects().front()->layers();
+            Slic3r::Print print;
+            Slic3r::Test::init_print({m}, print, model, config);
+			print.process();
+			const std::vector<Slic3r::Layer*> &layers = print.objects().front()->layers();
 			THEN("The output vector has 2 entries") {
                 REQUIRE(layers.size() == 2);
             }
@@ -69,9 +72,10 @@ SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
         WHEN("generate_object_layers() is called for 15mm layer heights and nozzle diameter of 5mm") {
             config.opt_float("nozzle_diameter", 0) = 5;
             config.opt_float("layer_height") = 15.0;
-            std::shared_ptr<Slic3r::Print> print = Slic3r::Test::init_print({m}, model, config);
-			print->process();
-			const std::vector<Slic3r::Layer*> &layers = print->objects().front()->layers();
+            Slic3r::Print print;
+            Slic3r::Test::init_print({m}, print, model, config);
+			print.process();
+			const std::vector<Slic3r::Layer*> &layers = print.objects().front()->layers();
 			THEN("The layer height is limited to 5mm.") {
                 CHECK(layers.size() == 5);
                 coordf_t last = 2.0;
