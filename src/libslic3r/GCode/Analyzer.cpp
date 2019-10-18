@@ -141,6 +141,7 @@ void GCodeAnalyzer::reset()
     _set_start_extrusion(DEFAULT_START_EXTRUSION);
     _set_fan_speed(DEFAULT_FAN_SPEED);
     _reset_axes_position();
+    _reset_axes_origin();
     _reset_cached_position();
 
     m_moves_map.clear();
@@ -310,31 +311,32 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
     m_process_output += line.raw() + "\n";
 }
 
-// Returns the new absolute position on the given axis in dependence of the given parameters
-float axis_absolute_position_from_G1_line(GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeAnalyzer::EUnits units, bool is_relative, float current_absolute_position)
-{
-    float lengthsScaleFactor = (units == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
-    if (lineG1.has(Slic3r::Axis(axis)))
-    {
-        float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-        return is_relative ? current_absolute_position + ret : ret;
-    }
-    else
-        return current_absolute_position;
-}
-
 void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
 {
+    auto axis_absolute_position = [this](GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1) -> float
+    {
+        float current_absolute_position = _get_axis_position(axis);
+        float current_origin = _get_axis_origin(axis);
+        float lengthsScaleFactor = (_get_units() == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
+
+        bool is_relative = (_get_global_positioning_type() == Relative);
+        if (axis == E)
+            is_relative |= (_get_e_local_positioning_type() == Relative);
+
+        if (lineG1.has(Slic3r::Axis(axis)))
+        {
+            float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
+            return is_relative ? current_absolute_position + ret : ret + current_origin;
+        }
+        else
+            return current_absolute_position;
+    };
+
     // updates axes positions from line
-    EUnits units = _get_units();
     float new_pos[Num_Axis];
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
-        bool is_relative = (_get_global_positioning_type() == Relative);
-        if (a == E)
-            is_relative |= (_get_e_local_positioning_type() == Relative);
-
-        new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, _get_axis_position((EAxis)a));
+        new_pos[a] = axis_absolute_position((EAxis)a, line);
     }
 
     // updates feedrate from line, if present
@@ -424,25 +426,25 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
 
     if (line.has_x())
     {
-        _set_axis_position(X, line.x() * lengthsScaleFactor);
+        _set_axis_origin(X, _get_axis_position(X) - line.x() * lengthsScaleFactor);
         anyFound = true;
     }
 
     if (line.has_y())
     {
-        _set_axis_position(Y, line.y() * lengthsScaleFactor);
+        _set_axis_origin(Y, _get_axis_position(Y) - line.y() * lengthsScaleFactor);
         anyFound = true;
     }
 
     if (line.has_z())
     {
-        _set_axis_position(Z, line.z() * lengthsScaleFactor);
+        _set_axis_origin(Z, _get_axis_position(Z) - line.z() * lengthsScaleFactor);
         anyFound = true;
     }
 
     if (line.has_e())
     {
-        _set_axis_position(E, line.e() * lengthsScaleFactor);
+        _set_axis_origin(E, _get_axis_position(E) - line.e() * lengthsScaleFactor);
         anyFound = true;
     }
 
@@ -450,7 +452,7 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
     {
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-            _set_axis_position((EAxis)a, 0.0f);
+            _set_axis_origin((EAxis)a, _get_axis_position((EAxis)a));
         }
     }
 }
@@ -781,9 +783,24 @@ float GCodeAnalyzer::_get_axis_position(EAxis axis) const
     return m_state.position[axis];
 }
 
+void GCodeAnalyzer::_set_axis_origin(EAxis axis, float position)
+{
+    m_state.origin[axis] = position;
+}
+
+float GCodeAnalyzer::_get_axis_origin(EAxis axis) const
+{
+    return m_state.origin[axis];
+}
+
 void GCodeAnalyzer::_reset_axes_position()
 {
     ::memset((void*)m_state.position, 0, Num_Axis * sizeof(float));
+}
+
+void GCodeAnalyzer::_reset_axes_origin()
+{
+    ::memset((void*)m_state.origin, 0, Num_Axis * sizeof(float));
 }
 
 void GCodeAnalyzer::_set_start_position(const Vec3d& position)

@@ -101,6 +101,7 @@ private:
         float cached_position[5];
         float start_extrusion;
         float position[Num_Axis];
+        float origin[Num_Axis];
         unsigned int cur_cp_color_id = 0;
     };
 
@@ -246,8 +247,13 @@ private:
     void _set_axis_position(EAxis axis, float position);
     float _get_axis_position(EAxis axis) const;
 
+    void _set_axis_origin(EAxis axis, float position);
+    float _get_axis_origin(EAxis axis) const;
+
     // Sets axes position to zero
     void _reset_axes_position();
+    // Sets origin position to zero
+    void _reset_axes_origin();
 
     void _set_start_position(const Vec3d& position);
     const Vec3d& _get_start_position() const;
