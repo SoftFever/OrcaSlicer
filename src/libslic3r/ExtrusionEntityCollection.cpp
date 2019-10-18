@@ -126,18 +126,26 @@ size_t ExtrusionEntityCollection::items_count() const
 }
 
 // Returns a single vector of pointers to all non-collection items contained in this one.
-ExtrusionEntityCollection ExtrusionEntityCollection::flatten() const
+ExtrusionEntityCollection ExtrusionEntityCollection::flatten(bool preserve_ordering) const
 {
 	struct Flatten {
+		Flatten(bool preserve_ordering) : preserve_ordering(preserve_ordering) {}
 		ExtrusionEntityCollection out;
+		bool   					  preserve_ordering;
 		void recursive_do(const ExtrusionEntityCollection &collection) {
-			for (const ExtrusionEntity* entity : collection.entities)
-				if (entity->is_collection())
-					this->recursive_do(*static_cast<const ExtrusionEntityCollection*>(entity));
-				else
-					out.append(*entity);
+		    if (collection.no_sort && preserve_ordering) {
+		    	// Don't flatten whatever happens below this level.
+		    	out.append(collection);
+		    } else {
+				for (const ExtrusionEntity *entity : collection.entities)
+					if (entity->is_collection())
+						this->recursive_do(*static_cast<const ExtrusionEntityCollection*>(entity));
+					else
+						out.append(*entity);
+			}
 		}
-	} flatten;
+	} flatten(preserve_ordering);
+
 	flatten.recursive_do(*this);
     return flatten.out;
 }

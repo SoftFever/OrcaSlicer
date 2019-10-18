@@ -214,6 +214,8 @@ private:
 // This definition is constant.
 extern const PrintConfigDef print_config_def;
 
+class StaticPrintConfig;
+
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
 // The dynamic configuration is also used to store user modifications of the print global parameters,
@@ -224,9 +226,11 @@ class DynamicPrintConfig : public DynamicConfig
 {
 public:
     DynamicPrintConfig() {}
-    DynamicPrintConfig(const DynamicPrintConfig &other) : DynamicConfig(other) {}
+    DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfig(rhs) {}
+    explicit DynamicPrintConfig(const StaticPrintConfig &rhs);
+    explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfig(rhs) {}
 
-    static DynamicPrintConfig* new_from_defaults();
+    static DynamicPrintConfig  full_print_config();
     static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
@@ -262,6 +266,8 @@ public:
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
+    // Reference to the cached list of keys.
+	virtual const t_config_option_keys& keys_ref() const = 0;
 
 protected:
     // Verify whether the opt_key has not been obsoleted or renamed.
@@ -350,6 +356,7 @@ public: \
         { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
     /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
     t_config_option_keys     keys() const override { return s_cache_##CLASS_NAME.keys(); } \
+    const t_config_option_keys& keys_ref() const override { return s_cache_##CLASS_NAME.keys(); } \
     static const CLASS_NAME& defaults() { initialize_cache(); return s_cache_##CLASS_NAME.defaults(); } \
 private: \
     static void initialize_cache() \

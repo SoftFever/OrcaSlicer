@@ -15,17 +15,17 @@ public:
 
     ExtrusionEntitiesPtr entities;     // we own these entities
     bool no_sort;
-    ExtrusionEntityCollection(): no_sort(false) {};
+    ExtrusionEntityCollection(): no_sort(false) {}
     ExtrusionEntityCollection(const ExtrusionEntityCollection &other) : no_sort(other.no_sort) { this->append(other.entities); }
     ExtrusionEntityCollection(ExtrusionEntityCollection &&other) : entities(std::move(other.entities)), no_sort(other.no_sort) {}
     explicit ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator=(const ExtrusionEntityCollection &other);
-    ExtrusionEntityCollection& operator=(ExtrusionEntityCollection &&other) 
+    ExtrusionEntityCollection& operator=(ExtrusionEntityCollection &&other)
         { this->entities = std::move(other.entities); this->no_sort = other.no_sort; return *this; }
     ~ExtrusionEntityCollection() { clear(); }
     explicit operator ExtrusionPaths() const;
     
-    bool is_collection() const { return true; };
+    bool is_collection() const { return true; }
     ExtrusionRole role() const override {
         ExtrusionRole out = erNone;
         for (const ExtrusionEntity *ee : entities) {
@@ -34,8 +34,8 @@ public:
         }
         return out;
     }
-    bool can_reverse() const { return !this->no_sort; };
-    bool empty() const { return this->entities.empty(); };
+    bool can_reverse() const { return !this->no_sort; }
+    bool empty() const { return this->entities.empty(); }
     void clear();
     void swap (ExtrusionEntityCollection &c);
     void append(const ExtrusionEntity &entity) { this->entities.emplace_back(entity.clone()); }
@@ -81,7 +81,10 @@ public:
     Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     size_t items_count() const;
-    ExtrusionEntityCollection flatten() const;
+    /// Returns a flattened copy of this ExtrusionEntityCollection. That is, all of the items in its entities vector are not collections.
+    /// You should be iterating over flatten().entities if you are interested in the underlying ExtrusionEntities (and don't care about hierarchy).
+    /// \param preserve_ordering Flag to method that will flatten if and only if the underlying collection is sortable when True (default: False).
+    ExtrusionEntityCollection flatten(bool preserve_ordering = false) const;
     double min_mm3_per_mm() const;
     double total_volume() const override { double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 

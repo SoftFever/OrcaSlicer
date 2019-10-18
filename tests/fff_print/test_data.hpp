@@ -1,12 +1,12 @@
 #ifndef SLIC3R_TEST_DATA_HPP
 #define SLIC3R_TEST_DATA_HPP
 
-#include "libslic3r/Point.hpp"
-#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Config.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/Print.hpp"
-#include "libslic3r/Config.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 
 #include <unordered_map>
 
@@ -61,15 +61,24 @@ bool _equiv(const T& a, const T& b) { return std::abs(a - b) < EPSILON; }
 template <typename T>
 bool _equiv(const T& a, const T& b, double epsilon) { return abs(a - b) < epsilon; }
 
-//Slic3r::Model model(const std::string& model_name, TestMesh m, Vec3d translate = Vec3d(0,0,0), Vec3d scale = Vec3d(1.0,1.0,1.0));
-//Slic3r::Model model(const std::string& model_name, TestMesh m, Vec3d translate = Vec3d(0,0,0), double scale = 1.0);
-
 Slic3r::Model model(const std::string& model_name, TriangleMesh&& _mesh);
+void init_print(std::vector<TriangleMesh> 		  &&meshes, Slic3r::Print &print, Slic3r::Model& model, const DynamicPrintConfig &config_in, bool comments = false);
+void init_print(std::initializer_list<TestMesh> 	meshes, Slic3r::Print &print, Slic3r::Model& model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config(), bool comments = false);
+void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model& model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config(), bool comments = false);
+void init_print(std::initializer_list<TestMesh> 	meshes, Slic3r::Print &print, Slic3r::Model& model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
+void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model& model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
 
-std::shared_ptr<Print> init_print(std::initializer_list<TestMesh> meshes, Slic3r::Model& model, std::shared_ptr<Slic3r::DynamicPrintConfig> _config = std::shared_ptr<Slic3r::DynamicPrintConfig>(Slic3r::DynamicPrintConfig::new_from_defaults()), bool comments = false);
-std::shared_ptr<Print> init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Model& model, std::shared_ptr<Slic3r::DynamicPrintConfig> _config = std::shared_ptr<Slic3r::DynamicPrintConfig>(Slic3r::DynamicPrintConfig::new_from_defaults()), bool comments = false);
+void init_and_process_print(std::initializer_list<TestMesh> 	meshes, Slic3r::Print &print, const DynamicPrintConfig& config, bool comments = false);
+void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, const DynamicPrintConfig& config, bool comments = false);
+void init_and_process_print(std::initializer_list<TestMesh> 	meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
+void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
 
-std::string gcode(std::shared_ptr<Print> print);
+std::string gcode(Print& print);
+
+std::string slice(std::initializer_list<TestMesh> meshes, const DynamicPrintConfig &config, bool comments = false);
+std::string slice(std::initializer_list<TriangleMesh> meshes, const DynamicPrintConfig &config, bool comments = false);
+std::string slice(std::initializer_list<TestMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
+std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments = false);
 
 } } // namespace Slic3r::Test
 

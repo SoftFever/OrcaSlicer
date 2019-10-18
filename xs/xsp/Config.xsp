@@ -8,7 +8,8 @@
 %name{Slic3r::Config} class DynamicPrintConfig {
     DynamicPrintConfig();
     ~DynamicPrintConfig();
-    static DynamicPrintConfig* new_from_defaults();
+    static DynamicPrintConfig* new_from_defaults()
+        %code{% RETVAL = DynamicPrintConfig::new_from_defaults_keys(FullPrintConfig::defaults().keys()); %};
     static DynamicPrintConfig* new_from_defaults_keys(std::vector<std::string> keys);
     DynamicPrintConfig* clone() %code{% RETVAL = new DynamicPrintConfig(*THIS); %};
     DynamicPrintConfig* clone_only(std::vector<std::string> keys) 

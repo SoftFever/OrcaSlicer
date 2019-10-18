@@ -18,22 +18,25 @@ using namespace Slic3r;
 SCENARIO("Extrusion width specifics", "[!mayfail]") {
     GIVEN("A config with a skirt, brim, some fill density, 3 perimeters, and 1 bottom solid layer and a 20mm cube mesh") {
         // this is a sharedptr
-        std::shared_ptr<DynamicPrintConfig> config(Slic3r::DynamicPrintConfig::new_from_defaults());
-        config->opt_int("skirts") = 1;
-        config->opt_float("brim_width") = 2.;
-        config->opt_int("perimeters") = 3;
-        config->set_deserialize("fill_density", "40%");
-        config->set_deserialize("first_layer_height", "100%");
+        DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
+		config.set_deserialize({
+			{ "brim_width",			2 },
+			{ "skirts",				1 },
+			{ "perimeters",			3 },
+			{ "fill_density",		"40%" },
+			{ "first_layer_height", "100%" }
+			});
 
         WHEN("first layer width set to 2mm") {
             Slic3r::Model model;
-            config->set_deserialize("first_layer_extrusion_width", "2");
-            std::shared_ptr<Print> print = Slic3r::Test::init_print({TestMesh::cube_20x20x20}, model, config);
+            config.set("first_layer_extrusion_width", 2);
+            Slic3r::Print print;
+            Slic3r::Test::init_print({TestMesh::cube_20x20x20}, print, model, config);
 
             std::vector<double> E_per_mm_bottom;
             std::string gcode = Test::gcode(print);
             Slic3r::GCodeReader parser;
-            const double layer_height = config->opt_float("layer_height");
+            const double layer_height = config.opt_float("layer_height");
             parser.parse_buffer(gcode, [&E_per_mm_bottom, layer_height] (Slic3r::GCodeReader& self, const Slic3r::GCodeReader::GCodeLine& line)
             { 
                 if (self.z() == Approx(layer_height).margin(0.01)) { // only consider first layer

@@ -384,20 +384,21 @@ SCENARIO( "TriangleMeshSlicer: Cut behavior.") {
 #ifdef TEST_PERFORMANCE
 TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
     TriangleMesh mesh;
-    std::shared_ptr<Slic3r::DynamicPrintConfig> config = Slic3r::DynamicPrintConfig::new_from_defaults();
+    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/100_000.stl");
     mesh.repair();
 
-    config->set("layer_height", 500);
-    config->set("first_layer_height", 250);
-    config->set("nozzle_diameter", 500);
+    config.set("layer_height", 500);
+    config.set("first_layer_height", 250);
+    config.set("nozzle_diameter", 500);
 
+    Slic3r::Print print;
     Slic3r::Model model;
-    auto print = Slic3r::Test::init_print({mesh}, model, config);
+    Slic3r::Test::init_print({mesh}, print, model, config);
 
-    print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
+    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 
-    std::future<void> fut = std::async([&print] () { print->process(); });
+    std::future<void> fut = std::async([&print] () { print.process(); });
     std::chrono::milliseconds span {120000};
     bool timedout {false};
     if(fut.wait_for(span) == std::future_status::timeout) {
@@ -411,21 +412,22 @@ TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
 #ifdef BUILD_PROFILE
 TEST_CASE("Profile test for issue #4486 - files take forever to slice") {
     TriangleMesh mesh;
-    std::shared_ptr<Slic3r::DynamicPrintConfig> config = Slic3r::DynamicPrintConfig::new_from_defaults();
+    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/10_000.stl");
     mesh.repair();
 
-    config->set("layer_height", 500);
-    config->set("first_layer_height", 250);
-    config->set("nozzle_diameter", 500);
-    config->set("fill_density", "5%");
+    config.set("layer_height", 500);
+    config.set("first_layer_height", 250);
+    config.set("nozzle_diameter", 500);
+    config.set("fill_density", "5%");
 
+    Slic3r::Print print;
     Slic3r::Model model;
-    auto print = Slic3r::Test::init_print({mesh}, model, config);
+    Slic3r::Test::init_print({mesh}, print, model, config);
 
-    print->status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
+    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
 
-    print->process();
+    print.process();
 
     REQUIRE(true);
 
