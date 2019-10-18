@@ -4981,6 +4981,9 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
         return extruder_colors;
 
     extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    if (!wxGetApp().plater())
+        return extruder_colors;
+
     const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
     for (size_t i = 0; i < extruder_colors.size(); ++i)
         if (extruder_colors[i] == "" && i < filament_colours.size())

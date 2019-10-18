@@ -49,6 +49,8 @@ wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string,
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
 class wxDialog;
+class wxBitmapComboBox;
+
 void    edit_tooltip(wxString& tooltip);
 void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
 int     em_unit(wxWindow* win);
@@ -57,6 +59,11 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name,
     const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
 std::vector<wxBitmap*> get_extruder_color_icons();
+void apply_extruder_selector(wxBitmapComboBox** ctrl,
+                             wxWindow* parent,
+                             const std::string& first_item = "",
+                             wxPoint pos = wxDefaultPosition,
+                             wxSize size = wxDefaultSize);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
@@ -750,6 +757,11 @@ enum TicksAction{
 
 class DoubleSlider : public wxControl
 {
+    enum IconFocus {
+        ifNone,
+        ifRevert,
+        ifCog
+    };
 public:
     DoubleSlider(
         wxWindow *parent,
@@ -806,7 +818,7 @@ public:
         EnableTickManipulation(false);
     }
 
-    static enum ManipulationState {
+    enum ManipulationState {
         msSingleExtruder,           // single extruder printer preset is selected
         msMultiExtruder,            // multiple extruder printer preset is selected
         msMultiExtruderWholePrint   // multiple extruder printer preset is selected, and "Whole print" is selected 
@@ -850,6 +862,7 @@ protected:
     void    draw_colored_band(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
     void    draw_revert_icon(wxDC& dc);
+    void    draw_cog_icon(wxDC &dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
@@ -858,7 +871,7 @@ protected:
     void    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
-    wxString get_tooltip(bool is_revert_icon_focused);
+    wxString get_tooltip(IconFocus icon_focus);
     void    move_current_thumb(const bool condition);
     void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
@@ -893,6 +906,7 @@ private:
     ScalableBitmap    m_bmp_one_layer_unlock_on;
     ScalableBitmap    m_bmp_one_layer_unlock_off;
     ScalableBitmap    m_bmp_revert;
+    ScalableBitmap    m_bmp_cog;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
@@ -910,10 +924,12 @@ private:
     wxRect      m_rect_tick_action;
     wxRect      m_rect_one_layer_icon;
     wxRect      m_rect_revert_icon;
+    wxRect      m_rect_cog_icon;
     wxSize      m_thumb_size;
     int         m_tick_icon_dim;
     int         m_lock_icon_dim;
     int         m_revert_icon_dim;
+    int         m_cog_icon_dim;
     long        m_style;
     float       m_label_koef = 1.0;
 
@@ -945,6 +961,16 @@ private:
 
         bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
         bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
+        TICK_CODE operator=(const TICK_CODE& other) const {
+            TICK_CODE ret_val(other.tick, other.gcode, other.extruder);
+            return ret_val;
+        }
+        TICK_CODE& operator=(const TICK_CODE& other) {
+            this->tick = other.tick;
+            this->gcode = other.gcode;
+            this->extruder = other.extruder;
+            return *this;
+        }
 
         int         tick;
         std::string gcode;
@@ -952,6 +978,49 @@ private:
     };
 
     std::set<TICK_CODE> m_ticks_;
+
+public:
+    struct ExtrudersSequence
+    {
+        bool            is_mm_intervals;
+        double          interval_by_mm;
+        int             interval_by_layers;
+        std::vector<size_t>  extruders;
+
+        ExtrudersSequence() :
+            is_mm_intervals(true),
+            interval_by_mm(3.0),
+            interval_by_layers(10),
+            extruders({ 0 }) {}
+
+        ExtrudersSequence(const ExtrudersSequence& other) :
+            is_mm_intervals(other.is_mm_intervals),
+            interval_by_mm(other.interval_by_mm),
+            interval_by_layers(other.interval_by_layers),
+            extruders(other.extruders) {}
+
+        ExtrudersSequence& operator=(const ExtrudersSequence& other) {
+            this->is_mm_intervals   = other.is_mm_intervals;
+            this->interval_by_mm    = other.interval_by_mm;
+            this->interval_by_layers= other.interval_by_layers;
+            this->extruders         = other.extruders;
+
+            return *this;
+        }
+
+        void add_extruder(size_t pos)
+        {
+            extruders.insert(extruders.begin() + pos+1, size_t(0));
+        }
+
+        void delete_extruder(size_t pos)
+        {            
+            if (extruders.size() == 1)
+                return;// last item can't be deleted
+            extruders.erase(extruders.begin() + pos);
+        }
+    }
+    m_extruders_sequence;
 };
 
 

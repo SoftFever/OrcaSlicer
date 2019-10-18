@@ -602,16 +602,7 @@ void Preview::update_view_type(bool slice_completed)
 
 void Preview::update_extruder_selector()
 {
-    m_extruder_selector->Clear();
-
-    m_extruder_selector->Append("Whole print");
-    const int extruder_cnt = wxGetApp().extruders_edited_cnt();
-    int i = 0;
-    while (i < extruder_cnt)
-    {
-        i++;
-        m_extruder_selector->Append(wxString::Format("Extruder %d", i));
-    }
+    apply_extruder_selector(&m_extruder_selector, this, L("Whole print"));
 }
 
 void Preview::create_double_slider()
@@ -620,7 +611,6 @@ void Preview::create_double_slider()
     // #ys_FIXME_COLOR
     // m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
-    m_extruder_selector = new wxComboBox(this, wxID_ANY);
     update_extruder_selector();
     m_extruder_selector->SetSelection(0);
     m_extruder_selector->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
@@ -628,6 +618,7 @@ void Preview::create_double_slider()
         m_slider->SetManipulationState(m_extruder_selector->GetSelection() == 0 ? 
                                        DoubleSlider::msMultiExtruderWholePrint :
                                        DoubleSlider::msMultiExtruder);
+        evt.StopPropagation();
     });
     m_extruder_selector->Disable(); // temporary disabled to suppress extruder selection
 

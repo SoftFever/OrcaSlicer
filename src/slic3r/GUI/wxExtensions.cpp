@@ -22,6 +22,7 @@
 #include "I18N.hpp"
 #include "GUI_Utils.hpp"
 #include "PresetBundle.hpp"
+#include "ExtruderSequenceDialog.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
@@ -449,7 +450,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 
 
 Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
-/*static*/ std::vector<wxBitmap*> get_extruder_color_icons()
+std::vector<wxBitmap*> get_extruder_color_icons()
 {
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;
@@ -492,6 +493,42 @@ static wxBitmap get_extruder_color_icon(size_t extruder_idx)
 
     return *bmps[extruder_idx >= bmps.size() ? 0 : extruder_idx];
 }
+
+void apply_extruder_selector(wxBitmapComboBox** ctrl, 
+                             wxWindow* parent,
+                             const std::string& first_item/* = ""*/, 
+                             wxPoint pos/* = wxDefaultPosition*/,
+                             wxSize size/* = wxDefaultSize*/)
+{
+    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    if (icons.empty())
+        return;
+
+    if (!*ctrl)
+        *ctrl = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, pos, size,
+            0, nullptr, wxCB_READONLY);
+    else
+    {
+        (*ctrl)->SetPosition(pos);
+        (*ctrl)->SetMinSize(size);
+        (*ctrl)->SetSize(size);
+        (*ctrl)->Clear();
+    }
+
+    int i = 0;
+    for (wxBitmap* bmp : icons) {
+        if (i == 0) {
+            if (!first_item.empty())
+                (*ctrl)->Append(_(first_item), *bmp);
+            ++i;
+        }
+
+        (*ctrl)->Append(wxString::Format("%d", i), *bmp);
+        ++i;
+    }
+    (*ctrl)->SetSelection(0);
+}
+
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
@@ -2248,6 +2285,8 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
 
     m_bmp_revert               = ScalableBitmap(this, "undo");
     m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
+    m_bmp_cog                  = ScalableBitmap(this, "cog");
+    m_cog_icon_dim    = m_bmp_cog.bmp().GetSize().x;
 
     m_selection = ssUndef;
 
@@ -2306,6 +2345,8 @@ void DoubleSlider::msw_rescale()
 
     m_bmp_revert.msw_rescale();
     m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
+    m_bmp_cog.msw_rescale();
+    m_cog_icon_dim = m_bmp_cog.bmp().GetSize().x;
 
     SLIDER_MARGIN = 4 + Slic3r::GUI::wxGetApp().em_unit();
 
@@ -2610,6 +2651,9 @@ void DoubleSlider::render()
 
     //draw revert bitmap (if it's shown)
     draw_revert_icon(dc);
+
+    //draw cog bitmap (if it's shown)
+    draw_cog_icon(dc);
 }
 
 void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end)
@@ -2880,6 +2924,24 @@ void DoubleSlider::draw_revert_icon(wxDC& dc)
     m_rect_revert_icon = wxRect(x_draw, y_draw, m_revert_icon_dim, m_revert_icon_dim);
 }
 
+void DoubleSlider::draw_cog_icon(wxDC& dc)
+{
+    if (m_state != msMultiExtruderWholePrint)
+        return;
+
+    int width, height;
+    get_size(&width, &height);
+
+    wxCoord x_draw, y_draw;
+    is_horizontal() ? x_draw = width-2 : x_draw = width - m_cog_icon_dim - 2;
+    is_horizontal() ? y_draw = height - m_cog_icon_dim - 2 : y_draw = height-2;
+
+    dc.DrawBitmap(m_bmp_cog.bmp(), x_draw, y_draw);
+
+    //update rect of the lock/unlock icon
+    m_rect_cog_icon = wxRect(x_draw, y_draw, m_cog_icon_dim, m_cog_icon_dim);
+}
+
 void DoubleSlider::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
 {
     const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, m_thumb_size.y);
@@ -2990,6 +3052,46 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_ticks_.clear();
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
     }
+    else if (is_point_in_rect(pos, m_rect_cog_icon) && m_state == msMultiExtruderWholePrint) {
+        // show dialog for set extruder sequence
+        Slic3r::GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
+        if (dlg.ShowModal() != wxID_OK)
+            return;
+
+        m_extruders_sequence = dlg.GetValue();
+
+        m_ticks_.erase(std::remove_if(m_ticks_.begin(), m_ticks_.end(),
+            [](TICK_CODE tick) { return tick.gcode == "tool_change"; }), m_ticks_.end());
+
+        int tick = 0;
+        double value = 0.0;
+        int extruder = 0; 
+        const int extr_cnt = m_extruders_sequence.extruders.size();
+        
+        while (tick <= m_max_value)
+        {
+            m_ticks_.insert(TICK_CODE(tick, "tool_change", m_extruders_sequence.extruders[extruder]+1));
+
+            extruder++;
+            if (extruder == extr_cnt)
+                extruder = 0;
+            if (m_extruders_sequence.is_mm_intervals)
+            {
+                value += m_extruders_sequence.interval_by_mm;
+                auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+
+                if (it == m_values.end())
+                    break;
+
+                tick = it - m_values.begin();
+            }        
+            else
+                tick += m_extruders_sequence.interval_by_layers;        
+        }
+
+        // m_ticks_.clear();
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+    }
     else
         detect_selected_slider(pos);
 
@@ -3042,13 +3144,16 @@ void DoubleSlider::correct_higher_value()
         m_lower_value = m_higher_value;
 }
 
-wxString DoubleSlider::get_tooltip(bool is_revert_icon_focused)
+wxString DoubleSlider::get_tooltip(IconFocus icon_focus)
 {
     wxString tooltip(wxEmptyString);
     if (m_is_one_layer_icon_focesed)
         tooltip = _(L("One layer mode"));
-    if (is_revert_icon_focused)
+
+    if (icon_focus == ifRevert)
         tooltip = _(L("Discard all custom changes"));
+    if (icon_focus == ifCog)
+        tooltip = _(L("Set extruder sequence for whole print"));
     else if (m_is_action_icon_focesed)
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
@@ -3072,13 +3177,16 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     const wxPoint pos = event.GetLogicalPosition(dc);
 
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
-    bool is_revert_icon_focused = false;
+    IconFocus icon_focus = ifNone;
 
     if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
         // #ys_FIXME_COLOR
         // is_revert_icon_focused = !m_ticks.empty() && is_point_in_rect(pos, m_rect_revert_icon);
-        is_revert_icon_focused = !m_ticks_.empty() && is_point_in_rect(pos, m_rect_revert_icon);
+        if (!m_ticks_.empty() && is_point_in_rect(pos, m_rect_revert_icon))
+            icon_focus = ifRevert;
+        else if (is_point_in_rect(pos, m_rect_cog_icon))
+            icon_focus = ifCog;
     }
     else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
@@ -3103,7 +3211,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     // const wxString tooltip = m_is_one_layer_icon_focesed    ? _(L("One layer mode"))    :
     //                          m_is_action_icon_focesed       ? _(L("Add/Del color change")) :
     //                          is_revert_icon_focused         ? _(L("Discard all color changes")) : "";
-    this->SetToolTip(get_tooltip(is_revert_icon_focused));
+    this->SetToolTip(get_tooltip(icon_focus));
 
     if (action)
     {

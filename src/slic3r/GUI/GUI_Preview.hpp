@@ -13,6 +13,7 @@ class wxBoxSizer;
 class wxStaticText;
 class wxChoice;
 class wxComboCtrl;
+class wxBitmapComboBox;
 class wxCheckBox;
 class DoubleSlider;
 
@@ -102,8 +103,8 @@ class Preview : public wxPanel
     bool m_loaded;
     bool m_enabled;
 
-    DoubleSlider* m_slider {nullptr};
-    wxComboBox*   m_extruder_selector {nullptr};
+    DoubleSlider*       m_slider {nullptr};
+    wxBitmapComboBox*   m_extruder_selector {nullptr};
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 

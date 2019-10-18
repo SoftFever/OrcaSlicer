@@ -105,6 +105,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Camera.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
+    GUI/ExtruderSequenceDialog.cpp
+    GUI/ExtruderSequenceDialog.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
     GUI/RammingChart.cpp
