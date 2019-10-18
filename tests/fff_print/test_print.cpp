@@ -74,7 +74,7 @@ SCENARIO("Print: Changing number of solid surfaces does not cause all surfaces t
         test_is_solid_infill(0, 39); // should be solid
         test_is_solid_infill(0, 38); // should be solid
         WHEN("Model is re-sliced with top_solid_layers == 3") {
-			config.opt_int("top_solid_layers") = 3;
+			config.set("top_solid_layers", 3);
 			print.apply(model, config);
             print.process();
             THEN("Print object does not have 0 solid bottom layers.") {

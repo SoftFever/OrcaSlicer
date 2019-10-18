@@ -244,7 +244,7 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[!mayfail]") {
             }
         }
         WHEN("Large minimum skirt length is used.") {
-            config.opt_float("min_skirt_length") = 20;
+            config.set("min_skirt_length", 20);
             THEN("Gcode generation doesn't crash") {
                 REQUIRE(! Slic3r::Test::slice({TestMesh::cube_20x20x20}, config).empty());
             }

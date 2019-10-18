@@ -29,7 +29,7 @@ SCENARIO("Extrusion width specifics", "[!mayfail]") {
 
         WHEN("first layer width set to 2mm") {
             Slic3r::Model model;
-            config.set_deserialize("first_layer_extrusion_width", "2");
+            config.set("first_layer_extrusion_width", 2);
             Slic3r::Print print;
             Slic3r::Test::init_print({TestMesh::cube_20x20x20}, print, model, config);
 
