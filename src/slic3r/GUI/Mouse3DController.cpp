@@ -333,9 +333,13 @@ bool Mouse3DController::connect_device()
     }
 
     // Searches for 1st connected 3Dconnexion device
-    std::string path = "";
-    unsigned short vendor_id = 0;
-    unsigned short product_id = 0;
+    struct DeviceData
+    {
+        std::string path{ "" };
+        int interface_number{ 0 };
+        unsigned short usage_page{ 0 };
+        unsigned short usage{ 0 };
+    };
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     hid_device_info* cur = devices;
@@ -346,17 +350,32 @@ bool Mouse3DController::connect_device()
         std::cout << "::";
         std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
         std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
-        std::cout << " serial number: ";
+        std::cout << " serial number: '";
         std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
-        std::cout << " usage page: " << cur->usage_page << " usage: " << cur->usage << std::endl;
+        std::cout << "' usage page: " << cur->usage_page << " usage: " << cur->usage << " interface number: " << cur->interface_number << std::endl;
 
         cur = cur->next;
     }
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
+    // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
+    // To choose from them the right one we use:
+    // On Windows and Mac: usage_page == 1 and usage == 8
+    // On Linux: interface_number == 1, as usage_page and usage are not defined, see hidapi.h
+    // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
+
+    // First we count all the valid devices from the enumerated list,
+
     hid_device_info* current = devices;
+    typedef std::pair<unsigned short, unsigned short> DeviceIds;
+    typedef std::vector<DeviceData> DeviceDataList;
+    typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
+    DetectedDevices detected_devices;
     while (current != nullptr)
     {
+        unsigned short vendor_id = 0;
+        unsigned short product_id = 0;
+
         for (size_t i = 0; i < _3DCONNEXION_VENDORS.size(); ++i)
         {
             if (_3DCONNEXION_VENDORS[i] == current->vendor_id)
@@ -370,20 +389,18 @@ bool Mouse3DController::connect_device()
         {
             for (size_t i = 0; i < _3DCONNEXION_DEVICES.size(); ++i)
             {
-                if ((_3DCONNEXION_DEVICES[i] == current->product_id) && (current->usage_page == 1) && (current->usage == 8))
+                if (_3DCONNEXION_DEVICES[i] == current->product_id)
                 {
                     product_id = current->product_id;
-                    path = current->path;
-                    break;
+                    DeviceIds detected_device(vendor_id, product_id);
+                    DetectedDevices::iterator it = detected_devices.find(detected_device);
+                    if (it == detected_devices.end())
+                        it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
+
+                    it->second.push_back({ current->path, current->interface_number, current->usage_page, current->usage });
                 }
             }
-
-            if (product_id == 0)
-                vendor_id = 0;
         }
-
-        if (vendor_id != 0)
-            break;
 
         current = current->next;
     }
@@ -391,7 +408,44 @@ bool Mouse3DController::connect_device()
     // Free enumerated devices
     hid_free_enumeration(devices);
 
-    if (vendor_id == 0)
+    if (detected_devices.empty())
+        return false;
+
+    std::string path = "";
+    unsigned short vendor_id = 0;
+    unsigned short product_id = 0;
+
+    // Then we'll decide the choosing logic to apply in dependence of the device count and operating system
+
+    for (const DetectedDevices::value_type& device : detected_devices)
+    {
+        if (device.second.size() == 1)
+        {
+            path = device.second.front().path;
+            vendor_id = device.first.first;
+            product_id = device.first.second;
+            break;
+        }
+        else
+        {
+            for (const DeviceData& data : device.second)
+            {
+#if defined(__linux)
+                if (data.interface_number == 1)
+#else
+                if ((data.usage_page == 1) && (data.usage == 8))
+#endif // __linux
+                {
+                    path = data.path;
+                    vendor_id = device.first.first;
+                    product_id = device.first.second;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (path.empty())
         return false;
 
     // Open the 3Dconnexion device using the device path
