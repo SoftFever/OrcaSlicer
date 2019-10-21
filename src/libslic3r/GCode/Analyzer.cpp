@@ -285,6 +285,11 @@ void GCodeAnalyzer::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLi
                         _processM108orM135(line);
                         break;
                     }
+                case 132: // Recall stored home offsets
+                    {
+                        _processM132(line);
+                        break;
+                    }
                 case 401: // Repetier: Store x, y and z position
                     {
                         _processM401(line);
@@ -502,6 +507,25 @@ void GCodeAnalyzer::_processM108orM135(const GCodeReader::GCodeLine& line)
             _processT(cmd);
         }
     }
+}
+
+void GCodeAnalyzer::_processM132(const GCodeReader::GCodeLine& line)
+{
+    // This command is used by Makerbot to load the current home position from EEPROM
+    // see: https://github.com/makerbot/s3g/blob/master/doc/GCodeProtocol.md
+    // Using this command to reset the axis origin to zero helps in fixing: https://github.com/prusa3d/PrusaSlicer/issues/3082
+
+    if (line.has_x())
+        _set_axis_origin(X, 0.0f);
+
+    if (line.has_y())
+        _set_axis_origin(Y, 0.0f);
+
+    if (line.has_z())
+        _set_axis_origin(Z, 0.0f);
+
+    if (line.has_e())
+        _set_axis_origin(E, 0.0f);
 }
 
 void GCodeAnalyzer::_processM401(const GCodeReader::GCodeLine& line)
