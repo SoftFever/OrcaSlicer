@@ -425,7 +425,30 @@ std::string ConfigBase::opt_serialize(const t_config_option_key &opt_key) const
     return opt->serialize();
 }
 
-bool ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
+void ConfigBase::set(const std::string &opt_key, int value, bool create)
+{
+    ConfigOption *opt = this->option_throw(opt_key, create);
+    switch (opt->type()) {
+    	case coInt:    static_cast<ConfigOptionInt*>(opt)->value = value; break;
+    	case coFloat:  static_cast<ConfigOptionFloat*>(opt)->value = value; break;
+		case coFloatOrPercent:  static_cast<ConfigOptionFloatOrPercent*>(opt)->value = value; static_cast<ConfigOptionFloatOrPercent*>(opt)->percent = false; break;
+		case coString: static_cast<ConfigOptionString*>(opt)->value = std::to_string(value); break;
+    	default: throw BadOptionTypeException("Configbase::set() - conversion from int not possible");
+    }
+}
+
+void ConfigBase::set(const std::string &opt_key, double value, bool create)
+{
+    ConfigOption *opt = this->option_throw(opt_key, create);
+    switch (opt->type()) {
+    	case coFloat:  			static_cast<ConfigOptionFloat*>(opt)->value = value; break;
+    	case coFloatOrPercent:  static_cast<ConfigOptionFloatOrPercent*>(opt)->value = value; static_cast<ConfigOptionFloatOrPercent*>(opt)->percent = false; break;
+		case coString: 			static_cast<ConfigOptionString*>(opt)->value = std::to_string(value); break;
+    	default: throw BadOptionTypeException("Configbase::set() - conversion from float not possible");
+    }
+}
+
+bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
 {
     t_config_option_key opt_key = opt_key_src;
     std::string         value   = value_src;
@@ -436,6 +459,18 @@ bool ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const s
         // Ignore the option.
         return true;
     return this->set_deserialize_raw(opt_key, value, append);
+}
+
+void ConfigBase::set_deserialize(const t_config_option_key &opt_key_src, const std::string &value_src, bool append)
+{
+	if (! this->set_deserialize_nothrow(opt_key_src, value_src, append))
+		throw BadOptionTypeException("ConfigBase::set_deserialize() failed");
+}
+
+void ConfigBase::set_deserialize(std::initializer_list<SetDeserializeItem> items)
+{
+	for (const SetDeserializeItem &item : items)
+		this->set_deserialize(item.opt_key, item.opt_value, item.append);
 }
 
 bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, const std::string &value, bool append)
@@ -823,7 +858,7 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
             static_cast<ConfigOptionString*>(opt_base)->value = value;
         } else {
             // Any scalar value of a type different from Bool and String.
-            if (! this->set_deserialize(opt_key, value, false)) {
+            if (! this->set_deserialize_nothrow(opt_key, value, false)) {
 				boost::nowide::cerr << "Invalid value supplied for --" << token.c_str() << std::endl;
 				return false;
 			}

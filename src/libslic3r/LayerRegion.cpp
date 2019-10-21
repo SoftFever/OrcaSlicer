@@ -70,7 +70,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         fill_surfaces
     );
     
-    if (this->layer()->lower_layer != NULL)
+    if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->slices;
     
@@ -130,7 +130,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     bridges.emplace_back(surface);
             }
             if (surface.is_internal()) {
-            	assert(surface.surface_type == stInternal);
+            	assert(surface.surface_type == stInternal || surface.surface_type == stInternalSolid);
             	if (! has_infill && lower_layer != nullptr)
             		polygons_append(voids, surface.expolygon);
             	internal.emplace_back(std::move(surface));

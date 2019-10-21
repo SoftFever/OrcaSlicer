@@ -5,7 +5,7 @@
 
 using namespace Slic3r;
 
-SCENARIO("Reading 3mf file") {
+SCENARIO("Reading 3mf file", "[3mf]") {
     GIVEN("umlauts in the path of the file") {
         Slic3r::Model model;
         WHEN("3mf model is read") {

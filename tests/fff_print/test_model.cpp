@@ -40,7 +40,7 @@ SCENARIO("Model construction", "[Model]") {
 					REQUIRE((p2 - p1).norm() < EPSILON);
 				}
             }
-            Slic3r::ModelInstance *model_instance = model_object->add_instance();
+            model_object->add_instance();
 			model.arrange_objects(PrintConfig::min_object_distance(&config));
 			model.center_instances_around_point(Slic3r::Vec2d(100, 100));
 			model_object->ensure_on_bed();
