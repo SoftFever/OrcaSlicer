@@ -345,7 +345,8 @@ bool Mouse3DController::connect_device()
         std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
         std::cout << "::";
         std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
-        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")" << std::endl;
+        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
+        std::cout << " usage page: " << cur->usage_page << " usage: " << cur->usage << std::endl;
 
         cur = cur->next;
     }
@@ -411,6 +412,7 @@ bool Mouse3DController::connect_device()
         std::cout << "Manufacturer/product: " << m_device_str << std::endl;
         std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
         std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
+        std::cout << "Path................: '" << path << "'" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
         // get device parameters from the config, if present
@@ -428,6 +430,16 @@ bool Mouse3DController::connect_device()
         m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation_speed)));
         m_state.set_rotation_deadzone(std::max(0.0f, std::min(State::MaxRotationDeadzone, rotation_deadzone)));
     }
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    else
+    {
+        std::cout << std::endl << "Unable to connect to device:" << std::endl;
+        std::cout << "Manufacturer/product: " << m_device_str << std::endl;
+        std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
+        std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
+        std::cout << "Path................: '" << path << "'" << std::endl;
+    }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     return (m_device != nullptr);
 }
