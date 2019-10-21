@@ -6,14 +6,14 @@
 #include "test_data.hpp"
 
 #include <algorithm>
-#include <regex>
+#include <boost/regex.hpp>
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
 
-std::regex perimeters_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; perimeter");
-std::regex infill_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; infill");
-std::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
+boost::regex perimeters_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; perimeter");
+boost::regex infill_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; infill");
+boost::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
 
 SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
     GIVEN("A default configuration and a print test object") {
@@ -61,16 +61,16 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 REQUIRE(gcode.find("; fill_density") != std::string::npos);
             }
             THEN("Infill is emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, infill_regex));
+                boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, infill_regex));
             }
             THEN("Perimeters are emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, perimeters_regex));
+				boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, perimeters_regex));
             }
             THEN("Skirt is emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, skirt_regex));
+                boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, skirt_regex));
             }
             THEN("final Z height is 20mm") {
                 double final_z = 0.0;
@@ -100,16 +100,16 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 REQUIRE(gcode.size() > 0);
             }
             THEN("Infill is emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, infill_regex));
+                boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, infill_regex));
             }
             THEN("Perimeters are emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, perimeters_regex));
+                boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, perimeters_regex));
             }
             THEN("Skirt is emitted.") {
-                std::smatch has_match;
-                REQUIRE(std::regex_search(gcode, has_match, skirt_regex));
+                boost::smatch has_match;
+                REQUIRE(boost::regex_search(gcode, has_match, skirt_regex));
             }
             THEN("Between-object-gcode is emitted.") {
                 REQUIRE(gcode.find("; between-object-gcode") != std::string::npos);

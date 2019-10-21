@@ -5,6 +5,7 @@ add_executable(${_TEST_NAME}_tests
 	test_config.cpp
 	test_geometry.cpp
 	test_polygon.cpp
+	test_stl.cpp
 	)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
