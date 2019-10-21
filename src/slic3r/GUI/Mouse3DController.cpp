@@ -335,10 +335,17 @@ bool Mouse3DController::connect_device()
     // Searches for 1st connected 3Dconnexion device
     struct DeviceData
     {
-        std::string path{ "" };
-        int interface_number{ 0 };
-        unsigned short usage_page{ 0 };
-        unsigned short usage{ 0 };
+        std::string path;
+        int interface_number;
+        unsigned short usage_page;
+        unsigned short usage;
+
+        DeviceData()
+            : path(""), interface_number(0), usage_page(0), usage(0)
+        {}
+        DeviceData(const std::string& path, int interface_number, unsigned short usage_page, unsigned short usage)
+            : path(path), interface_number(interface_number), usage_page(usage_page), usage(usage)
+        {}
     };
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -397,7 +404,7 @@ bool Mouse3DController::connect_device()
                     if (it == detected_devices.end())
                         it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
 
-                    it->second.push_back({ current->path, current->interface_number, current->usage_page, current->usage });
+                    it->second.emplace_back(current->path, current->interface_number, current->usage_page, current->usage);
                 }
             }
         }
