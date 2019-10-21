@@ -346,6 +346,8 @@ bool Mouse3DController::connect_device()
         std::cout << "::";
         std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
         std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
+        std::cout << " serial number: ";
+        std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
         std::cout << " usage page: " << cur->usage_page << " usage: " << cur->usage << std::endl;
 
         cur = cur->next;
