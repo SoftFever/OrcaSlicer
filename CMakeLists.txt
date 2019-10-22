@@ -272,7 +272,6 @@ endif()
 
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
     string(TOUPPER ${from_Cfg} from_CFG)
-    string(TOLOWER ${from_Cfg} from_cfg)
 
     foreach(tgt ${targets})
         if(TARGET ${tgt})
