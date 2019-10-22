@@ -71,6 +71,8 @@ add_library(libslic3r STATIC
     Format/STL.hpp
     GCode/Analyzer.cpp
     GCode/Analyzer.hpp
+    GCode/ThumbnailData.cpp
+    GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
     GCode/PostProcessor.cpp

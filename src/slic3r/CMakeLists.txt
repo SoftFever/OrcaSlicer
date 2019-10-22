@@ -136,6 +136,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProgressStatusBar.cpp
     GUI/PrintHostDialogs.cpp
     GUI/PrintHostDialogs.hpp
+    GUI/ThumbnailGenerator.cpp
+    GUI/ThumbnailGenerator.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
