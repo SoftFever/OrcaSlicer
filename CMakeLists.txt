@@ -255,7 +255,8 @@ if(NOT WIN32)
     # boost::process was introduced first in version 1.64.0
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
-find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
+set(_boost_components "system;filesystem;thread;log;locale;regex")
+find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -269,22 +270,34 @@ if(NOT SLIC3R_STATIC)
     target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
 endif()
 
+function(slic3r_remap_configs targets from_Cfg to_Cfg)
+    string(TOUPPER ${from_Cfg} from_CFG)
+    string(TOLOWER ${from_Cfg} from_cfg)
+
+    message(STATUS "remapping targets: ${targets}")
+    foreach(tgt ${targets})
+        if(TARGET ${tgt})
+            set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
+            message(STATUS "remap ${tgt} from ${from_Cfg} to ${to_Cfg}")
+        endif()
+    endforeach()
+endfunction()
+
 if(TARGET Boost::system)
     message(STATUS "Boost::boost exists")
     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+    list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
     target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well
-        Boost::system
-        Boost::filesystem
-        Boost::thread
-        Boost::log
-        Boost::locale
-        Boost::regex
+        ${_boost_targets}
         )
+    slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
 else()
     target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
+
+
 
 # Find and configure intel-tbb
 if(SLIC3R_STATIC)
