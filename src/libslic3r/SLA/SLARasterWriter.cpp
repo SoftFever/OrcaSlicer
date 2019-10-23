@@ -28,47 +28,44 @@ RasterWriter::RasterWriter(const Raster::Resolution &res,
     : m_res(res), m_pxdim(pixdim), m_trafo(trafo), m_gamma(gamma)
 {}
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_THUMBNAIL_GENERATOR
-void RasterWriter::save(const std::string& fpath, const ThumbnailData* thumbnail_data, const std::string& prjname)
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void RasterWriter::save(const std::string &fpath, const std::string &prjname)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_THUMBNAIL_GENERATOR
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     try {
         Zipper zipper(fpath); // zipper with no compression
-        
-        std::string project = prjname.empty()?
-                    boost::filesystem::path(fpath).stem().string() : prjname;
-        
+        save(zipper, prjname);
+        zipper.finalize();
+    } catch(std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+        // Rethrow the exception
+        throw;
+    }
+}
+
+void RasterWriter::save(Zipper &zipper, const std::string &prjname)
+{
+    try {
+        std::string project =
+            prjname.empty() ?
+                boost::filesystem::path(zipper.get_filename()).stem().string() :
+                prjname;
+
         zipper.add_entry("config.ini");
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_THUMBNAIL_GENERATOR
-        // TODO add thumbnail_data as thumbnail.png file
-#endif // ENABLE_THUMBNAIL_GENERATOR
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
         zipper << createIniContent(project);
-        
+
         for(unsigned i = 0; i < m_layers_rst.size(); i++)
         {
             if(m_layers_rst[i].rawbytes.size() > 0) {
                 char lyrnum[6];
                 std::sprintf(lyrnum, "%.5d", i);
                 auto zfilename = project + lyrnum + ".png";
-                
+
                 // Add binary entry to the zipper
                 zipper.add_entry(zfilename,
                                  m_layers_rst[i].rawbytes.data(),
                                  m_layers_rst[i].rawbytes.size());
             }
         }
-        
-        zipper.finalize();
     } catch(std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << e.what();
         // Rethrow the exception

@@ -7,6 +7,7 @@
 #include "SLA/SLARasterWriter.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
+#include "Zipper.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 namespace Slic3r {
@@ -358,23 +359,17 @@ public:
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_THUMBNAIL_GENERATOR
-    inline void export_raster(const std::string& fpath, const ThumbnailData* thumbnail_data = nullptr,
-        const std::string& projectname = "")
-    {
-        if (m_printer) m_printer->save(fpath, thumbnail_data, projectname);
-    }
-#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     inline void export_raster(const std::string& fpath,
                               const std::string& projectname = "")
     {
         if(m_printer) m_printer->save(fpath, projectname);
     }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // ENABLE_THUMBNAIL_GENERATOR
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    inline void export_raster(Zipper &zipper,
+                              const std::string& projectname = "")
+    {
+        if(m_printer) m_printer->save(zipper, projectname);
+    }
 
     const PrintObjects& objects() const { return m_objects; }
 
