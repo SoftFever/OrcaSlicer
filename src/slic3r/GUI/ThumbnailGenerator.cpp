@@ -11,6 +11,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <GL/glew.h>
 
+#include <wx/image.h>
+
 namespace Slic3r {
 namespace GUI {
 

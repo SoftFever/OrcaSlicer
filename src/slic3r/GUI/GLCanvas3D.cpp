@@ -2108,12 +2108,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             manip->set_dirty();
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_THUMBNAIL_GENERATOR
-//    wxGetApp().plater()->generate_thumbnail(256, 256, true);
-//#endif // ENABLE_THUMBNAIL_GENERATOR
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     // and force this canvas to be redrawn.
     m_dirty = true;
 }
