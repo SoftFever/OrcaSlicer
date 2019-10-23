@@ -5,15 +5,15 @@
 
 #include "../libslic3r/GCode/ThumbnailData.hpp"
 
-#include <array>
-
 namespace Slic3r {
     class GLVolume;
-namespace GUI {
-    class GLCanvas3D;
+    typedef std::vector<GLVolume*> GLVolumePtrs;
+    namespace GUI {
 
     class ThumbnailGenerator
     {
+        typedef std::vector<const GLVolume*> GLVolumeConstPtrs;
+
         ThumbnailData m_data;
 
     public:
@@ -21,11 +21,14 @@ namespace GUI {
 
         void reset();
 
-        bool render_to_png_file(const GLCanvas3D& canvas, const std::string& filename, unsigned int w, unsigned int h, bool printable_only);
+        void generate(const GLVolumePtrs& volumes, unsigned int w, unsigned int h, bool printable_only);
+
+        const ThumbnailData& get_data() const { return m_data; }
+
+        bool save_to_png_file(const std::string& filename);
 
     private:
-        void render(const GLCanvas3D& canvas, bool printable_only);
-        void render_objects(const std::vector<const GLVolume*>& volumes) const;
+        void render_and_store(const GLVolumePtrs& volumes, bool printable_only);
     };
 
 } // namespace GUI

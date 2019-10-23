@@ -3,9 +3,12 @@
 
 #if ENABLE_THUMBNAIL_GENERATOR
 
-#include "GLCanvas3D.hpp"
+#include "Camera.hpp"
 #include "3DScene.hpp"
+#include "GUI.hpp"
 
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <GL/glew.h>
 
 namespace Slic3r {
@@ -16,10 +19,18 @@ void ThumbnailGenerator::reset()
     m_data.reset();
 }
 
-bool ThumbnailGenerator::render_to_png_file(const GLCanvas3D& canvas, const std::string& filename, unsigned int w, unsigned int h, bool printable_only)
+void ThumbnailGenerator::generate(const GLVolumePtrs& volumes, unsigned int w, unsigned int h, bool printable_only)
 {
+    std::cout << "Generated thumbnail " << w << "x" << h << std::endl;
+
     m_data.set(w, h);
-    render(canvas, printable_only);
+    render_and_store(volumes, printable_only);
+}
+
+bool ThumbnailGenerator::save_to_png_file(const std::string& filename)
+{
+    if (!m_data.is_valid())
+        return false;
 
     wxImage image(m_data.width, m_data.height);
     image.InitAlpha();
@@ -30,24 +41,26 @@ bool ThumbnailGenerator::render_to_png_file(const GLCanvas3D& canvas, const std:
         for (unsigned int c = 0; c < m_data.width; ++c)
         {
             unsigned char* px = m_data.pixels.data() + 4 * (rr + c);
-//            unsigned char* px = m_data.pixels.data() + 4 * (r * m_data.width + c);
             image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
             image.SetAlpha((int)c, (int)r, px[3]);
         }
     }
 
-    image.SaveFile(filename, wxBITMAP_TYPE_PNG);
+    std::string path = filename;
+    if (!boost::iends_with(path, ".png"))
+        path = boost::filesystem::path(path).replace_extension(".png").string();
 
-    return true;
+    return image.SaveFile(from_u8(path), wxBITMAP_TYPE_PNG);
 }
 
-void ThumbnailGenerator::render(const GLCanvas3D& canvas, bool printable_only)
+void ThumbnailGenerator::render_and_store(const GLVolumePtrs& volumes, bool printable_only)
 {
-    const GLVolumeCollection& volumes = canvas.get_volumes();
+    static const float orange[] = { 0.99f, 0.49f, 0.26f };
+    static const float gray[] = { 0.64f, 0.64f, 0.64f };
 
-    std::vector<const GLVolume*> visible_volumes;
+    GLVolumeConstPtrs visible_volumes;
 
-    for (const GLVolume* vol : volumes.volumes)
+    for (const GLVolume* vol : volumes)
     {
         if (!printable_only || vol->printable)
             visible_volumes.push_back(vol);
@@ -69,19 +82,10 @@ void ThumbnailGenerator::render(const GLCanvas3D& canvas, bool printable_only)
     camera.apply_projection(box);
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    render_objects(visible_volumes);
-    glsafe(::glReadPixels(0, 0, m_data.width, m_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)m_data.pixels.data()));
-}
-
-void ThumbnailGenerator::render_objects(const std::vector<const GLVolume*>& volumes) const
-{
-    static const float orange[] = { 0.99f, 0.49f, 0.26f };
-    static const float gray[]   = { 0.64f, 0.64f, 0.64f };
-
     glsafe(::glEnable(GL_LIGHTING));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    for (const GLVolume* vol : volumes)
+    for (const GLVolume* vol : visible_volumes)
     {
         glsafe(::glColor3fv(vol->printable ? orange : gray));
         vol->render();
@@ -89,6 +93,7 @@ void ThumbnailGenerator::render_objects(const std::vector<const GLVolume*>& volu
 
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_LIGHTING));
+    glsafe(::glReadPixels(0, 0, m_data.width, m_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)m_data.pixels.data()));
 }
 
 } // namespace GUI

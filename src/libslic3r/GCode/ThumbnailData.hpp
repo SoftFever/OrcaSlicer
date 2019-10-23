@@ -16,6 +16,8 @@ struct ThumbnailData
     ThumbnailData() { reset(); }
     void set(unsigned int w, unsigned int h);
     void reset();
+
+    bool is_valid() const;
 };
 
 } // namespace Slic3r
