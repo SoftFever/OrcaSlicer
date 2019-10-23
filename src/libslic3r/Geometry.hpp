@@ -11,8 +11,6 @@
 #include <cereal/access.hpp>
 
 #include "boost/polygon/voronoi.hpp"
-using boost::polygon::voronoi_builder;
-using boost::polygon::voronoi_diagram;
 
 namespace ClipperLib {
 class PolyNode;
@@ -192,7 +190,7 @@ class MedialAxis {
     void build(Polylines* polylines);
     
     private:
-    class VD : public voronoi_diagram<double> {
+    class VD : public boost::polygon::voronoi_diagram<double> {
     public:
         typedef double                                          coord_type;
         typedef boost::polygon::point_data<coordinate_type>     point_type;
