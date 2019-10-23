@@ -182,6 +182,9 @@ private:
     // Set tool (MakerWare and Sailfish flavor)
     void _processM108orM135(const GCodeReader::GCodeLine& line);
 
+    // Recall stored home offsets
+    void _processM132(const GCodeReader::GCodeLine& line);
+
     // Repetier: Store x, y and z position
     void _processM401(const GCodeReader::GCodeLine& line);
 

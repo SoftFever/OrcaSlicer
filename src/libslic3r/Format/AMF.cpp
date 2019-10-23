@@ -584,8 +584,16 @@ void AMFParserContext::endElement(const char * /* name */)
         stl_get_size(&stl);
         mesh.repair();
 		m_volume->set_mesh(std::move(mesh));
-        // pass false if the mesh offset has been already taken from the data 
-        m_volume->center_geometry_after_creation(m_volume->source.input_file.empty());
+        if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART))
+        {
+            m_volume->source.object_idx = (int)m_model.objects.size() - 1;
+            m_volume->source.volume_idx = (int)m_model.objects.back()->volumes.size() - 1;
+            m_volume->center_geometry_after_creation();
+        }
+        else
+            // pass false if the mesh offset has been already taken from the data 
+            m_volume->center_geometry_after_creation(m_volume->source.input_file.empty());
+
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -798,6 +806,15 @@ bool load_amf_file(const char *path, DynamicPrintConfig *config, Model *model)
 
     if (result)
         ctx.endDocument();
+
+    for (ModelObject* o : model->objects)
+    {
+        for (ModelVolume* v : o->volumes)
+        {
+            if (v->source.input_file.empty() && (v->type() == ModelVolumeType::MODEL_PART))
+                v->source.input_file = path;
+        }
+    }
 
     return result;
 }
