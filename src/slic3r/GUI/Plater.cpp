@@ -3396,9 +3396,9 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_THUMBNAIL_GENERATOR
-//        thumbnail_generator.generate(view3D->get_canvas3d()->get_volumes().volumes, 256, 256, true);
-//#endif // ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_THUMBNAIL_GENERATOR
+        thumbnail_generator.generate(view3D->get_canvas3d()->get_volumes().volumes, 256, 256, true);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
 }
