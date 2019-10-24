@@ -251,17 +251,15 @@ void GLGizmoFdmSupports::update_mesh()
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
 
-    m_selected_facets.clear();
-    m_selected_facets.resize(m_mesh->its.indices.size());
+    m_selected_facets.assign(m_mesh->its.indices.size(), false);
 
     // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
-    m_neighbors.clear();
     m_neighbors.resize(3 * m_mesh->its.indices.size());
     for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
         const stl_triangle_vertex_indices& ind  = m_mesh->its.indices[i];
-        m_neighbors.emplace_back(ind(0), i);
-        m_neighbors.emplace_back(ind(1), i);
-        m_neighbors.emplace_back(ind(2), i);
+        m_neighbors[3*i] = std::make_pair(ind(0), i);
+        m_neighbors[3*i+1] = std::make_pair(ind(1), i);
+        m_neighbors[3*i+2] = std::make_pair(ind(2), i);
     }
     std::sort(m_neighbors.begin(), m_neighbors.end());
 
@@ -353,21 +351,33 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return (diff - diff.dot(dir) * dir).squaredNorm();
             };
 
-            std::vector<size_t> next_facets{facet};
-            NeighborData helper_pair = std::make_pair(0, 0);
-            std::vector<bool> visited(m_selected_facets.size(), false);
-            size_t facet_idx = 0;
+            // A lambda to determine whether this facet is potentionally visible (still can be obscured)
+            auto faces_camera = [&dir, this](const size_t& facet) -> bool {
+                return (m_mesh->stl.facet_start[facet].normal.dot(dir) > 0.);
+            };
 
-            while (facet_idx < next_facets.size()) {
-                size_t facet = next_facets[facet_idx];
+            // Now start with the facet the pointer points to and check all adjacent facets. m_neighbors vector stores
+            // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
+            // quickly found by finding a vertex in the list and read the respective facet ids.
+            std::vector<size_t> facets_to_select{facet};
+            NeighborData vertex = std::make_pair(0, 0);
+            std::vector<bool> visited(m_selected_facets.size(), false); // keep track of facets we already processed
+            size_t facet_idx = 0; // index into facets_to_select
+            auto it = m_neighbors.end();
+
+            while (facet_idx < facets_to_select.size()) {
+                size_t facet = facets_to_select[facet_idx];
                 if (! visited[facet]) {
+                    // check all three vertices and in case they're close enough, find the remaining facets
+                    // and add them to the list to be proccessed later
                     for (size_t i=0; i<3; ++i) {
-                        helper_pair.first = m_mesh->its.indices[facet](i); // vertex index
-                        float dist = squared_distance_from_line(m_mesh->its.vertices[helper_pair.first]);
+                        vertex.first = m_mesh->its.indices[facet](i); // vertex index
+                        float dist = squared_distance_from_line(m_mesh->its.vertices[vertex.first]);
                         if (dist < limit) {
-                            auto it = std::lower_bound(m_neighbors.begin(), m_neighbors.end(), helper_pair);
-                            while (it != m_neighbors.end() && it->first == helper_pair.first) {
-                                next_facets.push_back(it->second);
+                            it = std::lower_bound(m_neighbors.begin(), m_neighbors.end(), vertex);
+                            while (it != m_neighbors.end() && it->first == vertex.first) {
+                                if (it->second != facet && faces_camera(it->second))
+                                    facets_to_select.push_back(it->second);
                                 ++it;
                             }
                         }
@@ -376,11 +386,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 }
                 ++facet_idx;
             }
-
-            for (size_t next_facet : next_facets)
+            // Now just select all facets that passed
+            for (size_t next_facet : facets_to_select)
                 m_selected_facets[next_facet] = select;
-
-
 
             m_wait_for_up_event = true;
             m_parent.set_as_dirty();
