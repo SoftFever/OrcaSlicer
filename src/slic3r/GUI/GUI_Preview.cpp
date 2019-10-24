@@ -490,11 +490,14 @@ void Preview::show_hide_ui_elements(const std::string& what)
     m_choice_view_type->Show(visible);
 }
 
-void Preview::reset_sliders()
+void Preview::reset_sliders(bool reset_all)
 {
     m_enabled = false;
 //    reset_double_slider();
-    m_double_slider_sizer->Hide((size_t)0);
+    if (reset_all)
+        m_double_slider_sizer->Hide((size_t)0);
+    else
+        m_double_slider_sizer->GetItem(size_t(0))->GetSizer()->Hide(1);
 }
 
 void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_range)
@@ -503,11 +506,11 @@ void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_ra
     // update extruder selector
     if (wxGetApp().extruders_edited_cnt() != m_extruder_selector->GetCount()-1)
     {
-        int selection = m_extruder_selector->GetSelection();
+        m_selected_extruder = m_extruder_selector->GetSelection();
         update_extruder_selector();
-        if (selection >= m_extruder_selector->GetCount())
-            selection = 0;
-        m_extruder_selector->SetSelection(selection);
+        if (m_selected_extruder >= m_extruder_selector->GetCount())
+            m_selected_extruder = 0;
+        m_extruder_selector->SetSelection(m_selected_extruder);
     }
 
     update_double_slider(layers_z, keep_z_range);
@@ -615,12 +618,23 @@ void Preview::create_double_slider()
     m_extruder_selector->SetSelection(0);
     m_extruder_selector->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
-        m_slider->SetManipulationState(m_extruder_selector->GetSelection() == 0 ? 
+        m_selected_extruder = m_extruder_selector->GetSelection();
+        m_slider->SetManipulationState(m_selected_extruder == 0 ? 
                                        DoubleSlider::msMultiExtruderWholePrint :
                                        DoubleSlider::msMultiExtruder);
+
+        int type = m_choice_view_type->FindString(_(L("Color Print")));
+
+        if (m_choice_view_type->GetSelection() != type) {
+            m_choice_view_type->SetSelection(type);
+            if (0 <= type && type < (int)GCodePreviewData::Extrusion::Num_View_Types)
+                m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+            m_preferred_color_mode = "feature";
+        }
+        reload_print();
+
         evt.StopPropagation();
     });
-    m_extruder_selector->Disable(); // temporary disabled to suppress extruder selection
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(m_extruder_selector, 0, wxEXPAND, 0);
@@ -834,7 +848,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     if (! has_layers)
     {
-        reset_sliders();
+        reset_sliders(true);
         m_canvas->reset_legend_texture();
         m_canvas_widget->Refresh();
         return;
@@ -896,6 +910,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     if (IsShown())
     {
+        m_canvas->set_selected_extruder(m_selected_extruder);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
@@ -913,7 +928,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
         if (zs.empty()) {
             // all layers filtered out
-            reset_sliders();
+            reset_sliders(m_selected_extruder==0);
             m_canvas_widget->Refresh();
         } else
             update_sliders(zs, keep_z_range);
@@ -944,7 +959,7 @@ void Preview::load_print_as_sla()
     n_layers = (unsigned int)zs.size();
     if (n_layers == 0)
     {
-        reset_sliders();
+        reset_sliders(true);
         m_canvas_widget->Refresh();
     }
 

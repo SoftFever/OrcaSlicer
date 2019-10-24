@@ -2094,20 +2094,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
                                contained_min_one && !m_model->objects.empty() && state != ModelInstance::PVS_Partly_Outside));
-
-// #ys_FIXME_delete_after_testing
-//         bool contained = m_volumes.check_outside_state(m_config, &state);
-//         if (!contained)
-//         {
-//             _set_warning_texture(WarningTexture::ObjectOutside, true);
-//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
-//         }
-//         else
-//         {
-//             m_volumes.reset_outside_state();
-//             _set_warning_texture(WarningTexture::ObjectOutside, false);
-//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
-//         }
     }
     else
     {
@@ -4748,6 +4734,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     // Maximum size of an allocation block: 32MB / sizeof(float)
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start" << m_volumes.log_memory_info() << log_memory_info();
 
+    const bool is_selected_separate_extruder = m_selected_extruder > 0 && ctxt.color_by_color_print();
+
     //FIXME Improve the heuristics for a grain size.
     size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
@@ -4765,7 +4753,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     const size_t    volumes_cnt_initial = m_volumes.volumes.size();
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
-        [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
+        [&ctxt, &new_volume, is_selected_separate_extruder, this](const tbb::blocked_range<size_t>& range) {
         GLVolumePtrs 		vols;
         std::vector<size_t>	color_print_layer_to_glvolume;
         auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {
@@ -4801,6 +4789,26 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         	vol->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
+
+            if (is_selected_separate_extruder)
+            {
+                bool at_least_one_has_correct_extruder = false;
+                for (const LayerRegion* layerm : layer->regions())
+                {
+                    if (layerm->slices.surfaces.empty())
+                        continue;
+                    const PrintRegionConfig& cfg = layerm->region()->config();
+                    if (cfg.perimeter_extruder.value    == m_selected_extruder ||
+                        cfg.infill_extruder.value       == m_selected_extruder ||
+                        cfg.solid_infill_extruder.value == m_selected_extruder ) {
+                        at_least_one_has_correct_extruder = true;
+                        break;
+                    }
+                }
+                if (!at_least_one_has_correct_extruder)
+                    continue;
+            }
+
             for (GLVolume *vol : vols)
                 if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
                     vol->print_zs.push_back(layer->print_z);
@@ -4809,6 +4817,14 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             for (const Point &copy : *ctxt.shifted_copies) {
                 for (const LayerRegion *layerm : layer->regions()) {
+                    if (is_selected_separate_extruder)
+                    {
+                        const PrintRegionConfig& cfg = layerm->region()->config();
+                        if (cfg.perimeter_extruder.value    != m_selected_extruder ||
+                            cfg.infill_extruder.value       != m_selected_extruder ||
+                            cfg.solid_infill_extruder.value != m_selected_extruder)
+                            continue;
+                    }
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
                         	volume(idx_layer, layerm->region()->config().perimeter_extruder.value, 0));
@@ -5157,10 +5173,13 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 	    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - populate volumes" << m_volumes.log_memory_info() << log_memory_info();
 
 	    // populates volumes
+        const bool is_selected_separate_extruder = m_selected_extruder > 0 && preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint;
 		for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
 		{
 			for (const GCodePreviewData::Extrusion::Path& path : layer.paths)
 			{
+                if (is_selected_separate_extruder && path.extruder_id != m_selected_extruder - 1)
+                    continue;
 				std::vector<std::pair<float, GLVolume*>> &filters = roles_filters[size_t(path.extrusion_role)];
 				auto key = std::make_pair<float, GLVolume*>(Helper::path_filter(preview_data.extrusion.view_type, path), nullptr);
 				auto it_filter = std::lower_bound(filters.begin(), filters.end(), key);

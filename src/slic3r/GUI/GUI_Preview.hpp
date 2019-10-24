@@ -105,6 +105,7 @@ class Preview : public wxPanel
 
     DoubleSlider*       m_slider {nullptr};
     wxBitmapComboBox*   m_extruder_selector {nullptr};
+    int                 m_selected_extruder {0}; // 0 means "Whole print"
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
@@ -144,7 +145,7 @@ private:
 
     void show_hide_ui_elements(const std::string& what);
 
-    void reset_sliders();
+    void reset_sliders(bool reset_all);
     void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);
 
     void on_size(wxSizeEvent& evt);

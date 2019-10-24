@@ -436,6 +436,7 @@ private:
 #endif // ENABLE_RENDER_STATISTICS
 
     int m_imgui_undo_redo_hovered_pos{ -1 };
+    int m_selected_extruder;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
@@ -578,6 +579,7 @@ public:
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
+    void set_selected_extruder(int extruder) { m_selected_extruder = extruder;}
     
     class WipeTowerInfo {
     protected:
