@@ -176,8 +176,6 @@ void GLGizmoFdmSupports::render_cursor_circle() const
     float zoom = (float)camera.get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    std::cout << zoom << " " << inv_zoom << std::endl;
-
     Size cnv_size = m_parent.get_canvas_size();
     float cnv_half_width = 0.5f * (float)cnv_size.get_width();
     float cnv_half_height = 0.5f * (float)cnv_size.get_height();
@@ -191,7 +189,6 @@ void GLGizmoFdmSupports::render_cursor_circle() const
     float color[3];
     color[2] = 0.3f;
     glsafe(::glColor3fv(color));
-
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
@@ -212,9 +209,7 @@ void GLGizmoFdmSupports::render_cursor_circle() const
     glsafe(::glEnd());
 
     glsafe(::glPopAttrib());
-
     glsafe(::glPopMatrix());
-
 }
 
 
@@ -311,7 +306,6 @@ bool operator<(const GLGizmoFdmSupports::NeighborData& a, const GLGizmoFdmSuppor
 }
 
 
-
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
 // The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
 // aware that the event was reacted to and stops trying to make different sense of it. If the gizmo
@@ -336,9 +330,9 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     }
 
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
-        size_t facet_idx = 0;
+        size_t facet = 0;
         Vec3f hit_pos;
-        if (unproject_on_mesh(mouse_position, facet_idx, &hit_pos)) {
+        if (unproject_on_mesh(mouse_position, facet, &hit_pos)) {
             bool select = ! shift_down;
 
             // Calculate direction from camera to the hit (in mesh coords):
@@ -359,24 +353,32 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return (diff - diff.dot(dir) * dir).squaredNorm();
             };
 
-            // Now go through the facets and de/select those close enough to the line (FIXME: efficiency)
-            for (size_t i=0; i<m_selected_facets.size(); ++i) {
-                float dist = squared_distance_from_line(m_mesh->its.vertices[m_mesh->its.indices[i](0)]);
-                if (dist < limit)
-                    m_selected_facets[i] = select;
+            std::vector<size_t> next_facets{facet};
+            NeighborData helper_pair = std::make_pair(0, 0);
+            std::vector<bool> visited(m_selected_facets.size(), false);
+            size_t facet_idx = 0;
+
+            while (facet_idx < next_facets.size()) {
+                size_t facet = next_facets[facet_idx];
+                if (! visited[facet]) {
+                    for (size_t i=0; i<3; ++i) {
+                        helper_pair.first = m_mesh->its.indices[facet](i); // vertex index
+                        float dist = squared_distance_from_line(m_mesh->its.vertices[helper_pair.first]);
+                        if (dist < limit) {
+                            auto it = std::lower_bound(m_neighbors.begin(), m_neighbors.end(), helper_pair);
+                            while (it != m_neighbors.end() && it->first == helper_pair.first) {
+                                next_facets.push_back(it->second);
+                                ++it;
+                            }
+                        }
+                    }
+                    visited[facet] = true;
+                }
+                ++facet_idx;
             }
 
-
-
-            //size_t vertex_idx = m_mesh->its.indices[facet_idx](0);
-            //auto it = m_neighbors.begin();
-            //std::vector<bool> visited(m_mesh->its.indices.size(), false);
-
-            //while (it != m_neighbors.end() && it->second == facet_idx)
-            //    it = std::lower_bound(it, m_neighbors.end(), std::make_pair(vertex_idx, size_t(0)));
-
-            //facet_idx = it->second;
-            //vertex_idx = m_mesh->its.indices[facet_idx](0);
+            for (size_t next_facet : next_facets)
+                m_selected_facets[next_facet] = select;
 
 
 
