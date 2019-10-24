@@ -87,6 +87,13 @@ using Slic3r::_3DScene;
 using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_THUMBNAIL_GENERATOR
+static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_FFF = { 128, 128 };
+static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_SLA = { 256, 256 };
+static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
+#endif // ENABLE_THUMBNAIL_GENERATOR
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 namespace Slic3r {
 namespace GUI {
@@ -3052,9 +3059,11 @@ bool Plater::priv::restart_background_process(unsigned int state)
 #if ENABLE_THUMBNAIL_GENERATOR
         if ((state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) == 0)
         {
-            // force update of thumbnail data, so that they can be inserted into the exported gcode
-            thumbnail_generator.generate(view3D->get_canvas3d()->get_volumes().volumes, 256, 256, true);
-            thumbnail_generator.save_to_png_file("C:/prusa/test/test.png");
+            // update thumbnail data
+            if (this->printer_technology == ptFFF)
+                generate_thumbnail(THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true);
+            else if (this->printer_technology == ptSLA)
+                generate_thumbnail(THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true);
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -3397,7 +3406,11 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         this->preview->reload_print();
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_THUMBNAIL_GENERATOR
-        thumbnail_generator.generate(view3D->get_canvas3d()->get_volumes().volumes, 256, 256, true);
+        // update thumbnail data
+        if (this->printer_technology == ptFFF)
+            generate_thumbnail(THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true);
+        else if (this->printer_technology == ptSLA)
+            generate_thumbnail(THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
@@ -4672,16 +4685,12 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_THUMBNAIL_GENERATOR
-    p->generate_thumbnail(128, 128, false);
+    p->generate_thumbnail(THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false);
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &p->thumbnail_generator.get_data())) {
 #else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // ENABLE_THUMBNAIL_GENERATOR
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
         p->set_project_filename(path);
