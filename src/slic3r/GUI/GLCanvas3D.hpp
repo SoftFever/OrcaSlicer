@@ -523,7 +523,9 @@ public:
 
     void render();
 #if ENABLE_THUMBNAIL_GENERATOR
-    void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only);
+    // printable_only == false -> render also non printable volumes as grayed
+    // parts_only == false -> render also sla support and pad
+    void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     void select_all();

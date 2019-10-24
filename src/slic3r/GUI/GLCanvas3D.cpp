@@ -1647,7 +1647,7 @@ void GLCanvas3D::render()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
 {
     auto is_visible = [](const GLVolume& v) -> bool {
         bool ret = v.printable;
@@ -1664,8 +1664,11 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 
     for (GLVolume* vol : m_volumes.volumes)
     {
-        if (!printable_only || is_visible(*vol))
-            visible_volumes.push_back(vol);
+        if (!vol->is_modifier && (!parts_only || (vol->composite_id.volume_id >= 0)))
+        {
+            if (!printable_only || is_visible(*vol))
+                visible_volumes.push_back(vol);
+        }
     }
 
     if (visible_volumes.empty())
@@ -1696,6 +1699,25 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_LIGHTING));
     glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+
+#if 0
+    // debug export of generated image
+    wxImage image(thumbnail_data.width, thumbnail_data.height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < thumbnail_data.height; ++r)
+    {
+        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
+        for (unsigned int c = 0; c < thumbnail_data.width; ++c)
+        {
+            unsigned char* px = thumbnail_data.pixels.data() + 4 * (rr + c);
+            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+            image.SetAlpha((int)c, (int)r, px[3]);
+        }
+    }
+
+    image.SaveFile("C:/test.png", wxBITMAP_TYPE_PNG);
+#endif 
 
     // restore the framebuffer size to avoid flickering on the 3D scene
     const Size& cnv_size = get_canvas_size();

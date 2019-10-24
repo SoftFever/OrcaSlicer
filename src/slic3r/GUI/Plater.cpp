@@ -1928,7 +1928,7 @@ struct Plater::priv
     bool can_reload_from_disk() const;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-    void generate_thumbnail(unsigned int w, unsigned int h, bool printable_only);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
@@ -3050,9 +3050,12 @@ bool Plater::priv::restart_background_process(unsigned int state)
         {
             // update thumbnail data
             if (this->printer_technology == ptFFF)
-                generate_thumbnail(THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true);
+                // for ptFFF we need to generate the thumbnail before the export of gcode starts
+                generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true, true);
             else if (this->printer_technology == ptSLA)
-                generate_thumbnail(THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true);
+                // for ptSLA generate thumbnail without supports and pad (not yet calculated)
+                // to render also supports and pad see on_slicing_update()
+                generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true, true);
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR
         // The print is valid and it can be started.
@@ -3392,13 +3395,14 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
+/*
 #if ENABLE_THUMBNAIL_GENERATOR
         // update thumbnail data
-        if (this->printer_technology == ptFFF)
-            generate_thumbnail(THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true);
-        else if (this->printer_technology == ptSLA)
-            generate_thumbnail(THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true);
+        // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
+        if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
+            generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true, false);
 #endif // ENABLE_THUMBNAIL_GENERATOR
+*/
     }
 }
 
@@ -3625,9 +3629,9 @@ bool Plater::priv::init_object_menu()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void Plater::priv::generate_thumbnail(unsigned int w, unsigned int h, bool printable_only)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
 {
-    view3D->get_canvas3d()->render_thumbnail(thumbnail_data, w, h, printable_only);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -4670,8 +4674,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
 #if ENABLE_THUMBNAIL_GENERATOR
-    p->generate_thumbnail(THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false);
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &p->thumbnail_data)) {
+    ThumbnailData thumbnail_data;
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true);
+    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &thumbnail_data)) {
 #else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
 #endif // ENABLE_THUMBNAIL_GENERATOR
