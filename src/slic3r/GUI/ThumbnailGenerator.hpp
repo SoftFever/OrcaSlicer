@@ -27,8 +27,6 @@ namespace GUI {
 
         const ThumbnailData& get_data() const { return m_data; }
 
-        bool save_to_png_file(const std::string& filename);
-
     private:
         void render_and_store(const GLVolumePtrs& volumes, bool printable_only);
     };

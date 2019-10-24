@@ -29,34 +29,14 @@ void ThumbnailGenerator::generate(const GLVolumePtrs& volumes, unsigned int w, u
     render_and_store(volumes, printable_only);
 }
 
-bool ThumbnailGenerator::save_to_png_file(const std::string& filename)
-{
-    if (!m_data.is_valid())
-        return false;
-
-    wxImage image(m_data.width, m_data.height);
-    image.InitAlpha();
-
-    for (unsigned int r = 0; r < m_data.height; ++r)
-    {
-        unsigned int rr = (m_data.height - 1 - r) * m_data.width;
-        for (unsigned int c = 0; c < m_data.width; ++c)
-        {
-            unsigned char* px = m_data.pixels.data() + 4 * (rr + c);
-            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
-            image.SetAlpha((int)c, (int)r, px[3]);
-        }
-    }
-
-    std::string path = filename;
-    if (!boost::iends_with(path, ".png"))
-        path = boost::filesystem::path(path).replace_extension(".png").string();
-
-    return image.SaveFile(from_u8(path), wxBITMAP_TYPE_PNG);
-}
-
 void ThumbnailGenerator::render_and_store(const GLVolumePtrs& volumes, bool printable_only)
 {
+    auto is_visible = [] (const GLVolume& v) -> bool {
+        bool ret = v.printable;
+        ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+        return ret;
+    };
+
     static const float orange[] = { 0.99f, 0.49f, 0.26f };
     static const float gray[] = { 0.64f, 0.64f, 0.64f };
 
@@ -64,7 +44,7 @@ void ThumbnailGenerator::render_and_store(const GLVolumePtrs& volumes, bool prin
 
     for (const GLVolume* vol : volumes)
     {
-        if (!printable_only || vol->printable)
+        if (!printable_only || is_visible(*vol))
             visible_volumes.push_back(vol);
     }
 
