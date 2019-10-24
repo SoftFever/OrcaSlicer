@@ -283,7 +283,14 @@ endfunction()
 if(TARGET Boost::system)
     message(STATUS "Boost::boost exists")
     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-    list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+
+    # Only from cmake 3.12
+    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+    set(_boost_targets "")
+    foreach(comp ${_boost_components})
+        list(APPEND _boost_targets "Boost::${comp}")
+    endforeach()
+
     target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well
         ${_boost_targets}

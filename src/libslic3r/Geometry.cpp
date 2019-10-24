@@ -663,7 +663,6 @@ namespace Voronoi { namespace Internal {
     typedef boost::polygon::point_data<coordinate_type> point_type;
     typedef boost::polygon::segment_data<coordinate_type> segment_type;
     typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
-//    typedef voronoi_builder<int> VB;
     typedef boost::polygon::voronoi_diagram<coordinate_type> VD;
     typedef VD::cell_type cell_type;
     typedef VD::cell_type::source_index_type source_index_type;
@@ -710,15 +709,15 @@ namespace Voronoi { namespace Internal {
         if (cell1.contains_point() && cell2.contains_point()) {
             point_type p1 = retrieve_point(segments, cell1);
             point_type p2 = retrieve_point(segments, cell2);
-            origin.x((p1(0) + p2(0)) * 0.5);
-            origin.y((p1(1) + p2(1)) * 0.5);
-            direction.x(p1(1) - p2(1));
-            direction.y(p2(0) - p1(0));
+            origin.x((p1.x() + p2.x()) * 0.5);
+            origin.y((p1.y() + p2.y()) * 0.5);
+            direction.x(p1.y() - p2.y());
+            direction.y(p2.x() - p1.x());
         } else {
             origin = cell1.contains_segment() ? retrieve_point(segments, cell2) : retrieve_point(segments, cell1);
             segment_type segment = cell1.contains_segment() ? segments[cell1.source_index()] : segments[cell2.source_index()];
-            coordinate_type dx = high(segment)(0) - low(segment)(0);
-            coordinate_type dy = high(segment)(1) - low(segment)(1);
+            coordinate_type dx = high(segment).x() - low(segment).x();
+            coordinate_type dy = high(segment).y() - low(segment).y();
             if ((low(segment) == origin) ^ cell1.contains_point()) {
                 direction.x(dy);
                 direction.y(-dx);
@@ -727,19 +726,19 @@ namespace Voronoi { namespace Internal {
                 direction.y(dx);
             }
         }
-        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction(0)), fabs(direction(1)));
+        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction.x()), fabs(direction.y()));
         if (edge.vertex0() == NULL) {
             clipped_edge->push_back(point_type(
-                origin(0) - direction(0) * koef,
-                origin(1) - direction(1) * koef));
+                origin.x() - direction.x() * koef,
+                origin.y() - direction.y() * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex0()->x(), edge.vertex0()->y()));
         }
         if (edge.vertex1() == NULL) {
             clipped_edge->push_back(point_type(
-                origin(0) + direction(0) * koef,
-                origin(1) + direction(1) * koef));
+                origin.x() + direction.x() * koef,
+                origin.y() + direction.y() * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex1()->x(), edge.vertex1()->y()));
@@ -759,7 +758,7 @@ namespace Voronoi { namespace Internal {
 
 } /* namespace Internal */ } // namespace Voronoi
 
-static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_diagram<double> &vd, const ThickPolylines *polylines, const char *path)
+static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ boost::polygon::voronoi_diagram<double> &vd, const ThickPolylines *polylines, const char *path)
 {
     const double        scale                       = 0.2;
     const std::string   inputSegmentPointColor      = "lightseagreen";
@@ -803,7 +802,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
             Voronoi::Internal::point_type(double(it->b(0)), double(it->b(1)))));
     
     // Color exterior edges.
-    for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
+    for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
         if (!it->is_finite())
             Voronoi::Internal::color_exterior(&(*it));
 
@@ -818,11 +817,11 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
 
 #if 1
     // Draw voronoi vertices.
-    for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
+    for (boost::polygon::voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
         if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR)
-            svg.draw(Point(coord_t((*it)(0)), coord_t((*it)(1))), voronoiPointColor, voronoiPointRadius);
+            svg.draw(Point(coord_t(it->x()), coord_t(it->y())), voronoiPointColor, voronoiPointRadius);
 
-    for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
+    for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
         if (primaryEdgesOnly && !it->is_primary())
             continue;
         if (internalEdgesOnly && (it->color() == Voronoi::Internal::EXTERNAL_COLOR))
@@ -845,7 +844,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
                 color = voronoiLineColorSecondary;
         }
         for (std::size_t i = 0; i + 1 < samples.size(); ++i)
-            svg.draw(Line(Point(coord_t(samples[i](0)), coord_t(samples[i](1))), Point(coord_t(samples[i+1](0)), coord_t(samples[i+1](1)))), color, voronoiLineWidth);
+            svg.draw(Line(Point(coord_t(samples[i].x()), coord_t(samples[i].y())), Point(coord_t(samples[i+1].x()), coord_t(samples[i+1].y()))), color, voronoiLineWidth);
     }
 #endif
 
