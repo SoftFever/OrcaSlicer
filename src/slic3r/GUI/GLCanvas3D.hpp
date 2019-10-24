@@ -36,6 +36,9 @@ class GLShader;
 class ExPolygon;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
+#if ENABLE_THUMBNAIL_GENERATOR
+struct ThumbnailData;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 struct SlicingParameters;
 enum LayerHeightEditActionType : unsigned int;
 
@@ -446,10 +449,6 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-#if ENABLE_THUMBNAIL_GENERATOR
-    const GLVolumeCollection& get_volumes() const { return m_volumes; }
-#endif // ENABLE_THUMBNAIL_GENERATOR
-
     bool init();
     void post_event(wxEvent &&event);
 
@@ -523,6 +522,9 @@ public:
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
+#if ENABLE_THUMBNAIL_GENERATOR
+    void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void select_all();
     void deselect_all();

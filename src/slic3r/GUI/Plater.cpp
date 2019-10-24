@@ -32,6 +32,9 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "libslic3r/GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
@@ -62,9 +65,6 @@
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
 #include "Camera.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
-#include "ThumbnailGenerator.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -1370,6 +1370,9 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
+#if ENABLE_THUMBNAIL_GENERATOR
+    Slic3r::ThumbnailData       thumbnail_data;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1381,9 +1384,6 @@ struct Plater::priv
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
-#if ENABLE_THUMBNAIL_GENERATOR
-    ThumbnailGenerator thumbnail_generator;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
@@ -1999,7 +1999,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
 #if ENABLE_THUMBNAIL_GENERATOR
-    background_process.set_thumbnail_data(&thumbnail_generator.get_data());
+    background_process.set_thumbnail_data(&thumbnail_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
@@ -3627,7 +3627,7 @@ bool Plater::priv::init_object_menu()
 #if ENABLE_THUMBNAIL_GENERATOR
 void Plater::priv::generate_thumbnail(unsigned int w, unsigned int h, bool printable_only)
 {
-    thumbnail_generator.generate(view3D->get_canvas3d()->get_volumes().volumes, w, h, printable_only);
+    view3D->get_canvas3d()->render_thumbnail(thumbnail_data, w, h, printable_only);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -4671,7 +4671,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     wxBusyCursor wait;
 #if ENABLE_THUMBNAIL_GENERATOR
     p->generate_thumbnail(THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false);
-    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &p->thumbnail_generator.get_data())) {
+    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &p->thumbnail_data)) {
 #else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -5170,13 +5170,6 @@ void Plater::paste_from_clipboard()
     Plater::TakeSnapshot snapshot(this, _(L("Paste From Clipboard")));
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
-
-#if ENABLE_THUMBNAIL_GENERATOR
-void Plater::generate_thumbnail(unsigned int w, unsigned int h, bool printable_only)
-{
-    p->generate_thumbnail(w, h, printable_only);
-}
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Plater::msw_rescale()
 {

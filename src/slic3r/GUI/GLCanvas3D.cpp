@@ -7,6 +7,9 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "libslic3r/GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/Utils.hpp"
@@ -1642,6 +1645,64 @@ void GLCanvas3D::render()
     m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 #endif // ENABLE_RENDER_STATISTICS
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only)
+{
+    auto is_visible = [](const GLVolume& v) -> bool {
+        bool ret = v.printable;
+        ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+        return ret;
+    };
+
+    static const float orange[] = { 0.99f, 0.49f, 0.26f };
+    static const float gray[] = { 0.64f, 0.64f, 0.64f };
+
+    thumbnail_data.set(w, h);
+
+    GLVolumePtrs visible_volumes;
+
+    for (GLVolume* vol : m_volumes.volumes)
+    {
+        if (!printable_only || is_visible(*vol))
+            visible_volumes.push_back(vol);
+    }
+
+    if (visible_volumes.empty())
+        return;
+
+    BoundingBoxf3 box;
+    for (const GLVolume* vol : visible_volumes)
+    {
+        box.merge(vol->transformed_bounding_box());
+    }
+
+    Camera camera;
+    camera.zoom_to_box(box, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_view_matrix();
+    camera.apply_projection(box);
+
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_LIGHTING));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
+    for (const GLVolume* vol : visible_volumes)
+    {
+        glsafe(::glColor3fv((vol->printable && !vol->is_outside) ? orange : gray));
+        vol->render();
+    }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_LIGHTING));
+    glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+
+    std::cout << "Generated thumbnail " << thumbnail_data.width << "x" << thumbnail_data.height << std::endl;
+
+    // force a frame render to restore the default framebuffer
+    render();
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void GLCanvas3D::select_all()
 {
