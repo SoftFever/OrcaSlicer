@@ -533,6 +533,9 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
     if ((0 <= selection) && (selection < (int)GCodePreviewData::Extrusion::Num_View_Types))
         m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)selection;
 
+    if (m_gcode_preview_data->extrusion.view_type != GCodePreviewData::Extrusion::ColorPrint)
+        m_extruder_selector->SetSelection(0);
+
     reload_print();
 }
 
@@ -605,7 +608,7 @@ void Preview::update_view_type(bool slice_completed)
 
 void Preview::update_extruder_selector()
 {
-    apply_extruder_selector(&m_extruder_selector, this, L("Whole print"));
+    apply_extruder_selector(&m_extruder_selector, this, L("Whole print"), wxDefaultPosition, wxDefaultSize, true);
 }
 
 void Preview::create_double_slider()

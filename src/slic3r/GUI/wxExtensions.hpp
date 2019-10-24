@@ -58,12 +58,13 @@ int     em_unit(wxWindow* win);
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name,
     const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
-std::vector<wxBitmap*> get_extruder_color_icons();
+std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon = false);
 void apply_extruder_selector(wxBitmapComboBox** ctrl,
                              wxWindow* parent,
                              const std::string& first_item = "",
                              wxPoint pos = wxDefaultPosition,
-                             wxSize size = wxDefaultSize);
+                             wxSize size = wxDefaultSize,
+                             bool use_thin_icon = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
@@ -964,13 +965,13 @@ private:
         TICK_CODE operator=(const TICK_CODE& other) const {
             TICK_CODE ret_val(other.tick, other.gcode, other.extruder);
             return ret_val;
-        }
+        }/*
         TICK_CODE& operator=(const TICK_CODE& other) {
             this->tick = other.tick;
             this->gcode = other.gcode;
             this->extruder = other.extruder;
             return *this;
-        }
+        }*/
 
         int         tick;
         std::string gcode;

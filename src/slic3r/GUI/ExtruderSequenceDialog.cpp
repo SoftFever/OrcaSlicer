@@ -130,7 +130,7 @@ void ExtruderSequenceDialog::apply_extruder_sequence()
     for (size_t extruder=0; extruder < m_sequence.extruders.size(); ++extruder)
     {
         wxBitmapComboBox* extruder_selector = nullptr;
-        apply_extruder_selector(&extruder_selector, this);
+        apply_extruder_selector(&extruder_selector, this, "", wxDefaultPosition, wxSize(12*wxGetApp().em_unit(), -1));
         extruder_selector->SetSelection(m_sequence.extruders[extruder]);
 
         extruder_selector->Bind(wxEVT_COMBOBOX, [this, extruder_selector, extruder](wxCommandEvent& evt)

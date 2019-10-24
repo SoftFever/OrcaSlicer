@@ -450,7 +450,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 
 
 Slic3r::GUI::BitmapCache* m_bitmap_cache = nullptr;
-std::vector<wxBitmap*> get_extruder_color_icons()
+std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;
@@ -466,16 +466,18 @@ std::vector<wxBitmap*> get_extruder_color_icons()
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround(3.2 * em);
+    const int icon_width = lround((thin_icon ? 1 : 3.2) * em);
     const int icon_height = lround(1.6 * em);
 
     for (const std::string& color : colors)
     {
-        wxBitmap* bitmap = m_bitmap_cache->find(color);
+        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width);
+
+        wxBitmap* bitmap = m_bitmap_cache->find(bitmap_key);
         if (bitmap == nullptr) {
             // Paint the color icon.
             Slic3r::PresetBundle::parse_color(color, rgb);
-            bitmap = m_bitmap_cache->insert(color, m_bitmap_cache->mksolid(icon_width, icon_height, rgb));
+            bitmap = m_bitmap_cache->insert(bitmap_key, m_bitmap_cache->mksolid(icon_width, icon_height, rgb));
         }
         bmps.emplace_back(bitmap);
     }
@@ -484,10 +486,10 @@ std::vector<wxBitmap*> get_extruder_color_icons()
 }
 
 
-static wxBitmap get_extruder_color_icon(size_t extruder_idx)
+static wxBitmap get_extruder_color_icon(size_t extruder_idx, bool thin_icon = false)
 {
     // Create the bitmap with color bars.
-    std::vector<wxBitmap*> bmps = get_extruder_color_icons();
+    std::vector<wxBitmap*> bmps = get_extruder_color_icons(thin_icon);
     if (bmps.empty())
         return wxNullBitmap;
 
@@ -498,9 +500,10 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
                              wxWindow* parent,
                              const std::string& first_item/* = ""*/, 
                              wxPoint pos/* = wxDefaultPosition*/,
-                             wxSize size/* = wxDefaultSize*/)
+                             wxSize size/* = wxDefaultSize*/,
+                             bool use_thin_icon/* = false*/)
 {
-    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(use_thin_icon);
     if (icons.empty())
         return;
 
@@ -516,6 +519,7 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
     }
 
     int i = 0;
+    wxString str = _(L("Extruder"));
     for (wxBitmap* bmp : icons) {
         if (i == 0) {
             if (!first_item.empty())
@@ -523,7 +527,7 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(wxString::Format("%d", i), *bmp);
+        (*ctrl)->Append(wxString::Format("%s %d", str, i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);
