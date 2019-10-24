@@ -146,7 +146,7 @@ void BackgroundSlicingProcess::process_sla()
             m_sla_print->export_raster(zipper);
 
 #if ENABLE_THUMBNAIL_GENERATOR
-            if (m_thumbnail_data!= nullptr)
+            if ((m_thumbnail_data != nullptr) && m_thumbnail_data->is_valid())
                 write_thumbnail(zipper, *m_thumbnail_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
