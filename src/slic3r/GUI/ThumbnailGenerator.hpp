@@ -6,9 +6,11 @@
 #include "../libslic3r/GCode/ThumbnailData.hpp"
 
 namespace Slic3r {
+
     class GLVolume;
     typedef std::vector<GLVolume*> GLVolumePtrs;
-    namespace GUI {
+
+namespace GUI {
 
     class ThumbnailGenerator
     {
