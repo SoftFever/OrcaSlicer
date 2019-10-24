@@ -1697,10 +1697,9 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     glsafe(::glDisable(GL_LIGHTING));
     glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 
-    std::cout << "Generated thumbnail " << thumbnail_data.width << "x" << thumbnail_data.height << std::endl;
-
-    // force a frame render to restore the default framebuffer
-    render();
+    // restore the framebuffer size to avoid flickering on the 3D scene
+    const Size& cnv_size = get_canvas_size();
+    m_camera.apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
