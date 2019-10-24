@@ -89,7 +89,7 @@ void ThumbnailGenerator::render_and_store(const GLVolumePtrs& volumes, bool prin
 
     for (const GLVolume* vol : visible_volumes)
     {
-        glsafe(::glColor3fv(vol->printable ? orange : gray));
+        glsafe(::glColor3fv((vol->printable && !vol->is_outside) ? orange : gray));
         vol->render();
     }
 
