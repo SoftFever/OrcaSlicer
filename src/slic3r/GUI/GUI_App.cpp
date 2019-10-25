@@ -53,6 +53,7 @@
 
 #if ENABLE_THUMBNAIL_GENERATOR
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/nowide/fstream.hpp>
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
 namespace Slic3r {
