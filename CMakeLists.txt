@@ -402,8 +402,8 @@ if(SLIC3R_STATIC)
     set(USE_BLOSC TRUE)
 endif()
 
-find_package(OpenVDB 5.0 COMPONENTS openvdb)
-slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+#find_package(OpenVDB 5.0 COMPONENTS openvdb)
+#slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)
