@@ -93,7 +93,15 @@
 # This module will also create the "tbb" target that may be used when building
 # executables and libraries.
 
+unset(TBB_FOUND CACHE)
+unset(TBB_INCLUDE_DIRS CACHE)
+unset(TBB_LIBRARIES)
+unset(TBB_LIBRARIES_DEBUG)
+unset(TBB_LIBRARIES_RELEASE)
+
 include(FindPackageHandleStandardArgs)
+
+find_package(Threads QUIET REQUIRED)
 
 if(NOT TBB_FOUND)
 
@@ -215,6 +223,9 @@ if(NOT TBB_FOUND)
   foreach(_comp ${TBB_SEARCH_COMPOMPONENTS})
     if(";${TBB_FIND_COMPONENTS};tbb;" MATCHES ";${_comp};")
 
+      unset(TBB_${_comp}_LIBRARY_DEBUG CACHE)
+      unset(TBB_${_comp}_LIBRARY_RELEASE CACHE)
+
       # Search for the libraries
       find_library(TBB_${_comp}_LIBRARY_RELEASE ${_comp}${TBB_STATIC_SUFFIX}
           HINTS ${TBB_LIBRARY} ${TBB_SEARCH_DIR}
@@ -265,6 +276,7 @@ if(NOT TBB_FOUND)
     set(TBB_LIBRARIES ${TBB_LIBRARIES_RELEASE})
   endif()
 
+  set(TBB_DEFINITIONS "")
   if (MSVC AND TBB_STATIC)
     set(TBB_DEFINITIONS __TBB_NO_IMPLICIT_LINKAGE)
   endif ()
@@ -273,6 +285,7 @@ if(NOT TBB_FOUND)
 
   find_package_handle_standard_args(TBB 
       REQUIRED_VARS TBB_INCLUDE_DIRS TBB_LIBRARIES
+      FAIL_MESSAGE "TBB library cannot be found. Consider set TBBROOT environment variable."
       HANDLE_COMPONENTS
       VERSION_VAR TBB_VERSION)
 
@@ -283,6 +296,8 @@ if(NOT TBB_FOUND)
   if(NOT CMAKE_VERSION VERSION_LESS 3.0 AND TBB_FOUND)
     add_library(TBB::tbb UNKNOWN IMPORTED)
     set_target_properties(TBB::tbb PROPERTIES
+          INTERFACE_COMPILE_DEFINITIONS "${TBB_DEFINITIONS}"
+          INTERFACE_LINK_LIBRARIES  "Threads::Threads;${CMAKE_DL_LIBS}"
           INTERFACE_INCLUDE_DIRECTORIES  ${TBB_INCLUDE_DIRS}
           IMPORTED_LOCATION              ${TBB_LIBRARIES})
     if(TBB_LIBRARIES_RELEASE AND TBB_LIBRARIES_DEBUG)
@@ -293,11 +308,6 @@ if(NOT TBB_FOUND)
           IMPORTED_LOCATION_RELEASE        ${TBB_LIBRARIES_RELEASE}
           IMPORTED_LOCATION_MINSIZEREL     ${TBB_LIBRARIES_RELEASE}
           )
-    endif()
-
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-       find_package(Threads QUIET REQUIRED)
-       set_target_properties(TBB::tbb PROPERTIES INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS};Threads::Threads")
     endif()
   endif()
 

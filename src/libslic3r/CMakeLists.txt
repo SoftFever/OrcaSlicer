@@ -222,6 +222,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
+    # OpenVDB::openvdb
     ${CMAKE_DL_LIBS}
     )
 

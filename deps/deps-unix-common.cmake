@@ -90,3 +90,55 @@ ExternalProject_Add(dep_libigl
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-mods.patch
 )
 
+
+ExternalProject_Add(dep_blosc
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+    GIT_TAG v1.17.0
+    DEPENDS
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DBUILD_SHARED=OFF 
+        -DBUILD_STATIC=ON
+        -DBUILD_TESTS=OFF 
+        -DBUILD_BENCHMARKS=OFF 
+        -DPREFER_EXTERNAL_ZLIB=OFF
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
+)
+
+ExternalProject_Add(dep_openexr
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/openexr/openexr.git
+    GIT_TAG v2.4.0 
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DBUILD_TESTING=OFF 
+        -DPYILMBASE_ENABLE:BOOL=OFF 
+        -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
+        -DOPENEXR_BUILD_UTILS:BOOL=OFF
+)
+
+ExternalProject_Add(dep_openvdb
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
+    GIT_TAG v6.2.1
+    DEPENDS dep_blosc dep_openexr dep_tbb
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DCMAKE_PREFIX_PATH=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DOPENVDB_BUILD_PYTHON_MODULE=OFF 
+        -DUSE_BLOSC=ON 
+        -DOPENVDB_CORE_SHARED=OFF 
+        -DOPENVDB_CORE_STATIC=ON 
+        -DTBB_STATIC=ON
+        -DOPENVDB_BUILD_VDB_PRINT=ON
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+)

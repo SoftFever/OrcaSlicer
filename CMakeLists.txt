@@ -271,19 +271,28 @@ if(NOT SLIC3R_STATIC)
 endif()
 
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
-    string(TOUPPER ${from_Cfg} from_CFG)
-
-    foreach(tgt ${targets})
-        if(TARGET ${tgt})
-            set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
-        endif()
-    endforeach()
+    if(MSVC)
+        string(TOUPPER ${from_Cfg} from_CFG)
+    
+        foreach(tgt ${targets})
+            if(TARGET ${tgt})
+                set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
+            endif()
+        endforeach()
+    endif()
 endfunction()
 
 if(TARGET Boost::system)
     message(STATUS "Boost::boost exists")
     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-    list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+
+    # Only from cmake 3.12
+    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+    set(_boost_targets "")
+    foreach(comp ${_boost_components})
+        list(APPEND _boost_targets "Boost::${comp}")
+    endforeach()
+
     target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well
         ${_boost_targets}
@@ -387,6 +396,14 @@ add_custom_target(pot
 )
 
 find_package(NLopt 1.4 REQUIRED)
+
+if(SLIC3R_STATIC)
+    set(OPENVDB_USE_STATIC_LIBS ON)
+    set(USE_BLOSC TRUE)
+endif()
+
+find_package(OpenVDB 5.0 COMPONENTS openvdb)
+slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)

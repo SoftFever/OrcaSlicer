@@ -1,0 +1,1771 @@
+From ee867b9f226412c0f3b83fa01cd43539acc4ed95 Mon Sep 17 00:00:00 2001
+From: tamasmeszaros <meszaros.q@gmail.com>
+Date: Wed, 16 Oct 2019 17:42:50 +0200
+Subject: [PATCH] Build fixes for PrusaSlicer integration
+
+---
+ CMakeLists.txt                  |   3 -
+ cmake/FindBlosc.cmake           | 218 ---------------
+ cmake/FindCppUnit.cmake         |   4 +-
+ cmake/FindIlmBase.cmake         | 337 -----------------------
+ cmake/FindOpenEXR.cmake         | 329 ----------------------
+ cmake/FindOpenVDB.cmake         |  19 +-
+ cmake/FindTBB.cmake             | 593 ++++++++++++++++++++--------------------
+ openvdb/CMakeLists.txt          |  13 +-
+ openvdb/Grid.cc                 |   3 +
+ openvdb/PlatformConfig.h        |   9 +-
+ openvdb/cmd/CMakeLists.txt      |   4 +-
+ openvdb/unittest/CMakeLists.txt |   3 +-
+ openvdb/unittest/TestFile.cc    |   2 +-
+ 13 files changed, 325 insertions(+), 1212 deletions(-)
+ delete mode 100644 cmake/FindBlosc.cmake
+ delete mode 100644 cmake/FindIlmBase.cmake
+ delete mode 100644 cmake/FindOpenEXR.cmake
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 580b353..6d364c1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -267,12 +267,9 @@ endif()
+ 
+ if(OPENVDB_INSTALL_CMAKE_MODULES)
+   set(OPENVDB_CMAKE_MODULES
+-    cmake/FindBlosc.cmake
+     cmake/FindCppUnit.cmake
+     cmake/FindJemalloc.cmake
+-    cmake/FindIlmBase.cmake
+     cmake/FindLog4cplus.cmake
+-    cmake/FindOpenEXR.cmake
+     cmake/FindOpenVDB.cmake
+     cmake/FindTBB.cmake
+     cmake/OpenVDBGLFW3Setup.cmake
+diff --git a/cmake/FindBlosc.cmake b/cmake/FindBlosc.cmake
+deleted file mode 100644
+index 5aacfdd..0000000
+--- a/cmake/FindBlosc.cmake
++++ /dev/null
+@@ -1,218 +0,0 @@
+-# Copyright (c) DreamWorks Animation LLC
+-#
+-# All rights reserved. This software is distributed under the
+-# Mozilla Public License 2.0 ( http://www.mozilla.org/MPL/2.0/ )
+-#
+-# Redistributions of source code must retain the above copyright
+-# and license notice and the following restrictions and disclaimer.
+-#
+-# *     Neither the name of DreamWorks Animation nor the names of
+-# its contributors may be used to endorse or promote products derived
+-# from this software without specific prior written permission.
+-#
+-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-# IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE
+-# LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00.
+-#
+-#[=======================================================================[.rst:
+-
+-FindBlosc
+----------
+-
+-Find Blosc include dirs and libraries
+-
+-Use this module by invoking find_package with the form::
+-
+-  find_package(Blosc
+-    [version] [EXACT]      # Minimum or EXACT version e.g. 1.5.0
+-    [REQUIRED]             # Fail with error if Blosc is not found
+-    )
+-
+-IMPORTED Targets
+-^^^^^^^^^^^^^^^^
+-
+-``Blosc::blosc``
+-  This module defines IMPORTED target Blosc::Blosc, if Blosc has been found.
+-
+-Result Variables
+-^^^^^^^^^^^^^^^^
+-
+-This will define the following variables:
+-
+-``Blosc_FOUND``
+-  True if the system has the Blosc library.
+-``Blosc_VERSION``
+-  The version of the Blosc library which was found.
+-``Blosc_INCLUDE_DIRS``
+-  Include directories needed to use Blosc.
+-``Blosc_LIBRARIES``
+-  Libraries needed to link to Blosc.
+-``Blosc_LIBRARY_DIRS``
+-  Blosc library directories.
+-
+-Cache Variables
+-^^^^^^^^^^^^^^^
+-
+-The following cache variables may also be set:
+-
+-``Blosc_INCLUDE_DIR``
+-  The directory containing ``blosc.h``.
+-``Blosc_LIBRARY``
+-  The path to the Blosc library.
+-
+-Hints
+-^^^^^
+-
+-Instead of explicitly setting the cache variables, the following variables
+-may be provided to tell this module where to look.
+-
+-``BLOSC_ROOT``
+-  Preferred installation prefix.
+-``BLOSC_INCLUDEDIR``
+-  Preferred include directory e.g. <prefix>/include
+-``BLOSC_LIBRARYDIR``
+-  Preferred library directory e.g. <prefix>/lib
+-``SYSTEM_LIBRARY_PATHS``
+-  Paths appended to all include and lib searches.
+-
+-#]=======================================================================]
+-
+-mark_as_advanced(
+-  Blosc_INCLUDE_DIR
+-  Blosc_LIBRARY
+-)
+-
+-# Append BLOSC_ROOT or $ENV{BLOSC_ROOT} if set (prioritize the direct cmake var)
+-set(_BLOSC_ROOT_SEARCH_DIR "")
+-
+-if(BLOSC_ROOT)
+-  list(APPEND _BLOSC_ROOT_SEARCH_DIR ${BLOSC_ROOT})
+-else()
+-  set(_ENV_BLOSC_ROOT $ENV{BLOSC_ROOT})
+-  if(_ENV_BLOSC_ROOT)
+-    list(APPEND _BLOSC_ROOT_SEARCH_DIR ${_ENV_BLOSC_ROOT})
+-  endif()
+-endif()
+-
+-# Additionally try and use pkconfig to find blosc
+-
+-find_package(PkgConfig)
+-pkg_check_modules(PC_Blosc QUIET blosc)
+-
+-# ------------------------------------------------------------------------
+-#  Search for blosc include DIR
+-# ------------------------------------------------------------------------
+-
+-set(_BLOSC_INCLUDE_SEARCH_DIRS "")
+-list(APPEND _BLOSC_INCLUDE_SEARCH_DIRS
+-  ${BLOSC_INCLUDEDIR}
+-  ${_BLOSC_ROOT_SEARCH_DIR}
+-  ${PC_Blosc_INCLUDE_DIRS}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Look for a standard blosc header file.
+-find_path(Blosc_INCLUDE_DIR blosc.h
+-  NO_DEFAULT_PATH
+-  PATHS ${_BLOSC_INCLUDE_SEARCH_DIRS}
+-  PATH_SUFFIXES include
+-)
+-
+-if(EXISTS "${Blosc_INCLUDE_DIR}/blosc.h")
+-  file(STRINGS "${Blosc_INCLUDE_DIR}/blosc.h"
+-    _blosc_version_major_string REGEX "#define BLOSC_VERSION_MAJOR +[0-9]+ "
+-  )
+-  string(REGEX REPLACE "#define BLOSC_VERSION_MAJOR +([0-9]+).*$" "\\1"
+-    _blosc_version_major_string "${_blosc_version_major_string}"
+-  )
+-  string(STRIP "${_blosc_version_major_string}" Blosc_VERSION_MAJOR)
+-
+-  file(STRINGS "${Blosc_INCLUDE_DIR}/blosc.h"
+-     _blosc_version_minor_string REGEX "#define BLOSC_VERSION_MINOR +[0-9]+ "
+-  )
+-  string(REGEX REPLACE "#define BLOSC_VERSION_MINOR +([0-9]+).*$" "\\1"
+-    _blosc_version_minor_string "${_blosc_version_minor_string}"
+-  )
+-  string(STRIP "${_blosc_version_minor_string}" Blosc_VERSION_MINOR)
+-
+-  unset(_blosc_version_major_string)
+-  unset(_blosc_version_minor_string)
+-
+-  set(Blosc_VERSION ${Blosc_VERSION_MAJOR}.${Blosc_VERSION_MINOR})
+-endif()
+-
+-# ------------------------------------------------------------------------
+-#  Search for blosc lib DIR
+-# ------------------------------------------------------------------------
+-
+-set(_BLOSC_LIBRARYDIR_SEARCH_DIRS "")
+-list(APPEND _BLOSC_LIBRARYDIR_SEARCH_DIRS
+-  ${BLOSC_LIBRARYDIR}
+-  ${_BLOSC_ROOT_SEARCH_DIR}
+-  ${PC_Blosc_LIBRARY_DIRS}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Static library setup
+-if(UNIX AND BLOSC_USE_STATIC_LIBS)
+-  set(_BLOSC_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+-endif()
+-
+-set(BLOSC_PATH_SUFFIXES
+-  lib64
+-  lib
+-)
+-
+-find_library(Blosc_LIBRARY blosc
+-  NO_DEFAULT_PATH
+-  PATHS ${_BLOSC_LIBRARYDIR_SEARCH_DIRS}
+-  PATH_SUFFIXES ${BLOSC_PATH_SUFFIXES}
+-)
+-
+-if(UNIX AND BLOSC_USE_STATIC_LIBS)
+-  set(CMAKE_FIND_LIBRARY_SUFFIXES ${_BLOSC_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+-  unset(_BLOSC_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES)
+-endif()
+-
+-# ------------------------------------------------------------------------
+-#  Cache and set Blosc_FOUND
+-# ------------------------------------------------------------------------
+-
+-include(FindPackageHandleStandardArgs)
+-find_package_handle_standard_args(Blosc
+-  FOUND_VAR Blosc_FOUND
+-  REQUIRED_VARS
+-    Blosc_LIBRARY
+-    Blosc_INCLUDE_DIR
+-  VERSION_VAR Blosc_VERSION
+-)
+-
+-if(Blosc_FOUND)
+-  set(Blosc_LIBRARIES ${Blosc_LIBRARY})
+-  set(Blosc_INCLUDE_DIRS ${Blosc_INCLUDE_DIR})
+-  set(Blosc_DEFINITIONS ${PC_Blosc_CFLAGS_OTHER})
+-
+-  get_filename_component(Blosc_LIBRARY_DIRS ${Blosc_LIBRARY} DIRECTORY)
+-
+-  if(NOT TARGET Blosc::blosc)
+-    add_library(Blosc::blosc UNKNOWN IMPORTED)
+-    set_target_properties(Blosc::blosc PROPERTIES
+-      IMPORTED_LOCATION "${Blosc_LIBRARIES}"
+-      INTERFACE_COMPILE_DEFINITIONS "${Blosc_DEFINITIONS}"
+-      INTERFACE_INCLUDE_DIRECTORIES "${Blosc_INCLUDE_DIRS}"
+-    )
+-  endif()
+-elseif(Blosc_FIND_REQUIRED)
+-  message(FATAL_ERROR "Unable to find Blosc")
+-endif()
+diff --git a/cmake/FindCppUnit.cmake b/cmake/FindCppUnit.cmake
+index e2beb93..a891624 100644
+--- a/cmake/FindCppUnit.cmake
++++ b/cmake/FindCppUnit.cmake
+@@ -125,7 +125,7 @@ list(APPEND _CPPUNIT_INCLUDE_SEARCH_DIRS
+ 
+ # Look for a standard cppunit header file.
+ find_path(CppUnit_INCLUDE_DIR cppunit/Portability.h
+-  NO_DEFAULT_PATH
++  # NO_DEFAULT_PATH
+   PATHS ${_CPPUNIT_INCLUDE_SEARCH_DIRS}
+   PATH_SUFFIXES include
+ )
+@@ -177,7 +177,7 @@ set(CPPUNIT_PATH_SUFFIXES
+ )
+ 
+ find_library(CppUnit_LIBRARY cppunit
+-  NO_DEFAULT_PATH
++  # NO_DEFAULT_PATH
+   PATHS ${_CPPUNIT_LIBRARYDIR_SEARCH_DIRS}
+   PATH_SUFFIXES ${CPPUNIT_PATH_SUFFIXES}
+ )
+diff --git a/cmake/FindIlmBase.cmake b/cmake/FindIlmBase.cmake
+deleted file mode 100644
+index 9dbc252..0000000
+--- a/cmake/FindIlmBase.cmake
++++ /dev/null
+@@ -1,337 +0,0 @@
+-# Copyright (c) DreamWorks Animation LLC
+-#
+-# All rights reserved. This software is distributed under the
+-# Mozilla Public License 2.0 ( http://www.mozilla.org/MPL/2.0/ )
+-#
+-# Redistributions of source code must retain the above copyright
+-# and license notice and the following restrictions and disclaimer.
+-#
+-# *     Neither the name of DreamWorks Animation nor the names of
+-# its contributors may be used to endorse or promote products derived
+-# from this software without specific prior written permission.
+-#
+-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-# IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE
+-# LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00.
+-#
+-#[=======================================================================[.rst:
+-
+-FindIlmBase
+------------
+-
+-Find IlmBase include dirs and libraries
+-
+-Use this module by invoking find_package with the form::
+-
+-  find_package(IlmBase
+-    [version] [EXACT]      # Minimum or EXACT version
+-    [REQUIRED]             # Fail with error if IlmBase is not found
+-    [COMPONENTS <libs>...] # IlmBase libraries by their canonical name
+-                           # e.g. "Half" for "libHalf"
+-    )
+-
+-IMPORTED Targets
+-^^^^^^^^^^^^^^^^
+-
+-``IlmBase::Half``
+-  The Half library target.
+-``IlmBase::Iex``
+-  The Iex library target.
+-``IlmBase::IexMath``
+-  The IexMath library target.
+-``IlmBase::IlmThread``
+-  The IlmThread library target.
+-``IlmBase::Imath``
+-  The Imath library target.
+-
+-Result Variables
+-^^^^^^^^^^^^^^^^
+-
+-This will define the following variables:
+-
+-``IlmBase_FOUND``
+-  True if the system has the IlmBase library.
+-``IlmBase_VERSION``
+-  The version of the IlmBase library which was found.
+-``IlmBase_INCLUDE_DIRS``
+-  Include directories needed to use IlmBase.
+-``IlmBase_LIBRARIES``
+-  Libraries needed to link to IlmBase.
+-``IlmBase_LIBRARY_DIRS``
+-  IlmBase library directories.
+-``IlmBase_{COMPONENT}_FOUND``
+-  True if the system has the named IlmBase component.
+-
+-Cache Variables
+-^^^^^^^^^^^^^^^
+-
+-The following cache variables may also be set:
+-
+-``IlmBase_INCLUDE_DIR``
+-  The directory containing ``IlmBase/config-auto.h``.
+-``IlmBase_{COMPONENT}_LIBRARY``
+-  Individual component libraries for IlmBase
+-``IlmBase_{COMPONENT}_DLL``
+-  Individual component dlls for IlmBase on Windows.
+-
+-Hints
+-^^^^^
+-
+-Instead of explicitly setting the cache variables, the following variables
+-may be provided to tell this module where to look.
+-
+-``ILMBASE_ROOT``
+-  Preferred installation prefix.
+-``ILMBASE_INCLUDEDIR``
+-  Preferred include directory e.g. <prefix>/include
+-``ILMBASE_LIBRARYDIR``
+-  Preferred library directory e.g. <prefix>/lib
+-``SYSTEM_LIBRARY_PATHS``
+-  Paths appended to all include and lib searches.
+-
+-#]=======================================================================]
+-
+-# Support new if() IN_LIST operator
+-if(POLICY CMP0057)
+-  cmake_policy(SET CMP0057 NEW)
+-endif()
+-
+-mark_as_advanced(
+-  IlmBase_INCLUDE_DIR
+-  IlmBase_LIBRARY
+-)
+-
+-set(_ILMBASE_COMPONENT_LIST
+-  Half
+-  Iex
+-  IexMath
+-  IlmThread
+-  Imath
+-)
+-
+-if(IlmBase_FIND_COMPONENTS)
+-  set(ILMBASE_COMPONENTS_PROVIDED TRUE)
+-  set(_IGNORED_COMPONENTS "")
+-  foreach(COMPONENT ${IlmBase_FIND_COMPONENTS})
+-    if(NOT ${COMPONENT} IN_LIST _ILMBASE_COMPONENT_LIST)
+-      list(APPEND _IGNORED_COMPONENTS ${COMPONENT})
+-    endif()
+-  endforeach()
+-
+-  if(_IGNORED_COMPONENTS)
+-    message(STATUS "Ignoring unknown components of IlmBase:")
+-    foreach(COMPONENT ${_IGNORED_COMPONENTS})
+-      message(STATUS "  ${COMPONENT}")
+-    endforeach()
+-    list(REMOVE_ITEM IlmBase_FIND_COMPONENTS ${_IGNORED_COMPONENTS})
+-  endif()
+-else()
+-  set(ILMBASE_COMPONENTS_PROVIDED FALSE)
+-  set(IlmBase_FIND_COMPONENTS ${_ILMBASE_COMPONENT_LIST})
+-endif()
+-
+-# Append ILMBASE_ROOT or $ENV{ILMBASE_ROOT} if set (prioritize the direct cmake var)
+-set(_ILMBASE_ROOT_SEARCH_DIR "")
+-
+-if(ILMBASE_ROOT)
+-  list(APPEND _ILMBASE_ROOT_SEARCH_DIR ${ILMBASE_ROOT})
+-else()
+-  set(_ENV_ILMBASE_ROOT $ENV{ILMBASE_ROOT})
+-  if(_ENV_ILMBASE_ROOT)
+-    list(APPEND _ILMBASE_ROOT_SEARCH_DIR ${_ENV_ILMBASE_ROOT})
+-  endif()
+-endif()
+-
+-# Additionally try and use pkconfig to find IlmBase
+-
+-find_package(PkgConfig)
+-pkg_check_modules(PC_IlmBase QUIET IlmBase)
+-
+-# ------------------------------------------------------------------------
+-#  Search for IlmBase include DIR
+-# ------------------------------------------------------------------------
+-
+-set(_ILMBASE_INCLUDE_SEARCH_DIRS "")
+-list(APPEND _ILMBASE_INCLUDE_SEARCH_DIRS
+-  ${ILMBASE_INCLUDEDIR}
+-  ${_ILMBASE_ROOT_SEARCH_DIR}
+-  ${PC_IlmBase_INCLUDEDIR}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Look for a standard IlmBase header file.
+-find_path(IlmBase_INCLUDE_DIR IlmBaseConfig.h
+-  NO_DEFAULT_PATH
+-  PATHS ${_ILMBASE_INCLUDE_SEARCH_DIRS}
+-  PATH_SUFFIXES include/OpenEXR OpenEXR
+-)
+-
+-if(EXISTS "${IlmBase_INCLUDE_DIR}/IlmBaseConfig.h")
+-  # Get the ILMBASE version information from the config header
+-  file(STRINGS "${IlmBase_INCLUDE_DIR}/IlmBaseConfig.h"
+-    _ilmbase_version_major_string REGEX "#define ILMBASE_VERSION_MAJOR "
+-  )
+-  string(REGEX REPLACE "#define ILMBASE_VERSION_MAJOR" ""
+-    _ilmbase_version_major_string "${_ilmbase_version_major_string}"
+-  )
+-  string(STRIP "${_ilmbase_version_major_string}" IlmBase_VERSION_MAJOR)
+-
+-  file(STRINGS "${IlmBase_INCLUDE_DIR}/IlmBaseConfig.h"
+-     _ilmbase_version_minor_string REGEX "#define ILMBASE_VERSION_MINOR "
+-  )
+-  string(REGEX REPLACE "#define ILMBASE_VERSION_MINOR" ""
+-    _ilmbase_version_minor_string "${_ilmbase_version_minor_string}"
+-  )
+-  string(STRIP "${_ilmbase_version_minor_string}" IlmBase_VERSION_MINOR)
+-
+-  unset(_ilmbase_version_major_string)
+-  unset(_ilmbase_version_minor_string)
+-
+-  set(IlmBase_VERSION ${IlmBase_VERSION_MAJOR}.${IlmBase_VERSION_MINOR})
+-endif()
+-
+-# ------------------------------------------------------------------------
+-#  Search for ILMBASE lib DIR
+-# ------------------------------------------------------------------------
+-
+-set(_ILMBASE_LIBRARYDIR_SEARCH_DIRS "")
+-
+-# Append to _ILMBASE_LIBRARYDIR_SEARCH_DIRS in priority order
+-
+-list(APPEND _ILMBASE_LIBRARYDIR_SEARCH_DIRS
+-  ${ILMBASE_LIBRARYDIR}
+-  ${_ILMBASE_ROOT_SEARCH_DIR}
+-  ${PC_IlmBase_LIBDIR}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Build suffix directories
+-
+-set(ILMBASE_PATH_SUFFIXES
+-  lib64
+-  lib
+-)
+-
+-if(UNIX)
+-  list(INSERT ILMBASE_PATH_SUFFIXES 0 lib/x86_64-linux-gnu)
+-endif()
+-
+-set(_ILMBASE_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-
+-# library suffix handling
+-if(WIN32)
+-  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-    "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.lib"
+-  )
+-else()
+-  if(ILMBASE_USE_STATIC_LIBS)
+-    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-      "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.a"
+-    )
+-  else()
+-    if(APPLE)
+-      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-        "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.dylib"
+-      )
+-    else()
+-      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-        "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.so"
+-      )
+-    endif()
+-  endif()
+-endif()
+-
+-set(IlmBase_LIB_COMPONENTS "")
+-
+-foreach(COMPONENT ${IlmBase_FIND_COMPONENTS})
+-  find_library(IlmBase_${COMPONENT}_LIBRARY ${COMPONENT}
+-    NO_DEFAULT_PATH
+-    PATHS ${_ILMBASE_LIBRARYDIR_SEARCH_DIRS}
+-    PATH_SUFFIXES ${ILMBASE_PATH_SUFFIXES}
+-  )
+-  list(APPEND IlmBase_LIB_COMPONENTS ${IlmBase_${COMPONENT}_LIBRARY})
+-
+-  if(WIN32 AND NOT ILMBASE_USE_STATIC_LIBS)
+-    set(_ILMBASE_TMP ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+-    find_library(IlmBase_${COMPONENT}_DLL ${COMPONENT}
+-      NO_DEFAULT_PATH
+-      PATHS ${_ILMBASE_LIBRARYDIR_SEARCH_DIRS}
+-      PATH_SUFFIXES bin
+-    )
+-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ILMBASE_TMP})
+-    unset(_ILMBASE_TMP)
+-  endif()
+-
+-  if(IlmBase_${COMPONENT}_LIBRARY)
+-    set(IlmBase_${COMPONENT}_FOUND TRUE)
+-  else()
+-    set(IlmBase_${COMPONENT}_FOUND FALSE)
+-  endif()
+-endforeach()
+-
+-# reset lib suffix
+-
+-set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ILMBASE_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+-unset(_ILMBASE_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES)
+-
+-# ------------------------------------------------------------------------
+-#  Cache and set ILMBASE_FOUND
+-# ------------------------------------------------------------------------
+-
+-include(FindPackageHandleStandardArgs)
+-find_package_handle_standard_args(IlmBase
+-  FOUND_VAR IlmBase_FOUND
+-  REQUIRED_VARS
+-    IlmBase_INCLUDE_DIR
+-    IlmBase_LIB_COMPONENTS
+-  VERSION_VAR IlmBase_VERSION
+-  HANDLE_COMPONENTS
+-)
+-
+-if(IlmBase_FOUND)
+-  set(IlmBase_LIBRARIES ${IlmBase_LIB_COMPONENTS})
+-
+-  # We have to add both include and include/OpenEXR to the include
+-  # path in case OpenEXR and IlmBase are installed separately
+-
+-  set(IlmBase_INCLUDE_DIRS)
+-  list(APPEND IlmBase_INCLUDE_DIRS
+-    ${IlmBase_INCLUDE_DIR}/../
+-    ${IlmBase_INCLUDE_DIR}
+-  )
+-  set(IlmBase_DEFINITIONS ${PC_IlmBase_CFLAGS_OTHER})
+-
+-  set(IlmBase_LIBRARY_DIRS "")
+-  foreach(LIB ${IlmBase_LIB_COMPONENTS})
+-    get_filename_component(_ILMBASE_LIBDIR ${LIB} DIRECTORY)
+-    list(APPEND IlmBase_LIBRARY_DIRS ${_ILMBASE_LIBDIR})
+-  endforeach()
+-  list(REMOVE_DUPLICATES IlmBase_LIBRARY_DIRS)
+-
+-  # Configure imported targets
+-
+-  foreach(COMPONENT ${IlmBase_FIND_COMPONENTS})
+-    if(NOT TARGET IlmBase::${COMPONENT})
+-      add_library(IlmBase::${COMPONENT} UNKNOWN IMPORTED)
+-      set_target_properties(IlmBase::${COMPONENT} PROPERTIES
+-        IMPORTED_LOCATION "${IlmBase_${COMPONENT}_LIBRARY}"
+-        INTERFACE_COMPILE_OPTIONS "${IlmBase_DEFINITIONS}"
+-        INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}"
+-      )
+-    endif()
+-  endforeach()
+-
+-elseif(IlmBase_FIND_REQUIRED)
+-  message(FATAL_ERROR "Unable to find IlmBase")
+-endif()
+diff --git a/cmake/FindOpenEXR.cmake b/cmake/FindOpenEXR.cmake
+deleted file mode 100644
+index 339c1a2..0000000
+--- a/cmake/FindOpenEXR.cmake
++++ /dev/null
+@@ -1,329 +0,0 @@
+-# Copyright (c) DreamWorks Animation LLC
+-#
+-# All rights reserved. This software is distributed under the
+-# Mozilla Public License 2.0 ( http://www.mozilla.org/MPL/2.0/ )
+-#
+-# Redistributions of source code must retain the above copyright
+-# and license notice and the following restrictions and disclaimer.
+-#
+-# *     Neither the name of DreamWorks Animation nor the names of
+-# its contributors may be used to endorse or promote products derived
+-# from this software without specific prior written permission.
+-#
+-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-# IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE
+-# LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00.
+-#
+-#[=======================================================================[.rst:
+-
+-FindOpenEXR
+------------
+-
+-Find OpenEXR include dirs and libraries
+-
+-Use this module by invoking find_package with the form::
+-
+-  find_package(OpenEXR
+-    [version] [EXACT]      # Minimum or EXACT version
+-    [REQUIRED]             # Fail with error if OpenEXR is not found
+-    [COMPONENTS <libs>...] # OpenEXR libraries by their canonical name
+-                           # e.g. "IlmImf" for "libIlmImf"
+-    )
+-
+-IMPORTED Targets
+-^^^^^^^^^^^^^^^^
+-
+-``OpenEXR::IlmImf``
+-  The IlmImf library target.
+-``OpenEXR::IlmImfUtil``
+-  The IlmImfUtil library target.
+-
+-Result Variables
+-^^^^^^^^^^^^^^^^
+-
+-This will define the following variables:
+-
+-``OpenEXR_FOUND``
+-  True if the system has the OpenEXR library.
+-``OpenEXR_VERSION``
+-  The version of the OpenEXR library which was found.
+-``OpenEXR_INCLUDE_DIRS``
+-  Include directories needed to use OpenEXR.
+-``OpenEXR_LIBRARIES``
+-  Libraries needed to link to OpenEXR.
+-``OpenEXR_LIBRARY_DIRS``
+-  OpenEXR library directories.
+-``OpenEXR_DEFINITIONS``
+-  Definitions to use when compiling code that uses OpenEXR.
+-``OpenEXR_{COMPONENT}_FOUND``
+-  True if the system has the named OpenEXR component.
+-
+-Cache Variables
+-^^^^^^^^^^^^^^^
+-
+-The following cache variables may also be set:
+-
+-``OpenEXR_INCLUDE_DIR``
+-  The directory containing ``OpenEXR/config-auto.h``.
+-``OpenEXR_{COMPONENT}_LIBRARY``
+-  Individual component libraries for OpenEXR
+-``OpenEXR_{COMPONENT}_DLL``
+-  Individual component dlls for OpenEXR on Windows.
+-
+-Hints
+-^^^^^
+-
+-Instead of explicitly setting the cache variables, the following variables
+-may be provided to tell this module where to look.
+-
+-``OPENEXR_ROOT``
+-  Preferred installation prefix.
+-``OPENEXR_INCLUDEDIR``
+-  Preferred include directory e.g. <prefix>/include
+-``OPENEXR_LIBRARYDIR``
+-  Preferred library directory e.g. <prefix>/lib
+-``SYSTEM_LIBRARY_PATHS``
+-  Paths appended to all include and lib searches.
+-
+-#]=======================================================================]
+-
+-# Support new if() IN_LIST operator
+-if(POLICY CMP0057)
+-  cmake_policy(SET CMP0057 NEW)
+-endif()
+-
+-mark_as_advanced(
+-  OpenEXR_INCLUDE_DIR
+-  OpenEXR_LIBRARY
+-)
+-
+-set(_OPENEXR_COMPONENT_LIST
+-  IlmImf
+-  IlmImfUtil
+-)
+-
+-if(OpenEXR_FIND_COMPONENTS)
+-  set(OPENEXR_COMPONENTS_PROVIDED TRUE)
+-  set(_IGNORED_COMPONENTS "")
+-  foreach(COMPONENT ${OpenEXR_FIND_COMPONENTS})
+-    if(NOT ${COMPONENT} IN_LIST _OPENEXR_COMPONENT_LIST)
+-      list(APPEND _IGNORED_COMPONENTS ${COMPONENT})
+-    endif()
+-  endforeach()
+-
+-  if(_IGNORED_COMPONENTS)
+-    message(STATUS "Ignoring unknown components of OpenEXR:")
+-    foreach(COMPONENT ${_IGNORED_COMPONENTS})
+-      message(STATUS "  ${COMPONENT}")
+-    endforeach()
+-    list(REMOVE_ITEM OpenEXR_FIND_COMPONENTS ${_IGNORED_COMPONENTS})
+-  endif()
+-else()
+-  set(OPENEXR_COMPONENTS_PROVIDED FALSE)
+-  set(OpenEXR_FIND_COMPONENTS ${_OPENEXR_COMPONENT_LIST})
+-endif()
+-
+-# Append OPENEXR_ROOT or $ENV{OPENEXR_ROOT} if set (prioritize the direct cmake var)
+-set(_OPENEXR_ROOT_SEARCH_DIR "")
+-
+-if(OPENEXR_ROOT)
+-  list(APPEND _OPENEXR_ROOT_SEARCH_DIR ${OPENEXR_ROOT})
+-else()
+-  set(_ENV_OPENEXR_ROOT $ENV{OPENEXR_ROOT})
+-  if(_ENV_OPENEXR_ROOT)
+-    list(APPEND _OPENEXR_ROOT_SEARCH_DIR ${_ENV_OPENEXR_ROOT})
+-  endif()
+-endif()
+-
+-# Additionally try and use pkconfig to find OpenEXR
+-
+-find_package(PkgConfig)
+-pkg_check_modules(PC_OpenEXR QUIET OpenEXR)
+-
+-# ------------------------------------------------------------------------
+-#  Search for OpenEXR include DIR
+-# ------------------------------------------------------------------------
+-
+-set(_OPENEXR_INCLUDE_SEARCH_DIRS "")
+-list(APPEND _OPENEXR_INCLUDE_SEARCH_DIRS
+-  ${OPENEXR_INCLUDEDIR}
+-  ${_OPENEXR_ROOT_SEARCH_DIR}
+-  ${PC_OpenEXR_INCLUDEDIR}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Look for a standard OpenEXR header file.
+-find_path(OpenEXR_INCLUDE_DIR OpenEXRConfig.h
+-  NO_DEFAULT_PATH
+-  PATHS ${_OPENEXR_INCLUDE_SEARCH_DIRS}
+-  PATH_SUFFIXES  include/OpenEXR OpenEXR
+-)
+-
+-if(EXISTS "${OpenEXR_INCLUDE_DIR}/OpenEXRConfig.h")
+-  # Get the EXR version information from the config header
+-  file(STRINGS "${OpenEXR_INCLUDE_DIR}/OpenEXRConfig.h"
+-    _openexr_version_major_string REGEX "#define OPENEXR_VERSION_MAJOR "
+-  )
+-  string(REGEX REPLACE "#define OPENEXR_VERSION_MAJOR" ""
+-    _openexr_version_major_string "${_openexr_version_major_string}"
+-  )
+-  string(STRIP "${_openexr_version_major_string}" OpenEXR_VERSION_MAJOR)
+-
+-  file(STRINGS "${OpenEXR_INCLUDE_DIR}/OpenEXRConfig.h"
+-     _openexr_version_minor_string REGEX "#define OPENEXR_VERSION_MINOR "
+-  )
+-  string(REGEX REPLACE "#define OPENEXR_VERSION_MINOR" ""
+-    _openexr_version_minor_string "${_openexr_version_minor_string}"
+-  )
+-  string(STRIP "${_openexr_version_minor_string}" OpenEXR_VERSION_MINOR)
+-
+-  unset(_openexr_version_major_string)
+-  unset(_openexr_version_minor_string)
+-
+-  set(OpenEXR_VERSION ${OpenEXR_VERSION_MAJOR}.${OpenEXR_VERSION_MINOR})
+-endif()
+-
+-# ------------------------------------------------------------------------
+-#  Search for OPENEXR lib DIR
+-# ------------------------------------------------------------------------
+-
+-set(_OPENEXR_LIBRARYDIR_SEARCH_DIRS "")
+-
+-# Append to _OPENEXR_LIBRARYDIR_SEARCH_DIRS in priority order
+-
+-list(APPEND _OPENEXR_LIBRARYDIR_SEARCH_DIRS
+-  ${OPENEXR_LIBRARYDIR}
+-  ${_OPENEXR_ROOT_SEARCH_DIR}
+-  ${PC_OpenEXR_LIBDIR}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Build suffix directories
+-
+-set(OPENEXR_PATH_SUFFIXES
+-  lib64
+-  lib
+-)
+-
+-if(UNIX )
+-  list(INSERT OPENEXR_PATH_SUFFIXES 0 lib/x86_64-linux-gnu)
+-endif()
+-
+-set(_OPENEXR_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-
+-# library suffix handling
+-if(WIN32)
+-  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-    "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.lib"
+-  )
+-else()
+-  if(OPENEXR_USE_STATIC_LIBS)
+-    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-      "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.a"
+-    )
+-  else()
+-    if(APPLE)
+-      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-        "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.dylib"
+-      )
+-    else()
+-      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
+-        "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.so"
+-      )
+-    endif()
+-  endif()
+-endif()
+-
+-set(OpenEXR_LIB_COMPONENTS "")
+-
+-foreach(COMPONENT ${OpenEXR_FIND_COMPONENTS})
+-  find_library(OpenEXR_${COMPONENT}_LIBRARY ${COMPONENT}
+-    NO_DEFAULT_PATH
+-    PATHS ${_OPENEXR_LIBRARYDIR_SEARCH_DIRS}
+-    PATH_SUFFIXES ${OPENEXR_PATH_SUFFIXES}
+-  )
+-  list(APPEND OpenEXR_LIB_COMPONENTS ${OpenEXR_${COMPONENT}_LIBRARY})
+-
+-  if(WIN32 AND NOT OPENEXR_USE_STATIC_LIBS)
+-    set(_OPENEXR_TMP ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+-    find_library(OpenEXR_${COMPONENT}_DLL ${COMPONENT}
+-      NO_DEFAULT_PATH
+-      PATHS ${_OPENEXR_LIBRARYDIR_SEARCH_DIRS}
+-      PATH_SUFFIXES bin
+-    )
+-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_OPENEXR_TMP})
+-    unset(_OPENEXR_TMP)
+-  endif()
+-
+-  if(OpenEXR_${COMPONENT}_LIBRARY)
+-    set(OpenEXR_${COMPONENT}_FOUND TRUE)
+-  else()
+-    set(OpenEXR_${COMPONENT}_FOUND FALSE)
+-  endif()
+-endforeach()
+-
+-# reset lib suffix
+-
+-set(CMAKE_FIND_LIBRARY_SUFFIXES ${_OPENEXR_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+-unset(_OPENEXR_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES)
+-
+-# ------------------------------------------------------------------------
+-#  Cache and set OPENEXR_FOUND
+-# ------------------------------------------------------------------------
+-
+-include(FindPackageHandleStandardArgs)
+-find_package_handle_standard_args(OpenEXR
+-  FOUND_VAR OpenEXR_FOUND
+-  REQUIRED_VARS
+-    OpenEXR_INCLUDE_DIR
+-    OpenEXR_LIB_COMPONENTS
+-  VERSION_VAR OpenEXR_VERSION
+-  HANDLE_COMPONENTS
+-)
+-
+-if(OpenEXR_FOUND)
+-  set(OpenEXR_LIBRARIES ${OpenEXR_LIB_COMPONENTS})
+-
+-  # We have to add both include and include/OpenEXR to the include
+-  # path in case OpenEXR and IlmBase are installed separately
+-
+-  set(OpenEXR_INCLUDE_DIRS)
+-  list(APPEND OpenEXR_INCLUDE_DIRS
+-    ${OpenEXR_INCLUDE_DIR}/../
+-    ${OpenEXR_INCLUDE_DIR}
+-  )
+-  set(OpenEXR_DEFINITIONS ${PC_OpenEXR_CFLAGS_OTHER})
+-
+-  set(OpenEXR_LIBRARY_DIRS "")
+-  foreach(LIB ${OpenEXR_LIB_COMPONENTS})
+-    get_filename_component(_OPENEXR_LIBDIR ${LIB} DIRECTORY)
+-    list(APPEND OpenEXR_LIBRARY_DIRS ${_OPENEXR_LIBDIR})
+-  endforeach()
+-  list(REMOVE_DUPLICATES OpenEXR_LIBRARY_DIRS)
+-
+-  # Configure imported target
+-
+-  foreach(COMPONENT ${OpenEXR_FIND_COMPONENTS})
+-    if(NOT TARGET OpenEXR::${COMPONENT})
+-      add_library(OpenEXR::${COMPONENT} UNKNOWN IMPORTED)
+-      set_target_properties(OpenEXR::${COMPONENT} PROPERTIES
+-        IMPORTED_LOCATION "${OpenEXR_${COMPONENT}_LIBRARY}"
+-        INTERFACE_COMPILE_OPTIONS "${OpenEXR_DEFINITIONS}"
+-        INTERFACE_INCLUDE_DIRECTORIES "${OpenEXR_INCLUDE_DIRS}"
+-      )
+-    endif()
+-  endforeach()
+-elseif(OpenEXR_FIND_REQUIRED)
+-  message(FATAL_ERROR "Unable to find OpenEXR")
+-endif()
+diff --git a/cmake/FindOpenVDB.cmake b/cmake/FindOpenVDB.cmake
+index 63a2eda..6211071 100644
+--- a/cmake/FindOpenVDB.cmake
++++ b/cmake/FindOpenVDB.cmake
+@@ -244,7 +244,7 @@ set(OpenVDB_LIB_COMPONENTS "")
+ 
+ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
+   set(LIB_NAME ${COMPONENT})
+-  find_library(OpenVDB_${COMPONENT}_LIBRARY ${LIB_NAME}
++  find_library(OpenVDB_${COMPONENT}_LIBRARY ${LIB_NAME} lib${LIB_NAME}
+     NO_DEFAULT_PATH
+     PATHS ${_OPENVDB_LIBRARYDIR_SEARCH_DIRS}
+     PATH_SUFFIXES ${OPENVDB_PATH_SUFFIXES}
+@@ -282,16 +282,13 @@ find_package_handle_standard_args(OpenVDB
+ # ------------------------------------------------------------------------
+ 
+ # Set the ABI number the library was built against. Uses vdb_print
++find_program(OPENVDB_PRINT vdb_print
++  PATHS ${_OPENVDB_INSTALL}/bin ${OpenVDB_INCLUDE_DIR}
++  NO_DEFAULT_PATH)
+ 
+ if(_OPENVDB_INSTALL)
+   OPENVDB_ABI_VERSION_FROM_PRINT(
+-    "${_OPENVDB_INSTALL}/bin/vdb_print"
+-    ABI OpenVDB_ABI
+-  )
+-else()
+-  # Try and find vdb_print from the include path
+-  OPENVDB_ABI_VERSION_FROM_PRINT(
+-    "${OpenVDB_INCLUDE_DIR}/../bin/vdb_print"
++    "${OPENVDB_PRINT}"
+     ABI OpenVDB_ABI
+   )
+ endif()
+@@ -472,6 +469,12 @@ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
+       INTERFACE_LINK_LIBRARIES "${_OPENVDB_VISIBLE_DEPENDENCIES}" # visible deps (headers)
+       INTERFACE_COMPILE_FEATURES cxx_std_11
+    )
++
++   if (OPENVDB_USE_STATIC_LIBS)
++    set_target_properties(OpenVDB::${COMPONENT} PROPERTIES 
++      INTERFACE_COMPILE_DEFINITIONS "OPENVDB_STATICLIB;OPENVDB_OPENEXR_STATICLIB"
++    )
++   endif()
+   endif()
+ endforeach()
+ 
+diff --git a/cmake/FindTBB.cmake b/cmake/FindTBB.cmake
+index bdf9c81..ffdee03 100644
+--- a/cmake/FindTBB.cmake
++++ b/cmake/FindTBB.cmake
+@@ -1,333 +1,322 @@
+-# Copyright (c) DreamWorks Animation LLC
++# The MIT License (MIT)
+ #
+-# All rights reserved. This software is distributed under the
+-# Mozilla Public License 2.0 ( http://www.mozilla.org/MPL/2.0/ )
++# Copyright (c) 2015 Justus Calvin
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a copy
++# of this software and associated documentation files (the "Software"), to deal
++# in the Software without restriction, including without limitation the rights
++# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++# copies of the Software, and to permit persons to whom the Software is
++# furnished to do so, subject to the following conditions:
++# 
++# The above copyright notice and this permission notice shall be included in all
++# copies or substantial portions of the Software.
++# 
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++# SOFTWARE.
++
+ #
+-# Redistributions of source code must retain the above copyright
+-# and license notice and the following restrictions and disclaimer.
++# FindTBB
++# -------
+ #
+-# *     Neither the name of DreamWorks Animation nor the names of
+-# its contributors may be used to endorse or promote products derived
+-# from this software without specific prior written permission.
++# Find TBB include directories and libraries.
+ #
+-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-# IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE
+-# LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00.
++# Usage:
+ #
+-#[=======================================================================[.rst:
+-
+-FindTBB
+--------
+-
+-Find Tbb include dirs and libraries
+-
+-Use this module by invoking find_package with the form::
+-
+-  find_package(TBB
+-    [version] [EXACT]      # Minimum or EXACT version
+-    [REQUIRED]             # Fail with error if Tbb is not found
+-    [COMPONENTS <libs>...] # Tbb libraries by their canonical name
+-                           # e.g. "tbb" for "libtbb"
+-    )
+-
+-IMPORTED Targets
+-^^^^^^^^^^^^^^^^
+-
+-``TBB::tbb``
+-  The tbb library target.
+-``TBB::tbbmalloc``
+-  The tbbmalloc library target.
+-``TBB::tbbmalloc_proxy``
+-  The tbbmalloc_proxy library target.
+-
+-Result Variables
+-^^^^^^^^^^^^^^^^
+-
+-This will define the following variables:
+-
+-``Tbb_FOUND``
+-  True if the system has the Tbb library.
+-``Tbb_VERSION``
+-  The version of the Tbb library which was found.
+-``Tbb_INCLUDE_DIRS``
+-  Include directories needed to use Tbb.
+-``Tbb_LIBRARIES``
+-  Libraries needed to link to Tbb.
+-``Tbb_LIBRARY_DIRS``
+-  Tbb library directories.
+-``TBB_{COMPONENT}_FOUND``
+-  True if the system has the named TBB component.
+-
+-Cache Variables
+-^^^^^^^^^^^^^^^
+-
+-The following cache variables may also be set:
+-
+-``Tbb_INCLUDE_DIR``
+-  The directory containing ``tbb/tbb_stddef.h``.
+-``Tbb_{COMPONENT}_LIBRARY``
+-  Individual component libraries for Tbb
+-
+-Hints
+-^^^^^
+-
+-Instead of explicitly setting the cache variables, the following variables
+-may be provided to tell this module where to look.
+-
+-``TBB_ROOT``
+-  Preferred installation prefix.
+-``TBB_INCLUDEDIR``
+-  Preferred include directory e.g. <prefix>/include
+-``TBB_LIBRARYDIR``
+-  Preferred library directory e.g. <prefix>/lib
+-``SYSTEM_LIBRARY_PATHS``
+-  Paths appended to all include and lib searches.
+-
+-#]=======================================================================]
+-
+-# Support new if() IN_LIST operator
+-if(POLICY CMP0057)
+-  cmake_policy(SET CMP0057 NEW)
+-endif()
++#  find_package(TBB [major[.minor]] [EXACT]
++#               [QUIET] [REQUIRED]
++#               [[COMPONENTS] [components...]]
++#               [OPTIONAL_COMPONENTS components...]) 
++#
++# where the allowed components are tbbmalloc and tbb_preview. Users may modify 
++# the behavior of this module with the following variables:
++#
++# * TBB_ROOT_DIR          - The base directory the of TBB installation.
++# * TBB_INCLUDE_DIR       - The directory that contains the TBB headers files.
++# * TBB_LIBRARY           - The directory that contains the TBB library files.
++# * TBB_<library>_LIBRARY - The path of the TBB the corresponding TBB library. 
++#                           These libraries, if specified, override the 
++#                           corresponding library search results, where <library>
++#                           may be tbb, tbb_debug, tbbmalloc, tbbmalloc_debug,
++#                           tbb_preview, or tbb_preview_debug.
++# * TBB_USE_DEBUG_BUILD   - The debug version of tbb libraries, if present, will
++#                           be used instead of the release version.
++# * TBB_STATIC            - Static linking of libraries with a _static suffix.
++#                           For example, on Windows a tbb_static.lib will be searched for
++#                           instead of tbb.lib.
++#
++# Users may modify the behavior of this module with the following environment
++# variables:
++#
++# * TBB_INSTALL_DIR 
++# * TBBROOT
++# * LIBRARY_PATH
++#
++# This module will set the following variables:
++#
++# * TBB_FOUND             - Set to false, or undefined, if we haven’t found, or
++#                           don’t want to use TBB.
++# * TBB_<component>_FOUND - If False, optional <component> part of TBB sytem is
++#                           not available.
++# * TBB_VERSION           - The full version string
++# * TBB_VERSION_MAJOR     - The major version
++# * TBB_VERSION_MINOR     - The minor version
++# * TBB_INTERFACE_VERSION - The interface version number defined in 
++#                           tbb/tbb_stddef.h.
++# * TBB_<library>_LIBRARY_RELEASE - The path of the TBB release version of 
++#                           <library>, where <library> may be tbb, tbb_debug,
++#                           tbbmalloc, tbbmalloc_debug, tbb_preview, or 
++#                           tbb_preview_debug.
++# * TBB_<library>_LIBRARY_DEGUG - The path of the TBB release version of 
++#                           <library>, where <library> may be tbb, tbb_debug,
++#                           tbbmalloc, tbbmalloc_debug, tbb_preview, or 
++#                           tbb_preview_debug.
++#
++# The following varibles should be used to build and link with TBB:
++#
++# * TBB_INCLUDE_DIRS        - The include directory for TBB.
++# * TBB_LIBRARIES           - The libraries to link against to use TBB.
++# * TBB_LIBRARIES_RELEASE   - The release libraries to link against to use TBB.
++# * TBB_LIBRARIES_DEBUG     - The debug libraries to link against to use TBB.
++# * TBB_DEFINITIONS         - Definitions to use when compiling code that uses
++#                             TBB.
++# * TBB_DEFINITIONS_RELEASE - Definitions to use when compiling release code that
++#                             uses TBB.
++# * TBB_DEFINITIONS_DEBUG   - Definitions to use when compiling debug code that
++#                             uses TBB.
++#
++# This module will also create the "tbb" target that may be used when building
++# executables and libraries.
++
++include(FindPackageHandleStandardArgs)
++
++if(NOT TBB_FOUND)
+ 
+-mark_as_advanced(
+-  Tbb_INCLUDE_DIR
+-  Tbb_LIBRARY
+-)
+-
+-set(_TBB_COMPONENT_LIST
+-  tbb
+-  tbbmalloc
+-  tbbmalloc_proxy
+-)
+-
+-if(TBB_FIND_COMPONENTS)
+-  set(_TBB_COMPONENTS_PROVIDED TRUE)
+-  set(_IGNORED_COMPONENTS "")
+-  foreach(COMPONENT ${TBB_FIND_COMPONENTS})
+-    if(NOT ${COMPONENT} IN_LIST _TBB_COMPONENT_LIST)
+-      list(APPEND _IGNORED_COMPONENTS ${COMPONENT})
++  ##################################
++  # Check the build type
++  ##################################
++  
++  if(NOT DEFINED TBB_USE_DEBUG_BUILD)
++    if(CMAKE_BUILD_TYPE MATCHES "(Debug|DEBUG|debug)")
++      set(TBB_BUILD_TYPE DEBUG)
++    else()
++      set(TBB_BUILD_TYPE RELEASE)
++    endif()
++  elseif(TBB_USE_DEBUG_BUILD)
++    set(TBB_BUILD_TYPE DEBUG)
++  else()
++    set(TBB_BUILD_TYPE RELEASE)
++  endif()
++  
++  ##################################
++  # Set the TBB search directories
++  ##################################
++  
++  # Define search paths based on user input and environment variables
++  set(TBB_SEARCH_DIR ${TBB_ROOT_DIR} $ENV{TBB_INSTALL_DIR} $ENV{TBBROOT})
++  
++  # Define the search directories based on the current platform
++  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
++    set(TBB_DEFAULT_SEARCH_DIR "C:/Program Files/Intel/TBB"
++                               "C:/Program Files (x86)/Intel/TBB")
++
++    # Set the target architecture
++    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
++      set(TBB_ARCHITECTURE "intel64")
++    else()
++      set(TBB_ARCHITECTURE "ia32")
++    endif()
++
++    # Set the TBB search library path search suffix based on the version of VC
++    if(WINDOWS_STORE)
++      set(TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc11_ui")
++    elseif(MSVC14)
++      set(TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc14")
++    elseif(MSVC12)
++      set(TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc12")
++    elseif(MSVC11)
++      set(TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc11")
++    elseif(MSVC10)
++      set(TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc10")
+     endif()
+-  endforeach()
+ 
+-  if(_IGNORED_COMPONENTS)
+-    message(STATUS "Ignoring unknown components of TBB:")
+-    foreach(COMPONENT ${_IGNORED_COMPONENTS})
+-      message(STATUS "  ${COMPONENT}")
+-    endforeach()
+-    list(REMOVE_ITEM TBB_FIND_COMPONENTS ${_IGNORED_COMPONENTS})
++    # Add the library path search suffix for the VC independent version of TBB
++    list(APPEND TBB_LIB_PATH_SUFFIX "lib/${TBB_ARCHITECTURE}/vc_mt")
++
++  elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
++    # OS X
++    set(TBB_DEFAULT_SEARCH_DIR "/opt/intel/tbb")
++    
++    # TODO: Check to see which C++ library is being used by the compiler.
++    if(NOT ${CMAKE_SYSTEM_VERSION} VERSION_LESS 13.0)
++      # The default C++ library on OS X 10.9 and later is libc++
++      set(TBB_LIB_PATH_SUFFIX "lib/libc++" "lib")
++    else()
++      set(TBB_LIB_PATH_SUFFIX "lib")
++    endif()
++  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
++    # Linux
++    set(TBB_DEFAULT_SEARCH_DIR "/opt/intel/tbb")
++    
++    # TODO: Check compiler version to see the suffix should be <arch>/gcc4.1 or
++    #       <arch>/gcc4.1. For now, assume that the compiler is more recent than
++    #       gcc 4.4.x or later.
++    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
++      set(TBB_LIB_PATH_SUFFIX "lib/intel64/gcc4.4")
++    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
++      set(TBB_LIB_PATH_SUFFIX "lib/ia32/gcc4.4")
++    endif()
++  endif()
++  
++  ##################################
++  # Find the TBB include dir
++  ##################################
++  
++  find_path(TBB_INCLUDE_DIRS tbb/tbb.h
++      HINTS ${TBB_INCLUDE_DIR} ${TBB_SEARCH_DIR}
++      PATHS ${TBB_DEFAULT_SEARCH_DIR}
++      PATH_SUFFIXES include)
++
++  ##################################
++  # Set version strings
++  ##################################
++
++  if(TBB_INCLUDE_DIRS)
++    file(READ "${TBB_INCLUDE_DIRS}/tbb/tbb_stddef.h" _tbb_version_file)
++    string(REGEX REPLACE ".*#define TBB_VERSION_MAJOR ([0-9]+).*" "\\1"
++        TBB_VERSION_MAJOR "${_tbb_version_file}")
++    string(REGEX REPLACE ".*#define TBB_VERSION_MINOR ([0-9]+).*" "\\1"
++        TBB_VERSION_MINOR "${_tbb_version_file}")
++    string(REGEX REPLACE ".*#define TBB_INTERFACE_VERSION ([0-9]+).*" "\\1"
++        TBB_INTERFACE_VERSION "${_tbb_version_file}")
++    set(TBB_VERSION "${TBB_VERSION_MAJOR}.${TBB_VERSION_MINOR}")
+   endif()
+-else()
+-  set(_TBB_COMPONENTS_PROVIDED FALSE)
+-  set(TBB_FIND_COMPONENTS ${_TBB_COMPONENT_LIST})
+-endif()
+ 
+-# Append TBB_ROOT or $ENV{TBB_ROOT} if set (prioritize the direct cmake var)
+-set(_TBB_ROOT_SEARCH_DIR "")
++  ##################################
++  # Find TBB components
++  ##################################
+ 
+-if(TBB_ROOT)
+-  list(APPEND _TBB_ROOT_SEARCH_DIR ${TBB_ROOT})
+-else()
+-  set(_ENV_TBB_ROOT $ENV{TBB_ROOT})
+-  if(_ENV_TBB_ROOT)
+-    list(APPEND _TBB_ROOT_SEARCH_DIR ${_ENV_TBB_ROOT})
++  if(TBB_VERSION VERSION_LESS 4.3)
++    set(TBB_SEARCH_COMPOMPONENTS tbb_preview tbbmalloc tbb)
++  else()
++    set(TBB_SEARCH_COMPOMPONENTS tbb_preview tbbmalloc_proxy tbbmalloc tbb)
+   endif()
+-endif()
+ 
+-# Additionally try and use pkconfig to find Tbb
+-
+-find_package(PkgConfig)
+-pkg_check_modules(PC_Tbb QUIET tbb)
+-
+-# ------------------------------------------------------------------------
+-#  Search for tbb include DIR
+-# ------------------------------------------------------------------------
+-
+-set(_TBB_INCLUDE_SEARCH_DIRS "")
+-list(APPEND _TBB_INCLUDE_SEARCH_DIRS
+-  ${TBB_INCLUDEDIR}
+-  ${_TBB_ROOT_SEARCH_DIR}
+-  ${PC_Tbb_INCLUDE_DIRS}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
+-
+-# Look for a standard tbb header file.
+-find_path(Tbb_INCLUDE_DIR tbb/tbb_stddef.h
+-  NO_DEFAULT_PATH
+-  PATHS ${_TBB_INCLUDE_SEARCH_DIRS}
+-  PATH_SUFFIXES include
+-)
+-
+-if(EXISTS "${Tbb_INCLUDE_DIR}/tbb/tbb_stddef.h")
+-  file(STRINGS "${Tbb_INCLUDE_DIR}/tbb/tbb_stddef.h"
+-    _tbb_version_major_string REGEX "#define TBB_VERSION_MAJOR "
+-  )
+-  string(REGEX REPLACE "#define TBB_VERSION_MAJOR" ""
+-    _tbb_version_major_string "${_tbb_version_major_string}"
+-  )
+-  string(STRIP "${_tbb_version_major_string}" Tbb_VERSION_MAJOR)
+-
+-  file(STRINGS "${Tbb_INCLUDE_DIR}/tbb/tbb_stddef.h"
+-     _tbb_version_minor_string REGEX "#define TBB_VERSION_MINOR "
+-  )
+-  string(REGEX REPLACE "#define TBB_VERSION_MINOR" ""
+-    _tbb_version_minor_string "${_tbb_version_minor_string}"
+-  )
+-  string(STRIP "${_tbb_version_minor_string}" Tbb_VERSION_MINOR)
+-
+-  unset(_tbb_version_major_string)
+-  unset(_tbb_version_minor_string)
+-
+-  set(Tbb_VERSION ${Tbb_VERSION_MAJOR}.${Tbb_VERSION_MINOR})
+-endif()
++  if(TBB_STATIC)
++    set(TBB_STATIC_SUFFIX "_static")
++  endif()
++
++  # Find each component
++  foreach(_comp ${TBB_SEARCH_COMPOMPONENTS})
++    if(";${TBB_FIND_COMPONENTS};tbb;" MATCHES ";${_comp};")
+ 
+-# ------------------------------------------------------------------------
+-#  Search for TBB lib DIR
+-# ------------------------------------------------------------------------
++      # Search for the libraries
++      find_library(TBB_${_comp}_LIBRARY_RELEASE ${_comp}${TBB_STATIC_SUFFIX}
++          HINTS ${TBB_LIBRARY} ${TBB_SEARCH_DIR}
++          PATHS ${TBB_DEFAULT_SEARCH_DIR} ENV LIBRARY_PATH
++          PATH_SUFFIXES ${TBB_LIB_PATH_SUFFIX})
+ 
+-set(_TBB_LIBRARYDIR_SEARCH_DIRS "")
++      find_library(TBB_${_comp}_LIBRARY_DEBUG ${_comp}${TBB_STATIC_SUFFIX}_debug
++          HINTS ${TBB_LIBRARY} ${TBB_SEARCH_DIR}
++          PATHS ${TBB_DEFAULT_SEARCH_DIR} ENV LIBRARY_PATH
++          PATH_SUFFIXES ${TBB_LIB_PATH_SUFFIX})
+ 
+-# Append to _TBB_LIBRARYDIR_SEARCH_DIRS in priority order
++      if(TBB_${_comp}_LIBRARY_DEBUG)
++        list(APPEND TBB_LIBRARIES_DEBUG "${TBB_${_comp}_LIBRARY_DEBUG}")
++      endif()
++      if(TBB_${_comp}_LIBRARY_RELEASE)
++        list(APPEND TBB_LIBRARIES_RELEASE "${TBB_${_comp}_LIBRARY_RELEASE}")
++      endif()
++      if(TBB_${_comp}_LIBRARY_${TBB_BUILD_TYPE} AND NOT TBB_${_comp}_LIBRARY)
++        set(TBB_${_comp}_LIBRARY "${TBB_${_comp}_LIBRARY_${TBB_BUILD_TYPE}}")
++      endif()
+ 
+-set(_TBB_LIBRARYDIR_SEARCH_DIRS "")
+-list(APPEND _TBB_LIBRARYDIR_SEARCH_DIRS
+-  ${TBB_LIBRARYDIR}
+-  ${_TBB_ROOT_SEARCH_DIR}
+-  ${PC_Tbb_LIBRARY_DIRS}
+-  ${SYSTEM_LIBRARY_PATHS}
+-)
++      if(TBB_${_comp}_LIBRARY AND EXISTS "${TBB_${_comp}_LIBRARY}")
++        set(TBB_${_comp}_FOUND TRUE)
++      else()
++        set(TBB_${_comp}_FOUND FALSE)
++      endif()
+ 
+-set(TBB_PATH_SUFFIXES
+-  lib64
+-  lib
+-)
++      # Mark internal variables as advanced
++      mark_as_advanced(TBB_${_comp}_LIBRARY_RELEASE)
++      mark_as_advanced(TBB_${_comp}_LIBRARY_DEBUG)
++      mark_as_advanced(TBB_${_comp}_LIBRARY)
+ 
+-# platform branching
++    endif()
++  endforeach()
+ 
+-if(UNIX)
+-  list(INSERT TBB_PATH_SUFFIXES 0 lib/x86_64-linux-gnu)
+-endif()
++  ##################################
++  # Set compile flags and libraries
++  ##################################
+ 
+-if(APPLE)
+-  if(TBB_FOR_CLANG)
+-    list(INSERT TBB_PATH_SUFFIXES 0 lib/libc++)
++  set(TBB_DEFINITIONS_RELEASE "")
++  set(TBB_DEFINITIONS_DEBUG "TBB_USE_DEBUG=1")
++    
++  if(TBB_LIBRARIES_${TBB_BUILD_TYPE})
++    set(TBB_LIBRARIES "${TBB_LIBRARIES_${TBB_BUILD_TYPE}}")
+   endif()
+-elseif(WIN32)
+-  if(MSVC10)
+-    set(TBB_VC_DIR vc10)
+-  elseif(MSVC11)
+-    set(TBB_VC_DIR vc11)
+-  elseif(MSVC12)
+-    set(TBB_VC_DIR vc12)
+-  endif()
+-  list(INSERT TBB_PATH_SUFFIXES 0 lib/intel64/${TBB_VC_DIR})
+-else()
+-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+-    if(TBB_MATCH_COMPILER_VERSION)
+-      string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${CMAKE_CXX_COMPILER_VERSION})
+-      list(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
+-      list(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
+-      list(INSERT TBB_PATH_SUFFIXES 0 lib/intel64/gcc${GCC_MAJOR}.${GCC_MINOR})
+-    else()
+-      list(INSERT TBB_PATH_SUFFIXES 0 lib/intel64/gcc4.4)
+-    endif()
++  
++  if(NOT MSVC AND NOT TBB_LIBRARIES)
++    set(TBB_LIBRARIES ${TBB_LIBRARIES_RELEASE})
+   endif()
+-endif()
+ 
+-if(UNIX AND TBB_USE_STATIC_LIBS)
+-  set(_TBB_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+-endif()
++  if (MSVC AND TBB_STATIC)
++    set(TBB_DEFINITIONS __TBB_NO_IMPLICIT_LINKAGE)
++  endif ()
++
++  unset (TBB_STATIC_SUFFIX)
++
++  find_package_handle_standard_args(TBB 
++      REQUIRED_VARS TBB_INCLUDE_DIRS TBB_LIBRARIES
++      HANDLE_COMPONENTS
++      VERSION_VAR TBB_VERSION)
++
++  ##################################
++  # Create targets
++  ##################################
++
++  if(NOT CMAKE_VERSION VERSION_LESS 3.0 AND TBB_FOUND)
++    add_library(TBB::tbb UNKNOWN IMPORTED)
++    set_target_properties(TBB::tbb PROPERTIES
++          INTERFACE_INCLUDE_DIRECTORIES  ${TBB_INCLUDE_DIRS}
++          IMPORTED_LOCATION              ${TBB_LIBRARIES})
++    if(TBB_LIBRARIES_RELEASE AND TBB_LIBRARIES_DEBUG)
++      set_target_properties(TBB::tbb PROPERTIES
++          INTERFACE_COMPILE_DEFINITIONS "${TBB_DEFINITIONS};$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:${TBB_DEFINITIONS_DEBUG}>;$<$<CONFIG:Release>:${TBB_DEFINITIONS_RELEASE}>"
++          IMPORTED_LOCATION_DEBUG          ${TBB_LIBRARIES_DEBUG}
++          IMPORTED_LOCATION_RELWITHDEBINFO ${TBB_LIBRARIES_RELEASE}
++          IMPORTED_LOCATION_RELEASE        ${TBB_LIBRARIES_RELEASE}
++          IMPORTED_LOCATION_MINSIZEREL     ${TBB_LIBRARIES_RELEASE}
++          )
++    endif()
+ 
+-set(Tbb_LIB_COMPONENTS "")
+-
+-foreach(COMPONENT ${TBB_FIND_COMPONENTS})
+-  find_library(Tbb_${COMPONENT}_LIBRARY ${COMPONENT}
+-    NO_DEFAULT_PATH
+-    PATHS ${_TBB_LIBRARYDIR_SEARCH_DIRS}
+-    PATH_SUFFIXES ${TBB_PATH_SUFFIXES}
+-  )
+-
+-  # On Unix, TBB sometimes uses linker scripts instead of symlinks, so parse the linker script
+-  # and correct the library name if so
+-  if(UNIX AND EXISTS ${Tbb_${COMPONENT}_LIBRARY})
+-    # Ignore files where the first four bytes equals the ELF magic number
+-    file(READ ${Tbb_${COMPONENT}_LIBRARY} Tbb_${COMPONENT}_HEX OFFSET 0 LIMIT 4 HEX)
+-    if(NOT ${Tbb_${COMPONENT}_HEX} STREQUAL "7f454c46")
+-      # Read the first 1024 bytes of the library and match against an "INPUT (file)" regex
+-      file(READ ${Tbb_${COMPONENT}_LIBRARY} Tbb_${COMPONENT}_ASCII OFFSET 0 LIMIT 1024)
+-      if("${Tbb_${COMPONENT}_ASCII}" MATCHES "INPUT \\(([^(]+)\\)")
+-        # Extract the directory and apply the matched text (in brackets)
+-        get_filename_component(Tbb_${COMPONENT}_DIR "${Tbb_${COMPONENT}_LIBRARY}" DIRECTORY)
+-        set(Tbb_${COMPONENT}_LIBRARY "${Tbb_${COMPONENT}_DIR}/${CMAKE_MATCH_1}")
+-      endif()
++    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
++       find_package(Threads QUIET REQUIRED)
++       set_target_properties(TBB::tbb PROPERTIES INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS};Threads::Threads")
+     endif()
+   endif()
+ 
+-  list(APPEND Tbb_LIB_COMPONENTS ${Tbb_${COMPONENT}_LIBRARY})
+-
+-  if(Tbb_${COMPONENT}_LIBRARY)
+-    set(TBB_${COMPONENT}_FOUND TRUE)
+-  else()
+-    set(TBB_${COMPONENT}_FOUND FALSE)
++  mark_as_advanced(TBB_INCLUDE_DIRS TBB_LIBRARIES)
++
++  unset(TBB_ARCHITECTURE)
++  unset(TBB_BUILD_TYPE)
++  unset(TBB_LIB_PATH_SUFFIX)
++  unset(TBB_DEFAULT_SEARCH_DIR)
++
++  if(TBB_DEBUG)
++    message(STATUS "  TBB_FOUND               = ${TBB_FOUND}")
++    message(STATUS "  TBB_INCLUDE_DIRS        = ${TBB_INCLUDE_DIRS}")
++    message(STATUS "  TBB_DEFINITIONS         = ${TBB_DEFINITIONS}")
++    message(STATUS "  TBB_LIBRARIES           = ${TBB_LIBRARIES}")
++    message(STATUS "  TBB_DEFINITIONS_DEBUG   = ${TBB_DEFINITIONS_DEBUG}")
++    message(STATUS "  TBB_LIBRARIES_DEBUG     = ${TBB_LIBRARIES_DEBUG}")
++    message(STATUS "  TBB_DEFINITIONS_RELEASE = ${TBB_DEFINITIONS_RELEASE}")
++    message(STATUS "  TBB_LIBRARIES_RELEASE   = ${TBB_LIBRARIES_RELEASE}")
+   endif()
+-endforeach()
+ 
+-if(UNIX AND TBB_USE_STATIC_LIBS)
+-  set(CMAKE_FIND_LIBRARY_SUFFIXES ${_TBB_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+-  unset(_TBB_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES)
+-endif()
+-
+-# ------------------------------------------------------------------------
+-#  Cache and set TBB_FOUND
+-# ------------------------------------------------------------------------
+-
+-include(FindPackageHandleStandardArgs)
+-find_package_handle_standard_args(TBB
+-  FOUND_VAR TBB_FOUND
+-  REQUIRED_VARS
+-    Tbb_INCLUDE_DIR
+-    Tbb_LIB_COMPONENTS
+-  VERSION_VAR Tbb_VERSION
+-  HANDLE_COMPONENTS
+-)
+-
+-if(TBB_FOUND)
+-  set(Tbb_LIBRARIES
+-    ${Tbb_LIB_COMPONENTS}
+-  )
+-  set(Tbb_INCLUDE_DIRS ${Tbb_INCLUDE_DIR})
+-  set(Tbb_DEFINITIONS ${PC_Tbb_CFLAGS_OTHER})
+-
+-  set(Tbb_LIBRARY_DIRS "")
+-  foreach(LIB ${Tbb_LIB_COMPONENTS})
+-    get_filename_component(_TBB_LIBDIR ${LIB} DIRECTORY)
+-    list(APPEND Tbb_LIBRARY_DIRS ${_TBB_LIBDIR})
+-  endforeach()
+-  list(REMOVE_DUPLICATES Tbb_LIBRARY_DIRS)
+-
+-  # Configure imported targets
+-
+-  foreach(COMPONENT ${TBB_FIND_COMPONENTS})
+-    if(NOT TARGET TBB::${COMPONENT})
+-      add_library(TBB::${COMPONENT} UNKNOWN IMPORTED)
+-      set_target_properties(TBB::${COMPONENT} PROPERTIES
+-        IMPORTED_LOCATION "${Tbb_${COMPONENT}_LIBRARY}"
+-        INTERFACE_COMPILE_OPTIONS "${Tbb_DEFINITIONS}"
+-        INTERFACE_INCLUDE_DIRECTORIES "${Tbb_INCLUDE_DIR}"
+-      )
+-    endif()
+-  endforeach()
+-elseif(TBB_FIND_REQUIRED)
+-  message(FATAL_ERROR "Unable to find TBB")
+ endif()
+diff --git a/openvdb/CMakeLists.txt b/openvdb/CMakeLists.txt
+index 89301bd..df27aae 100644
+--- a/openvdb/CMakeLists.txt
++++ b/openvdb/CMakeLists.txt
+@@ -78,7 +78,7 @@ else()
+ endif()
+ 
+ find_package(TBB ${MINIMUM_TBB_VERSION} REQUIRED COMPONENTS tbb)
+-if(${Tbb_VERSION} VERSION_LESS FUTURE_MINIMUM_TBB_VERSION)
++if(${TBB_VERSION} VERSION_LESS FUTURE_MINIMUM_TBB_VERSION)
+   message(DEPRECATION "Support for TBB versions < ${FUTURE_MINIMUM_TBB_VERSION} "
+     "is deprecated and will be removed.")
+ endif()
+@@ -185,11 +185,6 @@ if(WIN32)
+   endif()
+ endif()
+ 
+-# @todo Should be target definitions
+-if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
+-endif()
+-
+ ##### Core library configuration
+ 
+ set(OPENVDB_LIBRARY_SOURCE_FILES
+@@ -374,10 +369,16 @@ set(OPENVDB_LIBRARY_UTIL_INCLUDE_FILES
+ 
+ if(OPENVDB_CORE_SHARED)
+   add_library(openvdb_shared SHARED ${OPENVDB_LIBRARY_SOURCE_FILES})
++  if(WIN32)
++    target_compile_definitions(openvdb_shared PUBLIC OPENVDB_DLL)
++  endif()
+ endif()
+ 
+ if(OPENVDB_CORE_STATIC)
+   add_library(openvdb_static STATIC ${OPENVDB_LIBRARY_SOURCE_FILES})
++  if(WIN32)
++    target_compile_definitions(openvdb_static PUBLIC OPENVDB_STATICLIB)
++  endif()
+ endif()
+ 
+ # Alias either the shared or static library to the generic OpenVDB
+diff --git a/openvdb/Grid.cc b/openvdb/Grid.cc
+index 0015f81..cb6084a 100644
+--- a/openvdb/Grid.cc
++++ b/openvdb/Grid.cc
+@@ -35,6 +35,9 @@
+ #include <boost/algorithm/string/trim.hpp>
+ #include <tbb/mutex.h>
+ 
++// WTF??? Somehow from stdlib.h
++#undef min
++#undef max
+ 
+ namespace openvdb {
+ OPENVDB_USE_VERSION_NAMESPACE
+diff --git a/openvdb/PlatformConfig.h b/openvdb/PlatformConfig.h
+index 20ad9a3..c2dd1ef 100644
+--- a/openvdb/PlatformConfig.h
++++ b/openvdb/PlatformConfig.h
+@@ -44,9 +44,12 @@
+ 
+     // By default, assume that we're dynamically linking OpenEXR, unless
+     // OPENVDB_OPENEXR_STATICLIB is defined.
+-    #if !defined(OPENVDB_OPENEXR_STATICLIB) && !defined(OPENEXR_DLL)
+-        #define OPENEXR_DLL
+-    #endif
++    // Meszaros Tamas: Why? OpenEXR and its imported targets have OPENEXR_DLL
++    // in INTERFACE_COMPILE_DEFINITIONS if build with it.
++    // #if !defined(OPENVDB_OPENEXR_STATICLIB) && !defined(OPENEXR_DLL)
++    //     #define OPENEXR_DLL
++    //     static_assert(false, "This is bad: OPENEXR_DLL");
++    // #endif
+ 
+ #endif // _WIN32
+ 
+diff --git a/openvdb/cmd/CMakeLists.txt b/openvdb/cmd/CMakeLists.txt
+index 57fbec0..55b3850 100644
+--- a/openvdb/cmd/CMakeLists.txt
++++ b/openvdb/cmd/CMakeLists.txt
+@@ -74,8 +74,9 @@ if(WIN32)
+   endif()
+ endif()
+ 
++# @todo Should be target definitions
+ if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
++  add_definitions(-D_WIN32 -DNOMINMAX)
+ endif()
+ 
+ # rpath handling
+@@ -88,7 +89,6 @@ if(OPENVDB_ENABLE_RPATH)
+     ${IlmBase_LIBRARY_DIRS}
+     ${Log4cplus_LIBRARY_DIRS}
+     ${Blosc_LIBRARY_DIRS}
+-    ${Tbb_LIBRARY_DIRS}
+   )
+   if(OPENVDB_BUILD_CORE)
+     list(APPEND RPATHS ${CMAKE_INSTALL_PREFIX}/lib)
+diff --git a/openvdb/unittest/CMakeLists.txt b/openvdb/unittest/CMakeLists.txt
+index c9e0c34..7e261c0 100644
+--- a/openvdb/unittest/CMakeLists.txt
++++ b/openvdb/unittest/CMakeLists.txt
+@@ -71,8 +71,9 @@ if(WIN32)
+   link_directories(${Boost_LIBRARY_DIR})
+ endif()
+ 
++# @todo Should be target definitions
+ if(WIN32)
+-  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
++  add_definitions(-D_WIN32 -DNOMINMAX)
+ endif()
+ 
+ ##### VDB unit tests
+diff --git a/openvdb/unittest/TestFile.cc b/openvdb/unittest/TestFile.cc
+index df51830..0ab0c12 100644
+--- a/openvdb/unittest/TestFile.cc
++++ b/openvdb/unittest/TestFile.cc
+@@ -2573,7 +2573,7 @@ TestFile::testBlosc()
+         outdata(new char[decompbufbytes]);
+ 
+     for (int compcode = 0; compcode <= BLOSC_ZLIB; ++compcode) {
+-        char* compname = nullptr;
++        const char* compname = nullptr;
+         if (0 > blosc_compcode_to_compname(compcode, &compname)) continue;
+         /// @todo This changes the compressor setting globally.
+         if (blosc_set_compressor(compname) < 0) continue;
+-- 
+2.16.2.windows.1
+
