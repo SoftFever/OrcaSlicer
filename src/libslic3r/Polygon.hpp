@@ -102,6 +102,15 @@ inline void        polygons_append(Polygons &dst, Polygons &&src)
     }
 }
 
+inline Polygons polygons_simplify(const Polygons &polys, double tolerance)
+{
+	Polygons out;
+	out.reserve(polys.size());
+	for (const Polygon &p : polys)
+		polygons_append(out, p.simplify(tolerance));
+	return out;
+}
+
 inline void polygons_rotate(Polygons &polys, double angle)
 {
     const double cos_angle = cos(angle);

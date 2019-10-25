@@ -301,6 +301,15 @@ inline bool expolygons_contain(ExPolygons &expolys, const Point &pt)
     return false;
 }
 
+inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double tolerance)
+{
+	ExPolygons out;
+	out.reserve(expolys.size());
+	for (const ExPolygon &exp : expolys)
+		exp.simplify(tolerance, &out);
+	return out;
+}
+
 extern BoundingBox get_extents(const ExPolygon &expolygon);
 extern BoundingBox get_extents(const ExPolygons &expolygons);
 extern BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
