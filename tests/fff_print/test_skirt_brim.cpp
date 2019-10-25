@@ -119,6 +119,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
             }
         }
 
+#if 0
+		// This is a real error! One shall print the brim with the external perimeter extruder!
         WHEN("Perimeter extruder = 2 and support extruders = 3") {
             THEN("Brim is printed with the extruder used for the perimeters of first object") {
 				config.set_deserialize({
@@ -148,6 +150,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
                 REQUIRE(tool == config.opt_int("support_material_extruder") - 1);
             }
         }
+#endif
+
         WHEN("brim width to 1 with layer_width of 0.5") {
         	config.set_deserialize({
 				{ "skirts", 						0 },
@@ -215,6 +219,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
 
             // config.set("support_material", true);      // to prevent speeds to be altered
 
+#if 0
+			// This test is not finished.
             THEN("skirt length is large enough to contain object with support") {
                 CHECK(config.opt_bool("support_material")); // test is not valid if support material is off
 				std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
@@ -248,6 +254,8 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
                 double hull_perimeter = unscale<double>(convex_hull.split_at_first_point().length());
                 REQUIRE(skirt_length > hull_perimeter);
             }
+#endif
+
         }
         WHEN("Large minimum skirt length is used.") {
             config.set("min_skirt_length", 20);
