@@ -120,7 +120,7 @@ static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
     void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
     if (png_data != nullptr)
     {
-        zipper.add_entry("thumbnail/thumbnail.png", (const std::uint8_t*)png_data, png_size);
+        zipper.add_entry("thumbnail/thumbnail" + std::to_string(data.width) + "x" + std::to_string(data.height) + ".png", (const std::uint8_t*)png_data, png_size);
         mz_free(png_data);
     }
 }
@@ -138,8 +138,14 @@ void BackgroundSlicingProcess::process_sla()
             m_sla_print->export_raster(zipper);
 
 #if ENABLE_THUMBNAIL_GENERATOR
-            if ((m_thumbnail_data != nullptr) && m_thumbnail_data->is_valid())
-                write_thumbnail(zipper, *m_thumbnail_data);
+            if (m_thumbnail_data != nullptr)
+            {
+                for (const ThumbnailData& data : *m_thumbnail_data)
+                {
+                    if (data.is_valid())
+                        write_thumbnail(zipper, data);
+                }
+            }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
             zipper.finalize();
@@ -458,8 +464,14 @@ void BackgroundSlicingProcess::prepare_upload()
         Zipper zipper{source_path.string()};
         m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
 #if ENABLE_THUMBNAIL_GENERATOR
-        if ((m_thumbnail_data != nullptr) && m_thumbnail_data->is_valid())
-            write_thumbnail(zipper, *m_thumbnail_data);
+        if (m_thumbnail_data != nullptr)
+        {
+            for (const ThumbnailData& data : *m_thumbnail_data)
+            {
+                if (data.is_valid())
+                    write_thumbnail(zipper, data);
+            }
+        }
 #endif // ENABLE_THUMBNAIL_GENERATOR
         zipper.finalize();
     }

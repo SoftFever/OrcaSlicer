@@ -309,7 +309,7 @@ public:
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
 #if ENABLE_THUMBNAIL_GENERATOR
-    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const ThumbnailData* thumbnail_data = nullptr);
+    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data = nullptr);
 #else
     std::string         export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR

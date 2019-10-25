@@ -659,7 +659,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, const ThumbnailData* thumbnail_data)
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
 #else
 void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -757,7 +757,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GCode::_do_export(Print& print, FILE* file, const ThumbnailData* thumbnail_data)
+void GCode::_do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data)
 #else
 void GCode::_do_export(Print &print, FILE *file)
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -954,18 +954,24 @@ void GCode::_do_export(Print &print, FILE *file)
     _write_format(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
 
 #if ENABLE_THUMBNAIL_GENERATOR
-    // Write thumbnail using base64 encoding
-    if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
+    // Write thumbnails using base64 encoding
+    if (thumbnail_data != nullptr)
     {
-        _write_format(file, "\n;\n; thumbnail begin %dx%d\n", thumbnail_data->width, thumbnail_data->height);
-
-        size_t row_size = 4 * thumbnail_data->width;
-        for (int r = (int)thumbnail_data->height - 1; r >= 0; --r)
+        for (const ThumbnailData& data : *thumbnail_data)
         {
-            _write_format(file, "; %s\n", boost::beast::detail::base64_encode((const std::uint8_t*)(thumbnail_data->pixels.data() + r * row_size), row_size).c_str());
-        }
+            if (data.is_valid())
+            {
+                _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
 
-        _write(file, "; thumbnail end\n;\n\n");
+                size_t row_size = 4 * data.width;
+                for (int r = (int)data.height - 1; r >= 0; --r)
+                {
+                    _write_format(file, "; %s\n", boost::beast::detail::base64_encode((const std::uint8_t*)(data.pixels.data() + r * row_size), row_size).c_str());
+                }
+
+                _write(file, "; thumbnail end\n;\n\n");
+            }
+        }
     }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 

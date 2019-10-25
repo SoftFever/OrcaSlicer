@@ -166,7 +166,7 @@ public:
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
 #if ENABLE_THUMBNAIL_GENERATOR
-    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, const ThumbnailData* thumbnail_data = nullptr);
+    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, const std::vector<ThumbnailData>* thumbnail_data = nullptr);
 #else
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -198,7 +198,7 @@ public:
 
 protected:
 #if ENABLE_THUMBNAIL_GENERATOR
-    void            _do_export(Print& print, FILE* file, const ThumbnailData* thumbnail_data);
+    void            _do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data);
 #else
     void            _do_export(Print &print, FILE *file);
 #endif //ENABLE_THUMBNAIL_GENERATOR

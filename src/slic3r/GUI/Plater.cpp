@@ -86,8 +86,8 @@ using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_FFF = { 128, 128 };
-static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_SLA = { 256, 256 };
+static const std::vector < std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_FFF = { { 240, 320 }, { 220, 165 }, { 16, 16 } };
+static const std::vector<std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_SLA = { { 800, 480 } };
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -1371,7 +1371,7 @@ struct Plater::priv
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
 #if ENABLE_THUMBNAIL_GENERATOR
-    Slic3r::ThumbnailData       thumbnail_data;
+    std::vector<Slic3r::ThumbnailData> thumbnail_data;
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     // GUI elements
@@ -3050,12 +3050,26 @@ bool Plater::priv::restart_background_process(unsigned int state)
         {
             // update thumbnail data
             if (this->printer_technology == ptFFF)
-                // for ptFFF we need to generate the thumbnail before the export of gcode starts
-                generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_FFF.first, THUMBNAIL_SIZE_FFF.second, true, true);
+            {
+                // for ptFFF we need to generate the thumbnails before the export of gcode starts
+                this->thumbnail_data.clear();
+                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_FFF)
+                {
+                    this->thumbnail_data.push_back(ThumbnailData());
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true);
+                }
+            }
             else if (this->printer_technology == ptSLA)
-                // for ptSLA generate thumbnail without supports and pad (not yet calculated)
+            {
+                // for ptSLA generate thumbnails without supports and pad (not yet calculated)
                 // to render also supports and pad see on_slicing_update()
-                generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true, true);
+                this->thumbnail_data.clear();
+                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+                {
+                    this->thumbnail_data.push_back(ThumbnailData());
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true);
+                }
+            }
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR
         // The print is valid and it can be started.
@@ -3402,7 +3416,14 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // update thumbnail data
         // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
         if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
-            generate_thumbnail(this->thumbnail_data, THUMBNAIL_SIZE_SLA.first, THUMBNAIL_SIZE_SLA.second, true, false);
+        {
+            this->thumbnail_data.clear();
+            for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+            {
+                this->thumbnail_data.push_back(ThumbnailData());
+                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false);
+            }
+        }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 */
     }
