@@ -271,13 +271,15 @@ if(NOT SLIC3R_STATIC)
 endif()
 
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
-    string(TOUPPER ${from_Cfg} from_CFG)
-
-    foreach(tgt ${targets})
-        if(TARGET ${tgt})
-            set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
-        endif()
-    endforeach()
+    if(MSVC)
+        string(TOUPPER ${from_Cfg} from_CFG)
+    
+        foreach(tgt ${targets})
+            if(TARGET ${tgt})
+                set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
+            endif()
+        endforeach()
+    endif()
 endfunction()
 
 if(TARGET Boost::system)
