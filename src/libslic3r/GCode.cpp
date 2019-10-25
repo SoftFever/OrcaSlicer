@@ -21,6 +21,9 @@
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <boost/beast/core/detail/base64.hpp>
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -951,18 +954,15 @@ void GCode::_do_export(Print &print, FILE *file)
     _write_format(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
 
 #if ENABLE_THUMBNAIL_GENERATOR
-    // Write thumbnail
+    // Write thumbnail using base64 encoding
     if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
     {
         _write_format(file, "\n;\n; thumbnail begin %dx%d\n", thumbnail_data->width, thumbnail_data->height);
 
         size_t row_size = 4 * thumbnail_data->width;
-        for (int r = (int)thumbnail_data->height - 1; r >= 0 ; --r)
+        for (int r = (int)thumbnail_data->height - 1; r >= 0; --r)
         {
-            _write(file, "; ");
-            const void* data_ptr = thumbnail_data->pixels.data() + r * row_size;
-            ::fwrite((const void*)data_ptr, 1, row_size, file);
-            _write(file, "\n");
+            _write_format(file, "; %s\n", boost::beast::detail::base64_encode((const std::uint8_t*)(thumbnail_data->pixels.data() + r * row_size), row_size).c_str());
         }
 
         _write(file, "; thumbnail end\n;\n\n");

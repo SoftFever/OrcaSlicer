@@ -51,6 +51,10 @@
 #include <Shlobj.h>
 #endif // __WXMSW__
 
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <boost/beast/core/detail/base64.hpp>
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1081,6 +1085,88 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     return res;
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+void GUI_App::gcode_thumbnails_debug()
+{
+    const std::string BEGIN_MASK = "; thumbnail begin";
+    const std::string END_MASK = "; thumbnail end";
+    std::string gcode_line;
+    bool reading_image = false;
+    unsigned int width = 0;
+    unsigned int height = 0;
+
+    wxFileDialog dialog(GetTopWindow(), _(L("Select a gcode file:")), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    std::string in_filename = into_u8(dialog.GetPath());
+    std::string out_path = boost::filesystem::path(in_filename).remove_filename().append(L"thumbnail").string();
+
+    boost::nowide::ifstream file(in_filename.c_str());
+    std::vector<std::string> rows;
+    if (file.good())
+    {
+        while (std::getline(file, gcode_line))
+        {
+            if (file.good())
+            {
+                if (boost::starts_with(gcode_line, BEGIN_MASK))
+                {
+                    reading_image = true;
+                    gcode_line = gcode_line.substr(BEGIN_MASK.length() + 1);
+                    std::string::size_type x_pos = gcode_line.find('x');
+                    std::string width_str = gcode_line.substr(0, x_pos);
+                    width = (unsigned int)::atoi(width_str.c_str());
+                    std::string height_str = gcode_line.substr(x_pos + 1);
+                    height = (unsigned int)::atoi(height_str.c_str());
+                }
+                else if (reading_image && boost::starts_with(gcode_line, END_MASK))
+                {
+                    if ((unsigned int)rows.size() == height)
+                    {
+                        std::vector<unsigned char> thumbnail(4 * width * height, 0);
+                        for (unsigned int r = 0; r < (unsigned int)rows.size(); ++r)
+                        {
+                            std::string decoded_row = boost::beast::detail::base64_decode(rows[r]);
+                            if ((unsigned int)decoded_row.length() == width * 4)
+                            {
+                                void* image_ptr = (void*)(thumbnail.data() + r * width * 4);
+                                ::memcpy(image_ptr, (const void*)decoded_row.c_str(), width * 4);
+                            }
+                        }
+
+                        wxImage image(width, height);
+                        image.InitAlpha();
+
+                        for (unsigned int r = 0; r < height; ++r)
+                        {
+                            unsigned int rr = r * width;
+                            for (unsigned int c = 0; c < width; ++c)
+                            {
+                                unsigned char* px = thumbnail.data() + 4 * (rr + c);
+                                image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+                                image.SetAlpha((int)c, (int)r, px[3]);
+                            }
+                        }
+
+                        image.SaveFile(out_path + std::to_string(width) + "x" + std::to_string(height) + ".png", wxBITMAP_TYPE_PNG);
+                    }
+
+                    reading_image = false;
+                    width = 0;
+                    height = 0;
+                    rows.clear();
+                }
+                else if (reading_image)
+                    rows.push_back(gcode_line.substr(2));
+            }
+        }
+
+        file.close();
+    }
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
