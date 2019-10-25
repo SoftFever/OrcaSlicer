@@ -397,6 +397,14 @@ add_custom_target(pot
 
 find_package(NLopt 1.4 REQUIRED)
 
+if(SLIC3R_STATIC)
+    set(OPENVDB_USE_STATIC_LIBS ON)
+    set(USE_BLOSC TRUE)
+endif()
+
+find_package(OpenVDB 5.0 REQUIRED openvdb)
+slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PrusaSlicer_app_console)
