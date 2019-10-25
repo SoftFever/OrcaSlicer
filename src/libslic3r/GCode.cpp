@@ -954,7 +954,7 @@ void GCode::_do_export(Print &print, FILE *file)
     // Write thumbnail
     if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
     {
-        _write(file, "\n;\n; thumbnail begin\n");
+        _write_format(file, "\n;\n; thumbnail begin %dx%d\n", thumbnail_data->width, thumbnail_data->height);
 
         size_t row_size = 4 * thumbnail_data->width;
         for (int r = (int)thumbnail_data->height - 1; r >= 0 ; --r)
