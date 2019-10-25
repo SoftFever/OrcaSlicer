@@ -43,6 +43,18 @@ else ()
     set(DEP_BOOST_DEBUG "")
 endif ()
 
+macro(add_debug_dep _dep)
+if (${DEP_DEBUG})
+    ExternalProject_Get_Property(${_dep} BINARY_DIR)
+    ExternalProject_Add_Step(${_dep} build_debug
+        DEPENDEES build
+        DEPENDERS install
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
+        WORKING_DIRECTORY "${BINARY_DIR}"
+    )
+endif ()
+endmacro()
+
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
@@ -52,6 +64,7 @@ ExternalProject_Add(dep_boost
     BUILD_COMMAND b2.exe
         -j "${NPROC}"
         --with-system
+        --with-iostreams
         --with-filesystem
         --with-thread
         --with-log
@@ -83,16 +96,8 @@ ExternalProject_Add(dep_tbb
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_tbb BINARY_DIR)
-    ExternalProject_Add_Step(dep_tbb build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
 
+add_debug_dep(dep_tbb)
 
 ExternalProject_Add(dep_gtest
     EXCLUDE_FROM_ALL 1
@@ -108,16 +113,8 @@ ExternalProject_Add(dep_gtest
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_gtest BINARY_DIR)
-    ExternalProject_Add_Step(dep_gtest build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
 
+add_debug_dep(dep_gtest)
 
 ExternalProject_Add(dep_cereal
     EXCLUDE_FROM_ALL 1
@@ -131,7 +128,6 @@ ExternalProject_Add(dep_cereal
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
-
 
 ExternalProject_Add(dep_nlopt
     EXCLUDE_FROM_ALL 1
@@ -151,16 +147,8 @@ ExternalProject_Add(dep_nlopt
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_nlopt BINARY_DIR)
-    ExternalProject_Add_Step(dep_nlopt build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
 
+add_debug_dep(dep_nlopt)
 
 ExternalProject_Add(dep_zlib
     EXCLUDE_FROM_ALL 1
@@ -176,15 +164,9 @@ ExternalProject_Add(dep_zlib
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_zlib BINARY_DIR)
-    ExternalProject_Add_Step(dep_zlib build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
+
+add_debug_dep(dep_zlib)
+
 # The following steps are unfortunately needed to remove the _static suffix on libraries
 ExternalProject_Add_Step(dep_zlib fix_static
     DEPENDEES install
@@ -238,8 +220,8 @@ find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/qhull/qhull/archive/v7.2.1.tar.gz"
-    URL_HASH SHA256=6fc251e0b75467e00943bfb7191e986fce0e1f8f6f0251f9c6ce5a843821ea78
+    URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+    URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
@@ -251,16 +233,7 @@ ExternalProject_Add(dep_qhull
     INSTALL_COMMAND ""
 )
 
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_qhull BINARY_DIR)
-    ExternalProject_Add_Step(dep_qhull build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
-
+add_debug_dep(dep_qhull)
 
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_WXWIDGETS_TARGET "")
@@ -300,20 +273,12 @@ ExternalProject_Add(dep_libigl
         -DLIBIGL_WITH_XML=OFF
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_DEBUG_POSTFIX=d
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-fixes.patch
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
 
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_libigl BINARY_DIR)
-    ExternalProject_Add_Step(dep_libigl build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
+add_debug_dep(dep_libigl)
 
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
@@ -335,5 +300,82 @@ if (${DEP_DEBUG})
         DEPENDERS install
         COMMAND cd build\\msw && nmake /f makefile.vc BUILD=debug SHARED=0 UNICODE=1 USE_GUI=1 "${DEP_WXWIDGETS_TARGET}"
         WORKING_DIRECTORY "${SOURCE_DIR}"
+    )
+endif ()
+
+ExternalProject_Add(dep_blosc
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+    GIT_TAG v1.17.0
+    DEPENDS dep_zlib
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DBUILD_SHARED=OFF 
+        -DBUILD_STATIC=ON
+        -DBUILD_TESTS=OFF 
+        -DBUILD_BENCHMARKS=OFF 
+        -DPREFER_EXTERNAL_ZLIB=ON
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    INSTALL_COMMAND ""
+)
+
+add_debug_dep(dep_blosc)
+
+ExternalProject_Add(dep_openexr
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/openexr/openexr.git
+    GIT_TAG v2.4.0 
+    DEPENDS dep_zlib
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DBUILD_TESTING=OFF 
+        -DPYILMBASE_ENABLE:BOOL=OFF 
+        -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
+        -DOPENEXR_BUILD_UTILS:BOOL=OFF
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    INSTALL_COMMAND ""
+)
+
+add_debug_dep(dep_openexr)
+
+ExternalProject_Add(dep_openvdb
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
+    GIT_TAG v6.2.1
+    DEPENDS dep_blosc dep_openexr dep_tbb
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DCMAKE_PREFIX_PATH=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DOPENVDB_BUILD_PYTHON_MODULE=OFF 
+        -DUSE_BLOSC=ON 
+        -DOPENVDB_CORE_SHARED=OFF 
+        -DOPENVDB_CORE_STATIC=ON 
+        -DTBB_STATIC=ON
+        -DOPENVDB_BUILD_VDB_PRINT=ON
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+    INSTALL_COMMAND ""
+)
+
+if (${DEP_DEBUG})
+    ExternalProject_Get_Property(dep_openvdb BINARY_DIR)
+    ExternalProject_Add_Step(dep_openvdb build_debug
+        DEPENDEES build
+        DEPENDERS install
+        COMMAND ${CMAKE_COMMAND} ../dep_openvdb -DOPENVDB_BUILD_VDB_PRINT=OFF
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
+        WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
