@@ -9,7 +9,7 @@
 
 using namespace Slic3r;
 
-#define TESTS_EXPORT_SVGS
+// #define TESTS_EXPORT_SVGS
 
 SCENARIO("Constant offset", "[ClipperUtils]") {
 	coord_t s = 1000000;
