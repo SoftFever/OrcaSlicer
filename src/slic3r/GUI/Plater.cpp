@@ -3395,6 +3395,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
+
+        // uncomment the following lines if you want to render into the thumbnail also supports and pad for SLA printer
 /*
 #if ENABLE_THUMBNAIL_GENERATOR
         // update thumbnail data
