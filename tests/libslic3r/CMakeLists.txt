@@ -3,6 +3,7 @@ add_executable(${_TEST_NAME}_tests
 	${_TEST_NAME}_tests.cpp
 	test_3mf.cpp
 	test_clipper_offset.cpp
+	test_clipper_utils.cpp
 	test_config.cpp
 #	test_elephant_foot_compensation.cpp
 	test_geometry.cpp

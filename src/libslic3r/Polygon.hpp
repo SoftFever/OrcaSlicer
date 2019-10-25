@@ -22,7 +22,8 @@ public:
     const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
     Polygon() {}
-    explicit Polygon(const Points &points): MultiPoint(points) {}
+    explicit Polygon(const Points &points) : MultiPoint(points) {}
+	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
 	static Polygon new_scale(const std::vector<Vec2d> &points) { 
@@ -65,6 +66,10 @@ public:
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
 };
+
+inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
+inline bool operator!=(const Polygon &lhs, const Polygon &rhs) { return lhs.points != rhs.points; }
+
 
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
