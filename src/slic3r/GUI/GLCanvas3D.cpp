@@ -1664,7 +1664,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 
     for (GLVolume* vol : m_volumes.volumes)
     {
-        if (!vol->is_modifier && (!parts_only || (vol->composite_id.volume_id >= 0)))
+        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0)))
         {
             if (!printable_only || is_visible(*vol))
                 visible_volumes.push_back(vol);
