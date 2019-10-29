@@ -6,6 +6,7 @@ add_executable(${_TEST_NAME}_tests
 	test_extrusion_entity.cpp
 	test_fill.cpp
 	test_flow.cpp
+	test_gcode.cpp
 	test_gcodewriter.cpp
 	test_model.cpp
 	test_print.cpp

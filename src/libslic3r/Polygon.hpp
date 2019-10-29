@@ -22,7 +22,8 @@ public:
     const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
 
     Polygon() {}
-    explicit Polygon(const Points &points): MultiPoint(points) {}
+    explicit Polygon(const Points &points) : MultiPoint(points) {}
+	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
 	static Polygon new_scale(const std::vector<Vec2d> &points) { 
@@ -66,6 +67,10 @@ public:
     Point point_projection(const Point &point) const;
 };
 
+inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
+inline bool operator!=(const Polygon &lhs, const Polygon &rhs) { return lhs.points != rhs.points; }
+
+
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
 extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);
@@ -100,6 +105,15 @@ inline void        polygons_append(Polygons &dst, Polygons &&src)
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
         src.clear();
     }
+}
+
+inline Polygons polygons_simplify(const Polygons &polys, double tolerance)
+{
+	Polygons out;
+	out.reserve(polys.size());
+	for (const Polygon &p : polys)
+		polygons_append(out, p.simplify(tolerance));
+	return out;
 }
 
 inline void polygons_rotate(Polygons &polys, double angle)

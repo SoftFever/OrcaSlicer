@@ -25,7 +25,7 @@ Slic3r::Points collinear_circle({
     Slic3r::Point::new_scale(-5, 0)
 });
 
-SCENARIO("Remove collinear points from Polygon") {
+SCENARIO("Remove collinear points from Polygon", "[Polygon]") {
     GIVEN("Polygon with collinear points"){
         Slic3r::Polygon p(collinear_circle);
         WHEN("collinear points are removed") {
