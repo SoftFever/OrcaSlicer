@@ -1649,88 +1649,10 @@ void GLCanvas3D::render()
 #if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
 {
-    auto is_visible = [](const GLVolume& v) -> bool {
-        bool ret = v.printable;
-        ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
-        return ret;
-    };
-
-    static const float orange[] = { 0.99f, 0.49f, 0.26f };
-    static const float gray[] = { 0.64f, 0.64f, 0.64f };
-
-    const Size& cnv_size = get_canvas_size();
-    unsigned int cnv_w = (unsigned int)cnv_size.get_width();
-    unsigned int cnv_h = (unsigned int)cnv_size.get_height();
-    if ((w > cnv_w) || (h > cnv_h))
-    {
-        float ratio = std::min((float)cnv_w / (float)w, (float)cnv_h / (float)h);
-        w = (unsigned int)(ratio * (float)w);
-        h = (unsigned int)(ratio * (float)h);
-    }
-
-    thumbnail_data.set(w, h);
-
-    GLVolumePtrs visible_volumes;
-
-    for (GLVolume* vol : m_volumes.volumes)
-    {
-        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0)))
-        {
-            if (!printable_only || is_visible(*vol))
-                visible_volumes.push_back(vol);
-        }
-    }
-
-    if (visible_volumes.empty())
-        return;
-
-    BoundingBoxf3 box;
-    for (const GLVolume* vol : visible_volumes)
-    {
-        box.merge(vol->transformed_bounding_box());
-    }
-
-    Camera camera;
-    camera.zoom_to_box(box, thumbnail_data.width, thumbnail_data.height);
-    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-    camera.apply_view_matrix();
-    camera.apply_projection(box);
-
-    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_LIGHTING));
-    glsafe(::glEnable(GL_DEPTH_TEST));
-
-    for (const GLVolume* vol : visible_volumes)
-    {
-        glsafe(::glColor3fv((vol->printable && !vol->is_outside) ? orange : gray));
-        vol->render();
-    }
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_LIGHTING));
-    glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
-
-#if 0
-    // debug export of generated image
-    wxImage image(thumbnail_data.width, thumbnail_data.height);
-    image.InitAlpha();
-
-    for (unsigned int r = 0; r < thumbnail_data.height; ++r)
-    {
-        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
-        for (unsigned int c = 0; c < thumbnail_data.width; ++c)
-        {
-            unsigned char* px = thumbnail_data.pixels.data() + 4 * (rr + c);
-            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
-            image.SetAlpha((int)c, (int)r, px[3]);
-        }
-    }
-
-    image.SaveFile("C:/test.png", wxBITMAP_TYPE_PNG);
-#endif 
-
-    // restore the framebuffer size to avoid flickering on the 3D scene
-    m_camera.apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
+    if (GLCanvas3DManager::are_framebuffers_supported())
+        _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only);
+    else
+        _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -3643,6 +3565,139 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x)
 
     imgui->end();
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only)
+{
+    auto is_visible = [](const GLVolume& v) -> bool
+    {
+        bool ret = v.printable;
+        ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+        return ret;
+    };
+
+    static const float orange[] = { 0.99f, 0.49f, 0.26f };
+    static const float gray[] = { 0.64f, 0.64f, 0.64f };
+
+    GLVolumePtrs visible_volumes;
+
+    for (GLVolume* vol : volumes)
+    {
+        if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0)))
+        {
+            if (!printable_only || is_visible(*vol))
+                visible_volumes.push_back(vol);
+        }
+    }
+
+    if (visible_volumes.empty())
+        return;
+
+    BoundingBoxf3 box;
+    for (const GLVolume* vol : visible_volumes)
+    {
+        box.merge(vol->transformed_bounding_box());
+    }
+
+    Camera camera;
+    camera.zoom_to_box(box, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_view_matrix();
+    camera.apply_projection(box);
+
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_LIGHTING));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
+    for (const GLVolume* vol : visible_volumes)
+    {
+        glsafe(::glColor3fv((vol->printable && !vol->is_outside) ? orange : gray));
+        vol->render();
+    }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_LIGHTING));
+    glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+
+#if 0
+    // debug export of generated image
+    wxImage image(thumbnail_data.width, thumbnail_data.height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < thumbnail_data.height; ++r)
+    {
+        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
+        for (unsigned int c = 0; c < thumbnail_data.width; ++c)
+        {
+            unsigned char* px = thumbnail_data.pixels.data() + 4 * (rr + c);
+            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+            image.SetAlpha((int)c, (int)r, px[3]);
+        }
+    }
+
+    image.SaveFile("C:/prusa/test/test.png", wxBITMAP_TYPE_PNG);
+#endif 
+}
+
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+{
+    thumbnail_data.set(w, h);
+    if (!thumbnail_data.is_valid())
+        return;
+
+    GLuint fbo;
+    glsafe(::glGenFramebuffers(1, &fbo));
+    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, fbo));
+
+    GLuint tex;
+    glsafe(::glGenTextures(1, &tex));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, tex));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0));
+
+    GLuint depth;
+    glsafe(::glGenRenderbuffers(1, &depth));
+    glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, depth));
+    glsafe(::glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h));
+    glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth));
+
+    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
+    glsafe(::glDrawBuffers(1, drawBufs));
+
+    if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+        render_volumes_in_thumbnail(m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+
+    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    glsafe(::glDeleteRenderbuffers(1, &depth));
+    glsafe(::glDeleteTextures(1, &tex));
+    glsafe(::glDeleteFramebuffers(1, &fbo));
+}
+
+void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+{
+    // check that thumbnail size does not exceed the default framebuffer size
+    const Size& cnv_size = get_canvas_size();
+    unsigned int cnv_w = (unsigned int)cnv_size.get_width();
+    unsigned int cnv_h = (unsigned int)cnv_size.get_height();
+    if ((w > cnv_w) || (h > cnv_h))
+    {
+        float ratio = std::min((float)cnv_w / (float)w, (float)cnv_h / (float)h);
+        w = (unsigned int)(ratio * (float)w);
+        h = (unsigned int)(ratio * (float)h);
+    }
+
+    thumbnail_data.set(w, h);
+    if (!thumbnail_data.is_valid())
+        return;
+
+    render_volumes_in_thumbnail(m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+
+    // restore the default framebuffer size to avoid flickering on the 3D scene
+    m_camera.apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 bool GLCanvas3D::_init_toolbars()
 {

@@ -77,6 +77,7 @@ private:
     bool m_gl_initialized;
     static EMultisampleState s_multisample;
     static bool s_compressed_textures_supported;
+    static bool s_framebuffers_supported;
 
 public:
     GLCanvas3DManager();
@@ -97,6 +98,7 @@ public:
 
     static bool can_multisample() { return s_multisample == MS_Enabled; }
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
+    static bool are_framebuffers_supported() { return s_framebuffers_supported; }
 
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
 

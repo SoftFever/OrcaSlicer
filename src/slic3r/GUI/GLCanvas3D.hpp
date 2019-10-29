@@ -674,6 +674,12 @@ private:
     void _render_sla_slices() const;
     void _render_selection_sidebar_hints() const;
     void _render_undo_redo_stack(const bool is_undo, float pos_x);
+#if ENABLE_THUMBNAIL_GENERATOR
+    // render thumbnail using an off-screen framebuffer
+    void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only);
+    // render thumbnail using the default framebuffer
+    void _render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void _update_volumes_hover_state() const;
 
