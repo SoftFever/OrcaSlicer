@@ -1,8 +1,6 @@
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#include <catch_main.hpp>
 
 #include <fstream>
-
 
 #include <libnest2d/libnest2d.hpp>
 #include "printer_parts.hpp"
