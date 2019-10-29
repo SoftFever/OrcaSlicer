@@ -768,7 +768,8 @@ public:
         
         double      height;
         std::string gcode;
-        int         extruder;
+        int         extruder;   // 0    - "gcode" will be applied for whole print
+                                // else - "gcode" will be applied only for "extruder" print
     };
     std::vector<CustomGCode> custom_gcode_per_height;
     

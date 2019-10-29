@@ -1685,8 +1685,11 @@ void GCode::process_layer(
     //     colorprint_change = true;
     // } 
     std::string custom_code = "";
+    int m600_before_extruder = -1;
     while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
         custom_code = m_custom_g_code_heights.front().gcode;
+        if (custom_code == "M600" && m_custom_g_code_heights.front().extruder > 0)
+            m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
         m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
         colorprint_change = true;
     }
@@ -1711,8 +1714,17 @@ void GCode::process_layer(
             // add tag for time estimator
             gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
             if (single_material_print && custom_code == "tool_change")
-                custom_code = "M600"; 
-            gcode += custom_code + "\n";
+                custom_code = "M600";
+
+            if (!single_material_print && custom_code == "M600" && 
+                m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
+                // && !MMU1
+                ) {
+                gcode += "M601\n"; // pause print
+                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
+            }
+            else 
+                gcode += custom_code + "\n";
         }
     }
 

@@ -3461,11 +3461,12 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
                 menu.AppendSubMenu(change_extruder_menu, name, _(L("Use another extruder")));
             }
         }
-        else
-            append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
+        
+        append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
             [this](wxCommandEvent&) { add_code("M600"); }, "colorchange_add_off.png", &menu);
-    
-        append_menu_item(&menu, wxID_ANY, _(L("Add pause SD print")) + " (M601)", "",
+
+        if (m_state != msMultiExtruder) 
+        append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
             [this](wxCommandEvent&) { add_code("M601"); }, "pause_add.png", &menu);
     
         append_menu_item(&menu, wxID_ANY, _(L("Add custom G-code")), "",
@@ -3503,8 +3504,10 @@ void DoubleSlider::add_code(std::string code)
         }
 
         int extruder = 0;
-        if (m_state == msMultiExtruderWholePrint)
+        if (m_state == msMultiExtruderWholePrint && m_custom_gcode != "M600" )
             extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+        else if (m_state == msMultiExtruder && m_current_extruder > 0)
+            extruder = m_current_extruder;
 
         m_ticks_.insert(TICK_CODE(tick, code, extruder));
 

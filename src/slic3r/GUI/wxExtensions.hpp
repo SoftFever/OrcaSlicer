@@ -828,6 +828,11 @@ public:
         m_state = state;
     }
     ManipulationState GetManipulationState() const { return m_state; }
+    void SetExtruderID(int extruder) {
+        m_current_extruder = extruder;
+        m_state = extruder < 0 ? msSingleExtruder :
+                  extruder > 0 ? msMultiExtruder  : msMultiExtruderWholePrint;
+    }
 
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
@@ -919,6 +924,7 @@ private:
     bool        m_show_context_menu = false;
     ManipulationState m_state = msSingleExtruder;
     wxString    m_custom_gcode = wxEmptyString;
+    int         m_current_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;

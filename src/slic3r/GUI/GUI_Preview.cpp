@@ -622,9 +622,7 @@ void Preview::create_double_slider()
     m_extruder_selector->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
         m_selected_extruder = m_extruder_selector->GetSelection();
-        m_slider->SetManipulationState(m_selected_extruder == 0 ? 
-                                       DoubleSlider::msMultiExtruderWholePrint :
-                                       DoubleSlider::msMultiExtruder);
+        m_slider->SetExtruderID(m_selected_extruder);
 
         int type = m_choice_view_type->FindString(_(L("Color Print")));
 
@@ -767,11 +765,10 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     m_slider->EnableTickManipulation(color_print_enable);
     if (color_print_enable && wxGetApp().extruders_edited_cnt() > 1) {
         //bool is_detected_full_print = //wxGetApp().plater()->fff_print().extruders().size() == 1;
-        m_slider->SetManipulationState(m_extruder_selector->GetSelection()==0 ?
-                                       DoubleSlider::msMultiExtruderWholePrint : DoubleSlider::msMultiExtruder);
+        m_slider->SetExtruderID(m_extruder_selector->GetSelection());
     }
     else
-        m_slider->SetManipulationState(DoubleSlider::msSingleExtruder);
+        m_slider->SetExtruderID(-1);
 
 }
 //  #ys_FIXME_COLOR
