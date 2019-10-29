@@ -12,7 +12,6 @@ TrimmedLoop trim_loop(const Polygon &loop, const EdgeGrid::Grid &grid)
 	TrimmedLoop out;
 
 	if (loop.size() >= 2) {
-		size_t cnt = loop.points.size();
 
 		struct Visitor {
 			Visitor(const EdgeGrid::Grid &grid, const Slic3r::Point *pt_prev, const Slic3r::Point *pt_this) : grid(grid), pt_prev(pt_prev), pt_this(pt_this) {}

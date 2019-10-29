@@ -1020,7 +1020,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 		node_parent->GetChildren().Remove(node);
 
 		if (id > 0) { 
-			if(id == node_parent->GetChildCount()) id--;
+            if (size_t(id) == node_parent->GetChildCount()) id--;
 			ret_item = wxDataViewItem(node_parent->GetChildren().Item(id));
 		}
 
