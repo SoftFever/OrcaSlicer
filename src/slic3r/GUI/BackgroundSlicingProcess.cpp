@@ -62,6 +62,7 @@ bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 		switch (tech) {
 		case ptFFF: m_print = m_fff_print; break;
 		case ptSLA: m_print = m_sla_print; break;
+        default: assert(false); break;
 		}
 		changed = true;
 	}
