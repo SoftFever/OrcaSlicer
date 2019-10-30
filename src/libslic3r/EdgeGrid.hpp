@@ -46,7 +46,19 @@ public:
 	float signed_distance_bilinear(const Point &pt) const;
 
 	// Calculate a signed distance to the contours in search_radius from the point.
-	bool signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment = NULL) const;
+	struct ClosestPointResult {
+		size_t contour_idx  	= size_t(-1);
+		size_t start_point_idx  = size_t(-1);
+		// Signed distance to the closest point.
+		double distance 		= std::numeric_limits<double>::max();
+		// Parameter of the closest point on edge starting with start_point_idx <0, 1)
+		double t 				= 0.;
+
+		bool valid() const { return contour_idx != size_t(-1); }
+	};
+	ClosestPointResult closest_point(const Point &pt, coord_t search_radius) const;
+
+	bool signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment = nullptr) const;
 
 	// Calculate a signed distance to the contours in search_radius from the point. If no edge is found in search_radius,
 	// return an interpolated value from m_signed_distance_field, if it exists.
