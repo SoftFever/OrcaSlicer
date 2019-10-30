@@ -303,8 +303,10 @@ endif ()
 
 ExternalProject_Add(dep_blosc
     EXCLUDE_FROM_ALL 1
-    URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
-    URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
+    #URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
+    #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
+    GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+    GIT_TAG v1.17.0
     DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
@@ -318,7 +320,8 @@ ExternalProject_Add(dep_blosc
         -DBUILD_TESTS=OFF 
         -DBUILD_BENCHMARKS=OFF 
         -DPREFER_EXTERNAL_ZLIB=ON
-        -DBLOSC_IS_SUBPROJECT=OFF
+        -DBLOSC_IS_SUBPROJECT:BOOL=ON
+        -DBLOSC_INSTALL:BOOL=ON
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
@@ -349,8 +352,10 @@ add_debug_dep(dep_openexr)
 
 ExternalProject_Add(dep_openvdb
     EXCLUDE_FROM_ALL 1
-    URL https://github.com/AcademySoftwareFoundation/openvdb/archive/v6.2.1.zip
-    URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
+    #URL https://github.com/AcademySoftwareFoundation/openvdb/archive/v6.2.1.zip
+    #URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
+    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
+    GIT_TAG v6.2.1
     DEPENDS dep_blosc dep_openexr dep_tbb dep_boost
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
