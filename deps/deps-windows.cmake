@@ -333,7 +333,7 @@ ExternalProject_Add(dep_openexr
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://github.com/openexr/openexr.git
     GIT_TAG v2.4.0 
-    DEPENDS 
+    DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
