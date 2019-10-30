@@ -3046,7 +3046,8 @@ bool Plater::priv::restart_background_process(unsigned int state)
            (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
 #if ENABLE_THUMBNAIL_GENERATOR
-        if ((state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) == 0)
+        if (((state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) == 0) &&
+             (this->background_process.state() != BackgroundSlicingProcess::STATE_RUNNING))
         {
             // update thumbnail data
             if (this->printer_technology == ptFFF)

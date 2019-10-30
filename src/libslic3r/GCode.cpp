@@ -971,6 +971,7 @@ void GCode::_do_export(Print &print, FILE *file)
 
                 _write(file, "; thumbnail end\n;\n\n");
             }
+            print.throw_if_canceled();
         }
     }
 #endif // ENABLE_THUMBNAIL_GENERATOR
