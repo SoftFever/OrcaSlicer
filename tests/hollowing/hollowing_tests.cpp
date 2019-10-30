@@ -1,8 +1,9 @@
 #include <iostream>
-#include <gtest/gtest.h>
+#include <catch_main.hpp>
 
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/MeshToVolume.h>
+#include <openvdb/tools/VolumeToMesh.h>
 #include <libslic3r/TriangleMesh.hpp>
 #include "libslic3r/Format/OBJ.hpp"
 
@@ -36,14 +37,25 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
     return mesh;
 }
 
-TEST(Hollowing, LoadObject) {
+TEST_CASE("Load object", "[Hollowing]") {
     TriangleMeshDataAdapter mesh{load_model("20mm_cube.obj")};
     auto ptr = openvdb::tools::meshToVolume<openvdb::FloatGrid>(mesh, {});
     
-    ASSERT_TRUE(ptr);
+    REQUIRE(ptr);
+    
+    std::vector<openvdb::Vec3s> points;
+    std::vector<openvdb::Vec4I> quad_indices;
+    std::vector<openvdb::Vec3I> triangle_indices;
+    
+    openvdb::tools::volumeToMesh(*ptr, points, triangle_indices, quad_indices, 0.0, 1.0, true);
+    
+    std::cout << "Triangle count: " << triangle_indices.size() << std::endl;
+    std::cout << "Quad count: " << quad_indices.size() << std::endl;
+    std::cout << "Point count: " << points.size() << " vs " << mesh.mesh.its.vertices.size() << std::endl;
 }
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+//int main(int argc, char **argv)
+//{
+//    ::testing::InitGoogleTest(&argc, argv);
+//    return RUN_ALL_TESTS();
+//}
