@@ -318,6 +318,7 @@ ExternalProject_Add(dep_blosc
         -DBUILD_TESTS=OFF 
         -DBUILD_BENCHMARKS=OFF 
         -DPREFER_EXTERNAL_ZLIB=ON
+        -DBLOSC_IS_SUBPROJECT=OFF
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
