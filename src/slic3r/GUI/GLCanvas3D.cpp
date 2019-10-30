@@ -1926,7 +1926,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (it->new_geometry()) {
                     // New volume.
                     unsigned int old_id = find_old_volume_id(it->composite_id);
-                    if (old_id != -1)
+                    if (old_id != (unsigned int)-1)
                         map_glvolume_old_to_new[old_id] = m_volumes.volumes.size();
                     m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
