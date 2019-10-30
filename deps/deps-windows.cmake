@@ -309,6 +309,7 @@ ExternalProject_Add(dep_blosc
     GIT_TAG v1.17.0
     DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         -DBUILD_SHARED_LIBS=OFF
@@ -332,6 +333,7 @@ ExternalProject_Add(dep_openexr
     GIT_TAG v2.4.0 
     DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         -DBUILD_SHARED_LIBS=OFF
@@ -352,6 +354,7 @@ ExternalProject_Add(dep_openvdb
     GIT_TAG v6.2.1
     DEPENDS dep_blosc dep_openexr dep_tbb
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         -DCMAKE_DEBUG_POSTFIX=d
