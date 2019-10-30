@@ -10,7 +10,7 @@ target_include_directories(Catch2 INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 add_library(Catch2::Catch2 ALIAS Catch2)
 include(Catch)
 
-set(CATCH_EXTRA_ARGS "-r usefulconsole" CACHE STRING "Extra arguments for catch2 test suites.")
+set(CATCH_EXTRA_ARGS "" CACHE STRING "Extra arguments for catch2 test suites.")
 
 add_library(test_common INTERFACE)
 target_compile_definitions(test_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
