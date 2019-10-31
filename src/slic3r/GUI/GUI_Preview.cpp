@@ -604,6 +604,9 @@ void Preview::update_view_type(bool slice_completed)
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
         m_preferred_color_mode = "feature";
     }
+
+    if (type != GCodePreviewData::Extrusion::EViewType::ColorPrint)
+        m_extruder_selector->SetSelection(0);
 }
 
 void Preview::update_extruder_selector()
@@ -726,7 +729,11 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     // #ys_FIXME_COLOR
     // std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
     // check_slider_values(ticks_from_config, layers_z);
-    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
+    std::vector<Model::CustomGCode> tmp_ticks_from_model;
+    if (m_selected_extruder != 0)
+        tmp_ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
+    std::vector<Model::CustomGCode> &ticks_from_model = m_selected_extruder != 0 ? tmp_ticks_from_model :
+                                                        wxGetApp().plater()->model().custom_gcode_per_height;
     check_slider_values(ticks_from_model, layers_z);
 
     m_slider->SetSliderValues(layers_z);

@@ -2552,7 +2552,7 @@ void DoubleSlider::SetTicksValues_(const std::vector<t_custom_code>& heights)
         m_ticks_.insert(TICK_CODE(it-m_values.begin(), h.gcode, h.extruder));
     }
     
-    if (!was_empty && m_ticks_.empty())
+    if (!was_empty && m_ticks_.empty() && m_state != msMultiExtruder)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
@@ -3232,6 +3232,33 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
         return;
     this->ReleaseMouse();
     m_is_left_down = false;
+
+    if (m_show_context_menu)
+    {
+        if (m_state == msMultiExtruderWholePrint)
+        {
+            wxMenu menu;
+            const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
+            if (extruders_cnt > 1)
+            {
+                const int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+
+                wxMenu* add_color_change_menu = new wxMenu();
+
+                for (int i = 1; i <= extruders_cnt; i++)
+                    append_menu_radio_item(add_color_change_menu, wxID_ANY, wxString::Format(_(L("Extruder %d")), i), "",
+                        [this, i](wxCommandEvent&) { add_code("M600", i); }, &menu)->Check(i == initial_extruder);
+
+                const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % "M600").str());
+                wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
+                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_off.png"));
+            }
+
+            Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
+            m_show_context_menu = false;
+        }
+    }
+
     Refresh();
     Update();
     event.Skip();
@@ -3295,17 +3322,25 @@ void DoubleSlider::action_tick(const TicksAction action)
     //         m_ticks.erase(tick);
     // }
 
-    if (action == taOnIcon) {
-        if (!m_ticks_.insert(TICK_CODE(tick)).second)
-            m_ticks_.erase(TICK_CODE(tick));
+    const auto it = m_ticks_.find(tick);
+
+    if (it != m_ticks_.end())
+    {
+        if (action == taAdd)
+            return;
+        m_ticks_.erase(TICK_CODE(tick));
     }
-    else {
-        const auto it = m_ticks_.find(tick);
-        if (it == m_ticks_.end() && action == taAdd)
-            m_ticks_.insert(tick);
-        else if (it != m_ticks_.end() && action == taDel)
-            m_ticks_.erase(tick);
+    else if (action == taDel)
+        return;
+    else if (m_state == msMultiExtruderWholePrint)
+    {
+        if (action == taAdd)
+            return;
+        m_show_context_menu = true;
+        return;
     }
+    else
+        m_ticks_.insert(TICK_CODE(tick, "M600", m_state == msSingleExtruder ? 0 : m_current_extruder));
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
     Refresh();
@@ -3443,25 +3478,35 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
 
         if (m_state == msMultiExtruderWholePrint)
         {
-            const wxString name = _(L("Change extruder"));
-
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
             if (extruders_cnt > 1)
             {
                 const int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
 
                 wxMenu* change_extruder_menu = new wxMenu();
+                wxMenu* add_color_change_menu = new wxMenu();
+
                 for (int i = 0; i <= extruders_cnt; i++) {
-                    const wxString& item_name = i == 0 ? _(L("Default")) : wxString::Format("%d", i);
+                    const wxString item_name = i == 0 ? _(L("Default")) : wxString::Format(_(L("Extruder %d")), i);
 
                     append_menu_radio_item(change_extruder_menu, wxID_ANY, item_name, "",
                         [this, i](wxCommandEvent&) { change_extruder(i); }, &menu)->Check(i == initial_extruder);
+
+                    if (i==0)       // don't use M600 for default extruder, if multimaterial print is selected 
+                        continue;
+                    append_menu_radio_item(add_color_change_menu, wxID_ANY, /*i == 0 ? _(L("current extruder")) : */item_name, "",
+                        [this, i](wxCommandEvent&) { add_code("M600", i); }, &menu)->Check(i == initial_extruder);
                 }
 
-                menu.AppendSubMenu(change_extruder_menu, name, _(L("Use another extruder")));
+                wxMenuItem* change_extruder_menu_item = menu.AppendSubMenu(change_extruder_menu, _(L("Change extruder")), _(L("Use another extruder")));
+                change_extruder_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "change_extruder"));
+
+                const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % "M600").str());
+                wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
+                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_off.png"));
             }
         }
-        
+        else
         append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
             [this](wxCommandEvent&) { add_code("M600"); }, "colorchange_add_off.png", &menu);
 
@@ -3482,7 +3527,7 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
     event.Skip();
 }
 
-void DoubleSlider::add_code(std::string code)
+void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     // if on this Y doesn't exist tick
@@ -3504,8 +3549,12 @@ void DoubleSlider::add_code(std::string code)
         }
 
         int extruder = 0;
-        if (m_state == msMultiExtruderWholePrint && m_custom_gcode != "M600" )
-            extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+        if (m_state == msMultiExtruderWholePrint) { 
+            if (code == "M600" && selected_extruder >= 0)
+                extruder = selected_extruder;
+            else
+                extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+        }
         else if (m_state == msMultiExtruder && m_current_extruder > 0)
             extruder = m_current_extruder;
 

@@ -851,9 +851,9 @@ public:
     void OnKeyUp(wxKeyEvent &event);
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
-    int get_extruder_for_tick(int tick);
+    int  get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
-    void add_code(std::string code);
+    void add_code(std::string code, int selected_extruder = -1);
     void change_extruder(int extruder);
 
 protected:
