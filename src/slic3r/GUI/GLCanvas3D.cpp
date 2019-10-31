@@ -3627,6 +3627,7 @@ static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailDa
     }
 
     Camera camera;
+    camera.set_type(Camera::Ortho);
     camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.apply_view_matrix();
