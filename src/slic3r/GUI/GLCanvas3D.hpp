@@ -107,6 +107,10 @@ wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 
 class GLCanvas3D
 {
+#if ENABLE_THUMBNAIL_GENERATOR
+    static const double DefaultCameraZoomToBoxMarginFactor;
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
 public:
     struct GCodePreviewVolumeIndex
     {
@@ -646,7 +650,11 @@ private:
 
     BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
+#else
     void _zoom_to_box(const BoundingBoxf3& box);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     void _refresh_if_shown_on_screen();
 

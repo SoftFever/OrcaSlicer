@@ -1119,6 +1119,10 @@ wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 
+#if ENABLE_THUMBNAIL_GENERATOR
+const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
     , m_context(nullptr)
@@ -3623,7 +3627,7 @@ static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailDa
     }
 
     Camera camera;
-    camera.zoom_to_box(box, thumbnail_data.width, thumbnail_data.height);
+    camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.apply_view_matrix();
     camera.apply_projection(box);
@@ -4086,12 +4090,21 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     return bb;
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
+{
+    const Size& cnv_size = get_canvas_size();
+    m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height(), margin_factor);
+    m_dirty = true;
+}
+#else
 void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
 {
     const Size& cnv_size = get_canvas_size();
     m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height());
     m_dirty = true;
 }
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {

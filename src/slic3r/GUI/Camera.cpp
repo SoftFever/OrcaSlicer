@@ -1,7 +1,9 @@
 #include "libslic3r/libslic3r.h"
 
 #include "Camera.hpp"
+#if !ENABLE_THUMBNAIL_GENERATOR
 #include "3DScene.hpp"
+#endif // !ENABLE_THUMBNAIL_GENERATOR
 #include "GUI_App.hpp"
 #include "AppConfig.hpp"
 
@@ -22,6 +24,10 @@ namespace Slic3r {
 namespace GUI {
 
 const double Camera::DefaultDistance = 1000.0;
+#if ENABLE_THUMBNAIL_GENERATOR
+const double Camera::DefaultZoomToBoxMarginFactor = 1.0;
+const double Camera::DefaultZoomToVolumesMarginFactor = 1.1;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 double Camera::FrustrumMinZRange = 50.0;
 double Camera::FrustrumMinNearZ = 100.0;
 double Camera::FrustrumZMargin = 10.0;
@@ -266,10 +272,18 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
     glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor)
+#else
 void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     // Calculate the zoom factor needed to adjust the view around the given box.
+#if ENABLE_THUMBNAIL_GENERATOR
+    double zoom = calc_zoom_to_bounding_box_factor(box, canvas_w, canvas_h, margin_factor);
+#else
     double zoom = calc_zoom_to_bounding_box_factor(box, canvas_w, canvas_h);
+#endif // ENABLE_THUMBNAIL_GENERATOR
     if (zoom > 0.0)
     {
         m_zoom = zoom;
@@ -277,6 +291,20 @@ void Camera::zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h)
         m_target = box.center();
     }
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, double margin_factor)
+{
+    Vec3d center;
+    double zoom = calc_zoom_to_volumes_factor(volumes, canvas_w, canvas_h, center, margin_factor);
+    if (zoom > 0.0)
+    {
+        m_zoom = zoom;
+        // center view around the calculated center
+        m_target = center;
+    }
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #if ENABLE_CAMERA_STATISTICS
 void Camera::debug_render() const
@@ -372,7 +400,11 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
     return ret;
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor) const
+#else
 double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     double max_bb_size = box.max_size();
     if (max_bb_size == 0.0)
@@ -405,13 +437,15 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     double max_x = 0.0;
     double max_y = 0.0;
 
+#if !ENABLE_THUMBNAIL_GENERATOR
     // margin factor to give some empty space around the box
     double margin_factor = 1.25;
+#endif // !ENABLE_THUMBNAIL_GENERATOR
 
     for (const Vec3d& v : vertices)
     {
         // project vertex on the plane perpendicular to camera forward axis
-        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
+        Vec3d pos = v - bb_center;
         Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
 
         // calculates vertex coordinate along camera xy axes
@@ -430,6 +464,72 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
 
     return std::min((double)canvas_w / (2.0 * max_x), (double)canvas_h / (2.0 * max_y));
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, Vec3d& center, double margin_factor) const
+{
+    if (volumes.empty())
+        return -1.0;
+
+    // project the volumes vertices on a plane perpendicular to the camera forward axis
+    // then calculates the vertices coordinate on this plane along the camera xy axes
+
+    // ensure that the view matrix is updated
+    apply_view_matrix();
+
+    Vec3d right = get_dir_right();
+    Vec3d up = get_dir_up();
+    Vec3d forward = get_dir_forward();
+
+    BoundingBoxf3 box;
+    for (const GLVolume* volume : volumes)
+    {
+        box.merge(volume->transformed_bounding_box());
+    }
+    center = box.center();
+
+    double min_x = DBL_MAX;
+    double min_y = DBL_MAX;
+    double max_x = -DBL_MAX;
+    double max_y = -DBL_MAX;
+
+    for (const GLVolume* volume : volumes)
+    {
+        const Transform3d& transform = volume->world_matrix();
+        const TriangleMesh* hull = volume->convex_hull();
+        if (hull == nullptr)
+            continue;
+
+        for (const Vec3f& vertex : hull->its.vertices)
+        {
+            Vec3d v = transform * vertex.cast<double>();
+
+            // project vertex on the plane perpendicular to camera forward axis
+            Vec3d pos = v - center;
+            Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
+
+            // calculates vertex coordinate along camera xy axes
+            double x_on_plane = proj_on_plane.dot(right);
+            double y_on_plane = proj_on_plane.dot(up);
+
+            min_x = std::min(min_x, x_on_plane);
+            min_y = std::min(min_y, y_on_plane);
+            max_x = std::max(max_x, x_on_plane);
+            max_y = std::max(max_y, y_on_plane);
+        }
+    }
+
+    center += 0.5 * (max_x + min_x) * right + 0.5 * (max_y + min_y) * up;
+
+    double dx = margin_factor * (max_x - min_x);
+    double dy = margin_factor * (max_y - min_y);
+
+    if ((dx == 0.0) || (dy == 0.0))
+        return -1.0f;
+
+    return std::min((double)canvas_w / dx, (double)canvas_h / dy);
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Camera::set_distance(double distance) const
 {
