@@ -7,6 +7,8 @@ else ()
     set(TBB_MINGW_WORKAROUND "")
 endif ()
 
+find_package(ZLIB REQUIRED)
+
 ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
@@ -105,7 +107,7 @@ ExternalProject_Add(dep_blosc
         -DBUILD_STATIC=ON
         -DBUILD_TESTS=OFF 
         -DBUILD_BENCHMARKS=OFF 
-        -DPREFER_EXTERNAL_ZLIB=OFF
+        -DPREFER_EXTERNAL_ZLIB=ON
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
 )
 
