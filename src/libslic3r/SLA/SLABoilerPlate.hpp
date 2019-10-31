@@ -12,24 +12,34 @@
 #include "SLASpatIndex.hpp"
 
 namespace Slic3r {
+
+typedef Eigen::Matrix<int, 4, 1, Eigen::DontAlign> Vec4i;
+
 namespace sla {
 
 /// Intermediate struct for a 3D mesh
 struct Contour3D {
     Pointf3s points;
-    std::vector<Vec3i> indices;
+    std::vector<Vec3i> faces3;
+    std::vector<Vec4i> faces4;
 
     Contour3D& merge(const Contour3D& ctr)
     {
-        auto s3 = coord_t(points.size());
-        auto s = indices.size();
+        auto N = coord_t(points.size());
+        auto N_f3 = faces3.size();
+        auto N_f4 = faces4.size();
 
         points.insert(points.end(), ctr.points.begin(), ctr.points.end());
-        indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
+        faces3.insert(faces3.end(), ctr.faces3.begin(), ctr.faces3.end());
+        faces4.insert(faces4.end(), ctr.faces4.begin(), ctr.faces4.end());
 
-        for(size_t n = s; n < indices.size(); n++) {
-            auto& idx = indices[n]; idx.x() += s3; idx.y() += s3; idx.z() += s3;
+        for(size_t n = N_f3; n < faces3.size(); n++) {
+            auto& idx = faces3[n]; idx.x() += N; idx.y() += N; idx.z() += N;
         }
+        
+        for(size_t n = N_f4; n < faces4.size(); n++) {
+            auto& idx = faces4[n]; for (int k = 0; k < 4; k++) idx(k) += N;
+        }        
         
         return *this;
     }
@@ -38,10 +48,10 @@ struct Contour3D {
     {
         const size_t offs = points.size();
         points.insert(points.end(), triangles.begin(), triangles.end());
-        indices.reserve(indices.size() + points.size() / 3);
+        faces3.reserve(faces3.size() + points.size() / 3);
         
         for(int i = int(offs); i < int(points.size()); i += 3)
-            indices.emplace_back(i, i + 1, i + 2);
+            faces3.emplace_back(i, i + 1, i + 2);
         
         return *this;
     }
@@ -53,10 +63,16 @@ struct Contour3D {
             stream << "v " << p.transpose() << "\n";
         }
 
-        for(auto& f : indices) {
+        for(auto& f : faces3) {
             stream << "f " << (f + Vec3i(1, 1, 1)).transpose() << "\n";
         }
+        
+        for(auto& f : faces4) {
+            stream << "f " << (f + Vec4i(1, 1, 1, 1)).transpose() << "\n";
+        }
     }
+    
+    bool empty() const { return points.empty() || (faces4.empty() && faces3.empty()); }
 };
 
 using ClusterEl = std::vector<unsigned>;
@@ -82,19 +98,45 @@ ClusteredPoints cluster(
 // Calculate the normals for the selected points (from 'points' set) on the
 // mesh. This will call squared distance for each point.
 PointSet normals(const PointSet& points,
-                 const EigenMesh3D& mesh,
+                 const EigenMesh3D& convert_mesh,
                  double eps = 0.05,  // min distance from edges
                  std::function<void()> throw_on_cancel = [](){},
                  const std::vector<unsigned>& selected_points = {});
 
 /// Mesh from an existing contour.
-inline TriangleMesh mesh(const Contour3D& ctour) {
-    return {ctour.points, ctour.indices};
+inline TriangleMesh convert_mesh(const Contour3D& ctour) {
+    return {ctour.points, ctour.faces3};
 }
 
 /// Mesh from an evaporating 3D contour
-inline TriangleMesh mesh(Contour3D&& ctour) {
-    return {std::move(ctour.points), std::move(ctour.indices)};
+inline TriangleMesh convert_mesh(Contour3D&& ctour) {
+    return {std::move(ctour.points), std::move(ctour.faces3)};
+}
+
+inline Contour3D convert_mesh(const TriangleMesh &trmesh) {
+    Contour3D ret;
+    ret.points.reserve(trmesh.its.vertices.size());
+    ret.faces3.reserve(trmesh.its.indices.size());
+    
+    for (auto &v : trmesh.its.vertices)
+        ret.points.emplace_back(v.cast<double>());
+    
+    std::copy(trmesh.its.indices.begin(), trmesh.its.indices.end(),
+              std::back_inserter(ret.faces3));
+
+    return ret;
+}
+
+inline Contour3D convert_mesh(TriangleMesh &&trmesh) {
+    Contour3D ret;
+    ret.points.reserve(trmesh.its.vertices.size());
+    
+    for (auto &v : trmesh.its.vertices)
+        ret.points.emplace_back(v.cast<double>());
+    
+    ret.faces3.swap(trmesh.its.indices);
+    
+    return ret;
 }
 
 }

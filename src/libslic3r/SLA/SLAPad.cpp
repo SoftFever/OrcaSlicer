@@ -69,7 +69,7 @@ Contour3D walls(
 
     // Shorthand for the vertex arrays
     auto& upts = upper.points, &lpts = lower.points;
-    auto& rpts = ret.points; auto& ind = ret.indices;
+    auto& rpts = ret.points; auto& ind = ret.faces3;
 
     // If the Z levels are flipped, or the offset difference is negative, we
     // will interpret that as the triangles normals should be inverted.
@@ -677,7 +677,7 @@ void create_pad(const ExPolygons &sup_blueprint,
                 ThrowOnCancel thr)
 {
     Contour3D t = create_pad_geometry(sup_blueprint, model_blueprint, cfg, thr);
-    out.merge(mesh(std::move(t)));
+    out.merge(convert_mesh(std::move(t)));
 }
 
 std::string PadConfig::validate() const

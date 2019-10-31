@@ -1,10 +1,8 @@
 #include <iostream>
-#include <catch_main.hpp>
+#include <fstream>
+#include <catch2/catch.hpp>
 
-#include <openvdb/openvdb.h>
-#include <openvdb/tools/MeshToVolume.h>
-#include <openvdb/tools/VolumeToMesh.h>
-#include <libslic3r/TriangleMesh.hpp>
+#include "openvdb_utils.hpp"
 #include "libslic3r/Format/OBJ.hpp"
 
 #if defined(WIN32) || defined(_WIN32)
@@ -12,22 +10,6 @@
 #else
 #define PATH_SEPARATOR R"(/)"
 #endif
-
-class TriangleMeshDataAdapter {
-public:
-    Slic3r::TriangleMesh mesh;
-    
-    size_t polygonCount() const { return mesh.its.indices.size(); }
-    size_t pointCount() const   { return mesh.its.vertices.size(); }
-    size_t vertexCount(size_t) const { return 3; }
-    
-    // Return position pos in local grid index space for polygon n and vertex v
-    void getIndexSpacePoint(size_t n, size_t v, openvdb::Vec3d& pos) const {
-        auto vidx = size_t(mesh.its.indices[n](Eigen::Index(v)));
-        Slic3r::Vec3d p = mesh.its.vertices[vidx].cast<double>();
-        pos = {double(p.x()), double(p.y()), p.z()};
-    }
-};
 
 static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
 {
@@ -38,24 +20,21 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
 }
 
 TEST_CASE("Load object", "[Hollowing]") {
-    TriangleMeshDataAdapter mesh{load_model("20mm_cube.obj")};
-    auto ptr = openvdb::tools::meshToVolume<openvdb::FloatGrid>(mesh, {});
+    Slic3r::TriangleMesh mesh = load_model("20mm_cube.obj");
+    
+    Slic3r::sla::Contour3D imesh = Slic3r::sla::convert_mesh(mesh);
+    auto ptr = Slic3r::meshToVolume(imesh, {});
     
     REQUIRE(ptr);
     
-    std::vector<openvdb::Vec3s> points;
-    std::vector<openvdb::Vec4I> quad_indices;
-    std::vector<openvdb::Vec3I> triangle_indices;
+    Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, -1., 0.0, true);
     
-    openvdb::tools::volumeToMesh(*ptr, points, triangle_indices, quad_indices, 0.0, 1.0, true);
+    REQUIRE(!omesh.empty());
     
-    std::cout << "Triangle count: " << triangle_indices.size() << std::endl;
-    std::cout << "Quad count: " << quad_indices.size() << std::endl;
-    std::cout << "Point count: " << points.size() << " vs " << mesh.mesh.its.vertices.size() << std::endl;
+    std::fstream outfile{"out.obj", std::ios::out};
+    omesh.to_obj(outfile);
+    
+    imesh.merge(omesh);
+    std::fstream merged_outfile("merged_out.obj", std::ios::out);
+    imesh.to_obj(merged_outfile);
 }
-
-//int main(int argc, char **argv)
-//{
-//    ::testing::InitGoogleTest(&argc, argv);
-//    return RUN_ALL_TESTS();
-//}
