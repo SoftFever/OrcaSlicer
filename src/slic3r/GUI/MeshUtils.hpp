@@ -28,10 +28,7 @@ class ClippingPlane
 public:
     ClippingPlane()
     {
-        m_data[0] = 0.0;
-        m_data[1] = 0.0;
-        m_data[2] = 1.0;
-        m_data[3] = 0.0;
+        *this = ClipsNothing();
     }
 
     ClippingPlane(const Vec3d& direction, double offset)

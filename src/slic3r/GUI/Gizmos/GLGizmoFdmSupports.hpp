@@ -19,20 +19,20 @@ class GLGizmoFdmSupports : public GLGizmoBase
 private:
     ModelObject* m_model_object = nullptr;
     ObjectID m_model_object_id = 0;
+    std::vector<ObjectID> m_volumes_ids;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    bool unproject_on_mesh(const Vec2d& mouse_pos,  size_t& facet_idx, Vec3f* position = nullptr);
+    bool unproject_on_mesh(size_t mesh_id, const Vec2d& mouse_pos,  size_t& facet_idx, Vec3f* position = nullptr);
 
 
     GLUquadricObj* m_quadric;
 
-    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    const TriangleMesh* m_mesh;
-    const indexed_triangle_set* m_its;
+    std::vector<std::unique_ptr<MeshRaycaster>> m_meshes_raycaster;
+    std::vector<const TriangleMesh*> m_meshes;
     mutable std::vector<Vec2f> m_triangles;
     float m_cursor_radius = 2.f;
 
-    std::vector<bool> m_selected_facets;
+    std::vector<std::vector<bool>> m_selected_facets;
 
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -64,12 +64,10 @@ private:
     bool m_wait_for_up_event = false;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    mutable std::unique_ptr<MeshClipper> m_object_clipper;
+    mutable std::vector<std::unique_ptr<MeshClipper>> m_meshes_clipper;
 
-    std::vector<NeighborData> m_neighbors; // pairs of vertex_index - facet_index
+    std::vector<std::vector<NeighborData>> m_neighbors; // pairs of vertex_index - facet_index for each mesh
 
-
-    bool is_point_clipped(const Vec3d& point) const;
     void update_clipping_plane(bool keep_normal = false) const;
 
 protected:

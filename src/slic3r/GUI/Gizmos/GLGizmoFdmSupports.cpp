@@ -17,9 +17,8 @@ namespace GUI {
 GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_quadric(nullptr)
-    , m_its(nullptr)
 {
-    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+    m_clipping_plane.reset(new ClippingPlane());
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -99,7 +98,7 @@ void GLGizmoFdmSupports::on_render() const
         return;
     }
 
-    if (! m_its || ! m_mesh)
+    if (m_meshes.empty())
         const_cast<GLGizmoFdmSupports*>(this)->update_mesh();
 
     glsafe(::glEnable(GL_BLEND));
@@ -114,60 +113,67 @@ void GLGizmoFdmSupports::on_render() const
 
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
-    if (! m_mesh)
-        return;
+//    if (m_meshes.empty())
+//        return;
 
-    // Get transformation of the instance
-    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    Transform3d trafo = vol->get_instance_transformation().get_matrix();
 
-    ::glColor3f(0.0f, 0.37f, 1.0f);
+    for (size_t mesh_id=0; mesh_id<m_meshes.size(); ++mesh_id) {
 
-    for (size_t facet_idx=0; facet_idx<m_selected_facets.size(); ++facet_idx) {
-        if (! m_selected_facets[facet_idx])
-            continue;
-        stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(m_mesh->its, facet_idx);
-        ::glPushMatrix();
-        ::glTranslatef(normal(0), normal(1), normal(2));
-        ::glMultMatrixd(trafo.data());
+        const Transform3d trafo_matrix =
+            m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
+            m_model_object->volumes[mesh_id]->get_matrix();
+        const TriangleMesh* mesh = m_meshes[mesh_id];
 
-        ::glBegin(GL_TRIANGLES);
-        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](0)](2));
-        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](1)](2));
-        ::glVertex3f(m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](0), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](1), m_mesh->its.vertices[m_mesh->its.indices[facet_idx](2)](2));
-        ::glEnd();
-        ::glPopMatrix();
+
+
+        ::glColor3f(0.0f, 0.37f, 1.0f);
+
+        for (size_t facet_idx=0; facet_idx<m_selected_facets[mesh_id].size(); ++facet_idx) {
+            if (! m_selected_facets[mesh_id][facet_idx])
+                continue;
+            stl_normal normal = 0.01f * MeshRaycaster::get_triangle_normal(mesh->its, facet_idx);
+            ::glPushMatrix();
+            ::glTranslatef(normal(0), normal(1), normal(2));
+            ::glMultMatrixd(trafo_matrix.data());
+
+            ::glBegin(GL_TRIANGLES);
+            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](0)](0), mesh->its.vertices[mesh->its.indices[facet_idx](0)](1), mesh->its.vertices[mesh->its.indices[facet_idx](0)](2));
+            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](1)](0), mesh->its.vertices[mesh->its.indices[facet_idx](1)](1), mesh->its.vertices[mesh->its.indices[facet_idx](1)](2));
+            ::glVertex3f(mesh->its.vertices[mesh->its.indices[facet_idx](2)](0), mesh->its.vertices[mesh->its.indices[facet_idx](2)](1), mesh->its.vertices[mesh->its.indices[facet_idx](2)](2));
+            ::glEnd();
+            ::glPopMatrix();
+        }
     }
 }
 
 void GLGizmoFdmSupports::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f)
-        return;
+//    if (m_clipping_plane_distance == 0.f)
+//        return;
 
-    // Get transformation of the instance
-    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    Geometry::Transformation trafo = vol->get_instance_transformation();
+//    // Get transformation of the instance
+//    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
+//    Geometry::Transformation trafo = vol->get_instance_transformation();
 
 
-    // Now initialize the TMS for the object, perform the cut and save the result.
-    if (! m_object_clipper) {
-        m_object_clipper.reset(new MeshClipper);
-        m_object_clipper->set_mesh(*m_mesh);
-    }
-    m_object_clipper->set_plane(*m_clipping_plane);
-    m_object_clipper->set_transformation(trafo);
+//    // Now initialize the TMS for the object, perform the cut and save the result.
+//    if (! m_object_clipper) {
+//        m_object_clipper.reset(new MeshClipper);
+//        m_object_clipper->set_mesh(*m_mesh);
+//    }
+//    m_object_clipper->set_plane(*m_clipping_plane);
+//    m_object_clipper->set_transformation(trafo);
 
-    // At this point we have the triangulated cuts for both the object and supports - let's render.
-    if (! m_object_clipper->get_triangles().empty()) {
-		::glPushMatrix();
-        ::glColor3f(1.0f, 0.37f, 0.0f);
-        ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_object_clipper->get_triangles())
-            ::glVertex3f(point(0), point(1), point(2));
-        ::glEnd();
-		::glPopMatrix();
-	}
+//    // At this point we have the triangulated cuts for both the object and supports - let's render.
+//    if (! m_object_clipper->get_triangles().empty()) {
+//		::glPushMatrix();
+//        ::glColor3f(1.0f, 0.37f, 0.0f);
+//        ::glBegin(GL_TRIANGLES);
+//        for (const Vec3f& point : m_object_clipper->get_triangles())
+//            ::glVertex3f(point(0), point(1), point(2));
+//        ::glEnd();
+//		::glPopMatrix();
+//	}
 }
 
 void GLGizmoFdmSupports::render_cursor_circle() const
@@ -187,6 +193,8 @@ void GLGizmoFdmSupports::render_cursor_circle() const
 
     glsafe(::glLineWidth(1.5f));
     float color[3];
+    color[0] = 0.f;
+    color[1] = 1.f;
     color[2] = 0.3f;
     glsafe(::glColor3fv(color));
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -219,23 +227,14 @@ void GLGizmoFdmSupports::on_render_for_picking() const
 }
 
 
-
-
-bool GLGizmoFdmSupports::is_point_clipped(const Vec3d& point) const
-{
-    if (m_clipping_plane_distance == 0.f)
-        return false;
-
-    Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
-    return m_clipping_plane->distance(transformed_point) < 0.;
-}
-
-
-
 bool GLGizmoFdmSupports::is_mesh_update_necessary() const
 {
+    std::vector<ObjectID> volumes_ids;
+    for (const ModelVolume* vol : m_model_object->volumes)
+        volumes_ids.push_back(vol->id());
+
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_model_object_id) || m_its == nullptr);
+        && (m_model_object->id() != m_model_object_id || m_volumes_ids != volumes_ids);
 }
 
 
@@ -246,26 +245,33 @@ void GLGizmoFdmSupports::update_mesh()
         return;
 
     wxBusyCursor wait;
-    // this way we can use that mesh directly.
-    // This mesh does not account for the possible Z up SLA offset.
-    m_mesh = &m_model_object->volumes.front()->mesh();
-    m_its = &m_mesh->its;
 
-    m_selected_facets.assign(m_mesh->its.indices.size(), false);
+    size_t num_of_volumes = m_model_object->volumes.size();
+    m_meshes.clear();
+    m_selected_facets.resize(num_of_volumes);
+    m_neighbors.resize(num_of_volumes);
+    m_meshes_raycaster.clear();
 
-    // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
-    m_neighbors.resize(3 * m_mesh->its.indices.size());
-    for (size_t i=0; i<m_mesh->its.indices.size(); ++i) {
-        const stl_triangle_vertex_indices& ind  = m_mesh->its.indices[i];
-        m_neighbors[3*i] = std::make_pair(ind(0), i);
-        m_neighbors[3*i+1] = std::make_pair(ind(1), i);
-        m_neighbors[3*i+2] = std::make_pair(ind(2), i);
+    for (size_t volume_id=0; volume_id<num_of_volumes; ++volume_id) {
+        // This mesh does not account for the possible Z up SLA offset.
+        const TriangleMesh* mesh = &m_model_object->volumes[volume_id]->mesh();
+        m_meshes.push_back(mesh);
+
+        m_selected_facets[volume_id].assign(mesh->its.indices.size(), false);
+        m_neighbors[volume_id].resize(3 * mesh->its.indices.size());
+
+        // Prepare vector of vertex_index - facet_index pairs to quickly find adjacent facets
+        for (size_t i=0; i<mesh->its.indices.size(); ++i) {
+            const stl_triangle_vertex_indices& ind  = mesh->its.indices[i];
+            m_neighbors[volume_id][3*i] = std::make_pair(ind(0), i);
+            m_neighbors[volume_id][3*i+1] = std::make_pair(ind(1), i);
+            m_neighbors[volume_id][3*i+2] = std::make_pair(ind(2), i);
+        }
+        std::sort(m_neighbors[volume_id].begin(), m_neighbors[volume_id].end());
+
+        // Recalculate raycaster.
+        m_meshes_raycaster.emplace_back(new MeshRaycaster(*mesh));
     }
-    std::sort(m_neighbors.begin(), m_neighbors.end());
-
-    // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_model_object_id != m_model_object->id() || ! m_mesh_raycaster)
-        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
 
     m_model_object_id = m_model_object->id();
 }
@@ -275,22 +281,21 @@ void GLGizmoFdmSupports::update_mesh()
 // Unprojects the mouse position on the mesh and saves hit facet index into facet_idx
 // Position of the hit in mesh coords is copied into *position, if provided.
 // Returns false if no intersection was found, true otherwise.
-bool GLGizmoFdmSupports::unproject_on_mesh(const Vec2d& mouse_pos, size_t& facet_idx, Vec3f* position)
+bool GLGizmoFdmSupports::unproject_on_mesh(size_t mesh_id, const Vec2d& mouse_pos, size_t& facet_idx, Vec3f* position)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (! m_mesh_raycaster)
-        update_mesh();
-
+    //if (! m_meshes_raycaster[mesh_id])
+    //    update_mesh();
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
-    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-    Geometry::Transformation trafo = volume->get_instance_transformation();
-    trafo.set_offset(trafo.get_offset());
+    const Transform3d trafo_matrix =
+            m_model_object->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
+            m_model_object->volumes[mesh_id]->get_matrix();
 
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get(), &facet_idx)) {
+    if (m_meshes_raycaster[mesh_id]->unproject_on_mesh(mouse_pos, trafo_matrix, camera, hit, normal, m_clipping_plane.get(), &facet_idx)) {
         if (position)
             *position = hit;
         return true;
@@ -330,66 +335,74 @@ bool GLGizmoFdmSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if (action == SLAGizmoEventType::LeftDown || (action == SLAGizmoEventType::Dragging && m_wait_for_up_event)) {
         size_t facet = 0;
         Vec3f hit_pos;
-        if (unproject_on_mesh(mouse_position, facet, &hit_pos)) {
-            bool select = ! shift_down;
+        bool mesh_was_hit = false;
 
-            // Calculate direction from camera to the hit (in mesh coords):
-            const Selection& selection = m_parent.get_selection();
-            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            Geometry::Transformation trafo = volume->get_instance_transformation();
-            trafo.set_offset(trafo.get_offset());
-            Vec3f dir = ((trafo.get_matrix().inverse() * m_parent.get_camera().get_position()).cast<float>() - hit_pos).normalized();
+        for (size_t mesh_id=0; mesh_id<m_model_object->volumes.size(); ++mesh_id) {
+            if (unproject_on_mesh(mesh_id, mouse_position, facet, &hit_pos)) {
+                mesh_was_hit = true;
+                const TriangleMesh* mesh = m_meshes[mesh_id];
+                std::vector<NeighborData>& neighbors = m_neighbors[mesh_id];
 
-            // Calculate how far can a point be from the line (in mesh coords).
-            // FIXME: This should account for (possibly non-uniform) scaling of the mesh.
-            float limit = pow(m_cursor_radius, 2.f);
+                bool select = ! shift_down;
 
+                // Calculate direction from camera to the hit (in mesh coords):
+                const Selection& selection = m_parent.get_selection();
+                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+                Geometry::Transformation trafo = volume->get_instance_transformation();
+                trafo.set_offset(trafo.get_offset());
+                Vec3f dir = ((trafo.get_matrix().inverse() * m_parent.get_camera().get_position()).cast<float>() - hit_pos).normalized();
 
-            // A lambda to calculate distance from the line:
-            auto squared_distance_from_line = [&hit_pos, &dir](const Vec3f point) -> float {
-                Vec3f diff = hit_pos - point;
-                return (diff - diff.dot(dir) * dir).squaredNorm();
-            };
+                // Calculate how far can a point be from the line (in mesh coords).
+                // FIXME: This should account for (possibly non-uniform) scaling of the mesh.
+                float limit = pow(m_cursor_radius, 2.f);
 
-            // A lambda to determine whether this facet is potentionally visible (still can be obscured)
-            auto faces_camera = [&dir, this](const size_t& facet) -> bool {
-                return (m_mesh->stl.facet_start[facet].normal.dot(dir) > 0.);
-            };
+                // A lambda to calculate distance from the line:
+                auto squared_distance_from_line = [&hit_pos, &dir](const Vec3f point) -> float {
+                    Vec3f diff = hit_pos - point;
+                    return (diff - diff.dot(dir) * dir).squaredNorm();
+                };
 
-            // Now start with the facet the pointer points to and check all adjacent facets. m_neighbors vector stores
-            // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
-            // quickly found by finding a vertex in the list and read the respective facet ids.
-            std::vector<size_t> facets_to_select{facet};
-            NeighborData vertex = std::make_pair(0, 0);
-            std::vector<bool> visited(m_selected_facets.size(), false); // keep track of facets we already processed
-            size_t facet_idx = 0; // index into facets_to_select
-            auto it = m_neighbors.end();
-
-            while (facet_idx < facets_to_select.size()) {
-                size_t facet = facets_to_select[facet_idx];
-                if (! visited[facet]) {
-                    // check all three vertices and in case they're close enough, find the remaining facets
-                    // and add them to the list to be proccessed later
-                    for (size_t i=0; i<3; ++i) {
-                        vertex.first = m_mesh->its.indices[facet](i); // vertex index
-                        float dist = squared_distance_from_line(m_mesh->its.vertices[vertex.first]);
-                        if (dist < limit) {
-                            it = std::lower_bound(m_neighbors.begin(), m_neighbors.end(), vertex);
-                            while (it != m_neighbors.end() && it->first == vertex.first) {
-                                if (it->second != facet && faces_camera(it->second))
-                                    facets_to_select.push_back(it->second);
-                                ++it;
+                // A lambda to determine whether this facet is potentionally visible (still can be obscured)
+                auto faces_camera = [&dir, this](const size_t& mesh_id, const size_t& facet) -> bool {
+                    return (m_meshes[mesh_id]->stl.facet_start[facet].normal.dot(dir) > 0.);
+                };
+                // Now start with the facet the pointer points to and check all adjacent facets. neighbors vector stores
+                // pairs of vertex_idx - facet_idx and is sorted with respect to the former. Neighboring facet index can be
+                // quickly found by finding a vertex in the list and read the respective facet ids.
+                std::vector<size_t> facets_to_select{facet};
+                NeighborData vertex = std::make_pair(0, 0);
+                std::vector<bool> visited(m_selected_facets[mesh_id].size(), false); // keep track of facets we already processed
+                size_t facet_idx = 0; // index into facets_to_select
+                auto it = neighbors.end();
+                while (facet_idx < facets_to_select.size()) {
+                    size_t facet = facets_to_select[facet_idx];
+                    if (! visited[facet]) {
+                        // check all three vertices and in case they're close enough, find the remaining facets
+                        // and add them to the list to be proccessed later
+                        for (size_t i=0; i<3; ++i) {
+                            vertex.first = mesh->its.indices[facet](i); // vertex index
+                            float dist = squared_distance_from_line(mesh->its.vertices[vertex.first]);
+                            if (dist < limit) {
+                                it = std::lower_bound(neighbors.begin(), neighbors.end(), vertex);
+                                while (it != neighbors.end() && it->first == vertex.first) {
+                                    if (it->second != facet && faces_camera(mesh_id, it->second))
+                                        facets_to_select.push_back(it->second);
+                                    ++it;
+                                }
                             }
                         }
+                        visited[facet] = true;
                     }
-                    visited[facet] = true;
+                    ++facet_idx;
                 }
-                ++facet_idx;
+                // Now just select all facets that passed
+                for (size_t next_facet : facets_to_select)
+                    m_selected_facets[mesh_id][next_facet] = select;
             }
-            // Now just select all facets that passed
-            for (size_t next_facet : facets_to_select)
-                m_selected_facets[next_facet] = select;
+        }
 
+        if (mesh_was_hit)
+        {
             m_wait_for_up_event = true;
             m_parent.set_as_dirty();
             return true;
@@ -529,9 +542,8 @@ void GLGizmoFdmSupports::on_set_state()
         m_parent.toggle_model_objects_visibility(true);
         m_clipping_plane_distance = 0.f;
         // Release clippers and the AABB raycaster.
-        m_its = nullptr;
-        m_object_clipper.reset();
-        m_mesh_raycaster.reset();
+        m_meshes_clipper.clear();
+        m_meshes_raycaster.clear();
     }
     m_old_state = m_state;
 }
