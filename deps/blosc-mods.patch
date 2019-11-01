@@ -1,23 +1,22 @@
-From 24640a466b28dfda26069096554676e8c0b6d090 Mon Sep 17 00:00:00 2001
+From 5669891dfaaa4c814f3ec667ca6bf4e693aea978 Mon Sep 17 00:00:00 2001
 From: tamasmeszaros <meszaros.q@gmail.com>
-Date: Tue, 22 Oct 2019 11:29:05 +0200
-Subject: [PATCH] Install.dll in prefix/bin and add config export to cmake
- build
+Date: Wed, 30 Oct 2019 12:54:52 +0100
+Subject: [PATCH] Blosc 1.17 fixes and cmake config script
 
 ---
- CMakeLists.txt                   | 112 ++++++++++++++++++++----------------
- blosc/CMakeLists.txt             | 121 ++++++++++-----------------------------
+ CMakeLists.txt                   | 105 +++++++++++++++++-----------------
+ blosc/CMakeLists.txt             | 118 +++++++++------------------------------
  cmake/FindLZ4.cmake              |   6 +-
  cmake/FindSnappy.cmake           |   8 ++-
  cmake/FindZstd.cmake             |   8 ++-
- cmake_config.cmake.in            |  33 +++++++++++
- internal-complibs/CMakeLists.txt |  30 ++++++++++
- 7 files changed, 173 insertions(+), 145 deletions(-)
+ cmake_config.cmake.in            |  24 ++++++++
+ internal-complibs/CMakeLists.txt |  35 ++++++++++++
+ 7 files changed, 157 insertions(+), 147 deletions(-)
  create mode 100644 cmake_config.cmake.in
  create mode 100644 internal-complibs/CMakeLists.txt
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 59d9fab..bdc0dda 100644
+index 59d9fab..e9134c2 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -71,7 +71,7 @@
@@ -29,36 +28,11 @@ index 59d9fab..bdc0dda 100644
  if (NOT CMAKE_VERSION VERSION_LESS 3.3)
      cmake_policy(SET CMP0063 NEW)
  endif()
-@@ -124,55 +124,37 @@ option(PREFER_EXTERNAL_ZSTD
+@@ -124,55 +124,30 @@ option(PREFER_EXTERNAL_ZSTD
  
  set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
  
-+set(PRIVATE_LIBS "")
-+set(PUBLIC_LIBS  "")
-+set(PUBLIC_PACKAGES "" CACHE INTERNAL "")
-+macro(use_package _pkg _tgt)
-+    string(TOUPPER ${_pkg} _PKG)
-+    if(NOT DEACTIVATE_${_PKG})
-+        if(PREFER_EXTERNAL_${_PKG})
-+            find_package(${_pkg})
-+            if (NOT ${_pkg}_FOUND )
-+                message(STATUS "No ${_pkg} found.  Using internal sources.")
-+            endif()
-+        else()
-+            message(STATUS "Using ${_pkg} internal sources.")
-+        endif(PREFER_EXTERNAL_${_PKG})
-+        # HAVE_${_pkg} will be set to true because even if the library is
-+        # not found, we will use the included sources for it
-+        set(HAVE_${_PKG} TRUE)
-+        if (${_pkg}_FOUND)
-+            list(APPEND PUBLIC_LIBS ${_pkg}::${_tgt})
-+            set(PUBLIC_PACKAGES "${PUBLIC_PACKAGES};${_pkg}" CACHE INTERNAL "")
-+        else()
-+            list(APPEND PRIVATE_LIBS ${_pkg}::${_tgt})
-+        endif()
-+    endif(NOT DEACTIVATE_${_PKG})
-+endmacro()
- 
+-
 -if(NOT DEACTIVATE_LZ4)
 -    if(PREFER_EXTERNAL_LZ4)
 -        find_package(LZ4)
@@ -107,6 +81,25 @@ index 59d9fab..bdc0dda 100644
 -    # not found, we will use the included sources for it
 -    set(HAVE_ZSTD TRUE)
 -endif (NOT DEACTIVATE_ZSTD)
++set(LIBS "")
++macro(use_package _pkg _tgt)
++    string(TOUPPER ${_pkg} _PKG)
++    if(NOT DEACTIVATE_${_PKG})
++        if(PREFER_EXTERNAL_${_PKG})
++            find_package(${_pkg})
++            if (NOT ${_pkg}_FOUND )
++                message(STATUS "No ${_pkg} found.  Using internal sources.")
++            endif()
++        else()
++            message(STATUS "Using ${_pkg} internal sources.")
++        endif(PREFER_EXTERNAL_${_PKG})
++        # HAVE_${_pkg} will be set to true because even if the library is
++        # not found, we will use the included sources for it
++        set(HAVE_${_PKG} TRUE)
++        list(APPEND LIBS ${_pkg}::${_tgt})
++    endif(NOT DEACTIVATE_${_PKG})
++endmacro()
++
 +set(ZLIB_ROOT $ENV{ZLIB_ROOT})
 +use_package(ZLIB ZLIB)
 +use_package(LZ4 LZ4)
@@ -115,7 +108,7 @@ index 59d9fab..bdc0dda 100644
  
  # create the config.h file
  configure_file ("blosc/config.h.in"  "blosc/config.h" )
-@@ -316,6 +298,7 @@ endif()
+@@ -316,6 +291,7 @@ endif()
  
  
  # subdirectories
@@ -123,7 +116,15 @@ index 59d9fab..bdc0dda 100644
  add_subdirectory(blosc)
  
  if(BUILD_TESTS)
-@@ -338,10 +321,41 @@ if (BLOSC_INSTALL)
+@@ -328,7 +304,6 @@ if(BUILD_BENCHMARKS)
+     add_subdirectory(bench)
+ endif(BUILD_BENCHMARKS)
+ 
+-
+ # uninstall target
+ if (BLOSC_INSTALL)
+     configure_file(
+@@ -338,10 +313,38 @@ if (BLOSC_INSTALL)
      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/blosc.pc"
              DESTINATION lib/pkgconfig COMPONENT DEV)
  
@@ -157,16 +158,13 @@ index 59d9fab..bdc0dda 100644
 +    install(FILES
 +                "${CMAKE_CURRENT_BINARY_DIR}/cmakeexports/BloscConfig.cmake"
 +                "${CMAKE_CURRENT_BINARY_DIR}/cmakeexports/BloscConfigVersion.cmake"
-+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindLZ4.cmake"
-+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindZstd.cmake"
-+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindSnappy.cmake"
 +            DESTINATION lib/cmake/Blosc COMPONENT DEV)
 +
      add_custom_target(uninstall
          COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
  endif()
 diff --git a/blosc/CMakeLists.txt b/blosc/CMakeLists.txt
-index 1d1bebe..16aff02 100644
+index 1d1bebe..f554abe 100644
 --- a/blosc/CMakeLists.txt
 +++ b/blosc/CMakeLists.txt
 @@ -1,52 +1,11 @@
@@ -222,19 +220,17 @@ index 1d1bebe..16aff02 100644
  
  # library sources
  set(SOURCES blosc.c blosclz.c fastcopy.c shuffle-generic.c bitshuffle-generic.c
-@@ -73,53 +32,15 @@ if(WIN32)
+@@ -73,53 +32,13 @@ if(WIN32)
          message(STATUS "using the internal pthread library for win32 systems.")
          set(SOURCES ${SOURCES} win32/pthread.c)
      else(NOT Threads_FOUND)
 -        set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-+        list(APPEND PUBLIC_LIBS Threads::Threads)
-+        set(PUBLIC_PACKAGES "${PUBLIC_PACKAGES};Threads" CACHE INTERNAL "")
++        list(APPEND LIBS Threads::Threads)
      endif(NOT Threads_FOUND)
  else(WIN32)
      find_package(Threads REQUIRED)
 -    set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-+    list(APPEND PUBLIC_LIBS Threads::Threads)
-+    set(PUBLIC_PACKAGES "${PUBLIC_PACKAGES};Threads" CACHE INTERNAL "")
++    list(APPEND LIBS Threads::Threads)
  endif(WIN32)
  
 -if(NOT DEACTIVATE_LZ4)
@@ -280,7 +276,7 @@ index 1d1bebe..16aff02 100644
  # targets
  if (BUILD_SHARED)
      add_library(blosc_shared SHARED ${SOURCES})
-@@ -191,14 +112,18 @@ if (BUILD_TESTS)
+@@ -191,14 +110,17 @@ if (BUILD_TESTS)
      endif()
  endif()
  
@@ -289,8 +285,7 @@ index 1d1bebe..16aff02 100644
  if (BUILD_SHARED)
 -    target_link_libraries(blosc_shared ${LIBS})
 -    target_include_directories(blosc_shared PUBLIC ${BLOSC_INCLUDE_DIRS})
-+    target_link_libraries(blosc_shared PUBLIC ${PUBLIC_LIBS})
-+    target_link_libraries(blosc_shared PRIVATE ${PRIVATE_LIBS})
++    target_link_libraries(blosc_shared PRIVATE ${LIBS})
 +    target_include_directories(blosc_shared PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 +    target_link_libraries(blosc INTERFACE blosc_shared)
  endif()
@@ -298,19 +293,19 @@ index 1d1bebe..16aff02 100644
  if (BUILD_TESTS)
 -    target_link_libraries(blosc_shared_testing ${LIBS})
 -    target_include_directories(blosc_shared_testing PUBLIC ${BLOSC_INCLUDE_DIRS})
-+    target_link_libraries(blosc_shared_testing ${PUBLIC_LIBS} ${PRIVATE_LIBS})
++    target_link_libraries(blosc_shared_testing PRIVATE ${LIBS})
 +    target_include_directories(blosc_shared_testing PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
  endif()
  
  if(BUILD_STATIC)
-@@ -207,17 +132,31 @@ if(BUILD_STATIC)
+@@ -207,17 +129,31 @@ if(BUILD_STATIC)
      if (MSVC)
          set_target_properties(blosc_static PROPERTIES PREFIX lib)
      endif()
 -    target_link_libraries(blosc_static ${LIBS})
 -    target_include_directories(blosc_static PUBLIC ${BLOSC_INCLUDE_DIRS})
-+    target_link_libraries(blosc_static PUBLIC ${PUBLIC_LIBS})
-+    target_link_libraries(blosc_static PRIVATE ${PRIVATE_LIBS})
++    # With the static library, cmake has to deal with transitive dependencies
++    target_link_libraries(blosc_static PRIVATE ${LIBS})
 +    target_include_directories(blosc_static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 +    if (NOT BUILD_SHARED)
 +        target_link_libraries(blosc INTERFACE blosc_static)
@@ -398,24 +393,15 @@ index 7db4bb9..cabc2f8 100644
 \ No newline at end of file
 diff --git a/cmake_config.cmake.in b/cmake_config.cmake.in
 new file mode 100644
-index 0000000..b4ede30
+index 0000000..0f6af24
 --- /dev/null
 +++ b/cmake_config.cmake.in
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,24 @@
 +include(CMakeFindDependencyMacro)
-+
-+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
-+
-+set(_deps "@PUBLIC_PACKAGES@")
-+
-+foreach(pkg ${_deps})
-+    # no minimum versions are required by upstream
-+    find_dependency(${pkg})
-+endforeach()
 +
 +include("${CMAKE_CURRENT_LIST_DIR}/BloscTargets.cmake")
 +
-+function(remap_configs from_Cfg to_Cfg)
++function(_blosc_remap_configs from_Cfg to_Cfg)
 +    string(TOUPPER ${from_Cfg} from_CFG)
 +    string(TOLOWER ${from_Cfg} from_cfg)
 +
@@ -432,21 +418,25 @@ index 0000000..b4ede30
 +# MSVC will try to link RelWithDebInfo or MinSizeRel target with debug config
 +# if no matching installation is present which would result in link errors.
 +if(MSVC)
-+    remap_configs(RelWithDebInfo Release)
-+    remap_configs(MinSizeRel Release)
++    _blosc_remap_configs(RelWithDebInfo Release)
++    _blosc_remap_configs(MinSizeRel Release)
 +endif()
 diff --git a/internal-complibs/CMakeLists.txt b/internal-complibs/CMakeLists.txt
 new file mode 100644
-index 0000000..5b23484
+index 0000000..4586efa
 --- /dev/null
 +++ b/internal-complibs/CMakeLists.txt
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,35 @@
 +macro(add_lib_target pkg tgt incdir files)
 +    string(TOUPPER ${pkg} TGT)
 +    if(NOT DEACTIVATE_${TGT} AND NOT ${pkg}_FOUND)
++        add_library(${tgt}_objs OBJECT ${files})
 +        add_library(${tgt} INTERFACE)
++        target_include_directories(${tgt}_objs PRIVATE $<BUILD_INTERFACE:${incdir}>)
 +        target_include_directories(${tgt} INTERFACE $<BUILD_INTERFACE:${incdir}>)
-+        target_sources(${tgt} INTERFACE "$<BUILD_INTERFACE:${files}>")
++        #set_target_properties(${tgt} PROPERTIES INTERFACE_SOURCES "$<TARGET_OBJECTS:${tgt}_objs>")
++        set_target_properties(${tgt}_objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
++        target_sources(${tgt} INTERFACE "$<BUILD_INTERFACE:$<TARGET_OBJECTS:${tgt}_objs>>")
 +        add_library(${pkg}::${tgt} ALIAS ${tgt})
 +
 +        # This creates dummy (empty) interface targets in the exported config.
@@ -471,6 +461,7 @@ index 0000000..5b23484
 +file(GLOB ZSTD_FILES ${ZSTD_DIR}/common/*.c ${ZSTD_DIR}/compress/*.c ${ZSTD_DIR}/decompress/*.c)
 +add_lib_target(Zstd Zstd ${ZSTD_DIR} "${ZSTD_FILES}")
 +target_include_directories(Zstd INTERFACE $<BUILD_INTERFACE:${ZSTD_DIR}/common>)
++target_include_directories(Zstd_objs PRIVATE $<BUILD_INTERFACE:${ZSTD_DIR}/common>)
 \ No newline at end of file
 -- 
 2.16.2.windows.1

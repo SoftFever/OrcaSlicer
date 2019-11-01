@@ -1,5 +1,4 @@
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#include <catch_main.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
