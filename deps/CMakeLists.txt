@@ -72,7 +72,7 @@ elseif (APPLE)
             message(FATAL_ERROR "Could not determine OS X SDK version. Please use -DCMAKE_OSX_DEPLOYMENT_TARGET=<version>")
         endif ()
 
-        message("OS X Deployment Target (inferred from default): ${DEP_OSX_TARGET}")
+        message("OS X Deployment Target (inferred from SDK): ${DEP_OSX_TARGET}")
     endif ()
 
     include("deps-macos.cmake")
