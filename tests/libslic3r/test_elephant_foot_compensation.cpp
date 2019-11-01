@@ -9,8 +9,6 @@
 #include "libslic3r/Flow.hpp"
 #include "libslic3r/SVG.hpp"
 
-#include "libslic3r/VoronoiOffset.hpp"
-
 using namespace Slic3r;
 
 // #define TESTS_EXPORT_SVGS
