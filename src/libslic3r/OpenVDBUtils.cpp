@@ -1,6 +1,5 @@
 #define NOMINMAX
-#include "openvdb_utils.hpp"
-
+#include "OpenVDBUtils.hpp"
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
 
@@ -55,7 +54,7 @@ openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &            mesh,
                                      const openvdb::math::Transform &tr)
 {
     return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-                TriangleMeshDataAdapter{mesh}, tr);
+        TriangleMeshDataAdapter{mesh}, tr);
 }
 
 openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &          mesh,
@@ -78,7 +77,7 @@ sla::Contour3D volumeToMesh(const openvdb::FloatGrid &grid,
     std::vector<openvdb::Vec3s> points;
     std::vector<openvdb::Vec3I> triangles;
     std::vector<openvdb::Vec4I> quads;
-
+    
     openvdb::tools::volumeToMesh(grid, points, triangles, quads, isovalue,
                                  adaptivity, relaxDisorientedTriangles);
     

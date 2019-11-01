@@ -2,7 +2,7 @@
 #include <fstream>
 #include <catch2/catch.hpp>
 
-#include "openvdb_utils.hpp"
+#include "libslic3r/OpenVDBUtils.hpp"
 #include "libslic3r/Format/OBJ.hpp"
 
 #if defined(WIN32) || defined(_WIN32)

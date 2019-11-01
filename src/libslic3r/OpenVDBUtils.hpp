@@ -1,5 +1,5 @@
-#ifndef OPENVDB_UTILS_HPP
-#define OPENVDB_UTILS_HPP
+#ifndef OPENVDBUTILS_HPP
+#define OPENVDBUTILS_HPP
 
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/SLABoilerPlate.hpp>
@@ -20,4 +20,4 @@ sla::Contour3D volumeToMesh(const openvdb::FloatGrid &grid,
 
 } // namespace Slic3r
 
-#endif // OPENVDB_UTILS_HPP
+#endif // OPENVDBUTILS_HPP
