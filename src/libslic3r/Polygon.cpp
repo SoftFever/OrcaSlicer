@@ -254,6 +254,11 @@ Point Polygon::point_projection(const Point &point) const
     return proj;
 }
 
+BoundingBox get_extents(const Points &points)
+{ 
+	return BoundingBox(points);
+}
+
 BoundingBox get_extents(const Polygon &poly) 
 { 
     return poly.bounding_box();

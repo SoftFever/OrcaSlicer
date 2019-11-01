@@ -25,6 +25,8 @@ public:
 	void create(const ExPolygons &expolygons, coord_t resolution);
 	void create(const ExPolygonCollection &expolygons, coord_t resolution);
 
+	const std::vector<const Slic3r::Points*>& contours() const { return m_contours; }
+
 #if 0
 	// Test, whether the edges inside the grid intersect with the polygons provided.
 	bool intersect(const MultiPoint &polyline, bool closed);
@@ -77,7 +79,7 @@ public:
 	std::vector<std::pair<ContourEdge, ContourEdge>> intersecting_edges() const;
 	bool 											 has_intersecting_edges() const;
 
-	template<typename FUNCTION> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, FUNCTION func) const
+	template<typename VISITOR> void visit_cells_intersecting_line(Slic3r::Point p1, Slic3r::Point p2, VISITOR &visitor) const
 	{
 		// End points of the line segment.
 		p1(0) -= m_bbox.min(0);
@@ -94,8 +96,7 @@ public:
 		assert(ixb >= 0 && size_t(ixb) < m_cols);
 		assert(iyb >= 0 && size_t(iyb) < m_rows);
 		// Account for the end points.
-		func(iy, ix);
-		if (ix == ixb && iy == iyb)
+		if (! visitor(iy, ix) || (ix == ixb && iy == iyb))
 			// Both ends fall into the same cell.
 			return;
 		// Raster the centeral part of the line.
@@ -125,7 +126,8 @@ public:
 						ey = int64_t(dx) * m_resolution;
 						iy += 1;
 					}
-					func(iy, ix);
+					if (! visitor(iy, ix))
+						return;
 				} while (ix != ixb || iy != iyb);
 			}
 			else {
@@ -143,7 +145,8 @@ public:
 						ey = int64_t(dx) * m_resolution;
 						iy -= 1;
 					}
-					func(iy, ix);
+					if (! visitor(iy, ix))
+						return;
 				} while (ix != ixb || iy != iyb);
 			}
 		}
@@ -165,7 +168,8 @@ public:
 						ey = int64_t(dx) * m_resolution;
 						iy += 1;
 					}
-					func(iy, ix);
+					if (! visitor(iy, ix))
+						return;
 				} while (ix != ixb || iy != iyb);
 			}
 			else {
@@ -197,7 +201,8 @@ public:
 						ey = int64_t(dx) * m_resolution;
 						iy -= 1;
 					}
-					func(iy, ix);
+					if (! visitor(iy, ix))
+						return;
 				} while (ix != ixb || iy != iyb);
 			}
 		}

@@ -70,7 +70,7 @@ public:
 inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
 inline bool operator!=(const Polygon &lhs, const Polygon &rhs) { return lhs.points != rhs.points; }
 
-
+extern BoundingBox get_extents(const Points &points);
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
 extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);

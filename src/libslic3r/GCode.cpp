@@ -543,7 +543,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 	//FIXME should we use the printing extruders instead?
 	double gap_over_supports = object.config().support_material_contact_distance;
 	// FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
-    assert(gap_over_supports != 0. || object.config().support_material_synchronize_layers);
+    assert(! object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
     if (gap_over_supports != 0.) {
         gap_over_supports = std::max(0., gap_over_supports);
 		// Not a soluble support,
