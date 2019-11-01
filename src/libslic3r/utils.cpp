@@ -424,14 +424,19 @@ int copy_file(const std::string &from, const std::string &to)
     static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
 
     // Make sure the file has correct permission both before and after we copy over it.
-    try {
-        if (boost::filesystem::exists(target))
-            boost::filesystem::permissions(target, perms);
-        boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists);
-        boost::filesystem::permissions(target, perms);
-    } catch (std::exception & /* ex */) {
+    // NOTE: error_code variants are used here to supress expception throwing.
+    // Error code of permission() calls is ignored on purpose - if they fail,
+    // the copy_file() function will fail appropriately and we don't want the permission()
+    // calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
+    // or when the target file doesn't exist.
+    boost::system::error_code ec;
+    boost::filesystem::permissions(target, perms, ec);
+    boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+    if (ec) {
         return -1;
     }
+    boost::filesystem::permissions(target, perms, ec);
+
     return 0;
 }
 

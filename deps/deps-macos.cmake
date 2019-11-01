@@ -6,7 +6,7 @@ set(DEP_WERRORS_SDK "-Werror=partial-availability -Werror=unguarded-availability
 set(DEP_CMAKE_OPTS
     "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
     "-DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}"
-    "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+    "-DCMAKE_OSX_DEPLOYMENT_TARGET=${DEP_OSX_TARGET}"
     "-DCMAKE_CXX_FLAGS=${DEP_WERRORS_SDK}"
     "-DCMAKE_C_FLAGS=${DEP_WERRORS_SDK}"
 )
@@ -14,28 +14,27 @@ set(DEP_CMAKE_OPTS
 include("deps-unix-common.cmake")
 
 
-set(DEP_BOOST_OSX_TARGET "")
-if (CMAKE_OSX_DEPLOYMENT_TARGET)
-    set(DEP_BOOST_OSX_TARGET "-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
-endif ()
-
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
-    URL "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz"
-    URL_HASH SHA256=bd0df411efd9a585e5a2212275f8762079fed8842264954675a4fddc46cfcf60
+    URL "https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.gz"
+    URL_HASH SHA256=96b34f7468f26a141f6020efb813f1a2f3dfb9797ecf76a7d7cbd843cc95f5bd
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh
+        --with-toolset=clang
         --with-libraries=system,iostreams,filesystem,thread,log,locale,regex
         "--prefix=${DESTDIR}/usr/local"
     BUILD_COMMAND ./b2
         -j ${NPROC}
         --reconfigure
+        toolset=clang
         link=static
         variant=release
         threading=multi
         boost.locale.icu=off
-        "cflags=-fPIC ${DEP_BOOST_OSX_TARGET}"
-        "cxxflags=-fPIC ${DEP_BOOST_OSX_TARGET}"
+        "cflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
+        "cxxflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
+        "mflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
+        "mmflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}"
         install
     INSTALL_COMMAND ""   # b2 does that already
 )
