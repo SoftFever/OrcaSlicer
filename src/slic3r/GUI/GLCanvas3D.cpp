@@ -3594,7 +3594,8 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only)
+
+static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only)
 {
     auto is_visible = [](const GLVolume& v) -> bool
     {
@@ -3603,8 +3604,8 @@ static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailDa
         return ret;
     };
 
-    static const float orange[] = { 0.99f, 0.49f, 0.26f };
-    static const float gray[] = { 0.64f, 0.64f, 0.64f };
+    static const GLfloat orange[] = { 0.923f, 0.504f, 0.264f, 1.0f };
+    static const GLfloat gray[] = { 0.64f, 0.64f, 0.64f, 1.0f };
 
     GLVolumePtrs visible_volumes;
 
@@ -3634,17 +3635,31 @@ static void render_volumes_in_thumbnail(const GLVolumePtrs& volumes, ThumbnailDa
     camera.apply_projection(box);
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_LIGHTING));
     glsafe(::glEnable(GL_DEPTH_TEST));
+
+    shader.start_using();
+
+    GLint shader_id = shader.get_shader_program_id();
+    GLint color_id = ::glGetUniformLocation(shader_id, "uniform_color");
+    GLint print_box_detection_id = ::glGetUniformLocation(shader_id, "print_box.volume_detection");
+    glcheck();
+
+    if (print_box_detection_id != -1)
+        glsafe(::glUniform1i(print_box_detection_id, 0));
 
     for (const GLVolume* vol : visible_volumes)
     {
-        glsafe(::glColor3fv((vol->printable && !vol->is_outside) ? orange : gray));
+        if (color_id >= 0)
+            glsafe(::glUniform4fv(color_id, 1, (vol->printable && !vol->is_outside) ? orange : gray));
+        else
+            glsafe(::glColor4fv((vol->printable && !vol->is_outside) ? orange : gray));
+
         vol->render();
     }
 
+    shader.stop_using();
+
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
@@ -3700,7 +3715,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
     {
-        render_volumes_in_thumbnail(m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only);
 
         if (multisample)
         {
@@ -3768,7 +3783,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    render_volumes_in_thumbnail(m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+    render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
@@ -4302,7 +4317,9 @@ void GLCanvas3D::_render_objects() const
     if (m_volumes.empty())
         return;
 
+#if !ENABLE_THUMBNAIL_GENERATOR
     glsafe(::glEnable(GL_LIGHTING));
+#endif // !ENABLE_THUMBNAIL_GENERATOR
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
@@ -4346,7 +4363,9 @@ void GLCanvas3D::_render_objects() const
     m_shader.stop_using();
 
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
+#if !ENABLE_THUMBNAIL_GENERATOR
     glsafe(::glDisable(GL_LIGHTING));
+#endif // !ENABLE_THUMBNAIL_GENERATOR
 }
 
 void GLCanvas3D::_render_selection() const

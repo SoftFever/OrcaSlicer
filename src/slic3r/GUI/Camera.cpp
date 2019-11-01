@@ -25,8 +25,8 @@ namespace GUI {
 
 const double Camera::DefaultDistance = 1000.0;
 #if ENABLE_THUMBNAIL_GENERATOR
-const double Camera::DefaultZoomToBoxMarginFactor = 1.0;
-const double Camera::DefaultZoomToVolumesMarginFactor = 1.0;
+const double Camera::DefaultZoomToBoxMarginFactor = 1.025;
+const double Camera::DefaultZoomToVolumesMarginFactor = 1.025;
 #endif // ENABLE_THUMBNAIL_GENERATOR
 double Camera::FrustrumMinZRange = 50.0;
 double Camera::FrustrumMinNearZ = 100.0;
