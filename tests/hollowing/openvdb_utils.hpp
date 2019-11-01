@@ -4,8 +4,6 @@
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/SLABoilerPlate.hpp>
 #include <openvdb/openvdb.h>
-#include <openvdb/tools/MeshToVolume.h>
-#include <openvdb/tools/VolumeToMesh.h>
 
 namespace Slic3r {
 

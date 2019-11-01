@@ -1,4 +1,8 @@
+#define NOMINMAX
 #include "openvdb_utils.hpp"
+
+#include <openvdb/tools/MeshToVolume.h>
+#include <openvdb/tools/VolumeToMesh.h>
 
 namespace Slic3r {
 
