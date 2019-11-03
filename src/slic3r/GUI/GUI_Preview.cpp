@@ -878,19 +878,46 @@ void Preview::load_print_as_fff(bool keep_z_range)
     bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
     // Collect colors per extruder.
     std::vector<std::string> colors;
-    std::vector<double> color_print_values = {};
+    // #ys_FIXME_COLOR
+    // std::vector<double> color_print_values = {};
+    std::vector<Model::CustomGCode> color_print_values = {};
     // set color print values, if it si selected "ColorPrint" view type
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
     {
-        colors = GCodePreviewData::ColorPrintColors();
+        unsigned int number_extruders = (unsigned int)print->extruders().size();
+        if (number_extruders == 1) // use GCodePreviewData::ColorPrintColors() just for Single-extruder printing
+            colors = GCodePreviewData::ColorPrintColors();
+        else
+        {
+            const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
+            const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
+            unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
+
+            unsigned char rgb[3];
+            for (unsigned int i = 0; i < colors_count; ++i)
+            {
+                std::string color = m_config->opt_string("extruder_colour", i);
+                if (!PresetBundle::parse_color(color, rgb))
+                {
+                    color = m_config->opt_string("filament_colour", i);
+                    if (!PresetBundle::parse_color(color, rgb))
+                        color = "#FFFFFF";
+                }
+
+                colors.emplace_back(color);
+            }
+        }
         if (! gcode_preview_data_valid) {
             // #ys_FIXME_COLOR
             // const auto& config = wxGetApp().preset_bundle->project_config;
             // color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+            /*
             const std::vector<Model::CustomGCode>& custom_codes = wxGetApp().plater()->model().custom_gcode_per_height;
             color_print_values.reserve(custom_codes.size());
             for (const Model::CustomGCode& code : custom_codes)
                 color_print_values.push_back(code.height);
+            */
+            color_print_values = wxGetApp().plater()->model().custom_gcode_per_height;
         }
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )

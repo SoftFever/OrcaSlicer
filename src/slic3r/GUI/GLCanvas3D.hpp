@@ -538,7 +538,9 @@ public:
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_sla_preview();
-    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values);
+    // #ys_FIXME_COLOR
+    // void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values);
+    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values);
     void bind_event_handlers();
     void unbind_event_handlers();
 
@@ -690,7 +692,10 @@ private:
     // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
     // one for perimeters, one for infill and one for supports.
     void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-                                      const std::vector<double>& color_print_values);
+                                      const std::vector<Model::CustomGCode>& color_print_values);
+    // #ys_FIXME_COLOR
+    // void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
+    //                                   const std::vector<double>& color_print_values);
     // Create 3D thick extrusion lines for wipe tower extrusions
     void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
 

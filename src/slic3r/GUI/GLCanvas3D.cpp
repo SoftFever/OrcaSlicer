@@ -2247,7 +2247,9 @@ void GLCanvas3D::load_sla_preview()
     }
 }
 
-void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+// #ys_FIXME_COLOR
+// void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
@@ -4675,7 +4677,9 @@ void GLCanvas3D::_load_print_toolpaths()
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
-void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+// #ys_FIXME_COLOR
+// void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
@@ -4687,11 +4691,15 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_infill;
         bool                         has_support;
         const std::vector<float>*    tool_colors;
-        const std::vector<double>*   color_print_values;
+        // #ys_FIXME_COLOR
+        // const std::vector<double>*   color_print_values;
+        bool                         is_single_material_print;
+        const std::vector<Model::CustomGCode>*   color_print_values;
 
         static const float*          color_perimeters() { static float color[4] = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
         static const float*          color_infill() { static float color[4] = { 1.0f, 0.5f, 0.5f, 1.f }; return color; } // redish
         static const float*          color_support() { static float color[4] = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
+        static const float*          color_pause_or_custom_code() { static float color[4] = { 0.5f, 0.5f, 0.5f, 1.f }; return color; } // gray
 
         // For cloring by a tool, return a parsed color.
         bool                         color_by_tool() const { return tool_colors != nullptr; }
@@ -4701,9 +4709,26 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
+            // #ys_FIXME_COLOR
+            // auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
+            const Model::CustomGCode value(layers[layer_idx]->print_z + EPSILON, "", 0);
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
         }
+
+        const bool                   pause_or_custom_code_layer(const size_t layer_idx) const
+        {
+            const coordf_t print_z = layers[layer_idx]->print_z;
+            auto it = std::find_if(color_print_values->begin(), color_print_values->end(), 
+                                    [print_z](const Model::CustomGCode& code)
+                                    { return fabs(code.height - print_z) < EPSILON; });
+            if (it == color_print_values->end())
+                return false;
+
+            const std::string& code = (*it).gcode;
+            return code == "M601" || (code != "M600" && code != "tool_change");
+        }
+
     } ctxt;
 
     ctxt.has_perimeters = print_object.is_step_done(posPerimeters);
@@ -4711,6 +4736,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.has_support = print_object.is_step_done(posSupportMaterial);
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
     ctxt.color_print_values = color_print_values.empty() ? nullptr : &color_print_values;
+    ctxt.is_single_material_print = this->fff_print()->extruders().size()==1;
 
     ctxt.shifted_copies = &print_object.copies();
 
@@ -4757,14 +4783,65 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         GLVolumePtrs 		vols;
         std::vector<size_t>	color_print_layer_to_glvolume;
         auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {
-            return *vols[ctxt.color_by_color_print() ?
+            if (ctxt.color_by_color_print() && !ctxt.is_single_material_print) 
+            {
+                const coordf_t print_z = ctxt.layers[layer_idx]->print_z;
+                const std::vector<Model::CustomGCode>* cp_values = ctxt.color_print_values;
+
+                // pause print or custom Gcode
+                auto it = std::find_if(cp_values->begin(), cp_values->end(),
+                    [print_z](const Model::CustomGCode& code)
+                    { return fabs(code.height - print_z) < EPSILON; });
+                if (it != cp_values->end())
+                {
+                    const std::string& code = (*it).gcode;
+                    if (code == "M601" || (code != "M600" && code != "tool_change"))
+                        return *vols[ctxt.number_tools()];//*vols.back();
+                    // change tool (extruder) 
+                    if (code == "tool_change")
+                        return *vols[std::min<int>(ctxt.number_tools() - 1, std::max<int>(it->extruder - 1, 0))];
+                    if (code == "M600" && it->extruder == extruder) {
+                        int shift = 1;
+                        while (it != cp_values->begin()) {
+                            --it;
+                            if (it->gcode == "M600")
+                                shift++;
+                        }
+                        return *vols[ctxt.number_tools()+shift];
+                    }
+                }
+                
+                const Model::CustomGCode value(print_z + EPSILON, "", 0);
+                it = std::lower_bound(cp_values->begin(), cp_values->end(), value);
+                while (it != cp_values->begin())
+                {
+                    --it;
+                    const std::string& code = (*it).gcode;
+                    if (code == "M600" && it->extruder == extruder) {
+                        auto it_n = it;
+                        int shift = 1;
+                        while (it_n != cp_values->begin()) {
+                            --it_n;
+                            if (it_n->gcode == "M600")
+                                shift++;
+                        }
+                        return *vols[ctxt.number_tools() + shift];
+                    }
+                    if (code == "tool_change")
+                        return *vols[std::min<int>(ctxt.number_tools() - 1, std::max<int>((*it).extruder - 1, 0))];
+                }
+
+                return *vols[std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0))];
+            }
+
+            return *vols[ctxt.color_by_color_print() && ctxt.is_single_material_print ?
             	color_print_layer_to_glvolume[layer_idx - range.begin()] :
 				ctxt.color_by_tool() ? 
 					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
 					feature
 				];
         };
-        if (ctxt.color_by_color_print()) {
+        if (ctxt.color_by_color_print() && ctxt.is_single_material_print) {
         	// Create a map from the layer index to a GLVolume, which is initialized with the correct layer span color.
         	std::vector<int> color_print_tool_to_glvolume(ctxt.number_tools(), -1);
         	color_print_layer_to_glvolume.reserve(range.end() - range.begin());
@@ -4777,6 +4854,25 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 	        	}
 	        	color_print_layer_to_glvolume.emplace_back(color_print_tool_to_glvolume[idx_tool]);
 	        }
+        }
+        else if (ctxt.color_by_color_print() && !ctxt.is_single_material_print) {
+            for (size_t i = 0; i < ctxt.number_tools(); ++i)
+                vols.emplace_back(new_volume(ctxt.color_tool(i)));
+            vols.emplace_back(new_volume(ctxt.color_pause_or_custom_code()));
+
+            for ( auto it = ctxt.color_print_values->begin(); it < ctxt.color_print_values->end(); it++) {
+                if (it->gcode == "M600" && it->extruder != 0)
+                {
+                    int cp_id = it - ctxt.color_print_values->begin() + 1;
+                    float koef = fabs(1- cp_id * 0.1);
+                    float color_f[4];
+                    memcpy(color_f, ctxt.color_tool(it->extruder - 1), sizeof(float) * 4);
+                    for (int i=0; i<3; i++)
+                        color_f[i] = clamp(0.0f, 1.0f, koef * color_f[i]);
+
+                    vols.emplace_back(new_volume(color_f));
+                }
+            }
         }
         else if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)

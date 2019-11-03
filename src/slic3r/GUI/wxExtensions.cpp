@@ -3241,13 +3241,11 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
             if (extruders_cnt > 1)
             {
-                const int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
-
                 wxMenu* add_color_change_menu = new wxMenu();
 
                 for (int i = 1; i <= extruders_cnt; i++)
-                    append_menu_radio_item(add_color_change_menu, wxID_ANY, wxString::Format(_(L("Extruder %d")), i), "",
-                        [this, i](wxCommandEvent&) { add_code("M600", i); }, &menu)->Check(i == initial_extruder);
+                    append_menu_item(add_color_change_menu, wxID_ANY, wxString::Format(_(L("Extruder %d")), i), "",
+                        [this, i](wxCommandEvent&) { add_code("M600", i); }, "", &menu);
 
                 const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % "M600").str());
                 wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
@@ -3494,8 +3492,8 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
 
                     if (i==0)       // don't use M600 for default extruder, if multimaterial print is selected 
                         continue;
-                    append_menu_radio_item(add_color_change_menu, wxID_ANY, /*i == 0 ? _(L("current extruder")) : */item_name, "",
-                        [this, i](wxCommandEvent&) { add_code("M600", i); }, &menu)->Check(i == initial_extruder);
+                    append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
+                        [this, i](wxCommandEvent&) { add_code("M600", i); }, "", &menu);
                 }
 
                 wxMenuItem* change_extruder_menu_item = menu.AppendSubMenu(change_extruder_menu, _(L("Change extruder")), _(L("Use another extruder")));
