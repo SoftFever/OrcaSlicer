@@ -543,7 +543,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 	//FIXME should we use the printing extruders instead?
 	double gap_over_supports = object.config().support_material_contact_distance;
 	// FIXME should we test object.config().support_material_synchronize_layers ? Currently the support layers are synchronized with object layers iff soluble supports.
-    assert(gap_over_supports != 0. || object.config().support_material_synchronize_layers);
+    assert(! object.config().support_material || gap_over_supports != 0. || object.config().support_material_synchronize_layers);
     if (gap_over_supports != 0.) {
         gap_over_supports = std::max(0., gap_over_supports);
 		// Not a soluble support,
@@ -778,22 +778,26 @@ void GCode::_do_export(Print &print, FILE *file)
         {
             m_silent_time_estimator.reset();
             m_silent_time_estimator.set_dialect(print.config().gcode_flavor);
-			m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values[1]);
-			m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[1]);
-			m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[1]);
-			m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[1]);
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[1]);
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[1]);
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[1]);
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[1]);
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[1]);
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[1]);
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[1]);
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[1]);
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[1]);
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[1]);
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[1]);
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[1]);
+            /* "Stealth mode" values can be just a copy of "normal mode" values 
+            * (when they aren't input for a printer preset).
+            * Thus, use back value from values, instead of second one, which could be absent
+            */
+			m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values.back());
+			m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values.back());
+			m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values.back());
+			m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values.back());
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values.back());
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values.back());
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values.back());
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values.back());
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values.back());
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values.back());
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values.back());
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values.back());
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values.back());
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values.back());
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values.back());
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values.back());
             if (print.config().single_extruder_multi_material) {
                 // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
                 // are considered to be active for the single extruder multi-material printers only.

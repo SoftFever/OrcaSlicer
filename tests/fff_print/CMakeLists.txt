@@ -6,6 +6,7 @@ add_executable(${_TEST_NAME}_tests
 	test_extrusion_entity.cpp
 	test_fill.cpp
 	test_flow.cpp
+	test_gcode.cpp
 	test_gcodewriter.cpp
 	test_model.cpp
 	test_print.cpp
@@ -19,4 +20,4 @@ target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
-add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests "--durations yes")
+add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})

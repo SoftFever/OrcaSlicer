@@ -375,6 +375,8 @@ void Preview::load_print(bool keep_z_range)
         load_print_as_fff(keep_z_range);
     else if (tech == ptSLA)
         load_print_as_sla();
+
+    Layout();
 }
 
 void Preview::reload_print(bool keep_volumes)

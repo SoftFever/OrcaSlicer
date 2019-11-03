@@ -105,19 +105,25 @@ public:
             const std::string &color_contour,
             const std::string &color_holes,
             const coord_t      outline_width = scale_(0.05),
-            const float        fill_opacity  = 0.5f) :
+            const float        fill_opacity  = 0.5f,
+            const std::string &color_points = "black",
+            const coord_t      radius_points = 0) :
             color_fill      (color_fill),
             color_contour   (color_contour),
             color_holes     (color_holes),
             outline_width   (outline_width),
-            fill_opacity    (fill_opacity) 
+            fill_opacity    (fill_opacity),
+            color_points 	(color_points),
+            radius_points	(radius_points)
             {}
 
         std::string     color_fill;
         std::string     color_contour;
         std::string     color_holes;
+        std::string   	color_points;
         coord_t         outline_width;
         float           fill_opacity;
+        coord_t			radius_points;
     };
 
     static void export_expolygons(const char *path, const std::vector<std::pair<Slic3r::ExPolygons, ExPolygonAttributes>> &expolygons_with_attributes);

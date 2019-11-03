@@ -150,7 +150,13 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 	case coFloat:{
 		if (m_opt.type == coPercent && !str.IsEmpty() &&  str.Last() == '%') 
 			str.RemoveLast();
-		else if (check_value && !str.IsEmpty() && str.Last() == '%')	{
+		else if (!str.IsEmpty() && str.Last() == '%')
+        {
+            if (!check_value) {
+                m_value.clear();
+                break;
+            }
+
 			wxString label = m_Label->GetLabel();
 			if		(label.Last() == '\n')	label.RemoveLast();
 			while	(label.Last() == ' ')	label.RemoveLast();
@@ -169,13 +175,21 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         {
             if (m_opt.nullable && str == na_value())
                 val = ConfigOptionFloatsNullable::nil_value();
-            else if (check_value && !str.ToCDouble(&val))
+            else if (!str.ToCDouble(&val))
             {
+                if (!check_value) {
+                    m_value.clear();
+                    break;
+                }
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            if (check_value && (m_opt.min > val || val > m_opt.max))
+            if (m_opt.min > val || val > m_opt.max)
             {
+                if (!check_value) {
+                    m_value.clear();
+                    break;
+                }
                 show_error(m_parent, _(L("Input value is out of range")));
                 if (m_opt.min > val) val = m_opt.min;
                 if (val > m_opt.max) val = m_opt.max;
@@ -192,15 +206,24 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             double val = 0.;
 			// Replace the first occurence of comma in decimal number.
 			str.Replace(",", ".", false);
-            if (check_value && !str.ToCDouble(&val))
+            if (!str.ToCDouble(&val))
             {
+                if (!check_value) {
+                    m_value.clear();
+                    break;
+                }
                 show_error(m_parent, _(L("Invalid numeric input.")));
                 set_value(double_to_string(val), true);
             }
-            else if (check_value && ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
+            else if (((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
                      (m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)) &&
                      (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
             {
+                if (!check_value) {
+                    m_value.clear();
+                    break;
+                }
+
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
                 const wxString msg_text = wxString::Format(_(L("Do you mean %s%% instead of %s %s?\n"
@@ -351,6 +374,7 @@ bool TextCtrl::value_was_changed()
     boost::any val = m_value;
     wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
     // update m_value!
+    // ret_str might be changed inside get_value_by_opt_type
     get_value_by_opt_type(ret_str);
 
     switch (m_opt.type) {
@@ -396,8 +420,10 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
 
     if (!change_event) {
         wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
-        // update m_value to correct work of next value_was_changed(), 
-        // but don't check/change inputed value and don't show a warning message
+        /* Update m_value to correct work of next value_was_changed(). 
+         * But after checking of entered value, don't fix the "incorrect" value and don't show a warning message, 
+         * just clear m_value in this case. 
+         */
         get_value_by_opt_type(ret_str, false);
     }
 }

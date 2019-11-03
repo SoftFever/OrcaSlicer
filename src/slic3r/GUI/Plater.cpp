@@ -4794,7 +4794,7 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -(++idx) : idx);
 
-    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+    if (0 < idx_in_ss_stack && (size_t)idx_in_ss_stack < ss_stack.size() - 1) {
         *out_text = ss_stack[idx_in_ss_stack].name.c_str();
         return true;
     }
@@ -4807,7 +4807,7 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -1 : 0);
 
-    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+    if (0 < idx_in_ss_stack && (size_t)idx_in_ss_stack < ss_stack.size() - 1) {
         out_text = ss_stack[idx_in_ss_stack].name;
         return;
     }

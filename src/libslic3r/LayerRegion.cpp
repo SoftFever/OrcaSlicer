@@ -88,7 +88,6 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
-    const Surfaces &surfaces   = this->fill_surfaces.surfaces;
     const bool      has_infill = this->region()->config().fill_density.value > 0.;
     const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
 

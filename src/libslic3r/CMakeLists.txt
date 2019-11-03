@@ -22,6 +22,8 @@ add_library(libslic3r STATIC
     Config.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
+    ElephantFootCompensation.cpp
+    ElephantFootCompensation.hpp
     ExPolygon.cpp
     ExPolygon.hpp
     ExPolygonCollection.cpp
@@ -222,6 +224,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
+    # OpenVDB::openvdb
     ${CMAKE_DL_LIBS}
     )
 

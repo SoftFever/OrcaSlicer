@@ -7,6 +7,8 @@ else ()
     set(TBB_MINGW_WORKAROUND "")
 endif ()
 
+find_package(ZLIB REQUIRED)
+
 ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
@@ -53,40 +55,67 @@ find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/qhull/qhull/archive/v7.2.1.tar.gz"
-    URL_HASH SHA256=6fc251e0b75467e00943bfb7191e986fce0e1f8f6f0251f9c6ce5a843821ea78
+    URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+    URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
     CMAKE_ARGS
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
 )
 
-ExternalProject_Add(dep_libigl
+ExternalProject_Add(dep_blosc
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/libigl/libigl/archive/v2.0.0.tar.gz"
-    URL_HASH SHA256=42518e6b106c7209c73435fd260ed5d34edeb254852495b4c95dce2d95401328
+    GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+    GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
+    DEPENDS
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DLIBIGL_BUILD_PYTHON=OFF
-        -DLIBIGL_BUILD_TESTS=OFF
-        -DLIBIGL_BUILD_TUTORIALS=OFF
-        -DLIBIGL_USE_STATIC_LIBRARY=OFF #${DEP_BUILD_IGL_STATIC}
-        -DLIBIGL_WITHOUT_COPYLEFT=OFF
-        -DLIBIGL_WITH_CGAL=OFF
-        -DLIBIGL_WITH_COMISO=OFF
-        -DLIBIGL_WITH_CORK=OFF
-        -DLIBIGL_WITH_EMBREE=OFF
-        -DLIBIGL_WITH_MATLAB=OFF
-        -DLIBIGL_WITH_MOSEK=OFF
-        -DLIBIGL_WITH_OPENGL=OFF
-        -DLIBIGL_WITH_OPENGL_GLFW=OFF
-        -DLIBIGL_WITH_OPENGL_GLFW_IMGUI=OFF
-        -DLIBIGL_WITH_PNG=OFF
-        -DLIBIGL_WITH_PYTHON=OFF
-        -DLIBIGL_WITH_TETGEN=OFF
-        -DLIBIGL_WITH_TRIANGLE=OFF
-        -DLIBIGL_WITH_XML=OFF
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-fixes.patch
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DBUILD_SHARED=OFF 
+        -DBUILD_STATIC=ON
+        -DBUILD_TESTS=OFF 
+        -DBUILD_BENCHMARKS=OFF 
+        -DPREFER_EXTERNAL_ZLIB=ON
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
 )
 
+ExternalProject_Add(dep_openexr
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/openexr/openexr.git
+    GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0 
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DBUILD_TESTING=OFF 
+        -DPYILMBASE_ENABLE:BOOL=OFF 
+        -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
+        -DOPENEXR_BUILD_UTILS:BOOL=OFF
+    UPDATE_COMMAND ""
+)
+
+ExternalProject_Add(dep_openvdb
+    EXCLUDE_FROM_ALL 1
+    GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
+    GIT_TAG aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
+    DEPENDS dep_blosc dep_openexr dep_tbb
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DCMAKE_PREFIX_PATH=${DESTDIR}/usr/local
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DOPENVDB_BUILD_PYTHON_MODULE=OFF 
+        -DUSE_BLOSC=ON 
+        -DOPENVDB_CORE_SHARED=OFF 
+        -DOPENVDB_CORE_STATIC=ON 
+        -DTBB_STATIC=ON
+        -DOPENVDB_BUILD_VDB_PRINT=ON
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+)

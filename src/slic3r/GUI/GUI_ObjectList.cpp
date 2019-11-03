@@ -445,7 +445,7 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
         auto object = (*m_objects)[i];
         wxString extruder;
         if (!object->config.has("extruder") ||
-            object->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+            size_t(object->config.option<ConfigOptionInt>("extruder")->value) > max_extruder)
             extruder = _(L("default"));
         else
             extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
@@ -457,7 +457,7 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 item = m_objects_model->GetItemByVolumeId(i, id);
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
-                    object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+                    size_t(object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value) > max_extruder)
                     extruder = _(L("default"));
                 else
                     extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
