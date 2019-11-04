@@ -368,6 +368,10 @@ void SVG::export_expolygons(const char *path, const std::vector<std::pair<Slic3r
             color_holes = color_contour;
         svg.draw_outline(exp_with_attr.first, color_contour, color_holes, exp_with_attr.second.outline_width);
     }
+    for (const auto &exp_with_attr : expolygons_with_attributes)
+    	if (exp_with_attr.second.radius_points > 0)
+			for (const ExPolygon &expoly : exp_with_attr.first)
+    			svg.draw((Points)expoly, exp_with_attr.second.color_points, exp_with_attr.second.radius_points);
     svg.Close();
 }
 

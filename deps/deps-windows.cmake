@@ -226,7 +226,8 @@ ExternalProject_Add(dep_qhull
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_DEBUG_POSTFIX=d
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
@@ -242,41 +243,6 @@ else ()
 endif ()
 
 find_package(Git REQUIRED)
-
-ExternalProject_Add(dep_libigl
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/libigl/libigl/archive/v2.0.0.tar.gz"
-    URL_HASH SHA256=42518e6b106c7209c73435fd260ed5d34edeb254852495b4c95dce2d95401328
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-        -DLIBIGL_BUILD_PYTHON=OFF
-        -DLIBIGL_BUILD_TESTS=OFF
-        -DLIBIGL_BUILD_TUTORIALS=OFF
-        -DLIBIGL_USE_STATIC_LIBRARY=OFF #${DEP_BUILD_IGL_STATIC}
-        -DLIBIGL_WITHOUT_COPYLEFT=OFF
-        -DLIBIGL_WITH_CGAL=OFF
-        -DLIBIGL_WITH_COMISO=OFF
-        -DLIBIGL_WITH_CORK=OFF
-        -DLIBIGL_WITH_EMBREE=OFF
-        -DLIBIGL_WITH_MATLAB=OFF
-        -DLIBIGL_WITH_MOSEK=OFF
-        -DLIBIGL_WITH_OPENGL=OFF
-        -DLIBIGL_WITH_OPENGL_GLFW=OFF
-        -DLIBIGL_WITH_OPENGL_GLFW_IMGUI=OFF
-        -DLIBIGL_WITH_PNG=OFF
-        -DLIBIGL_WITH_PYTHON=OFF
-        -DLIBIGL_WITH_TETGEN=OFF
-        -DLIBIGL_WITH_TRIANGLE=OFF
-        -DLIBIGL_WITH_XML=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        -DCMAKE_DEBUG_POSTFIX=d
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --ignore-space-change --ignore-whitespace ${CMAKE_CURRENT_SOURCE_DIR}/igl-mods.patch
-    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
-
-add_debug_dep(dep_libigl)
 
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
@@ -306,7 +272,7 @@ ExternalProject_Add(dep_blosc
     #URL https://github.com/Blosc/c-blosc/archive/v1.17.0.zip
     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
     GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
-    GIT_TAG v1.17.0
+    GIT_TAG e63775855294b50820ef44d1b157f4de1cc38d3e #v1.17.0
     DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
@@ -322,6 +288,7 @@ ExternalProject_Add(dep_blosc
         -DPREFER_EXTERNAL_ZLIB=ON
         -DBLOSC_IS_SUBPROJECT:BOOL=ON
         -DBLOSC_INSTALL:BOOL=ON
+    UPDATE_COMMAND ""
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
@@ -332,7 +299,7 @@ add_debug_dep(dep_blosc)
 ExternalProject_Add(dep_openexr
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://github.com/openexr/openexr.git
-    GIT_TAG v2.4.0 
+    GIT_TAG eae0e337c9f5117e78114fd05f7a415819df413a #v2.4.0 
     DEPENDS dep_zlib
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
@@ -344,6 +311,7 @@ ExternalProject_Add(dep_openexr
         -DPYILMBASE_ENABLE:BOOL=OFF 
         -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
         -DOPENEXR_BUILD_UTILS:BOOL=OFF
+    UPDATE_COMMAND ""
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
@@ -355,8 +323,8 @@ ExternalProject_Add(dep_openvdb
     #URL https://github.com/AcademySoftwareFoundation/openvdb/archive/v6.2.1.zip
     #URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
     GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
-    GIT_TAG v6.2.1
-    DEPENDS dep_blosc dep_openexr dep_tbb dep_boost
+    GIT_TAG  aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
+    DEPENDS dep_blosc dep_openexr #dep_tbb dep_boost
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
@@ -372,6 +340,7 @@ ExternalProject_Add(dep_openvdb
         -DTBB_STATIC=ON
         -DOPENVDB_BUILD_VDB_PRINT=ON
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
+    UPDATE_COMMAND ""
     PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
     INSTALL_COMMAND ""
 )

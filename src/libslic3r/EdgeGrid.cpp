@@ -282,7 +282,11 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 		Visitor(std::vector<std::pair<size_t, size_t>> &cell_data, std::vector<Cell> &cells, size_t cols) :
 			cell_data(cell_data), cells(cells), cols(cols), i(0), j(0) {}
 
-		void operator()(coord_t iy, coord_t ix) { cell_data[cells[iy*cols + ix].end++] = std::pair<size_t, size_t>(i, j); }
+		inline bool operator()(coord_t iy, coord_t ix) {
+			cell_data[cells[iy*cols + ix].end++] = std::pair<size_t, size_t>(i, j);
+			// Continue traversing the grid along the edge.
+			return true;
+		}
 
 		std::vector<std::pair<size_t, size_t>> &cell_data;
 		std::vector<Cell> 					   &cells;

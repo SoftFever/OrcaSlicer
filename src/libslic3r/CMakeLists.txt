@@ -22,6 +22,8 @@ add_library(libslic3r STATIC
     Config.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
+    ElephantFootCompensation.cpp
+    ElephantFootCompensation.hpp
     ExPolygon.cpp
     ExPolygon.hpp
     ExPolygonCollection.cpp

@@ -1060,6 +1060,22 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 		}
 	}
 
+#if 0
+	{
+		ClipperLib::Path polytmp(out);
+		unscaleClipperPolygon(polytmp);
+		Slic3r::Polygon offsetted = ClipperPath_to_Slic3rPolygon(polytmp);
+		BoundingBox bbox = get_extents(contour);
+		bbox.merge(get_extents(offsetted));
+		static int iRun = 0;
+		SVG svg(debug_out_path("mittered_offset_path_scaled-%d.svg", iRun ++).c_str(), bbox);
+		svg.draw_outline(Polygon(contour), "blue", scale_(0.01));
+		svg.draw_outline(offsetted, "red", scale_(0.01));
+		svg.draw(contour, "blue", scale_(0.03));
+		svg.draw((Points)offsetted, "blue", scale_(0.03));
+	}
+#endif
+
 	return out;
 }
 
