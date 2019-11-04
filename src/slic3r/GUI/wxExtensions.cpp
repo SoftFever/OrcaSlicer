@@ -3306,23 +3306,6 @@ void DoubleSlider::move_current_thumb(const bool condition)
     ProcessWindowEvent(e);
 }
 
-static std::string get_new_color(const std::string& color)
-{
-    wxColour clr(color);
-    if (!clr.IsOk())
-        clr = wxColour(0, 0, 0); // Don't set alfa to transparence
-
-    auto data = new wxColourData();
-    data->SetChooseFull(1);
-    data->SetColour(clr);
-
-    wxColourDialog dialog(nullptr, data);
-    dialog.CenterOnParent();
-    if (dialog.ShowModal() == wxID_OK)
-        return dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    return color;
-}
-
 void DoubleSlider::action_tick(const TicksAction action)
 {
     if (m_selection == ssUndef)
@@ -3558,6 +3541,23 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
     event.Skip();
 }
 
+static std::string get_new_color(const std::string& color)
+{
+    wxColour clr(color);
+    if (!clr.IsOk())
+        clr = wxColour(0, 0, 0); // Don't set alfa to transparence
+
+    auto data = new wxColourData();
+    data->SetChooseFull(1);
+    data->SetColour(clr);
+
+    wxColourDialog dialog(nullptr, data);
+    dialog.CenterOnParent();
+    if (dialog.ShowModal() == wxID_OK)
+        return dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    return "";
+}
+
 void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
@@ -3570,6 +3570,8 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
         {
             std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
             color = get_new_color(colors[selected_extruder > 0 ? selected_extruder-1 : 0]);
+            if (color.empty())
+                return;
         }
         else if (code.empty())
         {

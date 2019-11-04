@@ -379,7 +379,10 @@ std::string GCodePreviewData::get_legend_title() const
     return "";
 }
 
-GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const
+// #ys_FIXME_COLOR
+// GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const
+GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, 
+                                                    const std::vector<std::string>& cp_items, bool is_single_material_print) const
 {
     struct Helper
     {
@@ -452,11 +455,17 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
 
             break;
         }
-    case Extrusion::ColorPrint:
+    // #ys_FIXME_COLOR
+    /*case Extrusion::ColorPrint:
         {
             const int color_cnt = (int)tool_colors.size()/4;
-
             const auto color_print_cnt = (int)cp_values.size();
+            if (color_print_cnt > 0) {
+                GCodePreviewData::Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (color_cnt-1) * 4), 4 * sizeof(float));
+                items.emplace_back(Slic3r::I18N::translate(L("Pause print or custom G-code")), color);
+            }
+
             for (int i = color_print_cnt; i >= 0 ; --i)
             {
                 GCodePreviewData::Color color;
@@ -480,6 +489,33 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
 
 //                 items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1] % cp_values[i]).str(), color);
                 items.emplace_back(id_str + (boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) % cp_values[i - 1].second% cp_values[i].first).str(), color);
+            }
+            break;
+        }*/
+    case Extrusion::ColorPrint:
+        {
+            const int color_cnt = (int)tool_colors.size()/4;
+            const auto color_print_cnt = (int)cp_items.size();
+            if (color_print_cnt == 1) // means "Default print color"
+            {
+                Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data()), 4 * sizeof(float));
+
+                items.emplace_back(cp_items[0], color);
+                break;
+            }
+
+            if (color_cnt != color_print_cnt)
+                break;
+
+            for (int i = is_single_material_print ? color_print_cnt-1 : 0 ; 
+                     is_single_material_print ? i >= 0 : i < color_print_cnt;
+                     is_single_material_print ? --i : ++i)
+            {
+                Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (i % color_cnt) * 4), 4 * sizeof(float));
+                
+                items.emplace_back(cp_items[i], color);
             }
             break;
         }

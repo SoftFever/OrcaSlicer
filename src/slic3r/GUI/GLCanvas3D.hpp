@@ -348,6 +348,9 @@ private:
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
+        void fill_color_print_legend_items(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
+                                     std::vector<std::string>& cp_legend_items);
+
         bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress);
 
         void render(const GLCanvas3D& canvas) const;

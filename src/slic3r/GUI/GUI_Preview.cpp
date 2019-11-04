@@ -892,6 +892,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         for (const Model::CustomGCode& code : color_print_values)
             if (code.gcode == "M600")
                 colors.push_back(code.color);
+        colors.push_back("#808080"); // gray color for pause print or custom G-code 
 
         if (gcode_preview_data_valid)
             color_print_values.clear();
