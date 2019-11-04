@@ -5,6 +5,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/frame.h>
 #include <wx/event.h>
