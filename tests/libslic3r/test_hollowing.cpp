@@ -19,10 +19,19 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
     return mesh;
 }
 
-TEST_CASE("Load object", "[Hollowing]") {
-    Slic3r::TriangleMesh mesh = load_model("20mm_cube.obj");
+static bool _check_normals(const Slic3r::sla::Contour3D &mesh)
+{
+    for (auto & face : mesh.faces3)
+    {
+        
+    }
     
-    Slic3r::sla::Contour3D imesh = Slic3r::sla::convert_mesh(mesh);
+    return false;
+}
+
+TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
+{
+    Slic3r::sla::Contour3D imesh = Slic3r::sla::Contour3D{load_model("20mm_cube.obj")};
     auto ptr = Slic3r::meshToVolume(imesh, {});
     
     REQUIRE(ptr);
@@ -30,6 +39,8 @@ TEST_CASE("Load object", "[Hollowing]") {
     Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, -1., 0.0, true);
     
     REQUIRE(!omesh.empty());
+    
+    
     
     std::fstream outfile{"out.obj", std::ios::out};
     omesh.to_obj(outfile);

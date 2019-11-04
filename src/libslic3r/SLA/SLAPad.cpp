@@ -677,7 +677,7 @@ void create_pad(const ExPolygons &sup_blueprint,
                 ThrowOnCancel thr)
 {
     Contour3D t = create_pad_geometry(sup_blueprint, model_blueprint, cfg, thr);
-    out.merge(convert_mesh(std::move(t)));
+    out.merge(to_triangle_mesh(std::move(t)));
 }
 
 std::string PadConfig::validate() const

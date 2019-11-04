@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <istream>
 
 namespace ObjParser {
 
@@ -97,6 +98,7 @@ struct ObjData {
 };
 
 extern bool objparse(const char *path, ObjData &data);
+extern bool objparse(std::istream &stream, ObjData &data);
 
 extern bool objbinsave(const char *path, const ObjData &data);
 

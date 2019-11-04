@@ -466,7 +466,7 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh() const
         return m_meshcache;
     }
     
-    m_meshcache = convert_mesh(merged);
+    m_meshcache = to_triangle_mesh(merged);
     
     // The mesh will be passed by const-pointer to TriangleMeshSlicer,
     // which will need this.

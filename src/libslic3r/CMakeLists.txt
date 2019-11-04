@@ -181,6 +181,7 @@ add_library(libslic3r STATIC
     miniz_extension.cpp
     ${OpenVDBUtils_SOURCES}
     SLA/SLACommon.hpp
+    SLA/SLACommon.cpp
     SLA/SLABoilerPlate.hpp
     SLA/SLAPad.hpp
     SLA/SLAPad.cpp
