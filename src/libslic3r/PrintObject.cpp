@@ -1772,7 +1772,8 @@ end:
                 float delta = float(scale_(m_config.xy_size_compensation.value));
                 //FIXME only apply the compensation if no raft is enabled.
                 float elephant_foot_compensation = 0.f;
-                if (layer_id == 0)
+                if (layer_id == 0 && m_config.raft_layers == 0)
+                	// Only enable Elephant foot compensation if printing directly on the print bed.
                     elephant_foot_compensation = float(scale_(m_config.elefant_foot_compensation.value));
                 if (layer->m_regions.size() == 1) {
                     // Optimized version for a single region layer.
@@ -1819,11 +1820,12 @@ end:
                     if (delta < 0.f || elephant_foot_compensation > 0.f) {
                         // Apply the negative XY compensation.
                         Polygons trimming;
+                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
                         if (elephant_foot_compensation > 0.f) {
-							trimming = to_polygons(Slic3r::elephant_foot_compensation(offset_ex(layer->merged(float(EPSILON)), std::min(delta, 0.f) - float(EPSILON)), 
+							trimming = to_polygons(Slic3r::elephant_foot_compensation(offset_ex(layer->merged(eps), std::min(delta, 0.f) - eps),
 								layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
                         } else
-	                        trimming = offset(layer->merged(float(EPSILON)), delta - float(EPSILON));
+	                        trimming = offset(layer->merged(float(SCALED_EPSILON)), delta - float(SCALED_EPSILON));
                         for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
                             layer->m_regions[region_id]->trim_surfaces(trimming);
                     }

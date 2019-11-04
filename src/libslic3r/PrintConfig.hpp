@@ -30,7 +30,7 @@ enum GCodeFlavor : unsigned char {
 };
 
 enum PrintHostType {
-    htOctoPrint, htDuet
+    htOctoPrint, htDuet, htFlashAir
 };
 
 enum InfillPattern {
@@ -102,6 +102,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
     if (keys_map.empty()) {
         keys_map["octoprint"]       = htOctoPrint;
         keys_map["duet"]            = htDuet;
+        keys_map["flashair"]        = htFlashAir;
     }
     return keys_map;
 }
