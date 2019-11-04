@@ -39,5 +39,6 @@
 
 // Enable thumbnail generator
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
+#define ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE (1 && ENABLE_THUMBNAIL_GENERATOR)
 
 #endif // _technologies_h_

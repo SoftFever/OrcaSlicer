@@ -35,6 +35,10 @@
 
 #include <Shiny/Shiny.h>
 
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+#include "miniz_extension.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+
 #if 0
 // Enable debugging and asserts, even in the release build.
 #define DEBUG
@@ -963,6 +967,31 @@ void GCode::_do_export(Print &print, FILE *file)
         {
             if (data.is_valid())
             {
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                size_t png_size = 0;
+                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+                if (png_data != nullptr)
+                {
+                    _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
+
+                    std::string encoded = boost::beast::detail::base64_encode((const std::uint8_t*)png_data, png_size);
+
+                    unsigned int row_count = 0;
+                    while (encoded.length() > max_row_length)
+                    {
+                        _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
+                        encoded = encoded.substr(max_row_length);
+                        ++row_count;
+                    }
+
+                    if (encoded.length() > 0)
+                        _write_format(file, "; %s\n", encoded.c_str());
+
+                    _write(file, "; thumbnail end\n;\n");
+
+                    mz_free(png_data);
+                }
+#else
                 _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
 
                 size_t row_size = 4 * data.width;
@@ -981,13 +1010,17 @@ void GCode::_do_export(Print &print, FILE *file)
                         ++row_count;
                     }
 
-                    if (row_count == 0)
-                        _write_format(file, "; %s\n", encoded.c_str());
-                    else
-                        _write_format(file, ";>%s\n", encoded.c_str());
+                    if (encoded.length() > 0)
+                    {
+                        if (row_count == 0)
+                            _write_format(file, "; %s\n", encoded.c_str());
+                        else
+                            _write_format(file, ";>%s\n", encoded.c_str());
+                    }
                 }
 
                 _write(file, "; thumbnail end\n;\n");
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
             }
             print.throw_if_canceled();
         }

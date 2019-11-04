@@ -1104,14 +1104,14 @@ void GUI_App::gcode_thumbnails_debug()
     std::string in_filename = into_u8(dialog.GetPath());
     std::string out_path = boost::filesystem::path(in_filename).remove_filename().append(L"thumbnail").string();
 
-    boost::nowide::ifstream file(in_filename.c_str());
+    boost::nowide::ifstream in_file(in_filename.c_str());
     std::vector<std::string> rows;
     std::string row;
-    if (file.good())
+    if (in_file.good())
     {
-        while (std::getline(file, gcode_line))
+        while (std::getline(in_file, gcode_line))
         {
-            if (file.good())
+            if (in_file.good())
             {
                 if (boost::starts_with(gcode_line, BEGIN_MASK))
                 {
@@ -1126,6 +1126,16 @@ void GUI_App::gcode_thumbnails_debug()
                 }
                 else if (reading_image && boost::starts_with(gcode_line, END_MASK))
                 {
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                    std::string out_filename = out_path + std::to_string(width) + "x" + std::to_string(height) + ".png";
+                    boost::nowide::ofstream out_file(out_filename.c_str(), std::ios::binary);
+                    if (out_file.good())
+                    {
+                        std::string decoded = boost::beast::detail::base64_decode(row);
+                        out_file.write(decoded.c_str(), decoded.length());
+                        out_file.close();
+                    }
+#else
                     if (!row.empty())
                     {
                         rows.push_back(row);
@@ -1161,6 +1171,7 @@ void GUI_App::gcode_thumbnails_debug()
 
                         image.SaveFile(out_path + std::to_string(width) + "x" + std::to_string(height) + ".png", wxBITMAP_TYPE_PNG);
                     }
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
 
                     reading_image = false;
                     width = 0;
@@ -1169,18 +1180,20 @@ void GUI_App::gcode_thumbnails_debug()
                 }
                 else if (reading_image)
                 {
+#if !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
                     if (!row.empty() && (gcode_line[1] == ' '))
                     {
                         rows.push_back(row);
                         row.clear();
                     }
+#endif // !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
 
                     row += gcode_line.substr(2);
                 }
             }
         }
 
-        file.close();
+        in_file.close();
     }
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
