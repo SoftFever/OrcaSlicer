@@ -922,6 +922,7 @@ private:
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
+    bool        m_suppress_add_code = false;
     ManipulationState m_state = msSingleExtruder;
     wxString    m_custom_gcode = wxEmptyString;
     int         m_current_extruder = -1;
@@ -958,18 +959,18 @@ private:
 
     struct TICK_CODE
     {
-        TICK_CODE(int tick):tick(tick), gcode("M600"), extruder(0) {}
+        TICK_CODE(int tick):tick(tick), gcode("M600"), extruder(0), color("") {}
         TICK_CODE(int tick, const std::string& code) : 
                             tick(tick), gcode(code), extruder(0) {}
         TICK_CODE(int tick, int extruder) :
                             tick(tick), gcode("M600"), extruder(extruder) {}
-        TICK_CODE(int tick, const std::string& code, int extruder) : 
-                            tick(tick), gcode(code), extruder(extruder) {}
+        TICK_CODE(int tick, const std::string& code, int extruder, const std::string& color) : 
+                            tick(tick), gcode(code), extruder(extruder), color(color) {}
 
         bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
         bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
         TICK_CODE operator=(const TICK_CODE& other) const {
-            TICK_CODE ret_val(other.tick, other.gcode, other.extruder);
+            TICK_CODE ret_val(other.tick, other.gcode, other.extruder, other.color);
             return ret_val;
         }/*
         TICK_CODE& operator=(const TICK_CODE& other) {
@@ -982,6 +983,7 @@ private:
         int         tick;
         std::string gcode;
         int         extruder;
+        std::string color;
     };
 
     std::set<TICK_CODE> m_ticks_;

@@ -2529,7 +2529,7 @@ std::vector<t_custom_code> DoubleSlider::GetTicksValues_() const
         for (const TICK_CODE& tick : m_ticks_) {
             if (tick.tick > val_size)
                 break;
-            values.push_back(t_custom_code(m_values[tick.tick], tick.gcode, tick.extruder));
+            values.push_back(t_custom_code(m_values[tick.tick], tick.gcode, tick.extruder, tick.color));
         }
 
     return values;
@@ -2549,7 +2549,7 @@ void DoubleSlider::SetTicksValues_(const std::vector<t_custom_code>& heights)
         if (it == m_values.end())
             continue;
 
-        m_ticks_.insert(TICK_CODE(it-m_values.begin(), h.gcode, h.extruder));
+        m_ticks_.insert(TICK_CODE(it-m_values.begin(), h.gcode, h.extruder, h.color));
     }
     
     if (!was_empty && m_ticks_.empty() && m_state != msMultiExtruder)
@@ -3071,10 +3071,13 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         double value = 0.0;
         int extruder = 0; 
         const int extr_cnt = m_extruders_sequence.extruders.size();
+
+        std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
         
         while (tick <= m_max_value)
         {
-            m_ticks_.insert(TICK_CODE(tick, "tool_change", m_extruders_sequence.extruders[extruder]+1));
+            int cur_extruder = m_extruders_sequence.extruders[extruder];
+            m_ticks_.insert(TICK_CODE(tick, "tool_change", cur_extruder+1, colors[cur_extruder]));
 
             extruder++;
             if (extruder == extr_cnt)
@@ -3253,8 +3256,11 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             }
 
             Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
-            m_show_context_menu = false;
         }
+        else
+            add_code("M600");
+        
+        m_show_context_menu = false;
     }
 
     Refresh();
@@ -3300,6 +3306,23 @@ void DoubleSlider::move_current_thumb(const bool condition)
     ProcessWindowEvent(e);
 }
 
+static std::string get_new_color(const std::string& color)
+{
+    wxColour clr(color);
+    if (!clr.IsOk())
+        clr = wxColour(0, 0, 0); // Don't set alfa to transparence
+
+    auto data = new wxColourData();
+    data->SetChooseFull(1);
+    data->SetColour(clr);
+
+    wxColourDialog dialog(nullptr, data);
+    dialog.CenterOnParent();
+    if (dialog.ShowModal() == wxID_OK)
+        return dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    return color;
+}
+
 void DoubleSlider::action_tick(const TicksAction action)
 {
     if (m_selection == ssUndef)
@@ -3319,30 +3342,40 @@ void DoubleSlider::action_tick(const TicksAction action)
     //     else if (it != m_ticks.end() && action == taDel)
     //         m_ticks.erase(tick);
     // }
+    // wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+    // Refresh();
+    // Update();
 
     const auto it = m_ticks_.find(tick);
 
-    if (it != m_ticks_.end())
+    if (it != m_ticks_.end()) // erase this tick
     {
         if (action == taAdd)
             return;
         m_ticks_.erase(TICK_CODE(tick));
-    }
-    else if (action == taDel)
-        return;
-    else if (m_state == msMultiExtruderWholePrint)
-    {
-        if (action == taAdd)
-            return;
-        m_show_context_menu = true;
-        return;
-    }
-    else
-        m_ticks_.insert(TICK_CODE(tick, "M600", m_state == msSingleExtruder ? 0 : m_current_extruder));
 
-    wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
-    Refresh();
-    Update();
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+        Refresh();
+        Update();
+        return;
+    }
+    
+    if (action == taDel)
+        return;
+    if (action == taAdd)
+    {
+        // OnChar() is called immediately after OnKeyDown(), which can cause call of add_code() twice.
+        // To avoid this case we should suppress second add_code() call.
+        if (m_suppress_add_code)
+            return;
+        m_suppress_add_code = true;
+        if (m_state != msMultiExtruderWholePrint)
+            add_code("M600");
+        m_suppress_add_code = false;
+        return;
+    }
+
+    m_show_context_menu = true;
 }
 
 void DoubleSlider::OnWheel(wxMouseEvent& event)
@@ -3529,9 +3562,16 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     // if on this Y doesn't exist tick
-    if (m_ticks_.find(tick) == m_ticks_.end())
+    auto it = m_ticks_.find(tick);
+    if (it == m_ticks_.end())
     {
-        if (code.empty())
+        std::string color = "";
+        if (code == "M600")
+        {
+            std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            color = get_new_color(colors[selected_extruder > 0 ? selected_extruder-1 : 0]);
+        }
+        else if (code.empty())
         {
             wxString msg_text = from_u8(_utf8(L("Enter custom G-code used on current layer"))) + " :";
             wxString msg_header = from_u8((boost::format(_utf8(L("Custom Gcode on current layer (%1% mm)."))) % m_values[tick]).str());
@@ -3546,7 +3586,7 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
             code = m_custom_gcode.c_str();
         }
 
-        int extruder = 0;
+        int extruder = 1;
         if (m_state == msMultiExtruderWholePrint) { 
             if (code == "M600" && selected_extruder >= 0)
                 extruder = selected_extruder;
@@ -3556,7 +3596,7 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
         else if (m_state == msMultiExtruder && m_current_extruder > 0)
             extruder = m_current_extruder;
 
-        m_ticks_.insert(TICK_CODE(tick, code, extruder));
+        m_ticks_.insert(TICK_CODE(tick, code, extruder, color));
 
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
         Refresh();
@@ -3567,10 +3607,13 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 void DoubleSlider::change_extruder(int extruder)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
     // if on this Y doesn't exist tick
     if (m_ticks_.find(tick) == m_ticks_.end())
     {        
-        m_ticks_.insert(TICK_CODE(tick, "tool_change", extruder));
+        m_ticks_.insert(TICK_CODE(tick, "tool_change", extruder, colors[extruder-1]));
 
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
         Refresh();
