@@ -1106,6 +1106,7 @@ void GUI_App::gcode_thumbnails_debug()
 
     boost::nowide::ifstream file(in_filename.c_str());
     std::vector<std::string> rows;
+    std::string row;
     if (file.good())
     {
         while (std::getline(file, gcode_line))
@@ -1121,9 +1122,16 @@ void GUI_App::gcode_thumbnails_debug()
                     width = (unsigned int)::atoi(width_str.c_str());
                     std::string height_str = gcode_line.substr(x_pos + 1);
                     height = (unsigned int)::atoi(height_str.c_str());
+                    row.clear();
                 }
                 else if (reading_image && boost::starts_with(gcode_line, END_MASK))
                 {
+                    if (!row.empty())
+                    {
+                        rows.push_back(row);
+                        row.clear();
+                    }
+
                     if ((unsigned int)rows.size() == height)
                     {
                         std::vector<unsigned char> thumbnail(4 * width * height, 0);
@@ -1160,7 +1168,15 @@ void GUI_App::gcode_thumbnails_debug()
                     rows.clear();
                 }
                 else if (reading_image)
-                    rows.push_back(gcode_line.substr(2));
+                {
+                    if (!row.empty() && (gcode_line[1] == ' '))
+                    {
+                        rows.push_back(row);
+                        row.clear();
+                    }
+
+                    row += gcode_line.substr(2);
+                }
             }
         }
 
