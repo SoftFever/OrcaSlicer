@@ -94,6 +94,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5));
+    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 6));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
@@ -350,6 +351,7 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
         return;
 
     dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_sla_support_data(model_object, m_parent.get_selection());
+    dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_sla_support_data(model_object, m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -358,15 +360,22 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
     if (!m_enabled || m_gizmos.empty())
         return false;
 
-    return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    if (m_current == SlaSupports)
+        return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    if (m_current == Hollow)
+        return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    return false;
 }
 
 ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
 {
-    if (!m_enabled || m_current != SlaSupports || m_gizmos.empty())
+    if (!m_enabled || (m_current != SlaSupports && m_current != Hollow) || m_gizmos.empty())
         return ClippingPlane::ClipsNothing();
 
-    return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->get_sla_clipping_plane();
+    if (m_current == SlaSupports)
+        return dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->get_sla_clipping_plane();
+    else
+        return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->get_sla_clipping_plane();
 }
 
 bool GLGizmosManager::wants_reslice_supports_on_undo() const
@@ -464,7 +473,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         if (evt.LeftDown())
         {
-            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
@@ -489,10 +498,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
             processed = true;
         }
-        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports))
+        else if (evt.Dragging() && (m_parent.get_move_volume_id() != -1) && (m_current == SlaSupports || m_current == Hollow))
                         // don't allow dragging objects with the Sla gizmo on
             processed = true;
-        else if (evt.Dragging() && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+        else if (evt.Dragging() && (m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
         {
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
@@ -568,7 +577,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports) && !m_parent.is_mouse_dragging())
+        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow) && !m_parent.is_mouse_dragging())
         {
             // in case SLA gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
