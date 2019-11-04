@@ -1772,7 +1772,8 @@ end:
                 float delta = float(scale_(m_config.xy_size_compensation.value));
                 //FIXME only apply the compensation if no raft is enabled.
                 float elephant_foot_compensation = 0.f;
-                if (layer_id == 0)
+                if (layer_id == 0 && m_config.raft_layers == 0)
+                	// Only enable Elephant foot compensation if printing directly on the print bed.
                     elephant_foot_compensation = float(scale_(m_config.elefant_foot_compensation.value));
                 if (layer->m_regions.size() == 1) {
                     // Optimized version for a single region layer.
