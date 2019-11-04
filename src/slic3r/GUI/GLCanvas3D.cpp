@@ -1651,12 +1651,12 @@ void GLCanvas3D::render()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
     if (GLCanvas3DManager::are_framebuffers_supported())
-        _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only);
+        _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, transparent_background);
     else
-        _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only);
+        _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, transparent_background);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -3595,7 +3595,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
 
-static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only)
+static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool transparent_background)
 {
     auto is_visible = [](const GLVolume& v) -> bool
     {
@@ -3634,6 +3634,9 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     camera.apply_view_matrix();
     camera.apply_projection(box);
 
+    if (transparent_background)
+        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 0.0f));
+
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
@@ -3660,9 +3663,12 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     shader.stop_using();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
+
+    if (transparent_background)
+        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -3715,7 +3721,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
     {
-        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
 
         if (multisample)
         {
@@ -3766,7 +3772,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -3783,7 +3789,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only);
+    render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT

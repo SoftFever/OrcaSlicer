@@ -1928,7 +1928,7 @@ struct Plater::priv
     bool can_reload_from_disk() const;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
@@ -3057,7 +3057,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_FFF)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true);
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
                 }
             }
             else if (this->printer_technology == ptSLA)
@@ -3068,7 +3068,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true);
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
                 }
             }
         }
@@ -3422,7 +3422,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
             {
                 this->thumbnail_data.push_back(ThumbnailData());
-                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false);
+                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false, false);
             }
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -3653,9 +3653,9 @@ bool Plater::priv::init_object_menu()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, transparent_background);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -4699,7 +4699,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     wxBusyCursor wait;
 #if ENABLE_THUMBNAIL_GENERATOR
     ThumbnailData thumbnail_data;
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true);
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true);
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &thumbnail_data)) {
 #else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
