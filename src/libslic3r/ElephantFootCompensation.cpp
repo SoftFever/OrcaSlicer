@@ -88,7 +88,7 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 
 						if (std::abs(denom) >= EPSILON) {
 							double t = cross2(dir2, vptpt2) / denom;
-							assert(t > 0. && t <= 1.);
+							assert(t > - EPSILON && t < 1. + EPSILON);
 							bool this_valid = true;
 							if (it_contour_and_segment->first == idx_contour) {
 								// The intersected segment originates from the same contour as the starting point.
@@ -105,7 +105,7 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 									auto it = std::lower_bound(resampled_point_parameters.begin(), resampled_point_parameters.end(), key, lower);
 									assert(it != resampled_point_parameters.end() && it->idx_src == ipt && ! it->interpolated);
 									double t2 = cross2(dir, vptpt2) / denom;
-									assert(t2 >= 0. && t2 <= 1.);
+									assert(t2 > - EPSILON && t2 < 1. + EPSILON);
 									if (++ ipt == ipts.size())
 										param_hi = t2 * dir2.norm();
 									else
