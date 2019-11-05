@@ -22,39 +22,46 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
     return mesh;
 }
 
-TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
+static Slic3r::TriangleMesh hollowed_interior(const Slic3r::TriangleMesh &mesh,
+                                              double min_thickness)
 {
-    Slic3r::TriangleMesh in_mesh = load_model("20mm_cube.obj");
-    in_mesh.scale(3.);
-    Slic3r::sla::Contour3D imesh = Slic3r::sla::Contour3D{in_mesh};
+    Slic3r::sla::Contour3D imesh = Slic3r::sla::Contour3D{mesh};
     
-    Benchmark bench;
-    bench.start();
+    double scale = std::max(1.0, 3. / min_thickness);
+    double offset = scale * min_thickness;
+    float range = float(std::max(2 * offset, scale));
     
-    openvdb::math::Transform tr;
-    auto ptr = Slic3r::meshToVolume(imesh, {}, 0.0f, 10.0f);
+    for (auto &p : imesh.points) p *= scale;
+    auto ptr = Slic3r::meshToVolume(imesh, {}, 0.1f * float(offset), range);
     
     REQUIRE(ptr);
     
-    openvdb::tools::Filter<openvdb::FloatGrid>{*ptr}.gaussian(1, 3);
+    openvdb::tools::Filter<openvdb::FloatGrid>{*ptr}.gaussian(int(scale), 1);
     
-    
-    double iso_surface = -3.0;
-    double adaptivity = 0.5;
+    double iso_surface = -offset;
+    double adaptivity = 0.;
     Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, iso_surface, adaptivity);
     
     REQUIRE(!omesh.empty());
     
-    imesh.merge(omesh);
+    for (auto &p : omesh.points) p /= scale;
     
-    for (auto &p : imesh.points) p /= 3.;
+    return to_triangle_mesh(omesh);
+}
+
+TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
+{
+    Slic3r::TriangleMesh in_mesh = load_model("20mm_cube.obj");
+    Benchmark bench;
+    bench.start();
+    
+    Slic3r::TriangleMesh out_mesh = hollowed_interior(in_mesh, 2);
     
     bench.stop();
     
     std::cout << "Elapsed processing time: " << bench.getElapsedSec() << std::endl;
-    std::fstream merged_outfile("merged_out.obj", std::ios::out);
-    imesh.to_obj(merged_outfile);
     
-    std::fstream outfile("out.obj", std::ios::out);
-    omesh.to_obj(outfile);
+    in_mesh.merge(out_mesh);
+    in_mesh.require_shared_vertices();
+    in_mesh.WriteOBJFile("merged_out.obj");
 }
