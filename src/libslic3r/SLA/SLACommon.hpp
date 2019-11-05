@@ -5,6 +5,11 @@
 #include <vector>
 #include <Eigen/Geometry>
 
+#include "SLASpatIndex.hpp"
+
+#include <libslic3r/ExPolygon.hpp>
+#include <libslic3r/TriangleMesh.hpp>
+
 // #define SLIC3R_SLA_NEEDS_WINDTREE
 
 namespace Slic3r {
@@ -12,8 +17,7 @@ namespace Slic3r {
 // Typedefs from Point.hpp
 typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> Vec3f;
 typedef Eigen::Matrix<double, 3, 1, Eigen::DontAlign> Vec3d;
-
-class TriangleMesh;
+typedef Eigen::Matrix<int, 4, 1, Eigen::DontAlign> Vec4i;
 
 namespace sla {
     
@@ -59,9 +63,11 @@ struct SupportPoint
 
     bool operator==(const SupportPoint &sp) const
     {
-        return (pos == sp.pos) && head_front_radius == sp.head_front_radius &&
+        float rdiff = std::abs(head_front_radius - sp.head_front_radius);
+        return (pos == sp.pos) && rdiff < float(EPSILON) &&
                is_new_island == sp.is_new_island;
     }
+    
     bool operator!=(const SupportPoint &sp) const { return !(sp == (*this)); }
 
     template<class Archive> void serialize(Archive &ar)
@@ -72,8 +78,11 @@ struct SupportPoint
 
 using SupportPoints = std::vector<SupportPoint>;
 
+struct Contour3D;
+
 /// An index-triangle structure for libIGL functions. Also serves as an
-/// alternative (raw) input format for the SLASupportTree
+/// alternative (raw) input format for the SLASupportTree.
+//  Implemented in SLASupportTreeIGL.cpp
 class EigenMesh3D {
     class AABBImpl;
 
@@ -86,6 +95,7 @@ public:
 
     EigenMesh3D(const TriangleMesh&);
     EigenMesh3D(const EigenMesh3D& other);
+    EigenMesh3D(const Contour3D &other);
     EigenMesh3D& operator=(const EigenMesh3D&);
 
     ~EigenMesh3D();
@@ -179,6 +189,63 @@ public:
 };
 
 using PointSet = Eigen::MatrixXd;
+
+
+/// Dumb vertex mesh consisting of triangles (or) quads. Capable of merging with
+/// other meshes of this type and converting to and from other mesh formats.
+struct Contour3D {
+    Pointf3s points;
+    std::vector<Vec3i> faces3;
+    std::vector<Vec4i> faces4;
+    
+    Contour3D() = default;
+    Contour3D(const TriangleMesh &trmesh);
+    Contour3D(TriangleMesh &&trmesh);
+    Contour3D(const EigenMesh3D  &emesh);
+    
+    Contour3D& merge(const Contour3D& ctr);
+    Contour3D& merge(const Pointf3s& triangles);
+    
+    // Write the index triangle structure to OBJ file for debugging purposes.
+    void to_obj(std::ostream& stream);
+    void from_obj(std::istream &stream);
+    
+    inline bool empty() const { return points.empty() || (faces4.empty() && faces3.empty()); }
+};
+
+using ClusterEl = std::vector<unsigned>;
+using ClusteredPoints = std::vector<ClusterEl>;
+
+// Clustering a set of points by the given distance.
+ClusteredPoints cluster(const std::vector<unsigned>& indices,
+                        std::function<Vec3d(unsigned)> pointfn,
+                        double dist,
+                        unsigned max_points);
+
+ClusteredPoints cluster(const PointSet& points,
+                        double dist,
+                        unsigned max_points);
+
+ClusteredPoints cluster(
+    const std::vector<unsigned>& indices,
+    std::function<Vec3d(unsigned)> pointfn,
+    std::function<bool(const PointIndexEl&, const PointIndexEl&)> predicate,
+    unsigned max_points);
+
+
+// Calculate the normals for the selected points (from 'points' set) on the
+// mesh. This will call squared distance for each point.
+PointSet normals(const PointSet& points,
+    const EigenMesh3D& convert_mesh,
+    double eps = 0.05,  // min distance from edges
+    std::function<void()> throw_on_cancel = [](){},
+    const std::vector<unsigned>& selected_points = {});
+
+/// Mesh from an existing contour.
+TriangleMesh to_triangle_mesh(const Contour3D& ctour);
+
+/// Mesh from an evaporating 3D contour
+TriangleMesh to_triangle_mesh(Contour3D&& ctour);
 
 } // namespace sla
 } // namespace Slic3r

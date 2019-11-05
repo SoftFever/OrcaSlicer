@@ -108,6 +108,18 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+if(OpenVDB_FIND_QUIETLY)
+  set (_quiet "QUIET")
+else()
+  set (_quiet "")
+endif()
+
+if(OpenVDB_FIND_REQUIRED)
+  set (_required "REQUIRED")
+else()
+  set (_required "")
+endif()
+
 # Include utility functions for version information
 include(${CMAKE_CURRENT_LIST_DIR}/OpenVDBUtils.cmake)
 
@@ -146,7 +158,7 @@ set(_OPENVDB_ROOT_SEARCH_DIR "")
 
 # Additionally try and use pkconfig to find OpenVDB
 
-find_package(PkgConfig)
+find_package(PkgConfig ${_quiet} ${_required})
 pkg_check_modules(PC_OpenVDB QUIET OpenVDB)
 
 # ------------------------------------------------------------------------
@@ -250,7 +262,7 @@ OPENVDB_ABI_VERSION_FROM_PRINT(
   ABI OpenVDB_ABI
 )
 
-if(NOT OpenVDB_FIND_QUIET)
+if(NOT OpenVDB_FIND_QUIETLY)
   if(NOT OpenVDB_ABI)
     message(WARNING "Unable to determine OpenVDB ABI version from OpenVDB "
       "installation. The library major version \"${OpenVDB_MAJOR_VERSION}\" "
@@ -268,7 +280,17 @@ endif()
 
 # Add standard dependencies
 
-find_package(IlmBase COMPONENTS Half)
+macro(just_fail msg)
+  set(OpenVDB_FOUND FALSE)
+  if(OpenVDB_FIND_REQUIRED)
+    message(FATAL_ERROR msg)
+  elseif(NOT OpenVDB_FIND_QUIETLY)
+    message(ERROR msg)
+  endif()
+  return()
+endmacro()
+
+find_package(IlmBase QUIET COMPONENTS Half)
 if(NOT IlmBase_FOUND)
   pkg_check_modules(IlmBase QUIET IlmBase)
 endif()
@@ -276,20 +298,20 @@ if (IlmBase_FOUND AND NOT TARGET IlmBase::Half)
   message(STATUS "Falling back to IlmBase found by pkg-config...")
 
   find_library(IlmHalf_LIBRARY NAMES Half)
-  if(IlmHalf_LIBRARY-NOTFOUND)
-    message(FATAL_ERROR "IlmBase::Half can not be found!")
+  if(IlmHalf_LIBRARY-NOTFOUND OR NOT IlmBase_INCLUDE_DIRS)
+    just_fail("IlmBase::Half can not be found!")
   endif()
   
   add_library(IlmBase::Half UNKNOWN IMPORTED)
   set_target_properties(IlmBase::Half PROPERTIES
     IMPORTED_LOCATION "${IlmHalf_LIBRARY}"
-    INTERFACE_INCLUDE_DIRECTORIES ${IlmBase_INCLUDE_DIRS})
+    INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}")
 elseif(NOT IlmBase_FOUND)
-  message(FATAL_ERROR "IlmBase::Half can not be found!")
+  just_fail("IlmBase::Half can not be found!")
 endif()
-find_package(TBB REQUIRED COMPONENTS tbb)
-find_package(ZLIB REQUIRED)
-find_package(Boost REQUIRED COMPONENTS iostreams system)
+find_package(TBB ${_quiet} ${_required} COMPONENTS tbb)
+find_package(ZLIB ${_quiet} ${_required})
+find_package(Boost ${_quiet} ${_required} COMPONENTS iostreams system )
 
 # Use GetPrerequisites to see which libraries this OpenVDB lib has linked to
 # which we can query for optional deps. This basically runs ldd/otoll/objdump
@@ -350,7 +372,7 @@ unset(_OPENVDB_PREREQUISITE_LIST)
 unset(_HAS_DEP)
 
 if(OpenVDB_USES_BLOSC)
-  find_package(Blosc )
+  find_package(Blosc QUIET)
   if(NOT Blosc_FOUND OR NOT TARGET Blosc::blosc) 
     message(STATUS "find_package could not find Blosc. Using fallback blosc search...")
     find_path(Blosc_INCLUDE_DIR blosc.h)
@@ -362,25 +384,25 @@ if(OpenVDB_USES_BLOSC)
         IMPORTED_LOCATION "${Blosc_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES ${Blosc_INCLUDE_DIR})
     elseif()
-      message(FATAL_ERROR "Blosc library can not be found!")
+      just_fail("Blosc library can not be found!")
     endif()
   endif()
 endif()
 
 if(OpenVDB_USES_LOG4CPLUS)
-  find_package(Log4cplus REQUIRED)
+  find_package(Log4cplus ${_quiet} ${_required})
 endif()
 
 if(OpenVDB_USES_ILM)
-  find_package(IlmBase REQUIRED)
+  find_package(IlmBase ${_quiet} ${_required})
 endif()
 
 if(OpenVDB_USES_EXR)
-  find_package(OpenEXR REQUIRED)
+  find_package(OpenEXR ${_quiet} ${_required})
 endif()
 
 if(UNIX)
-  find_package(Threads REQUIRED)
+  find_package(Threads ${_quiet} ${_required})
 endif()
 
 # Set deps. Note that the order here is important. If we're building against
@@ -481,7 +503,7 @@ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
   endif()
 endforeach()
 
-if(OpenVDB_FOUND AND NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+if(OpenVDB_FOUND AND NOT OpenVDB_FIND_QUIETLY)
   message(STATUS "OpenVDB libraries: ${OpenVDB_LIBRARIES}")
 endif()
 

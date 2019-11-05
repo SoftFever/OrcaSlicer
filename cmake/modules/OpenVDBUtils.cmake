@@ -125,7 +125,9 @@ function(OPENVDB_ABI_VERSION_FROM_PRINT OPENVDB_PRINT)
   cmake_parse_arguments(_VDB "QUIET" "ABI" "" ${ARGN})
 
   if(NOT EXISTS ${OPENVDB_PRINT})
-    message(WARNING "vdb_print not found! ${OPENVDB_PRINT}")
+    if(NOT OpenVDB_FIND_QUIETLY)
+      message(WARNING "vdb_print not found! ${OPENVDB_PRINT}")
+    endif()
     return()
   endif()
 
@@ -148,7 +150,9 @@ function(OPENVDB_ABI_VERSION_FROM_PRINT OPENVDB_PRINT)
   endif()
 
   if(${_VDB_PRINT_RETURN_STATUS})
-    message(WARNING "vdb_print returned with status ${_VDB_PRINT_RETURN_STATUS}")
+    if(NOT OpenVDB_FIND_QUIETLY)
+      message(WARNING "vdb_print returned with status ${_VDB_PRINT_RETURN_STATUS}")
+    endif()
     return()
   endif()
 
