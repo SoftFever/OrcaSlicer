@@ -195,14 +195,14 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
     if (! m_object_clipper->get_triangles().empty()) {
-		::glPushMatrix();
+        ::glPushMatrix();
         ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
         for (const Vec3f& point : m_object_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
-		::glPopMatrix();
-	}
+        ::glPopMatrix();
+    }
 
     if (m_supports_clipper && ! m_supports_clipper->get_triangles().empty() && !m_editing_mode) {
         // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
@@ -212,8 +212,8 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
         for (const Vec3f& point : m_supports_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
-		::glPopMatrix();
-	}
+        ::glPopMatrix();
+    }
 }
 
 
@@ -221,7 +221,7 @@ void GLGizmoHollow::on_render_for_picking() const
 {
     const Selection& selection = m_parent.get_selection();
 #if ENABLE_RENDER_PICKING_PASS
-	m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 #endif
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -257,7 +257,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             render_color[0] = color[0];
             render_color[1] = color[1];
             render_color[2] = color[2];
-	        render_color[3] = color[3];
+            render_color[3] = color[3];
         }
         else {
             render_color[3] = 1.f;
@@ -270,6 +270,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
                 render_color[0] = point_selected ? 1.0f : 0.7f;
                 render_color[1] = point_selected ? 0.3f : 0.7f;
                 render_color[2] = point_selected ? 0.3f : 0.7f;
+                render_color[3] = 0.5f;
             }
         }
         glsafe(::glColor4fv(render_color));
@@ -296,16 +297,20 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             Eigen::AngleAxisd aa(q);
             glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
 
-            const double cone_radius = 0.25; // mm
-            const double cone_height = 0.75;
+            const double cone_radius = double(support_point.head_front_radius) * RenderPointScale; //0.25; // mm
+            const double cone_height = m_new_cone_height;
+            //const double cone_rad_diff = m_new_cone_angle*(cone_radius/(cone_height/2.))*(cone_height/2.);
+            const double cone_rad_diff = m_new_cone_angle*cone_radius;
             glsafe(::glPushMatrix());
-            glsafe(::glTranslatef(0.f, 0.f, support_point.head_front_radius * RenderPointScale));
-            ::gluCylinder(m_quadric, 0., cone_radius, cone_height, 24, 1);
+            glsafe(::glTranslatef(0.f, 0.f, -cone_height/2.));
+            //::gluCylinder(m_quadric, cone_radius, cone_radius, cone_height, 24, 1);
+            ::gluCylinder(m_quadric, cone_radius+cone_rad_diff, cone_radius-cone_rad_diff, cone_height, 24, 1);
             glsafe(::glTranslatef(0.f, 0.f, cone_height));
-            ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
+            //::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
+            ::gluDisk(m_quadric, 0.0, cone_radius-cone_rad_diff, 24, 1);
             glsafe(::glPopMatrix());
         }
-        ::gluSphere(m_quadric, (double)support_point.head_front_radius * RenderPointScale, 24, 12);
+        //::gluSphere(m_quadric, (double)support_point.head_front_radius * RenderPointScale, 24, 12);
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
 
@@ -623,7 +628,7 @@ RENDER_AGAIN:
     //const ImVec2 window_size(m_imgui->scaled(18.f, 16.f));
     //ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     //ImGui::SetNextWindowSize(ImVec2(window_size));
-    
+
     const float approx_height = m_imgui->scaled(18.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
@@ -685,6 +690,10 @@ RENDER_AGAIN:
                     cache_entry.support_point.head_front_radius = m_new_point_head_diameter / 2.f;
             m_old_point_head_diameter = 0.f;
         }
+
+        // !!!! Something as above should be done for the cone angle
+        ImGui::SliderFloat(" ", &m_new_cone_angle, -1.f, 1.f, "%.1f");
+        ImGui::SliderFloat("  ", &m_new_cone_height, 0.1f, 10.f, "%.1f");
 
         m_imgui->disabled_begin(m_selection_empty);
         remove_selected = m_imgui->button(m_desc.at("remove_selected"));
@@ -757,7 +766,7 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+    if (ImGui::SliderFloat("   ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
 

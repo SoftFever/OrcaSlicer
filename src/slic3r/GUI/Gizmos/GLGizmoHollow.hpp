@@ -95,6 +95,8 @@ private:
     bool m_editing_mode = true;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
+    float m_new_cone_angle = 0.f;
+    float m_new_cone_height = 5.f;
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same
     float m_minimal_point_distance_stash = 0.f; // and again
