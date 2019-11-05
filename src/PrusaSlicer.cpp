@@ -167,6 +167,7 @@ int CLI::run(int argc, char **argv)
 //    sla_print_config.apply(m_print_config, true);
 
     // Loop through transform options.
+    bool user_center_specified = false;
     for (auto const &opt_key : m_transforms) {
         if (opt_key == "merge") {
             Model m;
@@ -209,6 +210,7 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models)
                 model.duplicate_objects_grid(x, y, (distance > 0) ? distance : 6);  // TODO: this is not the right place for setting a default
         } else if (opt_key == "center") {
+        	user_center_specified = true;
             for (auto &model : m_models) {
                 model.add_default_instances();
                 // this affects instances:
@@ -403,7 +405,9 @@ int CLI::run(int argc, char **argv)
                 if (! m_config.opt_bool("dont_arrange")) {
                     //FIXME make the min_object_distance configurable.
                     model.arrange_objects(fff_print.config().min_object_distance());
-                    model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
+                    model.center_instances_around_point((! user_center_specified && m_print_config.has("bed_shape")) ? 
+                    	BoundingBoxf(m_print_config.opt<ConfigOptionPoints>("bed_shape")->values).center() : 
+                    	m_config.option<ConfigOptionPoint>("center")->value);
                 }
                 if (printer_technology == ptFFF) {
                     for (auto* mo : model.objects)

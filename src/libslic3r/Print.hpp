@@ -253,6 +253,7 @@ struct PrintStatistics
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
+    int                             total_toolchanges;
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
@@ -273,6 +274,7 @@ struct PrintStatistics
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;
+        total_toolchanges      = 0;
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;
         total_wipe_tower_filament = 0.;

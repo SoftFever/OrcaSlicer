@@ -267,6 +267,99 @@ static inline void smooth_compensation(std::vector<float> &compensation, float s
 	}
 }
 
+template<typename INDEX_TYPE, typename CONTAINER>
+static inline INDEX_TYPE prev_idx_cyclic(INDEX_TYPE idx, const CONTAINER &container)
+{
+	if (idx == 0)
+		idx = INDEX_TYPE(container.size());
+	return -- idx;
+}
+
+template<typename INDEX_TYPE, typename CONTAINER>
+static inline INDEX_TYPE next_idx_cyclic(INDEX_TYPE idx, const CONTAINER &container)
+{
+	if (++ idx == INDEX_TYPE(container.size()))
+		idx = 0;
+	return idx;
+}
+
+template<class T, class U = T>
+static inline T exchange(T& obj, U&& new_value)
+{
+    T old_value = std::move(obj);
+    obj = std::forward<U>(new_value);
+    return old_value;
+}
+
+static inline void smooth_compensation_banded(const Points &contour, float band, std::vector<float> &compensation, float strength, size_t num_iterations)
+{
+	assert(contour.size() == compensation.size());
+	assert(contour.size() > 2);
+	std::vector<float> out(compensation);
+	float dist_min2 = band * band;
+	static constexpr bool use_min = false;
+	for (size_t iter = 0; iter < num_iterations; ++ iter) {
+		for (int i = 0; i < int(compensation.size()); ++ i) {
+			const Vec2f  pthis = contour[i].cast<float>();
+			
+			int		j     = prev_idx_cyclic(i, contour);
+			Vec2f	pprev = contour[j].cast<float>();
+			float	prev  = compensation[j];
+			float	l2    = (pthis - pprev).squaredNorm();
+			if (l2 < dist_min2) {
+				float l = sqrt(l2);
+				int jprev = exchange(j, prev_idx_cyclic(j, contour));
+				while (j != i) {
+					const Vec2f pp = contour[j].cast<float>();
+					const float lthis = (pp - pprev).norm();
+					const float lnext = l + lthis;
+					if (lnext > band) {
+						// Interpolate the compensation value.
+						prev = use_min ?
+							std::min(prev, lerp(compensation[jprev], compensation[j], (band - l) / lthis)) :
+							lerp(compensation[jprev], compensation[j], (band - l) / lthis);
+						break;
+					}
+					prev  = use_min ? std::min(prev, compensation[j]) : compensation[j];
+					pprev = pp;
+					l     = lnext;
+					jprev = exchange(j, prev_idx_cyclic(j, contour));
+				}
+			}
+
+			j = next_idx_cyclic(i, contour);
+			pprev = contour[j].cast<float>();
+			float next = compensation[j];
+			l2 = (pprev - pthis).squaredNorm();
+			if (l2 < dist_min2) {
+				float l = sqrt(l2);
+				int jprev = exchange(j, next_idx_cyclic(j, contour));
+				while (j != i) {
+					const Vec2f pp = contour[j].cast<float>();
+					const float lthis = (pp - pprev).norm();
+					const float lnext = l + lthis;
+					if (lnext > band) {
+						// Interpolate the compensation value.
+						next = use_min ?
+							std::min(next, lerp(compensation[jprev], compensation[j], (band - l) / lthis)) :
+							lerp(compensation[jprev], compensation[j], (band - l) / lthis);
+						break;
+					}
+					next  = use_min ? std::min(next, compensation[j]) : compensation[j];
+					pprev = pp;
+					l     = lnext;
+					jprev = exchange(j, next_idx_cyclic(j, contour));
+				}
+			}
+
+			float laplacian = compensation[i] * (1.f - strength) + 0.5f * strength * (prev + next);
+			// Compensations are negative. Only apply the laplacian if it leads to lower compensation.
+			out[i] = std::max(laplacian, compensation[i]);
+		}
+		out.swap(compensation);
+	}
+}
+
 ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &external_perimeter_flow, const double compensation)
 {
 	// The contour shall be wide enough to apply the external perimeter plus compensation on both sides.
@@ -285,10 +378,11 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 	std::vector<std::vector<float>> deltas;
 	deltas.reserve(simplified.holes.size() + 1);
 	ExPolygon resampled(simplified);
+	double resample_interval = scale_(0.5);
 	for (size_t idx_contour = 0; idx_contour <= simplified.holes.size(); ++ idx_contour) {
 		Polygon &poly = (idx_contour == 0) ? resampled.contour : resampled.holes[idx_contour - 1];
 		std::vector<ResampledPoint> resampled_point_parameters;
-		poly.points = resample_polygon(poly.points, scale_(0.5), resampled_point_parameters);
+		poly.points = resample_polygon(poly.points, resample_interval, resampled_point_parameters);
 		std::vector<float> dists = contour_distance(grid, idx_contour, poly.points, resampled_point_parameters, search_radius);
 		for (float &d : dists) {
 //			printf("Point %d, Distance: %lf\n", int(&d - dists.data()), unscale<double>(d));
@@ -301,7 +395,8 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 				d = - (d - float(min_contour_width)) / 2.f;
 			assert(d >= - float(scaled_compensation) && d <= 0.f);
 		}
-		smooth_compensation(dists, 0.4f, 10);
+//		smooth_compensation(dists, 0.4f, 10);
+		smooth_compensation_banded(poly.points, float(0.8 * resample_interval), dists, 0.3f, 3);
 		deltas.emplace_back(dists);
 	}
 
