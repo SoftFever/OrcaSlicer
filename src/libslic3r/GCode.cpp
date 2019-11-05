@@ -975,6 +975,9 @@ void GCode::_do_export(Print &print, FILE *file)
             _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
     }
 
+	// Hold total number of print toolchanges. Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+    int total_toolchanges = std::max(0, print.wipe_tower_data().number_of_toolchanges);
+
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
     m_placeholder_parser.update_timestamp();
@@ -1037,6 +1040,7 @@ void GCode::_do_export(Print &print, FILE *file)
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
+    m_placeholder_parser.set("total_toolchanges", total_toolchanges);
     std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config().start_gcode.value, initial_extruder_id);
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
@@ -1287,7 +1291,7 @@ void GCode::_do_export(Print &print, FILE *file)
     print.m_print_statistics.estimated_normal_color_print_times = m_normal_time_estimator.get_color_times_dhms(true);
     if (m_silent_time_estimator_enabled)
         print.m_print_statistics.estimated_silent_color_print_times = m_silent_time_estimator.get_color_times_dhms(true);
-
+    print.m_print_statistics.total_toolchanges = total_toolchanges;
     std::vector<Extruder> extruders = m_writer.extruders();
     if (! extruders.empty()) {
         std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
@@ -1337,6 +1341,8 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
+    if (print.m_print_statistics.total_toolchanges > 0)
+    	_write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
