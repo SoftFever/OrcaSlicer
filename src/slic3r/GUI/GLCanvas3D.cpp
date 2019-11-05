@@ -1653,10 +1653,12 @@ void GLCanvas3D::render()
 #if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
-    if (GLCanvas3DManager::are_framebuffers_supported())
-        _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, transparent_background);
-    else
-        _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, transparent_background);
+    switch (GLCanvas3DManager::get_framebuffers_type())
+    {
+    case GLCanvas3DManager::FB_Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
+    case GLCanvas3DManager::FB_Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
+    default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
+    }
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -3767,6 +3769,110 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     if (render_tex != 0)
         glsafe(::glDeleteTextures(1, &render_tex));
     glsafe(::glDeleteFramebuffers(1, &render_fbo));
+
+    if (multisample)
+        glsafe(::glDisable(GL_MULTISAMPLE));
+}
+
+void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+{
+    thumbnail_data.set(w, h);
+    if (!thumbnail_data.is_valid())
+        return;
+
+    bool multisample = m_multisample_allowed;
+    if (multisample)
+        glsafe(::glEnable(GL_MULTISAMPLE));
+
+    GLint max_samples;
+    glsafe(::glGetIntegerv(GL_MAX_SAMPLES_EXT, &max_samples));
+    GLsizei num_samples = max_samples / 2;
+
+    GLuint render_fbo;
+    glsafe(::glGenFramebuffersEXT(1, &render_fbo));
+    glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, render_fbo));
+
+    GLuint render_tex = 0;
+    GLuint render_tex_buffer = 0;
+    if (multisample)
+    {
+        // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
+        glsafe(::glGenRenderbuffersEXT(1, &render_tex_buffer));
+        glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_tex_buffer));
+        glsafe(::glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, num_samples, GL_RGBA8, w, h));
+        glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, render_tex_buffer));
+    }
+    else
+    {
+        glsafe(::glGenTextures(1, &render_tex));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, render_tex, 0));
+    }
+
+    GLuint render_depth;
+    glsafe(::glGenRenderbuffersEXT(1, &render_depth));
+    glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_depth));
+    if (multisample)
+        glsafe(::glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, num_samples, GL_DEPTH_COMPONENT24, w, h));
+    else
+        glsafe(::glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w, h));
+
+    glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, render_depth));
+
+    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
+    glsafe(::glDrawBuffers(1, drawBufs));
+
+    if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
+    {
+        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
+
+        if (multisample)
+        {
+            GLuint resolve_fbo;
+            glsafe(::glGenFramebuffersEXT(1, &resolve_fbo));
+            glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, resolve_fbo));
+
+            GLuint resolve_tex;
+            glsafe(::glGenTextures(1, &resolve_tex));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, resolve_tex));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            glsafe(::glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, resolve_tex, 0));
+
+            glsafe(::glDrawBuffers(1, drawBufs));
+
+            if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
+            {
+                glsafe(::glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, render_fbo));
+                glsafe(::glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, resolve_fbo));
+                glsafe(::glBlitFramebufferEXT(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
+
+                glsafe(::glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, resolve_fbo));
+                glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+            }
+
+            glsafe(::glDeleteTextures(1, &resolve_tex));
+            glsafe(::glDeleteFramebuffersEXT(1, &resolve_fbo));
+        }
+        else
+            glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+
+#if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
+        debug_output_thumbnail(thumbnail_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
+    }
+
+    glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
+    glsafe(::glDeleteRenderbuffersEXT(1, &render_depth));
+    if (render_tex_buffer != 0)
+        glsafe(::glDeleteRenderbuffersEXT(1, &render_tex_buffer));
+    if (render_tex != 0)
+        glsafe(::glDeleteTextures(1, &render_tex));
+    glsafe(::glDeleteFramebuffersEXT(1, &render_fbo));
 
     if (multisample)
         glsafe(::glDisable(GL_MULTISAMPLE));

@@ -685,7 +685,9 @@ private:
 #if ENABLE_THUMBNAIL_GENERATOR
     // render thumbnail using an off-screen framebuffer
     void _render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
-        // render thumbnail using the default framebuffer
+    // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
+    void _render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
+    // render thumbnail using the default framebuffer
     void _render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
