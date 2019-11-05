@@ -9,6 +9,11 @@ if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()
 
+set(OpenVDBUtils_SOURCES "")
+if (TARGET OpenVDB::openvdb)
+    set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
+endif()
+
 add_library(libslic3r STATIC
     pchheader.cpp
     pchheader.hpp
@@ -176,7 +181,9 @@ add_library(libslic3r STATIC
     MinAreaBoundingBox.cpp
     miniz_extension.hpp
     miniz_extension.cpp
+    ${OpenVDBUtils_SOURCES}
     SLA/SLACommon.hpp
+    SLA/SLACommon.cpp
     SLA/SLABoilerPlate.hpp
     SLA/SLAPad.hpp
     SLA/SLAPad.cpp
@@ -224,9 +231,12 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
-    # OpenVDB::openvdb
     ${CMAKE_DL_LIBS}
     )
+
+if (TARGET OpenVDB::openvdb)
+    target_link_libraries(libslic3r OpenVDB::openvdb)
+endif()
 
 if(WIN32)
     target_link_libraries(libslic3r Psapi.lib)

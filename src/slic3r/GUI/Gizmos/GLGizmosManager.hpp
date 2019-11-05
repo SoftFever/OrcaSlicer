@@ -60,6 +60,7 @@ public:
         Flatten,
         Cut,
         SlaSupports,
+        Hollow,
         Undefined
     };
 

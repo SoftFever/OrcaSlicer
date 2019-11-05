@@ -47,6 +47,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoFlatten.hpp
     GUI/Gizmos/GLGizmoCut.cpp
     GUI/Gizmos/GLGizmoCut.hpp
+    GUI/Gizmos/GLGizmoHollow.cpp
+    GUI/Gizmos/GLGizmoHollow.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/GLTexture.hpp

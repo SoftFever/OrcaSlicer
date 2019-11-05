@@ -12,7 +12,7 @@ Contour3D sphere(double rho, Portion portion, double fa) {
     if(rho <= 1e-6 && rho >= -1e-6) return ret;
     
     auto& vertices = ret.points;
-    auto& facets = ret.indices;
+    auto& facets = ret.faces3;
     
     // Algorithm:
     // Add points one-by-one to the sphere grid and form facets using relative
@@ -102,7 +102,7 @@ Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d &sp)
     
     auto steps = int(ssteps);
     auto& points = ret.points;
-    auto& indices = ret.indices;
+    auto& indices = ret.faces3;
     points.reserve(2*ssteps);
     double a = 2*PI/steps;
     
@@ -211,8 +211,8 @@ Head::Head(double       r_big_mm,
         coord_t i1s1 = coord_t(idx1), i1s2 = coord_t(idx2);
         coord_t i2s1 = i1s1 + 1, i2s2 = i1s2 + 1;
         
-        mesh.indices.emplace_back(i1s1, i2s1, i2s2);
-        mesh.indices.emplace_back(i1s1, i2s2, i1s2);
+        mesh.faces3.emplace_back(i1s1, i2s1, i2s2);
+        mesh.faces3.emplace_back(i1s1, i2s2, i1s2);
     }
     
     auto i1s1 = coord_t(s1.points.size()) - coord_t(steps);
@@ -220,8 +220,8 @@ Head::Head(double       r_big_mm,
     auto i1s2 = coord_t(s1.points.size());
     auto i2s2 = coord_t(s1.points.size()) + coord_t(steps) - 1;
     
-    mesh.indices.emplace_back(i2s2, i2s1, i1s1);
-    mesh.indices.emplace_back(i1s2, i2s2, i1s1);
+    mesh.faces3.emplace_back(i2s2, i2s1, i1s1);
+    mesh.faces3.emplace_back(i1s2, i2s2, i1s1);
     
     // To simplify further processing, we translate the mesh so that the
     // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
@@ -240,7 +240,7 @@ Pillar::Pillar(const Vec3d &jp, const Vec3d &endp, double radius, size_t st):
         // move the data.
         Contour3D body = cylinder(radius, height, st, endp);
         mesh.points.swap(body.points);
-        mesh.indices.swap(body.indices);
+        mesh.faces3.swap(body.faces3);
     }
 }
 
@@ -275,7 +275,7 @@ Pillar &Pillar::add_base(double baseheight, double radius)
     base.points.emplace_back(endpt);
     base.points.emplace_back(ep);
     
-    auto& indices = base.indices;
+    auto& indices = base.faces3;
     auto hcenter = int(base.points.size() - 1);
     auto lcenter = int(base.points.size() - 2);
     auto offs = int(steps);
@@ -466,7 +466,7 @@ const TriangleMesh &SupportTreeBuilder::merged_mesh() const
         return m_meshcache;
     }
     
-    m_meshcache = mesh(merged);
+    m_meshcache = to_triangle_mesh(merged);
     
     // The mesh will be passed by const-pointer to TriangleMeshSlicer,
     // which will need this.

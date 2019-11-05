@@ -228,6 +228,26 @@ EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
     m_V(other.m_V), m_F(other.m_F), m_ground_level(other.m_ground_level),
     m_aabb( new AABBImpl(*other.m_aabb) ) {}
 
+EigenMesh3D::EigenMesh3D(const Contour3D &other)
+{
+    m_V.resize(Eigen::Index(other.points.size()), 3);
+    m_F.resize(Eigen::Index(other.faces3.size() + 2 * other.faces4.size()), 3);
+    
+    for (Eigen::Index i = 0; i < Eigen::Index(other.points.size()); ++i)
+        m_V.row(i) = other.points[size_t(i)];
+    
+    for (Eigen::Index i = 0; i < Eigen::Index(other.faces3.size()); ++i)
+        m_F.row(i) = other.faces3[size_t(i)];
+    
+    size_t N = other.faces3.size() + 2 * other.faces4.size();
+    for (size_t i = other.faces3.size(); i < N; i += 2) {
+        size_t quad_idx = (i - other.faces3.size()) / 2;
+        auto & quad     = other.faces4[quad_idx];
+        m_F.row(Eigen::Index(i)) = Vec3i{quad(0), quad(1), quad(2)};
+        m_F.row(Eigen::Index(i + 1)) = Vec3i{quad(2), quad(3), quad(0)};
+    }
+}
+
 EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 {
     m_V = other.m_V;
