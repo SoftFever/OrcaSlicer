@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <utility>
 
 // #define CONTOUR_DISTANCE_DEBUG_SVG
 
