@@ -3615,7 +3615,7 @@ void DoubleSlider::change_extruder(int extruder)
     // if on this Y doesn't exist tick
     if (m_ticks_.find(tick) == m_ticks_.end())
     {        
-        m_ticks_.insert(TICK_CODE(tick, "tool_change", extruder, colors[extruder-1]));
+        m_ticks_.insert(TICK_CODE(tick, "tool_change", extruder, extruder == 0 ? "" : colors[extruder-1]));
 
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
         Refresh();

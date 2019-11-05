@@ -641,6 +641,7 @@ void Preview::create_double_slider()
 
         evt.StopPropagation();
     });
+    m_extruder_selector->Disable();
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(m_extruder_selector, 0, wxEXPAND, 0);
