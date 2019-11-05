@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <numeric>
+#include <functional>
 #include <Eigen/Geometry>
 
 #include "SLASpatIndex.hpp"

@@ -52,7 +52,9 @@ namespace {
 // should add up to 100 (%)
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
-    30,     // slaposObjectSlice,
+    5,      // slaposHollowing,
+    20,     // slaposObjectSlice,
+    5,      // slaposDrillHolesIfHollowed   
     20,     // slaposSupportPoints,
     10,     // slaposSupportTree,
     10,     // slaposPad,
@@ -63,14 +65,17 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 std::string OBJ_STEP_LABELS(size_t idx)
 {
     switch (idx) {
-    case slaposObjectSlice:     return L("Slicing model");
-    case slaposSupportPoints:   return L("Generating support points");
-    case slaposSupportTree:     return L("Generating support tree");
-    case slaposPad:             return L("Generating pad");
-    case slaposSliceSupports:   return L("Slicing supports");
+    case slaposHollowing:            return L("Hollowing out the model");
+    case slaposObjectSlice:          return L("Slicing model");
+    case slaposDrillHolesIfHollowed: return L("Drilling holes into hollowed model.");
+    case slaposSupportPoints:        return L("Generating support points");
+    case slaposSupportTree:          return L("Generating support tree");
+    case slaposPad:                  return L("Generating pad");
+    case slaposSliceSupports:        return L("Slicing supports");
     default:;
     }
-    assert(false); return "Out of bounds!";
+    assert(false);
+    return "Out of bounds!";
 };
 
 // Should also add up to 100 (%)
@@ -1460,7 +1465,7 @@ void SLAPrint::process()
 
     slaposFn pobj_program[] =
     {
-        slice_model, support_points, support_tree, generate_pad, slice_supports
+        [](SLAPrintObject&){}, slice_model, [](SLAPrintObject&){}, support_points, support_tree, generate_pad, slice_supports
     };
 
     // We want to first process all objects...
@@ -1760,8 +1765,14 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
 {
     bool invalidated = Inherited::invalidate_step(step);
     // propagate to dependent steps
-    if (step == slaposObjectSlice) {
+    if (step == slaposHollowing) {
         invalidated |= this->invalidate_all_steps();
+    } else if (step == slaposObjectSlice) {
+        invalidated |= this->invalidate_steps({ slaposDrillHolesIfHollowed, slaposSupportPoints, slaposSupportTree, slaposPad, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
+    } else if (step == slaposDrillHolesIfHollowed) {
+        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposPad, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSupportPoints) {
         invalidated |= this->invalidate_steps({ slaposSupportTree, slaposPad, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);

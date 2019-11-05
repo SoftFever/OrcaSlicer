@@ -1,7 +1,7 @@
 #ifndef SLABOOSTADAPTER_HPP
 #define SLABOOSTADAPTER_HPP
 
-#include "SLA/SLABoilerPlate.hpp"
+#include "SLA/SLACommon.hpp"
 #include <boost/geometry.hpp>
 
 namespace boost {

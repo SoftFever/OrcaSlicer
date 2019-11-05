@@ -184,7 +184,6 @@ add_library(libslic3r STATIC
     ${OpenVDBUtils_SOURCES}
     SLA/SLACommon.hpp
     SLA/SLACommon.cpp
-    SLA/SLABoilerPlate.hpp
     SLA/SLAPad.hpp
     SLA/SLAPad.cpp
     SLA/SLASupportTreeBuilder.hpp

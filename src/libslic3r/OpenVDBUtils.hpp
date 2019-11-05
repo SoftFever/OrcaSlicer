@@ -2,22 +2,22 @@
 #define OPENVDBUTILS_HPP
 
 #include <libslic3r/TriangleMesh.hpp>
-#include <libslic3r/SLA/SLABoilerPlate.hpp>
+#include <libslic3r/SLA/SLACommon.hpp>
 #include <openvdb/openvdb.h>
 
 namespace Slic3r {
 
-openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
+openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &            mesh,
+                                     const openvdb::math::Transform &tr = {},
                                      float exteriorBandWidth = 3.0f,
                                      float interiorBandWidth = 3.0f,
-                                     int   flags             = 0,
-                                     const openvdb::math::Transform &tr = {});
+                                     int   flags             = 0);
 
-openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &mesh,
+openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &          mesh,
+                                     const openvdb::math::Transform &tr = {},
                                      float exteriorBandWidth = 3.0f,
                                      float interiorBandWidth = 3.0f,
-                                     int   flags             = 0,
-                                     const openvdb::math::Transform &tr = {});
+                                     int   flags             = 0);
 
 sla::Contour3D volumeToMesh(const openvdb::FloatGrid &grid,
                             double                    isovalue   = 0.0,

@@ -1,5 +1,5 @@
 #include "SLAPad.hpp"
-#include "SLABoilerPlate.hpp"
+#include "SLACommon.hpp"
 #include "SLASpatIndex.hpp"
 #include "ConcaveHull.hpp"
 
