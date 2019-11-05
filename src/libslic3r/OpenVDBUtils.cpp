@@ -51,10 +51,10 @@ void Contour3DDataAdapter::getIndexSpacePoint(size_t          n,
 }
 
 openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
+                                     const openvdb::math::Transform &tr,
                                      float               exteriorBandWidth,
                                      float               interiorBandWidth,
-                                     int                 flags,
-                                     const openvdb::math::Transform &tr)
+                                     int                 flags)
 {
     openvdb::initialize();
     return openvdb::tools::meshToVolume<openvdb::FloatGrid>(
@@ -67,10 +67,10 @@ openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
 // even if was called previously.
 
 openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &          mesh,
+                                     const openvdb::math::Transform &tr,
                                      float exteriorBandWidth,
                                      float interiorBandWidth,
-                                     int flags,
-                                     const openvdb::math::Transform &tr)
+                                     int flags)
 {
     openvdb::initialize();
     return openvdb::tools::meshToVolume<openvdb::FloatGrid>(

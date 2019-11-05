@@ -1,6 +1,6 @@
 #include <cmath>
 #include "SLA/SLASupportTree.hpp"
-#include "SLA/SLABoilerPlate.hpp"
+#include "SLA/SLACommon.hpp"
 #include "SLA/SLASpatIndex.hpp"
 
 // Workaround: IGL signed_distance.h will define PI in the igl namespace.

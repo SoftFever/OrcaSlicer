@@ -3,7 +3,10 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/OpenVDBUtils.hpp"
+#include <openvdb/tools/Filter.h>
 #include "libslic3r/Format/OBJ.hpp"
+
+#include <libnest2d/tools/benchmark.h>
 
 #if defined(WIN32) || defined(_WIN32)
 #define PATH_SEPARATOR R"(\)"
@@ -19,60 +22,39 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
     return mesh;
 }
 
-static bool _check_normals(const Slic3r::sla::Contour3D &mesh)
-{
-    for (auto & face : mesh.faces3)
-    {
-        
-    }
-    
-    return false;
-}
-
-TEST_CASE("Passing OpenVDB grid conversion produce similar geometry.", "[Hollowing]")
+TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
 {
     Slic3r::TriangleMesh in_mesh = load_model("20mm_cube.obj");
+    in_mesh.scale(3.);
     Slic3r::sla::Contour3D imesh = Slic3r::sla::Contour3D{in_mesh};
-    auto ptr = Slic3r::meshToVolume(imesh, {});
+    
+    Benchmark bench;
+    bench.start();
+    
+    openvdb::math::Transform tr;
+    auto ptr = Slic3r::meshToVolume(imesh, {}, 0.0f, 10.0f);
     
     REQUIRE(ptr);
     
-    std::cout << "Grid class = " << ptr->getGridClass() << std::endl;
+    openvdb::tools::Filter<openvdb::FloatGrid>{*ptr}.gaussian(1, 3);
     
-    Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, -2.9, 1.0, true);
     
-    std::cout << "Triangle count: " << omesh.faces3.size() << std::endl;
-    std::cout << "Quad count: " << omesh.faces4.size() << std::endl;
+    double iso_surface = -3.0;
+    double adaptivity = 0.5;
+    Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, iso_surface, adaptivity);
     
     REQUIRE(!omesh.empty());
     
-    SECTION("Converting to Contour3D to TriangleMesh") {
-        Slic3r::TriangleMesh msh = Slic3r::sla::to_triangle_mesh(omesh);
-        
-        msh.require_shared_vertices();
-        msh.WriteOBJFile("out_tr.obj");
-        
-        REQUIRE(msh.volume() == Approx(in_mesh.volume()));        
-    }
+    imesh.merge(omesh);
     
-//    omesh.faces4.clear();
-    std::fstream outfile{"out.obj", std::ios::out};
+    for (auto &p : imesh.points) p /= 3.;
+    
+    bench.stop();
+    
+    std::cout << "Elapsed processing time: " << bench.getElapsedSec() << std::endl;
+    std::fstream merged_outfile("merged_out.obj", std::ios::out);
+    imesh.to_obj(merged_outfile);
+    
+    std::fstream outfile("out.obj", std::ios::out);
     omesh.to_obj(outfile);
-    
 }
-
-//TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
-//{
-//    Slic3r::sla::Contour3D imesh = Slic3r::sla::Contour3D{load_model("20mm_cube.obj")};
-//    auto ptr = Slic3r::meshToVolume(imesh, {});
-    
-//    REQUIRE(ptr);
-    
-//    Slic3r::sla::Contour3D omesh = Slic3r::volumeToMesh(*ptr, -1., 0.0, true);
-    
-//    REQUIRE(!omesh.empty());
-    
-//    imesh.merge(omesh);
-//    std::fstream merged_outfile("merged_out.obj", std::ios::out);
-//    imesh.to_obj(merged_outfile);
-//}

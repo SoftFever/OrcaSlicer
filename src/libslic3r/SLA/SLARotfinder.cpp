@@ -2,7 +2,7 @@
 #include <exception>
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
-#include "SLABoilerPlate.hpp"
+#include "SLACommon.hpp"
 #include "SLARotfinder.hpp"
 #include "SLASupportTree.hpp"
 #include "Model.hpp"

@@ -5,7 +5,7 @@
 
 #include <numeric>
 #include "SLASupportTree.hpp"
-#include "SLABoilerPlate.hpp"
+#include "SLACommon.hpp"
 #include "SLASpatIndex.hpp"
 #include "SLASupportTreeBuilder.hpp"
 

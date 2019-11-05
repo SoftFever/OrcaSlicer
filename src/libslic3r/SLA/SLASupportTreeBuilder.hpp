@@ -2,7 +2,7 @@
 #define SUPPORTTREEBUILDER_HPP
 
 #include "SLAConcurrency.hpp"
-#include "SLABoilerPlate.hpp"
+#include "SLACommon.hpp"
 #include "SLASupportTree.hpp"
 #include "SLAPad.hpp"
 #include <libslic3r/MTUtils.hpp>
