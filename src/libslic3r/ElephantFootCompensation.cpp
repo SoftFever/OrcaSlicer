@@ -11,7 +11,6 @@
 
 #include <cmath>
 #include <cassert>
-#include <utility>
 
 // #define CONTOUR_DISTANCE_DEBUG_SVG
 
@@ -284,6 +283,14 @@ static inline INDEX_TYPE next_idx_cyclic(INDEX_TYPE idx, const CONTAINER &contai
 	return idx;
 }
 
+template<class T, class U = T>
+static inline T exchange(T& obj, U&& new_value)
+{
+    T old_value = std::move(obj);
+    obj = std::forward<U>(new_value);
+    return old_value;
+}
+
 static inline void smooth_compensation_banded(const Points &contour, float band, std::vector<float> &compensation, float strength, size_t num_iterations)
 {
 	assert(contour.size() == compensation.size());
@@ -301,7 +308,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			float	l2    = (pthis - pprev).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = std::exchange(j, prev_idx_cyclic(j, contour));
+				int jprev = exchange(j, prev_idx_cyclic(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -316,7 +323,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					prev  = use_min ? std::min(prev, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = std::exchange(j, prev_idx_cyclic(j, contour));
+					jprev = exchange(j, prev_idx_cyclic(j, contour));
 				}
 			}
 
@@ -326,7 +333,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			l2 = (pprev - pthis).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = std::exchange(j, next_idx_cyclic(j, contour));
+				int jprev = exchange(j, next_idx_cyclic(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -341,7 +348,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					next  = use_min ? std::min(next, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = std::exchange(j, next_idx_cyclic(j, contour));
+					jprev = exchange(j, next_idx_cyclic(j, contour));
 				}
 			}
 
