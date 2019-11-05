@@ -17,6 +17,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/OpenVDBUtils.hpp"
 
 
 namespace Slic3r {
@@ -57,6 +58,7 @@ bool GLGizmoHollow::on_init()
     m_desc["manual_editing"]   = _(L("Manual editing"));
     m_desc["clipping_of_view"] = _(L("Clipping of view"))+ ": ";
     m_desc["reset_direction"]  = _(L("Reset direction"));
+    m_desc["hollow"]           = _(L("Hollow"));
 
     return true;
 }
@@ -114,6 +116,12 @@ void GLGizmoHollow::on_render() const
     if (! m_its || ! m_mesh)
         const_cast<GLGizmoHollow*>(this)->update_mesh();
 
+    if (m_volume_with_cavity) {
+        m_parent.get_shader().start_using();
+        m_volume_with_cavity->render();
+        m_parent.get_shader().stop_using();
+    }
+
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
@@ -152,7 +160,7 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
     // Now initialize the TMS for the object, perform the cut and save the result.
     if (! m_object_clipper) {
         m_object_clipper.reset(new MeshClipper);
-        m_object_clipper->set_mesh(*m_mesh);
+        m_object_clipper->set_mesh(*mesh());
     }
     m_object_clipper->set_plane(*m_clipping_plane);
     m_object_clipper->set_transformation(trafo);
@@ -362,8 +370,15 @@ void GLGizmoHollow::update_mesh()
     m_mesh = &m_model_object->volumes.front()->mesh();
     m_its = &m_mesh->its;
 
-    // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_model_object_id != m_model_object->id() || ! m_mesh_raycaster)
+    // If this is different mesh than last time
+    if (m_model_object_id != m_model_object->id()) {
+        m_cavity_mesh.reset(); // dump the cavity
+        m_volume_with_cavity.reset();
+        m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+        m_mesh_raycaster.reset();
+    }
+
+    if (! m_mesh_raycaster)
         m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
 
     m_model_object_id = m_model_object->id();
@@ -579,6 +594,32 @@ void GLGizmoHollow::on_update(const UpdateData& data)
     }
 }
 
+
+void GLGizmoHollow::hollow_mesh(float offset, float adaptibility)
+{
+    Slic3r::sla::Contour3D imesh{*m_mesh};
+    auto ptr = meshToVolume(imesh, {});
+    sla::Contour3D omesh = volumeToMesh(*ptr, -offset, adaptibility, true);
+
+    if (omesh.empty())
+        return;
+
+    imesh.merge(omesh);
+    m_cavity_mesh.reset(new TriangleMesh);
+    *m_cavity_mesh = sla::to_triangle_mesh(imesh);
+    m_cavity_mesh.get()->require_shared_vertices();
+    m_mesh_raycaster.reset(new MeshRaycaster(*m_cavity_mesh.get()));
+    m_object_clipper.reset();
+
+    // create a new GLVolume that only has the cavity inside
+    m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
+    m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_cavity_mesh.get());
+    m_volume_with_cavity->finalize_geometry(true);
+    m_volume_with_cavity->set_volume_transformation(m_model_object->volumes.front()->get_transformation());
+    m_volume_with_cavity->set_instance_transformation(m_model_object->instances[m_active_instance]->get_transformation());
+    m_parent.toggle_model_objects_visibility(false, m_model_object, m_active_instance);
+}
+
 std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
 {
     std::vector<const ConfigOption*> out;
@@ -654,6 +695,10 @@ RENDER_AGAIN:
 
     if (m_editing_mode) {
 
+        if (m_imgui->button(m_desc.at("hollow"))) {
+            hollow_mesh(m_offset, m_adaptibility);
+        }
+
         float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
         if (m_new_point_head_diameter > diameter_upper_cap)
             m_new_point_head_diameter = diameter_upper_cap;
@@ -692,7 +737,11 @@ RENDER_AGAIN:
         }
 
         // !!!! Something as above should be done for the cone angle
+        m_imgui->text("Hole taper: ");
+        ImGui::SameLine();
         ImGui::SliderFloat(" ", &m_new_cone_angle, -1.f, 1.f, "%.1f");
+        m_imgui->text("Hole height: ");
+        ImGui::SameLine();
         ImGui::SliderFloat("  ", &m_new_cone_height, 0.1f, 10.f, "%.1f");
 
         m_imgui->disabled_begin(m_selection_empty);
@@ -704,6 +753,14 @@ RENDER_AGAIN:
         m_imgui->disabled_end();
 
         m_imgui->text(" "); // vertical gap
+
+
+        m_imgui->text("Offset: ");
+        ImGui::SameLine();
+        ImGui::SliderFloat("   ", &m_offset, 0.f, 10.f, "%.1f");
+        m_imgui->text("Adaptibility: ");
+        ImGui::SameLine();
+        ImGui::SliderFloat("    ", &m_adaptibility, 0.f, 1.f, "%.1f");
     }
     else { // not in editing mode:
         m_imgui->text(m_desc.at("minimal_distance"));
@@ -766,7 +823,7 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("   ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+    if (ImGui::SliderFloat("     ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
 
@@ -834,6 +891,10 @@ std::string GLGizmoHollow::on_get_name() const
 }
 
 
+const TriangleMesh* GLGizmoHollow::mesh() const {
+    return (! m_mesh ? nullptr : (m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
+}
+
 
 void GLGizmoHollow::on_set_state()
 {
@@ -886,6 +947,8 @@ void GLGizmoHollow::on_set_state()
             m_object_clipper.reset();
             m_supports_clipper.reset();
             m_mesh_raycaster.reset();
+            m_cavity_mesh.reset();
+            m_volume_with_cavity.reset();
         }
     }
     m_old_state = m_state;

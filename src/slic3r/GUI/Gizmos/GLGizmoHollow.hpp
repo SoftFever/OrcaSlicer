@@ -33,6 +33,8 @@ private:
     GLUquadricObj* m_quadric;
 
     std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
+    std::unique_ptr<TriangleMesh> m_cavity_mesh;
+    std::unique_ptr<GLVolume> m_volume_with_cavity;
     const TriangleMesh* m_mesh;
     const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
@@ -90,7 +92,9 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
+    void hollow_mesh(float offset = 2.f, float adaptability = 1.f);
     bool unsaved_changes() const;
+    const TriangleMesh* mesh() const;
 
     bool m_editing_mode = true;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
@@ -103,6 +107,9 @@ private:
     float m_density_stash = 0.f;                // and again
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
+
+    float m_offset = 2.f;
+    float m_adaptibility = 1.f;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
