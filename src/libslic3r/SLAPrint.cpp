@@ -3,6 +3,7 @@
 #include "SLA/SLAPad.hpp"
 #include "SLA/SLAAutoSupports.hpp"
 #include "ClipperUtils.hpp"
+#include "OpenVDBUtils.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
 
@@ -45,6 +46,14 @@ public:
         support_tree_ptr = sla::SupportTree::create(*this, ctl);
         return support_tree_ptr;
     }
+};
+
+class SLAPrintObject::HollowingData
+{
+public:
+    
+    TriangleMesh interior;
+    // std::vector<drillpoints>
 };
 
 namespace {
@@ -752,6 +761,28 @@ void SLAPrint::process()
     // the coefficient that multiplies the per object status values which
     // are set up for <0, 100>. They need to be scaled into the whole process
     const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
+    
+    auto hollow_model = [](SLAPrintObject &po) {
+        
+        if (!po.m_config.hollowing_enable.getBool()) {
+            BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";
+            po.m_hollowing_data.reset();
+            return;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "Performing hollowing step!";
+        }
+            
+        if (!po.m_hollowing_data)
+            po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+        
+        double thickness = po.m_config.hollowing_min_thickness.getFloat();
+
+        po.m_hollowing_data->interior =
+            hollowed_interior(po.transformed_mesh(), thickness, 4, 0.5);
+        
+        if (po.m_hollowing_data->interior.empty())
+            BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
+    };
 
     // The slicing will be performed on an imaginary 1D grid which starts from
     // the bottom of the bounding box created around the supported model. So
@@ -765,7 +796,20 @@ void SLAPrint::process()
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
     auto slice_model = [this, ilhs, ilh](SLAPrintObject& po) {
-        const TriangleMesh& mesh = po.transformed_mesh();
+        
+        TriangleMesh hollowed_mesh;
+        
+        bool is_hollowing = po.m_config.hollowing_enable.getBool() &&
+                            po.m_hollowing_data;
+        
+        if (is_hollowing) {
+            hollowed_mesh = po.transformed_mesh();
+            hollowed_mesh.merge(po.m_hollowing_data->interior);
+            hollowed_mesh.require_shared_vertices();
+        }
+
+        const TriangleMesh &mesh = is_hollowing ? hollowed_mesh :
+                                                  po.transformed_mesh();
 
         // We need to prepare the slice index...
 
@@ -1465,12 +1509,12 @@ void SLAPrint::process()
 
     slaposFn pobj_program[] =
     {
-        [](SLAPrintObject&){}, slice_model, [](SLAPrintObject&){}, support_points, support_tree, generate_pad, slice_supports
+        hollow_model, slice_model, [](SLAPrintObject&){}, support_points, support_tree, generate_pad, slice_supports
     };
 
     // We want to first process all objects...
     std::vector<SLAPrintObjectStep> level1_obj_steps = {
-        slaposObjectSlice, slaposSupportPoints, slaposSupportTree, slaposPad
+        slaposHollowing, slaposObjectSlice, slaposSupportPoints, slaposSupportTree, slaposPad
     };
 
     // and then slice all supports to allow preview to be displayed ASAP
@@ -1707,7 +1751,11 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "layer_height"
+        if (   opt_key == "hollowing_enable"
+            || opt_key == "hollowing_min_thickness") {
+            steps.emplace_back(slaposHollowing);
+        } else if (
+               opt_key == "layer_height"
             || opt_key == "faded_layers"
             || opt_key == "pad_enable"
             || opt_key == "pad_wall_thickness"

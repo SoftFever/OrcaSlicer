@@ -597,16 +597,20 @@ void GLGizmoHollow::on_update(const UpdateData& data)
 
 void GLGizmoHollow::hollow_mesh(float offset, float adaptibility)
 {
-    Slic3r::sla::Contour3D imesh{*m_mesh};
-    auto ptr = meshToVolume(imesh, {});
-    sla::Contour3D omesh = volumeToMesh(*ptr, -offset, adaptibility, true);
+//    Slic3r::sla::Contour3D imesh{*m_mesh};
+//    auto ptr = meshToVolume(imesh, {});
+//    sla::Contour3D omesh = volumeToMesh(*ptr, -offset, adaptibility, true);
 
-    if (omesh.empty())
+//    if (omesh.empty())
+//        return;
+
+//    imesh.merge(omesh);
+    TriangleMesh cavity = hollowed_interior(*m_mesh, double(offset), int(adaptibility));
+    if (cavity.empty())
         return;
-
-    imesh.merge(omesh);
-    m_cavity_mesh.reset(new TriangleMesh);
-    *m_cavity_mesh = sla::to_triangle_mesh(imesh);
+    
+    m_cavity_mesh.reset(new TriangleMesh(cavity));
+    m_cavity_mesh->merge(*m_mesh);
     m_cavity_mesh.get()->require_shared_vertices();
     m_mesh_raycaster.reset(new MeshRaycaster(*m_cavity_mesh.get()));
     m_object_clipper.reset();
@@ -616,7 +620,7 @@ void GLGizmoHollow::hollow_mesh(float offset, float adaptibility)
     m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_cavity_mesh.get());
     m_volume_with_cavity->finalize_geometry(true);
     m_volume_with_cavity->set_volume_transformation(m_model_object->volumes.front()->get_transformation());
-    m_volume_with_cavity->set_instance_transformation(m_model_object->instances[m_active_instance]->get_transformation());
+    m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
     m_parent.toggle_model_objects_visibility(false, m_model_object, m_active_instance);
 }
 
