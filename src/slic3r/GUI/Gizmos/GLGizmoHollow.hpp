@@ -92,7 +92,7 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void hollow_mesh(float offset = 2.f, float adaptability = 1.f);
+    void hollow_mesh(float offset = 2.f);
     bool unsaved_changes() const;
     const TriangleMesh* mesh() const;
 
@@ -109,7 +109,6 @@ private:
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 
     float m_offset = 2.f;
-    float m_adaptibility = 1.f;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;

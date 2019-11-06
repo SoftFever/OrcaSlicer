@@ -1975,6 +1975,14 @@ const TriangleMesh& SLAPrintObject::pad_mesh() const
     return EMPTY_MESH;
 }
 
+const TriangleMesh &SLAPrintObject::hollowed_interior_mesh() const
+{
+    if (m_hollowing_data && m_config.hollowing_enable.getBool())
+        return m_hollowing_data->interior;
+    
+    return EMPTY_MESH;
+}
+
 const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     // we need to transform the raw mesh...
     // currently all the instances share the same x and y rotation and scaling

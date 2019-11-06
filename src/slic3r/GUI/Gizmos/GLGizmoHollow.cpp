@@ -595,17 +595,9 @@ void GLGizmoHollow::on_update(const UpdateData& data)
 }
 
 
-void GLGizmoHollow::hollow_mesh(float offset, float adaptibility)
+void GLGizmoHollow::hollow_mesh(float offset)
 {
-//    Slic3r::sla::Contour3D imesh{*m_mesh};
-//    auto ptr = meshToVolume(imesh, {});
-//    sla::Contour3D omesh = volumeToMesh(*ptr, -offset, adaptibility, true);
-
-//    if (omesh.empty())
-//        return;
-
-//    imesh.merge(omesh);
-    TriangleMesh cavity = hollowed_interior(*m_mesh, double(offset), int(adaptibility));
+    TriangleMesh cavity = hollowed_interior(*m_mesh, double(offset));
     if (cavity.empty())
         return;
     
@@ -700,7 +692,7 @@ RENDER_AGAIN:
     if (m_editing_mode) {
 
         if (m_imgui->button(m_desc.at("hollow"))) {
-            hollow_mesh(m_offset, m_adaptibility);
+            hollow_mesh(m_offset);
         }
 
         float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
@@ -762,9 +754,6 @@ RENDER_AGAIN:
         m_imgui->text("Offset: ");
         ImGui::SameLine();
         ImGui::SliderFloat("   ", &m_offset, 0.f, 10.f, "%.1f");
-        m_imgui->text("Adaptibility: ");
-        ImGui::SameLine();
-        ImGui::SliderFloat("    ", &m_adaptibility, 0.f, 1.f, "%.1f");
     }
     else { // not in editing mode:
         m_imgui->text(m_desc.at("minimal_distance"));

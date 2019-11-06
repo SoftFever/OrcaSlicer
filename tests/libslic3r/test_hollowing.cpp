@@ -49,7 +49,7 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
 
 TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
 {
-    Slic3r::TriangleMesh in_mesh = load_model("zaba.obj");
+    Slic3r::TriangleMesh in_mesh = load_model("20mm_cube.obj");
     Benchmark bench;
     bench.start();
     
