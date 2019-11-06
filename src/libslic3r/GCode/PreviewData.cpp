@@ -513,7 +513,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
                      is_single_material_print ? --i : ++i)
             {
                 Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (i % color_cnt) * 4), 4 * sizeof(float));
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
                 
                 items.emplace_back(cp_items[i], color);
             }

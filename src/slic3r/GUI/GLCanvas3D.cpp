@@ -4874,7 +4874,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 --it_n;
                 if (it_n->gcode == "tool_change") {
                     is_tool_change = true;
-                    if (it_n->extruder == it->extruder)
+                    if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
                         return get_m600_color_idx(it);
                     break;
                 }
@@ -5296,12 +5296,14 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
             case GCodePreviewData::Extrusion::ColorPrint:
             {
-                int color_cnt = (int)tool_colors.size() / 4;
+                // int color_cnt = (int)tool_colors.size() / 4;
 
-                int val = int(value);
-                while (val >= color_cnt)
-                    val -= color_cnt;
-                    
+                // int val = int(value);
+                // while (val >= color_cnt)
+                //     val -= color_cnt;
+
+                unsigned int val = unsigned int(value) >= INT_MAX ? tool_colors.size()*4 - 1 : value;
+
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
 

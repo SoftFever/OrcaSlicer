@@ -1709,8 +1709,47 @@ void GCode::process_layer(
     //     
     //     gcode += "M600\n";
     // }
-    if (colorprint_change) {
+
+    // don't save "tool_change" code to GCode
+    if (colorprint_change && custom_code != "tool_change") {
         const bool single_material_print = print.config().nozzle_diameter.size() == 1;
+        
+        if (custom_code == "M600") // color change
+        {
+            // add tag for analyzer
+            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_before_extruder) + "\n";
+            // add tag for time estimator
+            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+
+            if (!single_material_print && m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
+                // && !MMU1
+                ) {
+                gcode += "M601\n"; // pause print
+                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
+            }
+            else 
+                gcode += custom_code + "\n";
+        } 
+        else
+        {
+            if (custom_code == "M601") // Pause print
+            {
+                // add tag for analyzer
+                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
+                // add tag for time estimator
+                //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
+            }
+            else // custom Gcode
+            {
+                // add tag for analyzer
+                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
+                // add tag for time estimator
+                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+            }
+            gcode += custom_code + "\n";
+        }
+
+        /*
         if (single_material_print || custom_code != "tool_change")
         {
             // add tag for analyzer
@@ -1730,6 +1769,7 @@ void GCode::process_layer(
             else 
                 gcode += custom_code + "\n";
         }
+    */
     }
 
 
@@ -2038,6 +2078,12 @@ void GCode::process_layer(
     // Apply cooling logic; this may alter speeds.
     if (m_cooling_buffer)
         gcode = m_cooling_buffer->process_layer(gcode, layer.id());
+
+    // add tag for analyzer
+    if (gcode.find(GCodeAnalyzer::Pause_Print_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+    else if (gcode.find(GCodeAnalyzer::Custom_Code_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
 
 #ifdef HAS_PRESSURE_EQUALIZER
     // Apply pressure equalization if enabled;
