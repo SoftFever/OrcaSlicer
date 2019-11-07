@@ -11,6 +11,7 @@
 #include <wx/statline.h>
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
+#include <wx/colordlg.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -3520,7 +3521,6 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
 
 int DoubleSlider::get_extruder_for_tick(int tick)
 {
-    int extruder = 0;
     if (m_ticks_.empty())
         return 0;
     
@@ -3639,12 +3639,16 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 
             if (m_state == msSingleExtruder && !m_ticks_.empty()) {
                 auto before_tick_it = std::lower_bound(m_ticks_.begin(), m_ticks_.end(), tick);
-                if (before_tick_it == m_ticks_.begin())
-                    color = colors[0];
-                else {
+                while (before_tick_it != m_ticks_.begin()) {
                     --before_tick_it;
-                    color = before_tick_it->color;
+                    if (before_tick_it->gcode == "M600") {
+                        color = before_tick_it->color;
+                        break;
+                    }
                 }
+
+                if (color.empty())
+                    color = colors[0];
             }
             else
                 color = colors[selected_extruder > 0 ? selected_extruder-1 : 0];

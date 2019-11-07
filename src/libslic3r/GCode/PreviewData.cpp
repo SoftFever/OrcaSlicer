@@ -382,7 +382,7 @@ std::string GCodePreviewData::get_legend_title() const
 // #ys_FIXME_COLOR
 // GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const
 GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, 
-                                                    const std::vector<std::string>& cp_items, bool is_single_material_print) const
+                                                                     const std::vector<std::string>& cp_items) const
 {
     struct Helper
     {
@@ -508,9 +508,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             if (color_cnt != color_print_cnt)
                 break;
 
-            for (int i = is_single_material_print ? color_print_cnt-1 : 0 ; 
-                     is_single_material_print ? i >= 0 : i < color_print_cnt;
-                     is_single_material_print ? --i : ++i)
+            for (int i = 0 ; i < color_print_cnt; ++i)
             {
                 Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));

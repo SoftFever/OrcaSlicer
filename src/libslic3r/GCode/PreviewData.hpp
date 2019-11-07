@@ -239,7 +239,7 @@ public:
     std::string get_legend_title() const;
     // #ys_FIXME_COLOR
     // LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const;
-    LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const std::vector<std::string>& cp_items, bool is_single_material_print) const;
+    LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const std::vector<std::string>& cp_items) const;
 
     // Return an estimate of the memory consumed by the time estimator.
     size_t memory_used() const;

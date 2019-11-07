@@ -886,12 +886,11 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
-void GLCanvas3D::LegendTexture::fill_color_print_legend_items(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
-                                                              std::vector<std::string>& cp_legend_items)
+void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D& canvas,
+                                                                const std::vector<float>& colors_in,
+                                                                std::vector<float>& colors,
+                                                                std::vector<std::string>& cp_legend_items)
 {
-    if (preview_data.extrusion.view_type != GCodePreviewData::Extrusion::ColorPrint )
-        return;
-
     std::vector<Model::CustomGCode> custom_gcode_per_height = wxGetApp().plater()->model().custom_gcode_per_height;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
@@ -899,6 +898,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(const GCodePreview
     {
         if (custom_gcode_per_height.empty()) {
             cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
+            colors = colors_in;
             return;
         }
         std::vector<std::pair<double, double>> cp_values;
@@ -923,18 +923,36 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(const GCodePreview
         }
 
         const auto items_cnt = (int)cp_values.size();
-
-        for (int i = 0; items_cnt > 0 && i <= items_cnt; ++i)
+        if (items_cnt == 0) // There is no one color change, but there is/are some pause print or custom Gcode
         {
+            cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
+            cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+            colors = colors_in;
+            return;
+        }
+
+        const int color_cnt = (int)colors_in.size() / 4;
+        colors.resize(colors_in.size(), 0.0);
+                
+        ::memcpy((void*)(colors.data()), (const void*)(colors_in.data() + (color_cnt - 1) * 4), 4 * sizeof(float));
+        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+        size_t color_pos = 4;
+
+        for (int i = items_cnt; i >= 0; --i, color_pos+=4)
+        {
+            // update colors for color print item
+            ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + i * 4), 4 * sizeof(float));
+
+            // create label for color print item
             std::string id_str = std::to_string(i + 1) + ": ";
 
             if (i == 0) {
                 cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values[0].first).str());
-                continue;
+                break;
             }
             if (i == items_cnt) {
                 cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
-                break;
+                continue;
             }
 
             cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
@@ -942,18 +960,34 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(const GCodePreview
     }
     else
     {
+        // colors = colors_in;
+        const int color_cnt = (int)colors_in.size() / 4;
+        colors.resize(colors_in.size(), 0.0);
+
+        ::memcpy((void*)(colors.data()), (const void*)(colors_in.data()), 4 * extruders_cnt * sizeof(float));
+        size_t color_pos = 4 * extruders_cnt;
+        size_t color_in_pos = 4 * (color_cnt - 1);
+        
         for (unsigned int i = 0; i < extruders_cnt; ++i)
             cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
-        
-        for (auto custom_code : custom_gcode_per_height)
-            if (custom_code.gcode == "M600")
-                cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_code.extruder % custom_code.height).str());
-    }
 
-    cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+        ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
+        color_pos += 4;
+        color_in_pos -= 4;
+        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+
+        int cnt = custom_gcode_per_height.size();
+        for (int i = cnt-1; i >= 0; --i)
+            if (custom_gcode_per_height[i].gcode == "M600") {
+                ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
+                color_pos += 4;
+                color_in_pos -= 4;
+                cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_height[i].extruder % custom_gcode_per_height[i].height).str());
+            }
+    }
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors_in, const GLCanvas3D& canvas, bool compress)
 {
     reset();
 
@@ -967,10 +1001,16 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     // const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_values);
 
     std::vector<std::string> cp_legend_items;
-    cp_legend_items.reserve(tool_colors.size());
-    fill_color_print_legend_items(preview_data, canvas, cp_legend_items);
+    std::vector<float> cp_colors;
 
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_items, wxGetApp().extruders_edited_cnt() == 1);
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
+    {
+        cp_legend_items.reserve(cp_colors.size());
+        fill_color_print_legend_items(canvas, tool_colors_in, cp_colors, cp_legend_items);
+    }
+
+    const std::vector<float>& tool_colors = preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint ? cp_colors : tool_colors_in;
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_items);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
