@@ -18,16 +18,13 @@ TriangleMesh volumeToMesh(const openvdb::FloatGrid &grid,
                           double                    adaptivity = 0.0,
                           bool relaxDisorientedTriangles       = true);
 
-sla::Contour3D hollowed_interior(sla::Contour3D&& mesh, double min_thickness);
-sla::Contour3D hollowed_interior(sla::Contour3D& mesh, double min_thickness);
-
 // Generate an interior for any solid geometry maintaining a given minimum
 // wall thickness. The returned mesh has triangles with normals facing inside
 // the mesh so the result can be directly merged with the input to finish the
 // hollowing.
 // TODO: The thicknes is not strictly maintained due to the used gaussian filter
 TriangleMesh hollowed_interior(const TriangleMesh &mesh, double min_thickness,
-                               int oversampling = 3, double smoothing = 0.5);
+                               double accuracy = 0.5, double smoothing = 0.5);
 
 } // namespace Slic3r
 

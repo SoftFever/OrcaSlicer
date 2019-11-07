@@ -2846,6 +2846,25 @@ void PrintConfigDef::init_sla_params()
     def->min = 1;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(4));
+    
+    def = this->add("hollowing_accuracy", coFloat);
+    def->label = L("Hollowing accuracy");
+    def->category = L("Hollowing");
+    def->tooltip  = L("Performance vs accuracy of calculation. Lower values may produce unwanted artifacts.");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+    
+    def = this->add("hollowing_smoothness", coFloat);
+    def->label = L("Hollowing smoothness");
+    def->category = L("Hollowing");
+    def->tooltip  = L("The cavity shape is a smoothed version of the outside original shape. "
+                      "Possible values span from 0 to 1 and control the amount of surface smoothing.");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.5));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

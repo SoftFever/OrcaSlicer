@@ -595,12 +595,14 @@ void GLGizmoHollow::on_update(const UpdateData& data)
 }
 
 
-void GLGizmoHollow::hollow_mesh(float offset)
+void GLGizmoHollow::hollow_mesh()
 {
-    TriangleMesh cavity = hollowed_interior(*m_mesh, double(offset));
-    if (cavity.empty())
-        return;
+    TriangleMesh cavity = hollowed_interior(*m_mesh, double(m_offset),
+                                            double(m_accuracy),
+                                            double(m_smoothness));
     
+    if (cavity.empty()) return;
+
     m_cavity_mesh.reset(new TriangleMesh(cavity));
     m_cavity_mesh->merge(*m_mesh);
     m_cavity_mesh.get()->require_shared_vertices();
@@ -692,7 +694,7 @@ RENDER_AGAIN:
     if (m_editing_mode) {
 
         if (m_imgui->button(m_desc.at("hollow"))) {
-            hollow_mesh(m_offset);
+            hollow_mesh();
         }
 
         float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
@@ -748,12 +750,22 @@ RENDER_AGAIN:
         remove_all = m_imgui->button(m_desc.at("remove_all"));
         m_imgui->disabled_end();
 
-        m_imgui->text(" "); // vertical gap
+//        m_imgui->text(" "); // vertical gap
 
 
         m_imgui->text("Offset: ");
         ImGui::SameLine();
         ImGui::SliderFloat("   ", &m_offset, 0.f, 10.f, "%.1f");
+        
+        // TODO: only in expert mode:
+        m_imgui->text("Accuracy: ");
+        ImGui::SameLine();
+        ImGui::SliderFloat("    ", &m_accuracy, 0.f, 1.f, "%.1f");
+        
+        // TODO: only in expert mode:
+        m_imgui->text("Smoothness: ");
+        ImGui::SameLine();
+        ImGui::SliderFloat("      ", &m_smoothness, 0.f, 1.f, "%.1f");
     }
     else { // not in editing mode:
         m_imgui->text(m_desc.at("minimal_distance"));

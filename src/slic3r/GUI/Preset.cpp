@@ -498,6 +498,8 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_object_connector_penetration",
             "hollowing_enable",
             "hollowing_min_thickness",
+            "hollowing_accuracy",
+            "hollowing_smoothness",
             "output_filename_format",
             "default_sla_print_profile",
             "compatible_printers",

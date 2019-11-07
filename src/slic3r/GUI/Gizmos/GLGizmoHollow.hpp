@@ -92,7 +92,7 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void hollow_mesh(float offset = 2.f);
+    void hollow_mesh();
     bool unsaved_changes() const;
     const TriangleMesh* mesh() const;
 
@@ -108,14 +108,19 @@ private:
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 
-    float m_offset = 2.f;
+    float m_offset = 2.0f;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
+    
+    float m_accuracy = 0.5f;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
+    
+    
+    float m_smoothness = 0.5f;
 
     GLSelectionRectangle m_selection_rectangle;
 
