@@ -6,12 +6,12 @@
 #include <mutex>
 
 #include <boost/filesystem.hpp>
-#include <boost/thread.hpp>
 
 #include <wx/event.h>
 
 #include "libslic3r/Print.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 

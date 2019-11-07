@@ -12,7 +12,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/thread.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -76,6 +75,7 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/Thread.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -1537,9 +1537,7 @@ struct Plater::priv
                 wxBeginBusyCursor();
 
                 try { // Execute the job
-                    boost::thread::attributes attrs;
-                    attrs.set_stack_size((sizeof(void*) == 4) ? (2048 * 1024) : (4096 * 1024));
-                    m_thread = boost::thread(attrs, [this] { this->run(); });
+                    m_thread = create_thread([this] { this->run(); });
                 } catch (std::exception &) {
                     update_status(status_range(),
                                   _(L("ERROR: not enough resources to "
