@@ -887,12 +887,13 @@ void Preview::load_print_as_fff(bool keep_z_range)
     // set color print values, if it si selected "ColorPrint" view type
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
     {
-        colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
         color_print_values = wxGetApp().plater()->model().custom_gcode_per_height;
+        /* colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
         for (const Model::CustomGCode& code : color_print_values)
             if (code.gcode == "M600")
-                colors.push_back(code.color);
+                colors.push_back(code.color);*/
+        colors =  wxGetApp().plater()->get_colors_for_color_print();
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
 
         if (gcode_preview_data_valid)

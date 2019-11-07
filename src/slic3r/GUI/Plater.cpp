@@ -4995,6 +4995,17 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
     return extruder_colors;
 }
 
+std::vector<std::string> Plater::get_colors_for_color_print() const
+{
+    std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_height)
+        if (code.gcode == "M600")
+            colors.push_back(code.color);
+
+    return colors;
+}
+
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);

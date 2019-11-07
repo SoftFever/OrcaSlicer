@@ -854,6 +854,7 @@ public:
     int  get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
     void add_code(std::string code, int selected_extruder = -1);
+    void edit_color();
     void change_extruder(int extruder);
 
 protected:
@@ -922,6 +923,7 @@ private:
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
+    bool        m_show_edit_color_menu = false;
     bool        m_suppress_add_code = false;
     ManipulationState m_state = msSingleExtruder;
     wxString    m_custom_gcode = wxEmptyString;
