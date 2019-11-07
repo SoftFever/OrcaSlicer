@@ -1087,7 +1087,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     return res;
 }
 
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 void GUI_App::gcode_thumbnails_debug()
 {
     const std::string BEGIN_MASK = "; thumbnail begin";
@@ -1196,7 +1196,7 @@ void GUI_App::gcode_thumbnails_debug()
         in_file.close();
     }
 }
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
