@@ -158,6 +158,7 @@ public:
     void update_data();
 
     EType get_current_type() const { return m_current; }
+    GLGizmoBase* get_current() const;
 
     bool is_running() const;
     bool handle_shortcut(int key);
@@ -205,8 +206,6 @@ private:
 
     float get_total_overlay_height() const;
     float get_total_overlay_width() const;
-
-    GLGizmoBase* get_current() const;
 
     bool generate_icons_texture() const;
 

@@ -36,7 +36,6 @@ private:
     std::unique_ptr<TriangleMesh> m_cavity_mesh;
     std::unique_ptr<GLVolume> m_volume_with_cavity;
     const TriangleMesh* m_mesh;
-    const indexed_triangle_set* m_its;
     mutable const TriangleMesh* m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
     mutable std::vector<Vec2f> m_supports_triangles;
@@ -78,6 +77,8 @@ public:
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
+    void update_hollowed_mesh(std::unique_ptr<TriangleMesh> mesh);
+    void get_hollowing_parameters(TriangleMesh const**  object_mesh, float& offset, float& adaptability) const;
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
 
@@ -92,7 +93,7 @@ private:
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void hollow_mesh(float offset = 2.f, float adaptability = 1.f);
+    void hollow_mesh();
     bool unsaved_changes() const;
     const TriangleMesh* mesh() const;
 
@@ -109,7 +110,7 @@ private:
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
 
     float m_offset = 2.f;
-    float m_adaptibility = 1.f;
+    float m_adaptability = 1.f;
 
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
