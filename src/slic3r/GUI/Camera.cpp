@@ -91,14 +91,16 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-    // We may let these factors be customizable
-    static const double ScaleFactor = 1.1;
     BoundingBoxf3 test_box = m_scene_box;
+    test_box.translate(-m_scene_box.center());
+    // We may let this factor be customizable
+    static const double ScaleFactor = 1.5;
     test_box.scale(ScaleFactor);
-    m_target = target;
-    m_target(0) = clamp(test_box.min(0), test_box.max(0), m_target(0));
-    m_target(1) = clamp(test_box.min(1), test_box.max(1), m_target(1));
-    m_target(2) = clamp(test_box.min(2), test_box.max(2), m_target(2));
+    test_box.translate(m_scene_box.center());
+
+    m_target(0) = clamp(test_box.min(0), test_box.max(0), target(0));
+    m_target(1) = clamp(test_box.min(1), test_box.max(1), target(1));
+    m_target(2) = clamp(test_box.min(2), test_box.max(2), target(2));
 }
 
 void Camera::set_theta(float theta, bool apply_limit)

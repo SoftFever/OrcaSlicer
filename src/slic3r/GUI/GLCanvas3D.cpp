@@ -1373,7 +1373,7 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::bed_shape_changed()
 {
-    m_camera.set_scene_box(scene_bounding_box());
+    refresh_camera_scene_box();
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
     if (m_bed.is_prusa())
@@ -2116,7 +2116,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
-    m_camera.set_scene_box(scene_bounding_box());
+    refresh_camera_scene_box();
 
     if (m_selection.is_empty())
     {
