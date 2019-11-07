@@ -12,6 +12,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/thread.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -1439,7 +1440,7 @@ struct Plater::priv
     class Job : public wxEvtHandler
     {
         int               m_range = 100;
-        std::future<void> m_ftr;
+        boost::thread     m_thread;
         priv *            m_plater = nullptr;
         std::atomic<bool> m_running{false}, m_canceled{false};
         bool              m_finalized = false;
@@ -1480,7 +1481,8 @@ struct Plater::priv
             // Do a full refresh of scene tree, including regenerating
             // all the GLVolumes. FIXME The update function shall just
             // reload the modified matrices.
-            if (!was_canceled()) plater().update((unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
+            if (!was_canceled())
+                plater().update(unsigned(UpdateParams::FORCE_FULL_SCREEN_REFRESH));
         }
 
     public:
@@ -1509,9 +1511,9 @@ struct Plater::priv
         }
 
         Job(const Job &) = delete;
-        Job(Job &&)      = default;
+        Job(Job &&)      = delete;
         Job &operator=(const Job &) = delete;
-        Job &operator=(Job &&) = default;
+        Job &operator=(Job &&) = delete;
 
         virtual void process() = 0;
 
@@ -1535,7 +1537,9 @@ struct Plater::priv
                 wxBeginBusyCursor();
 
                 try { // Execute the job
-                    m_ftr = std::async(std::launch::async, &Job::run, this);
+                    boost::thread::attributes attrs;
+                    attrs.set_stack_size((sizeof(void*) == 4) ? (2048 * 1024) : (4096 * 1024));
+                    m_thread = boost::thread(attrs, [this] { this->run(); });
                 } catch (std::exception &) {
                     update_status(status_range(),
                                   _(L("ERROR: not enough resources to "
@@ -1551,16 +1555,15 @@ struct Plater::priv
         // returned if the timeout has been reached and the job is still
         // running. Call cancel() before this fn if you want to explicitly
         // end the job.
-        bool join(int timeout_ms = 0) const
+        bool join(int timeout_ms = 0)
         {
-            if (!m_ftr.valid()) return true;
-
+            if (!m_thread.joinable()) return true;
+            
             if (timeout_ms <= 0)
-                m_ftr.wait();
-            else if (m_ftr.wait_for(std::chrono::milliseconds(
-                         timeout_ms)) == std::future_status::timeout)
+                m_thread.join();
+            else if (!m_thread.try_join_for(boost::chrono::milliseconds(timeout_ms)))
                 return false;
-
+            
             return true;
         }
 
