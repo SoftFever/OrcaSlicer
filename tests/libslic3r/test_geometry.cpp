@@ -11,7 +11,7 @@
 
 using namespace Slic3r;
 
-TEST_CASE("Polygon::contains works properly", ""){
+TEST_CASE("Polygon::contains works properly", "[Geometry]"){
    // this test was failing on Windows (GH #1950)
     Slic3r::Polygon polygon(std::vector<Point>({
         Point(207802834,-57084522),
@@ -29,7 +29,7 @@ TEST_CASE("Polygon::contains works properly", ""){
     REQUIRE(polygon.contains(point));
 }
 
-SCENARIO("Intersections of line segments"){
+SCENARIO("Intersections of line segments", "[Geometry]"){
     GIVEN("Integer coordinates"){
         Line line1(Point(5,15),Point(30,15));
         Line line2(Point(10,20), Point(10,10));
@@ -127,7 +127,7 @@ SCENARIO("polygon_is_convex works"){
 }*/
 
 
-TEST_CASE("Creating a polyline generates the obvious lines"){
+TEST_CASE("Creating a polyline generates the obvious lines", "[Geometry]"){
     Slic3r::Polyline polyline;
     polyline.points = std::vector<Point>({Point(0, 0), Point(10, 0), Point(20, 0)});
     REQUIRE(polyline.lines().at(0).a == Point(0,0));
@@ -136,7 +136,7 @@ TEST_CASE("Creating a polyline generates the obvious lines"){
     REQUIRE(polyline.lines().at(1).b == Point(20,0));
 }
 
-TEST_CASE("Splitting a Polygon generates a polyline correctly"){
+TEST_CASE("Splitting a Polygon generates a polyline correctly", "[Geometry]"){
     Slic3r::Polygon polygon(std::vector<Point>({Point(0, 0), Point(10, 0), Point(5, 5)}));
     Slic3r::Polyline split = polygon.split_at_index(1);
     REQUIRE(split.points[0]==Point(10,0));
@@ -146,7 +146,7 @@ TEST_CASE("Splitting a Polygon generates a polyline correctly"){
 }
 
 
-TEST_CASE("Bounding boxes are scaled appropriately"){
+TEST_CASE("Bounding boxes are scaled appropriately", "[Geometry]"){
     BoundingBox bb(std::vector<Point>({Point(0, 1), Point(10, 2), Point(20, 2)}));
     bb.scale(2);
     REQUIRE(bb.min == Point(0,2));
@@ -154,13 +154,13 @@ TEST_CASE("Bounding boxes are scaled appropriately"){
 }
 
 
-TEST_CASE("Offseting a line generates a polygon correctly"){
+TEST_CASE("Offseting a line generates a polygon correctly", "[Geometry]"){
 	Slic3r::Polyline tmp = { Point(10,10), Point(20,10) };
     Slic3r::Polygon area = offset(tmp,5).at(0);
     REQUIRE(area.area() == Slic3r::Polygon(std::vector<Point>({Point(10,5),Point(20,5),Point(20,15),Point(10,15)})).area());
 }
 
-SCENARIO("Circle Fit, TaubinFit with Newton's method") {
+SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
     GIVEN("A vector of Vec2ds arranged in a half-circle with approximately the same distance R from some point") {
         Vec2d expected_center(-6, 0);
         Vec2ds sample {Vec2d(6.0, 0), Vec2d(5.1961524, 3), Vec2d(3 ,5.1961524), Vec2d(0, 6.0), Vec2d(3, 5.1961524), Vec2d(-5.1961524, 3), Vec2d(-6.0, 0)};
@@ -252,7 +252,7 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method") {
     }
 }
 
-TEST_CASE("Chained path working correctly"){
+TEST_CASE("Chained path working correctly", "[Geometry]"){
     // if chained_path() works correctly, these points should be joined with no diagonal paths
     // (thus 26 units long)
     std::vector<Point> points = {Point(26,26),Point(52,26),Point(0,26),Point(26,52),Point(26,0),Point(0,52),Point(52,52),Point(52,0)};
@@ -263,7 +263,7 @@ TEST_CASE("Chained path working correctly"){
     }
 }
 
-SCENARIO("Line distances"){
+SCENARIO("Line distances", "[Geometry]"){
     GIVEN("A line"){
         Line line(Point(0, 0), Point(20, 0));
         THEN("Points on the line segment have 0 distance"){
@@ -279,7 +279,7 @@ SCENARIO("Line distances"){
     }
 }
 
-SCENARIO("Polygon convex/concave detection"){
+SCENARIO("Polygon convex/concave detection", "[Geometry]"){
     GIVEN(("A Square with dimension 100")){
         auto square = Slic3r::Polygon /*new_scale*/(std::vector<Point>({
             Point(100,100),
@@ -365,11 +365,30 @@ SCENARIO("Polygon convex/concave detection"){
     }
 }
 
-TEST_CASE("Triangle Simplification does not result in less than 3 points"){
+TEST_CASE("Triangle Simplification does not result in less than 3 points", "[Geometry]"){
     auto triangle = Slic3r::Polygon(std::vector<Point>({
         Point(16000170,26257364), Point(714223,461012), Point(31286371,461008)
     }));
     REQUIRE(triangle.simplify(250000).at(0).points.size() == 3);
 }
 
-    
+SCENARIO("Ported from xs/t/14_geometry.t", "[Geometry]"){
+    GIVEN(("square")){
+    	Slic3r::Points points { { 100, 100 }, {100, 200 }, { 200, 200 }, { 200, 100 }, { 150, 150 } };
+		Slic3r::Polygon hull = Slic3r::Geometry::convex_hull(points);
+		SECTION("convex hull returns the correct number of points") { REQUIRE(hull.points.size() == 4); }
+    }
+	SECTION("arrange returns expected number of positions") {
+		Pointfs positions;
+		Slic3r::Geometry::arrange(4, Vec2d(20, 20), 5, nullptr, positions);
+    	REQUIRE(positions.size() == 4);
+    }
+	SECTION("directions_parallel") {
+    	REQUIRE(Slic3r::Geometry::directions_parallel(0, 0, 0)); 
+    	REQUIRE(Slic3r::Geometry::directions_parallel(0, M_PI, 0)); 
+    	REQUIRE(Slic3r::Geometry::directions_parallel(0, 0, M_PI / 180));
+    	REQUIRE(Slic3r::Geometry::directions_parallel(0, M_PI, M_PI / 180));
+    	REQUIRE(! Slic3r::Geometry::directions_parallel(M_PI /2, M_PI, 0));
+    	REQUIRE(! Slic3r::Geometry::directions_parallel(M_PI /2, PI, M_PI /180));
+    }
+}

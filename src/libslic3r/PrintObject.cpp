@@ -1,6 +1,7 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "ElephantFootCompensation.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
 #include "SupportMaterial.hpp"
@@ -1769,8 +1770,10 @@ end:
                 Layer *layer = m_layers[layer_id];
                 // Apply size compensation and perform clipping of multi-part objects.
                 float delta = float(scale_(m_config.xy_size_compensation.value));
+                //FIXME only apply the compensation if no raft is enabled.
                 float elephant_foot_compensation = 0.f;
-                if (layer_id == 0)
+                if (layer_id == 0 && m_config.raft_layers == 0)
+                	// Only enable Elephant foot compensation if printing directly on the print bed.
                     elephant_foot_compensation = float(scale_(m_config.elefant_foot_compensation.value));
                 if (layer->m_regions.size() == 1) {
                     // Optimized version for a single region layer.
@@ -1789,19 +1792,8 @@ end:
                             to_expolygons(std::move(layerm->slices.surfaces)) :
                             offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta);
                         // Apply the elephant foot compensation.
-                        if (elephant_foot_compensation > 0) {
-                            float elephant_foot_spacing     = float(layerm->flow(frExternalPerimeter).scaled_elephant_foot_spacing());
-                            float external_perimeter_nozzle = float(scale_(this->print()->config().nozzle_diameter.get_at(layerm->region()->config().perimeter_extruder.value - 1)));
-                            // Apply the elephant foot compensation by steps of 1/10 nozzle diameter.
-                            float  steps  = std::ceil(elephant_foot_compensation / (0.1f * external_perimeter_nozzle));
-                            size_t nsteps = size_t(steps);
-                            float  step   = elephant_foot_compensation / steps;
-                            for (size_t i = 0; i < nsteps; ++ i) {
-    							Polygons tmp = offset(expolygons, - step);
-    							append(tmp, diff(to_polygons(expolygons), offset(offset_ex(expolygons, -elephant_foot_spacing - step), elephant_foot_spacing + step)));
-    							expolygons = union_ex(tmp);
-                            }
-                        }
+                        if (elephant_foot_compensation > 0)
+							expolygons = union_ex(Slic3r::elephant_foot_compensation(expolygons, layerm->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
                         layerm->slices.set(std::move(expolygons), stInternal);
                     }
                 } else {
@@ -1825,32 +1817,17 @@ end:
                             layerm->slices.set(std::move(slices), stInternal);
                         }
                     }
-                    if (delta < 0.f) {
+                    if (delta < 0.f || elephant_foot_compensation > 0.f) {
                         // Apply the negative XY compensation.
-                        Polygons trimming = offset(layer->merged(float(EPSILON)), delta - float(EPSILON));
+                        Polygons trimming;
+                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
+                        if (elephant_foot_compensation > 0.f) {
+							trimming = to_polygons(Slic3r::elephant_foot_compensation(offset_ex(layer->merged(eps), std::min(delta, 0.f) - eps),
+								layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
+                        } else
+	                        trimming = offset(layer->merged(float(SCALED_EPSILON)), delta - float(SCALED_EPSILON));
                         for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
                             layer->m_regions[region_id]->trim_surfaces(trimming);
-                    }
-                    if (elephant_foot_compensation > 0.f) {
-                        // Apply the elephant foot compensation.
-                        std::vector<float> elephant_foot_spacing;
-                        elephant_foot_spacing.reserve(layer->m_regions.size());
-                        float external_perimeter_nozzle = 0.f;
-                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
-                            LayerRegion *layerm = layer->m_regions[region_id];
-                            elephant_foot_spacing.emplace_back(float(layerm->flow(frExternalPerimeter).scaled_elephant_foot_spacing()));
-                            external_perimeter_nozzle += float(scale_(this->print()->config().nozzle_diameter.get_at(layerm->region()->config().perimeter_extruder.value - 1)));
-                        }
-                        external_perimeter_nozzle /= (float)layer->m_regions.size();
-                        // Apply the elephant foot compensation by steps of 1/10 nozzle diameter.
-                        float  steps  = std::ceil(elephant_foot_compensation / (0.1f * external_perimeter_nozzle));
-                        size_t nsteps = size_t(steps);
-                        float  step   = elephant_foot_compensation / steps;
-                        for (size_t i = 0; i < nsteps; ++ i) {
-                            Polygons trimming_polygons = offset(layer->merged(float(EPSILON)), - step - float(EPSILON));
-                            for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
-                                layer->m_regions[region_id]->elephant_foot_compensation_step(elephant_foot_spacing[region_id] + step, trimming_polygons);
-                        }
                     }
                 }
                 // Merge all regions' slices to get islands, chain them by a shortest path.

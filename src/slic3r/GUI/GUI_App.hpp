@@ -87,7 +87,7 @@ class GUI_App : public wxApp
     wxFont		    m_bold_font;
 	wxFont			m_normal_font;
 
-    size_t          m_em_unit; // width of a "m"-symbol in pixels for current system font 
+    int          m_em_unit; // width of a "m"-symbol in pixels for current system font
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
     std::unique_ptr<wxLocale> 	  m_wxLocale;
@@ -105,7 +105,7 @@ public:
     bool            initialized() const { return m_initialized; }
 
     GUI_App();
-    ~GUI_App();
+    ~GUI_App() override;
 
     static unsigned get_colour_approx_luma(const wxColour &colour);
     static bool     dark_mode();
@@ -124,8 +124,7 @@ public:
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
     const wxFont&   normal_font()           { return m_normal_font; }
-    size_t          em_unit() const         { return m_em_unit; }
-    void            set_em_unit(const size_t em_unit)    { m_em_unit = em_unit; }
+    int             em_unit() const         { return m_em_unit; }
     float           toolbar_icon_scale(const bool is_limited = false) const;
 
     void            recreate_GUI();
@@ -155,7 +154,7 @@ public:
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
 
-    virtual bool OnExceptionInMainLoop();
+    virtual bool OnExceptionInMainLoop() override;
 
 #ifdef __APPLE__
     // wxWidgets override to get an event on open files.
@@ -188,6 +187,11 @@ public:
 
     void            open_web_page_localized(const std::string &http_address);
     bool            run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page = ConfigWizard::SP_WELCOME);
+
+#if ENABLE_THUMBNAIL_GENERATOR
+    // temporary and debug only -> extract thumbnails from selected gcode and save them as png files
+    void            gcode_thumbnails_debug();
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 private:
     bool            on_init_inner();

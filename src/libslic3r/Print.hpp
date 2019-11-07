@@ -19,6 +19,9 @@ class PrintObject;
 class ModelObject;
 class GCode;
 class GCodePreviewData;
+#if ENABLE_THUMBNAIL_GENERATOR
+struct ThumbnailData;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
@@ -250,6 +253,7 @@ struct PrintStatistics
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
+    int                             total_toolchanges;
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
@@ -270,6 +274,7 @@ struct PrintStatistics
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
         total_cost             = 0.;
+        total_toolchanges      = 0;
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;
         total_wipe_tower_filament = 0.;
@@ -305,7 +310,11 @@ public:
     void                process() override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
+#if ENABLE_THUMBNAIL_GENERATOR
+    std::string         export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data = nullptr);
+#else
     std::string         export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }

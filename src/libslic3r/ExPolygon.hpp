@@ -28,6 +28,8 @@ public:
 	explicit ExPolygon(Polygon &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
 	explicit ExPolygon(const Points &contour, const Points &hole) : contour(contour) { holes.emplace_back(hole); }
 	explicit ExPolygon(Points &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
+	ExPolygon(std::initializer_list<Point> contour) : contour(contour) {}
+	ExPolygon(std::initializer_list<Point> contour, std::initializer_list<Point> hole) : contour(contour), holes({ hole }) {}
 
     ExPolygon& operator=(const ExPolygon &other) { contour = other.contour; holes = other.holes; return *this; }
     ExPolygon& operator=(ExPolygon &&other) { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
@@ -76,6 +78,9 @@ public:
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
 };
+
+inline bool operator==(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour == rhs.contour && lhs.holes == rhs.holes; }
+inline bool operator!=(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour != rhs.contour || lhs.holes != rhs.holes; }
 
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
@@ -299,6 +304,15 @@ inline bool expolygons_contain(ExPolygons &expolys, const Point &pt)
         if (p->contains(pt))
             return true;
     return false;
+}
+
+inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double tolerance)
+{
+	ExPolygons out;
+	out.reserve(expolys.size());
+	for (const ExPolygon &exp : expolys)
+		exp.simplify(tolerance, &out);
+	return out;
 }
 
 extern BoundingBox get_extents(const ExPolygon &expolygon);

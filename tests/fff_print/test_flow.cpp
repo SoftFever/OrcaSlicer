@@ -95,7 +95,6 @@ SCENARIO(" Bridge flow specifics.", "[Flow]") {
 SCENARIO("Flow: Flow math for non-bridges", "[Flow]") {
     GIVEN("Nozzle Diameter of 0.4, a desired width of 1mm and layer height of 0.5") {
         ConfigOptionFloatOrPercent	width(1.0, false);
-        float spacing			= 0.4f;
         float nozzle_diameter	= 0.4f;
         float bridge_flow		= 0.f;
         float layer_height		= 0.5f;
@@ -119,7 +118,6 @@ SCENARIO("Flow: Flow math for non-bridges", "[Flow]") {
     }
     /// Check the min/max
     GIVEN("Nozzle Diameter of 0.25") {
-        float spacing			= 0.4f;
         float nozzle_diameter	= 0.25f;
         float bridge_flow		= 0.f;
         float layer_height		= 0.5f;
@@ -161,7 +159,6 @@ SCENARIO("Flow: Flow math for non-bridges", "[Flow]") {
 SCENARIO("Flow: Flow math for bridges", "[Flow]") {
     GIVEN("Nozzle Diameter of 0.4, a desired width of 1mm and layer height of 0.5") {
         auto width = ConfigOptionFloatOrPercent(1.0, false);
-        float spacing			= 0.4f;
 		float nozzle_diameter	= 0.4f;
 		float bridge_flow		= 1.0f;
 		float layer_height		= 0.5f;

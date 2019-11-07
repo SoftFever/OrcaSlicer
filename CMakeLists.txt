@@ -191,6 +191,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
 
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
@@ -255,7 +256,8 @@ if(NOT WIN32)
     # boost::process was introduced first in version 1.64.0
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
-find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS system filesystem thread log locale regex)
+set(_boost_components "system;filesystem;thread;log;locale;regex")
+find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -269,22 +271,40 @@ if(NOT SLIC3R_STATIC)
     target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
 endif()
 
+function(slic3r_remap_configs targets from_Cfg to_Cfg)
+    if(MSVC)
+        string(TOUPPER ${from_Cfg} from_CFG)
+    
+        foreach(tgt ${targets})
+            if(TARGET ${tgt})
+                set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
+            endif()
+        endforeach()
+    endif()
+endfunction()
+
 if(TARGET Boost::system)
     message(STATUS "Boost::boost exists")
     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+
+    # Only from cmake 3.12
+    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+    set(_boost_targets "")
+    foreach(comp ${_boost_components})
+        list(APPEND _boost_targets "Boost::${comp}")
+    endforeach()
+
     target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well
-        Boost::system
-        Boost::filesystem
-        Boost::thread
-        Boost::log
-        Boost::locale
-        Boost::regex
+        ${_boost_targets}
         )
+    slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
 else()
     target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
+
+
 
 # Find and configure intel-tbb
 if(SLIC3R_STATIC)
@@ -377,6 +397,14 @@ add_custom_target(pot
 )
 
 find_package(NLopt 1.4 REQUIRED)
+
+if(SLIC3R_STATIC)
+    set(OPENVDB_USE_STATIC_LIBS ON)
+    set(USE_BLOSC TRUE)
+endif()
+
+#find_package(OpenVDB 5.0 COMPONENTS openvdb)
+#slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)

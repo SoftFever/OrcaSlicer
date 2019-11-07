@@ -18,11 +18,13 @@ if(Qhull_FOUND)
 
 message(STATUS "Using qhull from system.")
 if(SLIC3R_STATIC)
+    slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhullstatic_r" RelWithDebInfo Release)
     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
 else()
+    slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhull_r" RelWithDebInfo Release)
     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
 endif()
-    
+
 else(Qhull_FOUND)
 
 project(qhull)

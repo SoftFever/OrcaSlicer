@@ -12,12 +12,11 @@ TrimmedLoop trim_loop(const Polygon &loop, const EdgeGrid::Grid &grid)
 	TrimmedLoop out;
 
 	if (loop.size() >= 2) {
-		size_t cnt = loop.points.size();
 
 		struct Visitor {
 			Visitor(const EdgeGrid::Grid &grid, const Slic3r::Point *pt_prev, const Slic3r::Point *pt_this) : grid(grid), pt_prev(pt_prev), pt_this(pt_this) {}
 
-			void operator()(coord_t iy, coord_t ix) {
+			bool operator()(coord_t iy, coord_t ix) {
 				// Called with a row and colum of the grid cell, which is intersected by a line.
 				auto cell_data_range = grid.cell_data_range(iy, ix);
 				for (auto it_contour_and_segment = cell_data_range.first; it_contour_and_segment != cell_data_range.second; ++ it_contour_and_segment) {
@@ -27,6 +26,8 @@ TrimmedLoop trim_loop(const Polygon &loop, const EdgeGrid::Grid &grid)
 						// The two segments intersect. Add them to the output.
 					}
 				}
+				// Continue traversing the grid along the edge.
+				return true;
 			}
 
 			const EdgeGrid::Grid &grid;

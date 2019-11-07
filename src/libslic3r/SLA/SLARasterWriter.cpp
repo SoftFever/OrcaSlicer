@@ -32,29 +32,40 @@ void RasterWriter::save(const std::string &fpath, const std::string &prjname)
 {
     try {
         Zipper zipper(fpath); // zipper with no compression
-        
-        std::string project = prjname.empty()?
-                    boost::filesystem::path(fpath).stem().string() : prjname;
-        
+        save(zipper, prjname);
+        zipper.finalize();
+    } catch(std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+        // Rethrow the exception
+        throw;
+    }
+}
+
+void RasterWriter::save(Zipper &zipper, const std::string &prjname)
+{
+    try {
+        std::string project =
+            prjname.empty() ?
+                boost::filesystem::path(zipper.get_filename()).stem().string() :
+                prjname;
+
         zipper.add_entry("config.ini");
-        
+
         zipper << createIniContent(project);
-        
+
         for(unsigned i = 0; i < m_layers_rst.size(); i++)
         {
             if(m_layers_rst[i].rawbytes.size() > 0) {
                 char lyrnum[6];
                 std::sprintf(lyrnum, "%.5d", i);
                 auto zfilename = project + lyrnum + ".png";
-                
+
                 // Add binary entry to the zipper
                 zipper.add_entry(zfilename,
                                  m_layers_rst[i].rawbytes.data(),
                                  m_layers_rst[i].rawbytes.size());
             }
         }
-        
-        zipper.finalize();
     } catch(std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << e.what();
         // Rethrow the exception

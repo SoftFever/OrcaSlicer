@@ -32,6 +32,9 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "libslic3r/GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
@@ -83,6 +86,11 @@ using Slic3r::_3DScene;
 using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
+#if ENABLE_THUMBNAIL_GENERATOR
+static const std::vector < std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_FFF = { { 240, 320 }, { 220, 165 }, { 16, 16 } };
+static const std::vector<std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_SLA = { { 800, 480 } };
+static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 namespace Slic3r {
 namespace GUI {
@@ -176,7 +184,7 @@ void ObjectInfo::msw_rescale()
     manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
 }
 
-enum SlisedInfoIdx
+enum SlicedInfoIdx
 {
     siFilament_m,
     siFilament_mm3,
@@ -193,7 +201,7 @@ class SlicedInfo : public wxStaticBoxSizer
 {
 public:
     SlicedInfo(wxWindow *parent);
-    void SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const wxString& new_label="");
+    void SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const wxString& new_label="");
 
 private:
     std::vector<std::pair<wxStaticText*, wxStaticText*>> info_vec;
@@ -231,7 +239,7 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     this->Show(false);
 }
 
-void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const wxString& new_label/*=""*/)
+void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const wxString& new_label/*=""*/)
 {
     const bool show = text != "N/A";
     if (show)
@@ -1210,7 +1218,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
             }
 
             // if there is a wipe tower, insert number of toolchanges info into the array:
-            p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->fff_print().wipe_tower_data().number_of_toolchanges) : "N/A");
+            p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", ps.total_toolchanges) : "N/A");
 
             // Hide non-FFF sliced info parameters
             p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
@@ -1363,6 +1371,9 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
+#if ENABLE_THUMBNAIL_GENERATOR
+    std::vector<Slic3r::ThumbnailData> thumbnail_data;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1918,6 +1929,10 @@ struct Plater::priv
     bool can_mirror() const;
     bool can_reload_from_disk() const;
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
     void msw_rescale_object_menu();
 
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
@@ -1985,6 +2000,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
+#if ENABLE_THUMBNAIL_GENERATOR
+    background_process.set_thumbnail_data(&thumbnail_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Default printer technology for default config.
@@ -3033,6 +3051,34 @@ bool Plater::priv::restart_background_process(unsigned int state)
          ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
            (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
+#if ENABLE_THUMBNAIL_GENERATOR
+        if (((state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) == 0) &&
+             (this->background_process.state() != BackgroundSlicingProcess::STATE_RUNNING))
+        {
+            // update thumbnail data
+            if (this->printer_technology == ptFFF)
+            {
+                // for ptFFF we need to generate the thumbnails before the export of gcode starts
+                this->thumbnail_data.clear();
+                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_FFF)
+                {
+                    this->thumbnail_data.push_back(ThumbnailData());
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+                }
+            }
+            else if (this->printer_technology == ptSLA)
+            {
+                // for ptSLA generate thumbnails without supports and pad (not yet calculated)
+                // to render also supports and pad see on_slicing_update()
+                this->thumbnail_data.clear();
+                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+                {
+                    this->thumbnail_data.push_back(ThumbnailData());
+                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+                }
+            }
+        }
+#endif // ENABLE_THUMBNAIL_GENERATOR
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
@@ -3372,6 +3418,23 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
+
+        // uncomment the following lines if you want to render into the thumbnail also supports and pad for SLA printer
+/*
+#if ENABLE_THUMBNAIL_GENERATOR
+        // update thumbnail data
+        // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
+        if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
+        {
+            this->thumbnail_data.clear();
+            for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+            {
+                this->thumbnail_data.push_back(ThumbnailData());
+                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false, false);
+            }
+        }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+*/
     }
 }
 
@@ -3596,6 +3659,13 @@ bool Plater::priv::init_object_menu()
 
     return true;
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+{
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, transparent_background);
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void Plater::priv::msw_rescale_object_menu()
 {
@@ -4635,7 +4705,13 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
+#if ENABLE_THUMBNAIL_GENERATOR
+    ThumbnailData thumbnail_data;
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true);
+    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &thumbnail_data)) {
+#else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
+#endif // ENABLE_THUMBNAIL_GENERATOR
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
         p->set_project_filename(path);
@@ -4799,7 +4875,7 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -(++idx) : idx);
 
-    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+    if (0 < idx_in_ss_stack && (size_t)idx_in_ss_stack < ss_stack.size() - 1) {
         *out_text = ss_stack[idx_in_ss_stack].name.c_str();
         return true;
     }
@@ -4812,7 +4888,7 @@ void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& ou
     const std::vector<UndoRedo::Snapshot>& ss_stack = p->undo_redo_stack().snapshots();
     const int idx_in_ss_stack = p->get_active_snapshot_index() + (is_undo ? -1 : 0);
 
-    if (0 < idx_in_ss_stack && idx_in_ss_stack < ss_stack.size() - 1) {
+    if (0 < idx_in_ss_stack && (size_t)idx_in_ss_stack < ss_stack.size() - 1) {
         out_text = ss_stack[idx_in_ss_stack].name;
         return;
     }

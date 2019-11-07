@@ -10,12 +10,19 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <miniz.h>
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "libslic3r/GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
@@ -55,6 +62,7 @@ bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 		switch (tech) {
 		case ptFFF: m_print = m_fff_print; break;
 		case ptSLA: m_print = m_sla_print; break;
+        default: assert(false); break;
 		}
 		changed = true;
 	}
@@ -82,8 +90,12 @@ void BackgroundSlicingProcess::process_fff()
 	assert(m_print == m_fff_print);
     m_print->process();
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
-	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-	if (this->set_step_started(bspsGCodeFinalize)) {
+#if ENABLE_THUMBNAIL_GENERATOR
+    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_data);
+#else
+    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
+    if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
@@ -99,8 +111,21 @@ void BackgroundSlicingProcess::process_fff()
 			m_print->set_status(100, _utf8(L("Slicing complete")));
 	    }
 		this->set_step_done(bspsGCodeFinalize);
-	}
+    }
 }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+static void write_thumbnail(Zipper& zipper, const ThumbnailData& data)
+{
+    size_t png_size = 0;
+    void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+    if (png_data != nullptr)
+    {
+        zipper.add_entry("thumbnail/thumbnail" + std::to_string(data.width) + "x" + std::to_string(data.height) + ".png", (const std::uint8_t*)png_data, png_size);
+        mz_free(png_data);
+    }
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 void BackgroundSlicingProcess::process_sla()
 {
@@ -108,8 +133,24 @@ void BackgroundSlicingProcess::process_sla()
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
-        	const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
-            m_sla_print->export_raster(export_path);
+            const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
+
+            Zipper zipper(export_path);
+            m_sla_print->export_raster(zipper);
+
+#if ENABLE_THUMBNAIL_GENERATOR
+            if (m_thumbnail_data != nullptr)
+            {
+                for (const ThumbnailData& data : *m_thumbnail_data)
+                {
+                    if (data.is_valid())
+                        write_thumbnail(zipper, data);
+                }
+            }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
+            zipper.finalize();
+
             m_print->set_status(100, (boost::format(_utf8(L("Masked SLA file exported to %1%"))) % export_path).str());
         } else if (! m_upload_job.empty()) {
             prepare_upload();
@@ -417,13 +458,26 @@ void BackgroundSlicingProcess::prepare_upload()
 			throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
-		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
     } else {
-		m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-        m_sla_print->export_raster(source_path.string(), m_upload_job.upload_data.upload_path.string());
-	}
+        m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
 
-	m_print->set_status(100, (boost::format(_utf8(L("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"))) % m_upload_job.printhost->get_host()).str());
+        Zipper zipper{source_path.string()};
+        m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
+#if ENABLE_THUMBNAIL_GENERATOR
+        if (m_thumbnail_data != nullptr)
+        {
+            for (const ThumbnailData& data : *m_thumbnail_data)
+            {
+                if (data.is_valid())
+                    write_thumbnail(zipper, data);
+            }
+        }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+        zipper.finalize();
+    }
+
+    m_print->set_status(100, (boost::format(_utf8(L("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"))) % m_upload_job.printhost->get_host()).str());
 
 	m_upload_job.upload_data.source_path = std::move(source_path);
 
