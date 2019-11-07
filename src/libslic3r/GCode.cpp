@@ -6,6 +6,9 @@
 #include "Geometry.hpp"
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "ShortestPath.hpp"
 #include "Utils.hpp"
 
@@ -18,6 +21,9 @@
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <boost/beast/core/detail/base64.hpp>
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -28,6 +34,10 @@
 #include <tbb/parallel_for.h>
 
 #include <Shiny/Shiny.h>
+
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+#include "miniz_extension.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
 
 #if 0
 // Enable debugging and asserts, even in the release build.
@@ -652,7 +662,11 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_CLEAR();
 
@@ -678,7 +692,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     try {
         m_placeholder_parser_failed_templates.clear();
+#if ENABLE_THUMBNAIL_GENERATOR
+        this->_do_export(*print, file, thumbnail_data);
+#else
         this->_do_export(*print, file);
+#endif // ENABLE_THUMBNAIL_GENERATOR
         fflush(file);
         if (ferror(file)) {
             fclose(file);
@@ -742,7 +760,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void GCode::_do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 void GCode::_do_export(Print &print, FILE *file)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_FUNC();
 
@@ -934,6 +956,77 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // Write information on the generator.
     _write_format(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
+
+#if ENABLE_THUMBNAIL_GENERATOR
+    // Write thumbnails using base64 encoding
+    if (thumbnail_data != nullptr)
+    {
+        const unsigned int max_row_length = 78;
+
+        for (const ThumbnailData& data : *thumbnail_data)
+        {
+            if (data.is_valid())
+            {
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                size_t png_size = 0;
+                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+                if (png_data != nullptr)
+                {
+                    _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
+
+                    std::string encoded = boost::beast::detail::base64_encode((const std::uint8_t*)png_data, png_size);
+
+                    unsigned int row_count = 0;
+                    while (encoded.length() > max_row_length)
+                    {
+                        _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
+                        encoded = encoded.substr(max_row_length);
+                        ++row_count;
+                    }
+
+                    if (encoded.length() > 0)
+                        _write_format(file, "; %s\n", encoded.c_str());
+
+                    _write(file, "; thumbnail end\n;\n");
+
+                    mz_free(png_data);
+                }
+#else
+                _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
+
+                size_t row_size = 4 * data.width;
+                for (int r = (int)data.height - 1; r >= 0; --r)
+                {
+                    std::string encoded = boost::beast::detail::base64_encode((const std::uint8_t*)(data.pixels.data() + r * row_size), row_size);
+                    unsigned int row_count = 0;
+                    while (encoded.length() > max_row_length)
+                    {
+                        if (row_count == 0)
+                            _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
+                        else
+                            _write_format(file, ";>%s\n", encoded.substr(0, max_row_length).c_str());
+
+                        encoded = encoded.substr(max_row_length);
+                        ++row_count;
+                    }
+
+                    if (encoded.length() > 0)
+                    {
+                        if (row_count == 0)
+                            _write_format(file, "; %s\n", encoded.c_str());
+                        else
+                            _write_format(file, ";>%s\n", encoded.c_str());
+                    }
+                }
+
+                _write(file, "; thumbnail end\n;\n");
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+            }
+            print.throw_if_canceled();
+        }
+    }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
     // Write notes (content of the Print Settings tab -> Notes)
     {
         std::list<std::string> lines;

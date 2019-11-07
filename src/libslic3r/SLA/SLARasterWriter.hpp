@@ -12,6 +12,7 @@
 #include "libslic3r/PrintConfig.hpp"
 
 #include "SLARaster.hpp"
+#include "libslic3r/Zipper.hpp"
 
 namespace Slic3r { namespace sla {
 
@@ -112,9 +113,10 @@ public:
     }
 
     void save(const std::string &fpath, const std::string &prjname = "");
+    void save(Zipper &zipper, const std::string &prjname = "");
 
     void set_statistics(const PrintStatistics &statistics);
-    
+
     void set_config(const DynamicPrintConfig &cfg);
 };
 

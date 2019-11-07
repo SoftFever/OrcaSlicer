@@ -1372,7 +1372,12 @@ void SLAPrint::process()
         m_print_statistics.fast_layers_count = fast_layers;
         m_print_statistics.slow_layers_count = slow_layers;
 
+#if ENABLE_THUMBNAIL_GENERATOR
+        // second argument set to -3 to differentiate it from the same call made into slice_supports()
+        m_report_status(*this, -3, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+#else
         m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+#endif // ENABLE_THUMBNAIL_GENERATOR
     };
 
     // Rasterizing the model objects, and their supports

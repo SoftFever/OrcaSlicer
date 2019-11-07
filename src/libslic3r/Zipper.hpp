@@ -83,6 +83,8 @@ public:
     void finish_entry();
 
     void finalize();
+
+    const std::string & get_filename() const;
 };
 
 

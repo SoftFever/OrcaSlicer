@@ -682,6 +682,11 @@ void MainFrame::init_menubar()
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + sep + "&?", _(L("Show the list of the keyboard shortcuts")),
             [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
+#if ENABLE_THUMBNAIL_GENERATOR_DEBUG
+        helpMenu->AppendSeparator();
+        append_menu_item(helpMenu, wxID_ANY, _(L("DEBUG gcode thumbnails")), _(L("DEBUG ONLY - read the selected gcode file and generates png for the contained thumbnails")),
+            [this](wxCommandEvent&) { wxGetApp().gcode_thumbnails_debug(); });
+#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
     }
 
     // menubar
