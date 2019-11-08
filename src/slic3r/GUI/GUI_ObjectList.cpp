@@ -895,12 +895,6 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    // ! #ys Use ApplyExtruderSelector instead this code
-    /*
-    std::vector<wxBitmap*> icons = get_extruder_color_icons();
-    if (icons.empty())
-        return;
-    */
     const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
     wxPoint pos = get_mouse_position_in_control();
@@ -910,32 +904,8 @@ void ObjectList::extruder_editing()
 
     apply_extruder_selector(&m_extruder_editor, this, L("default"), pos, size);
 
-    // ! #ys Use ApplyExtruderSelector instead this code
-    /*
-    if (!m_extruder_editor)
-        m_extruder_editor = new wxBitmapComboBox(this, wxID_ANY, wxEmptyString, pos, size,
-                                                 0, nullptr, wxCB_READONLY);
-    else
-    {
-        m_extruder_editor->SetPosition(pos);
-        m_extruder_editor->SetMinSize(size);
-        m_extruder_editor->SetSize(size);
-        m_extruder_editor->Clear();
-        m_extruder_editor->Show();
-    }
-
-    int i = 0;
-    for (wxBitmap* bmp : icons) {
-        if (i == 0) {
-            m_extruder_editor->Append(_(L("default")), *bmp);
-            ++i;
-        }
-
-        m_extruder_editor->Append(wxString::Format("%d", i), *bmp);
-        ++i;
-    }
-    */
     m_extruder_editor->SetSelection(m_objects_model->GetExtruderNumber(item));
+    m_extruder_editor->Show();
 
     auto set_extruder = [this]()
     {

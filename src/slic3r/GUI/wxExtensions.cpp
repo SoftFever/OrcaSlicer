@@ -505,8 +505,6 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
                              bool use_thin_icon/* = false*/)
 {
     std::vector<wxBitmap*> icons = get_extruder_color_icons(use_thin_icon);
-    if (icons.empty())
-        return;
 
     if (!*ctrl)
         *ctrl = new wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, pos, size,
@@ -519,6 +517,14 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
         (*ctrl)->Clear();
     }
 
+    if (icons.empty() && !first_item.empty()) {
+        (*ctrl)->Append(_(first_item), wxNullBitmap);
+        return;
+    }
+
+    // For ObjectList we use short extruder name (just a number)
+    const bool use_full_item_name = dynamic_cast<Slic3r::GUI::ObjectList*>(parent) == nullptr;
+
     int i = 0;
     wxString str = _(L("Extruder"));
     for (wxBitmap* bmp : icons) {
@@ -528,7 +534,7 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
             ++i;
         }
 
-        (*ctrl)->Append(wxString::Format("%s %d", str, i), *bmp);
+        (*ctrl)->Append(use_full_item_name ? wxString::Format("%s %d", str, i) : std::to_string(i), *bmp);
         ++i;
     }
     (*ctrl)->SetSelection(0);

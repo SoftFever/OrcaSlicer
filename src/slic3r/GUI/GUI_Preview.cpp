@@ -619,6 +619,8 @@ void Preview::update_extruder_selector()
 void Preview::create_double_slider()
 {
     m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
+    m_slider->EnableTickManipulation(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
+
     // #ys_FIXME_COLOR
     // m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
