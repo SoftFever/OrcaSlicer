@@ -462,7 +462,9 @@ bool Mouse3DController::connect_device()
     {
         if (device.second.size() == 1)
         {
-            path = device.second.front().path;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            path = device.second.front().path;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             vendor_id = device.first.first;
             product_id = device.first.second;
             break;
@@ -484,6 +486,12 @@ bool Mouse3DController::connect_device()
                     product_id = device.first.second;
                     found = true;
                     hid_close(test_device);
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+                    std::cout << std::endl << "PASSED TEST device:" << std::endl;
+                    std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
+                    std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
+                    std::cout << "Path................: '" << path << "'" << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                     break;
                 }
 //                if (data.interface_number == 1)
@@ -508,11 +516,25 @@ bool Mouse3DController::connect_device()
         }
     }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (path.empty())
-        return false;
+    {
+        if ((vendor_id != 0) && (product_id != 0))
+            // Open the 3Dconnexion device using vendor_id and product_id
+            m_device = hid_open(vendor_id, product_id, nullptr);
+        else
+            return false;
+    }
+    else
+        // Open the 3Dconnexion device using the device path
+        m_device = hid_open_path(path.c_str());
 
-    // Open the 3Dconnexion device using the device path
-    m_device = hid_open_path(path.c_str());
+//    if (path.empty())
+//        return false;
+//
+//    // Open the 3Dconnexion device using the device path
+//    m_device = hid_open_path(path.c_str());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (m_device != nullptr)
     {
