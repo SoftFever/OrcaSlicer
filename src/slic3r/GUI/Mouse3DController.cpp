@@ -336,39 +336,53 @@ bool Mouse3DController::connect_device()
     struct DeviceData
     {
         std::string path;
-        int interface_number;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//        int interface_number;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         unsigned short usage_page;
         unsigned short usage;
 
         DeviceData()
-            : path(""), interface_number(0), usage_page(0), usage(0)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            : path(""), usage_page(0), usage(0)
+//            : path(""), interface_number(0), usage_page(0), usage(0)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {}
-        DeviceData(const std::string& path, int interface_number, unsigned short usage_page, unsigned short usage)
-            : path(path), interface_number(interface_number), usage_page(usage_page), usage(usage)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        DeviceData(const std::string& path, unsigned short usage_page, unsigned short usage)
+            : path(path), usage_page(usage_page), usage(usage)
+//        DeviceData(const std::string& path, int interface_number, unsigned short usage_page, unsigned short usage)
+//            : path(path), interface_number(interface_number), usage_page(usage_page), usage(usage)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {}
     };
 
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    hid_device_info* cur = devices;
-    while (cur != nullptr)
-    {
-        std::cout << "Detected device '";
-        std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
-        std::cout << "::";
-        std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
-        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
-        std::cout << " serial number: '";
-        std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
-        std::cout << "' usage page: " << cur->usage_page << " usage: " << cur->usage << " interface number: " << cur->interface_number << std::endl;
-
-        cur = cur->next;
-    }
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//    hid_device_info* cur = devices;
+//    while (cur != nullptr)
+//    {
+//        std::cout << "Detected device '";
+//        std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
+//        std::cout << "::";
+//        std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
+//        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
+//        std::cout << " serial number: '";
+//        std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
+//        std::cout << "' usage page: " << cur->usage_page << " usage: " << cur->usage << " interface number: " << cur->interface_number << std::endl;
+//
+//        cur = cur->next;
+//    }
+//#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
     // To choose from them the right one we use:
     // On Windows and Mac: usage_page == 1 and usage == 8
-    // On Linux: interface_number == 1, as usage_page and usage are not defined, see hidapi.h
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // On Linux: as usage_page and usage are not defined (see hidapi.h) we try all detected devices until one is succesfully open
+//    // On Linux: interface_number == 1, as usage_page and usage are not defined, see hidapi.h
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
 
     // First we count all the valid devices from the enumerated list,
@@ -378,6 +392,11 @@ bool Mouse3DController::connect_device()
     typedef std::vector<DeviceData> DeviceDataList;
     typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
     DetectedDevices detected_devices;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    std::cout << std::endl << "Detected devices:" << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     while (current != nullptr)
     {
         unsigned short vendor_id = 0;
@@ -404,7 +423,22 @@ bool Mouse3DController::connect_device()
                     if (it == detected_devices.end())
                         it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
 
-                    it->second.emplace_back(current->path, current->interface_number, current->usage_page, current->usage);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    it->second.emplace_back(current->path, current->usage_page, current->usage);
+//                    it->second.emplace_back(current->path, current->interface_number, current->usage_page, current->usage);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+                    std::wcout << "\"" << ((current->manufacturer_string != nullptr) ? current->manufacturer_string : L"Unknown");
+                    std::cout << "/";
+                    std::wcout << ((current->product_string != nullptr) ? current->product_string : L"Unknown");
+                    std::cout << "\" code: " << current->vendor_id << "/" << current->product_id << " (" << std::hex << current->vendor_id << "/" << current->product_id << std::dec << ")";
+                    std::cout << " serial number: '";
+                    std::wcout << ((current->serial_number != nullptr) ? current->serial_number : L"Unknown");
+                    std::cout << "' usage page: " << current->usage_page << " usage: " << current->usage << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 }
             }
         }
@@ -435,10 +469,25 @@ bool Mouse3DController::connect_device()
         }
         else
         {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            bool found = false;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             for (const DeviceData& data : device.second)
             {
 #if defined(__linux)
-                if (data.interface_number == 1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                hid_device* test_device = hid_open_path(data.path.c_str());
+                if (test_device != nullptr)
+                {
+                    path = data.path;
+                    vendor_id = device.first.first;
+                    product_id = device.first.second;
+                    found = true;
+                    hid_close(test_device);
+                    break;
+                }
+//                if (data.interface_number == 1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #else
                 if ((data.usage_page == 1) && (data.usage == 8))
 #endif // __linux
@@ -446,9 +495,16 @@ bool Mouse3DController::connect_device()
                     path = data.path;
                     vendor_id = device.first.first;
                     product_id = device.first.second;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    found = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     break;
                 }
             }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (found)
+                break;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
     }
 
