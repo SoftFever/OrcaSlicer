@@ -602,7 +602,6 @@ bool Mouse3DController::handle_packet(const DataPacket& packet)
         }
     case 3: // Button
         {
-            unsigned int size = packet.size();
             if (handle_packet_button(packet, packet.size() - 1))
                 return true;
 
@@ -708,7 +707,12 @@ bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigne
 
 bool Mouse3DController::handle_packet_button(const DataPacket& packet, unsigned int packet_size)
 {
-    unsigned int data = packet[1] | packet[2] << 8 | packet[3] << 16 | packet[4] << 24;
+    unsigned int data = 0;
+    for (unsigned int i = 1; i < packet_size; ++i)
+    {
+        data |= packet[i] << 8 * (i - 1);
+    }
+
     const std::bitset<32> data_bits{ data };
     for (size_t i = 0; i < data_bits.size(); ++i)
     {
