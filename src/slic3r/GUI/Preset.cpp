@@ -499,7 +499,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "hollowing_enable",
             "hollowing_min_thickness",
             "hollowing_quality",
-            "hollowing_flatness",
+            "hollowing_closing_distance",
             "output_filename_format",
             "default_sla_print_profile",
             "compatible_printers",

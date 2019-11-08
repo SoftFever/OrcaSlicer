@@ -1100,10 +1100,9 @@ public:
     
     // Indirectly controls the voxel size (resolution) used by openvdb
     ConfigOptionFloat hollowing_quality;
-    
-    // Indirectly controls the amount of filtering used to blur geometry
-    // features in the created cavity.
-    ConfigOptionFloat hollowing_flatness;
+   
+    // Indirectly controls the minimum size of created cavities.
+    ConfigOptionFloat hollowing_closing_distance;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1144,7 +1143,7 @@ protected:
         OPT_PTR(hollowing_enable);
         OPT_PTR(hollowing_min_thickness);
         OPT_PTR(hollowing_quality);
-        OPT_PTR(hollowing_flatness);
+        OPT_PTR(hollowing_closing_distance);
     }
 };
 

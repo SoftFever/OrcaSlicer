@@ -776,10 +776,10 @@ void SLAPrint::process()
             po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
         
         double thickness = po.m_config.hollowing_min_thickness.getFloat();
-        double accuracy  = po.m_config.hollowing_quality.getFloat();
-        double blur      = po.m_config.hollowing_flatness.getFloat();
+        double quality  = po.m_config.hollowing_quality.getFloat();
+        double closing_d = po.m_config.hollowing_closing_distance.getFloat();
         po.m_hollowing_data->interior =
-            generate_interior(po.transformed_mesh(), thickness, accuracy, blur);
+            generate_interior(po.transformed_mesh(), thickness, quality, closing_d);
         
         if (po.m_hollowing_data->interior.empty())
             BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
@@ -1755,7 +1755,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
         if (   opt_key == "hollowing_enable"
             || opt_key == "hollowing_min_thickness"
             || opt_key == "hollowing_quality"
-            || opt_key == "hollowing_flatness"
+            || opt_key == "hollowing_closing_distance"
             ) {
             steps.emplace_back(slaposHollowing);
         } else if (

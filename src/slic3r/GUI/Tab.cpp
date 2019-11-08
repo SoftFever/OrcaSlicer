@@ -3569,7 +3569,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("hollowing_enable");
     optgroup->append_single_option_line("hollowing_min_thickness");
     optgroup->append_single_option_line("hollowing_quality");
-    optgroup->append_single_option_line("hollowing_flatness");
+    optgroup->append_single_option_line("hollowing_closing_distance");
 
     page = add_options_page(_(L("Advanced")), "wrench");
     optgroup = page->new_optgroup(_(L("Slicing")));

@@ -600,7 +600,7 @@ void GLGizmoHollow::hollow_mesh()
     TriangleMesh cavity = sla::generate_interior(*m_mesh,
                                                  double(m_offset),
                                                  double(m_accuracy),
-                                                 double(m_smoothness));
+                                                 double(m_closing_d));
 
     if (cavity.empty()) return;
 
@@ -753,7 +753,6 @@ RENDER_AGAIN:
 
 //        m_imgui->text(" "); // vertical gap
 
-
         m_imgui->text("Offset: ");
         ImGui::SameLine();
         ImGui::SliderFloat("   ", &m_offset, 0.f, 10.f, "%.1f");
@@ -763,10 +762,9 @@ RENDER_AGAIN:
         ImGui::SameLine();
         ImGui::SliderFloat("    ", &m_accuracy, 0.f, 1.f, "%.1f");
         
-        // TODO: only in expert mode:
-        m_imgui->text("Smoothness: ");
+        m_imgui->text("Closing distance: ");
         ImGui::SameLine();
-        ImGui::SliderFloat("      ", &m_smoothness, 0.f, 1.f, "%.1f");
+        ImGui::SliderFloat("       ", &m_closing_d, 0.f, 20.f, "%.1f");
     }
     else { // not in editing mode:
         m_imgui->text(m_desc.at("minimal_distance"));

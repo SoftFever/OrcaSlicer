@@ -2,9 +2,9 @@
 #include "OpenVDBUtils.hpp"
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
-#include <openvdb/tools/TopologyToLevelSet.h>
-#include <boost/log/trivial.hpp>
-#include "MTUtils.hpp"
+#include <openvdb/tools/LevelSetRebuild.h>
+
+//#include "MTUtils.hpp"
 
 namespace Slic3r {
 
@@ -58,7 +58,7 @@ void Contour3DDataAdapter::getIndexSpacePoint(size_t          n,
 // docs say it should be called ones. It does a mutex lock-unlock sequence all
 // even if was called previously.
 
-openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
                                      const openvdb::math::Transform &tr,
                                      float               exteriorBandWidth,
                                      float               interiorBandWidth,
@@ -70,7 +70,7 @@ openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
         interiorBandWidth, flags);
 }
 
-static openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &mesh,
                                      const openvdb::math::Transform &tr,
                                      float exteriorBandWidth,
                                      float interiorBandWidth,
@@ -82,13 +82,8 @@ static openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &mesh,
         flags);
 }
 
-inline Vec3f to_vec3f(const openvdb::Vec3s &v) { return Vec3f{v.x(), v.y(), v.z()}; }
-inline Vec3d to_vec3d(const openvdb::Vec3s &v) { return to_vec3f(v).cast<double>(); }
-inline Vec3i to_vec3i(const openvdb::Vec3I &v) { return Vec3i{int(v[0]), int(v[1]), int(v[2])}; }
-inline Vec4i to_vec4i(const openvdb::Vec4I &v) { return Vec4i{int(v[0]), int(v[1]), int(v[2]), int(v[3])}; }
-
 template<class Grid>
-sla::Contour3D __volumeToMesh(const Grid &grid,
+sla::Contour3D _volumeToMesh(const Grid &grid,
                               double      isovalue,
                               double      adaptivity,
                               bool        relaxDisorientedTriangles)
@@ -114,97 +109,27 @@ sla::Contour3D __volumeToMesh(const Grid &grid,
     return ret;
 }
 
-template<class Mesh = sla::Contour3D> inline
-Mesh _volumeToMesh(const openvdb::FloatGrid &grid,
-                   double      isovalue = 0.0,
-                   double      adaptivity = 0.0,
-                   bool        relaxDisorientedTriangles = true);
-
-template<> inline 
-TriangleMesh _volumeToMesh<TriangleMesh>(const openvdb::FloatGrid &grid,
+TriangleMesh grid_to_mesh(const openvdb::FloatGrid &grid,
                                          double                    isovalue,
                                          double                    adaptivity,
                                          bool relaxDisorientedTriangles)
 {
-    return to_triangle_mesh(__volumeToMesh(grid, isovalue, adaptivity,
-                                           relaxDisorientedTriangles));
+    return to_triangle_mesh(
+        _volumeToMesh(grid, isovalue, adaptivity, relaxDisorientedTriangles));
 }
 
-template<> inline
-sla::Contour3D _volumeToMesh<sla::Contour3D>(const openvdb::FloatGrid &grid,
-                                             double isovalue,
-                                             double adaptivity,
-                                             bool   relaxDisorientedTriangles)
+sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
+                                 double                    isovalue,
+                                 double                    adaptivity,
+                                 bool relaxDisorientedTriangles)
 {
-    return __volumeToMesh(grid, isovalue, adaptivity,
-                          relaxDisorientedTriangles);
+    return _volumeToMesh(grid, isovalue, adaptivity,
+                         relaxDisorientedTriangles);
 }
 
-TriangleMesh volumeToMesh(const openvdb::FloatGrid &grid,
-                          double                    isovalue,
-                          double                    adaptivity,
-                          bool                      relaxDisorientedTriangles)
+openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid, double iso, double er, double ir)
 {
-    return _volumeToMesh<TriangleMesh>(grid, isovalue, adaptivity,
-                                         relaxDisorientedTriangles);
-}
-
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, TriangleMesh &m) { m.scale(float(s)); }
-
-template<class S, class = FloatingOnly<S>>
-inline void _scale(S s, sla::Contour3D &m)
-{
-    for (auto &p : m.points) p *= s;
-}
-
-template<class Mesh>
-remove_cvref_t<Mesh> _hollowed_interior(Mesh &&mesh,
-                                        double min_thickness,
-                                        double quality,
-                                        HollowingFilter filt)
-{
-    using MMesh = remove_cvref_t<Mesh>;
-    MMesh imesh{std::forward<Mesh>(mesh)};
-    
-    static const double QUALITY_COEFF = 7.;
-    
-    // I can't figure out how to increase the grid resolution through openvdb API
-    // so the model will be scaled up before conversion and the result scaled
-    // down. Voxels have a unit size. If I set voxelSize smaller, it scales
-    // the whole geometry down, and doesn't increase the number of voxels.
-    auto scale = (1.0 + QUALITY_COEFF * quality); // max 8x upscale, min is native voxel size
-    
-    _scale(scale, imesh);
-    
-    double offset = scale * min_thickness;    
-    float range = float(std::max(2 * offset, scale));
-    auto gridptr = meshToVolume(imesh, {}, 0.1f * float(offset), range);
-    
-    assert(gridptr);
-    
-    if (!gridptr) {
-        BOOST_LOG_TRIVIAL(error) << "Returned OpenVDB grid is NULL";
-        return MMesh{};
-    }
-    
-    if (filt) filt(*gridptr, min_thickness, scale);
-    
-    double iso_surface = -offset;
-    double adaptivity = 0.;
-    auto omesh = _volumeToMesh<MMesh>(*gridptr, iso_surface, adaptivity);
-    
-    _scale(1. / scale, omesh);
-    
-    return omesh;
-}
-
-TriangleMesh hollowed_interior(const TriangleMesh &mesh,
-                               double              min_thickness,
-                               double              quality,
-                               HollowingFilter     filt)
-{
-    return _hollowed_interior(mesh, min_thickness, quality, filt);
+    return openvdb::tools::levelSetRebuild(grid, float(iso), float(er), float(ir));
 }
 
 } // namespace Slic3r
