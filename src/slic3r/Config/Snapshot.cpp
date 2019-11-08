@@ -66,7 +66,7 @@ void Snapshot::load_ini(const std::string &path)
                 if (kvp.first == "id")
                     this->id = kvp.second.data();
                 else if (kvp.first == "time_captured") {
-                	this->time_captured = Slic3r::Utils::parse_time_ISO8601Z(kvp.second.data());
+                	this->time_captured = Slic3r::Utils::parse_iso_utc_timestamp(kvp.second.data());
 					if (this->time_captured == (time_t)-1)
 				        throw_on_parse_error("invalid timestamp");
                 } else if (kvp.first == "slic3r_version_captured") {
@@ -165,7 +165,7 @@ void Snapshot::save_ini(const std::string &path)
     // Export the common "snapshot".
 	c << std::endl << "[snapshot]" << std::endl;
 	c << "id = " << this->id << std::endl;
-	c << "time_captured = " << Slic3r::Utils::format_time_ISO8601Z(this->time_captured) << std::endl;
+	c << "time_captured = " << Slic3r::Utils::iso_utc_timestamp(this->time_captured) << std::endl;
 	c << "slic3r_version_captured = " << this->slic3r_version_captured.to_string() << std::endl;
 	c << "comment = " << this->comment << std::endl;
 	c << "reason = " << reason_string(this->reason) << std::endl;
@@ -365,7 +365,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	Snapshot snapshot;
 	// Snapshot header.
 	snapshot.time_captured 			 = Slic3r::Utils::get_current_time_utc();
-	snapshot.id 					 = Slic3r::Utils::format_time_ISO8601Z(snapshot.time_captured);
+	snapshot.id 					 = Slic3r::Utils::iso_utc_timestamp(snapshot.time_captured);
 	snapshot.slic3r_version_captured = Slic3r::SEMVER;
 	snapshot.comment 				 = comment;
 	snapshot.reason 				 = reason;
@@ -393,9 +393,9 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
         bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LOAD_CFGBUNDLE_VENDOR_ONLY);
-        for (const VendorProfile &vp : bundle.vendors)
-            if (vp.id == cfg.name)
-                cfg.version.config_version = vp.config_version;
+        for (const auto &vp : bundle.vendors)
+            if (vp.second.id == cfg.name)
+                cfg.version.config_version = vp.second.config_version;
         // Fill-in the min/max slic3r version from the config index, if possible.
         try {
             // Load the config index for the vendor.

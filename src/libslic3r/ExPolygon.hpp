@@ -18,8 +18,18 @@ class ExPolygon
 {
 public:
     ExPolygon() {}
-    ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
+	ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
     ExPolygon(ExPolygon &&other) : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
+	explicit ExPolygon(const Polygon &contour) : contour(contour) {}
+	explicit ExPolygon(Polygon &&contour) : contour(std::move(contour)) {}
+	explicit ExPolygon(const Points &contour) : contour(contour) {}
+	explicit ExPolygon(Points &&contour) : contour(std::move(contour)) {}
+	explicit ExPolygon(const Polygon &contour, const Polygon &hole) : contour(contour) { holes.emplace_back(hole); }
+	explicit ExPolygon(Polygon &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
+	explicit ExPolygon(const Points &contour, const Points &hole) : contour(contour) { holes.emplace_back(hole); }
+	explicit ExPolygon(Points &&contour, Polygon &&hole) : contour(std::move(contour)) { holes.emplace_back(std::move(hole)); }
+	ExPolygon(std::initializer_list<Point> contour) : contour(contour) {}
+	ExPolygon(std::initializer_list<Point> contour, std::initializer_list<Point> hole) : contour(contour), holes({ hole }) {}
 
     ExPolygon& operator=(const ExPolygon &other) { contour = other.contour; holes = other.holes; return *this; }
     ExPolygon& operator=(ExPolygon &&other) { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
@@ -67,7 +77,15 @@ public:
     void triangulate_pp(Points *triangles) const;
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
+
+    // Number of contours (outer contour with holes).
+    size_t   		num_contours() const { return this->holes.size() + 1; }
+    Polygon& 		contour_or_hole(size_t idx) 		{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
+    const Polygon& 	contour_or_hole(size_t idx) const 	{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
 };
+
+inline bool operator==(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour == rhs.contour && lhs.holes == rhs.holes; }
+inline bool operator!=(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour != rhs.contour || lhs.holes != rhs.holes; }
 
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
@@ -291,6 +309,15 @@ inline bool expolygons_contain(ExPolygons &expolys, const Point &pt)
         if (p->contains(pt))
             return true;
     return false;
+}
+
+inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double tolerance)
+{
+	ExPolygons out;
+	out.reserve(expolys.size());
+	for (const ExPolygon &exp : expolys)
+		exp.simplify(tolerance, &out);
+	return out;
 }
 
 extern BoundingBox get_extents(const ExPolygon &expolygon);

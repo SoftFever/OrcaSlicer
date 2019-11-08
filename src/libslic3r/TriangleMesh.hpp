@@ -31,7 +31,7 @@ public:
     float volume();
     void check_topology();
     bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == (int)this->stl.stats.number_of_facets; }
-    void WriteOBJFile(const char* output_file);
+    void WriteOBJFile(const char* output_file) const;
     void scale(float factor);
     void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
@@ -58,8 +58,14 @@ public:
     BoundingBoxf3 bounding_box() const;
     // Returns the bbox of this TriangleMesh transformed by the given transformation
     BoundingBoxf3 transformed_bounding_box(const Transform3d &trafo) const;
+    // Return the size of the mesh in coordinates.
+    Vec3d size() const { return stl.stats.size.cast<double>(); }
+    /// Return the center of the related bounding box.
+	Vec3d center() const { return this->bounding_box().center(); }
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
+    // Slice this mesh at the provided Z levels and return the vector
+    std::vector<ExPolygons> slice(const std::vector<double>& z);
     void reset_repair_stats();
     bool needed_repair() const;
     void require_shared_vertices();

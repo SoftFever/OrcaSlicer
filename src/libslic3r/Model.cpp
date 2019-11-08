@@ -141,12 +141,12 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     for (ModelObject *o : model.objects)
     {
-        if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        {
-            // we remove the .zip part of the extension to avoid it be added to filenames when exporting
-            o->input_file = boost::ireplace_last_copy(input_file, ".zip.", ".");
-        }
-        else
+//        if (boost::algorithm::iends_with(input_file, ".zip.amf"))
+//        {
+//            // we remove the .zip part of the extension to avoid it be added to filenames when exporting
+//            o->input_file = boost::ireplace_last_copy(input_file, ".zip.", ".");
+//        }
+//        else
             o->input_file = input_file;
     }
 
@@ -170,6 +170,9 @@ ModelObject* Model::add_object(const char *name, const char *path, const Triangl
     new_object->input_file = path;
     ModelVolume *new_volume = new_object->add_volume(mesh);
     new_volume->name = name;
+    new_volume->source.input_file = path;
+    new_volume->source.object_idx = (int)this->objects.size() - 1;
+    new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
     new_object->invalidate_bounding_box();
     return new_object;
 }
@@ -182,6 +185,9 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     new_object->input_file = path;
     ModelVolume *new_volume = new_object->add_volume(std::move(mesh));
     new_volume->name = name;
+    new_volume->source.input_file = path;
+    new_volume->source.object_idx = (int)this->objects.size() - 1;
+    new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
     new_object->invalidate_bounding_box();
     return new_object;
 }
@@ -1543,7 +1549,7 @@ bool ModelVolume::is_splittable() const
     return m_is_splittable == 1;
 }
 
-void ModelVolume::center_geometry_after_creation()
+void ModelVolume::center_geometry_after_creation(bool update_source_offset)
 {
     Vec3d shift = this->mesh().bounding_box().center();
     if (!shift.isApprox(Vec3d::Zero()))
@@ -1554,6 +1560,9 @@ void ModelVolume::center_geometry_after_creation()
 			const_cast<TriangleMesh*>(m_convex_hull.get())->translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
         translate(shift);
     }
+
+    if (update_source_offset)
+        source.mesh_offset = shift;
 }
 
 void ModelVolume::calculate_convex_hull()

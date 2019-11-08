@@ -34,6 +34,7 @@ Slic3r::ExPolygons PolyTreeToExPolygons(ClipperLib::PolyTree& polytree);
 
 ClipperLib::Path   Slic3rMultiPoint_to_ClipperPath(const Slic3r::MultiPoint &input);
 ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const Polygons &input);
+ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const ExPolygons &input);
 ClipperLib::Paths  Slic3rMultiPoints_to_ClipperPaths(const Polylines &input);
 Slic3r::Polygon    ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input);
 Slic3r::Polyline   ClipperPath_to_Slic3rPolyline(const ClipperLib::Path &input);
@@ -215,8 +216,19 @@ inline Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject, bool safety_
 
 
 ClipperLib::PolyTree union_pt(const Slic3r::Polygons &subject, bool safety_offset_ = false);
+ClipperLib::PolyTree union_pt(const Slic3r::ExPolygons &subject, bool safety_offset_ = false);
+ClipperLib::PolyTree union_pt(Slic3r::Polygons &&subject, bool safety_offset_ = false);
+ClipperLib::PolyTree union_pt(Slic3r::ExPolygons &&subject, bool safety_offset_ = false);
+
 Slic3r::Polygons union_pt_chained(const Slic3r::Polygons &subject, bool safety_offset_ = false);
-void traverse_pt(ClipperLib::PolyNodes &nodes, Slic3r::Polygons* retval);
+
+void traverse_pt(const ClipperLib::PolyNodes &nodes, Slic3r::Polygons *retval);
+void traverse_pt(const ClipperLib::PolyNodes &nodes, Slic3r::ExPolygons *retval);
+void traverse_pt(const ClipperLib::PolyNode  *tree,  Slic3r::ExPolygons *retval);
+
+void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Slic3r::Polygons *retval);
+void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Slic3r::ExPolygons *retval);
+void traverse_pt_unordered(const ClipperLib::PolyNode  *tree,  Slic3r::ExPolygons *retval);
 
 /* OTHER */
 Slic3r::Polygons simplify_polygons(const Slic3r::Polygons &subject, bool preserve_collinear = false);
@@ -225,6 +237,11 @@ Slic3r::ExPolygons simplify_polygons_ex(const Slic3r::Polygons &subject, bool pr
 void safety_offset(ClipperLib::Paths* paths);
 
 Polygons top_level_islands(const Slic3r::Polygons &polygons);
+
+Polygons  variable_offset_inner(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
+Polygons  variable_offset_outer(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
+ExPolygons variable_offset_outer_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
+ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 
 }
 

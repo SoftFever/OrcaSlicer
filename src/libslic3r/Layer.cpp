@@ -1,8 +1,8 @@
 #include "Layer.hpp"
 #include "ClipperUtils.hpp"
-#include "Geometry.hpp"
 #include "Print.hpp"
 #include "Fill/Fill.hpp"
+#include "ShortestPath.hpp"
 #include "SVG.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -47,8 +47,8 @@ void Layer::make_slices()
         slices = union_ex(slices_p);
     }
     
-    this->slices.expolygons.clear();
-    this->slices.expolygons.reserve(slices.size());
+    this->slices.clear();
+    this->slices.reserve(slices.size());
     
     // prepare ordering points
     Points ordering_points;
@@ -57,12 +57,11 @@ void Layer::make_slices()
         ordering_points.push_back(ex.contour.first_point());
     
     // sort slices
-    std::vector<Points::size_type> order;
-    Slic3r::Geometry::chained_path(ordering_points, order);
+    std::vector<Points::size_type> order = chain_points(ordering_points);
     
     // populate slices vector
     for (size_t i : order)
-        this->slices.expolygons.push_back(std::move(slices[i]));
+        this->slices.push_back(std::move(slices[i]));
 }
 
 // Merge typed slices into untyped slices. This method is used to revert the effects of detect_surfaces_type() called for posPrepareInfill.
@@ -71,7 +70,7 @@ void Layer::merge_slices()
     if (m_regions.size() == 1) {
         // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
         // but use the non-split islands of a layer. For a single region print, these shall be equal.
-        m_regions.front()->slices.set(this->slices.expolygons, stInternal);
+        m_regions.front()->slices.set(this->slices, stInternal);
     } else {
         for (LayerRegion *layerm : m_regions)
             // without safety offset, artifacts are generated (GH #2494)
@@ -89,8 +88,12 @@ ExPolygons Layer::merged(float offset_scaled) const
 		offset_scaled2 = float(- EPSILON);
     }
     Polygons polygons;
-    for (LayerRegion *layerm : m_regions)
-		append(polygons, offset(to_expolygons(layerm->slices.surfaces), offset_scaled));
+	for (LayerRegion *layerm : m_regions) {
+		const PrintRegionConfig &config = layerm->region()->config();
+		// Our users learned to bend Slic3r to produce empty volumes to act as subtracters. Only add the region if it is non-empty.
+		if (config.bottom_solid_layers > 0 || config.top_solid_layers > 0 || config.fill_density > 0. || config.perimeters > 0)
+			append(polygons, offset(to_expolygons(layerm->slices.surfaces), offset_scaled));
+	}
     ExPolygons out = union_ex(polygons);
 	if (offset_scaled2 != 0.f)
 		out = offset_ex(out, offset_scaled2);

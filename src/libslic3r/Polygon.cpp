@@ -5,55 +5,23 @@
 
 namespace Slic3r {
 
-Polygon::operator Polygons() const
-{
-    Polygons pp;
-    pp.push_back(*this);
-    return pp;
-}
-
-Polygon::operator Polyline() const
-{
-    return this->split_at_first_point();
-}
-
-Point&
-Polygon::operator[](Points::size_type idx)
-{
-    return this->points[idx];
-}
-
-const Point&
-Polygon::operator[](Points::size_type idx) const
-{
-    return this->points[idx];
-}
-
-Point
-Polygon::last_point() const
-{
-    return this->points.front();  // last point == first point for polygons
-}
-
 Lines Polygon::lines() const
 {
     return to_lines(*this);
 }
 
-Polyline
-Polygon::split_at_vertex(const Point &point) const
+Polyline Polygon::split_at_vertex(const Point &point) const
 {
     // find index of point
     for (const Point &pt : this->points)
         if (pt == point)
-            return this->split_at_index(&pt - &this->points.front());
+            return this->split_at_index(int(&pt - &this->points.front()));
     throw std::invalid_argument("Point not found");
     return Polyline();
 }
 
 // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
-Polyline
-Polygon::split_at_index(int index) const
+Polyline Polygon::split_at_index(int index) const
 {
     Polyline polyline;
     polyline.points.reserve(this->points.size() + 1);
@@ -62,19 +30,6 @@ Polygon::split_at_index(int index) const
     for (Points::const_iterator it = this->points.begin(); it != this->points.begin() + index + 1; ++it)
         polyline.points.push_back(*it);
     return polyline;
-}
-
-// Split a closed polygon into an open polyline, with the split point duplicated at both ends.
-Polyline
-Polygon::split_at_first_point() const
-{
-    return this->split_at_index(0);
-}
-
-Points
-Polygon::equally_spaced_points(double distance) const
-{
-    return this->split_at_first_point().equally_spaced_points(distance);
 }
 
 /*
@@ -107,20 +62,17 @@ double Polygon::area() const
     return 0.5 * a;
 }
 
-bool
-Polygon::is_counter_clockwise() const
+bool Polygon::is_counter_clockwise() const
 {
     return ClipperLib::Orientation(Slic3rMultiPoint_to_ClipperPath(*this));
 }
 
-bool
-Polygon::is_clockwise() const
+bool Polygon::is_clockwise() const
 {
     return !this->is_counter_clockwise();
 }
 
-bool
-Polygon::make_counter_clockwise()
+bool Polygon::make_counter_clockwise()
 {
     if (!this->is_counter_clockwise()) {
         this->reverse();
@@ -129,8 +81,7 @@ Polygon::make_counter_clockwise()
     return false;
 }
 
-bool
-Polygon::make_clockwise()
+bool Polygon::make_clockwise()
 {
     if (this->is_counter_clockwise()) {
         this->reverse();
@@ -139,16 +90,9 @@ Polygon::make_clockwise()
     return false;
 }
 
-bool
-Polygon::is_valid() const
-{
-    return this->points.size() >= 3;
-}
-
 // Does an unoriented polygon contain a point?
 // Tested by counting intersections along a horizontal line.
-bool
-Polygon::contains(const Point &point) const
+bool Polygon::contains(const Point &point) const
 {
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     bool result = false;
@@ -174,8 +118,7 @@ Polygon::contains(const Point &point) const
 }
 
 // this only works on CCW polygons as CW will be ripped out by Clipper's simplify_polygons()
-Polygons
-Polygon::simplify(double tolerance) const
+Polygons Polygon::simplify(double tolerance) const
 {
     // repeat first point at the end in order to apply Douglas-Peucker
     // on the whole polygon
@@ -189,8 +132,7 @@ Polygon::simplify(double tolerance) const
     return simplify_polygons(pp);
 }
 
-void
-Polygon::simplify(double tolerance, Polygons &polygons) const
+void Polygon::simplify(double tolerance, Polygons &polygons) const
 {
     Polygons pp = this->simplify(tolerance);
     polygons.reserve(polygons.size() + pp.size());
@@ -198,8 +140,7 @@ Polygon::simplify(double tolerance, Polygons &polygons) const
 }
 
 // Only call this on convex polygons or it will return invalid results
-void
-Polygon::triangulate_convex(Polygons* polygons) const
+void Polygon::triangulate_convex(Polygons* polygons) const
 {
     for (Points::const_iterator it = this->points.begin() + 2; it != this->points.end(); ++it) {
         Polygon p;
@@ -214,8 +155,7 @@ Polygon::triangulate_convex(Polygons* polygons) const
 }
 
 // center of mass
-Point
-Polygon::centroid() const
+Point Polygon::centroid() const
 {
     double area_temp = this->area();
     double x_temp = 0;
@@ -232,20 +172,19 @@ Polygon::centroid() const
 
 // find all concave vertices (i.e. having an internal angle greater than the supplied angle)
 // (external = right side, thus we consider ccw orientation)
-Points
-Polygon::concave_points(double angle) const
+Points Polygon::concave_points(double angle) const
 {
     Points points;
-    angle = 2*PI - angle;
+    angle = 2. * PI - angle + EPSILON;
     
     // check whether first point forms a concave angle
     if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) <= angle)
         points.push_back(this->points.front());
     
     // check whether points 1..(n-1) form concave angles
-    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
-        if (p->ccw_angle(*(p-1), *(p+1)) <= angle) points.push_back(*p);
-    }
+    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++ p)
+        if (p->ccw_angle(*(p-1), *(p+1)) <= angle)
+        	points.push_back(*p);
     
     // check whether last point forms a concave angle
     if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) <= angle)
@@ -256,11 +195,10 @@ Polygon::concave_points(double angle) const
 
 // find all convex vertices (i.e. having an internal angle smaller than the supplied angle)
 // (external = right side, thus we consider ccw orientation)
-Points
-Polygon::convex_points(double angle) const
+Points Polygon::convex_points(double angle) const
 {
     Points points;
-    angle = 2*PI - angle;
+    angle = 2*PI - angle - EPSILON;
     
     // check whether first point forms a convex angle
     if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) >= angle)
@@ -314,6 +252,11 @@ Point Polygon::point_projection(const Point &point) const
         }
     }
     return proj;
+}
+
+BoundingBox get_extents(const Points &points)
+{ 
+	return BoundingBox(points);
 }
 
 BoundingBox get_extents(const Polygon &poly) 
@@ -454,6 +397,47 @@ bool remove_small(Polygons &polys, double min_area)
     if (j < polys.size())
         polys.erase(polys.begin() + j, polys.end());
     return modified;
+}
+
+void remove_collinear(Polygon &poly)
+{
+    if (poly.points.size() > 2) {
+        // copy points and append both 1 and last point in place to cover the boundaries
+        Points pp;
+        pp.reserve(poly.points.size()+2);
+        pp.push_back(poly.points.back());
+        pp.insert(pp.begin()+1, poly.points.begin(), poly.points.end());
+        pp.push_back(poly.points.front());
+        // delete old points vector. Will be re-filled in the loop
+        poly.points.clear();
+
+        size_t i = 0;
+        size_t k = 0;
+        while (i < pp.size()-2) {
+            k = i+1;
+            const Point &p1 = pp[i];
+            while (k < pp.size()-1) {
+                const Point &p2 = pp[k];
+                const Point &p3 = pp[k+1];
+                Line l(p1, p3);
+                if(l.distance_to(p2) < SCALED_EPSILON) {
+                    k++;
+                } else {
+                    if(i > 0) poly.points.push_back(p1); // implicitly removes the first point we appended above
+                    i = k;
+                    break;
+                }
+            }
+            if(k > pp.size()-2) break; // all remaining points are collinear and can be skipped
+        }
+        poly.points.push_back(pp[i]);
+    }
+}
+
+void remove_collinear(Polygons &polys)
+{
+	for (Polygon &poly : polys)
+		remove_collinear(poly);
 }
 
 }

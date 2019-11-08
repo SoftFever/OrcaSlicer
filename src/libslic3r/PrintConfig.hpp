@@ -30,7 +30,7 @@ enum GCodeFlavor : unsigned char {
 };
 
 enum PrintHostType {
-    htOctoPrint, htDuet
+    htOctoPrint, htDuet, htFlashAir
 };
 
 enum InfillPattern {
@@ -51,6 +51,14 @@ enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
 */
+
+enum SLAMaterial {
+    slamTough,
+    slamFlex,
+    slamCasting,
+    slamDental,
+    slamHeatResistant,
+};
 
 enum SLADisplayOrientation {
     sladoLandscape,
@@ -94,6 +102,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::g
     if (keys_map.empty()) {
         keys_map["octoprint"]       = htOctoPrint;
         keys_map["duet"]            = htDuet;
+        keys_map["flashair"]        = htFlashAir;
     }
     return keys_map;
 }
@@ -185,6 +194,8 @@ public:
 
     static void handle_legacy(t_config_option_key &opt_key, std::string &value);
 
+    // Array options growing with the number of extruders
+    const std::vector<std::string>& extruder_option_keys() const { return m_extruder_option_keys; }
     // Options defining the extruder retract properties. These keys are sorted lexicographically.
     // The extruder retract keys could be overidden by the same values defined at the Filament level
     // (then the key is further prefixed with the "filament_" prefix).
@@ -193,15 +204,18 @@ public:
 private:
     void init_common_params();
     void init_fff_params();
-    void init_extruder_retract_keys();
+    void init_extruder_option_keys();
     void init_sla_params();
 
+    std::vector<std::string> 	m_extruder_option_keys;
     std::vector<std::string> 	m_extruder_retract_keys;
 };
 
 // The one and only global definition of SLic3r configuration options.
 // This definition is constant.
 extern const PrintConfigDef print_config_def;
+
+class StaticPrintConfig;
 
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
@@ -213,15 +227,19 @@ class DynamicPrintConfig : public DynamicConfig
 {
 public:
     DynamicPrintConfig() {}
-    DynamicPrintConfig(const DynamicPrintConfig &other) : DynamicConfig(other) {}
+    DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfig(rhs) {}
+    explicit DynamicPrintConfig(const StaticPrintConfig &rhs);
+    explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfig(rhs) {}
 
-    static DynamicPrintConfig* new_from_defaults();
+    static DynamicPrintConfig  full_print_config();
     static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
     void                normalize();
+
+    void 				set_num_extruders(unsigned int num_extruders);
 
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string         validate();
@@ -249,6 +267,8 @@ public:
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
+    // Reference to the cached list of keys.
+	virtual const t_config_option_keys& keys_ref() const = 0;
 
 protected:
     // Verify whether the opt_key has not been obsoleted or renamed.
@@ -337,6 +357,7 @@ public: \
         { return s_cache_##CLASS_NAME.optptr(opt_key, this); } \
     /* Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store. */ \
     t_config_option_keys     keys() const override { return s_cache_##CLASS_NAME.keys(); } \
+    const t_config_option_keys& keys_ref() const override { return s_cache_##CLASS_NAME.keys(); } \
     static const CLASS_NAME& defaults() { initialize_cache(); return s_cache_##CLASS_NAME.defaults(); } \
 private: \
     static void initialize_cache() \
@@ -1022,6 +1043,9 @@ public:
 
     // The height of the pad from the bottom to the top not considering the pit
     ConfigOptionFloat pad_wall_height /*= 5*/;
+    
+    // How far should the pad extend around the contained geometry
+    ConfigOptionFloat pad_brim_size;
 
     // The greatest distance where two individual pads are merged into one. The
     // distance is measured roughly from the centroids of the pads.
@@ -1042,7 +1066,9 @@ public:
     // /////////////////////////////////////////////////////////////////////////
 
     // Disable the elevation (ignore its value) and use the zero elevation mode
-    ConfigOptionBool  pad_around_object;
+    ConfigOptionBool pad_around_object;
+    
+    ConfigOptionBool pad_around_object_everywhere;
 
     // This is the gap between the object bottom and the generated pad
     ConfigOptionFloat pad_object_gap;
@@ -1082,10 +1108,12 @@ protected:
         OPT_PTR(pad_enable);
         OPT_PTR(pad_wall_thickness);
         OPT_PTR(pad_wall_height);
+        OPT_PTR(pad_brim_size);
         OPT_PTR(pad_max_merge_distance);
         // OPT_PTR(pad_edge_radius);
         OPT_PTR(pad_wall_slope);
         OPT_PTR(pad_around_object);
+        OPT_PTR(pad_around_object_everywhere);
         OPT_PTR(pad_object_gap);
         OPT_PTR(pad_object_connector_stride);
         OPT_PTR(pad_object_connector_width);

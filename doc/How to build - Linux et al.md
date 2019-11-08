@@ -2,7 +2,7 @@
 # Building PrusaSlicer on UNIX/Linux
 
 PrusaSlicer uses the CMake build system and requires several dependencies.
-The dependencies can be listed in `deps/deps-linux.cmake`, although they don't necessarily need to be as recent
+The dependencies can be listed in `deps/deps-linux.cmake` and `deps/deps-unix-common.cmake`, although they don't necessarily need to be as recent
 as the versions listed - generally versions available on conservative Linux distros such as Debian stable or CentOS should suffice.
 
 Perl is not required any more.

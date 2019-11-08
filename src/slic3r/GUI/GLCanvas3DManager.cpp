@@ -107,7 +107,9 @@ void GLCanvas3DManager::GLInfo::detect() const
         m_renderer = data;
 
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_tex_size));
-    
+
+    m_max_tex_size /= 2;
+
     if (GLEW_EXT_texture_filter_anisotropic)
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_max_anisotropy));
 
@@ -187,6 +189,7 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
 bool GLCanvas3DManager::s_compressed_textures_supported = false;
+GLCanvas3DManager::EFramebufferType GLCanvas3DManager::s_framebuffers_type = GLCanvas3DManager::FB_None;
 GLCanvas3DManager::GLInfo GLCanvas3DManager::s_gl_info;
 
 GLCanvas3DManager::GLCanvas3DManager()
@@ -266,6 +269,13 @@ void GLCanvas3DManager::init_gl()
             s_compressed_textures_supported = true;
         else
             s_compressed_textures_supported = false;
+
+        if (GLEW_ARB_framebuffer_object)
+            s_framebuffers_type = FB_Arb;
+        else if (GLEW_EXT_framebuffer_object)
+            s_framebuffers_type = FB_Ext;
+        else
+            s_framebuffers_type = FB_None;
 
         if (! s_gl_info.is_version_greater_or_equal_to(2, 0)) {
         	// Complain about the OpenGL version.

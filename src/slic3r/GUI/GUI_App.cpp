@@ -38,7 +38,6 @@
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/MacDarkMode.hpp"
-#include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "FirmwareDialog.hpp"
@@ -46,10 +45,16 @@
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
+#include "UpdateDialogs.hpp"
 
 #ifdef __WXMSW__
 #include <Shlobj.h>
 #endif // __WXMSW__
+
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <boost/beast/core/detail/base64.hpp>
+#include <boost/nowide/fstream.hpp>
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 namespace Slic3r {
 namespace GUI {
@@ -148,6 +153,7 @@ GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
+    , m_wizard(nullptr)
 {}
 
 GUI_App::~GUI_App()
@@ -204,7 +210,6 @@ bool GUI_App::on_init_inner()
     // supplied as argument to --datadir; in that case we should still run the wizard
     preset_bundle->setup_directories();
 
-    app_conf_exists = app_config->exists();
     // load settings
     app_conf_exists = app_config->exists();
     if (app_conf_exists) {
@@ -287,7 +292,7 @@ bool GUI_App::on_init_inner()
             }
 
             CallAfter([this] {
-                config_wizard_startup(app_conf_exists);
+                config_wizard_startup();
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
@@ -826,7 +831,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case ConfigMenuWizard:
-            config_wizard(ConfigWizard::RR_USER);
+            run_wizard(ConfigWizard::RR_USER);
             break;
         case ConfigMenuTakeSnapshot:
             // Take a configuration snapshot.
@@ -1057,6 +1062,142 @@ void GUI_App::open_web_page_localized(const std::string &http_address)
     wxLaunchDefaultBrowser(http_address + "&lng=" + this->current_language_code_safe());
 }
 
+bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage start_page)
+{
+    wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
+
+    if (! m_wizard) {
+        m_wizard = new ConfigWizard(mainframe);
+    }
+
+    const bool res = m_wizard->run(reason, start_page);
+
+    if (res) {
+        load_current_presets();
+
+        if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA
+            && Slic3r::model_has_multi_part_objects(wxGetApp().model())) {
+            GUI::show_info(nullptr,
+                _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
+                _(L("Please check and fix your object list.")),
+                _(L("Attention!")));
+        }
+    }
+
+    return res;
+}
+
+#if ENABLE_THUMBNAIL_GENERATOR_DEBUG
+void GUI_App::gcode_thumbnails_debug()
+{
+    const std::string BEGIN_MASK = "; thumbnail begin";
+    const std::string END_MASK = "; thumbnail end";
+    std::string gcode_line;
+    bool reading_image = false;
+    unsigned int width = 0;
+    unsigned int height = 0;
+
+    wxFileDialog dialog(GetTopWindow(), _(L("Select a gcode file:")), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    std::string in_filename = into_u8(dialog.GetPath());
+    std::string out_path = boost::filesystem::path(in_filename).remove_filename().append(L"thumbnail").string();
+
+    boost::nowide::ifstream in_file(in_filename.c_str());
+    std::vector<std::string> rows;
+    std::string row;
+    if (in_file.good())
+    {
+        while (std::getline(in_file, gcode_line))
+        {
+            if (in_file.good())
+            {
+                if (boost::starts_with(gcode_line, BEGIN_MASK))
+                {
+                    reading_image = true;
+                    gcode_line = gcode_line.substr(BEGIN_MASK.length() + 1);
+                    std::string::size_type x_pos = gcode_line.find('x');
+                    std::string width_str = gcode_line.substr(0, x_pos);
+                    width = (unsigned int)::atoi(width_str.c_str());
+                    std::string height_str = gcode_line.substr(x_pos + 1);
+                    height = (unsigned int)::atoi(height_str.c_str());
+                    row.clear();
+                }
+                else if (reading_image && boost::starts_with(gcode_line, END_MASK))
+                {
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                    std::string out_filename = out_path + std::to_string(width) + "x" + std::to_string(height) + ".png";
+                    boost::nowide::ofstream out_file(out_filename.c_str(), std::ios::binary);
+                    if (out_file.good())
+                    {
+                        std::string decoded = boost::beast::detail::base64_decode(row);
+                        out_file.write(decoded.c_str(), decoded.length());
+                        out_file.close();
+                    }
+#else
+                    if (!row.empty())
+                    {
+                        rows.push_back(row);
+                        row.clear();
+                    }
+
+                    if ((unsigned int)rows.size() == height)
+                    {
+                        std::vector<unsigned char> thumbnail(4 * width * height, 0);
+                        for (unsigned int r = 0; r < (unsigned int)rows.size(); ++r)
+                        {
+                            std::string decoded_row = boost::beast::detail::base64_decode(rows[r]);
+                            if ((unsigned int)decoded_row.length() == width * 4)
+                            {
+                                void* image_ptr = (void*)(thumbnail.data() + r * width * 4);
+                                ::memcpy(image_ptr, (const void*)decoded_row.c_str(), width * 4);
+                            }
+                        }
+
+                        wxImage image(width, height);
+                        image.InitAlpha();
+
+                        for (unsigned int r = 0; r < height; ++r)
+                        {
+                            unsigned int rr = r * width;
+                            for (unsigned int c = 0; c < width; ++c)
+                            {
+                                unsigned char* px = thumbnail.data() + 4 * (rr + c);
+                                image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+                                image.SetAlpha((int)c, (int)r, px[3]);
+                            }
+                        }
+
+                        image.SaveFile(out_path + std::to_string(width) + "x" + std::to_string(height) + ".png", wxBITMAP_TYPE_PNG);
+                    }
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+
+                    reading_image = false;
+                    width = 0;
+                    height = 0;
+                    rows.clear();
+                }
+                else if (reading_image)
+                {
+#if !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                    if (!row.empty() && (gcode_line[1] == ' '))
+                    {
+                        rows.push_back(row);
+                        row.clear();
+                    }
+#endif // !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+
+                    row += gcode_line.substr(2);
+                }
+            }
+        }
+
+        in_file.close();
+    }
+}
+#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
+
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
@@ -1103,6 +1244,24 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
     if (window->GetScreenRect() != metrics.get_rect()) {
         window->SetSize(metrics.get_rect());
     }
+}
+
+bool GUI_App::config_wizard_startup()
+{
+    if (!app_conf_exists || preset_bundle->printers.size() <= 1) {
+        run_wizard(ConfigWizard::RR_DATA_EMPTY);
+        return true;
+    } else if (get_app_config()->legacy_datadir()) {
+        // Looks like user has legacy pre-vendorbundle data directory,
+        // explain what this is and run the wizard
+
+        MsgDataLegacy dlg;
+        dlg.ShowModal();
+
+        run_wizard(ConfigWizard::RR_DATA_LEGACY);
+        return true;
+    }
+    return false;
 }
 
 // static method accepting a wxWindow object as first parameter

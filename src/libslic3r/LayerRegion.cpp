@@ -70,7 +70,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         fill_surfaces
     );
     
-    if (this->layer()->lower_layer != NULL)
+    if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->slices;
     
@@ -88,7 +88,6 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
-    const Surfaces &surfaces   = this->fill_surfaces.surfaces;
     const bool      has_infill = this->region()->config().fill_density.value > 0.;
     const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
 
@@ -130,7 +129,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     bridges.emplace_back(surface);
             }
             if (surface.is_internal()) {
-            	assert(surface.surface_type == stInternal);
+            	assert(surface.surface_type == stInternal || surface.surface_type == stInternalSolid);
             	if (! has_infill && lower_layer != nullptr)
             		polygons_append(voids, surface.expolygon);
             	internal.emplace_back(std::move(surface));
@@ -140,7 +139,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         	// Remove voids from fill_boundaries, that are not supported by the layer below.
             if (lower_layer_covered == nullptr) {
             	lower_layer_covered = &lower_layer_covered_tmp;
-            	lower_layer_covered_tmp = to_polygons(lower_layer->slices.expolygons);
+            	lower_layer_covered_tmp = to_polygons(lower_layer->slices);
             }
             if (! lower_layer_covered->empty())
             	voids = diff(voids, *lower_layer_covered);
@@ -272,7 +271,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->config().support_material) {
                         polygons_append(this->bridged, bd.coverage());
-                        this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
+                        append(this->unsupported_bridge_edges, bd.unsupported_edges());
                     }
 				} else if (custom_angle > 0) {
 					// Bridge was not detected (likely it is only supported at one side). Still it is a surface filled in

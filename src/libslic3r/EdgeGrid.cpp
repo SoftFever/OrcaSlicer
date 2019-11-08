@@ -46,11 +46,29 @@ void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 			++ ncontours;
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	for (size_t j = 0; j < polygons.size(); ++ j)
 		if (! polygons[j].points.empty())
-			m_contours[ncontours++] = &polygons[j].points;
+			m_contours[ncontours ++] = &polygons[j].points;
+
+	create_from_m_contours(resolution);
+}
+
+void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution)
+{
+	// Count the contours.
+	size_t ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j].empty())
+			++ ncontours;
+
+	// Collect the contours.
+	m_contours.assign(ncontours, nullptr);
+	ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j].empty())
+			m_contours[ncontours ++] = &polygons[j];
 
 	create_from_m_contours(resolution);
 }
@@ -66,7 +84,7 @@ void EdgeGrid::Grid::create(const ExPolygon &expoly, coord_t resolution)
 			++ ncontours;
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	if (! expoly.contour.points.empty())
 		m_contours[ncontours++] = &expoly.contour.points;
@@ -91,7 +109,7 @@ void EdgeGrid::Grid::create(const ExPolygons &expolygons, coord_t resolution)
 	}
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	for (size_t i = 0; i < expolygons.size(); ++ i) {
 		const ExPolygon &expoly = expolygons[i];
@@ -113,6 +131,7 @@ void EdgeGrid::Grid::create(const ExPolygonCollection &expolygons, coord_t resol
 // m_contours has been initialized. Now fill in the edge grid.
 void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 {
+	assert(resolution > 0);
 	// 1) Measure the bounding box.
 	for (size_t i = 0; i < m_contours.size(); ++ i) {
 		const Slic3r::Points &pts = *m_contours[i];
@@ -281,7 +300,11 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 		Visitor(std::vector<std::pair<size_t, size_t>> &cell_data, std::vector<Cell> &cells, size_t cols) :
 			cell_data(cell_data), cells(cells), cols(cols), i(0), j(0) {}
 
-		void operator()(coord_t iy, coord_t ix) { cell_data[cells[iy*cols + ix].end++] = std::pair<size_t, size_t>(i, j); }
+		inline bool operator()(coord_t iy, coord_t ix) {
+			cell_data[cells[iy*cols + ix].end++] = std::pair<size_t, size_t>(i, j);
+			// Continue traversing the grid along the edge.
+			return true;
+		}
 
 		std::vector<std::pair<size_t, size_t>> &cell_data;
 		std::vector<Cell> 					   &cells;
@@ -1017,8 +1040,139 @@ float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
 
 	return f;
 }
- 
-bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment) const {
+
+EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt, coord_t search_radius) const 
+{
+	BoundingBox bbox;
+	bbox.min = bbox.max = Point(pt(0) - m_bbox.min(0), pt(1) - m_bbox.min(1));
+	bbox.defined = true;
+	// Upper boundary, round to grid and test validity.
+	bbox.max(0) += search_radius;
+	bbox.max(1) += search_radius;
+	ClosestPointResult result;
+	if (bbox.max(0) < 0 || bbox.max(1) < 0)
+		return result;
+	bbox.max(0) /= m_resolution;
+	bbox.max(1) /= m_resolution;
+	if ((size_t)bbox.max(0) >= m_cols)
+		bbox.max(0) = m_cols - 1;
+	if ((size_t)bbox.max(1) >= m_rows)
+		bbox.max(1) = m_rows - 1;
+	// Lower boundary, round to grid and test validity.
+	bbox.min(0) -= search_radius;
+	bbox.min(1) -= search_radius;
+	if (bbox.min(0) < 0)
+		bbox.min(0) = 0;
+	if (bbox.min(1) < 0)
+		bbox.min(1) = 0;
+	bbox.min(0) /= m_resolution;
+	bbox.min(1) /= m_resolution;
+	// Is the interval empty?
+	if (bbox.min(0) > bbox.max(0) ||
+		bbox.min(1) > bbox.max(1))
+		return result;
+	// Traverse all cells in the bounding box.
+	double d_min = double(search_radius);
+	// Signum of the distance field at pt.
+	int sign_min = 0;
+	double l2_seg_min = 1.;
+	for (int r = bbox.min(1); r <= bbox.max(1); ++ r) {
+		for (int c = bbox.min(0); c <= bbox.max(0); ++ c) {
+			const Cell &cell = m_cells[r * m_cols + c];
+			for (size_t i = cell.begin; i < cell.end; ++ i) {
+				const size_t          contour_idx = m_cell_data[i].first;
+				const Slic3r::Points &pts         = *m_contours[contour_idx];
+				size_t ipt = m_cell_data[i].second;
+				// End points of the line segment.
+				const Slic3r::Point &p1 = pts[ipt];
+				const Slic3r::Point &p2 = pts[(ipt + 1 == pts.size()) ? 0 : ipt + 1];
+				const Slic3r::Point v_seg = p2 - p1;
+				const Slic3r::Point v_pt  = pt - p1;
+				// dot(p2-p1, pt-p1)
+				int64_t t_pt = int64_t(v_seg(0)) * int64_t(v_pt(0)) + int64_t(v_seg(1)) * int64_t(v_pt(1));
+				// l2 of seg
+				int64_t l2_seg = int64_t(v_seg(0)) * int64_t(v_seg(0)) + int64_t(v_seg(1)) * int64_t(v_seg(1));
+				if (t_pt < 0) {
+					// Closest to p1.
+					double dabs = sqrt(int64_t(v_pt(0)) * int64_t(v_pt(0)) + int64_t(v_pt(1)) * int64_t(v_pt(1)));
+					if (dabs < d_min) {
+						// Previous point.
+						const Slic3r::Point &p0 = pts[(ipt == 0) ? (pts.size() - 1) : ipt - 1];
+						Slic3r::Point v_seg_prev = p1 - p0;
+						int64_t t2_pt = int64_t(v_seg_prev(0)) * int64_t(v_pt(0)) + int64_t(v_seg_prev(1)) * int64_t(v_pt(1));
+						if (t2_pt > 0) {
+							// Inside the wedge between the previous and the next segment.
+							d_min = dabs;
+							// Set the signum depending on whether the vertex is convex or reflex.
+							int64_t det = int64_t(v_seg_prev(0)) * int64_t(v_seg(1)) - int64_t(v_seg_prev(1)) * int64_t(v_seg(0));
+							assert(det != 0);
+							sign_min = (det > 0) ? 1 : -1;
+							result.contour_idx = contour_idx;
+							result.start_point_idx = ipt;
+							result.t = 0.;
+#ifndef NDEBUG
+							Vec2d vfoot = (p1 - pt).cast<double>();
+							double dist_foot = vfoot.norm();
+							double dist_foot_err = dist_foot - d_min;
+							assert(std::abs(dist_foot_err) < 1e-7 * d_min);
+#endif /* NDEBUG */
+						}
+					}
+				}
+				else if (t_pt > l2_seg) {
+					// Closest to p2. Then p2 is the starting point of another segment, which shall be discovered in the same cell.
+					continue;
+				} else {
+					// Closest to the segment.
+					assert(t_pt >= 0 && t_pt <= l2_seg);
+					int64_t d_seg = int64_t(v_seg(1)) * int64_t(v_pt(0)) - int64_t(v_seg(0)) * int64_t(v_pt(1));
+					double d = double(d_seg) / sqrt(double(l2_seg));
+					double dabs = std::abs(d);
+					if (dabs < d_min) {
+						d_min = dabs;
+						sign_min = (d_seg < 0) ? -1 : ((d_seg == 0) ? 0 : 1);
+						l2_seg_min = l2_seg;
+						result.contour_idx = contour_idx;
+						result.start_point_idx = ipt;
+						result.t = t_pt;
+#ifndef NDEBUG
+						Vec2d foot = p1.cast<double>() * (1. - result.t / l2_seg_min) + p2.cast<double>() * (result.t / l2_seg_min);
+						Vec2d vfoot = foot - pt.cast<double>();
+						double dist_foot = vfoot.norm();
+						double dist_foot_err = dist_foot - d_min;
+						assert(std::abs(dist_foot_err) < 1e-7 || std::abs(dist_foot_err) < 1e-7 * d_min);
+#endif /* NDEBUG */
+					}
+				}
+			}
+		}
+	}
+	if (result.contour_idx != -1 && d_min <= double(search_radius)) {
+		result.distance = d_min * sign_min;
+		result.t /= l2_seg_min;
+		assert(result.t >= 0. && result.t < 1.);
+#ifndef NDEBUG
+		{
+			const Slic3r::Points &pts = *m_contours[result.contour_idx];
+			const Slic3r::Point  &p1  = pts[result.start_point_idx];
+			const Slic3r::Point  &p2  = pts[(result.start_point_idx + 1 == pts.size()) ? 0 : result.start_point_idx + 1];
+			Vec2d vfoot;
+			if (result.t == 0)
+				vfoot = p1.cast<double>() - pt.cast<double>();
+			else
+				vfoot = p1.cast<double>() * (1. - result.t) + p2.cast<double>() * result.t - pt.cast<double>();
+			double dist_foot = vfoot.norm();
+			double dist_foot_err = dist_foot - std::abs(result.distance);
+			assert(std::abs(dist_foot_err) < 1e-7 || std::abs(dist_foot_err) < 1e-7 * std::abs(result.distance));
+		}
+#endif /* NDEBUG */
+	} else
+		result = ClosestPointResult();
+	return result;
+}
+
+bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment) const 
+{
 	BoundingBox bbox;
 	bbox.min = bbox.max = Point(pt(0) - m_bbox.min(0), pt(1) - m_bbox.min(1));
 	bbox.defined = true;
@@ -1047,7 +1201,7 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 		bbox.min(1) > bbox.max(1))
 		return false;
 	// Traverse all cells in the bounding box.
-	float d_min = search_radius;
+	double d_min = double(search_radius);
 	// Signum of the distance field at pt.
 	int sign_min = 0;
 	bool on_segment = false;

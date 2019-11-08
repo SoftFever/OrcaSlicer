@@ -23,7 +23,7 @@ std::vector<unsigned char> GCodePreviewData::Color::as_bytes() const
     return ret;
 }
 
-GCodePreviewData::Extrusion::Layer::Layer(float z, const ExtrusionPaths& paths)
+GCodePreviewData::Extrusion::Layer::Layer(float z, const Paths& paths)
     : z(z)
     , paths(paths)
 {
@@ -171,8 +171,8 @@ size_t GCodePreviewData::Extrusion::memory_used() const
     size_t out = sizeof(*this);
     out += SLIC3R_STDVEC_MEMSIZE(this->layers, Layer);
     for (const Layer &layer : this->layers) {
-        out += SLIC3R_STDVEC_MEMSIZE(layer.paths, ExtrusionPath);
-        for (const ExtrusionPath &path : layer.paths)
+        out += SLIC3R_STDVEC_MEMSIZE(layer.paths, Path);
+        for (const Path &path : layer.paths)
 			out += SLIC3R_STDVEC_MEMSIZE(path.polyline.points, Point);
     }
 	return out;
@@ -241,6 +241,7 @@ void GCodePreviewData::set_default()
     ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.fan_speed.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
     ::memcpy((void*)ranges.volumetric_rate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
 
     extrusion.set_default();
@@ -285,6 +286,11 @@ GCodePreviewData::Color GCodePreviewData::get_width_color(float width) const
 GCodePreviewData::Color GCodePreviewData::get_feedrate_color(float feedrate) const
 {
     return ranges.feedrate.get_color_at(feedrate);
+}
+
+GCodePreviewData::Color GCodePreviewData::get_fan_speed_color(float fan_speed) const
+{
+    return ranges.fan_speed.get_color_at(fan_speed);
 }
 
 GCodePreviewData::Color GCodePreviewData::get_volumetric_rate_color(float rate) const
@@ -358,6 +364,8 @@ std::string GCodePreviewData::get_legend_title() const
         return L("Width (mm)");
     case Extrusion::Feedrate:
         return L("Speed (mm/s)");
+    case Extrusion::FanSpeed:
+        return L("Fan Speed (%)");
     case Extrusion::VolumetricRate:
         return L("Volumetric flow rate (mm³/s)");
     case Extrusion::Tool:
@@ -419,6 +427,11 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
     case Extrusion::Feedrate:
         {
             Helper::FillListFromRange(items, ranges.feedrate, 1, 1.0f);
+            break;
+        }
+    case Extrusion::FanSpeed:
+        {
+            Helper::FillListFromRange(items, ranges.fan_speed, 0, 1.0f);
             break;
         }
     case Extrusion::VolumetricRate:

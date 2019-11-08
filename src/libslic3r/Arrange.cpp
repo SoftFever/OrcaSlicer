@@ -375,7 +375,7 @@ public:
         
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
-            itm.markAsFixed();
+            itm.markAsFixedInBin(itm.binId());
         }
 
         m_pck.configure(m_pconf);

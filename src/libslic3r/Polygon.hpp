@@ -13,15 +13,17 @@ namespace Slic3r {
 class Polygon;
 typedef std::vector<Polygon> Polygons;
 
-class Polygon : public MultiPoint {
+class Polygon : public MultiPoint
+{
 public:
-    operator Polygons() const;
-    operator Polyline() const;
-    Point& operator[](Points::size_type idx);
-    const Point& operator[](Points::size_type idx) const;
-    
+    operator Polygons() const { Polygons pp; pp.push_back(*this); return pp; }
+    operator Polyline() const { return this->split_at_first_point(); }
+    Point& operator[](Points::size_type idx) { return this->points[idx]; }
+    const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
+
     Polygon() {}
-    explicit Polygon(const Points &points): MultiPoint(points) {}
+    explicit Polygon(const Points &points) : MultiPoint(points) {}
+	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
 	static Polygon new_scale(const std::vector<Vec2d> &points) { 
@@ -34,20 +36,24 @@ public:
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
 
-    Point last_point() const;
+    // last point == first point for polygons
+    const Point& last_point() const override { return this->points.front(); }
+
     virtual Lines lines() const;
     Polyline split_at_vertex(const Point &point) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_index(int index) const;
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
-    Polyline split_at_first_point() const;
-    Points equally_spaced_points(double distance) const;
+    Polyline split_at_first_point() const { return this->split_at_index(0); }
+    Points   equally_spaced_points(double distance) const { return this->split_at_first_point().equally_spaced_points(distance); }
+
     double area() const;
     bool is_counter_clockwise() const;
     bool is_clockwise() const;
     bool make_counter_clockwise();
     bool make_clockwise();
-    bool is_valid() const;
+    bool is_valid() const { return this->points.size() >= 3; }
+
     // Does an unoriented polygon contain a point?
     // Tested by counting intersections along a horizontal line.
     bool contains(const Point &point) const;
@@ -61,6 +67,10 @@ public:
     Point point_projection(const Point &point) const;
 };
 
+inline bool operator==(const Polygon &lhs, const Polygon &rhs) { return lhs.points == rhs.points; }
+inline bool operator!=(const Polygon &lhs, const Polygon &rhs) { return lhs.points != rhs.points; }
+
+extern BoundingBox get_extents(const Points &points);
 extern BoundingBox get_extents(const Polygon &poly);
 extern BoundingBox get_extents(const Polygons &polygons);
 extern BoundingBox get_extents_rotated(const Polygon &poly, double angle);
@@ -81,6 +91,8 @@ extern bool        remove_sticks(Polygons &polys);
 // Remove polygons with less than 3 edges.
 extern bool        remove_degenerate(Polygons &polys);
 extern bool        remove_small(Polygons &polys, double min_area);
+extern void 	   remove_collinear(Polygon &poly);
+extern void 	   remove_collinear(Polygons &polys);
 
 // Append a vector of polygons at the end of another vector of polygons.
 inline void        polygons_append(Polygons &dst, const Polygons &src) { dst.insert(dst.end(), src.begin(), src.end()); }
@@ -93,6 +105,15 @@ inline void        polygons_append(Polygons &dst, Polygons &&src)
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
         src.clear();
     }
+}
+
+inline Polygons polygons_simplify(const Polygons &polys, double tolerance)
+{
+	Polygons out;
+	out.reserve(polys.size());
+	for (const Polygon &p : polys)
+		polygons_append(out, p.simplify(tolerance));
+	return out;
 }
 
 inline void polygons_rotate(Polygons &polys, double angle)

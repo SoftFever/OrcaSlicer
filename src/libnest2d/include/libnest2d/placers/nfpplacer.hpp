@@ -1122,8 +1122,6 @@ private:
         sl::rotate(sh, item.rotation());
         
         Box bb = sl::boundingBox(sh);
-        bb.minCorner() += item.translation();
-        bb.maxCorner() += item.translation();
         
         Vertex ci, cb;
         auto bbin = sl::boundingBox(bin_);

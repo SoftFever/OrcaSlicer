@@ -3,6 +3,9 @@
 #include "../Utils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "../GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include "../I18N.hpp"
 
@@ -31,7 +34,8 @@ namespace pt = boost::property_tree;
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
-const unsigned int VERSION_3MF = 1;
+// 2 : Meshes saved in their local system; Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file.
+const unsigned int VERSION_3MF = 2;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
 const std::string MODEL_FOLDER = "3D/";
@@ -39,6 +43,9 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
+#if ENABLE_THUMBNAIL_GENERATOR
+const std::string THUMBNAIL_FILE = "Metadata/thumbnail.png";
+#endif // ENABLE_THUMBNAIL_GENERATOR
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
@@ -87,6 +94,13 @@ const char* VOLUME_TYPE = "volume";
 const char* NAME_KEY = "name";
 const char* MODIFIER_KEY = "modifier";
 const char* VOLUME_TYPE_KEY = "volume_type";
+const char* MATRIX_KEY = "matrix";
+const char* SOURCE_FILE_KEY = "source_file";
+const char* SOURCE_OBJECT_ID_KEY = "source_object_id";
+const char* SOURCE_VOLUME_ID_KEY = "source_volume_id";
+const char* SOURCE_OFFSET_X_KEY = "source_offset_x";
+const char* SOURCE_OFFSET_Y_KEY = "source_offset_y";
+const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -148,11 +162,15 @@ bool get_attribute_value_bool(const char** attributes, unsigned int attributes_s
     return (text != nullptr) ? (bool)::atoi(text) : true;
 }
 
-Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
+Slic3r::Transform3d get_transform_from_3mf_specs_string(const std::string& mat_str)
 {
+    // check: https://3mf.io/3d-manufacturing-format/ or https://github.com/3MFConsortium/spec_core/blob/master/3MF%20Core%20Specification.md
+    // to see how matrices are stored inside 3mf according to specifications
+    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
+
     if (mat_str.empty())
         // empty string means default identity matrix
-        return Slic3r::Transform3d::Identity();
+        return ret;
 
     std::vector<std::string> mat_elements_str;
     boost::split(mat_elements_str, mat_str, boost::is_any_of(" "), boost::token_compress_on);
@@ -160,9 +178,8 @@ Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
     unsigned int size = (unsigned int)mat_elements_str.size();
     if (size != 12)
         // invalid data, return identity matrix
-        return Slic3r::Transform3d::Identity();
+        return ret;
 
-    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
     unsigned int i = 0;
     // matrices are stored into 3mf files as 4x3
     // we need to transpose them
@@ -1375,7 +1392,7 @@ namespace Slic3r {
     bool _3MF_Importer::_handle_start_component(const char** attributes, unsigned int num_attributes)
     {
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
-        Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        Transform3d transform = get_transform_from_3mf_specs_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
         IdToModelObjectMap::iterator object_item = m_objects.find(object_id);
         if (object_item == m_objects.end())
@@ -1421,7 +1438,7 @@ namespace Slic3r {
         // see specifications
 
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
-        Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        Transform3d transform = get_transform_from_3mf_specs_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
         int printable = get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
 
         return _create_object_instance(object_id, transform, printable, 1);
@@ -1634,6 +1651,21 @@ namespace Slic3r {
                 return false;
             }
 
+            Slic3r::Geometry::Transformation transform;
+            if (m_version > 1)
+            {
+                // extract the volume transformation from the volume's metadata, if present
+                for (const Metadata& metadata : volume_data.metadata)
+                {
+                    if (metadata.key == MATRIX_KEY)
+                    {
+                        transform.set_from_string(metadata.value);
+                        break;
+                    }
+                }
+            }
+            Transform3d inv_matrix = transform.get_matrix().inverse();
+
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
             stl_file    &stl             = triangle_mesh.stl;
@@ -1651,7 +1683,12 @@ namespace Slic3r {
                 stl_facet& facet = stl.facet_start[i];
                 for (unsigned int v = 0; v < 3; ++v)
                 {
-                    ::memcpy(facet.vertex[v].data(), (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
+                    unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
+                    Vec3f vertex(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
+                    if (m_version > 1)
+                        // revert the vertices to the original mesh reference system
+                        vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
+                    ::memcpy(facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
                 }
             }
 
@@ -1659,10 +1696,12 @@ namespace Slic3r {
 			triangle_mesh.repair();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
-            volume->center_geometry_after_creation();
+            // apply the volume matrix taken from the metadata, if present
+            if (m_version > 1)
+                volume->set_transformation(transform);
             volume->calculate_convex_hull();
 
-            // apply volume's name and config data
+            // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata)
             {
                 if (metadata.key == NAME_KEY)
@@ -1671,6 +1710,18 @@ namespace Slic3r {
 					volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
                 else if (metadata.key == VOLUME_TYPE_KEY)
                     volume->set_type(ModelVolume::type_from_string(metadata.value));
+                else if (metadata.key == SOURCE_FILE_KEY)
+                    volume->source.input_file = metadata.value;
+                else if (metadata.key == SOURCE_OBJECT_ID_KEY)
+                    volume->source.object_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_VOLUME_ID_KEY)
+                    volume->source.volume_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_X_KEY)
+                    volume->source.mesh_offset(0) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Y_KEY)
+                    volume->source.mesh_offset(1) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Z_KEY)
+                    volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
@@ -1761,11 +1812,22 @@ namespace Slic3r {
         typedef std::map<int, ObjectData> IdToObjectDataMap;
 
     public:
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data = nullptr);
+#else
         bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     private:
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data);
+#else
         bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
+#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(mz_zip_archive& archive, const Model& model, IdToObjectDataMap &objects_data);
         bool _add_object_to_model_stream(std::stringstream& stream, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
@@ -1778,13 +1840,25 @@ namespace Slic3r {
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
     };
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
+    {
+        clear_errors();
+        return _save_model_to_file(filename, model, config, thumbnail_data);
+    }
+#else
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
     {
         clear_errors();
         return _save_model_to_file(filename, model, config);
     }
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
+#else
     bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
+#endif // ENABLE_THUMBNAIL_GENERATOR
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -1802,6 +1876,19 @@ namespace Slic3r {
             boost::filesystem::remove(filename);
             return false;
         }
+
+#if ENABLE_THUMBNAIL_GENERATOR
+        if ((thumbnail_data != nullptr) && thumbnail_data->is_valid())
+        {
+            // Adds the file Metadata/thumbnail.png.
+            if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data))
+            {
+                close_zip_writer(&archive);
+                boost::filesystem::remove(filename);
+                return false;
+            }
+        }
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
         // Adds relationships file ("_rels/.rels"). 
         // The content of this file is the same for each PrusaSlicer 3mf.
@@ -1896,6 +1983,9 @@ namespace Slic3r {
         stream << "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n";
         stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\" />\n";
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\" />\n";
+#if ENABLE_THUMBNAIL_GENERATOR
+        stream << " <Default Extension=\"png\" ContentType=\"image/png\" />\n";
+#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -1909,12 +1999,35 @@ namespace Slic3r {
         return true;
     }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    bool _3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data)
+    {
+        bool res = false;
+
+        size_t png_size = 0;
+        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+        if (png_data != nullptr)
+        {
+            res = mz_zip_writer_add_mem(&archive, THUMBNAIL_FILE.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
+            mz_free(png_data);
+        }
+
+        if (!res)
+            add_error("Unable to add thumbnail file to archive");
+
+        return res;
+    }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
     bool _3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive)
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
         stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" />\n";
+#if ENABLE_THUMBNAIL_GENERATOR
+        stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\" />\n";
+#endif // ENABLE_THUMBNAIL_GENERATOR
         stream << "</Relationships>";
 
         std::string out = stream.str();
@@ -2116,7 +2229,7 @@ namespace Slic3r {
 
         for (const BuildItem& item : build_items)
         {
-            stream << "  <" << ITEM_TAG << " objectid=\"" << item.id << "\" transform =\"";
+            stream << "  <" << ITEM_TAG << " " << OBJECTID_ATTR << "=\"" << item.id << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c)
             {
                 for (unsigned r = 0; r < 3; ++r)
@@ -2126,7 +2239,7 @@ namespace Slic3r {
                         stream << " ";
                 }
             }
-            stream << "\" printable =\"" << item.printable << "\" />\n";
+            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\" />\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
@@ -2344,6 +2457,31 @@ namespace Slic3r {
                             stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << VOLUME_TYPE_KEY << "\" " << 
                                 VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";
 
+                            // stores volume's local matrix
+                            stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
+                            const Transform3d& matrix = volume->get_matrix();
+                            for (int r = 0; r < 4; ++r)
+                            {
+                                for (int c = 0; c < 4; ++c)
+                                {
+                                    stream << matrix(r, c);
+                                    if ((r != 3) || (c != 3))
+                                        stream << " ";
+                                }
+                            }
+                            stream << "\"/>\n";
+
+                            // stores volume's source data
+                            if (!volume->source.input_file.empty())
+                            {
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->source.input_file) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_X_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Y_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_Z_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
+                            }
+
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())
                             {
@@ -2383,13 +2521,21 @@ namespace Slic3r {
         return res;
     }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+    bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
+#else
     bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config)
+#endif // ENABLE_THUMBNAIL_GENERATOR
     {
         if ((path == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Exporter exporter;
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool res = exporter.save_model_to_file(path, *model, config, thumbnail_data);
+#else
         bool res = exporter.save_model_to_file(path, *model, config);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
         if (!res)
             exporter.log_errors();

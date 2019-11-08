@@ -30,6 +30,9 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 class GCodePreviewData;
+#if ENABLE_THUMBNAIL_GENERATOR
+struct ThumbnailData;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 class AvoidCrossingPerimeters {
 public:
@@ -162,7 +165,11 @@ public:
 
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
+#if ENABLE_THUMBNAIL_GENERATOR
+    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, const std::vector<ThumbnailData>* thumbnail_data = nullptr);
+#else
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
     const Vec2d&    origin() const { return m_origin; }
@@ -190,7 +197,11 @@ public:
     static void append_full_config(const Print& print, std::string& str);
 
 protected:
+#if ENABLE_THUMBNAIL_GENERATOR
+    void            _do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data);
+#else
     void            _do_export(Print &print, FILE *file);
+#endif //ENABLE_THUMBNAIL_GENERATOR
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint
@@ -202,7 +213,7 @@ protected:
         const PrintObject*    object() const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
         coordf_t              print_z() const { return (object_layer != nullptr && support_layer != nullptr) ? 0.5 * (object_layer->print_z + support_layer->print_z) : this->layer()->print_z; }
     };
-    static std::vector<GCode::LayerToPrint>                            collect_layers_to_print(const PrintObject &object);
+    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
     void            process_layer(
         // Write into the output file.
@@ -210,7 +221,9 @@ protected:
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
         const std::vector<LayerToPrint> &layers,
-        const LayerTools  &layer_tools,
+        const LayerTools  				&layer_tools,
+		// Pairs of PrintObject index and its instance index.
+		const std::vector<std::pair<size_t, size_t>> *ordering,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1));
@@ -258,6 +271,25 @@ protected:
         std::vector<Island>         islands;
     };
 
+	struct InstanceToPrint
+	{
+		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id) :
+			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id) {}
+
+		ObjectByExtruder	&object_by_extruder;
+		const size_t       		 layer_id;
+		const PrintObject 		&print_object;
+		// Instance idx of the copy of a print object.
+		const size_t			 instance_id;
+	};
+
+	std::vector<InstanceToPrint> sort_print_object_instances(
+		std::vector<ObjectByExtruder> 			&objects_by_extruder,
+		const std::vector<LayerToPrint> 				&layers,
+		// Ordering must be defined for normal (non-sequential print).
+		const std::vector<std::pair<size_t, size_t>> 	*ordering,
+		// For sequential print, the instance of the object to be printing has to be defined.
+		const size_t                     				 single_object_instance_idx);
 
     std::string     extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, std::unique_ptr<EdgeGrid::Grid> &lower_layer_edge_grid);
     std::string     extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region);

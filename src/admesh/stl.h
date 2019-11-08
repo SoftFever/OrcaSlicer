@@ -90,7 +90,7 @@ struct stl_neighbors {
 
 struct stl_stats {
     stl_stats() { memset(&header, 0, 81); }
-    char          header[81];//                = "";
+    char          header[81];
     stl_type      type                      = (stl_type)0;
     uint32_t      number_of_facets          = 0;
     stl_vertex    max                       = stl_vertex::Zero();

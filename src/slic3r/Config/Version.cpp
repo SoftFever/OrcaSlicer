@@ -235,9 +235,9 @@ size_t Index::load(const boost::filesystem::path &path)
 			value = left_trim(value + 1);
 		*key_end = 0;
     	boost::optional<Semver> semver;
-    	if (maybe_semver)
+        if (maybe_semver)
     		semver = Semver::parse(key);
-		if (key_value_pair) {
+        if (key_value_pair) {
     		if (semver)
     			throw file_parser_error("Key cannot be a semantic version", path, idx_line);\
     		// Verify validity of the key / value pair.
@@ -288,7 +288,6 @@ Index::const_iterator Index::find(const Semver &ver) const
 
 Index::const_iterator Index::recommended() const
 {
-	int idx = -1;
 	const_iterator highest = this->end();
 	for (const_iterator it = this->begin(); it != this->end(); ++ it)
 		if (it->is_current_slic3r_supported() &&

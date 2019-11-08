@@ -7,6 +7,7 @@
 #include "Flow.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
+#include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
@@ -142,10 +143,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "use_relative_e_distances",
         "use_volumetric_e",
         "variable_layer_height",
-        "wipe",
-        "wipe_tower_x",
-        "wipe_tower_y",
-        "wipe_tower_rotation_angle"
+        "wipe"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -166,7 +164,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "skirt_height"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
-            || opt_key == "ooze_prevention") {
+            || opt_key == "ooze_prevention"
+            || opt_key == "wipe_tower_x"
+            || opt_key == "wipe_tower_y"
+            || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirt);
         } else if (opt_key == "brim_width") {
             steps.emplace_back(psBrim);
@@ -207,6 +208,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "extra_loading_move"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
+            steps.emplace_back(psSkirt);
         } else if (
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
@@ -325,17 +327,6 @@ unsigned int Print::num_object_instances() const
     for (const PrintObject *print_object : m_objects)
         instances += (unsigned int)print_object->copies().size();
     return instances;
-}
-
-void Print::_simplify_slices(double distance)
-{
-    for (PrintObject *object : m_objects) {
-        for (Layer *layer : object->m_layers) {
-            layer->slices.simplify(distance);
-            for (LayerRegion *layerm : layer->regions())
-                layerm->slices.simplify(distance);
-        }
-    }
 }
 
 double Print::max_allowed_layer_height() const
@@ -1113,6 +1104,9 @@ std::string Print::validate() const
     if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
+    if (extruders().empty())
+        return L("The supplied settings will cause an empty print.");
+
     if (m_config.complete_objects) {
         // Check horizontal clearance.
         {
@@ -1193,6 +1187,8 @@ std::string Print::validate() const
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
+        if (m_config.use_volumetric_e)
+            return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1270,10 +1266,7 @@ std::string Print::validate() const
     }
     
 	{
-		// find the smallest nozzle diameter
 		std::vector<unsigned int> extruders = this->extruders();
-		if (extruders.empty())
-			return L("The supplied settings will cause an empty print.");
 
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
 		double min_nozzle_diameter = std::numeric_limits<double>::max();
@@ -1512,6 +1505,14 @@ void Print::process()
         obj->infill();
     for (PrintObject *obj : m_objects)
         obj->generate_support_material();
+    if (this->set_started(psWipeTower)) {
+        m_wipe_tower_data.clear();
+        if (this->has_wipe_tower()) {
+            //this->set_status(95, L("Generating wipe tower"));
+            this->_make_wipe_tower();
+        }
+        this->set_done(psWipeTower);
+    }
     if (this->set_started(psSkirt)) {
         m_skirt.clear();
         if (this->has_skirt()) {
@@ -1528,14 +1529,6 @@ void Print::process()
         }
        this->set_done(psBrim);
     }
-    if (this->set_started(psWipeTower)) {
-        m_wipe_tower_data.clear();
-        if (this->has_wipe_tower()) {
-            //this->set_status(95, L("Generating wipe tower"));
-            this->_make_wipe_tower();
-        }
-       this->set_done(psWipeTower);
-    }
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 
@@ -1543,7 +1536,11 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
+#if ENABLE_THUMBNAIL_GENERATOR
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
@@ -1560,7 +1557,11 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
 
     // The following line may die for multiple reasons.
     GCode gcode;
+#if ENABLE_THUMBNAIL_GENERATOR
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_data);
+#else
     gcode.do_export(this, path.c_str(), preview_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
     return path.c_str();
 }
 
@@ -1592,7 +1593,7 @@ void Print::_make_skirt()
         for (const Layer *layer : object->m_layers) {
             if (layer->print_z > skirt_height_z)
                 break;
-            for (const ExPolygon &expoly : layer->slices.expolygons)
+            for (const ExPolygon &expoly : layer->slices)
                 // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
                 append(object_points, expoly.contour.points);
         }
@@ -1610,6 +1611,17 @@ void Print::_make_skirt()
                 pt += shift;
             append(points, copy_points);
         }
+    }
+
+    // Include the wipe tower.
+    if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
+        double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
+        double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
+        Vec2d pt = Vec2d(m_config.wipe_tower_x-m_wipe_tower_data.brim_width, m_config.wipe_tower_y-m_wipe_tower_data.brim_width);
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y())));
+        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y()+depth)));
+        points.push_back(Point(scale_(pt.x()), scale_(pt.y()+depth)));
     }
 
     if (points.size() < 3)
@@ -1703,7 +1715,7 @@ void Print::_make_brim()
     Polygons    islands;
     for (PrintObject *object : m_objects) {
         Polygons object_islands;
-        for (ExPolygon &expoly : object->m_layers.front()->slices.expolygons)
+        for (ExPolygon &expoly : object->m_layers.front()->slices)
             object_islands.push_back(expoly.contour);
         if (! object->support_layers().empty())
             object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
@@ -1824,8 +1836,8 @@ void Print::_make_brim()
 				[](const std::pair<const ClipperLib_Z::Path*, size_t> &l, const std::pair<const ClipperLib_Z::Path*, size_t> &r) {
 					return l.second < r.second;
 				});
-			Vec3f last_pt(0.f, 0.f, 0.f);
 
+			Point last_pt(0, 0);
 			for (size_t i = 0; i < loops_trimmed_order.size();) {
 				// Find all pieces that the initial loop was split into.
 				size_t j = i + 1;
@@ -1841,16 +1853,23 @@ void Print::_make_brim()
 		            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		            i = j;
 				} else {
-			    	//FIXME this is not optimal as the G-code generator will follow the sequence of paths verbatim without respect to minimum travel distance.
+			    	//FIXME The path chaining here may not be optimal.
+			    	ExtrusionEntityCollection this_loop_trimmed;
+					this_loop_trimmed.entities.reserve(j - i);
 			    	for (; i < j; ++ i) {
-			            m_brim.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
+			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = static_cast<ExtrusionPath*>(m_brim.entities.back())->polyline.points;
+			            Points &points = static_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
 			            	points.emplace_back(coord_t(pt.X), coord_t(pt.Y));
 		           	}
+		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
+		           	m_brim.entities.reserve(m_brim.entities.size() + this_loop_trimmed.entities.size());
+		           	append(m_brim.entities, std::move(this_loop_trimmed.entities));
+		           	this_loop_trimmed.entities.clear();
 		        }
+		        last_pt = m_brim.last_point();
 			}
 		}
     } else {
@@ -1866,6 +1885,22 @@ bool Print::has_wipe_tower() const
         m_config.wipe_tower.value && 
         m_config.nozzle_diameter.values.size() > 1;
 }
+
+const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt, double first_layer_height, double nozzle_diameter) const
+{
+    // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
+    if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
+
+        float width = m_config.wipe_tower_width;
+        float brim_spacing = nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4);
+
+        const_cast<Print*>(this)->m_wipe_tower_data.depth = (900.f/width) * float(extruders_cnt - 1);
+        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = 4.5f * brim_spacing;
+    }
+
+    return m_wipe_tower_data;
+}
+
 
 void Print::_make_wipe_tower()
 {
@@ -1975,6 +2010,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate(m_wipe_tower_data.tool_changes);
     m_wipe_tower_data.depth = wipe_tower.get_depth();
+    m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
 
     // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
@@ -2028,6 +2064,7 @@ DynamicConfig PrintStatistics::config() const
     config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament / 1000.));
     config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
     config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+    config.set_key_value("total_toolchanges",         new ConfigOptionInt(this->total_toolchanges));
     config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
     config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
     config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
@@ -2040,7 +2077,7 @@ DynamicConfig PrintStatistics::placeholders()
     for (const std::string &key : { 
         "print_time", "normal_print_time", "silent_print_time", 
         "used_filament", "extruded_volume", "total_cost", "total_weight", 
-        "total_wipe_tower_cost", "total_wipe_tower_filament"})
+        "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
     return config;
 }

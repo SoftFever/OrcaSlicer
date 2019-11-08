@@ -3,17 +3,21 @@
 #include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
 #include "Line.hpp"
-#include "PolylineCollection.hpp"
 #include "clipper.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <list>
 #include <map>
+#include <numeric>
 #include <set>
 #include <utility>
 #include <stack>
 #include <vector>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/log/trivial.hpp>
 
 #ifdef SLIC3R_DEBUG
 #include "SVG.hpp"
@@ -309,49 +313,7 @@ convex_hull(const Polygons &polygons)
     return convex_hull(std::move(pp));
 }
 
-/* accepts an arrayref of points and returns a list of indices
-   according to a nearest-neighbor walk */
-void
-chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near)
-{
-    PointConstPtrs my_points;
-    std::map<const Point*,Points::size_type> indices;
-    my_points.reserve(points.size());
-    for (Points::const_iterator it = points.begin(); it != points.end(); ++it) {
-        my_points.push_back(&*it);
-        indices[&*it] = it - points.begin();
-    }
-    
-    retval.reserve(points.size());
-    while (!my_points.empty()) {
-        Points::size_type idx = start_near.nearest_point_index(my_points);
-        start_near = *my_points[idx];
-        retval.push_back(indices[ my_points[idx] ]);
-        my_points.erase(my_points.begin() + idx);
-    }
-}
-
-void
-chained_path(const Points &points, std::vector<Points::size_type> &retval)
-{
-    if (points.empty()) return;  // can't call front() on empty vector
-    chained_path(points, retval, points.front());
-}
-
-/* retval and items must be different containers */
-template<class T>
-void
-chained_path_items(Points &points, T &items, T &retval)
-{
-    std::vector<Points::size_type> indices;
-    chained_path(points, indices);
-    for (std::vector<Points::size_type>::const_iterator it = indices.begin(); it != indices.end(); ++it)
-        retval.push_back(items[*it]);
-}
-template void chained_path_items(Points &points, ClipperLib::PolyNodes &items, ClipperLib::PolyNodes &retval);
-
-bool
-directions_parallel(double angle1, double angle2, double max_diff)
+bool directions_parallel(double angle1, double angle2, double max_diff)
 {
     double diff = fabs(angle1 - angle2);
     max_diff += EPSILON;
@@ -359,8 +321,7 @@ directions_parallel(double angle1, double angle2, double max_diff)
 }
 
 template<class T>
-bool
-contains(const std::vector<T> &vector, const Point &point)
+bool contains(const std::vector<T> &vector, const Point &point)
 {
     for (typename std::vector<T>::const_iterator it = vector.begin(); it != vector.end(); ++it) {
         if (it->contains(point)) return true;
@@ -369,16 +330,101 @@ contains(const std::vector<T> &vector, const Point &point)
 }
 template bool contains(const ExPolygons &vector, const Point &point);
 
-double
-rad2deg_dir(double angle)
+double rad2deg_dir(double angle)
 {
     angle = (angle < PI) ? (-angle + PI/2.0) : (angle + PI/2.0);
     if (angle < 0) angle += PI;
     return rad2deg(angle);
 }
 
-void
-simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
+Point circle_taubin_newton(const Points::const_iterator& input_begin, const Points::const_iterator& input_end, size_t cycles)
+{
+    Vec2ds tmp;
+    tmp.reserve(std::distance(input_begin, input_end));
+    std::transform(input_begin, input_end, std::back_inserter(tmp), [] (const Point& in) { return unscale(in); } );
+    Vec2d center = circle_taubin_newton(tmp.cbegin(), tmp.end(), cycles);
+	return Point::new_scale(center.x(), center.y());
+}
+
+/// Adapted from work in "Circular and Linear Regression: Fitting circles and lines by least squares", pg 126
+/// Returns a point corresponding to the center of a circle for which all of the points from input_begin to input_end
+/// lie on.
+Vec2d circle_taubin_newton(const Vec2ds::const_iterator& input_begin, const Vec2ds::const_iterator& input_end, size_t cycles)
+{
+    // calculate the centroid of the data set
+    const Vec2d sum = std::accumulate(input_begin, input_end, Vec2d(0,0));
+    const size_t n = std::distance(input_begin, input_end);
+    const double n_flt = static_cast<double>(n);
+    const Vec2d centroid { sum / n_flt };
+
+    // Compute the normalized moments of the data set.
+    double Mxx = 0, Myy = 0, Mxy = 0, Mxz = 0, Myz = 0, Mzz = 0;
+    for (auto it = input_begin; it < input_end; ++it) {
+        // center/normalize the data.
+        double Xi {it->x() - centroid.x()};
+        double Yi {it->y() - centroid.y()};
+        double Zi {Xi*Xi + Yi*Yi};
+        Mxy += (Xi*Yi);
+        Mxx += (Xi*Xi);
+        Myy += (Yi*Yi);
+        Mxz += (Xi*Zi);
+        Myz += (Yi*Zi);
+        Mzz += (Zi*Zi);
+    }
+
+    // divide by number of points to get the moments
+    Mxx /= n_flt;
+    Myy /= n_flt;
+    Mxy /= n_flt;
+    Mxz /= n_flt;
+    Myz /= n_flt;
+    Mzz /= n_flt;
+
+    // Compute the coefficients of the characteristic polynomial for the circle
+    // eq 5.60
+    const double Mz {Mxx + Myy}; // xx + yy = z
+    const double Cov_xy {Mxx*Myy - Mxy*Mxy}; // this shows up a couple times so cache it here.
+    const double C3 {4.0*Mz};
+    const double C2 {-3.0*(Mz*Mz) - Mzz};
+    const double C1 {Mz*(Mzz - (Mz*Mz)) + 4.0*Mz*Cov_xy - (Mxz*Mxz) - (Myz*Myz)};
+    const double C0 {(Mxz*Mxz)*Myy + (Myz*Myz)*Mxx - 2.0*Mxz*Myz*Mxy - Cov_xy*(Mzz - (Mz*Mz))};
+
+    const double C22 = {C2 + C2};
+    const double C33 = {C3 + C3 + C3};
+
+    // solve the characteristic polynomial with Newton's method.
+    double xnew = 0.0;
+    double ynew = 1e20;
+
+    for (size_t i = 0; i < cycles; ++i) {
+        const double yold {ynew};
+        ynew = C0 + xnew * (C1 + xnew*(C2 + xnew * C3));
+        if (std::abs(ynew) > std::abs(yold)) {
+			BOOST_LOG_TRIVIAL(error) << "Geometry: Fit is going in the wrong direction.\n";
+            return Vec2d(std::nan(""), std::nan(""));
+        }
+        const double Dy {C1 + xnew*(C22 + xnew*C33)};
+
+        const double xold {xnew};
+        xnew = xold - (ynew / Dy);
+
+        if (std::abs((xnew-xold) / xnew) < 1e-12) i = cycles; // converged, we're done here
+
+        if (xnew < 0) {
+            // reset, we went negative
+            xnew = 0.0;
+        }
+    }
+    
+    // compute the determinant and the circle's parameters now that we've solved.
+    double DET = xnew*xnew - xnew*Mz + Cov_xy;
+
+    Vec2d center(Mxz * (Myy - xnew) - Myz * Mxy, Myz * (Mxx - xnew) - Mxz*Mxy);
+    center /= (DET * 2.);
+    return center + centroid;
+}
+
+void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
 {
     Polygons pp;
     for (Polygons::const_iterator it = polygons.begin(); it != polygons.end(); ++it) {
@@ -391,8 +437,7 @@ simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval)
     *retval = Slic3r::simplify_polygons(pp);
 }
 
-double
-linint(double value, double oldmin, double oldmax, double newmin, double newmax)
+double linint(double value, double oldmin, double oldmax, double newmin, double newmax)
 {
     return (value - oldmin) * (newmax - newmin) / (oldmax - oldmin) + newmin;
 }
@@ -618,7 +663,6 @@ namespace Voronoi { namespace Internal {
     typedef boost::polygon::point_data<coordinate_type> point_type;
     typedef boost::polygon::segment_data<coordinate_type> segment_type;
     typedef boost::polygon::rectangle_data<coordinate_type> rect_type;
-//    typedef voronoi_builder<int> VB;
     typedef boost::polygon::voronoi_diagram<coordinate_type> VD;
     typedef VD::cell_type cell_type;
     typedef VD::cell_type::source_index_type source_index_type;
@@ -665,15 +709,15 @@ namespace Voronoi { namespace Internal {
         if (cell1.contains_point() && cell2.contains_point()) {
             point_type p1 = retrieve_point(segments, cell1);
             point_type p2 = retrieve_point(segments, cell2);
-            origin.x((p1(0) + p2(0)) * 0.5);
-            origin.y((p1(1) + p2(1)) * 0.5);
-            direction.x(p1(1) - p2(1));
-            direction.y(p2(0) - p1(0));
+            origin.x((p1.x() + p2.x()) * 0.5);
+            origin.y((p1.y() + p2.y()) * 0.5);
+            direction.x(p1.y() - p2.y());
+            direction.y(p2.x() - p1.x());
         } else {
             origin = cell1.contains_segment() ? retrieve_point(segments, cell2) : retrieve_point(segments, cell1);
             segment_type segment = cell1.contains_segment() ? segments[cell1.source_index()] : segments[cell2.source_index()];
-            coordinate_type dx = high(segment)(0) - low(segment)(0);
-            coordinate_type dy = high(segment)(1) - low(segment)(1);
+            coordinate_type dx = high(segment).x() - low(segment).x();
+            coordinate_type dy = high(segment).y() - low(segment).y();
             if ((low(segment) == origin) ^ cell1.contains_point()) {
                 direction.x(dy);
                 direction.y(-dx);
@@ -682,19 +726,19 @@ namespace Voronoi { namespace Internal {
                 direction.y(dx);
             }
         }
-        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction(0)), fabs(direction(1)));
+        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction.x()), fabs(direction.y()));
         if (edge.vertex0() == NULL) {
             clipped_edge->push_back(point_type(
-                origin(0) - direction(0) * koef,
-                origin(1) - direction(1) * koef));
+                origin.x() - direction.x() * koef,
+                origin.y() - direction.y() * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex0()->x(), edge.vertex0()->y()));
         }
         if (edge.vertex1() == NULL) {
             clipped_edge->push_back(point_type(
-                origin(0) + direction(0) * koef,
-                origin(1) + direction(1) * koef));
+                origin.x() + direction.x() * koef,
+                origin.y() + direction.y() * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex1()->x(), edge.vertex1()->y()));
@@ -714,7 +758,7 @@ namespace Voronoi { namespace Internal {
 
 } /* namespace Internal */ } // namespace Voronoi
 
-static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_diagram<double> &vd, const ThickPolylines *polylines, const char *path)
+static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ boost::polygon::voronoi_diagram<double> &vd, const ThickPolylines *polylines, const char *path)
 {
     const double        scale                       = 0.2;
     const std::string   inputSegmentPointColor      = "lightseagreen";
@@ -758,7 +802,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
             Voronoi::Internal::point_type(double(it->b(0)), double(it->b(1)))));
     
     // Color exterior edges.
-    for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
+    for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
         if (!it->is_finite())
             Voronoi::Internal::color_exterior(&(*it));
 
@@ -773,11 +817,11 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
 
 #if 1
     // Draw voronoi vertices.
-    for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
+    for (boost::polygon::voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
         if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR)
-            svg.draw(Point(coord_t((*it)(0)), coord_t((*it)(1))), voronoiPointColor, voronoiPointRadius);
+            svg.draw(Point(coord_t(it->x()), coord_t(it->y())), voronoiPointColor, voronoiPointRadius);
 
-    for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
+    for (boost::polygon::voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
         if (primaryEdgesOnly && !it->is_primary())
             continue;
         if (internalEdgesOnly && (it->color() == Voronoi::Internal::EXTERNAL_COLOR))
@@ -800,7 +844,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
                 color = voronoiLineColorSecondary;
         }
         for (std::size_t i = 0; i + 1 < samples.size(); ++i)
-            svg.draw(Line(Point(coord_t(samples[i](0)), coord_t(samples[i](1))), Point(coord_t(samples[i+1](0)), coord_t(samples[i+1](1)))), color, voronoiLineWidth);
+            svg.draw(Line(Point(coord_t(samples[i].x()), coord_t(samples[i].y())), Point(coord_t(samples[i+1].x()), coord_t(samples[i+1].y()))), color, voronoiLineWidth);
     }
 #endif
 
@@ -1374,6 +1418,32 @@ void Transformation::set_from_transform(const Transform3d& transform)
 //    // debug check
 //    if (!m_matrix.isApprox(transform))
 //        std::cout << "something went wrong in extracting data from matrix" << std::endl;
+}
+
+void Transformation::set_from_string(const std::string& transform_str)
+{
+    Transform3d transform = Transform3d::Identity();
+
+    if (!transform_str.empty())
+    {
+        std::vector<std::string> mat_elements_str;
+        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
+
+        unsigned int size = (unsigned int)mat_elements_str.size();
+        if (size == 16)
+        {
+            unsigned int i = 0;
+            for (unsigned int r = 0; r < 4; ++r)
+            {
+                for (unsigned int c = 0; c < 4; ++c)
+                {
+                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
+                }
+            }
+        }
+    }
+
+    set_from_transform(transform);
 }
 
 void Transformation::reset()

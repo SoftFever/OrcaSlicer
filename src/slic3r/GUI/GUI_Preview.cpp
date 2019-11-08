@@ -221,6 +221,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_choice_view_type->Append(_(L("Height")));
     m_choice_view_type->Append(_(L("Width")));
     m_choice_view_type->Append(_(L("Speed")));
+    m_choice_view_type->Append(_(L("Fan speed")));
     m_choice_view_type->Append(_(L("Volumetric flow rate")));
     m_choice_view_type->Append(_(L("Tool")));
     m_choice_view_type->Append(_(L("Color Print")));
@@ -374,6 +375,8 @@ void Preview::load_print(bool keep_z_range)
         load_print_as_fff(keep_z_range);
     else if (tech == ptSLA)
         load_print_as_sla();
+
+    Layout();
 }
 
 void Preview::reload_print(bool keep_volumes)

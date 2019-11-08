@@ -1,6 +1,7 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
+#include "ElephantFootCompensation.hpp"
 #include "Geometry.hpp"
 #include "I18N.hpp"
 #include "SupportMaterial.hpp"
@@ -12,7 +13,6 @@
 #include <boost/log/trivial.hpp>
 #include <float.h>
 
-#include <tbb/task_scheduler_init.h>
 #include <tbb/parallel_for.h>
 #include <tbb/atomic.h>
 
@@ -75,13 +75,9 @@ PrintBase::ApplyStatus PrintObject::set_copies(const Points &points)
 {
     // Order copies with a nearest-neighbor search.
     std::vector<Point> copies;
-    {
-        std::vector<Points::size_type> ordered_copies;
-        Slic3r::Geometry::chained_path(points, ordered_copies);
-        copies.reserve(ordered_copies.size());
-        for (size_t point_idx : ordered_copies)
-            copies.emplace_back(points[point_idx] + m_copies_shift);
-    }
+    copies.reserve(points.size());
+    for (const Point &pt : points)
+        copies.emplace_back(pt + m_copies_shift);
     // Invalidate and set copies.
     PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
     if (copies != m_copies) {
@@ -122,6 +118,19 @@ void PrintObject::slice()
     // Simplify slices if required.
     if (m_print->config().resolution)
         this->_simplify_slices(scale_(this->print()->config().resolution));
+    // Update bounding boxes
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, m_layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                m_print->throw_if_canceled();
+                Layer &layer = *m_layers[layer_idx];
+                layer.slices_bboxes.clear();
+                layer.slices_bboxes.reserve(layer.slices.size());
+                for (const ExPolygon &expoly : layer.slices)
+                	layer.slices_bboxes.emplace_back(get_extents(expoly));
+            }
+        });
     if (m_layers.empty())
         throw std::runtime_error("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
     this->set_done(posSlice);
@@ -870,7 +879,7 @@ void PrintObject::process_external_surfaces()
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
 		                }
-		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->slices.expolygons), voids);
+		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->slices), voids);
 	            	}
 	        }
 	    );
@@ -980,8 +989,8 @@ void PrintObject::discover_vertical_shells()
                         polygons_append(cache.holes, offset(offset_ex(layer.slices, 0.3f * perimeter_min_spacing), - perimeter_offset - 0.3f * perimeter_min_spacing));
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                         {
-                            Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.slices.expolygons));
-                            svg.draw(layer.slices.expolygons, "blue");
+                            Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.slices));
+                            svg.draw(layer.slices, "blue");
                             svg.draw(union_ex(cache.holes), "red");
                             svg.draw_outline(union_ex(cache.holes), "black", "blue", scale_(0.05));
                             svg.Close(); 
@@ -1664,25 +1673,26 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
                     // Trim volumes in a single layer, one by the other, possibly apply upscaling.
                     {
                         Polygons processed;
-                        for (SlicedVolume &sliced_volume : sliced_volumes) {
-                            ExPolygons slices = std::move(sliced_volume.expolygons_by_layer[layer_id]);
-                            if (upscale)
-                                slices = offset_ex(std::move(slices), delta);
-                            if (! processed.empty())
-                                // Trim by the slices of already processed regions.
-                                slices = diff_ex(to_polygons(std::move(slices)), processed);
-                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
-                                // Collect the already processed regions to trim the to be processed regions.
-                                polygons_append(processed, slices);
-                            sliced_volume.expolygons_by_layer[layer_id] = std::move(slices);
-                        }
+                        for (SlicedVolume &sliced_volume : sliced_volumes) 
+                        	if (! sliced_volume.expolygons_by_layer.empty()) {
+	                            ExPolygons slices = std::move(sliced_volume.expolygons_by_layer[layer_id]);
+	                            if (upscale)
+	                                slices = offset_ex(std::move(slices), delta);
+	                            if (! processed.empty())
+	                                // Trim by the slices of already processed regions.
+	                                slices = diff_ex(to_polygons(std::move(slices)), processed);
+	                            if (size_t(&sliced_volume - &sliced_volumes.front()) + 1 < sliced_volumes.size())
+	                                // Collect the already processed regions to trim the to be processed regions.
+	                                polygons_append(processed, slices);
+	                            sliced_volume.expolygons_by_layer[layer_id] = std::move(slices);
+	                        }
                     }
                     // Collect and union volumes of a single region.
                     for (int region_id = 0; region_id < (int)this->region_volumes.size(); ++ region_id) {
                         ExPolygons expolygons;
                         size_t     num_volumes = 0;
                         for (SlicedVolume &sliced_volume : sliced_volumes)
-                            if (sliced_volume.region_id == region_id && ! sliced_volume.expolygons_by_layer[layer_id].empty()) {
+                            if (sliced_volume.region_id == region_id && ! sliced_volume.expolygons_by_layer.empty() && ! sliced_volume.expolygons_by_layer[layer_id].empty()) {
                                 ++ num_volumes;
                                 append(expolygons, std::move(sliced_volume.expolygons_by_layer[layer_id]));
                             }
@@ -1760,8 +1770,10 @@ end:
                 Layer *layer = m_layers[layer_id];
                 // Apply size compensation and perform clipping of multi-part objects.
                 float delta = float(scale_(m_config.xy_size_compensation.value));
+                //FIXME only apply the compensation if no raft is enabled.
                 float elephant_foot_compensation = 0.f;
-                if (layer_id == 0)
+                if (layer_id == 0 && m_config.raft_layers == 0)
+                	// Only enable Elephant foot compensation if printing directly on the print bed.
                     elephant_foot_compensation = float(scale_(m_config.elefant_foot_compensation.value));
                 if (layer->m_regions.size() == 1) {
                     // Optimized version for a single region layer.
@@ -1780,19 +1792,8 @@ end:
                             to_expolygons(std::move(layerm->slices.surfaces)) :
                             offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta);
                         // Apply the elephant foot compensation.
-                        if (elephant_foot_compensation > 0) {
-                            float elephant_foot_spacing     = float(layerm->flow(frExternalPerimeter).scaled_elephant_foot_spacing());
-                            float external_perimeter_nozzle = float(scale_(this->print()->config().nozzle_diameter.get_at(layerm->region()->config().perimeter_extruder.value - 1)));
-                            // Apply the elephant foot compensation by steps of 1/10 nozzle diameter.
-                            float  steps  = std::ceil(elephant_foot_compensation / (0.1f * external_perimeter_nozzle));
-                            size_t nsteps = size_t(steps);
-                            float  step   = elephant_foot_compensation / steps;
-                            for (size_t i = 0; i < nsteps; ++ i) {
-    							Polygons tmp = offset(expolygons, - step);
-    							append(tmp, diff(to_polygons(expolygons), offset(offset_ex(expolygons, -elephant_foot_spacing - step), elephant_foot_spacing + step)));
-    							expolygons = union_ex(tmp);
-                            }
-                        }
+                        if (elephant_foot_compensation > 0)
+							expolygons = union_ex(Slic3r::elephant_foot_compensation(expolygons, layerm->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
                         layerm->slices.set(std::move(expolygons), stInternal);
                     }
                 } else {
@@ -1816,32 +1817,17 @@ end:
                             layerm->slices.set(std::move(slices), stInternal);
                         }
                     }
-                    if (delta < 0.f) {
+                    if (delta < 0.f || elephant_foot_compensation > 0.f) {
                         // Apply the negative XY compensation.
-                        Polygons trimming = offset(layer->merged(float(EPSILON)), delta - float(EPSILON));
+                        Polygons trimming;
+                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
+                        if (elephant_foot_compensation > 0.f) {
+							trimming = to_polygons(Slic3r::elephant_foot_compensation(offset_ex(layer->merged(eps), std::min(delta, 0.f) - eps),
+								layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
+                        } else
+	                        trimming = offset(layer->merged(float(SCALED_EPSILON)), delta - float(SCALED_EPSILON));
                         for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
                             layer->m_regions[region_id]->trim_surfaces(trimming);
-                    }
-                    if (elephant_foot_compensation > 0.f) {
-                        // Apply the elephant foot compensation.
-                        std::vector<float> elephant_foot_spacing;
-                        elephant_foot_spacing.reserve(layer->m_regions.size());
-                        float external_perimeter_nozzle = 0.f;
-                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
-                            LayerRegion *layerm = layer->m_regions[region_id];
-                            elephant_foot_spacing.emplace_back(float(layerm->flow(frExternalPerimeter).scaled_elephant_foot_spacing()));
-                            external_perimeter_nozzle += float(scale_(this->print()->config().nozzle_diameter.get_at(layerm->region()->config().perimeter_extruder.value - 1)));
-                        }
-                        external_perimeter_nozzle /= (float)layer->m_regions.size();
-                        // Apply the elephant foot compensation by steps of 1/10 nozzle diameter.
-                        float  steps  = std::ceil(elephant_foot_compensation / (0.1f * external_perimeter_nozzle));
-                        size_t nsteps = size_t(steps);
-                        float  step   = elephant_foot_compensation / steps;
-                        for (size_t i = 0; i < nsteps; ++ i) {
-                            Polygons trimming_polygons = offset(layer->merged(float(EPSILON)), - step - float(EPSILON));
-                            for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
-                                layer->m_regions[region_id]->elephant_foot_compensation_step(elephant_foot_spacing[region_id] + step, trimming_polygons);
-                        }
                     }
                 }
                 // Merge all regions' slices to get islands, chain them by a shortest path.
@@ -2145,7 +2131,7 @@ std::string PrintObject::_fix_slicing_errors()
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
 
     // remove empty layers from bottom
-    while (! m_layers.empty() && m_layers.front()->slices.expolygons.empty()) {
+    while (! m_layers.empty() && m_layers.front()->slices.empty()) {
         delete m_layers.front();
         m_layers.erase(m_layers.begin());
         m_layers.front()->lower_layer = nullptr;
@@ -2172,113 +2158,15 @@ void PrintObject::_simplify_slices(double distance)
                 Layer *layer = m_layers[layer_idx];
                 for (size_t region_idx = 0; region_idx < layer->m_regions.size(); ++ region_idx)
                     layer->m_regions[region_idx]->slices.simplify(distance);
-                layer->slices.simplify(distance);
+				{
+					ExPolygons simplified;
+					for (const ExPolygon& expoly : layer->slices)
+						expoly.simplify(distance, &simplified);
+					layer->slices = std::move(simplified);
+				}
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
-}
-
-void PrintObject::_make_perimeters()
-{
-    if (! this->set_started(posPerimeters))
-        return;
-
-    BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
-    
-    // merge slices if they were split into types
-    if (this->typed_slices) {
-        for (Layer *layer : m_layers)
-            layer->merge_slices();
-        this->typed_slices = false;
-        this->invalidate_step(posPrepareInfill);
-    }
-    
-    // compare each layer to the one below, and mark those slices needing
-    // one additional inner perimeter, like the top of domed objects-
-    
-    // this algorithm makes sure that at least one perimeter is overlapping
-    // but we don't generate any extra perimeter if fill density is zero, as they would be floating
-    // inside the object - infill_only_where_needed should be the method of choice for printing
-    // hollow objects
-    for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
-        const PrintRegion &region = *m_print->regions()[region_id];
-        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
-            continue;
-        
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_layers.size() - 1),
-            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
-                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    LayerRegion &layerm                     = *m_layers[layer_idx]->regions()[region_id];
-                    const LayerRegion &upper_layerm         = *m_layers[layer_idx+1]->regions()[region_id];
-                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
-                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
-                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-                    const double total_loop_length      = total_length(upper_layerm_polygons);
-                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
-                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
-                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
-                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
-
-                    for (Surface &slice : layerm.slices.surfaces) {
-                        for (;;) {
-                            // compute the total thickness of perimeters
-                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                                + (region.config().perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
-                            // define a critical area where we don't want the upper slice to fall into
-                            // (it should either lay over our perimeters or outside this area)
-                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
-                            const Polygons critical_area = diff(
-                                offset(slice.expolygon, float(- perimeters_thickness)),
-                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
-                            );
-                            // check whether a portion of the upper slices falls inside the critical area
-                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
-                            // only add an additional loop if at least 30% of the slice loop would benefit from it
-                            if (total_length(intersection) <=  total_loop_length*0.3)
-                                break;
-                            /*
-                            if (0) {
-                                require "Slic3r/SVG.pm";
-                                Slic3r::SVG::output(
-                                    "extra.svg",
-                                    no_arrows   => 1,
-                                    expolygons  => union_ex($critical_area),
-                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                                );
-                            }
-                            */
-                            ++ slice.extra_perimeters;
-                        }
-                        #ifdef DEBUG
-                            if (slice.extra_perimeters > 0)
-                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
-                        #endif
-                    }
-                }
-            });
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
-    }
-
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this](const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
-                m_layers[layer_idx]->make_perimeters();
-        }
-    );
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
-
-    /*
-        simplify slices (both layer and region slices),
-        we only need the max resolution for perimeters
-    ### This makes this method not-idempotent, so we keep it disabled for now.
-    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
-    */
-    
-    this->set_done(posPerimeters);
 }
 
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,
@@ -2306,7 +2194,7 @@ void PrintObject::clip_fill_surfaces()
         // Detect things that we need to support.
         // Cummulative slices.
         Polygons slices;
-        polygons_append(slices, layer->slices.expolygons);
+        polygons_append(slices, layer->slices);
         // Cummulative fill surfaces.
         Polygons fill_surfaces;
         // Solid surfaces to be supported.

@@ -1,7 +1,7 @@
 #ifndef slic3r_CoolingBuffer_hpp_
 #define slic3r_CoolingBuffer_hpp_
 
-#include "libslic3r.h"
+#include "../libslic3r.h"
 #include <map>
 #include <string>
 

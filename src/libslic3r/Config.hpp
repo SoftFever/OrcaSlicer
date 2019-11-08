@@ -52,6 +52,16 @@ public:
         std::runtime_error(std::string("No definition exception: ") + opt_key) {}
 };
 
+/// Indicate that an unsupported accessor was called on a config option.
+class BadOptionTypeException : public std::runtime_error
+{
+public:
+	BadOptionTypeException() :
+		std::runtime_error("Bad option type exception") {}
+	BadOptionTypeException(const char* message) : 
+		std::runtime_error(message) {}
+};
+
 // Type of a configuration value.
 enum ConfigOptionType {
     coVectorType    = 0x4000,
@@ -117,10 +127,10 @@ public:
     virtual ConfigOption*       clone() const = 0;
     // Set a value from a ConfigOption. The two options should be compatible.
     virtual void                set(const ConfigOption *option) = 0;
-    virtual int                 getInt()        const { throw std::runtime_error("Calling ConfigOption::getInt on a non-int ConfigOption"); }
-    virtual double              getFloat()      const { throw std::runtime_error("Calling ConfigOption::getFloat on a non-float ConfigOption"); }
-    virtual bool                getBool()       const { throw std::runtime_error("Calling ConfigOption::getBool on a non-boolean ConfigOption");  }
-    virtual void                setInt(int /* val */) { throw std::runtime_error("Calling ConfigOption::setInt on a non-int ConfigOption"); }
+    virtual int                 getInt()        const { throw BadOptionTypeException("Calling ConfigOption::getInt on a non-int ConfigOption"); }
+    virtual double              getFloat()      const { throw BadOptionTypeException("Calling ConfigOption::getFloat on a non-float ConfigOption"); }
+    virtual bool                getBool()       const { throw BadOptionTypeException("Calling ConfigOption::getBool on a non-boolean ConfigOption");  }
+    virtual void                setInt(int /* val */) { throw BadOptionTypeException("Calling ConfigOption::setInt on a non-int ConfigOption"); }
     virtual bool                operator==(const ConfigOption &rhs) const = 0;
     bool                        operator!=(const ConfigOption &rhs) const { return ! (*this == rhs); }
     bool                        is_scalar()     const { return (int(this->type()) & int(coVectorType)) == 0; }
@@ -1444,7 +1454,7 @@ public:
     std::vector<std::string> cli_args(const std::string &key) const;
 
     // Assign this key to cli to disable CLI for this option.
-    static std::string                  nocli;
+    static const constexpr char *nocli =  "~~~noCLI";
 };
 
 // Map from a config option name to its definition.
@@ -1513,32 +1523,48 @@ protected:
 public:
     // Non-virtual methods:
     bool has(const t_config_option_key &opt_key) const { return this->option(opt_key) != nullptr; }
+    
     const ConfigOption* option(const t_config_option_key &opt_key) const
         { return const_cast<ConfigBase*>(this)->option(opt_key, false); }
+    
     ConfigOption* option(const t_config_option_key &opt_key, bool create = false)
         { return this->optptr(opt_key, create); }
+    
     template<typename TYPE>
     TYPE* option(const t_config_option_key &opt_key, bool create = false)
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
         return (opt == nullptr || opt->type() != TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
     }
+
     template<typename TYPE>
     const TYPE* option(const t_config_option_key &opt_key) const
         { return const_cast<ConfigBase*>(this)->option<TYPE>(opt_key, false); }
-    template<typename TYPE>
-    TYPE* option_throw(const t_config_option_key &opt_key, bool create = false)
+
+    ConfigOption* option_throw(const t_config_option_key &opt_key, bool create = false)
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
         if (opt == nullptr)
             throw UnknownOptionException(opt_key);
+        return opt;
+    }
+    
+    const ConfigOption* option_throw(const t_config_option_key &opt_key) const
+        { return const_cast<ConfigBase*>(this)->option_throw(opt_key, false); }
+    
+    template<typename TYPE>
+    TYPE* option_throw(const t_config_option_key &opt_key, bool create = false)
+    { 
+        ConfigOption *opt = this->option_throw(opt_key, create);
         if (opt->type() != TYPE::static_type())
-            throw std::runtime_error("Conversion to a wrong type");
+            throw BadOptionTypeException("Conversion to a wrong type");
         return static_cast<TYPE*>(opt);
     }
+    
     template<typename TYPE>
     const TYPE* option_throw(const t_config_option_key &opt_key) const
         { return const_cast<ConfigBase*>(this)->option_throw<TYPE>(opt_key, false); }
+    
     // Apply all keys of other ConfigBase defined by this->def() to this ConfigBase.
     // An UnknownOptionException is thrown in case some option keys of other are not defined by this->def(),
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
@@ -1551,9 +1577,40 @@ public:
     t_config_option_keys diff(const ConfigBase &other) const;
     t_config_option_keys equal(const ConfigBase &other) const;
     std::string opt_serialize(const t_config_option_key &opt_key) const;
+
+    // Set a value. Convert numeric types using a C style implicit conversion / promotion model.
+    // Throw if option is not avaiable and create is not enabled,
+    // or if the conversion is not possible.
+    // Conversion to string is always possible.
+    void set(const std::string &opt_key, bool  				value, bool create = false)
+    	{ this->option_throw<ConfigOptionBool>(opt_key, create)->value = value; }
+    void set(const std::string &opt_key, int   				value, bool create = false);
+    void set(const std::string &opt_key, double				value, bool create = false);
+    void set(const std::string &opt_key, const char		   *value, bool create = false)
+    	{ this->option_throw<ConfigOptionString>(opt_key, create)->value = value; }
+    void set(const std::string &opt_key, const std::string &value, bool create = false)
+    	{ this->option_throw<ConfigOptionString>(opt_key, create)->value = value; }
+
     // Set a configuration value from a string, it will call an overridable handle_legacy() 
     // to resolve renamed and removed configuration keys.
-    bool set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false);
+	bool set_deserialize_nothrow(const t_config_option_key &opt_key_src, const std::string &value_src, bool append = false);
+	// May throw BadOptionTypeException() if the operation fails.
+    void set_deserialize(const t_config_option_key &opt_key, const std::string &str, bool append = false);
+    struct SetDeserializeItem {
+    	SetDeserializeItem(const char *opt_key, const char *opt_value, bool append = false) : opt_key(opt_key), opt_value(opt_value), append(append) {}
+    	SetDeserializeItem(const std::string &opt_key, const std::string &opt_value, bool append = false) : opt_key(opt_key), opt_value(opt_value), append(append) {}
+    	SetDeserializeItem(const char *opt_key, const bool value, bool append = false) : opt_key(opt_key), opt_value(value ? "1" : "0"), append(append) {}
+    	SetDeserializeItem(const std::string &opt_key, const bool value, bool append = false) : opt_key(opt_key), opt_value(value ? "1" : "0"), append(append) {}
+    	SetDeserializeItem(const char *opt_key, const int value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	SetDeserializeItem(const std::string &opt_key, const int value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	SetDeserializeItem(const char *opt_key, const float value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	SetDeserializeItem(const std::string &opt_key, const float value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	SetDeserializeItem(const char *opt_key, const double value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	SetDeserializeItem(const std::string &opt_key, const double value, bool append = false) : opt_key(opt_key), opt_value(std::to_string(value)), append(append) {}
+    	std::string opt_key; std::string opt_value; bool append = false;
+    };
+	// May throw BadOptionTypeException() if the operation fails.
+    void set_deserialize(std::initializer_list<SetDeserializeItem> items);
 
     double get_abs_value(const t_config_option_key &opt_key) const;
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
@@ -1580,9 +1637,11 @@ class DynamicConfig : public virtual ConfigBase
 {
 public:
     DynamicConfig() {}
-    DynamicConfig(const DynamicConfig& other) { *this = other; }
-    DynamicConfig(DynamicConfig&& other) : options(std::move(other.options)) { other.options.clear(); }
-    virtual ~DynamicConfig() override { clear(); }
+    DynamicConfig(const DynamicConfig &rhs) { *this = rhs; }
+    DynamicConfig(DynamicConfig &&rhs) : options(std::move(rhs.options)) { rhs.options.clear(); }
+	explicit DynamicConfig(const ConfigBase &rhs, const t_config_option_keys &keys);
+	explicit DynamicConfig(const ConfigBase& rhs) : DynamicConfig(rhs, rhs.keys()) {}
+	virtual ~DynamicConfig() override { clear(); }
 
     // Copy a content of one DynamicConfig to another DynamicConfig.
     // If rhs.def() is not null, then it has to be equal to this->def(). 

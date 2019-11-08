@@ -114,8 +114,17 @@ public:
 
         m_serializing = true;
 
+        // Following is needed to know which to be turn on, but not actually modify
+        // m_current prematurely, so activate_gizmo is not confused.
+        EType old_current = m_current;
         ar(m_current);
+        EType new_current = m_current;
+        m_current = old_current;
 
+        // activate_gizmo call sets m_current and calls set_state for the gizmo
+        // it does nothing in case the gizmo is already activated
+        // it can safely be called for Undefined gizmo
+        activate_gizmo(new_current);
         if (m_current != Undefined)
             m_gizmos[m_current]->load(ar);
     }
