@@ -204,6 +204,8 @@ add_library(libslic3r STATIC
     SLA/SLARasterWriter.cpp
     SLA/ConcaveHull.hpp
     SLA/ConcaveHull.cpp
+    SLA/Hollowing.hpp
+    SLA/Hollowing.cpp
 )
 
 encoding_check(libslic3r)

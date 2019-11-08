@@ -3,7 +3,7 @@
 #include "SLA/SLAPad.hpp"
 #include "SLA/SLAAutoSupports.hpp"
 #include "ClipperUtils.hpp"
-#include "OpenVDBUtils.hpp"
+#include "SLA/Hollowing.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
 
@@ -776,10 +776,10 @@ void SLAPrint::process()
             po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
         
         double thickness = po.m_config.hollowing_min_thickness.getFloat();
-        double accuracy  = po.m_config.hollowing_accuracy.getFloat();
-        double blur      = po.m_config.hollowing_smoothness.getFloat();
+        double accuracy  = po.m_config.hollowing_quality.getFloat();
+        double blur      = po.m_config.hollowing_flatness.getFloat();
         po.m_hollowing_data->interior =
-            hollowed_interior(po.transformed_mesh(), thickness, accuracy, blur);
+            generate_interior(po.transformed_mesh(), thickness, accuracy, blur);
         
         if (po.m_hollowing_data->interior.empty())
             BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
@@ -1754,8 +1754,8 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     for (const t_config_option_key &opt_key : opt_keys) {
         if (   opt_key == "hollowing_enable"
             || opt_key == "hollowing_min_thickness"
-            || opt_key == "hollowing_accuracy"
-            || opt_key == "hollowing_smoothness"
+            || opt_key == "hollowing_quality"
+            || opt_key == "hollowing_flatness"
             ) {
             steps.emplace_back(slaposHollowing);
         } else if (

@@ -2,7 +2,7 @@
 #include "OpenVDBUtils.hpp"
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
-#include <openvdb/tools/Filter.h>
+#include <openvdb/tools/TopologyToLevelSet.h>
 #include <boost/log/trivial.hpp>
 #include "MTUtils.hpp"
 
@@ -158,35 +158,22 @@ inline void _scale(S s, sla::Contour3D &m)
     for (auto &p : m.points) p *= s;
 }
 
-static void filter_grid(openvdb::FloatGrid &grid, double scale, double gain)
-{
-    static const double ROUNDNESS_COEFF = 1.;
-    
-    // Filtering:
-    if (gain > 0.) {
-        double rounding = ROUNDNESS_COEFF * gain;
-        int width = int(rounding * scale);
-        int count = 1;
-        openvdb::tools::Filter<openvdb::FloatGrid>{grid}.gaussian(width, count);
-    }
-}
-
 template<class Mesh>
 remove_cvref_t<Mesh> _hollowed_interior(Mesh &&mesh,
                                         double min_thickness,
-                                        double accuracy,
-                                        double smoothing)
+                                        double quality,
+                                        HollowingFilter filt)
 {
     using MMesh = remove_cvref_t<Mesh>;
     MMesh imesh{std::forward<Mesh>(mesh)};
     
-    static const double ACCURACY_COEFF = 7.;
+    static const double QUALITY_COEFF = 7.;
     
     // I can't figure out how to increase the grid resolution through openvdb API
     // so the model will be scaled up before conversion and the result scaled
     // down. Voxels have a unit size. If I set voxelSize smaller, it scales
     // the whole geometry down, and doesn't increase the number of voxels.
-    auto scale = (1.0 + ACCURACY_COEFF * accuracy); // max 8x upscale, min is native voxel size
+    auto scale = (1.0 + QUALITY_COEFF * quality); // max 8x upscale, min is native voxel size
     
     _scale(scale, imesh);
     
@@ -201,7 +188,7 @@ remove_cvref_t<Mesh> _hollowed_interior(Mesh &&mesh,
         return MMesh{};
     }
     
-    filter_grid(*gridptr, scale, smoothing);
+    if (filt) filt(*gridptr, min_thickness, scale);
     
     double iso_surface = -offset;
     double adaptivity = 0.;
@@ -214,10 +201,10 @@ remove_cvref_t<Mesh> _hollowed_interior(Mesh &&mesh,
 
 TriangleMesh hollowed_interior(const TriangleMesh &mesh,
                                double              min_thickness,
-                               double              accuracy,
-                               double              smoothing)
+                               double              quality,
+                               HollowingFilter     filt)
 {
-    return _hollowed_interior(mesh, min_thickness, accuracy, smoothing);
+    return _hollowed_interior(mesh, min_thickness, quality, filt);
 }
 
 } // namespace Slic3r

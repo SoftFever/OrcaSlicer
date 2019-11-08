@@ -17,7 +17,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/OpenVDBUtils.hpp"
+#include "libslic3r/SLA/Hollowing.hpp"
 
 
 namespace Slic3r {
@@ -597,10 +597,11 @@ void GLGizmoHollow::on_update(const UpdateData& data)
 
 void GLGizmoHollow::hollow_mesh()
 {
-    TriangleMesh cavity = hollowed_interior(*m_mesh, double(m_offset),
-                                            double(m_accuracy),
-                                            double(m_smoothness));
-    
+    TriangleMesh cavity = sla::generate_interior(*m_mesh,
+                                                 double(m_offset),
+                                                 double(m_accuracy),
+                                                 double(m_smoothness));
+
     if (cavity.empty()) return;
 
     m_cavity_mesh.reset(new TriangleMesh(cavity));
