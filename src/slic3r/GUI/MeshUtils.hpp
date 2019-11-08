@@ -3,6 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/SLA/SLACommon.hpp"
 
 
 #include <cfloat>
@@ -93,8 +94,9 @@ private:
 
 class MeshRaycaster {
 public:
-    MeshRaycaster(const TriangleMesh& mesh);
-    ~MeshRaycaster();
+    MeshRaycaster(const TriangleMesh& mesh)
+        : m_mesh(&mesh), m_emesh(mesh)
+    {}
     void set_transformation(const Geometry::Transformation& trafo);
     void set_camera(const Camera& camera);
 
@@ -107,9 +109,7 @@ public:
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
 private:
-    // PIMPL wrapper around igl::AABB so I don't have to include the header-only IGL here
-    class AABBWrapper;
-    AABBWrapper* m_AABB_wrapper;
+    sla::EigenMesh3D m_emesh;
     const TriangleMesh* m_mesh = nullptr;
 };
 

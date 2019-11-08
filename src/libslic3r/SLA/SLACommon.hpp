@@ -189,6 +189,9 @@ public:
     // Casting a ray on the mesh, returns the distance where the hit occures.
     hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
 
+    // Casts a ray on the mesh and returns all hits
+    std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
+
     class si_result {
         double m_value;
         int m_fidx;

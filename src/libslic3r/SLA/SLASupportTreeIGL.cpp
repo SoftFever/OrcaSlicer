@@ -272,6 +272,31 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     return ret;
 }
 
+std::vector<EigenMesh3D::hit_result>
+EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
+{
+    std::vector<EigenMesh3D::hit_result> outs;
+    std::vector<igl::Hit> hits;
+    m_aabb->intersect_ray(m_V, m_F, s, dir, hits);
+
+    // The sort is necessary, the hits are not always sorted.
+    std::sort(hits.begin(), hits.end(),
+        [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
+
+    //  Convert the igl::Hit into hit_result
+    outs.reserve(hits.size());
+    for (const igl::Hit& hit : hits) {
+        outs.emplace_back(EigenMesh3D::hit_result(*this));
+        outs.back().m_t = double(hit.t);
+        outs.back().m_dir = dir;
+        outs.back().m_source = s;
+        if(!std::isinf(hit.t) && !std::isnan(hit.t))
+            outs.back().m_face_id = hit.id;
+    }
+
+    return outs;
+}
+
 #ifdef SLIC3R_SLA_NEEDS_WINDTREE
 EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
     double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
