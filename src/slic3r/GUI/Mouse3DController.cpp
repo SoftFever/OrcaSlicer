@@ -569,6 +569,9 @@ void Mouse3DController::collect_input()
         updated = handle_packet(packet);
     else if (res == 13)
         updated = handle_wireless_packet(packet);
+    else if ((res == 3) && (packet[0] == 3))
+        // On Mac button packets can be 3 bytes long
+        updated = handle_packet(packet);
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else if (res > 0)
         std::cout << "Got unknown data packet of length: " << res << ", code:" << (int)packet[0] << std::endl;
@@ -599,7 +602,8 @@ bool Mouse3DController::handle_packet(const DataPacket& packet)
         }
     case 3: // Button
         {
-            if (handle_packet_button(packet, 6))
+            unsigned int size = packet.size();
+            if (handle_packet_button(packet, packet.size() - 1))
                 return true;
 
             break;
