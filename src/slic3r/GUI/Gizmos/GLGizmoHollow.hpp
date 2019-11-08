@@ -25,7 +25,7 @@ private:
     ObjectID m_model_object_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
-    mutable double m_z_shift = 0.f;
+    mutable double m_z_shift = 0.;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
     const float RenderPointScale = 1.f;
@@ -46,27 +46,26 @@ private:
     class CacheEntry {
     public:
         CacheEntry() :
-            support_point(sla::SupportPoint()), selected(false), normal(Vec3f::Zero()) {}
+            drain_hole(sla::DrainHole()), selected(false) {}
 
-        CacheEntry(const sla::SupportPoint& point, bool sel = false, const Vec3f& norm = Vec3f::Zero()) :
-            support_point(point), selected(sel), normal(norm) {}
+        CacheEntry(const sla::DrainHole& point, bool sel = false) :
+            drain_hole(point), selected(sel) {}
 
         bool operator==(const CacheEntry& rhs) const {
-            return (support_point == rhs.support_point);
+            return (drain_hole == rhs.drain_hole);
         }
 
         bool operator!=(const CacheEntry& rhs) const {
             return ! ((*this) == rhs);
         }
 
-        sla::SupportPoint support_point;
+        sla::DrainHole drain_hole;
         bool selected; // whether the point is selected
-        Vec3f normal;
 
         template<class Archive>
         void serialize(Archive & ar)
         {
-            ar(support_point, selected, normal);
+            ar(drain_hole, selected);
         }
     };
 
@@ -97,17 +96,14 @@ private:
     bool unsaved_changes() const;
     const TriangleMesh* mesh() const;
 
-    bool m_editing_mode = true;            // Is editing mode active?
-    bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
-    float m_new_point_head_diameter;        // Size of a new point.
-    float m_new_cone_angle = 0.f;
-    float m_new_cone_height = 5.f;
-    CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
-    float m_old_point_head_diameter = 0.;   // the same
+    bool  m_show_supports = true;
+    float m_new_hole_radius;        // Size of a new hole.
+    float m_new_hole_height = 5.f;
+    float m_old_hole_radius = 0.;   // undo/redo - so we know what state was edited
+    Vec3f m_hole_before_drag = Vec3f::Zero();
     float m_minimal_point_distance_stash = 0.f; // and again
     float m_density_stash = 0.f;                // and again
-    mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
-    std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
+    mutable std::vector<bool> m_selected; // which holes are currently selected
 
     float m_offset = 2.f;
     float m_adaptability = 1.f;
@@ -148,7 +144,7 @@ protected:
     void on_set_hover_id() override
 
     {
-        if (! m_editing_mode || (int)m_editing_cache.size() <= m_hover_id)
+        if (int(m_model_object->sla_drain_holes.size()) <= m_hover_id)
             m_hover_id = -1;
     }
     void on_start_dragging() override;
