@@ -3127,46 +3127,7 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
     }
     else if (is_point_in_rect(pos, m_rect_cog_icon) && m_state == msMultiExtruderWholePrint) {
         // show dialog for set extruder sequence
-        Slic3r::GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
-        if (dlg.ShowModal() != wxID_OK)
-            return;
-
-        m_extruders_sequence = dlg.GetValue();
-
-        m_ticks_.erase(std::remove_if(m_ticks_.begin(), m_ticks_.end(),
-            [](TICK_CODE tick) { return tick.gcode == "tool_change"; }), m_ticks_.end());
-
-        int tick = 0;
-        double value = 0.0;
-        int extruder = 0; 
-        const int extr_cnt = m_extruders_sequence.extruders.size();
-
-        std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-        
-        while (tick <= m_max_value)
-        {
-            int cur_extruder = m_extruders_sequence.extruders[extruder];
-            m_ticks_.insert(TICK_CODE(tick, "tool_change", cur_extruder+1, colors[cur_extruder]));
-
-            extruder++;
-            if (extruder == extr_cnt)
-                extruder = 0;
-            if (m_extruders_sequence.is_mm_intervals)
-            {
-                value += m_extruders_sequence.interval_by_mm;
-                auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
-
-                if (it == m_values.end())
-                    break;
-
-                tick = it - m_values.begin();
-            }        
-            else
-                tick += m_extruders_sequence.interval_by_layers;        
-        }
-
-        // m_ticks_.clear();
-        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+        m_edit_extruder_sequence = true;
     }
     else
         detect_selected_slider(pos);
@@ -3234,9 +3195,14 @@ wxString DoubleSlider::get_tooltip(IconFocus icon_focus)
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
         const auto tick_code_it = m_ticks_.find(tick);
-        tooltip = tick_code_it == m_ticks_.end()            ? _(L("Add color change")) :
+        tooltip = tick_code_it == m_ticks_.end()            ? (m_state == msSingleExtruder ? //_(L("Add color change")) :
+                        _(L("For add color change use left mouse button click")) :
+                        _(L("For add change extruder use left mouse button click"))) + "\n" +
+                        _(L("For add another code use right mouse button click")) :
                   // tick_code_it->gcode == "M600"             ? _(L("Delete color change")) :
-                  tick_code_it->gcode == "M600"             ? ( m_state == msSingleExtruder ? _(L("Delete color change")) :
+                  tick_code_it->gcode == "M600"             ? ( m_state == msSingleExtruder ? //_(L("Delete color change")) :
+                      _(L("For Delete color change use left mouse button click\n"
+                          "For Delete color change or Edit color use right mouse button click")) :
                       from_u8((boost::format(_utf8(L("Delete color change for Extruder %1%"))) % tick_code_it->extruder).str()) ):
                   tick_code_it->gcode == "M601"             ? _(L("Delete pause")) :
                   tick_code_it->gcode == "tool_change"      ? //( m_state == msSingleExtruder ? _(L("Delete color change")) :
@@ -3315,6 +3281,7 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
             if (extruders_cnt > 1)
             {
+                /*
                 wxMenu* add_color_change_menu = new wxMenu();
 
                 for (int i = 1; i <= extruders_cnt; i++)
@@ -3324,6 +3291,21 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
                 const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % "M600").str());
                 wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
                 add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_off.png"));
+            */
+
+                const int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+
+                wxMenu* change_extruder_menu = new wxMenu();
+
+                for (int i = 0; i <= extruders_cnt; i++) {
+                    const wxString item_name = i == 0 ? _(L("Default")) : wxString::Format(_(L("Extruder %d")), i);
+
+                    append_menu_radio_item(change_extruder_menu, wxID_ANY, item_name, "",
+                        [this, i](wxCommandEvent&) { change_extruder(i); }, &menu)->Check(i == initial_extruder);
+                }
+
+                wxMenuItem* change_extruder_menu_item = menu.AppendSubMenu(change_extruder_menu, _(L("Change extruder")), _(L("Use another extruder")));
+                change_extruder_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "change_extruder"));
             }
 
             Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -3332,6 +3314,11 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             add_code("M600");
         
         m_show_context_menu = false;
+    }
+
+    if (m_edit_extruder_sequence) {
+        edit_extruder_sequence();
+        m_edit_extruder_sequence = false;
     }
 
     Refresh();
@@ -3749,6 +3736,49 @@ void DoubleSlider::change_extruder(int extruder)
         Refresh();
         Update();
     }
+}
+
+void DoubleSlider::edit_extruder_sequence()
+{
+    Slic3r::GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    m_extruders_sequence = dlg.GetValue();
+
+    m_ticks_.erase(std::remove_if(m_ticks_.begin(), m_ticks_.end(),
+        [](TICK_CODE tick) { return tick.gcode == "tool_change"; }), m_ticks_.end());
+
+    int tick = 0;
+    double value = 0.0;
+    int extruder = 0;
+    const int extr_cnt = m_extruders_sequence.extruders.size();
+
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+    while (tick <= m_max_value)
+    {
+        int cur_extruder = m_extruders_sequence.extruders[extruder];
+        m_ticks_.insert(TICK_CODE(tick, "tool_change", cur_extruder + 1, colors[cur_extruder]));
+
+        extruder++;
+        if (extruder == extr_cnt)
+            extruder = 0;
+        if (m_extruders_sequence.is_mm_intervals)
+        {
+            value += m_extruders_sequence.interval_by_mm;
+            auto it = std::lower_bound(m_values.begin(), m_values.end(), value - epsilon());
+
+            if (it == m_values.end())
+                break;
+
+            tick = it - m_values.begin();
+        }
+        else
+            tick += m_extruders_sequence.interval_by_layers;
+    }
+
+    wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
 
 

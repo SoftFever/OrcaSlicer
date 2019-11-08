@@ -517,7 +517,7 @@ void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_ra
 
     update_double_slider(layers_z, keep_z_range);
     m_double_slider_sizer->Show((size_t)0);
-    if (m_slider->GetManipulationState() == DoubleSlider::msSingleExtruder)
+//    if (m_slider->GetManipulationState() == DoubleSlider::msSingleExtruder)
         m_double_slider_sizer->GetItem(size_t(0))->GetSizer()->Hide((size_t)0);
     Layout();
 }
