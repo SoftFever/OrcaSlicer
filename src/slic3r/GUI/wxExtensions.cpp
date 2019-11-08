@@ -406,6 +406,23 @@ int em_unit(wxWindow* win)
     return Slic3r::GUI::wxGetApp().em_unit();
 }
 
+static float get_svg_scale_factor(wxWindow *win)
+{
+#ifdef __APPLE__
+    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
+    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
+    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+
+    static float max_scaling_factor = NAN;
+    if (std::isnan(max_scaling_factor)) {
+        max_scaling_factor = Slic3r::GUI::mac_max_scaling_factor();
+    }
+    return win != nullptr ? max_scaling_factor : 1.0f;
+#else
+    return 1.0f;
+#endif
+}
+
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
     const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
@@ -2278,6 +2295,8 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
+    const float scale_factor = get_svg_scale_factor(this);
+
     m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "up_half_circle.png",   16, true));
     m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "down_half_circle.png", 16, true));
     m_thumb_size = m_bmp_thumb_lower.bmp().GetSize();
@@ -2288,16 +2307,16 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     m_bmp_del_tick_off = ScalableBitmap(this, "colorchange_delete_off.png");
     m_tick_icon_dim = m_bmp_add_tick_on.bmp().GetSize().x;
 
-    m_bmp_one_layer_lock_on    = ScalableBitmap(this, "one_layer_lock_on.png");
-    m_bmp_one_layer_lock_off   = ScalableBitmap(this, "one_layer_lock_off.png");
-    m_bmp_one_layer_unlock_on  = ScalableBitmap(this, "one_layer_unlock_on.png");
-    m_bmp_one_layer_unlock_off = ScalableBitmap(this, "one_layer_unlock_off.png");
-    m_lock_icon_dim = m_bmp_one_layer_lock_on.bmp().GetSize().x;
+    m_bmp_one_layer_lock_on    = ScalableBitmap(this, "lock_closed");
+    m_bmp_one_layer_lock_off   = ScalableBitmap(this, "lock_closed_f");
+    m_bmp_one_layer_unlock_on  = ScalableBitmap(this, "lock_open");
+    m_bmp_one_layer_unlock_off = ScalableBitmap(this, "lock_open_f");
+    m_lock_icon_dim   = int((float)m_bmp_one_layer_lock_on.bmp().GetSize().x / scale_factor);
 
     m_bmp_revert               = ScalableBitmap(this, "undo");
-    m_revert_icon_dim = m_bmp_revert.bmp().GetSize().x;
+    m_revert_icon_dim = int((float)m_bmp_revert.bmp().GetSize().x / scale_factor);
     m_bmp_cog                  = ScalableBitmap(this, "cog");
-    m_cog_icon_dim    = m_bmp_cog.bmp().GetSize().x;
+    m_cog_icon_dim    = int((float)m_bmp_cog.bmp().GetSize().x / scale_factor);
 
     m_selection = ssUndef;
 

@@ -157,9 +157,9 @@ void ExtruderSequenceDialog::apply_extruder_sequence()
             apply_extruder_sequence();
         });
 
-        m_extruders_grid_sizer->Add(extruder_selector);
-        m_extruders_grid_sizer->Add(del_btn);
-        m_extruders_grid_sizer->Add(add_btn);
+        m_extruders_grid_sizer->Add(extruder_selector, 0, wxALIGN_CENTER_VERTICAL);
+        m_extruders_grid_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL);
+        m_extruders_grid_sizer->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL);
     }
 
     Fit();
