@@ -58,7 +58,8 @@ const float Mouse3DController::State::MaxRotationDeadzone = (float)Mouse3DContro
 const float Mouse3DController::State::DefaultRotationDeadzone = 0.5f * Mouse3DController::State::MaxRotationDeadzone;
 
 Mouse3DController::State::State()
-    : m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
+    : m_buttons_enabled(false)
+    , m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
     , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
     , m_mouse_wheel_counter(0)
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -97,6 +98,9 @@ void Mouse3DController::State::append_rotation(const Vec3f& rotation)
 
 void Mouse3DController::State::append_button(unsigned int id)
 {
+    if (!m_buttons_enabled)
+        return;
+
     m_buttons.push(id);
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     m_buttons_queue_max_size = std::max(m_buttons_queue_max_size, m_buttons.size());
@@ -159,7 +163,7 @@ bool Mouse3DController::State::apply(Camera& camera)
         ret = true;
     }
 
-    if (has_button())
+    if (m_buttons_enabled && has_button())
     {
         unsigned int button = m_buttons.front();
         switch (button)
@@ -312,6 +316,13 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
         if (queue_size > 0)
             m_state.set_queues_max_size(queue_size);
     }
+
+    ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
+    imgui.text("Camera:");
+    ImGui::PopStyleColor();
+    Vec3f target = wxGetApp().plater()->get_camera().get_target().cast<float>();
+    ImGui::InputFloat3("Target", target.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     imgui.end();
@@ -336,53 +347,42 @@ bool Mouse3DController::connect_device()
     struct DeviceData
     {
         std::string path;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//        int interface_number;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         unsigned short usage_page;
         unsigned short usage;
 
         DeviceData()
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             : path(""), usage_page(0), usage(0)
-//            : path(""), interface_number(0), usage_page(0), usage(0)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         DeviceData(const std::string& path, unsigned short usage_page, unsigned short usage)
             : path(path), usage_page(usage_page), usage(usage)
-//        DeviceData(const std::string& path, int interface_number, unsigned short usage_page, unsigned short usage)
-//            : path(path), interface_number(interface_number), usage_page(usage_page), usage(usage)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {}
+
+        bool has_valid_usage() const { return (usage_page == 1) && (usage == 8); }
     };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//    hid_device_info* cur = devices;
-//    while (cur != nullptr)
-//    {
-//        std::cout << "Detected device '";
-//        std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
-//        std::cout << "::";
-//        std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
-//        std::cout << "' code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
-//        std::cout << " serial number: '";
-//        std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
-//        std::cout << "' usage page: " << cur->usage_page << " usage: " << cur->usage << " interface number: " << cur->interface_number << std::endl;
-//
-//        cur = cur->next;
-//    }
-//#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+    hid_device_info* cur = devices;
+    std::cout << std::endl << "======================================================================================================================================" << std::endl;
+    std::cout << "Detected devices:" << std::endl;
+    while (cur != nullptr)
+    {
+        std::cout << "\"";
+        std::wcout << ((cur->manufacturer_string != nullptr) ? cur->manufacturer_string : L"Unknown");
+        std::cout << "/";
+        std::wcout << ((cur->product_string != nullptr) ? cur->product_string : L"Unknown");
+        std::cout << "\" code: " << cur->vendor_id << "/" << cur->product_id << " (" << std::hex << cur->vendor_id << "/" << cur->product_id << std::dec << ")";
+        std::cout << " serial number: '";
+        std::wcout << ((cur->serial_number != nullptr) ? cur->serial_number : L"Unknown");
+        std::cout << "' usage page: " << cur->usage_page << " usage: " << cur->usage << " interface number: " << cur->interface_number << std::endl;
+
+        cur = cur->next;
+    }
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
     // To choose from them the right one we use:
     // On Windows and Mac: usage_page == 1 and usage == 8
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // On Linux: as usage_page and usage are not defined (see hidapi.h) we try all detected devices until one is succesfully open
-//    // On Linux: interface_number == 1, as usage_page and usage are not defined, see hidapi.h
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
 
     // First we count all the valid devices from the enumerated list,
@@ -392,12 +392,9 @@ bool Mouse3DController::connect_device()
     typedef std::vector<DeviceData> DeviceDataList;
     typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
     DetectedDevices detected_devices;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    std::cout << std::endl << "======================================================================================================================================" << std::endl;
-    std::cout << std::endl << "Detected devices:" << std::endl;
+    std::cout << std::endl << "Detected 3D connexion devices:" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     while (current != nullptr)
     {
         unsigned short vendor_id = 0;
@@ -424,12 +421,8 @@ bool Mouse3DController::connect_device()
                     if (it == detected_devices.end())
                         it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     it->second.emplace_back(current->path, current->usage_page, current->usage);
-//                    it->second.emplace_back(current->path, current->interface_number, current->usage_page, current->usage);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                     std::wcout << "\"" << ((current->manufacturer_string != nullptr) ? current->manufacturer_string : L"Unknown");
                     std::cout << "/";
@@ -439,7 +432,6 @@ bool Mouse3DController::connect_device()
                     std::wcout << ((current->serial_number != nullptr) ? current->serial_number : L"Unknown");
                     std::cout << "' usage page: " << current->usage_page << " usage: " << current->usage << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 }
             }
         }
@@ -463,31 +455,32 @@ bool Mouse3DController::connect_device()
     {
         if (device.second.size() == 1)
         {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            path = device.second.front().path;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            vendor_id = device.first.first;
-            product_id = device.first.second;
-            break;
+#ifdef __linux__
+            hid_device* test_device = hid_open(device.first.first, device.first.second);
+            if (test_device != nullptr)
+            {
+                hid_close(test_device);
+#else
+            if (device.second.front().has_valid_usage())
+            {
+#endif // __linux__
+                vendor_id = device.first.first;
+                product_id = device.first.second;
+                break;
+            }
         }
         else
         {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             bool found = false;
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             std::cout << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             for (const DeviceData& data : device.second)
             {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                 std::cout << "Test device: " << std::hex << device.first.first << std::dec << "/" << std::hex << device.first.second << std::dec << " \"" << data.path << "\"";
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 #ifdef __linux__
-//#if defined(__linux)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 hid_device* test_device = hid_open_path(data.path.c_str());
                 if (test_device != nullptr)
                 {
@@ -501,41 +494,30 @@ bool Mouse3DController::connect_device()
                     hid_close(test_device);
                     break;
                 }
-//                if (data.interface_number == 1)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #else
-                if ((data.usage_page == 1) && (data.usage == 8))
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#endif // __linux
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                if (data.has_valid_usage())
                 {
                     path = data.path;
                     vendor_id = device.first.first;
                     product_id = device.first.second;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     found = true;
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                     std::cout << "-> PASSED" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     break;
                 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #endif // __linux__
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                 else
                     std::cout << "-> NOT PASSED" << std::endl;
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
             if (found)
                 break;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (path.empty())
     {
         if ((vendor_id != 0) && (product_id != 0))
@@ -557,13 +539,6 @@ bool Mouse3DController::connect_device()
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         m_device = hid_open_path(path.c_str());
     }
-
-//    if (path.empty())
-//        return false;
-//
-//    // Open the 3Dconnexion device using the device path
-//    m_device = hid_open_path(path.c_str());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (m_device != nullptr)
     {

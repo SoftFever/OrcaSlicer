@@ -56,6 +56,8 @@ class Mouse3DController
         InputQueue<Vec3f> m_rotation;
         std::queue<unsigned int> m_buttons;
 
+        bool m_buttons_enabled;
+
         CustomParameters<double> m_translation_params;
         CustomParameters<float> m_rotation_params;
 
