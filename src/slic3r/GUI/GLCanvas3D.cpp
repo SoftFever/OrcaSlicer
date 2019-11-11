@@ -906,7 +906,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         std::vector<double> print_zs = canvas.get_current_print_zs(true);
         for (auto custom_code : custom_gcode_per_height)
         {
-            if (custom_code.gcode != "M600")
+            if (custom_code.gcode != ColorChangeCode)
                 continue;
             auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.height - DoubleSlider::epsilon());
 
@@ -978,7 +978,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
 
         int cnt = custom_gcode_per_height.size();
         for (int i = cnt-1; i >= 0; --i)
-            if (custom_gcode_per_height[i].gcode == "M600") {
+            if (custom_gcode_per_height[i].gcode == ColorChangeCode) {
                 ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
                 color_pos += 4;
                 color_in_pos -= 4;
@@ -4842,14 +4842,15 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             {
                 const std::string& code = it->gcode;
                 // pause print or custom Gcode
-                if (code == "M601" || (code != "M600" && code != "tool_change"))
+                if (code == PausePrintCode || 
+                    (code != ColorChangeCode && code != ExtruderChangeCode))
                     return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
 
                 // change tool (extruder) 
-                if (code == "tool_change")
+                if (code == ExtruderChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
                 // change color for current extruder
-                if (code == "M600") {
+                if (code == ColorChangeCode) {
                     int color_idx = get_color_idx_for_color_change(it, extruder);
                     if (color_idx >= 0)
                         return color_idx;
@@ -4862,13 +4863,13 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             {
                 --it;
                 // change color for current extruder
-                if (it->gcode == "M600") {
+                if (it->gcode == ColorChangeCode) {
                     int color_idx = get_color_idx_for_color_change(it, extruder);
                     if (color_idx >= 0)
                         return color_idx;
                 }
                 // change tool (extruder) 
-                if (it->gcode == "tool_change")
+                if (it->gcode == ExtruderChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
@@ -4881,7 +4882,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             int shift = 0;
             while (it != color_print_values->begin()) {
                 --it;
-                if (it->gcode == "M600")
+                if (it->gcode == ColorChangeCode)
                     shift++;
             }
             return extruders_cnt + shift;
@@ -4896,7 +4897,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             auto it_n = it;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == "M600" && it_n->extruder == current_extruder)
+                if (it_n->gcode == ColorChangeCode && it_n->extruder == current_extruder)
                     return get_m600_color_idx(it_n);
             }
 
@@ -4912,7 +4913,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             bool is_tool_change = false;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == "tool_change") {
+                if (it_n->gcode == ExtruderChangeCode) {
                     is_tool_change = true;
                     if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
                         return get_m600_color_idx(it);

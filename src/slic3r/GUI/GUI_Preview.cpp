@@ -893,7 +893,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         /* colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
         for (const Model::CustomGCode& code : color_print_values)
-            if (code.gcode == "M600")
+            if (code.gcode == ColorChangeCode)
                 colors.push_back(code.color);*/
         colors =  wxGetApp().plater()->get_colors_for_color_print();
         colors.push_back("#808080"); // gray color for pause print or custom G-code 

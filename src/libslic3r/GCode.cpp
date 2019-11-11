@@ -1692,7 +1692,7 @@ void GCode::process_layer(
     int m600_before_extruder = -1;
     while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
         custom_code = m_custom_g_code_heights.front().gcode;
-        if (custom_code == "M600" && m_custom_g_code_heights.front().extruder > 0)
+        if (custom_code == ColorChangeCode && m_custom_g_code_heights.front().extruder > 0)
             m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
         m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
         colorprint_change = true;
@@ -1710,11 +1710,11 @@ void GCode::process_layer(
     //     gcode += "M600\n";
     // }
 
-    // don't save "tool_change" code to GCode
-    if (colorprint_change && custom_code != "tool_change") {
+    // don't save "tool_change"(ExtruderChangeCode) code to GCode
+    if (colorprint_change && custom_code != ExtruderChangeCode) {
         const bool single_material_print = print.config().nozzle_diameter.size() == 1;
         
-        if (custom_code == "M600") // color change
+        if (custom_code == ColorChangeCode) // color change
         {
             // add tag for analyzer
             gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_before_extruder) + "\n";
@@ -1732,7 +1732,7 @@ void GCode::process_layer(
         } 
         else
         {
-            if (custom_code == "M601") // Pause print
+            if (custom_code == PausePrintCode) // Pause print
             {
                 // add tag for analyzer
                 gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
@@ -1750,16 +1750,16 @@ void GCode::process_layer(
         }
 
         /*
-        if (single_material_print || custom_code != "tool_change")
+        if (single_material_print || custom_code != ExtruderChangeCode)
         {
             // add tag for analyzer
             gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
             // add tag for time estimator
             gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-            if (single_material_print && custom_code == "tool_change")
-                custom_code = "M600";
+            if (single_material_print && custom_code == ExtruderChangeCode)
+                custom_code = ColorChangeCode;
 
-            if (!single_material_print && custom_code == "M600" && 
+            if (!single_material_print && custom_code == ColorChangeCode && 
                 m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
                 // && !MMU1
                 ) {

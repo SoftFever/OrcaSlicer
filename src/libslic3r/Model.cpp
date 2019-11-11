@@ -591,7 +591,7 @@ std::vector<std::pair<double, DynamicPrintConfig>> Model::get_custom_tool_change
     std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes;
     if (!custom_gcode_per_height.empty()) {
         for (const CustomGCode& custom_gcode : custom_gcode_per_height)
-            if (custom_gcode.gcode == "tool_change") {
+            if (custom_gcode.gcode == ExtruderChangeCode) {
                 DynamicPrintConfig config;
                 // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
                 config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder > num_extruders ? 0 : custom_gcode.extruder));

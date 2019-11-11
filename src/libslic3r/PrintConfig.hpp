@@ -71,6 +71,12 @@ enum SLAPillarConnectionMode {
     slapcmDynamic
 };
 
+// ys_FIXME ! may be, it's not a best place
+// Additional Codes which can be set by user using DoubleSlider
+static const std::string ColorChangeCode    = "M600";
+static const std::string PausePrintCode     = "M601";
+static const std::string ExtruderChangeCode = "tool_change";
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
