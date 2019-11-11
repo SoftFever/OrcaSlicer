@@ -571,24 +571,11 @@ std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowi
     return std::make_pair(m_mesh, sla::HollowingConfig{double(m_offset), double(m_accuracy), double(m_closing_d)});
 }
 
-void GLGizmoHollow::set_hollowing_result(std::unique_ptr<TriangleMesh> mesh)
+void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
 {
-    // Called from Plater when the UI job finishes
-    m_cavity_mesh = std::move(mesh);
-    
-    m_mesh_raycaster.reset(new MeshRaycaster(*m_cavity_mesh.get()));
+    m_mesh_raycaster = std::move(rc);
     m_object_clipper.reset();
     m_volume_with_cavity.reset();
-    
-    if(m_cavity_mesh) {// create a new GLVolume that only has the cavity inside
-        Geometry::Transformation volume_trafo = m_model_object->volumes.front()->get_transformation();
-        volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
-        m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
-        m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_cavity_mesh.get());
-        
-        m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
-    }
 }
 
 void GLGizmoHollow::hollow_mesh()
@@ -597,9 +584,21 @@ void GLGizmoHollow::hollow_mesh()
     wxGetApp().plater()->hollow();
 }
 
-void GLGizmoHollow::update_hollowed_mesh()
+void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 {
-    if (m_volume_with_cavity) m_volume_with_cavity->finalize_geometry(true);
+    // Called from Plater when the UI job finishes
+    m_cavity_mesh = std::move(mesh);
+    
+    if(m_cavity_mesh) {// create a new GLVolume that only has the cavity inside
+        Geometry::Transformation volume_trafo = m_model_object->volumes.front()->get_transformation();
+        volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
+        m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
+        m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_cavity_mesh.get());
+        m_volume_with_cavity->finalize_geometry(true);
+        m_volume_with_cavity->set_volume_transformation(volume_trafo);
+        m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
+    }
+    
     m_parent.toggle_model_objects_visibility(! m_cavity_mesh, m_model_object, m_active_instance);
 }
 
