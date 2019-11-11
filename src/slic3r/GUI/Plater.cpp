@@ -1714,6 +1714,9 @@ struct Plater::priv
         void process() override;
         void finalize() override;
     private:
+        GLGizmoHollow * get_gizmo();
+        const GLGizmoHollow * get_gizmo() const;
+        
         std::unique_ptr<TriangleMesh> m_output;
         const TriangleMesh* m_object_mesh = nullptr;
         sla::HollowingConfig m_cfg;
@@ -2873,22 +2876,50 @@ void Plater::priv::HollowJob::prepare()
 void Plater::priv::HollowJob::process()
 {
     sla::JobController ctl;
+    ctl.stopcondition = [this]{ return was_canceled(); };
+    ctl.statuscb = [this](unsigned st, const std::string &s) {
+        if (st < 100) update_status(int(st), s);
+    };
     
     TriangleMesh omesh = sla::generate_interior(*m_object_mesh, m_cfg, ctl);
     
-    if (omesh.empty()) return;
-
-    m_output.reset(new TriangleMesh{*m_object_mesh});
-    m_output->merge(omesh);
-    m_output->require_shared_vertices();
+    if (!omesh.empty()) {
+        m_output.reset(new TriangleMesh{*m_object_mesh});
+        m_output->merge(omesh);
+        m_output->require_shared_vertices();
+        
+        update_status(90, "Rendering hollowed object");
+        
+        auto gizmo = get_gizmo();
+        if (gizmo) gizmo->set_hollowing_result(std::move(m_output));
+        
+        update_status(100, was_canceled() ? _(L("Hollowing cancelled.")) :
+                                            _(L("Hollowing done.")));
+    } else {
+        update_status(100, _(L("Hollowing failed.")));
+    }
 }
 
 void Plater::priv::HollowJob::finalize()
 {
+    auto gizmo = get_gizmo();
+    if (gizmo) gizmo->update_hollowed_mesh();
+}
+
+GLGizmoHollow *Plater::priv::HollowJob::get_gizmo()
+{
     const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
-    GLGizmoHollow* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(gizmo_manager.get_current());
-    assert(gizmo_hollow);
-    gizmo_hollow->update_hollowed_mesh(std::move(m_output));
+    auto ret = dynamic_cast<GLGizmoHollow*>(gizmo_manager.get_current());
+    assert(ret);
+    return ret;
+}
+
+const GLGizmoHollow *Plater::priv::HollowJob::get_gizmo() const
+{
+    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
+    auto ret = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
+    assert(ret);
+    return ret;
 }
 
 void Plater::priv::split_object()
@@ -2896,7 +2927,7 @@ void Plater::priv::split_object()
     int obj_idx = get_selected_object_idx();
     if (obj_idx == -1)
         return;
-
+    
     // we clone model object because split_object() adds the split volumes
     // into the same model object, thus causing duplicates when we call load_model_objects()
     Model new_model = model;
