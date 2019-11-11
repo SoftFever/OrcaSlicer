@@ -105,7 +105,7 @@ static void register_dpi_event()
         const auto rect = reinterpret_cast<PRECT>(lParam);
         const wxRect wxrect(wxPoint(rect->top, rect->left), wxPoint(rect->bottom, rect->right));
 
-        DpiChangedEvent evt(EVT_DPI_CHANGED, dpi, wxrect);
+        DpiChangedEvent evt(EVT_DPI_CHANGED_SLICER, dpi, wxrect);
         win->GetEventHandler()->AddPendingEvent(evt);
 
         return true;

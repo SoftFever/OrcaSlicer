@@ -50,7 +50,7 @@ struct DpiChangedEvent : public wxEvent {
     }
 };
 
-wxDECLARE_EVENT(EVT_DPI_CHANGED, DpiChangedEvent);
+wxDECLARE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
 
 template<class P> class DPIAware : public P
 {
@@ -75,7 +75,7 @@ public:
 
 //        recalc_font();
 
-        this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
+        this->Bind(EVT_DPI_CHANGED_SLICER, [this](const DpiChangedEvent &evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
 
             m_new_font_point_size = get_default_font_for_dpi(evt.dpi).GetPointSize();
