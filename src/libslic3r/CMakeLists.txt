@@ -216,10 +216,6 @@ add_library(libslic3r STATIC
 
 encoding_check(libslic3r)
 
-if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
-endif ()
-
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(libslic3r
@@ -252,3 +248,7 @@ endif()
 if(SLIC3R_PROFILE)
     target_link_libraries(slic3r Shiny)
 endif()
+
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+endif ()
