@@ -76,8 +76,11 @@ public:
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
-    void update_hollowed_mesh(std::unique_ptr<TriangleMesh> mesh);
+    
+    
     std::pair<const TriangleMesh *, sla::HollowingConfig> get_hollowing_parameters() const;
+    void set_hollowing_result(std::unique_ptr<TriangleMesh> mesh);
+    void update_hollowed_mesh();
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
 
