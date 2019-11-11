@@ -231,7 +231,7 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     init_info_label(_(L("Used Filament (mm³)")));
     init_info_label(_(L("Used Filament (g)")));
     init_info_label(_(L("Used Material (unit)")));
-    init_info_label(_(L("Cost")));
+    init_info_label(_(L("Cost (money)")));
     init_info_label(_(L("Estimated printing time")));
     init_info_label(_(L("Number of tool changes")));
 
@@ -1129,12 +1129,10 @@ void Sidebar::show_info_sizer()
     }
 }
 
-void Sidebar::show_sliced_info_sizer(const bool show)
+void Sidebar::update_sliced_info_sizer()
 {
-    wxWindowUpdateLocker freeze_guard(this);
-
-    p->sliced_info->Show(show);
-    if (show) {
+    if (p->sliced_info->IsShown(size_t(0)))
+    {
         if (p->plater->printer_technology() == ptSLA)
         {
             const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
@@ -1150,7 +1148,18 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                 wxString::Format("%.2f", (ps.objects_used_material + ps.support_used_material) / 1000);
             p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
 
-            p->sliced_info->SetTextAndShow(siCost, "N/A"/*wxString::Format("%.2f", ps.total_cost)*/);
+            wxString str_total_cost = "N/A";
+
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_SLA_MATERIAL)->get_config();
+            if (cfg->option("bottle_cost")->getFloat() > 0.0 &&
+                cfg->option("bottle_volume")->getFloat() > 0.0)
+            {
+                double material_cost = cfg->option("bottle_cost")->getFloat() / 
+                                       cfg->option("bottle_volume")->getFloat();
+                str_total_cost = wxString::Format("%.2f", material_cost*(ps.objects_used_material + ps.support_used_material) / 1000);                
+            }
+            p->sliced_info->SetTextAndShow(siCost, str_total_cost);
+
             wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
             p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _(L("Estimated printing time")) + " :");
 
@@ -1224,6 +1233,15 @@ void Sidebar::show_sliced_info_sizer(const bool show)
             p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
         }
     }
+}
+
+void Sidebar::show_sliced_info_sizer(const bool show)
+{
+    wxWindowUpdateLocker freeze_guard(this);
+
+    p->sliced_info->Show(show);
+    if (show)
+        update_sliced_info_sizer();
 
     Layout();
     p->scrolled->Refresh();

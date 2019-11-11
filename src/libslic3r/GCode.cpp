@@ -961,7 +961,7 @@ void GCode::_do_export(Print &print, FILE *file)
     // Write thumbnails using base64 encoding
     if (thumbnail_data != nullptr)
     {
-        const unsigned int max_row_length = 78;
+        const size_t max_row_length = 78;
 
         for (const ThumbnailData& data : *thumbnail_data)
         {
@@ -972,19 +972,21 @@ void GCode::_do_export(Print &print, FILE *file)
                 void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
                 if (png_data != nullptr)
                 {
-                    _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
+                    std::string encoded;
+                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
+                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
 
-                    std::string encoded = boost::beast::detail::base64_encode((const std::uint8_t*)png_data, png_size);
+                    _write_format(file, "\n;\n; thumbnail begin %dx%d %d\n", data.width, data.height, encoded.size());
 
                     unsigned int row_count = 0;
-                    while (encoded.length() > max_row_length)
+                    while (encoded.size() > max_row_length)
                     {
                         _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
                         encoded = encoded.substr(max_row_length);
                         ++row_count;
                     }
 
-                    if (encoded.length() > 0)
+                    if (encoded.size() > 0)
                         _write_format(file, "; %s\n", encoded.c_str());
 
                     _write(file, "; thumbnail end\n;\n");
@@ -997,9 +999,12 @@ void GCode::_do_export(Print &print, FILE *file)
                 size_t row_size = 4 * data.width;
                 for (int r = (int)data.height - 1; r >= 0; --r)
                 {
-                    std::string encoded = boost::beast::detail::base64_encode((const std::uint8_t*)(data.pixels.data() + r * row_size), row_size);
+                    std::string encoded;
+                    encoded.resize(boost::beast::detail::base64::encoded_size(row_size));
+                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)(data.pixels.data() + r * row_size), row_size));
+
                     unsigned int row_count = 0;
-                    while (encoded.length() > max_row_length)
+                    while (encoded.size() > max_row_length)
                     {
                         if (row_count == 0)
                             _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
@@ -1010,7 +1015,7 @@ void GCode::_do_export(Print &print, FILE *file)
                         ++row_count;
                     }
 
-                    if (encoded.length() > 0)
+                    if (encoded.size() > 0)
                     {
                         if (row_count == 0)
                             _write_format(file, "; %s\n", encoded.c_str());
