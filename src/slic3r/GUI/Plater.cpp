@@ -2270,6 +2270,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
                     }
+
+                    this->model.custom_gcode_per_height = model.custom_gcode_per_height;
                 }
 
                 if (load_config)

@@ -41,6 +41,9 @@ Model& Model::assign_copy(const Model &rhs)
         mo->set_model(this);
 		this->objects.emplace_back(mo);
     }
+
+    // copy custom code per height
+    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
     return *this;
 }
 
@@ -59,6 +62,9 @@ Model& Model::assign_copy(Model &&rhs)
     for (ModelObject *model_object : this->objects)
         model_object->set_model(this);
     rhs.objects.clear();
+
+    // copy custom code per height
+    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
     return *this;
 }
 
