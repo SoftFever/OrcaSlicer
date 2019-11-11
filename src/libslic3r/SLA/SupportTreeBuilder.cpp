@@ -1,5 +1,6 @@
-#include "SLASupportTreeBuilder.hpp"
-#include "SLASupportTreeBuildsteps.hpp"
+#include <libslic3r/SLA/SupportTreeBuilder.hpp>
+#include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
+#include <libslic3r/SLA/Contour3D.hpp>
 
 namespace Slic3r {
 namespace sla {

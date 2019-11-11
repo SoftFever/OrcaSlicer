@@ -1,10 +1,11 @@
-#ifndef SUPPORTTREEBUILDER_HPP
-#define SUPPORTTREEBUILDER_HPP
+#ifndef SLA_SUPPORTTREEBUILDER_HPP
+#define SLA_SUPPORTTREEBUILDER_HPP
 
-#include "SLAConcurrency.hpp"
-#include "SLACommon.hpp"
-#include "SLASupportTree.hpp"
-#include "SLAPad.hpp"
+#include <libslic3r/SLA/Concurrency.hpp>
+#include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/SLA/SupportTree.hpp>
+#include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/MTUtils.hpp>
 
 namespace Slic3r {

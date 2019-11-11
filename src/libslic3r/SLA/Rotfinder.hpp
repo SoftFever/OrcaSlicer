@@ -1,5 +1,5 @@
-#ifndef SLAROTFINDER_HPP
-#define SLAROTFINDER_HPP
+#ifndef SLA_ROTFINDER_HPP
+#define SLA_ROTFINDER_HPP
 
 #include <functional>
 #include <array>

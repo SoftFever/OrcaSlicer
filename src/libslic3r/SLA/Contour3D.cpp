@@ -1,4 +1,6 @@
-#include "SLACommon.hpp"
+#include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/SLA/EigenMesh3D.hpp>
+
 #include <libslic3r/Format/objparser.hpp>
 
 namespace Slic3r { namespace sla {

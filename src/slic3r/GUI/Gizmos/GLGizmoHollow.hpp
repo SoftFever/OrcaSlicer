@@ -4,7 +4,7 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
-#include "libslic3r/SLA/SLACommon.hpp"
+#include <libslic3r/SLA/Hollowing.hpp>
 #include <wx/dialog.h>
 
 #include <cereal/types/vector.hpp>
@@ -77,7 +77,7 @@ public:
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
     void update_hollowed_mesh(std::unique_ptr<TriangleMesh> mesh);
-    void get_hollowing_parameters(TriangleMesh const**  object_mesh, float& offset, float& adaptability) const;
+    std::pair<const TriangleMesh *, sla::HollowingConfig> get_hollowing_parameters() const;
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
 
@@ -105,12 +105,13 @@ private:
     float m_density_stash = 0.f;                // and again
     mutable std::vector<bool> m_selected; // which holes are currently selected
 
-    float m_offset = 2.f;
-    float m_adaptability = 1.f;
-
+    float m_offset = 2.0f;
+    float m_accuracy = 0.5f;
+    float m_closing_d = 2.f;
+    
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
-
+    
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;

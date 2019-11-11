@@ -4,7 +4,7 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
-#include "libslic3r/SLA/SLACommon.hpp"
+#include "libslic3r/SLA/Common.hpp"
 #include <wx/dialog.h>
 
 #include <cereal/types/vector.hpp>

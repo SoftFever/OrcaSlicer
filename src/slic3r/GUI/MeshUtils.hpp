@@ -3,7 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/SLA/SLACommon.hpp"
+#include "libslic3r/SLA/EigenMesh3D.hpp"
 
 
 #include <cfloat>

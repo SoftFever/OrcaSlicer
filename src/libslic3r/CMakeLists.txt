@@ -151,8 +151,6 @@ add_library(libslic3r STATIC
     ShortestPath.hpp
     SLAPrint.cpp
     SLAPrint.hpp
-    SLA/SLAAutoSupports.hpp
-    SLA/SLAAutoSupports.cpp
     Slicing.cpp
     Slicing.hpp
     SlicingAdaptive.cpp
@@ -182,28 +180,38 @@ add_library(libslic3r STATIC
     miniz_extension.hpp
     miniz_extension.cpp
     ${OpenVDBUtils_SOURCES}
-    SLA/SLACommon.hpp
-    SLA/SLACommon.cpp
-    SLA/SLAPad.hpp
-    SLA/SLAPad.cpp
-    SLA/SLASupportTreeBuilder.hpp
-    SLA/SLASupportTreeBuildsteps.hpp
-    SLA/SLASupportTreeBuildsteps.cpp
-    SLA/SLASupportTreeBuilder.cpp
-    SLA/SLAConcurrency.hpp
-    SLA/SLASupportTree.hpp
-    SLA/SLASupportTree.cpp
-    SLA/SLASupportTreeIGL.cpp
-    SLA/SLARotfinder.hpp
-    SLA/SLARotfinder.cpp
-    SLA/SLABoostAdapter.hpp
-    SLA/SLASpatIndex.hpp
-    SLA/SLARaster.hpp
-    SLA/SLARaster.cpp
-    SLA/SLARasterWriter.hpp
-    SLA/SLARasterWriter.cpp
+    SLA/Common.hpp
+    SLA/Common.cpp
+    SLA/Pad.hpp
+    SLA/Pad.cpp
+    SLA/SupportTreeBuilder.hpp
+    SLA/SupportTreeBuildsteps.hpp
+    SLA/SupportTreeBuildsteps.cpp
+    SLA/SupportTreeBuilder.cpp
+    SLA/Concurrency.hpp
+    SLA/SupportTree.hpp
+    SLA/SupportTree.cpp
+#    SLA/SupportTreeIGL.cpp
+    SLA/Rotfinder.hpp
+    SLA/Rotfinder.cpp
+    SLA/BoostAdapter.hpp
+    SLA/SpatIndex.hpp
+    SLA/Raster.hpp
+    SLA/Raster.cpp
+    SLA/RasterWriter.hpp
+    SLA/RasterWriter.cpp
     SLA/ConcaveHull.hpp
     SLA/ConcaveHull.cpp
+    SLA/Hollowing.hpp
+    SLA/Hollowing.cpp
+    SLA/JobController.hpp
+    SLA/SupportPoint.hpp
+    SLA/SupportPointGenerator.hpp
+    SLA/SupportPointGenerator.cpp
+    SLA/Contour3D.hpp
+    SLA/Contour3D.cpp
+    SLA/EigenMesh3D.hpp
+    SLA/Clustering.hpp
 )
 
 encoding_check(libslic3r)

@@ -3,7 +3,7 @@
 
 #include <tbb/parallel_for.h>
 
-#include "SLAAutoSupports.hpp"
+#include "SupportPointGenerator.hpp"
 #include "Model.hpp"
 #include "ExPolygon.hpp"
 #include "SVG.hpp"
@@ -18,7 +18,7 @@
 namespace Slic3r {
 namespace sla {
 
-/*float SLAAutoSupports::approximate_geodesic_distance(const Vec3d& p1, const Vec3d& p2, Vec3d& n1, Vec3d& n2)
+/*float SupportPointGenerator::approximate_geodesic_distance(const Vec3d& p1, const Vec3d& p2, Vec3d& n1, Vec3d& n2)
 {
     n1.normalize();
     n2.normalize();
@@ -36,7 +36,7 @@ namespace sla {
 }
 
 
-float SLAAutoSupports::get_required_density(float angle) const
+float SupportPointGenerator::get_required_density(float angle) const
 {
     // calculation would be density_0 * cos(angle). To provide one more degree of freedom, we will scale the angle
     // to get the user-set density for 45 deg. So it ends up as density_0 * cos(K * angle).
@@ -44,12 +44,12 @@ float SLAAutoSupports::get_required_density(float angle) const
     return std::max(0.f, float(m_config.density_at_horizontal * cos(K*angle)));
 }
 
-float SLAAutoSupports::distance_limit(float angle) const
+float SupportPointGenerator::distance_limit(float angle) const
 {
     return 1./(2.4*get_required_density(angle));
 }*/
 
-SLAAutoSupports::SLAAutoSupports(const sla::EigenMesh3D &       emesh,
+SupportPointGenerator::SupportPointGenerator(const sla::EigenMesh3D &       emesh,
                                  const std::vector<ExPolygons> &slices,
                                  const std::vector<float> &     heights,
                                  const Config &                 config,
@@ -64,7 +64,7 @@ SLAAutoSupports::SLAAutoSupports(const sla::EigenMesh3D &       emesh,
     project_onto_mesh(m_output);
 }
 
-void SLAAutoSupports::project_onto_mesh(std::vector<sla::SupportPoint>& points) const
+void SupportPointGenerator::project_onto_mesh(std::vector<sla::SupportPoint>& points) const
 {
     // The function  makes sure that all the points are really exactly placed on the mesh.
 
@@ -99,14 +99,14 @@ void SLAAutoSupports::project_onto_mesh(std::vector<sla::SupportPoint>& points) 
         });
 }
 
-static std::vector<SLAAutoSupports::MyLayer> make_layers(
+static std::vector<SupportPointGenerator::MyLayer> make_layers(
     const std::vector<ExPolygons>& slices, const std::vector<float>& heights,
     std::function<void(void)> throw_on_cancel)
 {
     assert(slices.size() == heights.size());
 
     // Allocate empty layers.
-    std::vector<SLAAutoSupports::MyLayer> layers;
+    std::vector<SupportPointGenerator::MyLayer> layers;
     layers.reserve(slices.size());
     for (size_t i = 0; i < slices.size(); ++ i)
         layers.emplace_back(i, heights[i]);
@@ -122,7 +122,7 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
                 if ((layer_id % 8) == 0)
                     // Don't call the following function too often as it flushes CPU write caches due to synchronization primitves.
                     throw_on_cancel();
-                SLAAutoSupports::MyLayer &layer   = layers[layer_id];
+                SupportPointGenerator::MyLayer &layer   = layers[layer_id];
                 const ExPolygons		 &islands = slices[layer_id];
                 //FIXME WTF?
                 const float height = (layer_id>2 ? heights[layer_id-3] : heights[0]-(heights[1]-heights[0]));
@@ -143,8 +143,8 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
             if ((layer_id % 2) == 0)
                 // Don't call the following function too often as it flushes CPU write caches due to synchronization primitves.
                 throw_on_cancel();
-            SLAAutoSupports::MyLayer &layer_above = layers[layer_id];
-            SLAAutoSupports::MyLayer &layer_below = layers[layer_id - 1];
+            SupportPointGenerator::MyLayer &layer_above = layers[layer_id];
+            SupportPointGenerator::MyLayer &layer_below = layers[layer_id - 1];
             //FIXME WTF?
             const float layer_height = (layer_id!=0 ? heights[layer_id]-heights[layer_id-1] : heights[0]);
             const float safe_angle = 5.f * (float(M_PI)/180.f); // smaller number - less supports
@@ -152,8 +152,8 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
             const float slope_angle = 75.f * (float(M_PI)/180.f); // smaller number - less supports
             const float slope_offset = float(scale_(layer_height / std::tan(slope_angle)));
             //FIXME This has a quadratic time complexity, it will be excessively slow for many tiny islands.
-            for (SLAAutoSupports::Structure &top : layer_above.islands) {
-                for (SLAAutoSupports::Structure &bottom : layer_below.islands) {
+            for (SupportPointGenerator::Structure &top : layer_above.islands) {
+                for (SupportPointGenerator::Structure &bottom : layer_below.islands) {
                     float overlap_area = top.overlap_area(bottom);
                     if (overlap_area > 0) {
                         top.islands_below.emplace_back(&bottom, overlap_area);
@@ -191,13 +191,13 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
     return layers;
 }
 
-void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights)
+void SupportPointGenerator::process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights)
 {
-#ifdef SLA_AUTOSUPPORTS_DEBUG
+#ifdef SLA_SUPPORTPOINTGEN_DEBUG
     std::vector<std::pair<ExPolygon, coord_t>> islands;
-#endif /* SLA_AUTOSUPPORTS_DEBUG */
+#endif /* SLA_SUPPORTPOINTGEN_DEBUG */
 
-    std::vector<SLAAutoSupports::MyLayer> layers = make_layers(slices, heights, m_throw_on_cancel);
+    std::vector<SupportPointGenerator::MyLayer> layers = make_layers(slices, heights, m_throw_on_cancel);
 
     PointGrid3D point_grid;
     point_grid.cell_size = Vec3f(10.f, 10.f, 10.f);
@@ -206,8 +206,8 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
     double status    = 0;
 
     for (unsigned int layer_id = 0; layer_id < layers.size(); ++ layer_id) {
-        SLAAutoSupports::MyLayer *layer_top     = &layers[layer_id];
-        SLAAutoSupports::MyLayer *layer_bottom  = (layer_id > 0) ? &layers[layer_id - 1] : nullptr;
+        SupportPointGenerator::MyLayer *layer_top     = &layers[layer_id];
+        SupportPointGenerator::MyLayer *layer_bottom  = (layer_id > 0) ? &layers[layer_id - 1] : nullptr;
         std::vector<float>        support_force_bottom;
         if (layer_bottom != nullptr) {
             support_force_bottom.assign(layer_bottom->islands.size(), 0.f);
@@ -263,13 +263,13 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
         status += increment;
         m_statusfn(int(std::round(status)));
 
-#ifdef SLA_AUTOSUPPORTS_DEBUG
+#ifdef SLA_SUPPORTPOINTGEN_DEBUG
         /*std::string layer_num_str = std::string((i<10 ? "0" : "")) + std::string((i<100 ? "0" : "")) + std::to_string(i);
         output_expolygons(expolys_top, "top" + layer_num_str + ".svg");
         output_expolygons(diff, "diff" + layer_num_str + ".svg");
         if (!islands.empty())
             output_expolygons(islands, "islands" + layer_num_str + ".svg");*/
-#endif /* SLA_AUTOSUPPORTS_DEBUG */
+#endif /* SLA_SUPPORTPOINTGEN_DEBUG */
     }
 }
 
@@ -449,7 +449,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     return out;
 }
 
-void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island, bool just_one)
+void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island, bool just_one)
 {
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
@@ -488,7 +488,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
         min_spacing    = std::max(m_config.minimal_distance, min_spacing * coeff);
     }
 
-#ifdef SLA_AUTOSUPPORTS_DEBUG
+#ifdef SLA_SUPPORTPOINTGEN_DEBUG
     {
         static int irun = 0;
         Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(islands));
@@ -528,8 +528,8 @@ void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double
     pts.erase(endit, pts.end());
 }
 
-#ifdef SLA_AUTOSUPPORTS_DEBUG
-void SLAAutoSupports::output_structures(const std::vector<Structure>& structures)
+#ifdef SLA_SUPPORTPOINTGEN_DEBUG
+void SupportPointGenerator::output_structures(const std::vector<Structure>& structures)
 {
     for (unsigned int i=0 ; i<structures.size(); ++i) {
         std::stringstream ss;
@@ -538,7 +538,7 @@ void SLAAutoSupports::output_structures(const std::vector<Structure>& structures
     }
 }
 
-void SLAAutoSupports::output_expolygons(const ExPolygons& expolys, const std::string &filename)
+void SupportPointGenerator::output_expolygons(const ExPolygons& expolys, const std::string &filename)
 {
     BoundingBox bb(Point(-30000000, -30000000), Point(30000000, 30000000));
     Slic3r::SVG svg_cummulative(filename, bb);

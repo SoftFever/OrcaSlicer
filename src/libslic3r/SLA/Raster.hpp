@@ -1,5 +1,5 @@
-#ifndef SLARASTER_HPP
-#define SLARASTER_HPP
+#ifndef SLA_RASTER_HPP
+#define SLA_RASTER_HPP
 
 #include <ostream>
 #include <memory>

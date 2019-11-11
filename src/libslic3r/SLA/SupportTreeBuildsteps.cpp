@@ -1,4 +1,4 @@
-#include "SLASupportTreeBuildsteps.hpp"
+#include <libslic3r/SLA/SupportTreeBuildsteps.hpp>
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
@@ -8,7 +8,7 @@ namespace Slic3r {
 namespace sla {
 
 SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
-                                           const SupportableMesh &sm)
+                                             const SupportableMesh &sm)
     : m_cfg(sm.cfg)
     , m_mesh(sm.emesh)
     , m_support_pts(sm.pts)
@@ -30,7 +30,7 @@ SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
 }
 
 bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
-                                   const SupportableMesh &sm)
+                                    const SupportableMesh &sm)
 {
     if(sm.pts.empty()) return false;
     

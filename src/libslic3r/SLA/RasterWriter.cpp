@@ -1,6 +1,6 @@
-#include "SLARasterWriter.hpp"
-#include "libslic3r/Zipper.hpp"
-#include "libslic3r/Time.hpp"
+#include <libslic3r/SLA/RasterWriter.hpp>
+#include <libslic3r/Zipper.hpp>
+#include <libslic3r/Time.hpp>
 
 #include "ExPolygon.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>

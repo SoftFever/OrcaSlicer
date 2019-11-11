@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "SLARaster.hpp"
+#include <libslic3r/SLA/Raster.hpp>
 #include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/MTUtils.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>

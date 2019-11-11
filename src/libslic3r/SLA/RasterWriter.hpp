@@ -1,5 +1,5 @@
-#ifndef SLARASTERWRITER_HPP
-#define SLARASTERWRITER_HPP
+#ifndef SLA_RASTERWRITER_HPP
+#define SLA_RASTERWRITER_HPP
 
 // For png export of the sliced model
 #include <fstream>
@@ -11,7 +11,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 
-#include "SLARaster.hpp"
+#include <libslic3r/SLA/Raster.hpp>
 
 namespace Slic3r { namespace sla {
 

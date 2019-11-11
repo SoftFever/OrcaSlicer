@@ -1,5 +1,5 @@
-#ifndef SLACONCURRENCY_H
-#define SLACONCURRENCY_H
+#ifndef SLA_CONCURRENCY_H
+#define SLA_CONCURRENCY_H
 
 #include <tbb/spin_mutex.h>
 #include <tbb/mutex.h>

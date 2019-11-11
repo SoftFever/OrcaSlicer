@@ -566,11 +566,9 @@ void GLGizmoHollow::on_update(const UpdateData& data)
     }
 }
 
-void GLGizmoHollow::get_hollowing_parameters(TriangleMesh const** object_mesh, float& offset, float& adaptability) const
+std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowing_parameters() const
 {
-    offset = m_offset;
-    adaptability = m_adaptability;
-    *object_mesh = m_mesh;
+    return std::make_pair(m_mesh, sla::HollowingConfig{double(m_offset), double(m_accuracy), double(m_closing_d)});
 }
 
 void GLGizmoHollow::hollow_mesh()
@@ -725,9 +723,12 @@ RENDER_AGAIN:
     m_imgui->text("Offset: ");
     ImGui::SameLine();
     ImGui::SliderFloat("   ", &m_offset, 0.f, 5.f, "%.1f");
-    m_imgui->text("Adaptibility: ");
+    m_imgui->text("Quality: ");
     ImGui::SameLine();
-    ImGui::SliderFloat("    ", &m_adaptability, 0.f, 1.f, "%.1f");
+    ImGui::SliderFloat("    ", &m_accuracy, 0.f, 1.f, "%.1f");
+    m_imgui->text("Closing distance: ");
+    ImGui::SameLine();
+    ImGui::SliderFloat("      ", &m_closing_d, 0.f, 10.f, "%.1f");
 
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");

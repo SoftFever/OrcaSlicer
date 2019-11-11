@@ -11,11 +11,11 @@
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
-#include "libslic3r/SLA/SLAPad.hpp"
-#include "libslic3r/SLA/SLASupportTreeBuilder.hpp"
-#include "libslic3r/SLA/SLASupportTreeBuildsteps.hpp"
-#include "libslic3r/SLA/SLAAutoSupports.hpp"
-#include "libslic3r/SLA/SLARaster.hpp"
+#include "libslic3r/SLA/Pad.hpp"
+#include "libslic3r/SLA/SupportTreeBuilder.hpp"
+#include "libslic3r/SLA/SupportTreeBuildsteps.hpp"
+#include "libslic3r/SLA/SupportPointGenerator.hpp"
+#include "libslic3r/SLA/Raster.hpp"
 #include "libslic3r/SLA/ConcaveHull.hpp"
 #include "libslic3r/MTUtils.hpp"
 
@@ -231,11 +231,12 @@ void test_supports(const std::string &       obj_filename,
     sla::EigenMesh3D emesh{mesh};
     
     // Create the support point generator
-    sla::SLAAutoSupports::Config autogencfg;
+    sla::SupportPointGenerator::Config autogencfg;
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
-    sla::SLAAutoSupports point_gen{emesh, out.model_slices, out.slicegrid,
-                                   autogencfg, [] {}, [](int) {}};
-    
+    sla::SupportPointGenerator point_gen{emesh,         out.model_slices,
+                                         out.slicegrid, autogencfg,
+                                         [] {},         [](int) {}};
+
     // Get the calculated support points.
     std::vector<sla::SupportPoint> support_points = point_gen.output();
     

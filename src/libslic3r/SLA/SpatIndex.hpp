@@ -1,5 +1,5 @@
-#ifndef SPATINDEX_HPP
-#define SPATINDEX_HPP
+#ifndef SLA_SPATINDEX_HPP
+#define SLA_SPATINDEX_HPP
 
 #include <memory>
 #include <utility>

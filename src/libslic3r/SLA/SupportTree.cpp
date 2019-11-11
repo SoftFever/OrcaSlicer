@@ -4,10 +4,10 @@
  */
 
 #include <numeric>
-#include "SLASupportTree.hpp"
-#include "SLACommon.hpp"
-#include "SLASpatIndex.hpp"
-#include "SLASupportTreeBuilder.hpp"
+#include <libslic3r/SLA/SupportTree.hpp>
+#include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/SLA/SpatIndex.hpp>
+#include <libslic3r/SLA/SupportTreeBuilder.hpp>
 
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>

@@ -8,7 +8,8 @@
 #include "Point.hpp"
 #include "PrintConfig.hpp"
 #include "Slicing.hpp"
-#include "SLA/SLACommon.hpp"
+#include "SLA/SupportPoint.hpp"
+#include "SLA/Hollowing.hpp"
 #include "TriangleMesh.hpp"
 #include "Arrange.hpp"
 

@@ -3,7 +3,8 @@
 
 #include <cstdint>
 
-#include "SLASupportTreeBuilder.hpp"
+#include <libslic3r/SLA/SupportTreeBuilder.hpp>
+#include <libslic3r/SLA/Clustering.hpp>
 
 namespace Slic3r {
 namespace sla {

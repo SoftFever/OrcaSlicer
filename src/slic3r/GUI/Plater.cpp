@@ -33,12 +33,13 @@
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Model.hpp"
-#include "libslic3r/OpenVDBUtils.hpp"
+#include "libslic3r/SLA/Hollowing.hpp"
+#include "libslic3r/SLA/Rotfinder.hpp"
+#include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/SLA/SLARotfinder.hpp"
 #include "libslic3r/Utils.hpp"
 
 //#include "libslic3r/ClipperUtils.hpp"
@@ -1715,8 +1716,7 @@ struct Plater::priv
     private:
         std::unique_ptr<TriangleMesh> m_output;
         const TriangleMesh* m_object_mesh = nullptr;
-        float m_offset = 0.f;
-        float m_adaptability = 0.f;
+        sla::HollowingConfig m_cfg;
     };
 
     // Jobs defined inside the group class will be managed so that only one can
@@ -2864,22 +2864,22 @@ void Plater::priv::HollowJob::prepare()
     const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
     const GLGizmoHollow* gizmo_hollow = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
     assert(gizmo_hollow);
-    gizmo_hollow->get_hollowing_parameters(&m_object_mesh, m_offset, m_adaptability);
+    auto hlw_data = gizmo_hollow->get_hollowing_parameters();
+    m_object_mesh = hlw_data.first;
+    m_cfg = hlw_data.second;
     m_output.reset();
 }
 
 void Plater::priv::HollowJob::process()
 {
-    Slic3r::sla::Contour3D imesh{*m_object_mesh};
-    auto ptr = meshToVolume(imesh, {});
-    sla::Contour3D omesh = volumeToMesh(*ptr, -m_offset, m_adaptability, true);
+    sla::JobController ctl;
+    
+    TriangleMesh omesh = sla::generate_interior(*m_object_mesh, m_cfg, ctl);
+    
+    if (omesh.empty()) return;
 
-    if (omesh.empty())
-        return;
-
-    imesh.merge(omesh);
-    m_output.reset(new TriangleMesh());
-    *m_output = sla::to_triangle_mesh(imesh);
+    m_output.reset(new TriangleMesh{*m_object_mesh});
+    m_output->merge(omesh);
     m_output->require_shared_vertices();
 }
 

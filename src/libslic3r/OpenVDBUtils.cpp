@@ -2,6 +2,9 @@
 #include "OpenVDBUtils.hpp"
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
+#include <openvdb/tools/LevelSetRebuild.h>
+
+//#include "MTUtils.hpp"
 
 namespace Slic3r {
 
@@ -50,7 +53,12 @@ void Contour3DDataAdapter::getIndexSpacePoint(size_t          n,
     pos = {p.x(), p.y(), p.z()};
 }
 
-openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
+
+// TODO: Do I need to call initialize? Seems to work without it as well but the
+// docs say it should be called ones. It does a mutex lock-unlock sequence all
+// even if was called previously.
+
+openvdb::FloatGrid::Ptr mesh_to_grid(const TriangleMesh &mesh,
                                      const openvdb::math::Transform &tr,
                                      float               exteriorBandWidth,
                                      float               interiorBandWidth,
@@ -62,11 +70,7 @@ openvdb::FloatGrid::Ptr meshToVolume(const TriangleMesh &mesh,
         interiorBandWidth, flags);
 }
 
-// TODO: Do I need to call initialize? Seems to work without it as well but the
-// docs say it should be called ones. It does a mutex lock-unlock sequence all
-// even if was called previously.
-
-openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &          mesh,
+openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &mesh,
                                      const openvdb::math::Transform &tr,
                                      float exteriorBandWidth,
                                      float interiorBandWidth,
@@ -78,16 +82,11 @@ openvdb::FloatGrid::Ptr meshToVolume(const sla::Contour3D &          mesh,
         flags);
 }
 
-inline Vec3f to_vec3f(const openvdb::Vec3s &v) { return Vec3f{v.x(), v.y(), v.z()}; }
-inline Vec3d to_vec3d(const openvdb::Vec3s &v) { return to_vec3f(v).cast<double>(); }
-inline Vec3i to_vec3i(const openvdb::Vec3I &v) { return Vec3i{int(v[0]), int(v[1]), int(v[2])}; }
-inline Vec4i to_vec4i(const openvdb::Vec4I &v) { return Vec4i{int(v[0]), int(v[1]), int(v[2]), int(v[3])}; }
-
 template<class Grid>
 sla::Contour3D _volumeToMesh(const Grid &grid,
-                             double      isovalue,
-                             double      adaptivity,
-                             bool        relaxDisorientedTriangles)
+                              double      isovalue,
+                              double      adaptivity,
+                              bool        relaxDisorientedTriangles)
 {
     openvdb::initialize();
     
@@ -102,20 +101,35 @@ sla::Contour3D _volumeToMesh(const Grid &grid,
     ret.points.reserve(points.size());
     ret.faces3.reserve(triangles.size());
     ret.faces4.reserve(quads.size());
-    
+
     for (auto &v : points) ret.points.emplace_back(to_vec3d(v));
     for (auto &v : triangles) ret.faces3.emplace_back(to_vec3i(v));
     for (auto &v : quads) ret.faces4.emplace_back(to_vec4i(v));
-    
+
     return ret;
 }
 
-sla::Contour3D volumeToMesh(const openvdb::FloatGrid &grid,
-                            double                    isovalue,
-                            double                    adaptivity,
-                            bool relaxDisorientedTriangles)
+TriangleMesh grid_to_mesh(const openvdb::FloatGrid &grid,
+                                         double                    isovalue,
+                                         double                    adaptivity,
+                                         bool relaxDisorientedTriangles)
 {
-    return _volumeToMesh(grid, isovalue, adaptivity, relaxDisorientedTriangles);
+    return to_triangle_mesh(
+        _volumeToMesh(grid, isovalue, adaptivity, relaxDisorientedTriangles));
+}
+
+sla::Contour3D grid_to_contour3d(const openvdb::FloatGrid &grid,
+                                 double                    isovalue,
+                                 double                    adaptivity,
+                                 bool relaxDisorientedTriangles)
+{
+    return _volumeToMesh(grid, isovalue, adaptivity,
+                         relaxDisorientedTriangles);
+}
+
+openvdb::FloatGrid::Ptr redistance_grid(const openvdb::FloatGrid &grid, double iso, double er, double ir)
+{
+    return openvdb::tools::levelSetRebuild(grid, float(iso), float(er), float(ir));
 }
 
 } // namespace Slic3r

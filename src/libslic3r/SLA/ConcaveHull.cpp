@@ -1,7 +1,9 @@
-#include "ConcaveHull.hpp"
+#include <libslic3r/SLA/ConcaveHull.hpp>
+#include <libslic3r/SLA/SpatIndex.hpp>
+
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
-#include "SLASpatIndex.hpp"
+
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {
@@ -40,9 +42,9 @@ Point ConcaveHull::centroid(const Points &pp)
 
 // As it shows, the current offset_ex in ClipperUtils hangs if used in jtRound
 // mode
-ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
-                              coord_t                  delta,
-                              ClipperLib::JoinType     jointype)
+static ClipperLib::Paths fast_offset(const ClipperLib::Paths &paths,
+                                     coord_t                  delta,
+                                     ClipperLib::JoinType     jointype)
 {
     using ClipperLib::ClipperOffset;
     using ClipperLib::etClosedPolygon;
@@ -73,7 +75,7 @@ Points ConcaveHull::calculate_centroids() const
     Points centroids = reserve_vector<Point>(m_polys.size());
     std::transform(m_polys.begin(), m_polys.end(),
                    std::back_inserter(centroids),
-                   [this](const Polygon &poly) { return centroid(poly); });
+                   [](const Polygon &poly) { return centroid(poly); });
 
     return centroids;
 }

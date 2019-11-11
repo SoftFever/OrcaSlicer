@@ -4,7 +4,7 @@
 #include <mutex>
 #include "PrintBase.hpp"
 //#include "PrintExport.hpp"
-#include "SLA/SLARasterWriter.hpp"
+#include "SLA/RasterWriter.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
@@ -74,8 +74,11 @@ public:
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     const TriangleMesh&     support_mesh() const;
     // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
-    // Support mesh is only valid if this->is_step_done(slaposBasePool) is true.
+    // Support mesh is only valid if this->is_step_done(slaposPad) is true.
     const TriangleMesh&     pad_mesh() const;
+    
+    // Ready after this->is_step_done(slaposHollowing) is true
+    const TriangleMesh&     hollowed_interior_mesh() const;
 
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
@@ -288,9 +291,12 @@ private:
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
-
+    
     class SupportData;
     std::unique_ptr<SupportData> m_supportdata;
+    
+    class HollowingData;
+    std::unique_ptr<HollowingData> m_hollowing_data;
 };
 
 using PrintObjects = std::vector<SLAPrintObject*>;

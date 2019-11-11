@@ -1,7 +1,7 @@
-#ifndef SLABOOSTADAPTER_HPP
-#define SLABOOSTADAPTER_HPP
+#ifndef SLA_BOOSTADAPTER_HPP
+#define SLA_BOOSTADAPTER_HPP
 
-#include "SLA/SLACommon.hpp"
+#include <libslic3r/SLA/Common.hpp>
 #include <boost/geometry.hpp>
 
 namespace boost {

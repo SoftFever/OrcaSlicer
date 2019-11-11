@@ -1,5 +1,5 @@
-#ifndef SLABASEPOOL_HPP
-#define SLABASEPOOL_HPP
+#ifndef SLA_PAD_HPP
+#define SLA_PAD_HPP
 
 #include <vector>
 #include <functional>
