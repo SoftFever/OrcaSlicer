@@ -456,7 +456,7 @@ bool Mouse3DController::connect_device()
         if (device.second.size() == 1)
         {
 #ifdef __linux__
-            hid_device* test_device = hid_open(device.first.first, device.first.second);
+            hid_device* test_device = hid_open(device.first.first, device.first.second, nullptr);
             if (test_device != nullptr)
             {
                 hid_close(test_device);
