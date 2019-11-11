@@ -79,8 +79,8 @@ public:
     
     
     std::pair<const TriangleMesh *, sla::HollowingConfig> get_hollowing_parameters() const;
-    void set_hollowing_result(std::unique_ptr<TriangleMesh> mesh);
-    void update_hollowed_mesh();
+    void update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc);
+    void update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh);
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
 

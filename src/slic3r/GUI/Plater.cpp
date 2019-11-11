@@ -1717,7 +1717,8 @@ struct Plater::priv
         GLGizmoHollow * get_gizmo();
         const GLGizmoHollow * get_gizmo() const;
         
-        std::unique_ptr<TriangleMesh> m_output;
+        std::unique_ptr<TriangleMesh> m_output_mesh;
+        std::unique_ptr<MeshRaycaster> m_output_raycaster;
         const TriangleMesh* m_object_mesh = nullptr;
         sla::HollowingConfig m_cfg;
     };
@@ -2870,7 +2871,7 @@ void Plater::priv::HollowJob::prepare()
     auto hlw_data = gizmo_hollow->get_hollowing_parameters();
     m_object_mesh = hlw_data.first;
     m_cfg = hlw_data.second;
-    m_output.reset();
+    m_output_mesh.reset();
 }
 
 void Plater::priv::HollowJob::process()
@@ -2884,14 +2885,13 @@ void Plater::priv::HollowJob::process()
     TriangleMesh omesh = sla::generate_interior(*m_object_mesh, m_cfg, ctl);
     
     if (!omesh.empty()) {
-        m_output.reset(new TriangleMesh{*m_object_mesh});
-        m_output->merge(omesh);
-        m_output->require_shared_vertices();
+        m_output_mesh.reset(new TriangleMesh{*m_object_mesh});
+        m_output_mesh->merge(omesh);
+        m_output_mesh->require_shared_vertices();
         
-        update_status(90, "Rendering hollowed object");
+        update_status(90, _(L("Indexing hollowed object")));
         
-        auto gizmo = get_gizmo();
-        if (gizmo) gizmo->set_hollowing_result(std::move(m_output));
+        m_output_raycaster.reset(new MeshRaycaster(*m_output_mesh));
         
         update_status(100, was_canceled() ? _(L("Hollowing cancelled.")) :
                                             _(L("Hollowing done.")));
@@ -2902,8 +2902,10 @@ void Plater::priv::HollowJob::process()
 
 void Plater::priv::HollowJob::finalize()
 {
-    auto gizmo = get_gizmo();
-    if (gizmo) gizmo->update_hollowed_mesh();
+    if (auto gizmo = get_gizmo()) {
+        gizmo->update_mesh_raycaster(std::move(m_output_raycaster));
+        gizmo->update_hollowed_mesh(std::move(m_output_mesh));
+    }       
 }
 
 GLGizmoHollow *Plater::priv::HollowJob::get_gizmo()

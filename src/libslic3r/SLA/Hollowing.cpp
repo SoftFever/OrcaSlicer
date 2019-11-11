@@ -3,7 +3,6 @@
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 
-//#include <openvdb/tools/Filter.h>
 #include <boost/log/trivial.hpp>
 
 #include <libslic3r/MTUtils.hpp>
@@ -86,9 +85,6 @@ remove_cvref_t<Mesh> _generate_interior(Mesh &&mesh,
     
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(70, L("Hollowing"));
-    
-//    openvdb::tools::Filter<openvdb::FloatGrid> filt{*gridptr};
-//    filt.offset(float(offset + D));
     
     double iso_surface = D;
     double adaptivity = 0.;
