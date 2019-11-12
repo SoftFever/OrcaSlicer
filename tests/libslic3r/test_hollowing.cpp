@@ -2,6 +2,7 @@
 #include <fstream>
 #include <catch2/catch.hpp>
 
+#include <libslic3r/TriangleMesh.hpp>
 #include "libslic3r/SLA/Hollowing.hpp"
 #include <openvdb/tools/Filter.h>
 #include "libslic3r/Format/OBJ.hpp"
@@ -28,13 +29,14 @@ TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
     Benchmark bench;
     bench.start();
     
-    Slic3r::TriangleMesh out_mesh = Slic3r::sla::generate_interior(in_mesh);
+    std::unique_ptr<Slic3r::TriangleMesh> out_mesh_ptr =
+        Slic3r::sla::generate_interior(in_mesh);
     
     bench.stop();
     
     std::cout << "Elapsed processing time: " << bench.getElapsedSec() << std::endl;
     
-    in_mesh.merge(out_mesh);
+    if (out_mesh_ptr) in_mesh.merge(*out_mesh_ptr);
     in_mesh.require_shared_vertices();
     in_mesh.WriteOBJFile("merged_out.obj");
 }

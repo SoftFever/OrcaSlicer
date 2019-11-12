@@ -1,10 +1,12 @@
 #include <cmath>
 #include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/SLA/Concurrency.hpp>
 #include <libslic3r/SLA/SupportTree.hpp>
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
+
 
 // Workaround: IGL signed_distance.h will define PI in the igl namespace.
 #undef PI
@@ -351,128 +353,131 @@ PointSet normals(const PointSet& points,
                  std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices)
 {
-    if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
+    if (points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
-    
+
     std::vector<unsigned> range = pt_indices;
-    if(range.empty()) {
+    if (range.empty()) {
         range.resize(size_t(points.rows()), 0);
         std::iota(range.begin(), range.end(), 0);
     }
-    
-    PointSet            ret(range.size(), 3);
-    
+
+    PointSet ret(range.size(), 3);
+
     //    for (size_t ridx = 0; ridx < range.size(); ++ridx)
-    tbb::parallel_for(size_t(0), range.size(),
-                      [&ret, &range, &mesh, &points, thr, eps](size_t ridx)
-                      {
-                          thr();
-                          auto eidx = Eigen::Index(range[ridx]);
-                          int faceid = 0;
-                          Vec3d p;
-                          
-                          mesh.squared_distance(points.row(eidx), faceid, p);
-                          
-                          auto trindex = mesh.F().row(faceid);
-                          
-                          const Vec3d& p1 = mesh.V().row(trindex(0));
-                          const Vec3d& p2 = mesh.V().row(trindex(1));
-                          const Vec3d& p3 = mesh.V().row(trindex(2));
-                          
-                          // We should check if the point lies on an edge of the hosting triangle.
-                          // If it does then all the other triangles using the same two points
-                          // have to be searched and the final normal should be some kind of
-                          // aggregation of the participating triangle normals. We should also
-                          // consider the cases where the support point lies right on a vertex
-                          // of its triangle. The procedure is the same, get the neighbor
-                          // triangles and calculate an average normal.
-                          
-                          // mark the vertex indices of the edge. ia and ib marks and edge ic
-                          // will mark a single vertex.
-                          int ia = -1, ib = -1, ic = -1;
-                          
-                          if(std::abs(distance(p, p1)) < eps) {
-                              ic = trindex(0);
-                          }
-                          else if(std::abs(distance(p, p2)) < eps) {
-                              ic = trindex(1);
-                          }
-                          else if(std::abs(distance(p, p3)) < eps) {
-                              ic = trindex(2);
-                          }
-                          else if(point_on_edge(p, p1, p2, eps)) {
-                              ia = trindex(0); ib = trindex(1);
-                          }
-                          else if(point_on_edge(p, p2, p3, eps)) {
-                              ia = trindex(1); ib = trindex(2);
-                          }
-                          else if(point_on_edge(p, p1, p3, eps)) {
-                              ia = trindex(0); ib = trindex(2);
-                          }
-                          
-                          // vector for the neigboring triangles including the detected one.
-                          std::vector<Vec3i> neigh;
-                          if(ic >= 0) { // The point is right on a vertex of the triangle
-                              for(int n = 0; n < mesh.F().rows(); ++n) {
-                                  thr();
-                                  Vec3i ni = mesh.F().row(n);
-                                  if((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
-                                      neigh.emplace_back(ni);
-                              }
-                          }
-                          else if(ia >= 0 && ib >= 0) { // the point is on and edge
-                              // now get all the neigboring triangles
-                              for(int n = 0; n < mesh.F().rows(); ++n) {
-                                  thr();
-                                  Vec3i ni = mesh.F().row(n);
-                                  if((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
-                                      (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
-                                      neigh.emplace_back(ni);
-                              }
-                          }
-                          
-                          // Calculate the normals for the neighboring triangles
-                          std::vector<Vec3d> neighnorms; neighnorms.reserve(neigh.size());
-                          for(const Vec3i& tri : neigh) {
-                              const Vec3d& pt1 = mesh.V().row(tri(0));
-                              const Vec3d& pt2 = mesh.V().row(tri(1));
-                              const Vec3d& pt3 = mesh.V().row(tri(2));
-                              Eigen::Vector3d U = pt2 - pt1;
-                              Eigen::Vector3d V = pt3 - pt1;
-                              neighnorms.emplace_back(U.cross(V).normalized());
-                          }
-                          
-                          // Throw out duplicates. They would cause trouble with summing. We will
-                          // use std::unique which works on sorted ranges. We will sort by the
-                          // coefficient-wise sum of the normals. It should force the same
-                          // elements to be consecutive.
-                          std::sort(neighnorms.begin(), neighnorms.end(),
-                                    [](const Vec3d& v1, const Vec3d& v2){
-                                        return v1.sum() < v2.sum();
-                                    });
-                          
-                          auto lend = std::unique(neighnorms.begin(), neighnorms.end(),
-                                                  [](const Vec3d& n1, const Vec3d& n2) {
-                                                      // Compare normals for equivalence. This is controvers stuff.
-                                                      auto deq = [](double a, double b) { return std::abs(a-b) < 1e-3; };
-                                                      return deq(n1(X), n2(X)) && deq(n1(Y), n2(Y)) && deq(n1(Z), n2(Z));
-                                                  });
-                          
-                          if(!neighnorms.empty()) { // there were neighbors to count with
-                              // sum up the normals and then normalize the result again.
-                              // This unification seems to be enough.
-                              Vec3d sumnorm(0, 0, 0);
-                              sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
-                              sumnorm.normalize();
-                              ret.row(long(ridx)) = sumnorm;
-                          }
-                          else { // point lies safely within its triangle
-                              Eigen::Vector3d U = p2 - p1;
-                              Eigen::Vector3d V = p3 - p1;
-                              ret.row(long(ridx)) = U.cross(V).normalized();
-                          }
+    ccr::enumerate(
+        range.begin(), range.end(),
+        [&ret, &mesh, &points, thr, eps](unsigned el, size_t ridx) {
+            thr();
+            auto  eidx   = Eigen::Index(el);
+            int   faceid = 0;
+            Vec3d p;
+
+            mesh.squared_distance(points.row(eidx), faceid, p);
+
+            auto trindex = mesh.F().row(faceid);
+
+            const Vec3d &p1 = mesh.V().row(trindex(0));
+            const Vec3d &p2 = mesh.V().row(trindex(1));
+            const Vec3d &p3 = mesh.V().row(trindex(2));
+
+            // We should check if the point lies on an edge of the hosting
+            // triangle. If it does then all the other triangles using the
+            // same two points have to be searched and the final normal should
+            // be some kind of aggregation of the participating triangle
+            // normals. We should also consider the cases where the support
+            // point lies right on a vertex of its triangle. The procedure is
+            // the same, get the neighbor triangles and calculate an average
+            // normal.
+
+            // mark the vertex indices of the edge. ia and ib marks and edge
+            // ic will mark a single vertex.
+            int ia = -1, ib = -1, ic = -1;
+
+            if (std::abs(distance(p, p1)) < eps) {
+                ic = trindex(0);
+            } else if (std::abs(distance(p, p2)) < eps) {
+                ic = trindex(1);
+            } else if (std::abs(distance(p, p3)) < eps) {
+                ic = trindex(2);
+            } else if (point_on_edge(p, p1, p2, eps)) {
+                ia = trindex(0);
+                ib = trindex(1);
+            } else if (point_on_edge(p, p2, p3, eps)) {
+                ia = trindex(1);
+                ib = trindex(2);
+            } else if (point_on_edge(p, p1, p3, eps)) {
+                ia = trindex(0);
+                ib = trindex(2);
+            }
+
+            // vector for the neigboring triangles including the detected one.
+            std::vector<Vec3i> neigh;
+            if (ic >= 0) { // The point is right on a vertex of the triangle
+                for (int n = 0; n < mesh.F().rows(); ++n) {
+                    thr();
+                    Vec3i ni = mesh.F().row(n);
+                    if ((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
+                        neigh.emplace_back(ni);
+                }
+            } else if (ia >= 0 && ib >= 0) { // the point is on and edge
+                // now get all the neigboring triangles
+                for (int n = 0; n < mesh.F().rows(); ++n) {
+                    thr();
+                    Vec3i ni = mesh.F().row(n);
+                    if ((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
+                        (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
+                        neigh.emplace_back(ni);
+                }
+            }
+
+            // Calculate the normals for the neighboring triangles
+            std::vector<Vec3d> neighnorms;
+            neighnorms.reserve(neigh.size());
+            for (const Vec3i &tri : neigh) {
+                const Vec3d &   pt1 = mesh.V().row(tri(0));
+                const Vec3d &   pt2 = mesh.V().row(tri(1));
+                const Vec3d &   pt3 = mesh.V().row(tri(2));
+                Eigen::Vector3d U   = pt2 - pt1;
+                Eigen::Vector3d V   = pt3 - pt1;
+                neighnorms.emplace_back(U.cross(V).normalized());
+            }
+
+            // Throw out duplicates. They would cause trouble with summing. We
+            // will use std::unique which works on sorted ranges. We will sort
+            // by the coefficient-wise sum of the normals. It should force the
+            // same elements to be consecutive.
+            std::sort(neighnorms.begin(), neighnorms.end(),
+                      [](const Vec3d &v1, const Vec3d &v2) {
+                          return v1.sum() < v2.sum();
                       });
-    
+
+            auto lend = std::unique(neighnorms.begin(), neighnorms.end(),
+                                    [](const Vec3d &n1, const Vec3d &n2) {
+                                        // Compare normals for equivalence.
+                                        // This is controvers stuff.
+                                        auto deq = [](double a, double b) {
+                                            return std::abs(a - b) < 1e-3;
+                                        };
+                                        return deq(n1(X), n2(X)) &&
+                                               deq(n1(Y), n2(Y)) &&
+                                               deq(n1(Z), n2(Z));
+                                    });
+
+            if (!neighnorms.empty()) { // there were neighbors to count with
+                // sum up the normals and then normalize the result again.
+                // This unification seems to be enough.
+                Vec3d sumnorm(0, 0, 0);
+                sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
+                sumnorm.normalize();
+                ret.row(long(ridx)) = sumnorm;
+            } else { // point lies safely within its triangle
+                Eigen::Vector3d U   = p2 - p1;
+                Eigen::Vector3d V   = p3 - p1;
+                ret.row(long(ridx)) = U.cross(V).normalized();
+            }
+        });
+
     return ret;
 }
 

@@ -2882,11 +2882,12 @@ void Plater::priv::HollowJob::process()
         if (st < 100) update_status(int(st), s);
     };
     
-    TriangleMesh omesh = sla::generate_interior(*m_object_mesh, m_cfg, ctl);
+    std::unique_ptr<TriangleMesh> omesh =
+        sla::generate_interior(*m_object_mesh, m_cfg, ctl);
     
-    if (!omesh.empty()) {
+    if (omesh && !omesh->empty()) {
         m_output_mesh.reset(new TriangleMesh{*m_object_mesh});
-        m_output_mesh->merge(omesh);
+        m_output_mesh->merge(*omesh);
         m_output_mesh->require_shared_vertices();
         
         update_status(90, _(L("Indexing hollowed object")));

@@ -3,8 +3,8 @@
 
 #include <mutex>
 #include "PrintBase.hpp"
-//#include "PrintExport.hpp"
 #include "SLA/RasterWriter.hpp"
+#include "SLA/SupportTree.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
@@ -292,10 +292,33 @@ private:
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
     
-    class SupportData;
+    class SupportData : public sla::SupportableMesh
+    {
+    public:
+        sla::SupportTree::UPtr  support_tree_ptr; // the supports
+        std::vector<ExPolygons> support_slices;   // sliced supports
+        
+        inline SupportData(const TriangleMesh &t)
+            : sla::SupportableMesh{t, {}, {}}
+        {}
+        
+        sla::SupportTree::UPtr &create_support_tree(const sla::JobController &ctl)
+        {
+            support_tree_ptr = sla::SupportTree::create(*this, ctl);
+            return support_tree_ptr;
+        }
+    };
+    
     std::unique_ptr<SupportData> m_supportdata;
     
-    class HollowingData;
+    class HollowingData
+    {
+    public:
+        
+        TriangleMesh interior;
+        // std::vector<drillpoints>
+    };
+    
     std::unique_ptr<HollowingData> m_hollowing_data;
 };
 
@@ -346,7 +369,9 @@ class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 {
 private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
-
+    
+    class Steps; // See SLAPrintSteps.cpp
+    
 public:
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
@@ -402,8 +427,8 @@ public:
         template<class Container> void transformed_slices(Container&& c) {
             m_transformed_slices = std::forward<Container>(c);
         }
-
-        friend void SLAPrint::process();
+        
+        friend class SLAPrint::Steps;
 
     public:
 
@@ -478,6 +503,19 @@ private:
 
 	friend SLAPrintObject;
 };
+
+// Helper functions:
+
+bool is_zero_elevation(const SLAPrintObjectConfig &c);
+
+sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c);
+
+sla::PadConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c);
+
+sla::PadConfig make_pad_cfg(const SLAPrintObjectConfig& c);
+
+bool validate_pad(const TriangleMesh &pad, const sla::PadConfig &pcfg);
+
 
 } // namespace Slic3r
 

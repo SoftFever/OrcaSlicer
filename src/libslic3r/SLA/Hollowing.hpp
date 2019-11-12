@@ -1,10 +1,14 @@
 #ifndef SLA_HOLLOWING_HPP
 #define SLA_HOLLOWING_HPP
 
-#include <libslic3r/OpenVDBUtils.hpp>
+#include <memory>
+#include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
 namespace Slic3r {
+
+class TriangleMesh;
+
 namespace sla {
 
 struct HollowingConfig
@@ -33,24 +37,19 @@ struct DrainHole
         , m_height(height)
     {}
     
-    bool operator==(const DrainHole &sp) const
-    {
-        return (m_pos == sp.m_pos) && (m_normal == sp.m_normal) &&
-               is_approx(m_radius, sp.m_radius) &&
-               is_approx(m_height, sp.m_height);
-    }
+    bool operator==(const DrainHole &sp) const;
     
     bool operator!=(const DrainHole &sp) const { return !(sp == (*this)); }
     
-    template<class Archive> void serialize(Archive &ar)
+    template<class Archive> inline void serialize(Archive &ar)
     {
         ar(m_pos, m_normal, m_radius, m_height);
     }
 };
 
-TriangleMesh generate_interior(const TriangleMesh &mesh,
-                               const HollowingConfig & = {},
-                               const JobController &ctl = {});
+std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
+                                                const HollowingConfig &  = {},
+                                                const JobController &ctl = {});
 
 }
 }
