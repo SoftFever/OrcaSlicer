@@ -62,7 +62,7 @@ ExternalProject_Add(dep_qhull
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
     UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
+    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
 )
 
 ExternalProject_Add(dep_blosc

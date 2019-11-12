@@ -158,43 +158,18 @@ void Fill3DHoneycomb::_fill_surface_single(
         ((this->layer_id/thickness_layers) % 2) + 1);
     
     // move pattern in place
-    for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it)
-        it->translate(bb.min(0), bb.min(1));
+	for (Polyline &pl : polylines)
+		pl.translate(bb.min);
 
-    // clip pattern to boundaries
-    polylines = intersection_pl(polylines, (Polygons)expolygon);
+    // clip pattern to boundaries, chain the clipped polylines
+    Polylines polylines_chained = chain_polylines(intersection_pl(polylines, to_polygons(expolygon)));
 
-    // connect lines
-    if (! params.dont_connect && ! polylines.empty()) { // prevent calling leftmost_point() on empty collections
-        ExPolygon expolygon_off;
-        {
-            ExPolygons expolygons_off = offset_ex(expolygon, SCALED_EPSILON);
-            if (! expolygons_off.empty()) {
-                // When expanding a polygon, the number of islands could only shrink. Therefore the offset_ex shall generate exactly one expanded island for one input island.
-                assert(expolygons_off.size() == 1);
-                std::swap(expolygon_off, expolygons_off.front());
-            }
-        }
-        bool first = true;
-        for (Polyline &polyline : chain_polylines(std::move(polylines))) {
-            if (! first) {
-                // Try to connect the lines.
-                Points &pts_end = polylines_out.back().points;
-                const Point &first_point = polyline.points.front();
-                const Point &last_point = pts_end.back();
-                // TODO: we should also check that both points are on a fill_boundary to avoid 
-                // connecting paths on the boundaries of internal regions
-                if ((last_point - first_point).cast<double>().norm() <= 1.5 * distance && 
-                    expolygon_off.contains(Line(last_point, first_point))) {
-                    // Append the polyline.
-                    pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
-                    continue;
-                }
-            }
-            // The lines cannot be connected.
-            polylines_out.emplace_back(std::move(polyline));
-            first = false;
-        }
+    // connect lines if needed
+    if (! polylines_chained.empty()) {
+        if (params.dont_connect)
+            append(polylines_out, std::move(polylines_chained));
+        else
+            this->connect_infill(std::move(polylines_chained), expolygon, polylines_out, params);
     }
 }
 

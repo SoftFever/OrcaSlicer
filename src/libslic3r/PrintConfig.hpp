@@ -1126,6 +1126,10 @@ class SLAMaterialConfig : public StaticPrintConfig
     STATIC_PRINT_CONFIG_CACHE(SLAMaterialConfig)
 public:
     ConfigOptionFloat                       initial_layer_height;
+    ConfigOptionFloat                       bottle_cost;
+    ConfigOptionFloat                       bottle_volume;
+    ConfigOptionFloat                       bottle_weight;
+    ConfigOptionFloat                       material_density;
     ConfigOptionFloat                       exposure_time;
     ConfigOptionFloat                       initial_exposure_time;
     ConfigOptionFloats                      material_correction;
@@ -1133,6 +1137,10 @@ protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(initial_layer_height);
+        OPT_PTR(bottle_cost);
+        OPT_PTR(bottle_volume);
+        OPT_PTR(bottle_weight);
+        OPT_PTR(material_density);
         OPT_PTR(exposure_time);
         OPT_PTR(initial_exposure_time);
         OPT_PTR(material_correction);
