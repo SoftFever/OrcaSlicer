@@ -658,11 +658,8 @@ void Preview::create_double_slider()
 
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
-        // #ys_FIXME_COLOR
-        // wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights")->values = m_slider->GetTicksValues();
-
         Model& model = wxGetApp().plater()->model();
-        model.custom_gcode_per_height = m_slider->GetTicksValues_();
+        model.custom_gcode_per_height = m_slider->GetTicksValues();
         m_schedule_background_process();
 
         update_view_type(false);
@@ -761,9 +758,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->SetSelectionSpan(idx_low, idx_high);
 
-    // #ys_FIXME_COLOR
-    // m_slider->SetTicksValues(ticks_from_config);
-    m_slider->SetTicksValues_(ticks_from_model);
+    m_slider->SetTicksValues(ticks_from_model);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     //  #ys_FIXME_COLOR

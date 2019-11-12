@@ -808,10 +808,8 @@ public:
         m_values = values;
     }
     void ChangeOneLayerLock();
-    std::vector<double> GetTicksValues() const;
-    std::vector<Slic3r::Model::CustomGCode> GetTicksValues_() const;
-    void SetTicksValues_(const std::vector<Slic3r::Model::CustomGCode> &heights);
-    void SetTicksValues(const std::vector<double>& heights);
+    std::vector<Slic3r::Model::CustomGCode> GetTicksValues() const;
+    void SetTicksValues(const std::vector<Slic3r::Model::CustomGCode> &heights);
     void EnableTickManipulation(bool enable = true) {
         m_is_enabled_tick_manipulation = enable;
     }
@@ -854,7 +852,7 @@ public:
     int  get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
     void add_code(std::string code, int selected_extruder = -1);
-    void edit_color();
+    void edit_tick();
     void change_extruder(int extruder);
     void edit_extruder_sequence();
 
@@ -924,11 +922,11 @@ private:
     bool        m_is_one_layer_icon_focesed = false;
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
-    bool        m_show_edit_color_menu = false;
+    bool        m_show_edit_menu = false;
     bool        m_edit_extruder_sequence = false;
     bool        m_suppress_add_code = false;
     ManipulationState m_state = msSingleExtruder;
-    wxString    m_custom_gcode = wxEmptyString;
+    std::string m_custom_gcode = "";
     int         m_current_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
