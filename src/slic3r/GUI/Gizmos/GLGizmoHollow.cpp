@@ -748,13 +748,6 @@ RENDER_AGAIN:
     if (ImGui::SliderFloat("     ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
-    if (m_imgui->button("?")) {
-        wxGetApp().CallAfter([]() {
-            SlaGizmoHelpDialog help_dlg;
-            help_dlg.ShowModal();
-        });
-    }
-
     if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
         m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_model_object, m_active_instance);
         force_refresh = true;
