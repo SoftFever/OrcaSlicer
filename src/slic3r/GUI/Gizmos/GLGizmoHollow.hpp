@@ -28,7 +28,7 @@ private:
     mutable double m_z_shift = 0.;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
-    const float RenderPointScale = 1.f;
+    const float HoleStickOutLength = 1.f;
 
     GLUquadricObj* m_quadric;
 

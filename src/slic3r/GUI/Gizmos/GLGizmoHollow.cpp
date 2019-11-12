@@ -290,21 +290,17 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         // Matrices set, we can render the point mark now.
 
         Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * drain_hole.m_normal.cast<double>());
+        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.m_normal).cast<double>());
         Eigen::AngleAxisd aa(q);
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
-
-        const double cylinder_radius = double(drain_hole.m_radius) * RenderPointScale; //0.25; // mm
-        const double stick_out_length = 1.;
-        const double cone_height = m_new_hole_height + stick_out_length;
         glsafe(::glPushMatrix());
-        glsafe(::glTranslated(0., 0., -cone_height+stick_out_length));
-        ::gluCylinder(m_quadric, cylinder_radius, cylinder_radius, cone_height, 24, 1);
-        glsafe(::glTranslated(0., 0., cone_height));
-        ::gluDisk(m_quadric, 0.0, cylinder_radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -cone_height));
+        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
+        ::gluCylinder(m_quadric, drain_hole.m_radius, drain_hole.m_radius, drain_hole.m_height, 24, 1);
+        glsafe(::glTranslated(0., 0., drain_hole.m_height));
+        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
+        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
         glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-        ::gluDisk(m_quadric, 0.0, cylinder_radius, 24, 1);
+        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
         glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
@@ -434,7 +430,8 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             std::pair<Vec3f, Vec3f> pos_and_normal;
             if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add drainage hole")));
-                m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first, pos_and_normal.second, m_new_hole_radius, m_new_hole_height);
+                m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second,
+                                                             -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+HoleStickOutLength);
                 m_selected.push_back(false);
                 assert(m_selected.size == m_model_object->sla_drain_holes.size());
                 m_parent.set_as_dirty();
@@ -561,8 +558,8 @@ void GLGizmoHollow::on_update(const UpdateData& data)
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
             return;
-        m_model_object->sla_drain_holes[m_hover_id].m_pos = pos_and_normal.first;
-        m_model_object->sla_drain_holes[m_hover_id].m_normal = pos_and_normal.second;
+        m_model_object->sla_drain_holes[m_hover_id].m_pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
+        m_model_object->sla_drain_holes[m_hover_id].m_normal = -pos_and_normal.second;
     }
 }
 

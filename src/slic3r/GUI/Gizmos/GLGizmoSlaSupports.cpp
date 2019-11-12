@@ -327,6 +327,43 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
     }
 
+    // Now render the drain holes:
+    render_color[0] = 0.7f;
+    render_color[1] = 0.7f;
+    render_color[2] = 0.7f;
+    render_color[3] = 0.7f;
+    glsafe(::glColor4fv(render_color));
+    for (const sla::DrainHole& drain_hole : m_model_object->sla_drain_holes) {
+        // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslatef(drain_hole.m_pos(0), drain_hole.m_pos(1), drain_hole.m_pos(2)));
+        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+
+        if (vol->is_left_handed())
+            glFrontFace(GL_CW);
+
+        // Matrices set, we can render the point mark now.
+
+        Eigen::Quaterniond q;
+        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.m_normal).cast<double>());
+        Eigen::AngleAxisd aa(q);
+        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
+        ::gluCylinder(m_quadric, drain_hole.m_radius, drain_hole.m_radius, drain_hole.m_height, 24, 1);
+        glsafe(::glTranslated(0., 0., drain_hole.m_height));
+        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
+        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
+        glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
+        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
+        glsafe(::glPopMatrix());
+
+        if (vol->is_left_handed())
+            glFrontFace(GL_CCW);
+        glsafe(::glPopMatrix());
+
+    }
+
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
 
@@ -375,6 +412,24 @@ void GLGizmoSlaSupports::update_mesh()
 }
 
 
+bool GLGizmoSlaSupports::is_point_in_hole(const Vec3f& pt) const
+{
+    auto squared_distance_from_line = [](const Vec3f pt, const Vec3f& line_pt, const Vec3f& dir) -> float {
+        Vec3f diff = line_pt - pt;
+        return (diff - diff.dot(dir) * dir).squaredNorm();
+    };
+
+
+    for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
+        if ( hole.m_normal.dot(pt-hole.m_pos) < EPSILON
+         || hole.m_normal.dot(pt-(hole.m_pos+hole.m_height * hole.m_normal)) > 0.f)
+            continue;
+        if ( squared_distance_from_line(pt, hole.m_pos, hole.m_normal) < pow(hole.m_radius, 2.f))
+            return true;
+    }
+
+    return false;
+}
 
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
@@ -393,7 +448,8 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())
+     && ! is_point_in_hole(hit)) {
         // Return both the point and the facet normal.
         pos_and_normal = std::make_pair(hit, normal);
         return true;
