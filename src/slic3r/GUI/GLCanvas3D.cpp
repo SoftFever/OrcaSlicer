@@ -269,6 +269,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (imgui.button(_(L("Reset"))))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
+    ImGui::SameLine();
+    if (imgui.button(_(L("Adaptive"))))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE));
+
     imgui.end();
 
     ImGui::PopStyleVar();
@@ -569,6 +573,16 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas)
+{
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
+    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, m_model_object->layer_config_ranges, m_model_object->volumes);
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
 {
@@ -1196,6 +1210,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, SimpleEvent);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1503,6 +1518,13 @@ bool GLCanvas3D::is_layers_editing_allowed() const
 void GLCanvas3D::reset_layer_height_profile()
 {
     m_layers_editing.reset_layer_height_profile(*this);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+
+void GLCanvas3D::adaptive_layer_height_profile()
+{
+    m_layers_editing.adaptive_layer_height_profile(*this);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }

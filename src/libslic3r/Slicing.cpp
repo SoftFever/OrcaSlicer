@@ -609,7 +609,11 @@ int generate_layer_height_texture(
             const Vec3crd &color1 = palette_raw[idx1];
             const Vec3crd &color2 = palette_raw[idx2];
             coordf_t z = cell_to_z * coordf_t(cell);
-			assert(z >= lo && z <= hi);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+            assert((lo - EPSILON <= z) && (z <= hi + EPSILON));
+#else
+            assert(z >= lo && z <= hi);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
             // Intensity profile to visualize the layers.
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
             // Color mapping from layer height to RGB.
