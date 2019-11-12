@@ -12,6 +12,7 @@
 
 #include "boost/nowide/iostream.hpp"
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 #include <algorithm>
 
