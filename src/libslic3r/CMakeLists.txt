@@ -150,6 +150,8 @@ add_library(libslic3r STATIC
     ShortestPath.cpp
     ShortestPath.hpp
     SLAPrint.cpp
+    SLAPrintSteps.cpp
+    SLAPrintSteps.hpp
     SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp

@@ -9,11 +9,13 @@
 #include <map>
 #include <array>
 
-#include "libslic3r/PrintConfig.hpp"
-
 #include <libslic3r/SLA/Raster.hpp>
 
-namespace Slic3r { namespace sla {
+namespace Slic3r {
+
+class DynamicPrintConfig;
+
+namespace sla {
 
 // API to write the zipped sla output layers and metadata.
 // Implementation uses PNG raster output.

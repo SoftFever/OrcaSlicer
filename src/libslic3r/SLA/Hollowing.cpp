@@ -1,5 +1,7 @@
 #include <functional>
 
+#include <libslic3r/OpenVDBUtils.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 
@@ -98,18 +100,30 @@ remove_cvref_t<Mesh> _generate_interior(Mesh &&mesh,
     return omesh;
 }
 
-TriangleMesh generate_interior(const TriangleMesh &mesh, const HollowingConfig &hc, const JobController &ctl)
+std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
+                                                const HollowingConfig &hc,
+                                                const JobController &  ctl)
 {
     static const double MAX_OVERSAMPL = 7.;
         
-    // I can't figure out how to increase the grid resolution through openvdb API
-    // so the model will be scaled up before conversion and the result scaled
-    // down. Voxels have a unit size. If I set voxelSize smaller, it scales
-    // the whole geometry down, and doesn't increase the number of voxels.
+    // I can't figure out how to increase the grid resolution through openvdb
+    // API so the model will be scaled up before conversion and the result
+    // scaled down. Voxels have a unit size. If I set voxelSize smaller, it
+    // scales the whole geometry down, and doesn't increase the number of
+    // voxels.
     //
     // max 8x upscale, min is native voxel size
     auto voxel_scale = (1.0 + MAX_OVERSAMPL * hc.quality);
-    return _generate_interior(mesh, ctl, hc.min_thickness, voxel_scale, hc.closing_distance);
+    return std::make_unique<TriangleMesh>(
+        _generate_interior(mesh, ctl, hc.min_thickness, voxel_scale,
+                           hc.closing_distance));
+}
+
+bool DrainHole::operator==(const DrainHole &sp) const
+{
+    return (m_pos == sp.m_pos) && (m_normal == sp.m_normal) &&
+            is_approx(m_radius, sp.m_radius) &&
+            is_approx(m_height, sp.m_height);
 }
 
 }} // namespace Slic3r::sla

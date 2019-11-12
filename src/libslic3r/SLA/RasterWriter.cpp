@@ -1,4 +1,6 @@
 #include <libslic3r/SLA/RasterWriter.hpp>
+
+#include "libslic3r/PrintConfig.hpp"
 #include <libslic3r/Zipper.hpp>
 #include <libslic3r/Time.hpp>
 
