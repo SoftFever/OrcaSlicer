@@ -917,6 +917,7 @@ void ObjectList::extruder_editing()
             m_objects_model->SetExtruder(m_extruder_editor->GetString(selection), item);
 
         m_extruder_editor->Hide();
+        update_extruder_in_config(item);
     };
 
     // to avoid event propagation to other sidebar items

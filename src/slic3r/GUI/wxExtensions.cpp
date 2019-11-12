@@ -3744,10 +3744,19 @@ void DoubleSlider::edit_extruder_sequence()
     if (dlg.ShowModal() != wxID_OK)
         return;
 
-    m_extruders_sequence = dlg.GetValue();
+    const ExtrudersSequence& from_dlg_val = dlg.GetValue();
+    if (m_extruders_sequence == from_dlg_val)
+        return;
 
-    m_ticks_.erase(std::remove_if(m_ticks_.begin(), m_ticks_.end(),
-        [](TICK_CODE tick) { return tick.gcode == Slic3r::ExtruderChangeCode; }), m_ticks_.end());
+    m_extruders_sequence = from_dlg_val;
+
+    auto it = m_ticks_.begin();
+    while (it != m_ticks_.end()) {
+        if (it->gcode == Slic3r::ExtruderChangeCode)
+            it = m_ticks_.erase(it);
+        else
+            ++it;
+    }
 
     int tick = 0;
     double value = 0.0;

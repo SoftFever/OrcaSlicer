@@ -1014,6 +1014,20 @@ public:
 
             return *this;
         }
+        bool operator==(const ExtrudersSequence& other) const
+        {
+            return  (other.is_mm_intervals      == this->is_mm_intervals    ) &&
+                    (other.interval_by_mm       == this->interval_by_mm     ) &&
+                    (other.interval_by_layers   == this->interval_by_layers ) &&
+                    (other.extruders            == this->extruders          ) ;
+        }
+        bool operator!=(const ExtrudersSequence& other) const
+        {
+            return  (other.is_mm_intervals      != this->is_mm_intervals    ) &&
+                    (other.interval_by_mm       != this->interval_by_mm     ) &&
+                    (other.interval_by_layers   != this->interval_by_layers ) &&
+                    (other.extruders            != this->extruders          ) ;
+        }
 
         void add_extruder(size_t pos)
         {
