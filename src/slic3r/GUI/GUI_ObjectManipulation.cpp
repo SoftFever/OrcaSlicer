@@ -57,7 +57,7 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
 #endif //__WXOSX__
 
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     temp->Append(_(L("World coordinates")));
     temp->Append(_(L("Local coordinates")));
