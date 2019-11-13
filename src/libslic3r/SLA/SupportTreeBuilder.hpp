@@ -74,7 +74,7 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
 // h: Height
 // ssteps: how many edges will create the base circle
 // sp: starting point
-Contour3D cylinder(double r, double h, size_t ssteps, const Vec3d &sp = {0,0,0});
+Contour3D cylinder(double r, double h, size_t ssteps = 45, const Vec3d &sp = {0,0,0});
 
 const constexpr long ID_UNSET = -1;
 

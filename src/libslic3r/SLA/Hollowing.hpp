@@ -20,21 +20,17 @@ struct HollowingConfig
 
 struct DrainHole
 {
-    Vec3f m_pos;
-    Vec3f m_normal;
-    float m_radius;
-    float m_height;
-    
+    Vec3f pos;
+    Vec3f normal;
+    float radius;
+    float height;
+
     DrainHole()
-        : m_pos(Vec3f::Zero()), m_normal(Vec3f::UnitZ()), m_radius(5.f),
-        m_height(10.f)
+        : pos(Vec3f::Zero()), normal(Vec3f::UnitZ()), radius(5.f), height(10.f)
     {}
-    
-    DrainHole(Vec3f position, Vec3f normal, float radius, float height)
-        : m_pos(position)
-        , m_normal(normal)
-        , m_radius(radius)
-        , m_height(height)
+
+    DrainHole(Vec3f p, Vec3f n, float r, float h)
+        : pos(p), normal(n), radius(r), height(h)
     {}
     
     bool operator==(const DrainHole &sp) const;
@@ -43,9 +39,11 @@ struct DrainHole
     
     template<class Archive> inline void serialize(Archive &ar)
     {
-        ar(m_pos, m_normal, m_radius, m_height);
+        ar(pos, normal, radius, height);
     }
 };
+
+using DrainHoles = std::vector<DrainHole>;
 
 std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
                                                 const HollowingConfig &  = {},

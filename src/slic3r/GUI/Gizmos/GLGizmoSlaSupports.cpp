@@ -336,7 +336,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     for (const sla::DrainHole& drain_hole : m_model_object->sla_drain_holes) {
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(drain_hole.m_pos(0), drain_hole.m_pos(1), drain_hole.m_pos(2)));
+        glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
         glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
         if (vol->is_left_handed())
@@ -345,17 +345,17 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
         // Matrices set, we can render the point mark now.
 
         Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.m_normal).cast<double>());
+        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
         Eigen::AngleAxisd aa(q);
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
         glsafe(::glPushMatrix());
-        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
-        ::gluCylinder(m_quadric, drain_hole.m_radius, drain_hole.m_radius, drain_hole.m_height, 24, 1);
-        glsafe(::glTranslated(0., 0., drain_hole.m_height));
-        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
+        glsafe(::glTranslated(0., 0., -drain_hole.height));
+        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
+        glsafe(::glTranslated(0., 0., drain_hole.height));
+        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+        glsafe(::glTranslated(0., 0., -drain_hole.height));
         glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
+        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
         glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
@@ -421,10 +421,10 @@ bool GLGizmoSlaSupports::is_point_in_hole(const Vec3f& pt) const
 
 
     for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
-        if ( hole.m_normal.dot(pt-hole.m_pos) < EPSILON
-         || hole.m_normal.dot(pt-(hole.m_pos+hole.m_height * hole.m_normal)) > 0.f)
+        if ( hole.normal.dot(pt-hole.pos) < EPSILON
+         || hole.normal.dot(pt-(hole.pos+hole.height * hole.normal)) > 0.f)
             continue;
-        if ( squared_distance_from_line(pt, hole.m_pos, hole.m_normal) < pow(hole.m_radius, 2.f))
+        if ( squared_distance_from_line(pt, hole.pos, hole.normal) < pow(hole.radius, 2.f))
             return true;
     }
 

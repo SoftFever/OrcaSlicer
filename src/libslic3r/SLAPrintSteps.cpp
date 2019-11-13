@@ -1,5 +1,9 @@
 #include <libslic3r/SLAPrintSteps.hpp>
 
+
+// Need the cylinder method for the the drainholes in hollowing step
+#include <libslic3r/SLA/SupportTreeBuilder.hpp>
+
 #include <libslic3r/SLA/Concurrency.hpp>
 #include <libslic3r/SLA/Pad.hpp>
 #include <libslic3r/SLA/SupportPointGenerator.hpp>
@@ -98,6 +102,42 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
         BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
 }
 
+static void cut_drainholes(std::vector<ExPolygons> & obj_slices,
+                           const std::vector<float> &slicegrid,
+                           float                     closing_radius,
+                           const sla::DrainHoles &   holes,
+                           std::function<void(void)> thr)
+{
+    TriangleMesh mesh;
+    for (const sla::DrainHole &holept : holes) {
+        auto r = double(holept.radius);
+        auto h = double(holept.height);
+        sla::Contour3D hole = sla::cylinder(r, h);
+        Eigen::Quaterniond q;
+        q.setFromTwoVectors(Vec3d{0., 0., 1.}, holept.normal.cast<double>());
+        for(auto& p : hole.points) p = q * p + holept.pos.cast<double>();
+        mesh.merge(sla::to_triangle_mesh(hole));
+    }
+    
+    if (mesh.empty()) return;
+    
+    mesh.require_shared_vertices();
+    
+    TriangleMeshSlicer slicer(&mesh);
+    
+    std::vector<ExPolygons> hole_slices;
+    slicer.slice(slicegrid, closing_radius, &hole_slices, thr);
+    
+    if (obj_slices.size() != hole_slices.size())
+        BOOST_LOG_TRIVIAL(warning)
+            << "Sliced object and drain-holes layer count does not match!";
+
+    size_t until = std::min(obj_slices.size(), hole_slices.size());
+    
+    for (size_t i = 0; i < until; ++i)
+        obj_slices[i] = diff_ex(obj_slices[i], hole_slices[i]);
+}
+
 // The slicing will be performed on an imaginary 1D grid which starts from
 // the bottom of the bounding box created around the supported model. So
 // the first layer which is usually thicker will be part of the supports
@@ -107,12 +147,10 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 // of it. In any case, the model and the supports have to be sliced in the
 // same imaginary grid (the height vector argument to TriangleMeshSlicer).
 void SLAPrint::Steps::slice_model(SLAPrintObject &po)
-{
-    
+{   
     TriangleMesh hollowed_mesh;
     
-    bool is_hollowing = po.m_config.hollowing_enable.getBool() &&
-            po.m_hollowing_data;
+    bool is_hollowing = po.m_config.hollowing_enable.getBool() && po.m_hollowing_data;
     
     if (is_hollowing) {
         hollowed_mesh = po.transformed_mesh();
@@ -120,8 +158,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         hollowed_mesh.require_shared_vertices();
     }
     
-    const TriangleMesh &mesh = is_hollowing ? hollowed_mesh :
-                                              po.transformed_mesh();
+    const TriangleMesh &mesh = is_hollowing ? hollowed_mesh : po.transformed_mesh();
     
     // We need to prepare the slice index...
     
@@ -163,10 +200,13 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     TriangleMeshSlicer slicer(&mesh);
     
     po.m_model_slices.clear();
-    slicer.slice(po.m_model_height_levels,
-                 float(po.config().slice_closing_radius.value),
-                 &po.m_model_slices,
-                 [this](){ m_print->throw_if_canceled(); });
+    float closing_r  = float(po.config().slice_closing_radius.value);
+    auto  thr        = [this]() { m_print->throw_if_canceled(); };
+    auto &slice_grid = po.m_model_height_levels;
+    slicer.slice(slice_grid, closing_r, &po.m_model_slices, thr);
+    
+    sla::DrainHoles drainholes = po.transformed_drainhole_points();
+    cut_drainholes(po.m_model_slices, slice_grid, closing_r, drainholes, thr);
     
     auto mit = slindex_it;
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();
@@ -183,8 +223,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
         mit->set_model_slice_idx(po, id); ++mit;
     }
     
-    if(po.m_config.supports_enable.getBool() ||
-        po.m_config.pad_enable.getBool())
+    if(po.m_config.supports_enable.getBool() || po.m_config.pad_enable.getBool())
     {
         po.m_supportdata.reset(
             new SLAPrintObject::SupportData(po.transformed_mesh()) );
@@ -324,8 +363,7 @@ void SLAPrint::Steps::generate_pad(SLAPrintObject &po) {
     // and before the supports had been sliced. (or the slicing has to be
     // repeated)
     
-    if(po.m_config.pad_enable.getBool())
-    {
+    if(po.m_config.pad_enable.getBool()) {
         // Get the distilled pad configuration from the config
         sla::PadConfig pcfg = make_pad_cfg(po.m_config);
         
@@ -368,13 +406,11 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
     if(sd) sd->support_slices.clear();
     
     // Don't bother if no supports and no pad is present.
-    if (!po.m_config.supports_enable.getBool() &&
-            !po.m_config.pad_enable.getBool())
+    if (!po.m_config.supports_enable.getBool() && !po.m_config.pad_enable.getBool())
         return;
     
     if(sd && sd->support_tree_ptr) {
-        
-        std::vector<float> heights; heights.reserve(po.m_slice_index.size());
+        auto heights = reserve_vector<float>(po.m_slice_index.size());
         
         for(auto& rec : po.m_slice_index) heights.emplace_back(rec.slice_level());
         

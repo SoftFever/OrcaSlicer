@@ -250,7 +250,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         const sla::DrainHole& drain_hole = m_model_object->sla_drain_holes[i];
         const bool& point_selected = m_selected[i];
 
-        if (is_mesh_point_clipped(drain_hole.m_pos.cast<double>()))
+        if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -281,7 +281,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(drain_hole.m_pos(0), drain_hole.m_pos(1), drain_hole.m_pos(2)));
+        glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
         glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
         if (vol->is_left_handed())
@@ -290,17 +290,17 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         // Matrices set, we can render the point mark now.
 
         Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.m_normal).cast<double>());
+        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
         Eigen::AngleAxisd aa(q);
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
         glsafe(::glPushMatrix());
-        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
-        ::gluCylinder(m_quadric, drain_hole.m_radius, drain_hole.m_radius, drain_hole.m_height, 24, 1);
-        glsafe(::glTranslated(0., 0., drain_hole.m_height));
-        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -drain_hole.m_height));
+        glsafe(::glTranslated(0., 0., -drain_hole.height));
+        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
+        glsafe(::glTranslated(0., 0., drain_hole.height));
+        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+        glsafe(::glTranslated(0., 0., -drain_hole.height));
         glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-        ::gluDisk(m_quadric, 0.0, drain_hole.m_radius, 24, 1);
+        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
         glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
@@ -433,7 +433,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
                 m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second,
                                                              -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+HoleStickOutLength);
                 m_selected.push_back(false);
-                assert(m_selected.size == m_model_object->sla_drain_holes.size());
+                assert(m_selected.size() == m_model_object->sla_drain_holes.size());
                 m_parent.set_as_dirty();
                 m_wait_for_up_event = true;
             }
@@ -456,7 +456,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
         trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
         std::vector<Vec3d> points;
         for (unsigned int i=0; i<m_model_object->sla_drain_holes.size(); ++i)
-            points.push_back(trafo.get_matrix() * m_model_object->sla_drain_holes[i].m_pos.cast<double>());
+            points.push_back(trafo.get_matrix() * m_model_object->sla_drain_holes[i].pos.cast<double>());
 
         // Now ask the rectangle which of the points are inside.
         std::vector<Vec3f> points_inside;
@@ -558,8 +558,8 @@ void GLGizmoHollow::on_update(const UpdateData& data)
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
             return;
-        m_model_object->sla_drain_holes[m_hover_id].m_pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
-        m_model_object->sla_drain_holes[m_hover_id].m_normal = -pos_and_normal.second;
+        m_model_object->sla_drain_holes[m_hover_id].pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
+        m_model_object->sla_drain_holes[m_hover_id].normal = -pos_and_normal.second;
     }
 }
 
@@ -688,20 +688,20 @@ RENDER_AGAIN:
     if (ImGui::IsItemEdited()) {
         for (size_t idx=0; idx<m_selected.size(); ++idx)
             if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].m_radius = m_new_hole_radius;
+                m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
     }
     if (ImGui::IsItemDeactivatedAfterEdit()) {
         // momentarily restore the old value to take snapshot
         for (size_t idx=0; idx<m_selected.size(); ++idx)
             if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].m_radius = m_old_hole_radius;
+                m_model_object->sla_drain_holes[idx].radius = m_old_hole_radius;
         float backup = m_new_hole_radius;
         m_new_hole_radius = m_old_hole_radius;
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change drainage hole diameter")));
         m_new_hole_radius = backup;
         for (size_t idx=0; idx<m_selected.size(); ++idx)
             if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].m_radius = m_new_hole_radius;
+                m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
         m_old_hole_radius = 0.f;
     }
 
@@ -863,7 +863,7 @@ void GLGizmoHollow::on_start_dragging()
     if (m_hover_id != -1) {
         select_point(NoPoints);
         select_point(m_hover_id);
-        m_hole_before_drag = m_model_object->sla_drain_holes[m_hover_id].m_pos;
+        m_hole_before_drag = m_model_object->sla_drain_holes[m_hover_id].pos;
     }
     else
         m_hole_before_drag = Vec3f::Zero();
@@ -873,14 +873,14 @@ void GLGizmoHollow::on_start_dragging()
 void GLGizmoHollow::on_stop_dragging()
 {
     if (m_hover_id != -1) {
-        Vec3f backup = m_model_object->sla_drain_holes[m_hover_id].m_pos;
+        Vec3f backup = m_model_object->sla_drain_holes[m_hover_id].pos;
 
         if (m_hole_before_drag != Vec3f::Zero() // some point was touched
          && backup != m_hole_before_drag) // and it was moved, not just selected
         {
-            m_model_object->sla_drain_holes[m_hover_id].m_pos = m_hole_before_drag;
+            m_model_object->sla_drain_holes[m_hover_id].pos = m_hole_before_drag;
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Move drainage hole")));
-            m_model_object->sla_drain_holes[m_hover_id].m_pos = backup;
+            m_model_object->sla_drain_holes[m_hover_id].pos = backup;
         }
     }
     m_hole_before_drag = Vec3f::Zero();
@@ -921,14 +921,14 @@ void GLGizmoHollow::select_point(int i)
         m_selection_empty = (i == NoPoints);
 
         if (i == AllPoints)
-            m_new_hole_radius = m_model_object->sla_drain_holes[0].m_radius;
+            m_new_hole_radius = m_model_object->sla_drain_holes[0].radius;
     }
     else {
         while (size_t(i) >= m_selected.size())
             m_selected.push_back(false);
         m_selected[i] = true;
         m_selection_empty = false;
-        m_new_hole_radius = m_model_object->sla_drain_holes[i].m_radius;
+        m_new_hole_radius = m_model_object->sla_drain_holes[i].radius;
     }
 }
 

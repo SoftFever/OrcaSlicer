@@ -121,9 +121,9 @@ std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
 
 bool DrainHole::operator==(const DrainHole &sp) const
 {
-    return (m_pos == sp.m_pos) && (m_normal == sp.m_normal) &&
-            is_approx(m_radius, sp.m_radius) &&
-            is_approx(m_height, sp.m_height);
+    return (pos == sp.pos) && (normal == sp.normal) &&
+            is_approx(radius, sp.radius) &&
+            is_approx(height, sp.height);
 }
 
 }} // namespace Slic3r::sla

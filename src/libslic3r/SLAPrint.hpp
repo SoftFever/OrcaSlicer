@@ -83,7 +83,8 @@ public:
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
 
-    std::vector<sla::SupportPoint>      transformed_support_points() const;
+    sla::SupportPoints      transformed_support_points() const;
+    sla::DrainHoles         transformed_drainhole_points() const;
 
     // Get the needed Z elevation for the model geometry if supports should be
     // displayed. This Z offset should also be applied to the support
