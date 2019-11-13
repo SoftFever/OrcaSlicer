@@ -18,8 +18,12 @@ namespace Slic3r
 
 class PrintConfig;
 class PrintObjectConfig;
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+class ModelObject;
+#else
 class ModelVolume;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 // Parameters to guide object slicing and support generation.
 // The slicing parameters account for a raft and whether the 1st object layer is printed with a normal or a bridging flow
@@ -138,11 +142,16 @@ extern std::vector<coordf_t> layer_height_profile_from_ranges(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges &layer_config_ranges);
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+extern std::vector<coordf_t> layer_height_profile_adaptive(
+    const SlicingParameters& slicing_params,
+    const ModelObject& object);
+#else
 extern std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges &layer_config_ranges,
     const ModelVolumePtrs       &volumes);
-
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 enum LayerHeightEditActionType : unsigned int {
     LAYER_HEIGHT_EDIT_ACTION_INCREASE = 0,
