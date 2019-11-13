@@ -140,6 +140,7 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 	return height; 
 }
 
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 // Returns the distance to the next horizontal facet in Z-dir 
 // to consider horizontal object features in slice thickness
 float SlicingAdaptive::horizontal_facet_distance(float z)
@@ -158,5 +159,6 @@ float SlicingAdaptive::horizontal_facet_distance(float z)
 	return (z + (float)m_slicing_params.max_layer_height > (float)m_slicing_params.object_print_z_height()) ? 
 		std::max((float)m_slicing_params.object_print_z_height() - z, 0.f) : (float)m_slicing_params.max_layer_height;
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 }; // namespace Slic3r

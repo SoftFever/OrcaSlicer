@@ -32,7 +32,9 @@ public:
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     void prepare();
 	float cusp_height(float z, float cusp_value, int &current_facet);
-	float horizontal_facet_distance(float z);
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    float horizontal_facet_distance(float z);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 protected:
 	SlicingParameters 					m_slicing_params;
