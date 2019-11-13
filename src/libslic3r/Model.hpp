@@ -199,13 +199,13 @@ public:
     // This vector holds position of selected support points for SLA. The data are
     // saved in mesh coordinates to allow using them for several instances.
     // The format is (x, y, z, point_size, supports_island)
-    std::vector<sla::SupportPoint>      sla_support_points;
+    sla::SupportPoints      sla_support_points;
     // To keep track of where the points came from (used for synchronization between
     // the SLA gizmo and the backend).
-    sla::PointsStatus sla_points_status = sla::PointsStatus::NoPoints;
+    sla::PointsStatus       sla_points_status = sla::PointsStatus::NoPoints;
 
     // Holes to be drilled into the object so resin can flow out
-    std::vector<sla::DrainHole> sla_drain_holes;
+    sla::DrainHoles         sla_drain_holes;
 
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation

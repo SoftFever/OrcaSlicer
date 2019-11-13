@@ -414,6 +414,12 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
                     model_object.sla_support_points = model_object_new.sla_support_points;
                 }
                 model_object.sla_points_status = model_object_new.sla_points_status;
+                
+                if (model_object.sla_drain_holes.size() != model_object_new.sla_drain_holes.size())
+                {
+                    model_object.sla_drain_holes = model_object_new.sla_drain_holes;
+                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposHollowing));
+                }
 
                 // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
                 model_object.name       = model_object_new.name;
@@ -1154,21 +1160,30 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     return m_transformed_rmesh.get();
 }
 
-std::vector<sla::SupportPoint> SLAPrintObject::transformed_support_points() const
+template<class It, class Trafo, class V = typename std::iterator_traits<It>::value_type>
+std::vector<V> transform_pts(It from, It to, Trafo &&tr)
+{
+    auto ret = reserve_vector<V>(to - from);
+    for(auto it = from; it != to; ++it) {
+        V v = *it;
+        v.pos = tr * it->pos;
+        ret.emplace_back(std::move(v));
+    }
+    return ret;
+}
+
+sla::SupportPoints SLAPrintObject::transformed_support_points() const
 {
     assert(m_model_object != nullptr);
-    std::vector<sla::SupportPoint>& spts = m_model_object->sla_support_points;
+    auto& spts = m_model_object->sla_support_points;
+    return transform_pts(spts.begin(), spts.end(), trafo().cast<float>());
+}
 
-    // this could be cached as well
-    std::vector<sla::SupportPoint> ret;
-    ret.reserve(spts.size());
-
-    for(sla::SupportPoint& sp : spts) {
-        Vec3f transformed_pos = trafo().cast<float>() * sp.pos;
-        ret.emplace_back(transformed_pos, sp.head_front_radius, sp.is_new_island);
-    }
-
-    return ret;
+sla::DrainHoles SLAPrintObject::transformed_drainhole_points() const
+{
+    assert(m_model_object != nullptr);
+    auto& spts = m_model_object->sla_drain_holes;
+    return transform_pts(spts.begin(), spts.end(), trafo().cast<float>());
 }
 
 DynamicConfig SLAPrintStatistics::config() const
