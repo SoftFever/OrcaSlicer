@@ -113,7 +113,7 @@ public:
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
-    std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const;
+    std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
 
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
     std::string post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const;
@@ -134,6 +134,7 @@ private:
     int                                                          m_tool_change_idx;
     bool                                                         m_brim_done;
     bool                                                         i_have_brim = false;
+    double                                                       m_last_wipe_tower_print_z = 0.f;
 };
 
 class GCode {

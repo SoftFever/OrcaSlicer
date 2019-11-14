@@ -403,7 +403,7 @@ const std::vector<std::string>& Preset::print_options()
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects",
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
         "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "single_extruder_multi_material_priming",
-        "compatible_printers", "compatible_printers_condition", "inherits"
+        "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
