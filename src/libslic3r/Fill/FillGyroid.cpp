@@ -145,6 +145,9 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
     return result;
 }
 
+// FIXME: needed to fix build on Mac on buildserver
+constexpr double FillGyroid::PatternTolerance;
+
 void FillGyroid::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
