@@ -130,6 +130,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_object_max_z(0.f)
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
+    , m_adaptive_cusp(0.2f)
     , state(Unknown)
     , band_width(2.0f)
     , strength(0.005f)
@@ -267,9 +268,16 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     
     ImGui::Separator();
     if (imgui.button(_(L("Adaptive"))))
-        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE));
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_cusp));
 
     ImGui::SameLine();
+    imgui.text(_(L("Cusp (mm)")));
+    ImGui::SameLine();
+    ImGui::PushItemWidth(100.0f);
+    m_adaptive_cusp = std::min(m_adaptive_cusp, (float)m_slicing_parameters->max_layer_height);
+    ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, (float)m_slicing_parameters->max_layer_height, "%.2f");
+
+    ImGui::Separator();
     if (imgui.button(_(L("Reset"))))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
@@ -575,9 +583,9 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 }
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas)
+void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp)
 {
-    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object);
+    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object, cusp);
     const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -1210,7 +1218,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1522,9 +1530,9 @@ void GLCanvas3D::reset_layer_height_profile()
     m_dirty = true;
 }
 
-void GLCanvas3D::adaptive_layer_height_profile()
+void GLCanvas3D::adaptive_layer_height_profile(float cusp)
 {
-    m_layers_editing.adaptive_layer_height_profile(*this);
+    m_layers_editing.adaptive_layer_height_profile(*this, cusp);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }

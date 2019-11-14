@@ -225,9 +225,8 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
 // Based on the work of @platsch
 // Fill layer_height_profile by heights ensuring a prescribed maximum cusp height.
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-std::vector<coordf_t> layer_height_profile_adaptive(
-    const SlicingParameters& slicing_params,
-    const ModelObject& object)
+std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slicing_params,
+    const ModelObject& object, float cusp_value)
 #else
 std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
@@ -253,11 +252,8 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 
     // 2) Generate layers using the algorithm of @platsch 
     // loop until we have at least one layer and the max slice_z reaches the object height
-    //FIXME make it configurable
-    // Cusp value: A maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.
-    const double cusp_value = 0.2; // $self->config->get_value('cusp_value');
 
-    std::vector<coordf_t> layer_height_profile;
+    std::vector<double> layer_height_profile;
     layer_height_profile.push_back(0.);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     if (slicing_params.first_object_layer_height_fixed()) {
@@ -271,7 +267,8 @@ std::vector<coordf_t> layer_height_profile_adaptive(
         height = 999;
         // Slic3r::debugf "\n Slice layer: %d\n", $id;
         // determine next layer height
-        double cusp_height = as.cusp_height((float)slice_z, (float)cusp_value, current_facet);
+        double cusp_height = as.cusp_height((float)slice_z, cusp_value, current_facet);
+
         // check for horizontal features and object size
         /*
         if($self->config->get_value('match_horizontal_surfaces')) {

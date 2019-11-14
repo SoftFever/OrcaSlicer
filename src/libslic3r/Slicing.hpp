@@ -143,9 +143,9 @@ extern std::vector<coordf_t> layer_height_profile_from_ranges(
     const t_layer_config_ranges &layer_config_ranges);
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-extern std::vector<coordf_t> layer_height_profile_adaptive(
+extern std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
-    const ModelObject& object);
+    const ModelObject& object, float cusp_value);
 #else
 extern std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
