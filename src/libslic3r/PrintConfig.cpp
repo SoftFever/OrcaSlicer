@@ -1826,7 +1826,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
-    def->label = L("No sparse layers");
+    def->label = L("No sparse layers (EXPERIMENTAL)");
     def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
                      "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
                      "User is responsible for ensuring there is no collision with the print.");
