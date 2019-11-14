@@ -222,6 +222,21 @@ static ExPolygon vase_with_fins()
 
 SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
 
+	GIVEN("Tiny contour") {
+		ExPolygon expoly({ { 133382606, 94912473 }, { 134232493, 95001115 }, { 133783926, 95159440 }, { 133441897, 95180666 }, { 133408242, 95191984 }, { 133339012, 95166830 }, { 132991642, 95011087 }, { 133206549, 94908304 } });
+		WHEN("Compensated") {
+			ExPolygon expoly_compensated = elephant_foot_compensation(expoly, Flow(0.419999987f, 0.2f, 0.4f, false), 0.2f);
+#ifdef TESTS_EXPORT_SVGS
+			SVG::export_expolygons(debug_out_path("elephant_foot_compensation_tiny.svg").c_str(),
+				{ { { expoly },             { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } },
+				  { { expoly_compensated }, { "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
+#endif /* TESTS_EXPORT_SVGS */
+			THEN("Tiny contour is not compensated") {
+				REQUIRE(expoly_compensated == expoly);
+			}
+		}
+	}
+
 	GIVEN("Large box") {
 		ExPolygon expoly( { {50000000, 50000000 }, { 0, 50000000 }, { 0, 0 }, { 50000000, 0 } } );
         WHEN("Compensated") {

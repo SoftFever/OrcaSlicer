@@ -60,9 +60,9 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 				for (size_t axis = 0; axis < 2; ++ axis) {
 					double dx = std::abs(dir(axis));
 					if (dx >= EPSILON) {
-						double tedge = (dir(axis) > 0) ? (double(bbox.max(axis)) - EPSILON - this->pt(axis)) : (this->pt(axis) - double(bbox.min(axis)) - EPSILON);
+						double tedge = (dir(axis) > 0) ? (double(bbox.max(axis)) - SCALED_EPSILON - this->pt(axis)) : (this->pt(axis) - double(bbox.min(axis)) - SCALED_EPSILON);
 						if (tedge < dx)
-							t = tedge / dx;
+							t = std::min(t, tedge / dx);
 					}
 				}
 				this->dir      = dir;
@@ -70,6 +70,7 @@ std::vector<float> contour_distance(const EdgeGrid::Grid &grid, const size_t idx
 					dir *= t;
 				this->pt_end   = (this->pt + dir).cast<coord_t>();
 				this->t_min    = 1.;
+				assert(this->grid.bbox().contains(this->pt_start) && this->grid.bbox().contains(this->pt_end));
 			}
 
 			bool operator()(coord_t iy, coord_t ix) {
@@ -361,7 +362,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 }
 
 ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &external_perimeter_flow, const double compensation)
-{
+{	
 	// The contour shall be wide enough to apply the external perimeter plus compensation on both sides.
 	double min_contour_width = double(external_perimeter_flow.scaled_width() + external_perimeter_flow.scaled_spacing());
 	double scaled_compensation = scale_(compensation);
@@ -369,39 +370,59 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, const Flow &
 	// Make the search radius a bit larger for the averaging in contour_distance over a fan of rays to work.
 	double search_radius = min_contour_width_compensated + min_contour_width * 0.5;
 
-	EdgeGrid::Grid grid;
-	ExPolygon simplified = input_expoly.simplify(SCALED_EPSILON).front();
-	BoundingBox bbox = get_extents(simplified.contour);
-	bbox.offset(SCALED_EPSILON);
-	grid.set_bbox(bbox);
-	grid.create(simplified, coord_t(0.7 * search_radius));
-	std::vector<std::vector<float>> deltas;
-	deltas.reserve(simplified.holes.size() + 1);
-	ExPolygon resampled(simplified);
-	double resample_interval = scale_(0.5);
-	for (size_t idx_contour = 0; idx_contour <= simplified.holes.size(); ++ idx_contour) {
-		Polygon &poly = (idx_contour == 0) ? resampled.contour : resampled.holes[idx_contour - 1];
-		std::vector<ResampledPoint> resampled_point_parameters;
-		poly.points = resample_polygon(poly.points, resample_interval, resampled_point_parameters);
-		std::vector<float> dists = contour_distance(grid, idx_contour, poly.points, resampled_point_parameters, search_radius);
-		for (float &d : dists) {
-//			printf("Point %d, Distance: %lf\n", int(&d - dists.data()), unscale<double>(d));
-			// Convert contour width to available compensation distance.
-			if (d < min_contour_width)
-				d = 0.f;
-			else if (d > min_contour_width_compensated)
-				d = - float(scaled_compensation);
-			else
-				d = - (d - float(min_contour_width)) / 2.f;
-			assert(d >= - float(scaled_compensation) && d <= 0.f);
+	BoundingBox bbox = get_extents(input_expoly.contour);
+	Point 		bbox_size = bbox.size();
+	ExPolygon   out;
+	if (bbox_size.x() < min_contour_width_compensated + SCALED_EPSILON ||
+		bbox_size.y() < min_contour_width_compensated + SCALED_EPSILON ||
+		input_expoly.area() < min_contour_width_compensated * min_contour_width_compensated * 5.)
+	{
+		// The contour is tiny. Don't correct it.
+		out = input_expoly;
+	}
+	else
+	{
+		EdgeGrid::Grid grid;
+		ExPolygon simplified = input_expoly.simplify(SCALED_EPSILON).front();
+		BoundingBox bbox = get_extents(simplified.contour);
+		bbox.offset(SCALED_EPSILON);
+		grid.set_bbox(bbox);
+		grid.create(simplified, coord_t(0.7 * search_radius));
+		std::vector<std::vector<float>> deltas;
+		deltas.reserve(simplified.holes.size() + 1);
+		ExPolygon resampled(simplified);
+		double resample_interval = scale_(0.5);
+		for (size_t idx_contour = 0; idx_contour <= simplified.holes.size(); ++ idx_contour) {
+			Polygon &poly = (idx_contour == 0) ? resampled.contour : resampled.holes[idx_contour - 1];
+			std::vector<ResampledPoint> resampled_point_parameters;
+			poly.points = resample_polygon(poly.points, resample_interval, resampled_point_parameters);
+			std::vector<float> dists = contour_distance(grid, idx_contour, poly.points, resampled_point_parameters, search_radius);
+			for (float &d : dists) {
+	//			printf("Point %d, Distance: %lf\n", int(&d - dists.data()), unscale<double>(d));
+				// Convert contour width to available compensation distance.
+				if (d < min_contour_width)
+					d = 0.f;
+				else if (d > min_contour_width_compensated)
+					d = - float(scaled_compensation);
+				else
+					d = - (d - float(min_contour_width)) / 2.f;
+				assert(d >= - float(scaled_compensation) && d <= 0.f);
+			}
+	//		smooth_compensation(dists, 0.4f, 10);
+			smooth_compensation_banded(poly.points, float(0.8 * resample_interval), dists, 0.3f, 3);
+			deltas.emplace_back(dists);
 		}
-//		smooth_compensation(dists, 0.4f, 10);
-		smooth_compensation_banded(poly.points, float(0.8 * resample_interval), dists, 0.3f, 3);
-		deltas.emplace_back(dists);
+
+		ExPolygons out_vec = variable_offset_inner_ex(resampled, deltas, 2.);
+		assert(out_vec.size() == 1);
+		if (out_vec.size() == 1)
+			out = std::move(out_vec.front());
+		else
+			// Something went wrong, don't compensate.
+			out = input_expoly;
 	}
 
-	ExPolygons out = variable_offset_inner_ex(resampled, deltas, 2.);
-	return out.front();
+	return out;
 }
 
 ExPolygons elephant_foot_compensation(const ExPolygons &input, const Flow &external_perimeter_flow, const double compensation)

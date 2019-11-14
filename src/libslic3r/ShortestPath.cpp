@@ -237,11 +237,19 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 
 	    // Chain the end points: find (num_segments - 1) shortest links not forming bifurcations or loops.
 		assert(num_segments >= 2);
+#ifndef NDEBUG
+		double distance_taken_last = 0.;
+#endif /* NDEBUG */
 		for (int iter = int(num_segments) - 2;; -- iter) {
 			assert(validate_graph_and_queue());
 	    	// Take the first end point, for which the link points to the currently closest valid neighbor.
 	    	EndPoint &end_point1 = *queue.top();
-	    	assert(end_point1.edge_out != nullptr);
+#ifndef NDEBUG
+			// Each edge added shall be longer than the previous one taken.
+			assert(end_point1.distance_out > distance_taken_last - SCALED_EPSILON);
+			distance_taken_last = end_point1.distance_out;
+#endif /* NDEBUG */
+			assert(end_point1.edge_out != nullptr);
 	    	// No point on the queue may be connected yet.
 	    	assert(end_point1.chain_id == 0);
 	    	// Take the closest end point to the first end point,
@@ -313,6 +321,10 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 				assert(next_idx < end_points.size());
 				end_point1.edge_out = &end_points[next_idx];
 				end_point1.distance_out = (end_points[next_idx].pos - end_point1.pos).squaredNorm();
+#ifndef NDEBUG
+				// Each edge shall be longer than the last one removed from the queue.
+				assert(end_point1.distance_out > distance_taken_last - SCALED_EPSILON);
+#endif /* NDEBUG */
 				// Update position of this end point in the queue based on the distance calculated at the line above.
 				queue.update(end_point1.heap_idx);
 		    	//FIXME Remove the other end point from the KD tree.
@@ -460,18 +472,206 @@ std::vector<size_t> chain_points(const Points &points, Point *start_near)
 	return out;
 }
 
+// Flip the sequences of polylines to lower the total length of connecting lines.
+// #define DEBUG_SVG_OUTPUT
+static inline void improve_ordering_by_segment_flipping(Polylines &polylines, bool fixed_start)
+{
+#ifndef NDEBUG
+	auto cost = [&polylines]() {
+		double sum = 0.;
+		for (size_t i = 1; i < polylines.size(); ++i)
+			sum += (polylines[i].first_point() - polylines[i - 1].last_point()).cast<double>().norm();
+		return sum;
+	};
+	double cost_initial = cost();
+
+	static int iRun = 0;
+	++ iRun;
+	BoundingBox bbox = get_extents(polylines);
+#ifdef DEBUG_SVG_OUTPUT
+	{
+		SVG svg(debug_out_path("improve_ordering_by_segment_flipping-initial-%d.svg", iRun).c_str(), bbox);
+		svg.draw(polylines);
+		for (size_t i = 1; i < polylines.size(); ++ i)
+			svg.draw(Line(polylines[i - 1].last_point(), polylines[i].first_point()), "red");
+	}
+#endif /* DEBUG_SVG_OUTPUT */
+#endif /* NDEBUG */
+
+	struct Connection {
+		Connection(size_t heap_idx = std::numeric_limits<size_t>::max(), bool flipped = false) : heap_idx(heap_idx), flipped(flipped) {}
+		// Position of this object on MutablePriorityHeap.
+		size_t 	heap_idx;
+		// Is segment_idx flipped?
+		bool   	flipped;
+
+		double 			squaredNorm(const Polylines &polylines, const std::vector<Connection> &connections) const 
+			{ return ((this + 1)->start_point(polylines, connections) - this->end_point(polylines, connections)).squaredNorm(); }
+		double 			norm(const Polylines &polylines, const std::vector<Connection> &connections) const 
+			{ return sqrt(this->squaredNorm(polylines, connections)); }
+		double 			squaredNorm(const Polylines &polylines, const std::vector<Connection> &connections, bool try_flip1, bool try_flip2) const 
+			{ return ((this + 1)->start_point(polylines, connections, try_flip2) - this->end_point(polylines, connections, try_flip1)).squaredNorm(); }
+		double 			norm(const Polylines &polylines, const std::vector<Connection> &connections, bool try_flip1, bool try_flip2) const
+			{ return sqrt(this->squaredNorm(polylines, connections, try_flip1, try_flip2)); }
+		Vec2d			start_point(const Polylines &polylines, const std::vector<Connection> &connections, bool flip = false) const 
+			{ const Polyline &pl = polylines[this - connections.data()]; return ((this->flipped == flip) ? pl.points.front() : pl.points.back()).cast<double>(); }
+		Vec2d			end_point(const Polylines &polylines, const std::vector<Connection> &connections, bool flip = false) const 
+			{ const Polyline &pl = polylines[this - connections.data()]; return ((this->flipped == flip) ? pl.points.back() : pl.points.front()).cast<double>(); }
+
+		bool 			in_queue() const { return this->heap_idx != std::numeric_limits<size_t>::max(); }
+		void 			flip() { this->flipped = ! this->flipped; }
+	};
+	std::vector<Connection> connections(polylines.size());
+
+#ifndef NDEBUG
+	auto cost_flipped = [fixed_start, &polylines, &connections]() {
+		assert(! fixed_start || ! connections.front().flipped);
+		double sum = 0.;
+		for (size_t i = 1; i < polylines.size(); ++ i)
+			sum += connections[i - 1].norm(polylines, connections);
+		return sum;
+	};
+	double cost_prev = cost_flipped();
+	assert(std::abs(cost_initial - cost_prev) < SCALED_EPSILON);
+
+	auto print_statistics = [&polylines, &connections]() {
+#if 0
+		for (size_t i = 1; i < polylines.size(); ++ i)
+			printf("Connecting %d with %d: Current length %lf flip(%d, %d), left flipped: %lf, right flipped: %lf, both flipped: %lf, \n",
+				int(i - 1), int(i),
+				unscale<double>(connections[i - 1].norm(polylines, connections)),
+				int(connections[i - 1].flipped), int(connections[i].flipped),
+				unscale<double>(connections[i - 1].norm(polylines, connections, true, false)),
+				unscale<double>(connections[i - 1].norm(polylines, connections, false, true)),
+				unscale<double>(connections[i - 1].norm(polylines, connections, true, true)));
+#endif
+	};
+	print_statistics();
+#endif /* NDEBUG */
+
+    // Initialize a MutablePriorityHeap of connections between polylines.
+    auto queue = make_mutable_priority_queue<Connection*>(
+		[](Connection *connection, size_t idx){ connection->heap_idx = idx; },
+		// Sort by decreasing connection distance.
+    	[&polylines, &connections](Connection *l, Connection *r){ return l->squaredNorm(polylines, connections) > r->squaredNorm(polylines, connections); });
+	queue.reserve(polylines.size() - 1);
+    for (size_t i = 0; i + 1 < polylines.size(); ++ i)
+		queue.push(&connections[i]);
+
+	static constexpr size_t itercnt = 100;
+	size_t iter = 0;
+	for (; ! queue.empty() && iter < itercnt; ++ iter) {
+		Connection &connection = *queue.top();
+		queue.pop();
+		connection.heap_idx = std::numeric_limits<size_t>::max();
+		size_t idx_first = &connection - connections.data();
+		// Try to flip segments starting with idx_first + 1 to the end.
+		// Calculate the last segment to be flipped to improve the total path length.
+		double length_current 			= connection.norm(polylines, connections);
+		double length_flipped 			= connection.norm(polylines, connections, false, true);
+		int    best_idx_forward			= int(idx_first);
+		double best_improvement_forward = 0.;
+		for (size_t i = idx_first + 1; i + 1 < connections.size(); ++ i) {
+			length_current += connections[i].norm(polylines, connections);
+			double this_improvement = length_current - length_flipped - connections[i].norm(polylines, connections, true, false);
+			length_flipped += connections[i].norm(polylines, connections, true, true);
+			if (this_improvement > best_improvement_forward) {
+				best_improvement_forward = this_improvement;
+				best_idx_forward = int(i);
+			}
+//			if (length_flipped > 1.5 * length_current)
+//				break;
+		}
+		if (length_current - length_flipped > best_improvement_forward)
+			// Best improvement by flipping up to the end.
+			best_idx_forward = int(connections.size()) - 1;
+		// Try to flip segments starting with idx_first - 1 to the start.
+		// Calculate the last segment to be flipped to improve the total path length.
+		length_current 					  = connection.norm(polylines, connections);
+		length_flipped					  = connection.norm(polylines, connections, true, false);
+		int    best_idx_backwards		  = int(idx_first);
+		double best_improvement_backwards = 0.;
+		for (int i = int(idx_first) - 1; i >= 0; -- i) {
+			length_current += connections[i].norm(polylines, connections);
+			double this_improvement = length_current - length_flipped - connections[i].norm(polylines, connections, false, true);
+			length_flipped += connections[i].norm(polylines, connections, true, true);
+			if (this_improvement > best_improvement_backwards) {
+				best_improvement_backwards = this_improvement;
+				best_idx_backwards = int(i);
+			}
+//			if (length_flipped > 1.5 * length_current)
+//				break;
+		}
+		if (! fixed_start && length_current - length_flipped > best_improvement_backwards)
+			// Best improvement by flipping up to the start including the first polyline.
+			best_idx_backwards = -1;
+		int update_begin = int(idx_first);
+		int update_end   = best_idx_forward;
+		if (best_improvement_backwards > 0. && best_improvement_backwards > best_improvement_forward) {
+			// Flip the sequence of polylines from idx_first to best_improvement_forward + 1.
+			update_begin = best_idx_backwards;
+			update_end   = int(idx_first);
+		}
+		assert(update_begin <= update_end);
+		if (update_begin == update_end)
+			continue;
+		for (int i = update_begin + 1; i <= update_end; ++ i)
+			connections[i].flip();
+
+#ifndef NDEBUG
+		double cost = cost_flipped();
+		assert(cost < cost_prev);
+		cost_prev = cost;
+		print_statistics();
+#endif /* NDEBUG */
+
+		update_end = std::min(update_end + 1, int(connections.size()) - 1);
+		for (int i = std::max(0, update_begin); i < update_end; ++ i) {
+			Connection &c = connections[i];
+			if (c.in_queue())
+				queue.update(c.heap_idx);
+			else
+				queue.push(&c);
+		}
+	}
+
+	// Flip the segments based on the flip flag.
+	for (Polyline &pl : polylines)
+		if (connections[&pl - polylines.data()].flipped)
+			pl.reverse();
+
+#ifndef NDEBUG
+	double cost_final = cost();
+#ifdef DEBUG_SVG_OUTPUT
+	{
+		SVG svg(debug_out_path("improve_ordering_by_segment_flipping-final-%d.svg", iRun).c_str(), bbox);
+		svg.draw(polylines);
+		for (size_t i = 1; i < polylines.size(); ++ i)
+		svg.draw(Line(polylines[i - 1].last_point(), polylines[i].first_point()), "red");
+	}
+#endif /* DEBUG_SVG_OUTPUT */
+#endif /* NDEBUG */
+
+	assert(cost_final <= cost_prev);
+	assert(cost_final <= cost_initial);
+}
+
 Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
 {
-	auto segment_end_point = [&polylines](size_t idx, bool first_point) -> const Point& { return first_point ? polylines[idx].first_point() : polylines[idx].last_point(); };
-	std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, polylines.size(), start_near);
 	Polylines out;
-	out.reserve(polylines.size()); 
-	for (auto &segment_and_reversal : ordered) {
-		out.emplace_back(std::move(polylines[segment_and_reversal.first]));
-		if (segment_and_reversal.second)
-			out.back().reverse();
+	if (! polylines.empty()) {
+		auto segment_end_point = [&polylines](size_t idx, bool first_point) -> const Point& { return first_point ? polylines[idx].first_point() : polylines[idx].last_point(); };
+		std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, polylines.size(), start_near);
+		out.reserve(polylines.size()); 
+		for (auto &segment_and_reversal : ordered) {
+			out.emplace_back(std::move(polylines[segment_and_reversal.first]));
+			if (segment_and_reversal.second)
+				out.back().reverse();
+		}
+		if (out.size() > 1)
+			improve_ordering_by_segment_flipping(out, start_near != nullptr);
 	}
-	return out;	
+	return out;
 }
 
 template<class T> static inline T chain_path_items(const Points &points, const T &items)
