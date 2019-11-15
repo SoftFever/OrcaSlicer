@@ -415,7 +415,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
                 }
                 model_object.sla_points_status = model_object_new.sla_points_status;
                 
-                if (model_object.sla_drain_holes.size() != model_object_new.sla_drain_holes.size())
+                // Invalidate hollowing if drain holes have changed
+                if (model_object.sla_drain_holes != model_object_new.sla_drain_holes)
                 {
                     model_object.sla_drain_holes = model_object_new.sla_drain_holes;
                     update_apply_status(it_print_object_status->print_object->invalidate_step(slaposHollowing));

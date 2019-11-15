@@ -36,6 +36,12 @@ struct DrainHole
     bool operator==(const DrainHole &sp) const;
     
     bool operator!=(const DrainHole &sp) const { return !(sp == (*this)); }
+
+    bool is_inside(const Vec3f& pt) const;
+
+    std::pair<float, float> get_intersections(const Vec3f& s,
+                                              const Vec3f& dir
+                                             ) const;
     
     template<class Archive> inline void serialize(Archive &ar)
     {

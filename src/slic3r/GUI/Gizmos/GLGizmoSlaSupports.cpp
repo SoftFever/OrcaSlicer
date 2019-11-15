@@ -412,25 +412,6 @@ void GLGizmoSlaSupports::update_mesh()
 }
 
 
-bool GLGizmoSlaSupports::is_point_in_hole(const Vec3f& pt) const
-{
-    auto squared_distance_from_line = [](const Vec3f pt, const Vec3f& line_pt, const Vec3f& dir) -> float {
-        Vec3f diff = line_pt - pt;
-        return (diff - diff.dot(dir) * dir).squaredNorm();
-    };
-
-
-    for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
-        if ( hole.normal.dot(pt-hole.pos) < EPSILON
-         || hole.normal.dot(pt-(hole.pos+hole.height * hole.normal)) > 0.f)
-            continue;
-        if ( squared_distance_from_line(pt, hole.pos, hole.normal) < pow(hole.radius, 2.f))
-            return true;
-    }
-
-    return false;
-}
-
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
 bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
@@ -448,14 +429,23 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())
-     && ! is_point_in_hole(hit)) {
-        // Return both the point and the facet normal.
-        pos_and_normal = std::make_pair(hit, normal);
-        return true;
+    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+        // Check whether the hit is in a hole
+        bool in_hole = false;
+        for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
+            if (hole.is_inside(hit)) {
+                in_hole = true;
+                break;
+            }
+        }
+        if (! in_hole) {
+            // Return both the point and the facet normal.
+            pos_and_normal = std::make_pair(hit, normal);
+            return true;
+        }
     }
-    else
-        return false;
+
+    return false;
 }
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.

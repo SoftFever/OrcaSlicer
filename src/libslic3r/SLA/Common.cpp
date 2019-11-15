@@ -6,6 +6,7 @@
 #include <libslic3r/SLA/EigenMesh3D.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/Clustering.hpp>
+#include <libslic3r/SLA/Hollowing.hpp>
 
 
 // Workaround: IGL signed_distance.h will define PI in the igl namespace.
@@ -181,6 +182,19 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
     for(auto& el : m_impl->m_store) fn(el);
 }
 
+
+namespace {
+// Iterates over hits and holes and returns the true hit, possibly
+// on the inside of a hole. Free function so it can return igl::Hit
+// without including igl in a header.
+igl::Hit filter_hits(const std::vector<EigenMesh3D::hit_result>& hits,
+                     const std::vector<DrainHole>& holes)
+{
+    return igl::Hit();
+}
+
+} // namespace
+
 /* ****************************************************************************
  * EigenMesh3D implementation
  * ****************************************************************************/
@@ -261,11 +275,18 @@ EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 }
 
 EigenMesh3D::hit_result
-EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
+EigenMesh3D::query_ray_hit(const Vec3d &s,
+                           const Vec3d &dir,
+                           const std::vector<DrainHole>* holes
+                          ) const
 {
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
-    m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+
+    if (! holes)
+        m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+    else
+        hit = filter_hits(query_ray_hits(s, dir), *holes);
     
     hit_result ret(*this);
     ret.m_t = double(hit.t);

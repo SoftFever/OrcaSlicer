@@ -10,10 +10,11 @@ class TriangleMesh;
 namespace sla {
 
 struct Contour3D;
+struct DrainHole;
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree.
-//  Implemented in SLASupportTreeIGL.cpp
+//  Implemented in libslic3r/SLA/Common.cpp
 class EigenMesh3D {
     class AABBImpl;
     
@@ -83,11 +84,13 @@ public:
     };
     
     // Casting a ray on the mesh, returns the distance where the hit occures.
-    hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
+    hit_result query_ray_hit(const Vec3d &s,
+                             const Vec3d &dir,
+                             const std::vector<DrainHole>* holes = nullptr) const;
     
     // Casts a ray on the mesh and returns all hits
     std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
-    
+
     class si_result {
         double m_value;
         int m_fidx;
