@@ -2560,6 +2560,9 @@ void DoubleSlider::SetTicksValues(const std::vector<t_custom_code>& heights)
     if (!was_empty && m_ticks_.empty() && m_state != msMultiExtruder)
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+
+    Refresh();
+    Update();
 }
 
 void DoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)

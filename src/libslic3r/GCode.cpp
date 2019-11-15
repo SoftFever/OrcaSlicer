@@ -875,7 +875,7 @@ void GCode::_do_export(Print &print, FILE *file)
     this->set_extruders(print.extruders());
     
     //  #ys_FIXME_COLOR // Initialize colorprint.
-    m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
+    // m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
     // Initialize custom gcode
     Model* model = print.get_object(0)->model_object()->get_model();
     m_custom_g_code_heights = model->custom_gcode_per_height;
@@ -1019,6 +1019,49 @@ void GCode::_do_export(Print &print, FILE *file)
         assert(final_extruder_id != (unsigned int)-1);
     }
     print.throw_if_canceled();
+
+
+    // #ys_FIXME_COLOR
+    /* To avoid change filament for non-used extruder for Multi-material,
+     * check model->custom_gcode_per_height using tool_ordering values
+     * */
+    if (!m_custom_g_code_heights. empty())
+    {
+        bool delete_executed = false;
+        auto it = m_custom_g_code_heights.end();
+        while (it != m_custom_g_code_heights.begin())
+        {
+            --it;
+            if (it->gcode != ColorChangeCode)
+                continue;
+
+            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), LayerTools(it->height));
+
+            bool used_extruder = false;
+            for (; it_layer_tools != tool_ordering.end(); it_layer_tools++)
+            {
+                const std::vector<unsigned>& extruders = it_layer_tools->extruders;
+                if (std::find(extruders.begin(), extruders.end(), (unsigned)(it->extruder-1)) != extruders.end())
+                {
+                    used_extruder = true;
+                    break;
+                }
+            }
+            if (used_extruder)
+                continue;
+
+            /* If we are there, current extruder wouldn't be used,
+             * so this color change is a redundant move.
+             * Delete this item from m_custom_g_code_heights
+             * */
+            it = m_custom_g_code_heights.erase(it);
+            delete_executed = true;
+        }
+
+        if (delete_executed)
+            model->custom_gcode_per_height = m_custom_g_code_heights;
+    }
+
 
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 

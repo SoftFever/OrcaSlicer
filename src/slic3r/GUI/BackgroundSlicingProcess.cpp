@@ -29,6 +29,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
+#include "GUI.hpp"
 
 namespace Slic3r {
 
@@ -84,6 +85,14 @@ void BackgroundSlicingProcess::process_fff()
     m_print->process();
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+
+    if (m_fff_print->model().custom_gcode_per_height != GUI::wxGetApp().model().custom_gcode_per_height) {
+        GUI::wxGetApp().model().custom_gcode_per_height = m_fff_print->model().custom_gcode_per_height;
+        // #ys_FIXME : controll text
+        GUI::show_info(nullptr, _(L("To except of redundant tool manipulation, \n"
+                                    "Color change(s) for unused extruder(s) was(were) deleted")), _(L("Info")));
+    }
+
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages

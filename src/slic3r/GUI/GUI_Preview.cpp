@@ -592,8 +592,8 @@ void Preview::update_view_type(bool slice_completed)
                                     _(L("Feature type"));
     */
 
-    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() &&
-                             (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) ? 
+    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() /*&&
+                             (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
                                 _(L("Color Print")) :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
                                     _(L("Tool")) : 

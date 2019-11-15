@@ -5338,11 +5338,6 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             case GCodePreviewData::Extrusion::ColorPrint:
             {
                 int color_cnt = (int)tool_colors.size() / 4;
-
-                // int val = int(value);
-                // while (val >= color_cnt)
-                //     val -= color_cnt;
-
                 int val = value > color_cnt ? color_cnt - 1 : value;
 
                 GCodePreviewData::Color color;
