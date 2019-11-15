@@ -43,8 +43,10 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
     auto editor_sz = wxSize(4*em, wxDefaultCoord);
 
-    wxRadioButton* rb_by_layers = new wxRadioButton(this, wxID_ANY, "");
-    rb_by_layers->Bind(wxEVT_RADIOBUTTON, [this](wxEvent&) { m_sequence.is_mm_intervals = false; });
+    auto ID_RADIO_BUTTON = wxWindow::NewControlId(1);
+
+    wxRadioButton* rb_by_layers = new wxRadioButton(this, ID_RADIO_BUTTON, "", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    rb_by_layers->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { m_sequence.is_mm_intervals = false; });
 
     wxStaticText* st_by_layers = new wxStaticText(this, wxID_ANY, _(L("layers")));
     m_interval_by_layers = new wxTextCtrl(this, wxID_ANY, 
@@ -58,7 +60,16 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
             return;
         }
 
-        m_sequence.interval_by_layers = wxAtoi(str);
+        int val = wxAtoi(str);
+        if (val < 1) {
+            m_interval_by_layers->SetValue("1");
+            val = 1;
+        }
+        
+        if (m_sequence.interval_by_layers == val)
+            return;
+
+        m_sequence.interval_by_layers = val;
 
         m_sequence.is_mm_intervals = false;
         rb_by_layers->SetValue(true);
@@ -68,15 +79,16 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
     m_intervals_grid_sizer->Add(m_interval_by_layers,0, wxALIGN_CENTER_VERTICAL);
     m_intervals_grid_sizer->Add(st_by_layers,0, wxALIGN_CENTER_VERTICAL);
 
-    wxRadioButton* rb_by_mm = new wxRadioButton(this, wxID_ANY, "");
+    wxRadioButton* rb_by_mm = new wxRadioButton(this, ID_RADIO_BUTTON, "");
     rb_by_mm->Bind(wxEVT_RADIOBUTTON, [this](wxEvent&) { m_sequence.is_mm_intervals = true; });
     rb_by_mm->SetValue(m_sequence.is_mm_intervals);
 
     wxStaticText* st_by_mm = new wxStaticText(this, wxID_ANY, _(L("mm")));
     m_interval_by_mm = new wxTextCtrl(this, wxID_ANY, 
                                       double_to_string(sequence.interval_by_mm), 
-                                      wxDefaultPosition, editor_sz);
-    m_interval_by_mm->Bind(wxEVT_TEXT, [this, rb_by_mm](wxEvent&)
+                                      wxDefaultPosition, editor_sz, wxTE_PROCESS_ENTER);
+
+    auto change_value = [this]()
     {
         wxString str = m_interval_by_mm->GetValue();
         if (str.IsEmpty()) {
@@ -86,13 +98,30 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
         str.Replace(",", ".", false);
         double val;
-        if (str == "." || !str.ToCDouble(&val))
-            val = 0.0;
+        if (str == "." || !str.ToCDouble(&val) || val <= 0.0)
+            val = 3.0; // default value
+
+        if (fabs(m_sequence.interval_by_layers - val) < 0.001)
+            return;
 
         m_sequence.interval_by_mm = val;
+    };
 
+    m_interval_by_mm->Bind(wxEVT_TEXT, [this, rb_by_mm](wxEvent&)
+    {
         m_sequence.is_mm_intervals = true;
         rb_by_mm->SetValue(true);
+    });
+
+    m_interval_by_mm->Bind(wxEVT_KILL_FOCUS, [this, change_value](wxFocusEvent& event)
+    {
+        change_value();
+        event.Skip();
+    });
+
+    m_interval_by_mm->Bind(wxEVT_TEXT_ENTER, [this, change_value](wxEvent&)
+    {
+        change_value();
     });
 
     m_intervals_grid_sizer->Add(rb_by_mm, 0, wxALIGN_CENTER_VERTICAL);
@@ -108,7 +137,7 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
     m_extruders_grid_sizer = new wxFlexGridSizer(3, 5, em);
 
-    apply_extruder_sequence();    
+    apply_extruder_sequence();
 
     extruders_box_sizer->Add(m_extruders_grid_sizer, 0, wxALL, em);
     option_sizer->Add(extruders_box_sizer, 0, wxEXPAND | wxTOP, em);
@@ -120,11 +149,20 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
+
+    /* For this moment min sizes for dialog and its sizer are calculated.
+     * If we left them, it can cause a problem with layouts during deleting of extruders
+     */
+    if (m_sequence.extruders.size()>1)
+    {
+        wxSize sz = wxSize(-1, 10 * em);
+        SetMinSize(sz);
+        GetSizer()->SetMinSize(sz);
+    }
 }
 
 void ExtruderSequenceDialog::apply_extruder_sequence()
 {
-    Freeze();
     m_extruders_grid_sizer->Clear(true);
 
     for (size_t extruder=0; extruder < m_sequence.extruders.size(); ++extruder)
@@ -161,11 +199,10 @@ void ExtruderSequenceDialog::apply_extruder_sequence()
         m_extruders_grid_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL);
         m_extruders_grid_sizer->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL);
     }
+    m_extruders_grid_sizer->ShowItems(true); // show items hidden in apply_extruder_selector()
 
     Fit();
     Refresh();
-
-    Thaw();
 }
 
 void ExtruderSequenceDialog::on_dpi_changed(const wxRect& suggested_rect)

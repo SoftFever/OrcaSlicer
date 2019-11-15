@@ -175,7 +175,7 @@ public:
 					staticbox(title!=""), extra_column(extra_clmn) {
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
-            stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
             stb->SetFont(wxGetApp().bold_font());
         } else
         	stb = nullptr;

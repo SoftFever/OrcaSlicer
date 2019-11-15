@@ -533,6 +533,8 @@ void apply_extruder_selector(wxBitmapComboBox** ctrl,
         (*ctrl)->SetSize(size);
         (*ctrl)->Clear();
     }
+    if (first_item.empty())
+        (*ctrl)->Hide();    // to avoid unwanted rendering before layout (ExtruderSequenceDialog)
 
     if (icons.empty() && !first_item.empty()) {
         (*ctrl)->Append(_(first_item), wxNullBitmap);

@@ -951,6 +951,7 @@ ClipperLib::Paths fix_after_inner_offset(const ClipperLib::Path &input, ClipperL
 ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::vector<float> &deltas, double miter_limit)
 {
 	assert(contour.size() == deltas.size());
+
 #ifndef NDEBUG
 	// Verify that the deltas are either all positive, or all negative.
 	bool positive = false;
@@ -986,7 +987,10 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 		double lmin  = *std::max_element(deltas.begin(), deltas.end()) * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR;
 		double l2min = lmin * lmin;
 		// Minimum angle to consider two edges to be parallel.
-		double sin_min_parallel = EPSILON + 1. / double(CLIPPER_OFFSET_SCALE);
+		// Vojtech's estimate.
+//		const double sin_min_parallel = EPSILON + 1. / double(CLIPPER_OFFSET_SCALE);
+		// Implementation equal to Clipper.
+		const double sin_min_parallel = 1.;
 
 		// Find the last point further from pt by l2min.
 		Vec2d  pt     = contour.front().cast<double>();
@@ -1012,8 +1016,12 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 					if (l2 > l2min)
 						break;
 				}
-				if (j > ilast)
+				if (j > ilast) {
+					assert(i <= ilast);
+					// If the last edge is too short, merge it with the previous edge.
+					i = ilast;
 					ptnext = contour.front().cast<double>();
+				}
 
 				// Normal to the (ptnext - pt) segment.
 				Vec2d nnext  = perp(ptnext - pt).normalized();
@@ -1026,27 +1034,29 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 					add_offset_point(pt + nprev * delta);
 					add_offset_point(pt);
 					add_offset_point(pt + nnext * delta);
-				} else if (convex < sin_min_parallel) {
-					// Nearly parallel.
-					add_offset_point((nprev.dot(nnext) > 0.) ? (pt + nprev * delta) : pt);
 				} else {
-					// Convex corner
 					double dot = nprev.dot(nnext);
-					double r = 1. + dot;
-				  	if (r >= miter_limit)
-						add_offset_point(pt + (nprev + nnext) * (delta / r));
-				  	else {
-						double dx = std::tan(std::atan2(sin_a, dot) / 4.);
-						Vec2d  newpt1 = pt + (nprev - perp(nprev) * dx) * delta;
-						Vec2d  newpt2 = pt + (nnext + perp(nnext) * dx) * delta;
+					if (convex < sin_min_parallel && dot > 0.) {
+						// Nearly parallel.
+						add_offset_point((nprev.dot(nnext) > 0.) ? (pt + nprev * delta) : pt);
+					} else {
+						// Convex corner, possibly extremely sharp if convex < sin_min_parallel.
+						double r = 1. + dot;
+					  	if (r >= miter_limit)
+							add_offset_point(pt + (nprev + nnext) * (delta / r));
+					  	else {
+							double dx = std::tan(std::atan2(sin_a, dot) / 4.);
+							Vec2d  newpt1 = pt + (nprev - perp(nprev) * dx) * delta;
+							Vec2d  newpt2 = pt + (nnext + perp(nnext) * dx) * delta;
 #ifndef NDEBUG
-						Vec2d vedge = 0.5 * (newpt1 + newpt2) - pt;
-						double dist_norm = vedge.norm();
-						assert(std::abs(dist_norm - delta) < EPSILON);
+							Vec2d vedge = 0.5 * (newpt1 + newpt2) - pt;
+							double dist_norm = vedge.norm();
+							assert(std::abs(dist_norm - std::abs(delta)) < SCALED_EPSILON);
 #endif /* NDEBUG */
-						add_offset_point(newpt1);
-						add_offset_point(newpt2);
-				  	}
+							add_offset_point(newpt1);
+							add_offset_point(newpt2);
+					  	}
+					}
 				}
 
 				if (i == ilast)
@@ -1195,7 +1205,7 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 {
 #ifndef NDEBUG
 	// Verify that the deltas are all non positive.
-for (const std::vector<float>& ds : deltas)
+	for (const std::vector<float>& ds : deltas)
 		for (float delta : ds)
 			assert(delta <= 0.);
 	assert(expoly.holes.size() + 1 == deltas.size());

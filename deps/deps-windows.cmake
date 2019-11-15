@@ -227,7 +227,6 @@ ExternalProject_Add(dep_qhull
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_DEBUG_POSTFIX=d
     UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )

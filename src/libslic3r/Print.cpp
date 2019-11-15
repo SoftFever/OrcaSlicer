@@ -201,6 +201,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower"
             || opt_key == "wipe_tower_width"
             || opt_key == "wipe_tower_bridging"
+            || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "wiping_volumes_matrix"
             || opt_key == "parking_pos_retraction"
             || opt_key == "cooling_tube_retraction"
@@ -1598,7 +1599,11 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
+#if ENABLE_THUMBNAIL_GENERATOR
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
@@ -1615,7 +1620,11 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
 
     // The following line may die for multiple reasons.
     GCode gcode;
+#if ENABLE_THUMBNAIL_GENERATOR
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_data);
+#else
     gcode.do_export(this, path.c_str(), preview_data);
+#endif // ENABLE_THUMBNAIL_GENERATOR
     return path.c_str();
 }
 
@@ -2118,6 +2127,7 @@ DynamicConfig PrintStatistics::config() const
     config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament / 1000.));
     config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
     config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+    config.set_key_value("total_toolchanges",         new ConfigOptionInt(this->total_toolchanges));
     config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
     config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
     config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
@@ -2130,7 +2140,7 @@ DynamicConfig PrintStatistics::placeholders()
     for (const std::string &key : { 
         "print_time", "normal_print_time", "silent_print_time", 
         "used_filament", "extruded_volume", "total_cost", "total_weight", 
-        "total_wipe_tower_cost", "total_wipe_tower_filament"})
+        "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
     return config;
 }
