@@ -130,7 +130,12 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_object_max_z(0.f)
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , m_adaptive_cusp(0.2f)
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+    , m_smooth_radius(5)
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
     , strength(0.005f)
@@ -227,9 +232,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     float canvas_w = (float)cnv_size.get_width();
     float canvas_h = (float)cnv_size.get_height();
 
+    const float scale_gl = wxGetApp().mainframe->scale_factor();
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.set_next_window_pos(canvas_w - THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.set_next_window_pos(canvas_w - scale_gl * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
     imgui.set_next_window_bg_alpha(0.5f);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -271,11 +277,29 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_cusp));
 
     ImGui::SameLine();
+    float text_align = ImGui::GetCursorPosX();
     imgui.text(_(L("Cusp (mm)")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(100.0f);
+    float widget_align = ImGui::GetCursorPosX();
+    ImGui::PushItemWidth(120.0f);
     m_adaptive_cusp = std::min(m_adaptive_cusp, (float)m_slicing_parameters->max_layer_height);
     ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, (float)m_slicing_parameters->max_layer_height, "%.2f");
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+    ImGui::Separator();
+    if (imgui.button(_(L("Smooth"))))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<unsigned int>(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_radius));
+
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(text_align);
+    imgui.text(_(L("Radius")));
+    ImGui::SameLine();
+    ImGui::PushItemWidth(120.0f);
+    ImGui::SetCursorPosX(widget_align);
+    int radius = (int)m_smooth_radius;
+    if (ImGui::SliderInt("##1", &radius, 1, 10))
+        m_smooth_radius = (unsigned int)radius;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 
     ImGui::Separator();
     if (imgui.button(_(L("Reset"))))
@@ -590,6 +614,17 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, unsigned int radius)
+{
+    m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, radius);
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -1219,6 +1254,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, Event<unsigned int>);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1536,6 +1574,16 @@ void GLCanvas3D::adaptive_layer_height_profile(float cusp)
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+void GLCanvas3D::smooth_layer_height_profile(unsigned int radius)
+{
+    m_layers_editing.smooth_layer_height_profile(*this, radius);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::is_reload_delayed() const

@@ -44,5 +44,6 @@
 
 // Enable adaptive layer height profile
 #define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
+#define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING (1 && ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE)
 
 #endif // _technologies_h_

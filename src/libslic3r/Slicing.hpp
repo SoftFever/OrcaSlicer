@@ -146,6 +146,11 @@ extern std::vector<coordf_t> layer_height_profile_from_ranges(
 extern std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
     const ModelObject& object, float cusp_value);
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+extern std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params,
+    unsigned int radius);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #else
 extern std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,

@@ -252,6 +252,9 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 
     // 2) Generate layers using the algorithm of @platsch 
     // loop until we have at least one layer and the max slice_z reaches the object height
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    double cusp_value = 0.2;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     std::vector<double> layer_height_profile;
     layer_height_profile.push_back(0.);
@@ -264,7 +267,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     double height  = slicing_params.first_object_layer_height;
     int current_facet = 0;
     while ((slice_z - height) <= slicing_params.object_print_z_height()) {
-        height = 999;
+        height = 999.0;
         // Slic3r::debugf "\n Slice layer: %d\n", $id;
         // determine next layer height
         double cusp_height = as.cusp_height((float)slice_z, cusp_value, current_facet);
@@ -318,7 +321,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
         layer_height_profile.push_back(height);
     }
 
-    coordf_t last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
+    double last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
     layer_height_profile.push_back(last);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     layer_height_profile.push_back(slicing_params.object_print_z_height());
@@ -326,6 +329,73 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 
     return layer_height_profile;
 }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
+std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, 
+    unsigned int radius)
+{
+    auto gauss_blur = [] (const std::vector<double>& profile, unsigned int radius) -> std::vector<double> {
+        auto gauss_kernel = [] (unsigned int radius) -> std::vector<double> {
+            unsigned int size = 2 * radius + 1;
+            std::vector<double> ret;
+            ret.reserve(size);
+
+            // Reworked from static inline int getGaussianKernelSize(float sigma) taken from opencv-4.1.2\modules\features2d\src\kaze\AKAZEFeatures.cpp
+            double sigma = 0.3 * (double)(radius - 1) + 0.8;
+            double two_sq_sigma = 2.0 * sigma * sigma;
+            double inv_root_two_pi_sq_sigma = 1.0 / ::sqrt(M_PI * two_sq_sigma);
+
+            for (unsigned int i = 0; i < size; ++i)
+            {
+                double x = (double)i - (double)radius;
+                ret.push_back(inv_root_two_pi_sq_sigma * ::exp(-x * x / two_sq_sigma));
+            }
+
+            return ret;
+        };
+
+        std::vector<double> ret;
+        size_t size = profile.size();
+        ret.reserve(size);
+        std::vector<double> kernel = gauss_kernel(radius);
+
+        for (size_t i = 0; i < size; ++i)
+        {
+            unsigned int id = 0;
+            double value = 0.0;
+            for (int j = (int)(i - radius); j <= (int)(i + radius); ++j)
+            {
+                if ((0 <= j) && (j < size))
+                    value += kernel[id] * profile[j];
+
+                ++id;
+            }
+            ret.push_back(value);
+        }
+
+        return ret;
+    };
+
+    std::vector<double> ret = profile;
+
+    std::vector<double> heights;
+    size_t heights_size = ret.size() / 2;
+    heights.reserve(heights_size);
+    for (size_t i = 0; i < heights_size; ++i)
+    {
+        heights.push_back(ret[i * 2 + 1]);
+    }
+
+    heights = gauss_blur(heights, std::max(radius, (unsigned int)1));
+
+    for (size_t i = 0; i < heights_size; ++i)
+    {
+        ret[i * 2 + 1] = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, heights[i]);
+    }
+
+    return ret;
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 
 void adjust_layer_height_profile(
     const SlicingParameters     &slicing_params,
