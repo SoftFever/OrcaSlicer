@@ -87,8 +87,6 @@ using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-static const std::vector < std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_FFF = { { 240, 320 }, { 220, 165 }, { 16, 16 } };
-static const std::vector<std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_SLA = { { 800, 480 } };
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -3069,14 +3067,16 @@ bool Plater::priv::restart_background_process(unsigned int state)
              (this->background_process.state() != BackgroundSlicingProcess::STATE_RUNNING))
         {
             // update thumbnail data
+            const std::vector<Vec2d> &thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
             if (this->printer_technology == ptFFF)
             {
                 // for ptFFF we need to generate the thumbnails before the export of gcode starts
                 this->thumbnail_data.clear();
-                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_FFF)
+                for (const Vec2d &sized : thumbnail_sizes)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+					Point size(sized); // round to ints
+                    generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
                 }
             }
             else if (this->printer_technology == ptSLA)
@@ -3084,10 +3084,11 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 // for ptSLA generate thumbnails without supports and pad (not yet calculated)
                 // to render also supports and pad see on_slicing_update()
                 this->thumbnail_data.clear();
-                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+                for (const Vec2d &sized : thumbnail_sizes)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+					Point size(sized); // round to ints
+					generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
                 }
             }
         }
