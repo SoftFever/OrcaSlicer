@@ -1205,7 +1205,7 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 {
 #ifndef NDEBUG
 	// Verify that the deltas are all non positive.
-for (const std::vector<float>& ds : deltas)
+	for (const std::vector<float>& ds : deltas)
 		for (float delta : ds)
 			assert(delta <= 0.);
 	assert(expoly.holes.size() + 1 == deltas.size());

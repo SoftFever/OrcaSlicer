@@ -169,7 +169,7 @@ void FillGyroid::_fill_surface_single(
     bb.merge(_align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
 
     // generate pattern
-    Polylines polylines_square = make_gyroid_waves(
+    Polylines polylines = make_gyroid_waves(
         scale_(this->z),
         density_adjusted,
         this->spacing,
@@ -177,22 +177,25 @@ void FillGyroid::_fill_surface_single(
         ceil(bb.size()(1) / distance) + 1.);
 
 	// shift the polyline to the grid origin
-	for (Polyline &pl : polylines_square)
+	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
 
-	Polylines polylines_chained = chain_polylines(intersection_pl(polylines_square, to_polygons(expolygon)));
+	polylines = intersection_pl(polylines, to_polygons(expolygon));
 
-    size_t polylines_out_first_idx = polylines_out.size();
-    if (! polylines_chained.empty()) {
-        // connect lines
+    if (! polylines.empty())
+		// remove too small bits (larger than longer)
+		polylines.erase(
+			std::remove_if(polylines.begin(), polylines.end(), [this](const Polyline &pl) { return pl.length() < scale_(this->spacing * 3); }),
+			polylines.end());
+
+	if (! polylines.empty()) {
+		polylines = chain_polylines(polylines);
+		// connect lines
+		size_t polylines_out_first_idx = polylines_out.size();
 		if (params.dont_connect)
-        	append(polylines_out, std::move(polylines_chained));
+        	append(polylines_out, std::move(polylines));
         else
-            this->connect_infill(std::move(polylines_chained), expolygon, polylines_out, params);
-	    // remove too small bits (larger than longer)
-	    polylines_out.erase(
-	    	std::remove_if(polylines_out.begin() + polylines_out_first_idx, polylines_out.end(), [this](const Polyline &pl){ return pl.length() < scale_(this->spacing * 3); }),
-	    	polylines_out.end());
+            this->connect_infill(std::move(polylines), expolygon, polylines_out, params);
 	    // new paths must be rotated back
 	    if (abs(infill_angle) >= EPSILON) {
 	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)

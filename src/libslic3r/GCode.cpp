@@ -285,7 +285,7 @@ static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const Vec2
     return Point(scale_(wipe_tower_pt.x() - gcodegen.origin()(0)), scale_(wipe_tower_pt.y() - gcodegen.origin()(1)));
 }
 
-std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
+std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z) const
 {
     if (new_extruder_id != -1 && new_extruder_id != tcr.new_tool)
         throw std::invalid_argument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
@@ -319,6 +319,15 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
             erMixed,
             "Travel to a Wipe Tower");
         gcode += gcodegen.unretract();
+    }
+
+    double current_z = gcodegen.writer().get_position().z();
+    if (z == -1.) // in case no specific z was provided, print at current_z pos
+        z = current_z;
+    if (! is_approx(z, current_z)) {
+        gcode += gcodegen.writer().retract();
+        gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
+        gcode += gcodegen.writer().unretract();
     }
 
 
@@ -387,16 +396,23 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(end_pos.cast<double>());
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
+    if (! is_approx(z, current_z)) {
+        gcode += gcodegen.writer().retract();
+        gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
+        gcode += gcodegen.writer().unretract();
+    }
 
-    // Prepare a future wipe.
-    gcodegen.m_wipe.path.points.clear();
-    if (new_extruder_id >= 0) {
-        // Start the wipe at the current position.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
-        // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
-            Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
-            end_pos.y())));
+    else {
+        // Prepare a future wipe.
+        gcodegen.m_wipe.path.points.clear();
+        if (new_extruder_id >= 0) {
+            // Start the wipe at the current position.
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
+            // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen,
+                Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
+                end_pos.y())));
+        }
     }
 
     // Let the planner know we are traveling between objects.
@@ -522,7 +538,23 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
 		if (m_layer_idx < (int)m_tool_changes.size()) {
 			if (! (size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
                 throw std::runtime_error("Wipe tower generation failed, possibly due to empty first layer.");
-			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
+
+
+            // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
+            // resulting in a wipe tower with sparse layers.
+            double wipe_tower_z = -1;
+            bool ignore_sparse = false;
+            if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+                wipe_tower_z = m_last_wipe_tower_print_z;
+                ignore_sparse = (m_brim_done && m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+                if (m_tool_change_idx == 0 && ! ignore_sparse)
+                   wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
+            }
+
+            if (! ignore_sparse) {
+                gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
+                m_last_wipe_tower_print_z = wipe_tower_z;
+            }
 		}
         m_brim_done = true;
     }

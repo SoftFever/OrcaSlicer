@@ -534,7 +534,8 @@ struct ContourPointData {
 // Verify whether the contour from point idx_start to point idx_end could be taken (whether all segments along the contour were not yet extruded).
 static bool could_take(const std::vector<ContourPointData> &contour_data, size_t idx_start, size_t idx_end)
 {
-	for (size_t i = idx_start; i < idx_end; ) {
+	assert(idx_start != idx_end);
+	for (size_t i = idx_start; i != idx_end; ) {
 		if (contour_data[i].segment_consumed || contour_data[i].point_consumed)
 			return false;
 		if (++ i == contour_data.size())
@@ -899,63 +900,86 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 
 	// Mark the points and segments of split boundary as consumed if they are very close to some of the infill line.
 	{
-		const double clip_distance		= scale_(this->spacing);
+		//const double clip_distance		= scale_(this->spacing);
+		const double clip_distance		= 3. * scale_(this->spacing);
 		const double distance_colliding = scale_(this->spacing);
 		mark_boundary_segments_touching_infill(boundary, boundary_data, bbox, infill_ordered, clip_distance, distance_colliding);
 	}
 
-	// Chain infill_ordered.
-	//FIXME run the following loop through a heap sorted by the shortest perimeter edge that could be taken.
-    //length between two lines
+	// Connection from end of one infill line to the start of another infill line.
 	//const float length_max = scale_(this->spacing);
-	const float length_max = scale_((2. / params.density) * this->spacing);
-	size_t idx_chain_last = 0;
+//	const float length_max = scale_((2. / params.density) * this->spacing);
+	const float length_max = scale_((1000. / params.density) * this->spacing);
+	std::vector<size_t> merged_with(infill_ordered.size());
+	for (size_t i = 0; i < merged_with.size(); ++ i)
+		merged_with[i] = i;
+	struct ConnectionCost {
+		ConnectionCost(size_t idx_first, double cost, bool reversed) : idx_first(idx_first), cost(cost), reversed(reversed) {}
+		size_t  idx_first;
+		double  cost;
+		bool 	reversed;
+	};
+	std::vector<ConnectionCost> connections_sorted;
+	connections_sorted.reserve(infill_ordered.size() * 2 - 2);
 	for (size_t idx_chain = 1; idx_chain < infill_ordered.size(); ++ idx_chain) {
-		Polyline &pl1 = infill_ordered[idx_chain_last];
-		Polyline &pl2 = infill_ordered[idx_chain];
+		const Polyline 						&pl1 			= infill_ordered[idx_chain - 1];
+		const Polyline 						&pl2 			= infill_ordered[idx_chain];
 		const std::pair<size_t, size_t>		*cp1			= &map_infill_end_point_to_boundary[(idx_chain - 1) * 2 + 1];
 		const std::pair<size_t, size_t>		*cp2			= &map_infill_end_point_to_boundary[idx_chain * 2];
-		const Points						&contour		= boundary[cp1->first];
-		std::vector<ContourPointData>		&contour_data	= boundary_data[cp1->first];
-		bool valid    = false;
-		bool reversed = false;
+		const std::vector<ContourPointData>	&contour_data	= boundary_data[cp1->first];
 		if (cp1->first == cp2->first) {
 			// End points on the same contour. Try to connect them.
-			float param_lo = (cp1->second == 0) ? 0.f : contour_data[cp1->second].param;
-			float param_hi = (cp2->second == 0) ? 0.f : contour_data[cp2->second].param;
+			float param_lo  = (cp1->second == 0) ? 0.f : contour_data[cp1->second].param;
+			float param_hi  = (cp2->second == 0) ? 0.f : contour_data[cp2->second].param;
 			float param_end = contour_data.front().param;
+			bool  reversed  = false;
 			if (param_lo > param_hi) {
 				std::swap(param_lo, param_hi);
-				std::swap(cp1, cp2);
 				reversed = true;
 			}
 			assert(param_lo >= 0.f && param_lo <= param_end);
 			assert(param_hi >= 0.f && param_hi <= param_end);
-			float dist1 = param_hi - param_lo;
-			float dist2 = param_lo + param_end - param_hi;
-			if (dist1 > dist2) {
-				std::swap(dist1, dist2);
-				std::swap(cp1, cp2);
-				reversed = ! reversed;
-			}
-			if (dist1 < length_max) {
-				// Try to connect the shorter path.
-				valid = could_take(contour_data, cp1->second, cp2->second);
-				// Try to connect the longer path.
-				if (! valid && dist2 < length_max) {
-					std::swap(cp1, cp2);
-					reversed = ! reversed;
-					valid = could_take(contour_data, cp1->second, cp2->second);
-				}
-			}
+			double len = param_hi - param_lo;
+			if (len < length_max)
+				connections_sorted.emplace_back(idx_chain - 1, len, reversed);
+			len = param_lo + param_end - param_hi;
+			if (len < length_max)
+				connections_sorted.emplace_back(idx_chain - 1, len, ! reversed);
 		}
-		if (valid)
-			take(pl1, std::move(pl2), contour, contour_data, cp1->second, cp2->second, reversed);
-		else if (++ idx_chain_last < idx_chain)
-			infill_ordered[idx_chain_last] = std::move(pl2);
 	}
-	infill_ordered.erase(infill_ordered.begin() + idx_chain_last + 1, infill_ordered.end());
-	append(polylines_out, std::move(infill_ordered));
+	std::sort(connections_sorted.begin(), connections_sorted.end(), [](const ConnectionCost& l, const ConnectionCost& r) { return l.cost < r.cost; });
+
+	size_t idx_chain_last = 0;
+	for (ConnectionCost &connection_cost : connections_sorted) {
+		const std::pair<size_t, size_t>	*cp1 = &map_infill_end_point_to_boundary[connection_cost.idx_first * 2 + 1];
+		const std::pair<size_t, size_t>	*cp2 = &map_infill_end_point_to_boundary[(connection_cost.idx_first + 1) * 2];
+		assert(cp1->first == cp2->first);
+		std::vector<ContourPointData>	&contour_data = boundary_data[cp1->first];
+		if (connection_cost.reversed)
+			std::swap(cp1, cp2);
+		if (could_take(contour_data, cp1->second, cp2->second)) {
+			// Indices of the polygons to be connected.
+			size_t idx_first  = connection_cost.idx_first;
+			size_t idx_second = idx_first + 1;
+			for (size_t last = idx_first;;) {
+				size_t lower = merged_with[last];
+				if (lower == last) {
+					merged_with[idx_first] = lower;
+					idx_first = lower;
+					break;
+				}
+				last = lower;
+			}
+			// Connect the two polygons using the boundary contour.
+			take(infill_ordered[idx_first], std::move(infill_ordered[idx_second]), boundary[cp1->first], contour_data, cp1->second, cp2->second, connection_cost.reversed);
+			// Mark the second polygon as merged with the first one.
+			merged_with[idx_second] = merged_with[idx_first];
+		}
+	}
+	polylines_out.reserve(polylines_out.size() + std::count_if(infill_ordered.begin(), infill_ordered.end(), [](const Polyline &pl) { return ! pl.empty(); }));
+	for (Polyline &pl : infill_ordered)
+		if (! pl.empty())
+			polylines_out.emplace_back(std::move(pl));
 }
 
 #endif
