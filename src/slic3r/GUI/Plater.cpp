@@ -3438,11 +3438,13 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
         if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
         {
+            const std::vector<Vec2d>& thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
             this->thumbnail_data.clear();
-            for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+            for (const Vec2d &sized : thumbnail_sizes)
             {
                 this->thumbnail_data.push_back(ThumbnailData());
-                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false, false);
+                Point size(sized); // round to ints
+                generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, false, false);
             }
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR
