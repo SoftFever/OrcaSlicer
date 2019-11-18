@@ -55,8 +55,10 @@ find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
-    URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+    #URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    GIT_REPOSITORY  https://github.com/qhull/qhull.git
+    GIT_TAG         v7.3.2
     CMAKE_ARGS
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
