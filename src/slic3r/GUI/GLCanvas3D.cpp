@@ -284,7 +284,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, (float)m_slicing_parameters->max_layer_height, "%.2f");
 
     ImGui::Separator();
-    imgui.disabled_begin(m_layer_height_profile.size() < 10);
     if (imgui.button(_(L("Smooth"))))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<unsigned int>(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_radius));
 
@@ -297,7 +296,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     int radius = (int)m_smooth_radius;
     if (ImGui::SliderInt("##1", &radius, 1, 10))
         m_smooth_radius = (unsigned int)radius;
-    imgui.disabled_end();
 
     ImGui::Separator();
     if (imgui.button(_(L("Reset"))))

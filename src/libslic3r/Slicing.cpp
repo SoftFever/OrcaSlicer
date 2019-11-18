@@ -257,17 +257,22 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 #endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     std::vector<double> layer_height_profile;
-    layer_height_profile.push_back(0.);
+    layer_height_profile.push_back(0.0);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     if (slicing_params.first_object_layer_height_fixed()) {
         layer_height_profile.push_back(slicing_params.first_object_layer_height);
         layer_height_profile.push_back(slicing_params.first_object_layer_height);
     }
     double slice_z = slicing_params.first_object_layer_height;
-    double height  = slicing_params.first_object_layer_height;
     int current_facet = 0;
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    while (slice_z <= slicing_params.object_print_z_height()) {
+        double height = 999.0;
+#else
+    double height = slicing_params.first_object_layer_height;
     while ((slice_z - height) <= slicing_params.object_print_z_height()) {
         height = 999.0;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         // Slic3r::debugf "\n Slice layer: %d\n", $id;
         // determine next layer height
         double cusp_height = as.cusp_height((float)slice_z, cusp_value, current_facet);
@@ -317,15 +322,26 @@ std::vector<coordf_t> layer_height_profile_adaptive(
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
         slice_z += height;
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     }
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    double z_gap = slicing_params.object_print_z_height() - layer_height_profile[layer_height_profile.size() - 2];
+    if (z_gap > 0.0)
+    {
+        layer_height_profile.push_back(slicing_params.object_print_z_height());
+        layer_height_profile.push_back(clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, z_gap));
+    }
+#else
     double last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
     layer_height_profile.push_back(last);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     layer_height_profile.push_back(slicing_params.object_print_z_height());
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     return layer_height_profile;
 }
@@ -333,7 +349,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, 
     unsigned int radius)
 {
-    auto gauss_blur = [] (const std::vector<double>& profile, unsigned int radius) -> std::vector<double> {
+    auto gauss_blur = [&slicing_params](const std::vector<double>& profile, unsigned int radius) -> std::vector<double> {
         auto gauss_kernel = [] (unsigned int radius) -> std::vector<double> {
             unsigned int size = 2 * radius + 1;
             std::vector<double> ret;
@@ -353,48 +369,55 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
             return ret;
         };
 
+        // skip first layer ?
+        size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
+
+        // not enough data to smmoth
+        if ((int)profile.size() - (int)skip_count < 6)
+            return profile;
+
+        std::vector<double> kernel = gauss_kernel(radius);
+        int two_radius = 2 * (int)radius;
+
         std::vector<double> ret;
         size_t size = profile.size();
         ret.reserve(size);
-        std::vector<double> kernel = gauss_kernel(radius);
 
-        for (size_t i = 0; i < size; ++i)
+        // leave first layer untouched
+        for (size_t i = 0; i < skip_count; ++i)
         {
+            ret.push_back(profile[i]);
+        }
+
+        // smooth the rest of the profile
+        double max_dz = (double)radius * slicing_params.layer_height;
+        for (size_t i = skip_count; i < size; i += 2)
+        {
+            double z = profile[i];
+            ret.push_back(z);
             ret.push_back(0.0);
             double& height = ret.back();
-            int begin = (int)(i - radius);
-            int end = (int)(i + radius);
-            for (int j = begin; j <= end; ++j)
+            int begin = std::max((int)i - two_radius, (int)skip_count);
+            int end = std::min((int)i + two_radius, (int)size - 2);
+            double kernel_total = 0.0;
+            for (int j = begin; j <= end; j += 2)
             {
-                if ((0 <= j) && (j < size))
-                    height += kernel[j - begin] * profile[j];
+                int kernel_id = radius + (j - (int)i) / 2;
+                double dz = std::abs(z - profile[j]);
+                if (dz * slicing_params.layer_height <= max_dz)
+                {
+                    height += kernel[kernel_id] * profile[j + 1];
+                    kernel_total += kernel[kernel_id];
+                }
             }
+
+            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (kernel_total != 0.0) ? height /= kernel_total : profile[i + 1]);
         }
 
         return ret;
     };
 
-    std::vector<double> ret = profile;
-
-    std::vector<double> heights;
-    size_t heights_size = ret.size() / 2;
-    heights.reserve(heights_size);
-    // extract heights from profile
-    for (size_t i = 0; i < heights_size; ++i)
-    {
-        heights.push_back(ret[i * 2 + 1]);
-    }
-
-    // smooth heights
-    heights = gauss_blur(heights, std::max(radius, (unsigned int)1));
-
-    // put smoothed heights back into profile
-    for (size_t i = 0; i < heights_size; ++i)
-    {
-        ret[i * 2 + 1] = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, heights[i]);
-    }
-
-    return ret;
+    return gauss_blur(profile, std::max(radius, (unsigned int)1));
 }
 
 void adjust_layer_height_profile(
