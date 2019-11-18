@@ -132,9 +132,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_layer_height_profile_modified(false)
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , m_adaptive_cusp(0.2f)
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
     , m_smooth_radius(5)
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
@@ -285,7 +283,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     m_adaptive_cusp = std::min(m_adaptive_cusp, (float)m_slicing_parameters->max_layer_height);
     ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, (float)m_slicing_parameters->max_layer_height, "%.2f");
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
     ImGui::Separator();
     imgui.disabled_begin(m_layer_height_profile.size() < 10);
     if (imgui.button(_(L("Smooth"))))
@@ -301,7 +298,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (ImGui::SliderInt("##1", &radius, 1, 10))
         m_smooth_radius = (unsigned int)radius;
     imgui.disabled_end();
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 
     ImGui::Separator();
     if (imgui.button(_(L("Reset"))))
@@ -617,7 +613,6 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, unsigned int radius)
 {
     m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, radius);
@@ -625,8 +620,6 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, 
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
-
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -1256,9 +1249,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, Event<unsigned int>);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1577,15 +1568,12 @@ void GLCanvas3D::adaptive_layer_height_profile(float cusp)
     m_dirty = true;
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 void GLCanvas3D::smooth_layer_height_profile(unsigned int radius)
 {
     m_layers_editing.smooth_layer_height_profile(*this, radius);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
-
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::is_reload_delayed() const

@@ -330,7 +330,6 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     return layer_height_profile;
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, 
     unsigned int radius)
 {
@@ -397,7 +396,6 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
 
     return ret;
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 
 void adjust_layer_height_profile(
     const SlicingParameters     &slicing_params,

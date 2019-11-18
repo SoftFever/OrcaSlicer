@@ -107,9 +107,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, Event<unsigned int>);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 class GLCanvas3D
@@ -184,9 +182,7 @@ private:
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         mutable float               m_adaptive_cusp;
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
         mutable unsigned int        m_smooth_radius;
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         class LayersTexture
@@ -237,9 +233,7 @@ private:
         void reset_layer_height_profile(GLCanvas3D& canvas);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         void adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
             void smooth_layer_height_profile(GLCanvas3D& canvas, unsigned int radius);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
@@ -537,9 +531,7 @@ public:
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     void reset_layer_height_profile();
     void adaptive_layer_height_profile(float cusp);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
     void smooth_layer_height_profile(unsigned int radius);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE_SMOOTHING
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     bool is_reload_delayed() const;
