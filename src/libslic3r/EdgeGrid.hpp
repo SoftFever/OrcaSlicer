@@ -209,6 +209,25 @@ public:
 		}
 	}
 
+	template<typename VISITOR> void visit_cells_intersecting_box(BoundingBox bbox, VISITOR &visitor) const
+	{
+		// End points of the line segment.
+		bbox.min -= m_bbox.min;
+		bbox.max -= m_bbox.min + Point(1, 1);
+		// Get the cells of the end points.
+		bbox.min /= m_resolution;
+		bbox.max /= m_resolution;
+		// Trim with the cells.
+		bbox.min.x() = std::max(bbox.min.x(), 0);
+		bbox.min.y() = std::max(bbox.min.y(), 0);
+		bbox.max.x() = std::min(bbox.max.x(), (coord_t)m_cols - 1);
+		bbox.max.y() = std::min(bbox.max.y(), (coord_t)m_rows - 1);
+		for (coord_t iy = bbox.min.y(); iy <= bbox.max.y(); ++ iy)
+			for (coord_t ix = bbox.min.x(); ix <= bbox.max.x(); ++ ix)
+				if (! visitor(iy, ix))
+					return;
+	}
+
 	std::pair<std::vector<std::pair<size_t, size_t>>::const_iterator, std::vector<std::pair<size_t, size_t>>::const_iterator> cell_data_range(coord_t row, coord_t col) const
 	{
 		const EdgeGrid::Grid::Cell &cell = m_cells[row * m_cols + col];
