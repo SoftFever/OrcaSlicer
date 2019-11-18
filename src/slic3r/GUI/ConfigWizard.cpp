@@ -374,7 +374,7 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
     sizer->AddSpacer(10);
 
     content = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(content, 1);
+    sizer->Add(content, 1, wxEXPAND);
 
     SetSizer(sizer);
 
@@ -528,15 +528,17 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     list_l2->SetMinSize(wxSize(13*em, list_h));
     list_l3->SetMinSize(wxSize(25*em, list_h));
 
-    auto *grid = new wxFlexGridSizer(3, 0, em);
+    auto *grid = new wxFlexGridSizer(3, em/2, em);
+    grid->AddGrowableCol(2, 1);
+    grid->AddGrowableRow(1, 1);
 
     grid->Add(new wxStaticText(this, wxID_ANY, list1name));
     grid->Add(new wxStaticText(this, wxID_ANY, _(L("Vendor:"))));
     grid->Add(new wxStaticText(this, wxID_ANY, _(L("Profile:"))));
 
-    grid->Add(list_l1);
-    grid->Add(list_l2);
-    grid->Add(list_l3);
+    grid->Add(list_l1, 0, wxEXPAND);
+    grid->Add(list_l2, 0, wxEXPAND);
+    grid->Add(list_l3, 1, wxEXPAND);
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto *sel_all = new wxButton(this, wxID_ANY, _(L("All")));
@@ -548,7 +550,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
     grid->Add(btn_sizer, 0, wxALIGN_RIGHT);
 
-    append(grid);
+    append(grid, 1, wxEXPAND);
 
     list_l1->Bind(wxEVT_LISTBOX, [this](wxCommandEvent &) {
         update_lists(list_l1->GetSelection(), list_l2->GetSelection());
@@ -1396,7 +1398,8 @@ void ConfigWizard::priv::load_vendors()
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
 {
-    hscroll_sizer->Add(page, 0, wxEXPAND);
+    const int proportion = (page->shortname == _(L("Filaments"))) || (page->shortname == _(L("SLA Materials"))) ? 1 : 0;
+    hscroll_sizer->Add(page, proportion, wxEXPAND);
     all_pages.push_back(page);
 }
 
