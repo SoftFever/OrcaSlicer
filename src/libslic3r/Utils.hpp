@@ -194,7 +194,7 @@ inline typename CONTAINER_TYPE::size_type next_idx_modulo(typename CONTAINER_TYP
 }
 
 template<typename CONTAINER_TYPE>
-inline typename const CONTAINER_TYPE::value_type& prev_value_modulo(typename CONTAINER_TYPE::size_type idx, const CONTAINER_TYPE &container) 
+inline const typename CONTAINER_TYPE::value_type& prev_value_modulo(typename CONTAINER_TYPE::size_type idx, const CONTAINER_TYPE &container)
 { 
 	return container[prev_idx_modulo(idx, container.size())];
 }
@@ -206,7 +206,7 @@ inline typename CONTAINER_TYPE::value_type& prev_value_modulo(typename CONTAINER
 }
 
 template<typename CONTAINER_TYPE>
-inline typename const CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER_TYPE::size_type idx, const CONTAINER_TYPE &container)
+inline const typename CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER_TYPE::size_type idx, const CONTAINER_TYPE &container)
 { 
 	return container[next_idx_modulo(idx, container.size())];
 }
