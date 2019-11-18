@@ -46,9 +46,9 @@ public:
 		if (indices.empty())
 			clear();
 		else {
-			// Allocate a next highest power of 2 nodes, because the incomplete binary tree will not have the leaves filled strictly from the left.
+			// Allocate enough memory for a full binary tree.
 			m_nodes.assign(next_highest_power_of_2(indices.size() + 1), npos);
-			build_recursive(indices, 0, 0, 0, (int)(indices.size() - 1));
+			build_recursive(indices, 0, 0, 0, indices.size() - 1);
 		}
 		indices.clear();
 	}
@@ -81,7 +81,7 @@ public:
 
 private:
 	// Build a balanced tree by splitting the input sequence by an axis aligned plane at a dimension.
-	void build_recursive(std::vector<size_t> &input, size_t node, int dimension, int left, int right)
+	void build_recursive(std::vector<size_t> &input, size_t node, const size_t dimension, const size_t left, const size_t right)
 	{
 		if (left > right)
 			return;
@@ -94,54 +94,56 @@ private:
 			return;
 		}
 
-		// Partition the input sequence to two equal halves.
-		int center = (left + right) >> 1;
+		// Partition the input to left / right pieces of the same length to produce a balanced tree.
+		size_t center = (left + right) / 2;
 		partition_input(input, dimension, left, right, center);
 		// Insert a node into the tree.
 		m_nodes[node] = input[center];
-		// Partition the left and right subtrees.
-		size_t next_dimension = (++ dimension == NumDimensions) ? 0 : dimension;
-		build_recursive(input, (node << 1) + 1, next_dimension, left,	    center - 1);
-		build_recursive(input, (node << 1) + 2, next_dimension, center + 1, right);
+		// Build up the left / right subtrees.
+		size_t next_dimension = dimension;
+		if (++ next_dimension == NumDimensions)
+			next_dimension = 0;
+		if (center > left)
+			build_recursive(input, node * 2 + 1, next_dimension, left, center - 1);
+		build_recursive(input, node * 2 + 2, next_dimension, center + 1, right);
 	}
 
-	// Partition the input m_nodes <left, right> at k using QuickSelect method.
+	// Partition the input m_nodes <left, right> at "k" and "dimension" using the QuickSelect method:
 	// https://en.wikipedia.org/wiki/Quickselect
-	void partition_input(std::vector<size_t> &input, int dimension, int left, int right, int k) const
+	// Items left of the k'th item are lower than the k'th item in the "dimension", 
+	// items right of the k'th item are higher than the k'th item in the "dimension", 
+	void partition_input(std::vector<size_t> &input, const size_t dimension, size_t left, size_t right, const size_t k) const
 	{
 		while (left < right) {
-			// Guess the k'th element.
-			// Pick the pivot as a median of first, center and last value.
-			// Sort first, center and last values.
-			int  center       = (left + right) >> 1;
-			auto left_value   = this->coordinate(input[left],   dimension);
-			auto center_value = this->coordinate(input[center], dimension);
-			auto right_value  = this->coordinate(input[right],  dimension);
-			if (center_value < left_value) {
-				std::swap(input[left], input[center]);
-				std::swap(left_value,  center_value);
+			size_t center = (left + right) / 2;
+			CoordType pivot;
+			{
+				// Bubble sort the input[left], input[center], input[right], so that a median of the three values
+				// will end up in input[center].
+				CoordType left_value   = this->coordinate(input[left],   dimension);
+				CoordType center_value = this->coordinate(input[center], dimension);
+				CoordType right_value  = this->coordinate(input[right],  dimension);
+				if (left_value > center_value) {
+					std::swap(input[left], input[center]);
+					std::swap(left_value,  center_value);
+				}
+				if (left_value > right_value) {
+					std::swap(input[left], input[right]);
+					right_value = left_value;
+				}
+				if (center_value > right_value) {
+					std::swap(input[center], input[right]);
+					center_value = right_value;
+				}
+				pivot = center_value;
 			}
-			if (right_value < left_value) {
-				std::swap(input[left], input[right]);
-				std::swap(left_value,  right_value);
-			}
-			if (right_value < center_value) {
-				std::swap(input[center], input[right]);
-				// No need to do that, result is not used.
-				// std::swap(center_value,  right_value);
-			}
-			// Only two or three values are left and those are sorted already.
-			if (left + 3 > right)
+			if (right <= left + 2)
+				// The <left, right> interval is already sorted.
 				break;
-			// left and right items are already at their correct positions.
-			// input[left].point[dimension] <= input[center].point[dimension] <= input[right].point[dimension]
-			// Move the pivot to the (right - 1) position.
-			std::swap(input[center], input[right - 1]);
-			// Pivot value.
-			double pivot = this->coordinate(input[right - 1],  dimension);
+			size_t i = left;
+			size_t j = right - 1;
+			std::swap(input[center], input[j]);
 			// Partition the set based on the pivot.
-			int i = left;
-			int j = right - 1;
 			for (;;) {
 				// Skip left points that are already at correct positions.
 				// Search will certainly stop at position (right - 1), which stores the pivot.
@@ -153,7 +155,7 @@ private:
 				std::swap(input[i], input[j]);
 			}
 			// Restore pivot to the center of the sequence.
-			std::swap(input[i], input[right]);
+			std::swap(input[i], input[right - 1]);
 			// Which side the kth element is in?
 			if (k < i)
 				right = i - 1;
@@ -173,7 +175,7 @@ private:
 			return;
 
 		// Left / right child node index.
-		size_t left  = (node << 1) + 1;
+		size_t left  = node * 2 + 1;
 		size_t right = left + 1;
 		unsigned int mask = visitor(m_nodes[node], dimension);
 		if ((mask & (unsigned int)VisitorReturnMask::STOP) == 0) {

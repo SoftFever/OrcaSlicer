@@ -46,11 +46,29 @@ void EdgeGrid::Grid::create(const Polygons &polygons, coord_t resolution)
 			++ ncontours;
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	for (size_t j = 0; j < polygons.size(); ++ j)
 		if (! polygons[j].points.empty())
-			m_contours[ncontours++] = &polygons[j].points;
+			m_contours[ncontours ++] = &polygons[j].points;
+
+	create_from_m_contours(resolution);
+}
+
+void EdgeGrid::Grid::create(const std::vector<Points> &polygons, coord_t resolution)
+{
+	// Count the contours.
+	size_t ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j].empty())
+			++ ncontours;
+
+	// Collect the contours.
+	m_contours.assign(ncontours, nullptr);
+	ncontours = 0;
+	for (size_t j = 0; j < polygons.size(); ++ j)
+		if (! polygons[j].empty())
+			m_contours[ncontours ++] = &polygons[j];
 
 	create_from_m_contours(resolution);
 }
@@ -66,7 +84,7 @@ void EdgeGrid::Grid::create(const ExPolygon &expoly, coord_t resolution)
 			++ ncontours;
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	if (! expoly.contour.points.empty())
 		m_contours[ncontours++] = &expoly.contour.points;
@@ -91,7 +109,7 @@ void EdgeGrid::Grid::create(const ExPolygons &expolygons, coord_t resolution)
 	}
 
 	// Collect the contours.
-	m_contours.assign(ncontours, NULL);
+	m_contours.assign(ncontours, nullptr);
 	ncontours = 0;
 	for (size_t i = 0; i < expolygons.size(); ++ i) {
 		const ExPolygon &expoly = expolygons[i];
@@ -1122,7 +1140,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
 						Vec2d vfoot = foot - pt.cast<double>();
 						double dist_foot = vfoot.norm();
 						double dist_foot_err = dist_foot - d_min;
-						assert(std::abs(dist_foot_err) < 1e-7 * d_min);
+						assert(std::abs(dist_foot_err) < 1e-7 || std::abs(dist_foot_err) < 1e-7 * d_min);
 #endif /* NDEBUG */
 					}
 				}
@@ -1145,7 +1163,7 @@ EdgeGrid::Grid::ClosestPointResult EdgeGrid::Grid::closest_point(const Point &pt
 				vfoot = p1.cast<double>() * (1. - result.t) + p2.cast<double>() * result.t - pt.cast<double>();
 			double dist_foot = vfoot.norm();
 			double dist_foot_err = dist_foot - std::abs(result.distance);
-			assert(std::abs(dist_foot_err) < 1e-7 * std::abs(result.distance));
+			assert(std::abs(dist_foot_err) < 1e-7 || std::abs(dist_foot_err) < 1e-7 * std::abs(result.distance));
 		}
 #endif /* NDEBUG */
 	} else

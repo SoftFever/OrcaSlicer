@@ -105,7 +105,7 @@ static void register_dpi_event()
         const auto rect = reinterpret_cast<PRECT>(lParam);
         const wxRect wxrect(wxPoint(rect->top, rect->left), wxPoint(rect->bottom, rect->right));
 
-        DpiChangedEvent evt(EVT_DPI_CHANGED, dpi, wxrect);
+        DpiChangedEvent evt(EVT_DPI_CHANGED_SLICER, dpi, wxrect);
         win->GetEventHandler()->AddPendingEvent(evt);
 
         return true;
@@ -1131,8 +1131,11 @@ void GUI_App::gcode_thumbnails_debug()
                     boost::nowide::ofstream out_file(out_filename.c_str(), std::ios::binary);
                     if (out_file.good())
                     {
-                        std::string decoded = boost::beast::detail::base64_decode(row);
-                        out_file.write(decoded.c_str(), decoded.length());
+                        std::string decoded;
+                        decoded.resize(boost::beast::detail::base64::decoded_size(row.size()));
+                        decoded.resize(boost::beast::detail::base64::decode((void*)&decoded[0], row.data(), row.size()).first);
+
+                        out_file.write(decoded.c_str(), decoded.size());
                         out_file.close();
                     }
 #else
@@ -1147,8 +1150,11 @@ void GUI_App::gcode_thumbnails_debug()
                         std::vector<unsigned char> thumbnail(4 * width * height, 0);
                         for (unsigned int r = 0; r < (unsigned int)rows.size(); ++r)
                         {
-                            std::string decoded_row = boost::beast::detail::base64_decode(rows[r]);
-                            if ((unsigned int)decoded_row.length() == width * 4)
+                            std::string decoded_row;
+                            decoded_row.resize(boost::beast::detail::base64::decoded_size(rows[r].size()));
+                            decoded_row.resize(boost::beast::detail::base64::decode((void*)&decoded_row[0], rows[r].data(), rows[r].size()).first);
+
+                            if ((unsigned int)decoded_row.size() == width * 4)
                             {
                                 void* image_ptr = (void*)(thumbnail.data() + r * width * 4);
                                 ::memcpy(image_ptr, (const void*)decoded_row.c_str(), width * 4);

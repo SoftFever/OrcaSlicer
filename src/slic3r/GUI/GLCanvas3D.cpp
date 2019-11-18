@@ -2094,20 +2094,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
                                contained_min_one && !m_model->objects.empty() && state != ModelInstance::PVS_Partly_Outside));
-
-// #ys_FIXME_delete_after_testing
-//         bool contained = m_volumes.check_outside_state(m_config, &state);
-//         if (!contained)
-//         {
-//             _set_warning_texture(WarningTexture::ObjectOutside, true);
-//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
-//         }
-//         else
-//         {
-//             m_volumes.reset_outside_state();
-//             _set_warning_texture(WarningTexture::ObjectOutside, false);
-//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
-//         }
     }
     else
     {
@@ -2917,6 +2903,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(m_mouse.scene_position))
                     {
+                        m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
                         // The dragging operation is initiated.
                         m_mouse.drag.move_volume_idx = volume_idx;
                         m_selection.start_dragging();

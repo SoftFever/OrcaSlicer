@@ -55,7 +55,7 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
 #endif
 }
 
-wxDEFINE_EVENT(EVT_DPI_CHANGED, DpiChangedEvent);
+wxDEFINE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
 
 #ifdef _WIN32
 template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const char *fn_name) {

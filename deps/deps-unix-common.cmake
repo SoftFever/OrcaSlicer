@@ -55,14 +55,14 @@ find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
-    URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+    #URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    GIT_REPOSITORY  https://github.com/qhull/qhull.git
+    GIT_TAG         7afedcc73666e46a9f1d74632412ebecf53b1b30 # v7.3.2 plus the mac build patch
     CMAKE_ARGS
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
 )
 
 ExternalProject_Add(dep_blosc
@@ -80,8 +80,8 @@ ExternalProject_Add(dep_blosc
         -DBUILD_TESTS=OFF 
         -DBUILD_BENCHMARKS=OFF 
         -DPREFER_EXTERNAL_ZLIB=ON
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
+    PATCH_COMMAND       ${GIT_EXECUTABLE} reset --hard && git clean -df && 
+                        ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
 )
 
 ExternalProject_Add(dep_openexr
@@ -96,7 +96,6 @@ ExternalProject_Add(dep_openexr
         -DPYILMBASE_ENABLE:BOOL=OFF 
         -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
         -DOPENEXR_BUILD_UTILS:BOOL=OFF
-    UPDATE_COMMAND ""
 )
 
 ExternalProject_Add(dep_openvdb
@@ -116,6 +115,6 @@ ExternalProject_Add(dep_openvdb
         -DOPENVDB_CORE_STATIC=ON 
         -DTBB_STATIC=ON
         -DOPENVDB_BUILD_VDB_PRINT=ON
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+    PATCH_COMMAND PATCH_COMMAND     ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
+                                    ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
 )

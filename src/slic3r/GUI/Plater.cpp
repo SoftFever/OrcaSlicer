@@ -76,6 +76,7 @@
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/Thread.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -87,8 +88,6 @@ using Slic3r::Preset;
 using Slic3r::PrintHostJob;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-static const std::vector < std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_FFF = { { 240, 320 }, { 220, 165 }, { 16, 16 } };
-static const std::vector<std::pair<unsigned int, unsigned int>> THUMBNAIL_SIZE_SLA = { { 800, 480 } };
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
@@ -231,7 +230,7 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     init_info_label(_(L("Used Filament (mm³)")));
     init_info_label(_(L("Used Filament (g)")));
     init_info_label(_(L("Used Material (unit)")));
-    init_info_label(_(L("Cost")));
+    init_info_label(_(L("Cost (money)")));
     init_info_label(_(L("Estimated printing time")));
     init_info_label(_(L("Number of tool changes")));
 
@@ -1129,12 +1128,10 @@ void Sidebar::show_info_sizer()
     }
 }
 
-void Sidebar::show_sliced_info_sizer(const bool show)
+void Sidebar::update_sliced_info_sizer()
 {
-    wxWindowUpdateLocker freeze_guard(this);
-
-    p->sliced_info->Show(show);
-    if (show) {
+    if (p->sliced_info->IsShown(size_t(0)))
+    {
         if (p->plater->printer_technology() == ptSLA)
         {
             const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
@@ -1150,7 +1147,18 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                 wxString::Format("%.2f", (ps.objects_used_material + ps.support_used_material) / 1000);
             p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
 
-            p->sliced_info->SetTextAndShow(siCost, "N/A"/*wxString::Format("%.2f", ps.total_cost)*/);
+            wxString str_total_cost = "N/A";
+
+            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_SLA_MATERIAL)->get_config();
+            if (cfg->option("bottle_cost")->getFloat() > 0.0 &&
+                cfg->option("bottle_volume")->getFloat() > 0.0)
+            {
+                double material_cost = cfg->option("bottle_cost")->getFloat() / 
+                                       cfg->option("bottle_volume")->getFloat();
+                str_total_cost = wxString::Format("%.2f", material_cost*(ps.objects_used_material + ps.support_used_material) / 1000);                
+            }
+            p->sliced_info->SetTextAndShow(siCost, str_total_cost);
+
             wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
             p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _(L("Estimated printing time")) + " :");
 
@@ -1224,6 +1232,15 @@ void Sidebar::show_sliced_info_sizer(const bool show)
             p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
         }
     }
+}
+
+void Sidebar::show_sliced_info_sizer(const bool show)
+{
+    wxWindowUpdateLocker freeze_guard(this);
+
+    p->sliced_info->Show(show);
+    if (show)
+        update_sliced_info_sizer();
 
     Layout();
     p->scrolled->Refresh();
@@ -1441,7 +1458,7 @@ struct Plater::priv
     class Job : public wxEvtHandler
     {
         int               m_range = 100;
-        std::future<void> m_ftr;
+        boost::thread     m_thread;
         priv *            m_plater = nullptr;
         std::atomic<bool> m_running{false}, m_canceled{false};
         bool              m_finalized = false;
@@ -1482,7 +1499,8 @@ struct Plater::priv
             // Do a full refresh of scene tree, including regenerating
             // all the GLVolumes. FIXME The update function shall just
             // reload the modified matrices.
-            if (!was_canceled()) plater().update((unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
+            if (!was_canceled())
+                plater().update(unsigned(UpdateParams::FORCE_FULL_SCREEN_REFRESH));
         }
 
     public:
@@ -1511,9 +1529,9 @@ struct Plater::priv
         }
 
         Job(const Job &) = delete;
-        Job(Job &&)      = default;
+        Job(Job &&)      = delete;
         Job &operator=(const Job &) = delete;
-        Job &operator=(Job &&) = default;
+        Job &operator=(Job &&) = delete;
 
         virtual void process() = 0;
 
@@ -1537,7 +1555,7 @@ struct Plater::priv
                 wxBeginBusyCursor();
 
                 try { // Execute the job
-                    m_ftr = std::async(std::launch::async, &Job::run, this);
+                    m_thread = create_thread([this] { this->run(); });
                 } catch (std::exception &) {
                     update_status(status_range(),
                                   _(L("ERROR: not enough resources to "
@@ -1553,16 +1571,15 @@ struct Plater::priv
         // returned if the timeout has been reached and the job is still
         // running. Call cancel() before this fn if you want to explicitly
         // end the job.
-        bool join(int timeout_ms = 0) const
+        bool join(int timeout_ms = 0)
         {
-            if (!m_ftr.valid()) return true;
-
+            if (!m_thread.joinable()) return true;
+            
             if (timeout_ms <= 0)
-                m_ftr.wait();
-            else if (m_ftr.wait_for(std::chrono::milliseconds(
-                         timeout_ms)) == std::future_status::timeout)
+                m_thread.join();
+            else if (!m_thread.try_join_for(boost::chrono::milliseconds(timeout_ms)))
                 return false;
-
+            
             return true;
         }
 
@@ -3056,14 +3073,16 @@ bool Plater::priv::restart_background_process(unsigned int state)
              (this->background_process.state() != BackgroundSlicingProcess::STATE_RUNNING))
         {
             // update thumbnail data
+            const std::vector<Vec2d> &thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
             if (this->printer_technology == ptFFF)
             {
                 // for ptFFF we need to generate the thumbnails before the export of gcode starts
                 this->thumbnail_data.clear();
-                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_FFF)
+                for (const Vec2d &sized : thumbnail_sizes)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+					Point size(sized); // round to ints
+                    generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
                 }
             }
             else if (this->printer_technology == ptSLA)
@@ -3071,10 +3090,11 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 // for ptSLA generate thumbnails without supports and pad (not yet calculated)
                 // to render also supports and pad see on_slicing_update()
                 this->thumbnail_data.clear();
-                for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+                for (const Vec2d &sized : thumbnail_sizes)
                 {
                     this->thumbnail_data.push_back(ThumbnailData());
-                    generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, true, false);
+					Point size(sized); // round to ints
+					generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
                 }
             }
         }
@@ -3426,11 +3446,13 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
         if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
         {
+            const std::vector<Vec2d>& thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
             this->thumbnail_data.clear();
-            for (const std::pair<unsigned int, unsigned int>& size : THUMBNAIL_SIZE_SLA)
+            for (const Vec2d &sized : thumbnail_sizes)
             {
                 this->thumbnail_data.push_back(ThumbnailData());
-                generate_thumbnail(this->thumbnail_data.back(), size.first, size.second, true, false, false);
+                Point size(sized); // round to ints
+                generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, false, false);
             }
         }
 #endif // ENABLE_THUMBNAIL_GENERATOR

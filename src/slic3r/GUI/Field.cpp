@@ -11,6 +11,12 @@
 #include <wx/tooltip.h>
 #include <boost/algorithm/string/predicate.hpp>
 
+#ifdef __WXOSX__
+#define wxOSX true
+#else
+#define wxOSX false
+#endif
+
 namespace Slic3r { namespace GUI {
 
 wxString double_to_string(double const value, const int max_precision /*= 4*/)
@@ -304,7 +310,7 @@ void TextCtrl::BUILD() {
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-	if (! m_opt.multiline)
+    if (! m_opt.multiline && !wxOSX)
 		// Only disable background refresh for single line input fields, as they are completely painted over by the edit control.
 		// This does not apply to the multi-line edit field, where the last line and a narrow frame around the text is not cleared.
 		temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -491,7 +497,7 @@ void CheckBox::BUILD() {
 	// Set Label as a string of at least one space simbol to correct system scaling of a CheckBox 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(" "), wxDefaultPosition, size); 
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
@@ -601,7 +607,7 @@ void SpinCtrl::BUILD() {
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 // XXX: On OS X the wxSpinCtrl widget is made up of two subwidgets, unfortunatelly
 // the kill focus event is not propagated to the encompassing widget,
@@ -717,7 +723,7 @@ void Choice::BUILD() {
     }
 
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -1072,7 +1078,7 @@ void ColourPicker::BUILD()
 
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
