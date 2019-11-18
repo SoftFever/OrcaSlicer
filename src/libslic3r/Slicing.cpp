@@ -361,16 +361,15 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
 
         for (size_t i = 0; i < size; ++i)
         {
-            unsigned int id = 0;
-            double value = 0.0;
-            for (int j = (int)(i - radius); j <= (int)(i + radius); ++j)
+            ret.push_back(0.0);
+            double& height = ret.back();
+            int begin = (int)(i - radius);
+            int end = (int)(i + radius);
+            for (int j = begin; j <= end; ++j)
             {
                 if ((0 <= j) && (j < size))
-                    value += kernel[id] * profile[j];
-
-                ++id;
+                    height += kernel[j - begin] * profile[j];
             }
-            ret.push_back(value);
         }
 
         return ret;
@@ -381,13 +380,16 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
     std::vector<double> heights;
     size_t heights_size = ret.size() / 2;
     heights.reserve(heights_size);
+    // extract heights from profile
     for (size_t i = 0; i < heights_size; ++i)
     {
         heights.push_back(ret[i * 2 + 1]);
     }
 
+    // smooth heights
     heights = gauss_blur(heights, std::max(radius, (unsigned int)1));
 
+    // put smoothed heights back into profile
     for (size_t i = 0; i < heights_size; ++i)
     {
         ret[i * 2 + 1] = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, heights[i]);
