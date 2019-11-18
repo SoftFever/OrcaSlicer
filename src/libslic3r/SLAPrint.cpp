@@ -812,7 +812,11 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "output_filename_format",
         "fast_tilt_time",
         "slow_tilt_time",
-        "area_fill"
+        "area_fill",
+        "bottle_cost",
+        "bottle_volume",
+        "bottle_weight",
+        "material_density"
     };
 
     std::vector<SLAPrintStep> steps;

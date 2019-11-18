@@ -77,6 +77,11 @@ public:
     void triangulate_pp(Points *triangles) const;
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
+
+    // Number of contours (outer contour with holes).
+    size_t   		num_contours() const { return this->holes.size() + 1; }
+    Polygon& 		contour_or_hole(size_t idx) 		{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
+    const Polygon& 	contour_or_hole(size_t idx) const 	{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }
 };
 
 inline bool operator==(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour == rhs.contour && lhs.holes == rhs.holes; }

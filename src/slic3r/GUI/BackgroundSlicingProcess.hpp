@@ -6,17 +6,20 @@
 #include <mutex>
 
 #include <boost/filesystem.hpp>
-#include <boost/thread.hpp>
 
 #include <wx/event.h>
 
 #include "libslic3r/Print.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
+#include "slic3r/Utils/Thread.hpp"
 
 namespace Slic3r {
 
 class DynamicPrintConfig;
 class GCodePreviewData;
+#if ENABLE_THUMBNAIL_GENERATOR
+struct ThumbnailData;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 class Model;
 class SLAPrint;
 
@@ -49,6 +52,10 @@ public:
 	void set_fff_print(Print *print) { m_fff_print = print; }
 	void set_sla_print(SLAPrint *print) { m_sla_print = print; }
 	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
+#if ENABLE_THUMBNAIL_GENERATOR
+    void set_thumbnail_data(const std::vector<ThumbnailData>* data) { m_thumbnail_data = data; }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
 	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the slicing is finished
 	// and the background processing will transition into G-code export.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
@@ -151,6 +158,10 @@ private:
 	SLAPrint 				   *m_sla_print			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
+#if ENABLE_THUMBNAIL_GENERATOR
+    // Data structures, used to write thumbnails into gcode.
+    const std::vector<ThumbnailData>* m_thumbnail_data = nullptr;
+#endif // ENABLE_THUMBNAIL_GENERATOR
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
 	// Output path provided by the user. The output path may be set even if the slicing is running,

@@ -256,7 +256,7 @@ if(NOT WIN32)
     # boost::process was introduced first in version 1.64.0
     set(MINIMUM_BOOST_VERSION "1.64.0")
 endif()
-set(_boost_components "system;filesystem;thread;log;locale;regex")
+set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time")
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
 
 add_library(boost_libs INTERFACE)

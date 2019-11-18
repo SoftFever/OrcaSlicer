@@ -267,6 +267,15 @@ public:
 
     //static inline std::string role_to_string(ExtrusionLoopRole role);
 
+#ifndef NDEBUG
+	bool validate() const {
+		assert(this->first_point() == this->paths.back().polyline.points.back());
+		for (size_t i = 1; i < paths.size(); ++ i)
+			assert(this->paths[i - 1].polyline.points.back() == this->paths[i].polyline.points.front());
+		return true;
+	}
+#endif /* NDEBUG */
+
 private:
     ExtrusionLoopRole m_loop_role;
 };

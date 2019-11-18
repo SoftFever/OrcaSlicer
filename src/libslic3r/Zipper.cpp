@@ -217,4 +217,9 @@ void Zipper::finalize()
         m_impl->blow_up();
 }
 
+const std::string &Zipper::get_filename() const
+{
+    return m_impl->m_zipname;
+}
+
 }

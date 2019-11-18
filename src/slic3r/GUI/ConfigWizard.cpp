@@ -166,6 +166,8 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     int max_row_width = 0;
     int current_row_width = 0;
 
+    bool is_variants = false;
+
     for (const auto &model : models) {
         if (! filter(model)) { continue; }
 
@@ -220,6 +222,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
                 auto *alt_label = new wxStaticText(variants_panel, wxID_ANY, _(L("Alternate nozzles:")));
                 alt_label->SetFont(font_alt_nozzle);
                 variants_sizer->Add(alt_label, 0, wxBOTTOM, 3);
+                is_variants = true;
             }
 
             auto *cbox = new Checkbox(variants_panel, label, model_id, variant.name);
@@ -280,10 +283,10 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     }
     title_sizer->AddStretchSpacer();
 
-    if (titles.size() > 1) {
+    if (/*titles.size() > 1*/is_variants) {
         // It only makes sense to add the All / None buttons if there's multiple printers
 
-        auto *sel_all_std = new wxButton(this, wxID_ANY, _(L("All standard")));
+        auto *sel_all_std = new wxButton(this, wxID_ANY, titles.size() > 1 ? _(L("All standard")) : _(L("Standard")));
         auto *sel_all = new wxButton(this, wxID_ANY, _(L("All")));
         auto *sel_none = new wxButton(this, wxID_ANY, _(L("None")));
         sel_all_std->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, false); });

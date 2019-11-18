@@ -7,6 +7,7 @@
 #include "SLA/SupportTree.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
+#include "Zipper.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 namespace Slic3r {
@@ -396,6 +397,12 @@ public:
                               const std::string& projectname = "")
     {
         if(m_printer) m_printer->save(fpath, projectname);
+    }
+
+    inline void export_raster(Zipper &zipper,
+                              const std::string& projectname = "")
+    {
+        if(m_printer) m_printer->save(zipper, projectname);
     }
 
     const PrintObjects& objects() const { return m_objects; }

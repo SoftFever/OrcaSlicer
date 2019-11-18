@@ -403,7 +403,7 @@ const std::vector<std::string>& Preset::print_options()
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects",
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
         "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "single_extruder_multi_material_priming",
-        "compatible_printers", "compatible_printers_condition", "inherits"
+        "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -444,7 +444,8 @@ const std::vector<std::string>& Preset::printer_options()
             "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
             "machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
             "machine_min_extruding_rate", "machine_min_travel_rate",
-            "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e"
+            "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e",
+            "thumbnails"
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
@@ -517,6 +518,10 @@ const std::vector<std::string>& Preset::sla_material_options()
         s_opts = {
             "material_type",
             "initial_layer_height",
+            "bottle_cost",
+            "bottle_volume",
+            "bottle_weight",
+            "material_density",
             "exposure_time",
             "initial_exposure_time",
             "material_correction",
