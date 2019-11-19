@@ -230,7 +230,11 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     float canvas_w = (float)cnv_size.get_width();
     float canvas_h = (float)cnv_size.get_height();
 
+#if ENABLE_RETINA_GL
+    const float scale_gl = m_retina_helper->get_scale_factor();
+#else
     const float scale_gl = wxGetApp().mainframe->scale_factor();
+#endif // ENABLE_RETINA_GL
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_pos(canvas_w - scale_gl * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
