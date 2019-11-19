@@ -183,18 +183,6 @@ void BoxIndex::foreach(std::function<void (const BoxIndexEl &)> fn)
 }
 
 
-namespace {
-// Iterates over hits and holes and returns the true hit, possibly
-// on the inside of a hole. Free function so it can return igl::Hit
-// without including igl in a header.
-igl::Hit filter_hits(const std::vector<EigenMesh3D::hit_result>& hits,
-                     const std::vector<DrainHole>& holes)
-{
-    return igl::Hit();
-}
-
-} // namespace
-
 /* ****************************************************************************
  * EigenMesh3D implementation
  * ****************************************************************************/
@@ -280,21 +268,26 @@ EigenMesh3D::query_ray_hit(const Vec3d &s,
                            const std::vector<DrainHole>* holes
                           ) const
 {
+    assert(is_approx(dir.norm(), 1.));
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
 
-    if (! holes)
+    if (! holes) {
         m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
-    else
-        hit = filter_hits(query_ray_hits(s, dir), *holes);
-    
-    hit_result ret(*this);
-    ret.m_t = double(hit.t);
-    ret.m_dir = dir;
-    ret.m_source = s;
-    if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
-    
-    return ret;
+        hit_result ret(*this);
+        ret.m_t = double(hit.t);
+        ret.m_dir = dir;
+        ret.m_source = s;
+        if(!std::isinf(hit.t) && !std::isnan(hit.t))
+            ret.m_normal = this->normal_by_face_id(hit.id);
+
+        return ret;
+    }
+    else {
+        // If there are holes, the hit_results will be made by
+        // query_ray_hits (object) and filter_hits (holes):
+        return filter_hits(query_ray_hits(s, dir), *holes);
+    }
 }
 
 std::vector<EigenMesh3D::hit_result>
@@ -316,10 +309,89 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
         outs.back().m_dir = dir;
         outs.back().m_source = s;
         if(!std::isinf(hit.t) && !std::isnan(hit.t))
-            outs.back().m_face_id = hit.id;
+            outs.back().m_normal = this->normal_by_face_id(hit.id);
     }
-    
+
     return outs;
+}
+
+EigenMesh3D::hit_result EigenMesh3D::filter_hits(
+                     const std::vector<EigenMesh3D::hit_result>& object_hits,
+                     const std::vector<DrainHole>& holes) const
+{
+    hit_result out(*this);
+    out.m_t = std::nan("");
+
+    if (! holes.empty() && ! object_hits.empty()) {
+        Vec3d s = object_hits.front().source();
+        Vec3d dir = object_hits.front().direction();
+
+        struct HoleHit {
+            HoleHit(float t_p, const Vec3d& normal_p, bool entry_p) :
+                t(t_p), normal(normal_p), entry(entry_p) {}
+            float t;
+            Vec3d normal;
+            bool entry;
+        };
+        std::vector<HoleHit> hole_isects;
+
+        // Collect hits on all holes, preserve information about entry/exit
+        for (const sla::DrainHole& hole : holes) {
+            std::array<std::pair<float, Vec3d>, 2> isects;
+            if (hole.get_intersections(s.cast<float>(),
+                                       dir.cast<float>(), isects)) {
+                hole_isects.emplace_back(isects[0].first, isects[0].second, true);
+                hole_isects.emplace_back(isects[1].first, isects[1].second, false);
+            }
+        }
+        // Holes can intersect each other, sort the hits by t
+        std::sort(hole_isects.begin(), hole_isects.end(),
+                  [](const HoleHit& a, const HoleHit& b) { return a.t < b.t; });
+
+        // Now inspect the intersections with object and holes, keep track how
+        // deep are we nested in mesh/holes and pick the correct intersection
+        int hole_nested = 0;
+        int object_nested = 0;
+
+        bool is_hole = false;
+        bool is_entry = false;
+        const HoleHit* next_hole_hit = &hole_isects.front();
+        const hit_result* next_mesh_hit = &object_hits.front();
+
+        while (next_hole_hit || next_mesh_hit) {
+            if (next_hole_hit && next_mesh_hit) // still have hole and obj hits
+                is_hole = (next_hole_hit->t < next_mesh_hit->m_t);
+            else
+                is_hole = next_hole_hit; // one or the other ran out
+
+            // Is this entry or exit hit?
+            is_entry = is_hole ? next_hole_hit->entry : ! next_mesh_hit->is_inside();
+
+            if (! is_hole && is_entry && hole_nested == 0) {
+                // This mesh point is the one we seek
+                return *next_mesh_hit;
+            }
+            if (is_hole && ! is_entry && object_nested != 0) {
+                // This holehit is the one we seek
+                out.m_t = next_hole_hit->t;
+                out.m_normal = next_hole_hit->normal;
+                out.m_source = s;
+                out.m_dir = dir;
+                return out;
+            }
+
+            hole_nested += (is_hole ? (is_entry ? 1 : -1) : 0);
+            object_nested += (! is_hole ? (is_entry ? 1 : -1) : 0);
+
+            // Advance the pointer
+            if (is_hole && next_hole_hit++ == &hole_isects.back())
+                next_hole_hit = nullptr;
+            if (! is_hole && next_mesh_hit++ == &object_hits.back())
+                next_mesh_hit = nullptr;
+        }
+    }
+
+    return out;
 }
 
 #ifdef SLIC3R_SLA_NEEDS_WINDTREE

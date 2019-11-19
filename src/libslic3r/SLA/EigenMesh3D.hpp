@@ -42,10 +42,10 @@ public:
     // Result of a raycast
     class hit_result {
         double m_t = std::nan("");
-        int m_face_id = -1;
         const EigenMesh3D *m_mesh = nullptr;
         Vec3d m_dir;
         Vec3d m_source;
+        Vec3d m_normal = Vec3d::Zero();
         friend class EigenMesh3D;
         
         // A valid object of this class can only be obtained from
@@ -60,26 +60,23 @@ public:
         
         inline double distance() const { return m_t; }
         inline const Vec3d& direction() const { return m_dir; }
+        inline const Vec3d& source() const { return m_source; }
         inline Vec3d position() const { return m_source + m_dir * m_t; }
-        inline int face() const { return m_face_id; }
         inline bool is_valid() const { return m_mesh != nullptr; }
+        inline bool is_hit() const { return m_normal != Vec3d::Zero(); }
         
         // Hit_result can decay into a double as the hit distance.
         inline operator double() const { return distance(); }
-        
-        inline Vec3d normal() const {
-            if(m_face_id < 0 || !is_valid()) return {};
-            auto trindex    = m_mesh->m_F.row(m_face_id);
-            const Vec3d& p1 = m_mesh->V().row(trindex(0));
-            const Vec3d& p2 = m_mesh->V().row(trindex(1));
-            const Vec3d& p3 = m_mesh->V().row(trindex(2));
-            Eigen::Vector3d U = p2 - p1;
-            Eigen::Vector3d V = p3 - p1;
-            return U.cross(V).normalized();
+
+        inline const Vec3d& normal() const {
+            if(!is_valid())
+                throw std::runtime_error("EigenMesh3D::hit_result::normal() "
+                                         "called on invalid object.");
+            return m_normal;
         }
         
-        inline bool is_inside() {
-            return m_face_id >= 0 && normal().dot(m_dir) > 0;
+        inline bool is_inside() const {
+            return normal().dot(m_dir) > 0;
         }
     };
     
@@ -90,6 +87,11 @@ public:
     
     // Casts a ray on the mesh and returns all hits
     std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
+
+    // Iterates over hits and holes and returns the true hit, possibly
+    // on the inside of a hole.
+    hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits,
+                           const std::vector<DrainHole>& holes) const;
 
     class si_result {
         double m_value;
@@ -122,6 +124,16 @@ public:
         int   i;
         Vec3d c;
         return squared_distance(p, i, c);
+    }
+
+    Vec3d normal_by_face_id(int face_id) const {
+        auto trindex    = F().row(face_id);
+        const Vec3d& p1 = V().row(trindex(0));
+        const Vec3d& p2 = V().row(trindex(1));
+        const Vec3d& p3 = V().row(trindex(2));
+        Eigen::Vector3d U = p2 - p1;
+        Eigen::Vector3d V = p3 - p1;
+        return U.cross(V).normalized();
     }
 };
 

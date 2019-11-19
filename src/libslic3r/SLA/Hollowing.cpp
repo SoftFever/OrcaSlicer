@@ -141,22 +141,26 @@ bool DrainHole::is_inside(const Vec3f& pt) const
 }
 
 
-// Given a line s+dir*t, return parameter t of intersections  with the hole.
-// If there is no intersection, returns nan.
-std::pair<float, float> DrainHole::get_intersections(const Vec3f& s,
-                                                     const Vec3f& dir) const
+// Given a line s+dir*t, find parameter t of intersections with the hole
+// and the normal (points inside the hole). Outputs through out reference,
+// returns true if two intersections were found.
+bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
+                                  std::array<std::pair<float, Vec3d>, 2>& out)
+                                  const
 {
     assert(is_approx(normal.norm(), 1.f));
     const Eigen::ParametrizedLine<float, 3> ray(s, dir.normalized());
 
-    std::pair<float, float> out(std::nan(""), std::nan(""));
+    for (size_t i=0; i<2; ++i)
+        out[i] = std::make_pair(std::nan(""), Vec3d::Zero());
+
     const float sqr_radius = pow(radius, 2.f);
 
     // first check a bounding sphere of the hole:
     Vec3f center = pos+normal*height/2.f;
     float sqr_dist_limit = pow(height/2.f, 2.f) + sqr_radius ;
     if (ray.squaredDistance(center) > sqr_dist_limit)
-        return out;
+        return false;
 
     // The line intersects the bounding sphere, look for intersections with
     // bases of the cylinder.
@@ -170,7 +174,8 @@ std::pair<float, float> DrainHole::get_intersections(const Vec3f& s,
             Vec3f intersection = ray.intersectionPoint(base);
             // Only accept the point if it is inside the cylinder base.
             if ((cylinder_center-intersection).squaredNorm() < sqr_radius) {
-                (found ? out.second : out.first) = ray.intersectionParameter(base);
+                out[found].first = ray.intersectionParameter(base);
+                out[found].second = (i==0 ? 1. : -1.) * normal.cast<double>();
                 ++found;
             }
         }
@@ -200,11 +205,13 @@ std::pair<float, float> DrainHole::get_intersections(const Vec3f& s,
         for (int i=-1; i<=1 && found !=2; i+=2) {
             Vec3f isect = closest + i*dist * projected_ray.direction();
             float par = (isect-proj_origin).norm() / par_scale;
+            Vec3d hit_normal = (pos-isect).normalized().cast<double>();
             isect = ray.pointAt(par);
             // check that the intersection is between the base planes:
             float vert_dist = base.signedDistance(isect);
             if (vert_dist > 0.f && vert_dist < height) {
-                (found ? out.second : out.first) = par;
+                out[found].first = par;
+                out[found].second = hit_normal;
                 ++found;
             }
         }
@@ -212,14 +219,14 @@ std::pair<float, float> DrainHole::get_intersections(const Vec3f& s,
 
     // If only one intersection was found, it is some corner case,
     // no intersection will be returned:
-    if (found != 0)
-        return std::pair<float, float>(std::nan(""), std::nan(""));
+    if (found != 2)
+        return false;
 
     // Sort the intersections:
-    if (out.first > out.second)
-        std::swap(out.first, out.second);
+    if (out[0].first > out[1].first)
+        std::swap(out[0], out[1]);
 
-    return out;
+    return true;
 }
 
 }} // namespace Slic3r::sla

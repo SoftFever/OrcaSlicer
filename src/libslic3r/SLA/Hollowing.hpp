@@ -39,9 +39,8 @@ struct DrainHole
 
     bool is_inside(const Vec3f& pt) const;
 
-    std::pair<float, float> get_intersections(const Vec3f& s,
-                                              const Vec3f& dir
-                                             ) const;
+    bool get_intersections(const Vec3f& s, const Vec3f& dir,
+                           std::array<std::pair<float, Vec3d>, 2>& out) const;
     
     template<class Archive> inline void serialize(Archive &ar)
     {

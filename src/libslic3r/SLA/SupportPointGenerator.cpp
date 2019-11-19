@@ -83,8 +83,8 @@ void SupportPointGenerator::project_onto_mesh(std::vector<sla::SupportPoint>& po
                 sla::EigenMesh3D::hit_result hit_up   = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., 1.));
                 sla::EigenMesh3D::hit_result hit_down = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., -1.));
 
-                bool up   = hit_up.face() != -1;
-                bool down = hit_down.face() != -1;
+                bool up   = hit_up.is_hit();
+                bool down = hit_down.is_hit();
 
                 if (!up && !down)
                     continue;
