@@ -37,6 +37,10 @@ void SlicingAdaptive::prepare()
     m_mesh = m_object->raw_mesh();
     const ModelInstance* first_instance = m_object->instances.front();
     m_mesh.transform(first_instance->get_matrix(), first_instance->is_left_handed());
+    for (stl_facet& facet : m_mesh.stl.facet_start)
+    {
+        facet.normal.normalize();
+    }
 
     // 1) Collect faces from mesh.
     m_faces.reserve(m_mesh.stl.stats.number_of_facets);

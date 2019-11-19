@@ -346,8 +346,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     return layer_height_profile;
 }
 
-std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, 
-    unsigned int radius)
+std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, unsigned int radius)
 {
     auto gauss_blur = [&slicing_params](const std::vector<double>& profile, unsigned int radius) -> std::vector<double> {
         auto gauss_kernel = [] (unsigned int radius) -> std::vector<double> {
@@ -390,28 +389,34 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
         }
 
         // smooth the rest of the profile
-        double max_dz = (double)radius * slicing_params.layer_height;
+        double med_h = 0.5 * (slicing_params.min_layer_height + slicing_params.max_layer_height);
+        double half_delta_h = 0.5 * (slicing_params.max_layer_height - slicing_params.min_layer_height);
+        double inv_half_delta_h = (half_delta_h > 0.0) ? 1.0 / half_delta_h : 1.0;
+
+        double max_dz_band = (double)radius * slicing_params.layer_height;
         for (size_t i = skip_count; i < size; i += 2)
         {
-            double z = profile[i];
-            ret.push_back(z);
+            double zi = profile[i];
+            ret.push_back(zi);
             ret.push_back(0.0);
             double& height = ret.back();
             int begin = std::max((int)i - two_radius, (int)skip_count);
             int end = std::min((int)i + two_radius, (int)size - 2);
-            double kernel_total = 0.0;
+            double weight_total = 0.0;
             for (int j = begin; j <= end; j += 2)
             {
                 int kernel_id = radius + (j - (int)i) / 2;
-                double dz = std::abs(z - profile[j]);
-                if (dz * slicing_params.layer_height <= max_dz)
+                double dz = std::abs(zi - profile[j]);
+                if (dz * slicing_params.layer_height <= max_dz_band)
                 {
-                    height += kernel[kernel_id] * profile[j + 1];
-                    kernel_total += kernel[kernel_id];
+                    double dh = std::abs(profile[j + 1] - med_h);
+                    double weight = kernel[kernel_id] * dh * inv_half_delta_h;
+                    height += weight * profile[j + 1];
+                    weight_total += weight;
                 }
             }
 
-            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (kernel_total != 0.0) ? height /= kernel_total : profile[i + 1]);
+            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (weight_total != 0.0) ? height /= weight_total : profile[i + 1]);
         }
 
         return ret;
