@@ -964,8 +964,6 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
 {
     namespace pt = boost::property_tree;
 
-    typedef std::pair<pt::ptree::key_type, pt::ptree> ptree_child_type;
-
     // 1) For the group given by group_name, initialize the presets.
     struct Prst {
         Prst(const std::string &name, pt::ptree *node) : name(name), node(node) {}

@@ -342,9 +342,9 @@ public:
     // Return the selected preset, without the user modifications applied.
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
-    int             get_selected_idx()    const { return m_idx_selected; }
+    size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
-    std::string     get_selected_preset_name() const { return (m_idx_selected == -1) ? std::string() : this->get_selected_preset().name; }
+    std::string     get_selected_preset_name() const { return (m_idx_selected == size_t(-1)) ? std::string() : this->get_selected_preset().name; }
     // For the current edited preset, return the parent preset if there is one.
     // If there is no parent preset, nullptr is returned.
     // The parent preset may be a system preset or a user preset, which will be
@@ -365,7 +365,7 @@ public:
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
-	int							get_idx_selected()	{ return m_idx_selected; }
+    size_t                      get_idx_selected()	{ return m_idx_selected; }
 	static const std::string&	get_suffix_modified();
 
     // Return a preset possibly with modifications.
@@ -373,7 +373,7 @@ public:
 	const Preset&   default_preset(size_t idx = 0) const { assert(idx < m_num_default_presets); return m_presets[idx]; }
 	virtual const Preset& default_preset_for(const DynamicPrintConfig & /* config */) const { return this->default_preset(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
-    Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
+    Preset&         preset(size_t idx)          { return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
     void            discard_current_changes()   { m_presets[m_idx_selected].reset_dirty(); m_edited_preset = m_presets[m_idx_selected]; }
     
@@ -541,7 +541,7 @@ private:
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.
     Preset                  m_edited_preset;
     // Selected preset.
-    int                     m_idx_selected;
+    size_t                  m_idx_selected;
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;

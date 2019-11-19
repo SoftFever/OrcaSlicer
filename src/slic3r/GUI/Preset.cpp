@@ -1065,6 +1065,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
+
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
         bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
@@ -1072,7 +1073,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
 	        preset_edited.is_compatible &= is_compatible_with_print(this_preset_with_vendor_profile, *active_print, active_printer);
         if (! preset_edited.is_compatible && selected && 
         	(unselect_if_incompatible == PresetSelectCompatibleType::Always || (unselect_if_incompatible == PresetSelectCompatibleType::OnlyIfWasCompatible && was_compatible)))
-            m_idx_selected = -1;
+            m_idx_selected = size_t(-1);
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
     }
@@ -1369,7 +1370,7 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     const T* opt_init = static_cast<const T*>(other.option(opt_key));
     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
     int opt_init_max_id = opt_init->values.size() - 1;
-    for (int i = 0; i < opt_cur->values.size(); i++)
+    for (int i = 0; i < int(opt_cur->values.size()); i++)
     {
         int init_id = i <= opt_init_max_id ? i : 0;
         if (opt_cur->values[i] != opt_init->values[init_id])
