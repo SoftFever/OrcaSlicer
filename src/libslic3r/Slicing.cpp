@@ -346,9 +346,9 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     return layer_height_profile;
 }
 
-std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, unsigned int radius)
+std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, const HeightProfileSmoothingParams& smoothing_params)
 {
-    auto gauss_blur = [&slicing_params](const std::vector<double>& profile, unsigned int radius) -> std::vector<double> {
+    auto gauss_blur = [&slicing_params](const std::vector<double>& profile, const HeightProfileSmoothingParams& smoothing_params) -> std::vector<double> {
         auto gauss_kernel = [] (unsigned int radius) -> std::vector<double> {
             unsigned int size = 2 * radius + 1;
             std::vector<double> ret;
@@ -374,7 +374,8 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
         // not enough data to smmoth
         if ((int)profile.size() - (int)skip_count < 6)
             return profile;
-
+        
+        unsigned int radius = std::max(smoothing_params.radius, (unsigned int)1);
         std::vector<double> kernel = gauss_kernel(radius);
         int two_radius = 2 * (int)radius;
 
@@ -388,15 +389,16 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
             ret.push_back(profile[i]);
         }
 
-        // smooth the rest of the profile
-        double med_h = 0.5 * (slicing_params.min_layer_height + slicing_params.max_layer_height);
-        double half_delta_h = 0.5 * (slicing_params.max_layer_height - slicing_params.min_layer_height);
-        double inv_half_delta_h = (half_delta_h > 0.0) ? 1.0 / half_delta_h : 1.0;
+        // smooth the rest of the profile by biasing a gaussian blur
+        // the bias moves the smoothed profile closer to the min_layer_height
+        double delta_h = slicing_params.max_layer_height - slicing_params.min_layer_height;
+        double inv_delta_h = (delta_h != 0.0) ? 1.0 / delta_h : 1.0;
 
         double max_dz_band = (double)radius * slicing_params.layer_height;
         for (size_t i = skip_count; i < size; i += 2)
         {
             double zi = profile[i];
+            double hi = profile[i + 1];
             ret.push_back(zi);
             ret.push_back(0.0);
             double& height = ret.back();
@@ -409,20 +411,22 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
                 double dz = std::abs(zi - profile[j]);
                 if (dz * slicing_params.layer_height <= max_dz_band)
                 {
-                    double dh = std::abs(profile[j + 1] - med_h);
-                    double weight = kernel[kernel_id] * dh * inv_half_delta_h;
+                    double dh = std::abs(slicing_params.max_layer_height - profile[j + 1]);
+                    double weight = kernel[kernel_id] * sqrt(dh * inv_delta_h);
                     height += weight * profile[j + 1];
                     weight_total += weight;
                 }
             }
 
-            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (weight_total != 0.0) ? height /= weight_total : profile[i + 1]);
+            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (weight_total != 0.0) ? height /= weight_total : hi);
+            if (smoothing_params.keep_min)
+                height = std::min(height, hi);
         }
 
         return ret;
     };
 
-    return gauss_blur(profile, std::max(radius, (unsigned int)1));
+    return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(

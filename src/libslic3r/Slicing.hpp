@@ -147,10 +147,18 @@ extern std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
     const ModelObject& object, float cusp_value);
 
+struct HeightProfileSmoothingParams
+{
+    unsigned int radius;
+    bool keep_min;
+
+    HeightProfileSmoothingParams() : radius(5), keep_min(false) {}
+    HeightProfileSmoothingParams(unsigned int radius, bool keep_min) : radius(radius), keep_min(keep_min) {}
+};
+
 extern std::vector<double> smooth_height_profile(
-    const std::vector<double>& profile, 
-    const SlicingParameters& slicing_params,
-    unsigned int radius);
+    const std::vector<double>& profile, const SlicingParameters& slicing_params,
+    const HeightProfileSmoothingParams& smoothing_params);
 #else
 extern std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
