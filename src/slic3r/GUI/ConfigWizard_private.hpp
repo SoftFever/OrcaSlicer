@@ -75,7 +75,8 @@ struct Materials
 
     template<class F> void filter_presets(const std::string &type, const std::string &vendor, F cb) {
         for (const Preset *preset : presets) {
-            if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)) {
+            if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)//) {
+                && preset->alias.empty()) {
                 cb(preset);
             }
         }
@@ -404,6 +405,8 @@ wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
 
 // ConfigWizard private data
 
+typedef std::map<std::string, std::set<std::string>> PresetAliases;
+
 struct ConfigWizard::priv
 {
     ConfigWizard *q;
@@ -415,6 +418,7 @@ struct ConfigWizard::priv
                                   // PrinterPickers state.
     Materials filaments;          // Holds available filament presets and their types & vendors
     Materials sla_materials;      // Ditto for SLA materials
+    PresetAliases aliases;        // Map of aliase to preset names
     std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
     bool any_fff_selected;        // Used to decide whether to display Filaments page
     bool any_sla_selected;        // Used to decide whether to display SLA Materials page
@@ -473,6 +477,9 @@ struct ConfigWizard::priv
     void on_3rdparty_install(const VendorProfile *vendor, bool install);
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
+    // #ys_FIXME_alise
+    void add_presets(const std::string& section, const std::string& alias_key);
+    void del_presets(const std::string& section, const std::string& alias_key);
 
     int em() const { return index->em(); }
 };

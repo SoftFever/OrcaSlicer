@@ -148,6 +148,9 @@ public:
     // Configuration data, loaded from a file, or set from the defaults.
     DynamicPrintConfig  config;
 
+    // Alias of the preset
+    std::string         alias = "";
+
     void                save();
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.

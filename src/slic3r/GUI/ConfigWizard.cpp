@@ -642,11 +642,17 @@ void PageMaterials::select_material(int i)
 {
     const bool checked = list_l3->IsChecked(i);
     const Preset &preset = list_l3->get_data(i);
+    // #ys_FIXME_aliases
+    // if (checked) {
+    //     wizard_p()->appconfig_new.set(materials->appconfig_section(), preset.name, "1");
+    // } else {
+    //     wizard_p()->appconfig_new.erase(materials->appconfig_section(), preset.name);
+    // }
 
     if (checked) {
-        wizard_p()->appconfig_new.set(materials->appconfig_section(), preset.name, "1");
+        wizard_p()->add_presets(materials->appconfig_section(), preset.name);
     } else {
-        wizard_p()->appconfig_new.erase(materials->appconfig_section(), preset.name);
+        wizard_p()->del_presets(materials->appconfig_section(), preset.name);
     }
 }
 
@@ -1444,6 +1450,7 @@ void ConfigWizard::priv::update_materials(Technology technology)
 {
     if (any_fff_selected && (technology & T_FFF)) {
         filaments.clear();
+        aliases.clear();
     
         // Iterate filaments in all bundles
         for (const auto &pair : bundles) {
@@ -1461,6 +1468,8 @@ void ConfigWizard::priv::update_materials(Technology technology)
 
                         if (filament.is_compatible_with_printer(printer)) {
                             filaments.push(&filament);
+                            if (!filament.alias.empty())
+                                aliases[filament.alias].insert(filament.name);
                         }
                     }
                 }
@@ -1667,6 +1676,30 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
+}
+
+void ConfigWizard::priv::add_presets(const std::string& section, const std::string& alias_key)
+{
+    // add preset to config
+    appconfig_new.set(section, alias_key, "1");
+
+    // add presets had a same alias 
+    auto it = aliases.find(alias_key);
+    if (it != aliases.end())
+        for (const std::string& name : it->second)
+            appconfig_new.set(section, name, "1");
+}
+
+void ConfigWizard::priv::del_presets(const std::string& section, const std::string& alias_key)
+{ 
+    // delete preset from config
+    appconfig_new.erase(section, alias_key);
+
+    // delete presets had a same alias 
+    auto it = aliases.find(alias_key);
+    if (it != aliases.end())
+        for (const std::string& name : it->second)
+            appconfig_new.erase(section, name);
 }
 
 
