@@ -1148,13 +1148,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             loaded  = &loaded_sla_materials;
             preset_name = section.first.substr(13);
 
-            for (const auto& item : section.second)
-            {
-                if (boost::starts_with(item.first, "alias")) {
-                    alias_name = item.second.data();
-                    break;
-                }
-            }
+            int end_pos = preset_name.find_first_of("0.");
+            alias_name = preset_name.substr(0, end_pos-1);
         } else if (boost::starts_with(section.first, "printer:")) {
             presets = &this->printers;
             loaded  = &loaded_printers;
@@ -1664,7 +1659,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 
     /* But, if selected_preset_item is still equal to INT_MAX, it means that
      * there is no presets added to the list.
-     * */ So, select last combobox item ("Add/Remove filaments")
+     * So, select last combobox item ("Add/Remove filaments")
+     */
     if (selected_preset_item == INT_MAX)
         selected_preset_item = ui->GetCount() - 1;
 

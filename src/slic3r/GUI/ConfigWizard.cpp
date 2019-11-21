@@ -628,7 +628,23 @@ void PageMaterials::update_lists(int sel1, int sel2)
             const std::string &vendor = list_l2->get_data(sel2);
 
             materials->filter_presets(type, vendor, [this](const Preset *p) {
-                const int i = list_l3->append(p->name, p);
+                // #ys_FIXME_alias
+                // const int i = list_l3->append(p->name, p);
+
+                int i = 0;
+                if (materials->technology == T_FFF) {
+                    if (!p->alias.empty())
+                        return;
+                    i = list_l3->append(p->name, &p->name);
+                }
+                else if (materials->technology == T_SLA) { 
+                    if (list_l3->find(p->alias) != wxNOT_FOUND)
+                        return;
+                    i = list_l3->append(p->alias, &p->alias);
+                }
+                else
+                    return;
+
                 const bool checked = wizard_p()->appconfig_new.has(materials->appconfig_section(), p->name);
                 list_l3->Check(i, checked);
             });
@@ -641,19 +657,16 @@ void PageMaterials::update_lists(int sel1, int sel2)
 void PageMaterials::select_material(int i)
 {
     const bool checked = list_l3->IsChecked(i);
-    const Preset &preset = list_l3->get_data(i);
     // #ys_FIXME_aliases
+    // const Preset &preset = list_l3->get_data(i);
     // if (checked) {
     //     wizard_p()->appconfig_new.set(materials->appconfig_section(), preset.name, "1");
     // } else {
     //     wizard_p()->appconfig_new.erase(materials->appconfig_section(), preset.name);
     // }
 
-    if (checked) {
-        wizard_p()->add_presets(materials->appconfig_section(), preset.name);
-    } else {
-        wizard_p()->del_presets(materials->appconfig_section(), preset.name);
-    }
+    const std::string& alias_key = list_l3->get_data(i);
+    wizard_p()->update_presets_in_config(materials->appconfig_section(), alias_key, checked);
 }
 
 void PageMaterials::select_all(bool select)
@@ -1450,7 +1463,7 @@ void ConfigWizard::priv::update_materials(Technology technology)
 {
     if (any_fff_selected && (technology & T_FFF)) {
         filaments.clear();
-        aliases.clear();
+        aliases_fff.clear();
     
         // Iterate filaments in all bundles
         for (const auto &pair : bundles) {
@@ -1469,7 +1482,7 @@ void ConfigWizard::priv::update_materials(Technology technology)
                         if (filament.is_compatible_with_printer(printer)) {
                             filaments.push(&filament);
                             if (!filament.alias.empty())
-                                aliases[filament.alias].insert(filament.name);
+                                aliases_fff[filament.alias].insert(filament.name);
                         }
                     }
                 }
@@ -1479,6 +1492,7 @@ void ConfigWizard::priv::update_materials(Technology technology)
 
     if (any_sla_selected && (technology & T_SLA)) {
         sla_materials.clear();
+        aliases_sla.clear();
 
         // Iterate SLA materials in all bundles
         for (const auto &pair : bundles) {
@@ -1496,6 +1510,8 @@ void ConfigWizard::priv::update_materials(Technology technology)
 
                         if (material.is_compatible_with_printer(printer)) {
                             sla_materials.push(&material);
+                            if (!material.alias.empty())
+                                aliases_sla[material.alias].insert(material.name);
                         }
                     }
                 }
@@ -1678,28 +1694,28 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     preset_bundle->export_selections(*app_config);
 }
 
-void ConfigWizard::priv::add_presets(const std::string& section, const std::string& alias_key)
+void ConfigWizard::priv::update_presets_in_config(const std::string& section, const std::string& alias_key, bool add)
 {
-    // add preset to config
-    appconfig_new.set(section, alias_key, "1");
+    const PresetAliases& aliases = section == AppConfig::SECTION_FILAMENTS ? aliases_fff : aliases_sla;
 
-    // add presets had a same alias 
+    auto update = [this, add](const std::string& s, const std::string& key) {
+        if (add)
+            appconfig_new.set(s, key, "1");
+        else
+            appconfig_new.erase(s, key); 
+    };
+
+    // Not all of the filament preset have aliases.
+    // Thus, we should to delete preset with a same as an alias_key name 
+    // add or delete preset from config
+    if (section == AppConfig::SECTION_FILAMENTS)
+        update(section, alias_key);
+
+    // add or delete presets had a same alias 
     auto it = aliases.find(alias_key);
     if (it != aliases.end())
         for (const std::string& name : it->second)
-            appconfig_new.set(section, name, "1");
-}
-
-void ConfigWizard::priv::del_presets(const std::string& section, const std::string& alias_key)
-{ 
-    // delete preset from config
-    appconfig_new.erase(section, alias_key);
-
-    // delete presets had a same alias 
-    auto it = aliases.find(alias_key);
-    if (it != aliases.end())
-        for (const std::string& name : it->second)
-            appconfig_new.erase(section, name);
+            update(section, name);
 }
 
 
@@ -1758,6 +1774,9 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->page_msla = new PagePrinters(this, _(L("Prusa MSLA Technology Printers")), "Prusa MSLA", *vendor_prusa, 0, T_SLA);
     p->add_page(p->page_msla);
 
+    p->any_sla_selected = p->page_msla->any_selected();
+    p->any_fff_selected = p->page_fff->any_selected();
+
     p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
         _(L("Filament Profiles Selection")), _(L("Filaments")), _(L("Type:")) ));
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
@@ -1774,9 +1793,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     // Pages for 3rd party vendors
     p->create_3rdparty_pages();   // Needs to ne done _before_ creating PageVendors
     p->add_page(p->page_vendors = new PageVendors(this));
-
-    p->any_sla_selected = p->page_msla->any_selected();
-    p->any_fff_selected = p->page_fff->any_selected();
 
     p->load_pages();
     p->index->go_to(size_t{0});

@@ -978,7 +978,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
-    size_t selected_preset_item = 0;
+    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
 
     const Preset &selected_preset = this->get_selected_preset();
     // Show wide icons if the currently selected preset is not compatible with the current printer,
@@ -1028,7 +1028,9 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
         if (preset.is_default || preset.is_system) {
             ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
                 (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
-            if (i == m_idx_selected)
+            if (i == m_idx_selected ||
+                // just in case: mark selected_preset_item as a first added element
+                selected_preset_item == INT_MAX)
                 selected_preset_item = ui->GetCount() - 1;
         }
         else
@@ -1045,7 +1047,9 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
         ui->set_label_marker(ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             ui->Append(it->first, *it->second);
-            if (it->first == selected)
+            if (it->first == selected ||
+                // just in case: mark selected_preset_item as a first added element
+                selected_preset_item == INT_MAX)
                 selected_preset_item = ui->GetCount() - 1;
         }
     }
@@ -1076,6 +1080,13 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
         ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add/Remove materials")), wxNullBitmap), GUI::PresetComboBox::LABEL_ITEM_WIZARD_MATERIALS);
     }
 
+    /* But, if selected_preset_item is still equal to INT_MAX, it means that
+     * there is no presets added to the list.
+     * So, select last combobox item ("Add/Remove preset")
+     */
+    if (selected_preset_item == INT_MAX)
+        selected_preset_item = ui->GetCount() - 1;
+
     ui->SetSelection(selected_preset_item);
     ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();
@@ -1092,7 +1103,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         return 0;
     ui->Freeze();
     ui->Clear();
-    size_t selected_preset_item = 0;
+    size_t selected_preset_item = INT_MAX; // some value meaning that no one item is selected
 
     /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
     * So set sizes for solid_colored(empty) icons used for preset
@@ -1127,7 +1138,9 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         if (preset.is_default || preset.is_system) {
             ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
                 (bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
-            if (i == m_idx_selected)
+            if (i == m_idx_selected ||
+                // just in case: mark selected_preset_item as a first added element
+                selected_preset_item == INT_MAX)
                 selected_preset_item = ui->GetCount() - 1;
         }
         else
@@ -1144,7 +1157,9 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap);
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             ui->Append(it->first, *it->second);
-            if (it->first == selected)
+            if (it->first == selected ||
+                // just in case: mark selected_preset_item as a first added element
+                selected_preset_item == INT_MAX)
                 selected_preset_item = ui->GetCount() - 1;
         }
     }
@@ -1159,6 +1174,14 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
         }
         ui->Append(PresetCollection::separator("Add a new printer"), *bmp);
     }
+
+    /* But, if selected_preset_item is still equal to INT_MAX, it means that
+     * there is no presets added to the list.
+     * So, select last combobox item ("Add/Remove preset")
+     */
+    if (selected_preset_item == INT_MAX)
+        selected_preset_item = ui->GetCount() - 1;
+
     ui->SetSelection(selected_preset_item);
     ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();

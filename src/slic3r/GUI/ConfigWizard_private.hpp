@@ -75,8 +75,7 @@ struct Materials
 
     template<class F> void filter_presets(const std::string &type, const std::string &vendor, F cb) {
         for (const Preset *preset : presets) {
-            if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)//) {
-                && preset->alias.empty()) {
+            if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)) {
                 cb(preset);
             }
         }
@@ -244,7 +243,9 @@ template<class T, class D> struct DataList : public T
 };
 
 typedef DataList<wxListBox, std::string> StringList;
-typedef DataList<wxCheckListBox, Preset> PresetList;
+// #ys_FIXME_alias
+//typedef DataList<wxCheckListBox, Preset> PresetList;
+typedef DataList<wxCheckListBox, std::string> PresetList;
 
 struct PageMaterials: ConfigWizardPage
 {
@@ -418,7 +419,8 @@ struct ConfigWizard::priv
                                   // PrinterPickers state.
     Materials filaments;          // Holds available filament presets and their types & vendors
     Materials sla_materials;      // Ditto for SLA materials
-    PresetAliases aliases;        // Map of aliase to preset names
+    PresetAliases aliases_fff;    // Map of aliase to preset names
+    PresetAliases aliases_sla;    // Map of aliase to preset names
     std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
     bool any_fff_selected;        // Used to decide whether to display Filaments page
     bool any_sla_selected;        // Used to decide whether to display SLA Materials page
@@ -458,7 +460,6 @@ struct ConfigWizard::priv
         : q(q)
         , filaments(T_FFF)
         , sla_materials(T_SLA)
-        , any_sla_selected(false)
     {}
 
     void load_pages();
@@ -478,13 +479,10 @@ struct ConfigWizard::priv
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
     // #ys_FIXME_alise
-    void add_presets(const std::string& section, const std::string& alias_key);
-    void del_presets(const std::string& section, const std::string& alias_key);
+    void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);
 
     int em() const { return index->em(); }
 };
-
-
 
 }
 }
