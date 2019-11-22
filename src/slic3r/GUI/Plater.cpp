@@ -1387,9 +1387,6 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodePreviewData    gcode_preview_data;
-#if ENABLE_THUMBNAIL_GENERATOR
-    std::vector<Slic3r::ThumbnailData> thumbnail_data;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1946,6 +1943,7 @@ struct Plater::priv
 
 #if ENABLE_THUMBNAIL_GENERATOR
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
+    void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
@@ -2016,7 +2014,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
 #if ENABLE_THUMBNAIL_GENERATOR
-    background_process.set_thumbnail_data(&thumbnail_data);
+    background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background)
+        {
+            std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background) {
+                generate_thumbnails(thumbnails, sizes, printable_only, parts_only, transparent_background);
+                });
+            std::future<void> result = task.get_future();
+            wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, transparent_background); });
+            result.wait();
+        });
 #endif // ENABLE_THUMBNAIL_GENERATOR
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
@@ -3062,37 +3068,6 @@ bool Plater::priv::restart_background_process(unsigned int state)
          ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
            (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
-#if ENABLE_THUMBNAIL_GENERATOR
-        if (((state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) == 0) &&
-             (this->background_process.state() != BackgroundSlicingProcess::STATE_RUNNING))
-        {
-            // update thumbnail data
-            const std::vector<Vec2d> &thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
-            if (this->printer_technology == ptFFF)
-            {
-                // for ptFFF we need to generate the thumbnails before the export of gcode starts
-                this->thumbnail_data.clear();
-                for (const Vec2d &sized : thumbnail_sizes)
-                {
-                    this->thumbnail_data.push_back(ThumbnailData());
-					Point size(sized); // round to ints
-                    generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
-                }
-            }
-            else if (this->printer_technology == ptSLA)
-            {
-                // for ptSLA generate thumbnails without supports and pad (not yet calculated)
-                // to render also supports and pad see on_slicing_update()
-                this->thumbnail_data.clear();
-                for (const Vec2d &sized : thumbnail_sizes)
-                {
-                    this->thumbnail_data.push_back(ThumbnailData());
-					Point size(sized); // round to ints
-					generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, true, false);
-                }
-            }
-        }
-#endif // ENABLE_THUMBNAIL_GENERATOR
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
@@ -3430,25 +3405,6 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
         // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
-
-        // uncomment the following lines if you want to render into the thumbnail also supports and pad for SLA printer
-/*
-#if ENABLE_THUMBNAIL_GENERATOR
-        // update thumbnail data
-        // for ptSLA generate the thumbnail after supports and pad have been calculated to have them rendered
-        if ((this->printer_technology == ptSLA) && (evt.status.percent == -3))
-        {
-            const std::vector<Vec2d>& thumbnail_sizes = this->background_process.current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values;
-            this->thumbnail_data.clear();
-            for (const Vec2d &sized : thumbnail_sizes)
-            {
-                this->thumbnail_data.push_back(ThumbnailData());
-                Point size(sized); // round to ints
-                generate_thumbnail(this->thumbnail_data.back(), size.x(), size.y(), true, false, false);
-            }
-        }
-#endif // ENABLE_THUMBNAIL_GENERATOR
-*/
     }
 }
 
@@ -3678,6 +3634,19 @@ bool Plater::priv::init_object_menu()
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
 {
     view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, transparent_background);
+}
+
+void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background)
+{
+    thumbnails.clear();
+    for (const Vec2d& size : sizes)
+    {
+        thumbnails.push_back(ThumbnailData());
+        Point isize(size); // round to ints
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), printable_only, parts_only, transparent_background);
+        if (!thumbnails.back().is_valid())
+            thumbnails.pop_back();
+    }
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 

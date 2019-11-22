@@ -6,9 +6,6 @@
 #include "Geometry.hpp"
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
-#include "GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "ShortestPath.hpp"
 #include "Utils.hpp"
 
@@ -695,7 +692,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -725,7 +722,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     try {
         m_placeholder_parser_failed_templates.clear();
 #if ENABLE_THUMBNAIL_GENERATOR
-        this->_do_export(*print, file, thumbnail_data);
+        this->_do_export(*print, file, thumbnail_cb);
 #else
         this->_do_export(*print, file);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -793,9 +790,9 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GCode::_do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data)
+void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
-void GCode::_do_export(Print &print, FILE *file)
+void GCode::_do_export(Print& print, FILE* file)
 #endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_FUNC();
@@ -812,46 +809,46 @@ void GCode::_do_export(Print &print, FILE *file)
     // shall be adjusted as well to produce a G-code block compatible with the particular firmware flavor.
     if (print.config().gcode_flavor.value == gcfMarlin) {
         m_normal_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values[0]);
-		m_normal_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[0]);
-		m_normal_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[0]);
-		m_normal_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[0]);
-		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[0]);
-		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[0]);
-		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[0]);
-		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[0]);
-		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[0]);
-		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[0]);
-		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[0]);
-		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[0]);
-		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[0]);
-		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[0]);
-		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[0]);
-		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[0]);
+        m_normal_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[0]);
+        m_normal_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[0]);
+        m_normal_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[0]);
 
         if (m_silent_time_estimator_enabled)
         {
             m_silent_time_estimator.reset();
             m_silent_time_estimator.set_dialect(print.config().gcode_flavor);
-            /* "Stealth mode" values can be just a copy of "normal mode" values 
+            /* "Stealth mode" values can be just a copy of "normal mode" values
             * (when they aren't input for a printer preset).
             * Thus, use back value from values, instead of second one, which could be absent
             */
-			m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values.back());
-			m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values.back());
-			m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values.back());
-			m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values.back());
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values.back());
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values.back());
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values.back());
-			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values.back());
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values.back());
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values.back());
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values.back());
-			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values.back());
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values.back());
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values.back());
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values.back());
-			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values.back());
+            m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values.back());
+            m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values.back());
+            m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values.back());
+            m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values.back());
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values.back());
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values.back());
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values.back());
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values.back());
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values.back());
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values.back());
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values.back());
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values.back());
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values.back());
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values.back());
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values.back());
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values.back());
             if (print.config().single_extruder_multi_material) {
                 // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
                 // are considered to be active for the single extruder multi-material printers only.
@@ -909,7 +906,8 @@ void GCode::_do_export(Print &print, FILE *file)
             std::sort(zs.begin(), zs.end());
             m_layer_count += (unsigned int)(object->copies().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
         }
-    } else {
+    }
+    else {
         // Print all objects with the same print_z together.
         std::vector<coordf_t> zs;
         for (auto object : print.objects()) {
@@ -927,7 +925,7 @@ void GCode::_do_export(Print &print, FILE *file)
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
-    
+
     // Initialize colorprint.
     m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
 
@@ -936,31 +934,31 @@ void GCode::_do_export(Print &print, FILE *file)
         // get the minimum cross-section used in the print
         std::vector<double> mm3_per_mm;
         for (auto object : print.objects()) {
-            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
+            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++region_id) {
                 const PrintRegion* region = print.regions()[region_id];
                 for (auto layer : object->layers()) {
                     const LayerRegion* layerm = layer->regions()[region_id];
-                    if (region->config().get_abs_value("perimeter_speed"          ) == 0 || 
-                        region->config().get_abs_value("small_perimeter_speed"    ) == 0 || 
-                        region->config().get_abs_value("external_perimeter_speed" ) == 0 || 
-                        region->config().get_abs_value("bridge_speed"             ) == 0)
+                    if (region->config().get_abs_value("perimeter_speed") == 0 ||
+                        region->config().get_abs_value("small_perimeter_speed") == 0 ||
+                        region->config().get_abs_value("external_perimeter_speed") == 0 ||
+                        region->config().get_abs_value("bridge_speed") == 0)
                         mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
-                    if (region->config().get_abs_value("infill_speed"             ) == 0 || 
-                        region->config().get_abs_value("solid_infill_speed"       ) == 0 || 
-                        region->config().get_abs_value("top_solid_infill_speed"   ) == 0 || 
-                        region->config().get_abs_value("bridge_speed"             ) == 0)
+                    if (region->config().get_abs_value("infill_speed") == 0 ||
+                        region->config().get_abs_value("solid_infill_speed") == 0 ||
+                        region->config().get_abs_value("top_solid_infill_speed") == 0 ||
+                        region->config().get_abs_value("bridge_speed") == 0)
                         mm3_per_mm.push_back(layerm->fills.min_mm3_per_mm());
                 }
             }
-            if (object->config().get_abs_value("support_material_speed"           ) == 0 || 
-                object->config().get_abs_value("support_material_interface_speed" ) == 0)
+            if (object->config().get_abs_value("support_material_speed") == 0 ||
+                object->config().get_abs_value("support_material_interface_speed") == 0)
                 for (auto layer : object->support_layers())
                     mm3_per_mm.push_back(layer->support_fills.min_mm3_per_mm());
         }
         print.throw_if_canceled();
         // filter out 0-width segments
         mm3_per_mm.erase(std::remove_if(mm3_per_mm.begin(), mm3_per_mm.end(), [](double v) { return v < 0.000001; }), mm3_per_mm.end());
-        if (! mm3_per_mm.empty()) {
+        if (!mm3_per_mm.empty()) {
             // In order to honor max_print_speed we need to find a target volumetric
             // speed that we can use throughout the print. So we define this target 
             // volumetric speed as the volumetric speed produced by printing the 
@@ -973,7 +971,7 @@ void GCode::_do_export(Print &print, FILE *file)
         }
     }
     print.throw_if_canceled();
-    
+
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     if (print.config().spiral_vase.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
@@ -991,11 +989,12 @@ void GCode::_do_export(Print &print, FILE *file)
 
 #if ENABLE_THUMBNAIL_GENERATOR
     // Write thumbnails using base64 encoding
-    if (thumbnail_data != nullptr)
+    if (thumbnail_cb != nullptr)
     {
         const size_t max_row_length = 78;
-
-        for (const ThumbnailData& data : *thumbnail_data)
+        ThumbnailsList thumbnails;
+        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
+        for (const ThumbnailData& data : thumbnails)
         {
             if (data.is_valid())
             {

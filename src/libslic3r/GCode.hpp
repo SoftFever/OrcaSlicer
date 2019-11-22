@@ -17,6 +17,9 @@
 #include "GCodeTimeEstimator.hpp"
 #include "EdgeGrid.hpp"
 #include "GCode/Analyzer.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <memory>
 #include <string>
@@ -30,9 +33,6 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 class GCodePreviewData;
-#if ENABLE_THUMBNAIL_GENERATOR
-struct ThumbnailData;
-#endif // ENABLE_THUMBNAIL_GENERATOR
 
 class AvoidCrossingPerimeters {
 public:
@@ -167,7 +167,7 @@ public:
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
 #if ENABLE_THUMBNAIL_GENERATOR
-    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, const std::vector<ThumbnailData>* thumbnail_data = nullptr);
+    void            do_export(Print* print, const char* path, GCodePreviewData* preview_data = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 #else
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -199,7 +199,7 @@ public:
 
 protected:
 #if ENABLE_THUMBNAIL_GENERATOR
-    void            _do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data);
+    void            _do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb);
 #else
     void            _do_export(Print &print, FILE *file);
 #endif //ENABLE_THUMBNAIL_GENERATOR
