@@ -30,6 +30,13 @@ struct Camera;
 class GLCanvas3DManager
 {
 public:
+    enum EFramebufferType : unsigned char
+    {
+        FB_None,
+        FB_Arb,
+        FB_Ext
+    };
+
     class GLInfo
     {
         mutable bool m_detected;
@@ -77,6 +84,7 @@ private:
     bool m_gl_initialized;
     static EMultisampleState s_multisample;
     static bool s_compressed_textures_supported;
+    static EFramebufferType s_framebuffers_type;
 
 public:
     GLCanvas3DManager();
@@ -97,6 +105,8 @@ public:
 
     static bool can_multisample() { return s_multisample == MS_Enabled; }
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
+    static bool are_framebuffers_supported() { return (s_framebuffers_type != FB_None); }
+    static EFramebufferType get_framebuffers_type() { return s_framebuffers_type; }
 
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
 

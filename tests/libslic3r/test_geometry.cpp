@@ -252,15 +252,39 @@ SCENARIO("Circle Fit, TaubinFit with Newton's method", "[Geometry]") {
     }
 }
 
-TEST_CASE("Chained path working correctly", "[Geometry]"){
-    // if chained_path() works correctly, these points should be joined with no diagonal paths
-    // (thus 26 units long)
-    std::vector<Point> points = {Point(26,26),Point(52,26),Point(0,26),Point(26,52),Point(26,0),Point(0,52),Point(52,52),Point(52,0)};
-    std::vector<Points::size_type> indices = chain_points(points);
-    for (Points::size_type i = 0; i + 1 < indices.size(); ++ i) {
-        double dist = (points.at(indices.at(i)).cast<double>() - points.at(indices.at(i+1)).cast<double>()).norm();
-        REQUIRE(std::abs(dist-26) <= EPSILON);
-    }
+SCENARIO("Path chaining", "[Geometry]") {
+	GIVEN("A path") {
+		std::vector<Point> points = { Point(26,26),Point(52,26),Point(0,26),Point(26,52),Point(26,0),Point(0,52),Point(52,52),Point(52,0) };
+		THEN("Chained with no diagonals (thus 26 units long)") {
+			std::vector<Points::size_type> indices = chain_points(points);
+			for (Points::size_type i = 0; i + 1 < indices.size(); ++ i) {
+				double dist = (points.at(indices.at(i)).cast<double>() - points.at(indices.at(i+1)).cast<double>()).norm();
+				REQUIRE(std::abs(dist-26) <= EPSILON);
+			}
+		}
+	}
+	GIVEN("Loop pieces") {
+		Point a { 2185796, 19058485 };
+		Point b { 3957902, 18149382 };
+		Point c { 2912841, 18790564 };
+		Point d { 2831848, 18832390 };
+		Point e { 3179601, 18627769 };
+		Point f { 3137952, 18653370 };
+		Polylines polylines = { { a, b },
+								{ c, d },
+								{ e, f },
+								{ d, a },
+								{ f, c },
+								{ b, e } };
+		Polylines chained = chain_polylines(polylines, &a);
+		THEN("Connected without a gap") {
+			for (size_t i = 0; i < chained.size(); ++i) {
+				const Polyline &pl1 = (i == 0) ? chained.back() : chained[i - 1];
+				const Polyline &pl2 = chained[i];
+				REQUIRE(pl1.points.back() == pl2.points.front());
+			}
+		}
+	}
 }
 
 SCENARIO("Line distances", "[Geometry]"){

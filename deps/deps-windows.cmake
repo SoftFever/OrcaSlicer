@@ -218,16 +218,16 @@ find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
-    URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"
+    #URL_HASH SHA256=619c8a954880d545194bc03359404ef36a1abd2dde03678089459757fd790cb0
+    GIT_REPOSITORY  https://github.com/qhull/qhull.git
+    GIT_TAG         7afedcc73666e46a9f1d74632412ebecf53b1b30 # v7.3.2 plus the mac build patch
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_DEBUG_POSTFIX=d
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/qhull-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
@@ -288,8 +288,8 @@ ExternalProject_Add(dep_blosc
         -DPREFER_EXTERNAL_ZLIB=ON
         -DBLOSC_IS_SUBPROJECT:BOOL=ON
         -DBLOSC_INSTALL:BOOL=ON
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
+    PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
+                        ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/blosc-mods.patch
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
@@ -311,7 +311,6 @@ ExternalProject_Add(dep_openexr
         -DPYILMBASE_ENABLE:BOOL=OFF 
         -DOPENEXR_VIEWERS_ENABLE:BOOL=OFF
         -DOPENEXR_BUILD_UTILS:BOOL=OFF
-    UPDATE_COMMAND ""
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
@@ -324,7 +323,7 @@ ExternalProject_Add(dep_openvdb
     #URL_HASH SHA256=dc337399dce8e1c9f21f20e97b1ce7e4933cb0a63bb3b8b734d8fcc464aa0c48
     GIT_REPOSITORY https://github.com/AcademySoftwareFoundation/openvdb.git
     GIT_TAG  aebaf8d95be5e57fd33949281ec357db4a576c2e #v6.2.1
-    DEPENDS dep_blosc dep_openexr #dep_tbb dep_boost
+    DEPENDS dep_blosc dep_openexr dep_tbb dep_boost
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}"
     CMAKE_ARGS
@@ -340,8 +339,8 @@ ExternalProject_Add(dep_openvdb
         -DTBB_STATIC=ON
         -DOPENVDB_BUILD_VDB_PRINT=ON
     BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
+    PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
+                        ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
     INSTALL_COMMAND ""
 )
 

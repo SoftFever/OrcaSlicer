@@ -6,6 +6,9 @@
 #include "Geometry.hpp"
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
+#if ENABLE_THUMBNAIL_GENERATOR
+#include "GCode/ThumbnailData.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "ShortestPath.hpp"
 #include "Utils.hpp"
 
@@ -18,6 +21,9 @@
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#if ENABLE_THUMBNAIL_GENERATOR
+#include <boost/beast/core/detail/base64.hpp>
+#endif // ENABLE_THUMBNAIL_GENERATOR
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -28,6 +34,10 @@
 #include <tbb/parallel_for.h>
 
 #include <Shiny/Shiny.h>
+
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+#include "miniz_extension.hpp"
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
 
 #if 0
 // Enable debugging and asserts, even in the release build.
@@ -275,7 +285,7 @@ static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const Vec2
     return Point(scale_(wipe_tower_pt.x() - gcodegen.origin()(0)), scale_(wipe_tower_pt.y() - gcodegen.origin()(1)));
 }
 
-std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
+std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z) const
 {
     if (new_extruder_id != -1 && new_extruder_id != tcr.new_tool)
         throw std::invalid_argument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
@@ -309,6 +319,15 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
             erMixed,
             "Travel to a Wipe Tower");
         gcode += gcodegen.unretract();
+    }
+
+    double current_z = gcodegen.writer().get_position().z();
+    if (z == -1.) // in case no specific z was provided, print at current_z pos
+        z = current_z;
+    if (! is_approx(z, current_z)) {
+        gcode += gcodegen.writer().retract();
+        gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
+        gcode += gcodegen.writer().unretract();
     }
 
 
@@ -377,16 +396,23 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     // A phony move to the end position at the wipe tower.
     gcodegen.writer().travel_to_xy(end_pos.cast<double>());
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
+    if (! is_approx(z, current_z)) {
+        gcode += gcodegen.writer().retract();
+        gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
+        gcode += gcodegen.writer().unretract();
+    }
 
-    // Prepare a future wipe.
-    gcodegen.m_wipe.path.points.clear();
-    if (new_extruder_id >= 0) {
-        // Start the wipe at the current position.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
-        // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
-            Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
-            end_pos.y())));
+    else {
+        // Prepare a future wipe.
+        gcodegen.m_wipe.path.points.clear();
+        if (new_extruder_id >= 0) {
+            // Start the wipe at the current position.
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
+            // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen,
+                Vec2f((std::abs(m_left - end_pos.x()) < std::abs(m_right - end_pos.x())) ? m_right : m_left,
+                end_pos.y())));
+        }
     }
 
     // Let the planner know we are traveling between objects.
@@ -512,7 +538,23 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
 		if (m_layer_idx < (int)m_tool_changes.size()) {
 			if (! (size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
                 throw std::runtime_error("Wipe tower generation failed, possibly due to empty first layer.");
-			gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id);
+
+
+            // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
+            // resulting in a wipe tower with sparse layers.
+            double wipe_tower_z = -1;
+            bool ignore_sparse = false;
+            if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+                wipe_tower_z = m_last_wipe_tower_print_z;
+                ignore_sparse = (m_brim_done && m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+                if (m_tool_change_idx == 0 && ! ignore_sparse)
+                   wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
+            }
+
+            if (! ignore_sparse) {
+                gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
+                m_last_wipe_tower_print_z = wipe_tower_z;
+            }
 		}
         m_brim_done = true;
     }
@@ -652,7 +694,11 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     return layers_to_print;
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void GCode::do_export(Print* print, const char* path, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_data)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_CLEAR();
 
@@ -678,7 +724,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
     try {
         m_placeholder_parser_failed_templates.clear();
+#if ENABLE_THUMBNAIL_GENERATOR
+        this->_do_export(*print, file, thumbnail_data);
+#else
         this->_do_export(*print, file);
+#endif // ENABLE_THUMBNAIL_GENERATOR
         fflush(file);
         if (ferror(file)) {
             fclose(file);
@@ -742,7 +792,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
+#if ENABLE_THUMBNAIL_GENERATOR
+void GCode::_do_export(Print& print, FILE* file, const std::vector<ThumbnailData>* thumbnail_data)
+#else
 void GCode::_do_export(Print &print, FILE *file)
+#endif // ENABLE_THUMBNAIL_GENERATOR
 {
     PROFILE_FUNC();
 
@@ -934,6 +988,82 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // Write information on the generator.
     _write_format(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
+
+#if ENABLE_THUMBNAIL_GENERATOR
+    // Write thumbnails using base64 encoding
+    if (thumbnail_data != nullptr)
+    {
+        const size_t max_row_length = 78;
+
+        for (const ThumbnailData& data : *thumbnail_data)
+        {
+            if (data.is_valid())
+            {
+#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+                size_t png_size = 0;
+                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+                if (png_data != nullptr)
+                {
+                    std::string encoded;
+                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
+                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
+
+                    _write_format(file, "\n;\n; thumbnail begin %dx%d %d\n", data.width, data.height, encoded.size());
+
+                    unsigned int row_count = 0;
+                    while (encoded.size() > max_row_length)
+                    {
+                        _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
+                        encoded = encoded.substr(max_row_length);
+                        ++row_count;
+                    }
+
+                    if (encoded.size() > 0)
+                        _write_format(file, "; %s\n", encoded.c_str());
+
+                    _write(file, "; thumbnail end\n;\n");
+
+                    mz_free(png_data);
+                }
+#else
+                _write_format(file, "\n;\n; thumbnail begin %dx%d\n", data.width, data.height);
+
+                size_t row_size = 4 * data.width;
+                for (int r = (int)data.height - 1; r >= 0; --r)
+                {
+                    std::string encoded;
+                    encoded.resize(boost::beast::detail::base64::encoded_size(row_size));
+                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)(data.pixels.data() + r * row_size), row_size));
+
+                    unsigned int row_count = 0;
+                    while (encoded.size() > max_row_length)
+                    {
+                        if (row_count == 0)
+                            _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
+                        else
+                            _write_format(file, ";>%s\n", encoded.substr(0, max_row_length).c_str());
+
+                        encoded = encoded.substr(max_row_length);
+                        ++row_count;
+                    }
+
+                    if (encoded.size() > 0)
+                    {
+                        if (row_count == 0)
+                            _write_format(file, "; %s\n", encoded.c_str());
+                        else
+                            _write_format(file, ";>%s\n", encoded.c_str());
+                    }
+                }
+
+                _write(file, "; thumbnail end\n;\n");
+#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
+            }
+            print.throw_if_canceled();
+        }
+    }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+
     // Write notes (content of the Print Settings tab -> Notes)
     {
         std::list<std::string> lines;

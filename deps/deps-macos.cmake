@@ -16,8 +16,8 @@ include("deps-unix-common.cmake")
 
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
-    URL "https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.gz"
-    URL_HASH SHA256=96b34f7468f26a141f6020efb813f1a2f3dfb9797ecf76a7d7cbd843cc95f5bd
+    URL "https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz"
+    URL_HASH SHA256=882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh
         --with-toolset=clang
@@ -90,8 +90,6 @@ ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
     GIT_TAG v3.1.1-patched
-#    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.2.tar.bz2"
-#    URL_HASH SHA256=4cb8d23d70f9261debf7d6cfeca667fc0a7d2b6565adb8f1c484f9b674f1f27a
     BUILD_IN_SOURCE 1
 #    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
     CONFIGURE_COMMAND env "CXXFLAGS=${DEP_WERRORS_SDK}" "CFLAGS=${DEP_WERRORS_SDK}" ./configure
