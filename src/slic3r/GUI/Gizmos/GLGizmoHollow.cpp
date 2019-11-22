@@ -709,6 +709,9 @@ RENDER_AGAIN:
     m_imgui->text("Hole height: ");
     ImGui::SameLine();
     ImGui::SliderFloat("  ", &m_new_hole_height, 0.1f, 10.f, "%.1f");
+    for (size_t idx=0; idx<m_selected.size(); ++idx)
+        if (m_selected[idx])
+            m_model_object->sla_drain_holes[idx].height = m_new_hole_height;
 
     m_imgui->disabled_begin(m_selection_empty);
     remove_selected = m_imgui->button(m_desc.at("remove_selected"));
@@ -894,6 +897,7 @@ void GLGizmoHollow::on_load(cereal::BinaryInputArchive& ar)
        *m_clipping_plane,
        m_model_object_id,
        m_new_hole_radius,
+       m_new_hole_height,
        m_selected,
        m_selection_empty
     );
@@ -907,6 +911,7 @@ void GLGizmoHollow::on_save(cereal::BinaryOutputArchive& ar) const
        *m_clipping_plane,
        m_model_object_id,
        m_new_hole_radius,
+       m_new_hole_height,
        m_selected,
        m_selection_empty
     );
@@ -920,8 +925,10 @@ void GLGizmoHollow::select_point(int i)
         m_selected.assign(m_selected.size(), i == AllPoints);
         m_selection_empty = (i == NoPoints);
 
-        if (i == AllPoints)
+        if (i == AllPoints) {
             m_new_hole_radius = m_model_object->sla_drain_holes[0].radius;
+            m_new_hole_height = m_model_object->sla_drain_holes[0].height;
+        }
     }
     else {
         while (size_t(i) >= m_selected.size())
@@ -929,6 +936,7 @@ void GLGizmoHollow::select_point(int i)
         m_selected[i] = true;
         m_selection_empty = false;
         m_new_hole_radius = m_model_object->sla_drain_holes[i].radius;
+        m_new_hole_height = m_model_object->sla_drain_holes[i].height;
     }
 }
 
