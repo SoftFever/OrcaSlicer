@@ -191,7 +191,7 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 		}
 
 	    // Initialize a heap of end points sorted by the lowest distance to the next valid point of a path.
-	    auto queue = make_mutable_priority_queue<EndPoint*>(
+	    auto queue = make_mutable_priority_queue<EndPoint*, false>(
 			[](EndPoint *ep, size_t idx){ ep->heap_idx = idx; }, 
 	    	[](EndPoint *l, EndPoint *r){ return l->distance_out < r->distance_out; });
 		queue.reserve(end_points.size() * 2 - 1);
@@ -687,7 +687,7 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 		}
 
 	    // Initialize a heap of end points sorted by the lowest distance to the next valid point of a path.
-	    auto queue = make_mutable_priority_queue<EndPoint*>(
+	    auto queue = make_mutable_priority_queue<EndPoint*, true>(
 			[](EndPoint *ep, size_t idx){ ep->heap_idx = idx; }, 
 	    	[](EndPoint *l, EndPoint *r){ return l->distance_out < r->distance_out; });
 		queue.reserve(end_points.size() * 2);
@@ -1150,7 +1150,7 @@ static inline void improve_ordering_by_segment_flipping(Polylines &polylines, bo
 #endif /* NDEBUG */
 
     // Initialize a MutablePriorityHeap of connections between polylines.
-    auto queue = make_mutable_priority_queue<Connection*>(
+    auto queue = make_mutable_priority_queue<Connection*, false>(
 		[](Connection *connection, size_t idx){ connection->heap_idx = idx; },
 		// Sort by decreasing connection distance.
     	[&polylines, &connections](Connection *l, Connection *r){ return l->squaredNorm(polylines, connections) > r->squaredNorm(polylines, connections); });
