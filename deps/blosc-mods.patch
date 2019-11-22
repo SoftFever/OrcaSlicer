@@ -1,8 +1,9 @@
-From 5669891dfaaa4c814f3ec667ca6bf4e693aea978 Mon Sep 17 00:00:00 2001
+From 7cf6c014a36f1712efbdbe9bc52d2d4922b54673 Mon Sep 17 00:00:00 2001
 From: tamasmeszaros <meszaros.q@gmail.com>
 Date: Wed, 30 Oct 2019 12:54:52 +0100
 Subject: [PATCH] Blosc 1.17 fixes and cmake config script
 
+Signed-off-by: tamasmeszaros <meszaros.q@gmail.com>
 ---
  CMakeLists.txt                   | 105 +++++++++++++++++-----------------
  blosc/CMakeLists.txt             | 118 +++++++++------------------------------

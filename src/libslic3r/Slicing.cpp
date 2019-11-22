@@ -224,40 +224,59 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
 
 // Based on the work of @platsch
 // Fill layer_height_profile by heights ensuring a prescribed maximum cusp height.
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slicing_params,
+    const ModelObject& object, float cusp_value)
+#else
 std::vector<coordf_t> layer_height_profile_adaptive(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges & /* layer_config_ranges */,
     const ModelVolumePtrs		&volumes)
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 {
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     // 1) Initialize the SlicingAdaptive class with the object meshes.
     SlicingAdaptive as;
     as.set_slicing_parameters(slicing_params);
-    for (const ModelVolume *volume : volumes)
+    as.set_object(object);
+#else
+    // 1) Initialize the SlicingAdaptive class with the object meshes.
+    SlicingAdaptive as;
+    as.set_slicing_parameters(slicing_params);
+    for (const ModelVolume* volume : volumes)
         if (volume->is_model_part())
             as.add_mesh(&volume->mesh());
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+
     as.prepare();
 
     // 2) Generate layers using the algorithm of @platsch 
     // loop until we have at least one layer and the max slice_z reaches the object height
-    //FIXME make it configurable
-    // Cusp value: A maximum allowed distance from a corner of a rectangular extrusion to a chrodal line, in mm.
-    const coordf_t cusp_value = 0.2; // $self->config->get_value('cusp_value');
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    double cusp_value = 0.2;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
-    std::vector<coordf_t> layer_height_profile;
-    layer_height_profile.push_back(0.);
+    std::vector<double> layer_height_profile;
+    layer_height_profile.push_back(0.0);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     if (slicing_params.first_object_layer_height_fixed()) {
         layer_height_profile.push_back(slicing_params.first_object_layer_height);
         layer_height_profile.push_back(slicing_params.first_object_layer_height);
     }
-    coordf_t slice_z = slicing_params.first_object_layer_height;
-    coordf_t height  = slicing_params.first_object_layer_height;
+    double slice_z = slicing_params.first_object_layer_height;
     int current_facet = 0;
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    while (slice_z <= slicing_params.object_print_z_height()) {
+        double height = 999.0;
+#else
+    double height = slicing_params.first_object_layer_height;
     while ((slice_z - height) <= slicing_params.object_print_z_height()) {
-        height = 999;
+        height = 999.0;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         // Slic3r::debugf "\n Slice layer: %d\n", $id;
         // determine next layer height
-        coordf_t cusp_height = as.cusp_height(slice_z, cusp_value, current_facet);
+        double cusp_height = as.cusp_height((float)slice_z, cusp_value, current_facet);
+
         // check for horizontal features and object size
         /*
         if($self->config->get_value('match_horizontal_surfaces')) {
@@ -303,17 +322,111 @@ std::vector<coordf_t> layer_height_profile_adaptive(
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
         slice_z += height;
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         layer_height_profile.push_back(slice_z);
         layer_height_profile.push_back(height);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     }
 
-    coordf_t last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    double z_gap = slicing_params.object_print_z_height() - layer_height_profile[layer_height_profile.size() - 2];
+    if (z_gap > 0.0)
+    {
+        layer_height_profile.push_back(slicing_params.object_print_z_height());
+        layer_height_profile.push_back(clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, z_gap));
+    }
+#else
+    double last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
     layer_height_profile.push_back(last);
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
     layer_height_profile.push_back(slicing_params.object_print_z_height());
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     return layer_height_profile;
+}
+
+std::vector<double> smooth_height_profile(const std::vector<double>& profile, const SlicingParameters& slicing_params, const HeightProfileSmoothingParams& smoothing_params)
+{
+    auto gauss_blur = [&slicing_params](const std::vector<double>& profile, const HeightProfileSmoothingParams& smoothing_params) -> std::vector<double> {
+        auto gauss_kernel = [] (unsigned int radius) -> std::vector<double> {
+            unsigned int size = 2 * radius + 1;
+            std::vector<double> ret;
+            ret.reserve(size);
+
+            // Reworked from static inline int getGaussianKernelSize(float sigma) taken from opencv-4.1.2\modules\features2d\src\kaze\AKAZEFeatures.cpp
+            double sigma = 0.3 * (double)(radius - 1) + 0.8;
+            double two_sq_sigma = 2.0 * sigma * sigma;
+            double inv_root_two_pi_sq_sigma = 1.0 / ::sqrt(M_PI * two_sq_sigma);
+
+            for (unsigned int i = 0; i < size; ++i)
+            {
+                double x = (double)i - (double)radius;
+                ret.push_back(inv_root_two_pi_sq_sigma * ::exp(-x * x / two_sq_sigma));
+            }
+
+            return ret;
+        };
+
+        // skip first layer ?
+        size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
+
+        // not enough data to smmoth
+        if ((int)profile.size() - (int)skip_count < 6)
+            return profile;
+        
+        unsigned int radius = std::max(smoothing_params.radius, (unsigned int)1);
+        std::vector<double> kernel = gauss_kernel(radius);
+        int two_radius = 2 * (int)radius;
+
+        std::vector<double> ret;
+        size_t size = profile.size();
+        ret.reserve(size);
+
+        // leave first layer untouched
+        for (size_t i = 0; i < skip_count; ++i)
+        {
+            ret.push_back(profile[i]);
+        }
+
+        // smooth the rest of the profile by biasing a gaussian blur
+        // the bias moves the smoothed profile closer to the min_layer_height
+        double delta_h = slicing_params.max_layer_height - slicing_params.min_layer_height;
+        double inv_delta_h = (delta_h != 0.0) ? 1.0 / delta_h : 1.0;
+
+        double max_dz_band = (double)radius * slicing_params.layer_height;
+        for (size_t i = skip_count; i < size; i += 2)
+        {
+            double zi = profile[i];
+            double hi = profile[i + 1];
+            ret.push_back(zi);
+            ret.push_back(0.0);
+            double& height = ret.back();
+            int begin = std::max((int)i - two_radius, (int)skip_count);
+            int end = std::min((int)i + two_radius, (int)size - 2);
+            double weight_total = 0.0;
+            for (int j = begin; j <= end; j += 2)
+            {
+                int kernel_id = radius + (j - (int)i) / 2;
+                double dz = std::abs(zi - profile[j]);
+                if (dz * slicing_params.layer_height <= max_dz_band)
+                {
+                    double dh = std::abs(slicing_params.max_layer_height - profile[j + 1]);
+                    double weight = kernel[kernel_id] * sqrt(dh * inv_delta_h);
+                    height += weight * profile[j + 1];
+                    weight_total += weight;
+                }
+            }
+
+            height = clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, (weight_total != 0.0) ? height /= weight_total : hi);
+            if (smoothing_params.keep_min)
+                height = std::min(height, hi);
+        }
+
+        return ret;
+    };
+
+    return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(
@@ -609,7 +722,11 @@ int generate_layer_height_texture(
             const Vec3crd &color1 = palette_raw[idx1];
             const Vec3crd &color2 = palette_raw[idx2];
             coordf_t z = cell_to_z * coordf_t(cell);
-			assert(z >= lo && z <= hi);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+            assert((lo - EPSILON <= z) && (z <= hi + EPSILON));
+#else
+            assert(z >= lo && z <= hi);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
             // Intensity profile to visualize the layers.
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
             // Color mapping from layer height to RGB.

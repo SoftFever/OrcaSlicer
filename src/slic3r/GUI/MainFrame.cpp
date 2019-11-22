@@ -24,6 +24,7 @@
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
+#include "Mouse3DController.hpp"
 #include "I18N.hpp"
 
 #include <fstream>

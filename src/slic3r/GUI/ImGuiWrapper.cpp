@@ -528,6 +528,9 @@ void ImGuiWrapper::init_style()
     // Slider
     set_color(ImGuiCol_SliderGrab, COL_ORANGE_DARK);
     set_color(ImGuiCol_SliderGrabActive, COL_ORANGE_LIGHT);
+
+    // Separator
+    set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

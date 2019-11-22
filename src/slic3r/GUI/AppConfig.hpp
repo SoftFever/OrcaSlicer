@@ -131,8 +131,15 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
+    void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone);
+    bool get_mouse_device_translation_speed(const std::string& name, double& speed);
+    bool get_mouse_device_translation_deadzone(const std::string& name, double& deadzone);
+    bool get_mouse_device_rotation_speed(const std::string& name, float& speed);
+    bool get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone);
+
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
+
 private:
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
