@@ -2296,11 +2296,11 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 
 static void load_gcode_retractions(const GCodePreviewData::Retraction& retractions, GLCanvas3D::GCodePreviewVolumeIndex::EType extrusion_type, GLVolumeCollection &volumes, GLCanvas3D::GCodePreviewVolumeIndex &volume_index, bool gl_initialized)
 {
-	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
-
 	// nothing to render, return
 	if (retractions.positions.empty())
 		return;
+
+	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
 
 	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba, VERTEX_BUFFER_RESERVE_SIZE);
 
@@ -2367,6 +2367,9 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
 	                		++ idx_volume_index_src;
 	                		idx_volume_of_this_type_last = (idx_volume_index_src + 1 == m_gcode_preview_volume_index.first_volumes.size()) ? m_volumes.volumes.size() : m_gcode_preview_volume_index.first_volumes[idx_volume_index_src + 1].id;
 	                		idx_volume_of_this_type_first_new = idx_volume_dst;
+	                		if (idx_volume_src == idx_volume_of_this_type_last)
+	                			// Empty sequence of volumes for the current index item.
+	                			continue;
 	                	}
 	                	if (! m_volumes.volumes[idx_volume_src]->print_zs.empty())
                 			m_volumes.volumes[idx_volume_dst ++] = m_volumes.volumes[idx_volume_src];
