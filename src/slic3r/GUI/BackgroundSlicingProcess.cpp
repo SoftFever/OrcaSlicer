@@ -20,9 +20,6 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
-#if ENABLE_THUMBNAIL_GENERATOR
-#include "libslic3r/GCode/ThumbnailData.hpp"
-#endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
@@ -91,7 +88,7 @@ void BackgroundSlicingProcess::process_fff()
     m_print->process();
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
 #if ENABLE_THUMBNAIL_GENERATOR
-    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_data);
+    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data, m_thumbnail_cb);
 #else
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -139,9 +136,12 @@ void BackgroundSlicingProcess::process_sla()
             m_sla_print->export_raster(zipper);
 
 #if ENABLE_THUMBNAIL_GENERATOR
-            if (m_thumbnail_data != nullptr)
+            if (m_thumbnail_cb != nullptr)
             {
-                for (const ThumbnailData& data : *m_thumbnail_data)
+                ThumbnailsList thumbnails;
+                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
+//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, false); // renders also supports and pad
+                for (const ThumbnailData& data : thumbnails)
                 {
                     if (data.is_valid())
                         write_thumbnail(zipper, data);
@@ -461,9 +461,12 @@ void BackgroundSlicingProcess::prepare_upload()
         Zipper zipper{source_path.string()};
         m_sla_print->export_raster(zipper, m_upload_job.upload_data.upload_path.string());
 #if ENABLE_THUMBNAIL_GENERATOR
-        if (m_thumbnail_data != nullptr)
+        if (m_thumbnail_cb != nullptr)
         {
-            for (const ThumbnailData& data : *m_thumbnail_data)
+            ThumbnailsList thumbnails;
+            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
+//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, false); // renders also supports and pad
+            for (const ThumbnailData& data : thumbnails)
             {
                 if (data.is_valid())
                     write_thumbnail(zipper, data);
