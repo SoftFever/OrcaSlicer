@@ -798,10 +798,16 @@ void PageMode::on_activate()
 
 void PageMode::serialize_mode(AppConfig *app_config) const
 {
-    const char *mode = "simple";
+    std::string mode = "";
 
+    if (radio_simple->GetValue()) { mode = "simple"; }
     if (radio_advanced->GetValue()) { mode = "advanced"; }
     if (radio_expert->GetValue()) { mode = "expert"; }
+
+    // If "Mode" page wasn't selected (no one radiobutton is checked),
+    // we shouldn't to update a view_mode value in app_config
+    if (mode.empty())
+        return; 
 
     app_config->set("view_mode", mode);
 }
@@ -1814,7 +1820,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_prev(); });
     p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_next(); });
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->EndModal(wxID_OK); });
-    p->btn_finish->Hide();
+//    p->btn_finish->Hide();
 
     p->btn_sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
         p->any_sla_selected = true;
@@ -1827,7 +1833,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->index->Bind(EVT_INDEX_PAGE, [this](const wxCommandEvent &) {
         const bool is_last = p->index->active_is_last();
         p->btn_next->Show(! is_last);
-        p->btn_finish->Show(is_last);
+//        p->btn_finish->Show(is_last);
 
         Layout();
     });
