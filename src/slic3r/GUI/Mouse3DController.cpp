@@ -333,13 +333,13 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
 
 bool Mouse3DController::connect_device()
 {
-    static const long long DETECTION_TIME = 2; // seconds
+    static const long long DETECTION_TIME_MS = 2000; // seconds
 
     if (is_device_connected())
         return false;
 
     // check time since last detection took place
-    if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - m_last_time).count() < DETECTION_TIME)
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_last_time).count() < DETECTION_TIME_MS)
         return false;
 
     m_last_time = std::chrono::high_resolution_clock::now();
