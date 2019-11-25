@@ -12,6 +12,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <chrono>
 
 namespace Slic3r {
 namespace GUI {
@@ -130,6 +131,7 @@ class Mouse3DController
     std::string m_device_str;
     bool m_running;
     bool m_settings_dialog;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_last_time;
 
 public:
     Mouse3DController();
