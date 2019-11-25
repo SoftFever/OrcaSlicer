@@ -70,8 +70,8 @@ public:
     void set_theta(float theta, bool apply_limit);
 
     double get_zoom() const { return m_zoom; }
-    void set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h);
-    void set_zoom(double zoom) { m_zoom = zoom; }
+    void update_zoom(double delta_zoom);
+    void set_zoom(double zoom);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }

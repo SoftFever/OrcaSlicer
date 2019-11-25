@@ -1538,7 +1538,7 @@ void Print::process()
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
 #if ENABLE_THUMBNAIL_GENERATOR
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -1559,7 +1559,7 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     // The following line may die for multiple reasons.
     GCode gcode;
 #if ENABLE_THUMBNAIL_GENERATOR
-    gcode.do_export(this, path.c_str(), preview_data, thumbnail_data);
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #else
     gcode.do_export(this, path.c_str(), preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR

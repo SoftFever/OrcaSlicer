@@ -41,6 +41,7 @@ class ObjectSettings;
 class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
+class Mouse3DController;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -260,6 +261,8 @@ public:
     void msw_rescale();
 
     const Camera& get_camera() const;
+    const Mouse3DController& get_mouse3d_controller() const;
+    Mouse3DController& get_mouse3d_controller();
 
 	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
