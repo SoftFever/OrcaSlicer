@@ -339,11 +339,10 @@ bool Mouse3DController::connect_device()
         return false;
 
     // check time since last detection took place
-    auto now = std::chrono::high_resolution_clock::now();
-    if (std::chrono::duration_cast<std::chrono::seconds>(now - m_last_time).count() < DETECTION_TIME)
+    if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - m_last_time).count() < DETECTION_TIME)
         return false;
 
-    m_last_time = now;
+    m_last_time = std::chrono::high_resolution_clock::now();
 
     // Enumerates devices
     hid_device_info* devices = hid_enumerate(0, 0);
