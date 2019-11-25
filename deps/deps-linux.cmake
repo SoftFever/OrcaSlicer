@@ -88,19 +88,17 @@ ExternalProject_Add(dep_libcurl
 )
 
 if (DEP_WX_STABLE)
-    set(DEP_WX_URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.4/wxWidgets-3.0.4.tar.bz2")
-    set(DEP_WX_HASH "SHA256=96157f988d261b7368e5340afa1a0cad943768f35929c22841f62c25b17bf7f0")
+    set(DEP_WX_TAG "v3.0.4")
 else ()
-    set(DEP_WX_URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2")
-    set(DEP_WX_HASH "SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e")
+    set(DEP_WX_TAG "v3.1.1-patched")
 endif()
 
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
-    URL "${DEP_WX_URL}"
-    URL_HASH "${DEP_WX_HASH}"
+    GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
+    GIT_TAG "${DEP_WX_TAG}"
     BUILD_IN_SOURCE 1
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
+    # PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
     CONFIGURE_COMMAND ./configure
         "--prefix=${DESTDIR}/usr/local"
         --disable-shared

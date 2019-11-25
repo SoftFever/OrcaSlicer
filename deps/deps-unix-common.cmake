@@ -115,6 +115,7 @@ ExternalProject_Add(dep_openvdb
         -DOPENVDB_CORE_STATIC=ON 
         -DTBB_STATIC=ON
         -DOPENVDB_BUILD_VDB_PRINT=ON
+        -DDISABLE_DEPENDENCY_VERSION_CHECKS=ON
     PATCH_COMMAND PATCH_COMMAND     ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 
                                     ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_SOURCE_DIR}/openvdb-mods.patch
 )
