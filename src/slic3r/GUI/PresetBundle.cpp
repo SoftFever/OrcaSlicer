@@ -1587,6 +1587,8 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
     // set a bitmap height to m_bitmapLock->GetHeight()
     const int icon_height       = m_bitmapLock->GetHeight();//2 * icon_unit;    //16 * scale_f + 0.5f;
 
+    wxString tooltip = "";
+
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1627,20 +1629,25 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
 
-		if (preset.is_default || preset.is_system) {
-			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+        const std::string name = preset.alias.empty() ? preset.name : preset.alias;
+        if (preset.is_default || preset.is_system) {
+			ui->Append(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
 				(bitmap == 0) ? wxNullBitmap : *bitmap);
 			if (selected ||
                 // just in case: mark selected_preset_item as a first added element
-                selected_preset_item == INT_MAX )
+                selected_preset_item == INT_MAX ) {
 				selected_preset_item = ui->GetCount() - 1;
+                tooltip = wxString::FromUTF8(preset.name.c_str());
+            }
 		}
 		else
 		{
-			nonsys_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
+			nonsys_presets.emplace(wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
 				(bitmap == 0) ? &wxNullBitmap : bitmap);
-			if (selected)
-				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+			if (selected) {
+				selected_str = wxString::FromUTF8((/*preset.*/name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+                tooltip = wxString::FromUTF8(preset.name.c_str());
+            }
 		}
 		if (preset.is_default)
             ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
@@ -1669,7 +1676,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
         selected_preset_item = ui->GetCount() - 1;
 
 	ui->SetSelection(selected_preset_item);
-	ui->SetToolTip(ui->GetString(selected_preset_item));
+	ui->SetToolTip(tooltip.IsEmpty() ? ui->GetString(selected_preset_item) : tooltip);
     ui->check_selection();
     ui->Thaw();
 

@@ -998,6 +998,11 @@ void Tab::update_preset_description_line()
             default: break;
             }
         }
+        else
+        {
+            description_line += "\n\n\t" + _(L("full profile name")) + ": \n\t\t" + parent->name;
+            description_line += "\n\t" + _(L("symbolic profile name")) + ": \n\t\t" + parent->alias;
+        }
     }
 
     m_parent_preset_description_line->SetText(description_line, false);
