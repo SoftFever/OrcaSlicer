@@ -631,19 +631,9 @@ void PageMaterials::update_lists(int sel1, int sel2)
                 // #ys_FIXME_alias
                 // const int i = list_l3->append(p->name, p);
 
-                int i = 0;
-                if (materials->technology == T_FFF) {
-                    if (!p->alias.empty())
-                        return;
-                    i = list_l3->append(p->name, &p->name);
-                }
-                else if (materials->technology == T_SLA) { 
-                    if (list_l3->find(p->alias) != wxNOT_FOUND)
-                        return;
-                    i = list_l3->append(p->alias, &p->alias);
-                }
-                else
+                if (list_l3->find(p->alias) != wxNOT_FOUND)
                     return;
+                const int i = list_l3->append(p->alias, &p->alias);
 
                 const bool checked = wizard_p()->appconfig_new.has(materials->appconfig_section(), p->name);
                 list_l3->Check(i, checked);
@@ -1710,12 +1700,6 @@ void ConfigWizard::priv::update_presets_in_config(const std::string& section, co
         else
             appconfig_new.erase(s, key); 
     };
-
-    // Not all of the filament preset have aliases.
-    // Thus, we should to delete preset with a same as an alias_key name 
-    // add or delete preset from config
-    if (section == AppConfig::SECTION_FILAMENTS)
-        update(section, alias_key);
 
     // add or delete presets had a same alias 
     auto it = aliases.find(alias_key);

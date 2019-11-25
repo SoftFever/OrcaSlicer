@@ -1133,12 +1133,10 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             preset_name = section.first.substr(9);
 
             for (const auto& item : section.second)
-            {
                 if (boost::starts_with(item.first, "alias")) {
                     alias_name = item.second.data();
                     break;
                 }
-            }
         } else if (boost::starts_with(section.first, "sla_print:")) {
             presets = &this->sla_prints;
             loaded  = &loaded_sla_prints;
@@ -1295,8 +1293,14 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                 loaded.is_system = true;
                 loaded.vendor = vendor_profile;
             }
-            if (!alias_name.empty())
-                loaded.alias = alias_name;
+
+            // next step of an preset name aliasing
+            int end_pos = preset_name.find_first_of("@");
+            if (end_pos != std::string::npos)
+                alias_name = preset_name.substr(0, end_pos - 1);
+
+            loaded.alias = alias_name.empty() ? preset_name : alias_name;
+
             ++ presets_loaded;
         }
     }
