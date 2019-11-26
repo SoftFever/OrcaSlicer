@@ -6,6 +6,7 @@
 
 namespace Slic3r {
 namespace GUI {
+<<<<<<< HEAD
 #if __APPLE__
 class RDMMMWrapper;
 #endif
@@ -23,12 +24,25 @@ friend class RDMMMWrapper;
 #endif
 public:
 	static RemovableDriveManager& get_instance()
+=======
+struct DriveData
+{
+	std::wstring name;
+	std::string path;
+	DriveData(std::wstring n, std::string p):name(n),path(p){}
+};
+class RemovableDriveManager
+{
+public:
+	static RemovableDriveManager& getInstance()
+>>>>>>> removable drive manager - Windows part
 	{
 		static RemovableDriveManager instance; 
 		return instance;
 	}
 	RemovableDriveManager(RemovableDriveManager const&) = delete;
 	void operator=(RemovableDriveManager const&) = delete;
+<<<<<<< HEAD
 	//call only once. on apple register for unmnount callbacks. on windows register for device notification is prepared but not called (eject usb drive on widnows doesnt trigger the callback, sdc ard does), also enumerates devices for first time so init shoud be called on linux too.
 	void init();
 	//update() searches for removable devices, returns false if empty. /time = 0 is forced update, time expects wxGetLocalTime()
@@ -94,3 +108,22 @@ protected:
 #endif
 }}
 #endif
+=======
+	
+	//update() searches for removable devices, returns false if empty.
+	static bool update(); 
+	static bool isDriveMounted(std::string path);
+	static void ejectDrive(std::string path);
+	static std::string getLastDrivePath();
+	static void getAllDrives(std::vector<DriveData>& drives);
+private:
+	RemovableDriveManager(){}
+	static void searchForDrives(std::vector<DriveData>& newDrives);
+	static void printDrivesToLog();
+	static void updateCurrentDrives(const std::vector<DriveData>& newDrives);
+	static std::vector<DriveData> currentDrives;  
+	
+};
+}}
+#endif
+>>>>>>> removable drive manager - Windows part
