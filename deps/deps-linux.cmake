@@ -26,8 +26,8 @@ ExternalProject_Add(dep_boost
 
 ExternalProject_Add(dep_libopenssl
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/openssl/openssl/archive/OpenSSL_1_1_0g.tar.gz"
-    URL_HASH SHA256=8e9516b8635bb9113c51a7b5b27f9027692a56b104e75b709e588c3ffd6a0422
+    URL "https://github.com/openssl/openssl/archive/OpenSSL_1_1_0l.tar.gz"
+    URL_HASH SHA256=e2acf0cf58d9bff2b42f2dc0aee79340c8ffe2c5e45d3ca4533dd5d4f5775b1d
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./config
         "--prefix=${DESTDIR}/usr/local"
