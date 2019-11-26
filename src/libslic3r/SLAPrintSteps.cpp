@@ -253,6 +253,11 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
         
         // calculate heights of slices (slices are calculated already)
         const std::vector<float>& heights = po.m_model_height_levels;
+
+        // Tell the mesh where drain holes are. Although the points are
+        // calculated on slices, the algorithm then raycasts the points
+        // so they actually lie on the mesh.
+        po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
         
         throw_if_canceled();
         sla::SupportPointGenerator::Config config;
@@ -321,6 +326,7 @@ void SLAPrint::Steps::support_tree(SLAPrintObject &po)
         po.m_supportdata->emesh.ground_level_offset(pcfg.wall_thickness_mm);
     
     po.m_supportdata->cfg = make_support_cfg(po.m_config);
+    po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
     
     // scaling for the sub operations
     double d = objectstep_scale * OBJ_STEP_LEVELS[slaposSupportTree] / 100.0;

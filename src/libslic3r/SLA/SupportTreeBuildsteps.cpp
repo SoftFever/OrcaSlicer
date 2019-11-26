@@ -778,7 +778,7 @@ void SupportTreeBuildsteps::filter()
                     nn = Vec3d(std::cos(azimuth) * std::sin(polar),
                                std::sin(azimuth) * std::sin(polar),
                                std::cos(polar)).normalized();
-                    t = oresult.score;
+                    t = EigenMesh3D::hit_result(oresult.score);
                 }
             }
             

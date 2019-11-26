@@ -4,6 +4,7 @@
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
+#include <libslic3r/SLA/EigenMesh3D.hpp>
 
 #include <boost/log/trivial.hpp>
 
@@ -152,7 +153,7 @@ bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
     const Eigen::ParametrizedLine<float, 3> ray(s, dir.normalized());
 
     for (size_t i=0; i<2; ++i)
-        out[i] = std::make_pair(std::nan(""), Vec3d::Zero());
+        out[i] = std::make_pair(sla::EigenMesh3D::hit_result::infty(), Vec3d::Zero());
 
     const float sqr_radius = pow(radius, 2.f);
 
@@ -170,6 +171,11 @@ bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
     if (! is_approx(ray.direction().dot(normal), 0.f)) {
         for (size_t i=1; i<=1; --i) {
             Vec3f cylinder_center = pos+i*height*normal;
+            if (i == 0) {
+                // The hole base can be identical to mesh surface if it is flat
+                // let's better move the base outward a bit
+                cylinder_center -= EPSILON*normal;
+            }
             base = Eigen::Hyperplane<float, 3>(normal, cylinder_center);
             Vec3f intersection = ray.intersectionPoint(base);
             // Only accept the point if it is inside the cylinder base.
@@ -184,7 +190,7 @@ bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
     {
         // In case the line was perpendicular to the cylinder axis, previous
         // block was skipped, but base will later be assumed to be valid.
-        base = Eigen::Hyperplane<float, 3>(normal, pos);
+        base = Eigen::Hyperplane<float, 3>(normal, pos-EPSILON*normal);
     }
 
     // In case there is still an intersection to be found, check the wall

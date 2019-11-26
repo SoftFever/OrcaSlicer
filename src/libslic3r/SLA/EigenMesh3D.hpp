@@ -2,6 +2,7 @@
 #define SLA_EIGENMESH3D_H
 
 #include <libslic3r/SLA/Common.hpp>
+#include "libslic3r/SLA/Hollowing.hpp"
 
 namespace Slic3r {
 
@@ -10,7 +11,6 @@ class TriangleMesh;
 namespace sla {
 
 struct Contour3D;
-struct DrainHole;
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree.
@@ -23,6 +23,11 @@ class EigenMesh3D {
     double m_ground_level = 0, m_gnd_offset = 0;
     
     std::unique_ptr<AABBImpl> m_aabb;
+
+    // This holds a copy of holes in the mesh. Initialized externally
+    // by load_mesh setter.
+    std::vector<DrainHole> m_holes;
+
 public:
     
     EigenMesh3D(const TriangleMesh&);
@@ -41,57 +46,58 @@ public:
     
     // Result of a raycast
     class hit_result {
-        double m_t = std::nan("");
+        // m_t holds a distance from m_source to the intersection.
+        double m_t = infty();
         const EigenMesh3D *m_mesh = nullptr;
         Vec3d m_dir;
         Vec3d m_source;
-        Vec3d m_normal = Vec3d::Zero();
+        Vec3d m_normal;
         friend class EigenMesh3D;
         
         // A valid object of this class can only be obtained from
         // EigenMesh3D::query_ray_hit method.
         explicit inline hit_result(const EigenMesh3D& em): m_mesh(&em) {}
     public:
+        // This denotes no hit on the mesh.
+        static inline constexpr double infty() { return std::numeric_limits<double>::infinity(); }
         
-        // This can create a placeholder object which is invalid (not created
-        // by a query_ray_hit call) but the distance can be preset to
-        // a specific value for distinguishing the placeholder.
-        inline hit_result(double val = std::nan("")): m_t(val) {}
+        explicit inline hit_result(double val = infty()) : m_t(val) {}
         
         inline double distance() const { return m_t; }
         inline const Vec3d& direction() const { return m_dir; }
         inline const Vec3d& source() const { return m_source; }
         inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline bool is_valid() const { return m_mesh != nullptr; }
-        inline bool is_hit() const { return m_normal != Vec3d::Zero(); }
-        
+        inline bool is_hit() const { return m_t != infty(); }
+
         // Hit_result can decay into a double as the hit distance.
         inline operator double() const { return distance(); }
 
         inline const Vec3d& normal() const {
-            if(!is_valid())
-                throw std::runtime_error("EigenMesh3D::hit_result::normal() "
-                                         "called on invalid object.");
+            assert(is_valid());
             return m_normal;
         }
-        
+
         inline bool is_inside() const {
-            return normal().dot(m_dir) > 0;
+            return is_hit() && normal().dot(m_dir) > 0;
         }
     };
     
+    // Inform the object about location of holes
+    // creates internal copy of the vector
+    void load_holes(const std::vector<DrainHole>& holes) {
+        m_holes = holes;
+    }
+
     // Casting a ray on the mesh, returns the distance where the hit occures.
-    hit_result query_ray_hit(const Vec3d &s,
-                             const Vec3d &dir,
-                             const std::vector<DrainHole>* holes = nullptr) const;
+    hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
     
     // Casts a ray on the mesh and returns all hits
     std::vector<hit_result> query_ray_hits(const Vec3d &s, const Vec3d &dir) const;
 
     // Iterates over hits and holes and returns the true hit, possibly
     // on the inside of a hole.
-    hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits,
-                           const std::vector<DrainHole>& holes) const;
+    hit_result filter_hits(const std::vector<EigenMesh3D::hit_result>& obj_hits) const;
 
     class si_result {
         double m_value;
