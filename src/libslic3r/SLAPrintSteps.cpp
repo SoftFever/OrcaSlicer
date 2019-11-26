@@ -237,9 +237,19 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
     // If supports are disabled, we can skip the model scan.
     if(!po.m_config.supports_enable.getBool()) return;
     
+    bool is_hollowing = po.m_config.hollowing_enable.getBool() && po.m_hollowing_data;
+    
+    TriangleMesh hollowed_mesh;
+    if (is_hollowing) {
+        hollowed_mesh = po.transformed_mesh();
+        hollowed_mesh.merge(po.m_hollowing_data->interior);
+        hollowed_mesh.require_shared_vertices();
+    }
+    
+    const TriangleMesh &mesh = is_hollowing ? hollowed_mesh : po.transformed_mesh();
+    
     if (!po.m_supportdata)
-        po.m_supportdata.reset(
-                    new SLAPrintObject::SupportData(po.transformed_mesh()));
+        po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
     
     const ModelObject& mo = *po.m_model_object;
     
