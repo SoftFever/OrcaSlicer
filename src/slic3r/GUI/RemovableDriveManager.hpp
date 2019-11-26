@@ -8,9 +8,9 @@ namespace Slic3r {
 namespace GUI {
 struct DriveData
 {
-	std::wstring name;
+	std::string name;
 	std::string path;
-	DriveData(std::wstring n, std::string p):name(n),path(p){}
+	DriveData(std::string n, std::string p):name(n),path(p){}
 };
 class RemovableDriveManager
 {
@@ -32,10 +32,12 @@ public:
 private:
 	RemovableDriveManager(){}
 	static void searchForDrives(std::vector<DriveData>& newDrives);
-	static void printDrivesToLog();
 	static void updateCurrentDrives(const std::vector<DriveData>& newDrives);
 	static std::vector<DriveData> currentDrives;  
-	
+#if _WIN32
+#else
+	static void searchPath(std::vector<DriveData>& newDrives,const std::string path, const dev_t parentDevID);
+#endif
 };
 }}
 #endif
