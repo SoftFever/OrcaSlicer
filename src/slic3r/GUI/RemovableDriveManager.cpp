@@ -69,27 +69,35 @@ void RemovableDriveManager::search_for_drives()
 							m_current_drives.push_back(DriveData(boost::nowide::narrow(volume_name), path));
 =======
 
-#include <windows.h>
-#include <tchar.h>
+
+
 #include <iostream>
 #include <stdio.h>
 
-//#include <boost/log/trivial.hpp>
-//#include "libslic3r/Utils.hpp"
 
+#if _WIN32
+#include <windows.h>
+#include <tchar.h>
 DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
 	0xA5DCBF10L, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED);
+#else
+//linux includes
+#include <errno.h>
+#include <sys/mount.h>
+#include <sys/stat.h>
+#include <glob.h>
+#include <libgen.h>
+#endif
 
 namespace Slic3r {
 namespace GUI {
 
 std::vector<DriveData> RemovableDriveManager::currentDrives;
 
-bool RemovableDriveManager::update()
-{
-	searchForDrives(currentDrives);
-	return !currentDrives.empty();
-}
+
+
+
+#if _WIN32
 void RemovableDriveManager::searchForDrives(std::vector<DriveData>& newDrives)
 {
 	newDrives.clear();
@@ -589,37 +597,6 @@ void RemovableDriveManager::reset_last_save_path()
 	}
 	
 }
-
-void RemovableDriveManager::updateCurrentDrives(const std::vector<DriveData>& newDrives)
-{
-	currentDrives.clear();
-	currentDrives.reserve(26);
-	for (auto it = newDrives.begin(); it != newDrives.end(); ++it)
-	{
-		currentDrives.push_back(*it);
-	}
-}
-void RemovableDriveManager::printDrivesToLog()
-{
-	//std::cout<<"current drives:"<< currentDrives.size() <<"\n";
-	for (auto it = currentDrives.begin(); it != currentDrives.end(); ++it)
-	{
-		//BOOST_LOG_TRIVIAL(trace) << boost::format("found disk  %1%:") % ('A' + i);
-		//std::cout << /*std::string((*it).name.begin(), (*it).name.end()) << "(" << */(*it).path << ":/, ";
-	}
-	//std::cout << "\n";
-}
-bool  RemovableDriveManager::isDriveMounted(std::string path)
-{
-	for (auto it = currentDrives.begin(); it != currentDrives.end(); ++it)
-	{
-		if ((*it).path == path)
-		{
-			return true;
-		}
-	}
-	return false;
-}
 void RemovableDriveManager::ejectDrive(std::string path)
 {
 	if (!update() || !isDriveMounted(path))
@@ -649,6 +626,115 @@ void RemovableDriveManager::ejectDrive(std::string path)
 		}
 	}
 }
+#else
+void RemovableDriveManager::searchForDrives(std::vector<DriveData>& newDrives)
+{
+    struct stat buf;
+    std::string path(std::getenv("USER"));
+	std::string pp(path);
+
+	newDrives.clear();
+	newDrives.reserve(26);
+
+    //search /media/* folder
+    stat("/media/",&buf);
+    std::cout << "/media ID: " <<buf.st_dev << "\n";
+	searchPath(newDrives, "/media/*", buf.st_dev);
+
+	//search /media/USERNAME/* folder
+	pp = "/media/"+pp;
+	path = "/media/" + path + "/*";
+
+	stat(pp.c_str() ,&buf);
+    std::cout << pp <<" ID: " <<buf.st_dev << "\n";
+	searchPath(newDrives, path, buf.st_dev);
+
+	//search /run/media/USERNAME/* folder
+	path = "/run" + path;
+	pp = "/run"+pp;
+	stat(pp.c_str() ,&buf);
+    std::cout << pp <<" ID: " <<buf.st_dev << "\n";
+	searchPath(newDrives, path, buf.st_dev);
+
+	std::cout << "found drives:" <<newDrives.size() << "\n";
+}
+void RemovableDriveManager::searchPath(std::vector<DriveData>& newDrives,const std::string path, const dev_t parentDevID)
+{
+    glob_t globbuf;
+	globbuf.gl_offs = 2;
+    std::cout<<"searching "<<path<<"\n";
+	int error = glob(path.c_str(), GLOB_TILDE, NULL, &globbuf);
+	if(error)
+	{
+		std::cerr<<"glob error "<< error<< "\n";
+	}
+	for(size_t i = 0; i < globbuf.gl_pathc; i++)
+	{
+		std::cout<<globbuf.gl_pathv[i]<<"\n";
+		//TODO check if mounted
+		std::string name = basename(globbuf.gl_pathv[i]);
+        std::cout<<name<<"\n";
+        struct stat buf;
+		stat(globbuf.gl_pathv[i],&buf);
+		std::cout << buf.st_dev << "\n";
+		if(buf.st_dev != parentDevID)// not same file system
+		{
+            newDrives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+		}
+	}
+	globfree(&globbuf);
+}
+void RemovableDriveManager::ejectDrive(std::string path)
+{
+	if (currentDrives.empty())
+		return;
+
+	for (auto it = currentDrives.begin(); it != currentDrives.end(); ++it)
+	{
+		if((*it).path == path)
+		{
+            std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
+            int error = umount2(path.c_str(),MNT_DETACH);
+            if(error)
+            {
+                int errsv = errno;
+                std::cerr<<"Ejecting failed Error "<< errsv<<"\n";
+            }
+            currentDrives.erase(it);
+            break;
+		}
+
+	}
+
+}
+#endif
+bool RemovableDriveManager::update()
+{
+	searchForDrives(currentDrives);
+	return !currentDrives.empty();
+}
+
+void RemovableDriveManager::updateCurrentDrives(const std::vector<DriveData>& newDrives)
+{
+	currentDrives.clear();
+	currentDrives.reserve(26);
+	for (auto it = newDrives.begin(); it != newDrives.end(); ++it)
+	{
+		currentDrives.push_back(*it);
+	}
+}
+bool  RemovableDriveManager::isDriveMounted(std::string path)
+{
+	for (auto it = currentDrives.begin(); it != currentDrives.end(); ++it)
+	{
+		if ((*it).path == path)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 std::string RemovableDriveManager::getLastDrivePath()
 {
 	if (!currentDrives.empty())
