@@ -254,6 +254,8 @@ private:
 
         float object_max_z() const { return m_object_max_z; }
 
+        std::string get_tooltip(const GLCanvas3D& canvas) const;
+
     private:
         bool is_initialized() const;
         void generate_layer_height_texture();

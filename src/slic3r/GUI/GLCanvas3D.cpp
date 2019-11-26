@@ -277,7 +277,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.text(_(L("Cusp (mm)")));
     ImGui::SameLine();
     float widget_align = ImGui::GetCursorPosX();
-    ImGui::PushItemWidth(120.0f);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     m_adaptive_cusp = clamp((float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, m_adaptive_cusp);
     ImGui::SliderFloat("", &m_adaptive_cusp, (float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, "%.2f");
 
@@ -289,8 +289,8 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Radius")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     int radius = (int)m_smooth_params.radius;
     if (ImGui::SliderInt("##1", &radius, 1, 10))
         m_smooth_params.radius = (unsigned int)radius;
@@ -298,8 +298,8 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Keep min")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
     ImGui::Separator();
@@ -409,6 +409,35 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
 bool GLCanvas3D::LayersEditing::is_initialized() const
 {
     return m_shader.is_initialized();
+}
+
+std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) const
+{
+    std::string ret;
+    if (m_enabled && (m_layer_height_profile.size() >= 4))
+    {
+        float z = get_cursor_z_relative(canvas);
+        if (z != -1000.0f)
+        {
+            z *= m_object_max_z;
+
+            float h = 0.0f;
+            for (size_t i = m_layer_height_profile.size() - 2; i >= 2; i -= 2)
+            {
+                float zi = m_layer_height_profile[i];
+                float zi_1 = m_layer_height_profile[i - 2];
+                if ((zi_1 <= z) && (z <= zi))
+                {
+                    float dz = zi - zi_1;
+                    h = (dz != 0.0f) ? lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz) : m_layer_height_profile[i + 1];
+                    break;
+                }
+            }
+            if (h > 0.0f)
+                ret = std::to_string(h);
+        }
+    }
+    return ret;
 }
 
 #if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
@@ -3136,6 +3165,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         if ((m_layers_editing.state != LayersEditing::Unknown) && (layer_editing_object_idx != -1))
         {
+            set_tooltip("");
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
@@ -3244,6 +3274,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         m_mouse.position = pos.cast<double>();
         std::string tooltip = "";
+
+        if (tooltip.empty())
+            tooltip = m_layers_editing.get_tooltip(*this);
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
