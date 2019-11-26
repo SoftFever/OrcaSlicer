@@ -289,7 +289,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Radius")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     ImGui::SetCursorPosX(widget_align);
     int radius = (int)m_smooth_params.radius;
     if (ImGui::SliderInt("##1", &radius, 1, 10))
@@ -298,7 +298,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Keep min")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     ImGui::SetCursorPosX(widget_align);
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
