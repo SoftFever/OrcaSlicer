@@ -22,6 +22,7 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
+
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -688,7 +689,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
-            wxGetApp().plater()->take_snapshot(_(L("Layers heights")));
+            wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Manual edit")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
@@ -1588,6 +1589,7 @@ bool GLCanvas3D::is_layers_editing_allowed() const
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::reset_layer_height_profile()
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Reset")));
     m_layers_editing.reset_layer_height_profile(*this);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
@@ -1595,6 +1597,7 @@ void GLCanvas3D::reset_layer_height_profile()
 
 void GLCanvas3D::adaptive_layer_height_profile(float cusp)
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Adaptive")));
     m_layers_editing.adaptive_layer_height_profile(*this, cusp);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
@@ -1602,6 +1605,7 @@ void GLCanvas3D::adaptive_layer_height_profile(float cusp)
 
 void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params)
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Smooth all")));
     m_layers_editing.smooth_layer_height_profile(*this, smoothing_params);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;

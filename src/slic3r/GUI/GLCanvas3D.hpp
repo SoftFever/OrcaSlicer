@@ -179,7 +179,7 @@ private:
         float                       m_object_max_z;
         // Owned by LayersEditing.
         SlicingParameters          *m_slicing_parameters;
-        std::vector<coordf_t>       m_layer_height_profile;
+        std::vector<double>         m_layer_height_profile;
         bool                        m_layer_height_profile_modified;
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
