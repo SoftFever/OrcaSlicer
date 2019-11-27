@@ -360,7 +360,7 @@ std::string AppConfig::get_last_output_dir(const std::string &alt) const
 {
 	if (GUI::RemovableDriveManager::getInstance().update())
 	{
-		return GUI::RemovableDriveManager::getInstance().getLastDrivePath();
+		return GUI::RemovableDriveManager::getInstance().get_last_drive_path();
 	}
     const auto it = m_storage.find("");
     if (it != m_storage.end()) {
