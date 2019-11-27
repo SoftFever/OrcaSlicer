@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <winioctl.h>
+#include <shlwapi.h>
 DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
 	0xA5DCBF10L, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED);
 #else
@@ -208,7 +209,11 @@ std::string RemovableDriveManager::get_last_drive_path()
 {
 	if (!m_current_drives.empty())
 	{
+#if _WIN32
+		return m_current_drives.back().path + "\\";
+#else
 		return m_current_drives.back().path;
+#endif	
 	}
 	return "";
 }
@@ -216,4 +221,27 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 {
 	return m_current_drives;
 }
-}}
+#if _WIN32
+bool RemovableDriveManager::is_path_on_removable_drive(const std::string& path)
+{
+	if (m_current_drives.empty())
+		return false;
+	int letter = PathGetDriveNumberA(path.c_str());
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		char drive = (*it).path[0];
+		if (drive == ('A' + letter))
+			return true;
+	}
+	return false;
+}
+#else
+bool RemovableDriveManager::is_path_on_removable_drive(const std::string& path, const std::string& drive)
+{
+	if (m_current_drives.empty())
+		return false;
+
+	return false;
+}
+#endif
+}}//namespace Slicer::Gui::
