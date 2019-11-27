@@ -112,18 +112,17 @@ protected:
 	
 	//update() searches for removable devices, returns false if empty.
 	static bool update(); 
-	static bool isDriveMounted(std::string path);
-	static void ejectDrive(std::string path);
-	static std::string getLastDrivePath();
-	static void getAllDrives(std::vector<DriveData>& drives);
+	static bool is_drive_mounted(const std::string &path);
+	static void eject_drive(const std::string &path);
+	static std::string get_last_drive_path();
+	static std::vector<DriveData> get_all_drives();
 private:
 	RemovableDriveManager(){}
-	static void searchForDrives(std::vector<DriveData>& newDrives);
-	static void updateCurrentDrives(const std::vector<DriveData>& newDrives);
-	static std::vector<DriveData> currentDrives;  
+	static void search_for_drives();
+	static std::vector<DriveData> m_current_drives;
 #if _WIN32
 #else
-	static void searchPath(std::vector<DriveData>& newDrives,const std::string path, const dev_t parentDevID);
+	static void search_path(const std::string &path, const dev_t &parentDevID);
 #endif
 };
 }}
