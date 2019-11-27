@@ -23,6 +23,7 @@ namespace Slic3r {
 namespace GUI {
 
 std::vector<DriveData>  RemovableDriveManager::m_current_drives;
+long RemovableDriveManager::m_last_update = 0;
 
 #if _WIN32
 void RemovableDriveManager::search_for_drives()
@@ -215,8 +216,20 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	return false;
 }
 #endif
-bool RemovableDriveManager::update()
+bool RemovableDriveManager::update(long time)
 {
+	if(time != 0) //time = 0 is forced update
+	{
+		long diff = m_last_update - time;
+		if(diff <= -2)
+		{
+			m_last_update = time;
+		}else
+		{
+			return false; // return value shouldnt matter if update didnt run
+		}
+	}
+	std::cout << "RDM update " << m_last_update <<"\n";
 	search_for_drives();
 	return !m_current_drives.empty();
 }
