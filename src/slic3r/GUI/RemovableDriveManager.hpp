@@ -29,6 +29,7 @@ public:
 	static void eject_drive(const std::string &path);
 	static std::string get_last_drive_path();
 	static std::vector<DriveData> get_all_drives();
+	static bool is_path_on_removable_drive(const std::string &path);
 private:
 	RemovableDriveManager(){}
 	static void search_for_drives();
