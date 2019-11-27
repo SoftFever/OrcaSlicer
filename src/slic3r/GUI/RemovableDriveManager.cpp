@@ -276,7 +276,6 @@ void RemovableDriveManager::search_for_drives()
 		search_path(path, pp);
 
 	}
-	
 #endif
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
@@ -330,6 +329,7 @@ bool RemovableDriveManager::compare_filesystem_id(const std::string &path_a, con
 	dev_t id_b = buf.st_dev;
 	return id_a == id_b;
 }
+
 void RemovableDriveManager::eject_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
@@ -518,3 +518,4 @@ void RemovableDriveManager::reset_last_save_path()
 	m_last_save_path = "";
 }
 }}//namespace Slicer::Gui
+
