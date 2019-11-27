@@ -505,20 +505,10 @@ void Preview::reset_sliders(bool reset_all)
 void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_range)
 {
     m_enabled = true;
-    // update extruder selector
-    if (wxGetApp().extruders_edited_cnt() != m_extruder_selector->GetCount()-1)
-    {
-        m_selected_extruder = m_extruder_selector->GetSelection();
-        update_extruder_selector();
-        if (m_selected_extruder >= m_extruder_selector->GetCount())
-            m_selected_extruder = 0;
-        m_extruder_selector->SetSelection(m_selected_extruder);
-    }
 
     update_double_slider(layers_z, keep_z_range);
     m_double_slider_sizer->Show((size_t)0);
-//    if (m_slider->GetManipulationState() == DoubleSlider::msSingleExtruder)
-        m_double_slider_sizer->GetItem(size_t(0))->GetSizer()->Hide((size_t)0);
+
     Layout();
 }
 
@@ -534,9 +524,6 @@ void Preview::on_choice_view_type(wxCommandEvent& evt)
     int selection = m_choice_view_type->GetCurrentSelection();
     if ((0 <= selection) && (selection < (int)GCodePreviewData::Extrusion::Num_View_Types))
         m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)selection;
-
-    if (m_gcode_preview_data->extrusion.view_type != GCodePreviewData::Extrusion::ColorPrint)
-        m_extruder_selector->SetSelection(0);
 
     reload_print();
 }
@@ -596,14 +583,6 @@ void Preview::update_view_type(bool slice_completed)
             m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
         m_preferred_color_mode = "feature";
     }
-
-    if (type != GCodePreviewData::Extrusion::EViewType::ColorPrint)
-        m_extruder_selector->SetSelection(0);
-}
-
-void Preview::update_extruder_selector()
-{
-    apply_extruder_selector(&m_extruder_selector, this, L("Whole print"), wxDefaultPosition, wxDefaultSize, true);
 }
 
 void Preview::create_double_slider()
@@ -611,35 +590,7 @@ void Preview::create_double_slider()
     m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
     m_slider->EnableTickManipulation(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
 
-    // #ys_FIXME_COLOR
-    // m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
-
-    update_extruder_selector();
-    m_extruder_selector->SetSelection(0);
-    m_extruder_selector->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
-    {
-        m_selected_extruder = m_extruder_selector->GetSelection();
-        m_slider->SetExtruderID(m_selected_extruder);
-
-        int type = m_choice_view_type->FindString(_(L("Color Print")));
-
-        if (m_choice_view_type->GetSelection() != type) {
-            m_choice_view_type->SetSelection(type);
-            if (0 <= type && type < (int)GCodePreviewData::Extrusion::Num_View_Types)
-                m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
-            m_preferred_color_mode = "feature";
-        }
-        reload_print();
-
-        evt.StopPropagation();
-    });
-    m_extruder_selector->Disable();
-
-    auto sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(m_extruder_selector, 0, wxEXPAND, 0);
-    sizer->Add(m_slider, 1, wxEXPAND, 0);
-
-    m_double_slider_sizer->Add(sizer, 0, wxEXPAND, 0);
+    m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
@@ -718,11 +669,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<Model::CustomGCode> tmp_ticks_from_model;
-    if (m_selected_extruder != 0)
-        tmp_ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
-    std::vector<Model::CustomGCode> &ticks_from_model = m_selected_extruder != 0 ? tmp_ticks_from_model :
-                                                        wxGetApp().plater()->model().custom_gcode_per_height;
+    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
     check_slider_values(ticks_from_model, layers_z);
 
     m_slider->SetSliderValues(layers_z);
@@ -751,11 +698,10 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
 
     m_slider->EnableTickManipulation(color_print_enable);
     if (color_print_enable && wxGetApp().extruders_edited_cnt() > 1) {
-        m_slider->SetExtruderID(m_extruder_selector->GetSelection());
+        m_slider->SetExtruderID(0);
     }
     else
         m_slider->SetExtruderID(-1);
-
 }
 
 void Preview::reset_double_slider()
@@ -857,7 +803,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     if (IsShown())
     {
-        m_canvas->set_selected_extruder(m_selected_extruder);
+        m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
@@ -871,7 +817,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         std::vector<double> zs = m_canvas->get_current_print_zs(true);
         if (zs.empty()) {
             // all layers filtered out
-            reset_sliders(m_selected_extruder==0);
+            reset_sliders(true);
             m_canvas_widget->Refresh();
         } else
             update_sliders(zs, keep_z_range);

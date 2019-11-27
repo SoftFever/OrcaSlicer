@@ -4965,7 +4965,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                     filament_colors.push_back(filaments.find_preset(filament_preset, true)->config.opt_string("filament_colour", (unsigned)0));
 
                 p->config->option<ConfigOptionStrings>(opt_key)->values = filament_colors;
-                p->preview->update_extruder_selector();
                 p->sidebar->obj_list()->update_extruder_colors();
                 continue;
             }
@@ -4992,7 +4991,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
-            p->preview->update_extruder_selector();
             p->sidebar->obj_list()->update_extruder_colors();
         } else if(opt_key == "max_print_height") {
             update_scheduled = true;
@@ -5044,7 +5042,6 @@ void Plater::force_filament_colors_update()
 
     if (update_scheduled) {
         update();
-        p->preview->update_extruder_selector();
         p->sidebar->obj_list()->update_extruder_colors();
     }
 

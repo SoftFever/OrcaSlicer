@@ -104,8 +104,6 @@ class Preview : public wxPanel
     bool m_enabled;
 
     DoubleSlider*       m_slider {nullptr};
-    wxBitmapComboBox*   m_extruder_selector {nullptr};
-    int                 m_selected_extruder {0}; // 0 means "Whole print"
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
@@ -133,7 +131,6 @@ public:
     void edit_double_slider(wxKeyEvent& evt);
 
     void update_view_type(bool slice_completed);
-    void update_extruder_selector();
 
     bool is_loaded() const { return m_loaded; }
 
