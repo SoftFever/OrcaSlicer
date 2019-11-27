@@ -3847,7 +3847,7 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     camera.apply_projection(box);
 
     if (transparent_background)
-        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 0.0f));
+        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
