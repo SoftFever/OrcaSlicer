@@ -21,7 +21,6 @@
 
 #include <wx/string.h>
 #include "I18N.hpp"
-#include "RemovableDriveManager.hpp"
 
 namespace Slic3r {
 
@@ -359,6 +358,7 @@ void AppConfig::update_skein_dir(const std::string &dir)
 std::string AppConfig::get_last_output_dir(const std::string &alt) const
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	
 =======
 	if (GUI::RemovableDriveManager::getInstance().update())
@@ -366,6 +366,9 @@ std::string AppConfig::get_last_output_dir(const std::string &alt) const
 		return GUI::RemovableDriveManager::getInstance().get_last_drive_path();
 	}
 >>>>>>> removable drive manager - Windows part
+=======
+	
+>>>>>>> check if last path is on rem drive
     const auto it = m_storage.find("");
     if (it != m_storage.end()) {
         const auto it2 = it->second.find("last_output_path");
