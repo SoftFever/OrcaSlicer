@@ -29,45 +29,42 @@ void RemovableDriveManager::search_for_drives()
 {
 	m_current_drives.clear();
 	m_current_drives.reserve(26);
-	DWORD drivesMask = GetLogicalDrives();
+	DWORD drives_mask = GetLogicalDrives();
 	for (size_t i = 0; i < 26; i++)
 	{
-		if(drivesMask & (1 << i))
+		if(drives_mask & (1 << i))
 		{
 			std::string path (1,(char)('A' + i));
 			path+=":";
-			UINT driveType = GetDriveTypeA(path.c_str());
+			UINT drive_type = GetDriveTypeA(path.c_str());
 			//std::cout << "found drive" << (char)('A' + i) << ": type:" <<driveType << "\n";
-			if (driveType ==  DRIVE_REMOVABLE)
+			if (drive_type ==  DRIVE_REMOVABLE)
 			{
 				// get name of drive
 				std::wstring wpath = std::wstring(path.begin(), path.end());
-				std::wstring volumeName;
-				volumeName.resize(1024);
-				std::wstring fileSystemName;
-				fileSystemName.resize(1024);
-				LPWSTR  lpVolumeNameBuffer = new wchar_t;
-				BOOL error = GetVolumeInformationW(wpath.c_str(), &volumeName[0], sizeof(volumeName), NULL, NULL, NULL, &fileSystemName[0], sizeof(fileSystemName));
+				std::wstring volume_name;
+				volume_name.resize(1024);
+				std::wstring file_system_name;
+				file_system_name.resize(1024);
+				LPWSTR  lp_volume_name_buffer = new wchar_t;
+				BOOL error = GetVolumeInformationW(wpath.c_str(), &volume_name[0], sizeof(volume_name), NULL, NULL, NULL, &file_system_name[0], sizeof(file_system_name));
 				if(error != 0)
 				{
-					if (volumeName == L"")
+					if (volume_name == L"")
 					{
-						volumeName = L"REMOVABLE DRIVE";
+						volume_name = L"REMOVABLE DRIVE";
 					}
-					if (fileSystemName != L"")
+					if (file_system_name != L"")
 					{
-						ULARGE_INTEGER freeSpace;
-						GetDiskFreeSpaceExA(path.c_str(), &freeSpace, NULL, NULL);
+						ULARGE_INTEGER free_space;
+						GetDiskFreeSpaceExA(path.c_str(), &free_space, NULL, NULL);
 						//std::cout << std::string(volumeName.begin(), volumeName.end()) << " " << std::string(fileSystemName.begin(), fileSystemName.end()) << " " << freeSpace.QuadPart << "\n";
-						if (freeSpace.QuadPart > 0)
+						if (free_space.QuadPart > 0)
 						{
-							m_current_drives.push_back(DriveData(boost::nowide::narrow(volumeName), path));
+							m_current_drives.push_back(DriveData(boost::nowide::narrow(volume_name), path));
 						}
 					}
 				}
-			}
-			else if(driveType == 3)//disks and usb drives
-			{
 			}
 		}
 	}
@@ -93,16 +90,29 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 			DWORD deviceControlRetVal(0);
 			BOOL error = DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 			CloseHandle(handle);
-			if (error != 0)
-				std::cout << "Ejected " << mpath << "\n";
-			else
+			if (error == 0)
+			{
 				std::cerr << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
+			}
 
 
 			m_current_drives.erase(it);
 			break;
 		}
 	}
+}
+bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
+{
+	if (m_current_drives.empty())
+		return false;
+	int letter = PathGetDriveNumberA(path.c_str());
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		char drive = (*it).path[0];
+		if (drive == ('A' + letter))
+			return true;
+	}
+	return false;
 }
 #else
 void RemovableDriveManager::search_for_drives()
@@ -112,11 +122,11 @@ void RemovableDriveManager::search_for_drives()
 	std::string pp(path);
 
 	m_current_drives.clear();
-	m_current_Drives.reserve(26);
+	m_current_drives.reserve(26);
 
     //search /media/* folder
     stat("/media/",&buf);
-    std::cout << "/media ID: " <<buf.st_dev << "\n";
+    //std::cout << "/media ID: " <<buf.st_dev << "\n";
 	search_path("/media/*", buf.st_dev);
 
 	//search /media/USERNAME/* folder
@@ -124,44 +134,48 @@ void RemovableDriveManager::search_for_drives()
 	path = "/media/" + path + "/*";
 
 	stat(pp.c_str() ,&buf);
-    std::cout << pp <<" ID: " <<buf.st_dev << "\n";
-	searchPath(path, buf.st_dev);
+    //std::cout << pp <<" ID: " <<buf.st_dev << "\n";
+	search_path(path, buf.st_dev);
 
 	//search /run/media/USERNAME/* folder
 	path = "/run" + path;
 	pp = "/run"+pp;
 	stat(pp.c_str() ,&buf);
-    std::cout << pp <<" ID: " <<buf.st_dev << "\n";
-	searchPath(path, buf.st_dev);
+    //std::cout << pp <<" ID: " <<buf.st_dev << "\n";
+	search_path(path, buf.st_dev);
 
-	std::cout << "found drives:" <<newDrives.size() << "\n";
+	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::search_path(const std::string &path,const dev_t &parentDevID)
 {
     glob_t globbuf;
 	globbuf.gl_offs = 2;
-    std::cout<<"searching "<<path<<"\n";
+    //std::cout<<"searching "<<path<<"\n";
 	int error = glob(path.c_str(), GLOB_TILDE, NULL, &globbuf);
 	if(error)
 	{
-		std::cerr<<"glob error "<< error<< "\n";
-	}
-	for(size_t i = 0; i < globbuf.gl_pathc; i++)
+		//std::cout<<"glob error "<< error<< "\n";
+	}else
 	{
-		std::cout<<globbuf.gl_pathv[i]<<"\n";
-		//TODO check if mounted
-		std::string name = basename(globbuf.gl_pathv[i]);
-        std::cout<<name<<"\n";
-        struct stat buf;
-		stat(globbuf.gl_pathv[i],&buf);
-		std::cout << buf.st_dev << "\n";
-		if(buf.st_dev != parentDevID)// not same file system
+		for(size_t i = 0; i < globbuf.gl_pathc; i++)
 		{
-            m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+			//std::cout<<globbuf.gl_pathv[i]<<"\n";
+			//TODO check if mounted
+			std::string name = basename(globbuf.gl_pathv[i]);
+	        //std::cout<<name<<"\n";
+	        struct stat buf;
+			stat(globbuf.gl_pathv[i],&buf);
+			//std::cout << buf.st_dev << "\n";
+			if(buf.st_dev != parentDevID)// not same file system
+			{
+	            m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+			}
 		}
 	}
+	
 	globfree(&globbuf);
 }
+
 void RemovableDriveManager::eject_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
@@ -171,7 +185,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 	{
 		if((*it).path == path)
 		{
-            std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
+            //std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
             int error = umount2(path.c_str(),MNT_DETACH);
             if(error)
             {
@@ -184,6 +198,21 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 
 	}
 
+}
+bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
+{
+	if (m_current_drives.empty())
+		return false;
+	struct stat path_buf;
+	stat(path.c_str(), &path_buf);
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		struct stat drive_buf; 
+		stat((*it).path.c_str(), &drive_buf);
+		if(drive_buf.st_dev == path_buf.st_dev)
+			return true;
+	}
+	return false;
 }
 #endif
 bool RemovableDriveManager::update()
@@ -222,26 +251,8 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 	return m_current_drives;
 }
 #if _WIN32
-bool RemovableDriveManager::is_path_on_removable_drive(const std::string& path)
-{
-	if (m_current_drives.empty())
-		return false;
-	int letter = PathGetDriveNumberA(path.c_str());
-	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
-	{
-		char drive = (*it).path[0];
-		if (drive == ('A' + letter))
-			return true;
-	}
-	return false;
-}
-#else
-bool RemovableDriveManager::is_path_on_removable_drive(const std::string& path, const std::string& drive)
-{
-	if (m_current_drives.empty())
-		return false;
 
-	return false;
-}
+#else
+
 #endif
 }}//namespace Slicer::Gui::
