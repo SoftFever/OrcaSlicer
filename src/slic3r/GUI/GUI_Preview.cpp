@@ -582,16 +582,6 @@ void Preview::update_view_type(bool slice_completed)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
 
-    /*
-    // #ys_FIXME_COLOR
-    const wxString& choice = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty() && 
-                             wxGetApp().extruders_edited_cnt()==1 ? 
-                                _(L("Color Print")) :
-                                config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
-                                    _(L("Tool")) : 
-                                    _(L("Feature type"));
-    */
-
     const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() /*&&
                              (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
                                 _(L("Color Print")) :
@@ -728,9 +718,6 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    // #ys_FIXME_COLOR
-    // std::vector<double> &ticks_from_config = (wxGetApp().preset_bundle->project_config.option<ConfigOptionFloats>("colorprint_heights"))->values;
-    // check_slider_values(ticks_from_config, layers_z);
     std::vector<Model::CustomGCode> tmp_ticks_from_model;
     if (m_selected_extruder != 0)
         tmp_ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
@@ -761,40 +748,14 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     m_slider->SetTicksValues(ticks_from_model);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
-    //  #ys_FIXME_COLOR
-    // if (color_print_enable) {
-    //     const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    //     if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
-    //         color_print_enable = false;
-    // }
-    // m_slider->EnableTickManipulation(color_print_enable);
 
     m_slider->EnableTickManipulation(color_print_enable);
     if (color_print_enable && wxGetApp().extruders_edited_cnt() > 1) {
-        //bool is_detected_full_print = //wxGetApp().plater()->fff_print().extruders().size() == 1;
         m_slider->SetExtruderID(m_extruder_selector->GetSelection());
     }
     else
         m_slider->SetExtruderID(-1);
 
-}
-//  #ys_FIXME_COLOR
-void Preview::check_slider_values(std::vector<double>& ticks_from_config,
-                                 const std::vector<double> &layers_z)
-{
-    // All ticks that would end up outside the slider range should be erased.
-    // TODO: this should be placed into more appropriate part of code,
-    // this function is e.g. not called when the last object is deleted
-    unsigned int old_size = ticks_from_config.size();
-    ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
-                                           [layers_z](double val)
-    {
-        auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val - DoubleSlider::epsilon());
-        return it == layers_z.end();
-    }),
-                            ticks_from_config.end());
-    if (ticks_from_config.size() != old_size)
-        m_schedule_background_process();
 }
 
 void Preview::reset_double_slider()
@@ -878,51 +839,19 @@ void Preview::load_print_as_fff(bool keep_z_range)
     bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
     // Collect colors per extruder.
     std::vector<std::string> colors;
-    // #ys_FIXME_COLOR
-    // std::vector<double> color_print_values = {};
     std::vector<Model::CustomGCode> color_print_values = {};
     // set color print values, if it si selected "ColorPrint" view type
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
     {
-        color_print_values = wxGetApp().plater()->model().custom_gcode_per_height;
-        /* colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
-        for (const Model::CustomGCode& code : color_print_values)
-            if (code.gcode == ColorChangeCode)
-                colors.push_back(code.color);*/
-        colors =  wxGetApp().plater()->get_colors_for_color_print();
+        colors = wxGetApp().plater()->get_colors_for_color_print();
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
 
-        if (gcode_preview_data_valid)
-            color_print_values.clear();
-        /*
-        if (! gcode_preview_data_valid) {
-            // #ys_FIXME_COLOR
-            // const auto& config = wxGetApp().preset_bundle->project_config;
-            // color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+        if (!gcode_preview_data_valid)
             color_print_values = wxGetApp().plater()->model().custom_gcode_per_height;
-        }
-        */
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
     {
-        const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
-        const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
-        unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
-
-        unsigned char rgb[3];
-        for (unsigned int i = 0; i < colors_count; ++i)
-        {
-            std::string color = m_config->opt_string("extruder_colour", i);
-            if (!PresetBundle::parse_color(color, rgb))
-            {
-                color = m_config->opt_string("filament_colour", i);
-                if (!PresetBundle::parse_color(color, rgb))
-                    color = "#FFFFFF";
-            }
-
-            colors.emplace_back(color);
-        }
+        colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
         color_print_values.clear();
     }
 
@@ -934,10 +863,6 @@ void Preview::load_print_as_fff(bool keep_z_range)
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
             m_loaded = true;
         } else {
-            // disable color change information for multi-material presets
-            // if (wxGetApp().extruders_edited_cnt() > 1) // #ys_FIXME_COLOR
-            //     color_print_values.clear();
-
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
         }

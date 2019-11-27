@@ -162,8 +162,6 @@ private:
     void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
                              const std::vector<double> &layers_z);
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
-    void check_slider_values(std::vector<double> &ticks_from_config,
-                            const std::vector<double> &layers_z); //  #ys_FIXME_COLOR
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);

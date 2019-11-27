@@ -836,59 +836,6 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
-                                                               std::vector<std::pair<double, double>>& cp_legend_values)
-{
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint /*&& 
-        wxGetApp().extruders_edited_cnt() == 1*/) // show color change legend only for single-material presets
-    {
-        /*
-        // #ys_FIXME_COLOR
-        auto& config = wxGetApp().preset_bundle->project_config;
-        const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
-        
-        if (!color_print_values.empty()) {
-            std::vector<double> print_zs = canvas.get_current_print_zs(true);
-            for (auto cp_value : color_print_values)
-            {
-                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value - DoubleSlider::epsilon());
-
-                if (lower_b == print_zs.end())
-                    continue;
-
-                double current_z    = *lower_b;
-                double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
-
-                // to avoid duplicate values, check adding values
-                if (cp_legend_values.empty() || 
-                    !(cp_legend_values.back().first == previous_z && cp_legend_values.back().second == current_z) )
-                    cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
-            }
-        }
-        */
-        std::vector<Model::CustomGCode> custom_gcode_per_height = wxGetApp().plater()->model().custom_gcode_per_height;
-        
-        if (!custom_gcode_per_height.empty()) {
-            std::vector<double> print_zs = canvas.get_current_print_zs(true);
-            for (auto custom_code : custom_gcode_per_height)
-            {
-                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.height - DoubleSlider::epsilon());
-
-                if (lower_b == print_zs.end())
-                    continue;
-
-                double current_z    = *lower_b;
-                double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
-
-                // to avoid duplicate values, check adding values
-                if (cp_legend_values.empty() || 
-                    !(cp_legend_values.back().first == previous_z && cp_legend_values.back().second == current_z) )
-                    cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
-            }
-        }
-    }
-}
-
 void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D& canvas,
                                                                 const std::vector<float>& colors_in,
                                                                 std::vector<float>& colors,
@@ -996,12 +943,6 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // collects items to render
     auto title = _(preview_data.get_legend_title());
-
-    // #ys_FIXME_COLOR
-    // std::vector<std::pair<double, double>> cp_legend_values;
-    // fill_color_print_legend_values(preview_data, canvas, cp_legend_values);
-
-    // const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_values);
 
     std::vector<std::string> cp_legend_items;
     std::vector<float> cp_colors;
@@ -2380,8 +2321,6 @@ void GLCanvas3D::load_sla_preview()
     }
 }
 
-// #ys_FIXME_COLOR
-// void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
 void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     const Print *print = this->fff_print();
@@ -5159,8 +5098,6 @@ void GLCanvas3D::_load_print_toolpaths()
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
-// #ys_FIXME_COLOR
-// void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
@@ -5173,8 +5110,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_infill;
         bool                         has_support;
         const std::vector<float>*    tool_colors;
-        // #ys_FIXME_COLOR
-        // const std::vector<double>*   color_print_values;
         bool                         is_single_material_print;
         int                          extruders_cnt;
         const std::vector<Model::CustomGCode>*   color_print_values;
@@ -5192,8 +5127,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            // #ys_FIXME_COLOR
-            // auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
             const Model::CustomGCode value(layers[layer_idx]->print_z + EPSILON, "", 0, "");
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
@@ -5350,33 +5283,13 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         std::vector<size_t>	color_print_layer_to_glvolume;
         auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {            
             return *vols[ctxt.color_by_color_print()?
-            	//color_print_layer_to_glvolume[layer_idx - range.begin()] :
                 ctxt.color_print_color_idx_by_layer_idx_and_extruder(layer_idx, extruder) :
 				ctxt.color_by_tool() ? 
 					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
 					feature
 				];
         };
-        /*if (ctxt.color_by_color_print()) {
-        	// Create a map from the layer index to a GLVolume, which is initialized with the correct layer span color.
-        	std::vector<int> color_print_tool_to_glvolume(ctxt.number_tools(), -1);
-        	color_print_layer_to_glvolume.reserve(range.end() - range.begin());
-        	vols.reserve(ctxt.number_tools());
-	        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-	        	int idx_tool = (int)ctxt.color_print_color_idx_by_layer_idx(idx_layer);
-	        	if (color_print_tool_to_glvolume[idx_tool] == -1) {
-	        		color_print_tool_to_glvolume[idx_tool] = (int)vols.size();
-	        		vols.emplace_back(new_volume(ctxt.color_tool(idx_tool)));
-	        	}
-	        	color_print_layer_to_glvolume.emplace_back(color_print_tool_to_glvolume[idx_tool]);
-	        }
-            vols.emplace_back(new_volume(ctxt.color_pause_or_custom_code()));
-        }
-            for (size_t i = 0; i < ctxt.number_tools(); ++i)
-                vols.emplace_back(new_volume(ctxt.color_tool(i)));
-            vols.emplace_back(new_volume(ctxt.color_pause_or_custom_code()));
-        }
-        else */if (ctxt.color_by_color_print() || ctxt.color_by_tool()) {
+        if (ctxt.color_by_color_print() || ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
         }

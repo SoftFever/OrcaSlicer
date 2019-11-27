@@ -928,8 +928,6 @@ void GCode::_do_export(Print &print, FILE *file)
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
     
-    //  #ys_FIXME_COLOR // Initialize colorprint.
-    // m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
     // Initialize custom gcode
     Model* model = print.get_object(0)->model_object()->get_model();
     m_custom_g_code_heights = model->custom_gcode_per_height;
@@ -1153,8 +1151,6 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     print.throw_if_canceled();
 
-
-    // #ys_FIXME_COLOR
     /* To avoid change filament for non-used extruder for Multi-material,
      * check model->custom_gcode_per_height using tool_ordering values
      * */
@@ -1862,19 +1858,15 @@ void GCode::process_layer(
     // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
     // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
     bool colorprint_change = false;
-    //  #ys_FIXME_COLOR
-    // while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
-    //     m_colorprint_heights.erase(m_colorprint_heights.begin());
-    //     colorprint_change = true;
-    // } 
+
     std::string custom_code = "";
     std::string pause_print_msg = "";
     int m600_before_extruder = -1;
     while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
         custom_code = m_custom_g_code_heights.front().gcode;
+
         if (custom_code == ColorChangeCode && m_custom_g_code_heights.front().extruder > 0)
             m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
-
         if (custom_code == PausePrintCode)
             pause_print_msg = m_custom_g_code_heights.front().color;
 
@@ -1883,16 +1875,6 @@ void GCode::process_layer(
     }
 
     // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
-    //  #ys_FIXME_COLOR
-    // if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
-    // {
-    //     // add tag for analyzer
-    //     gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
-    //     // add tag for time estimator
-    //     gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-    //     
-    //     gcode += "M600\n";
-    // }
 
     // don't save "tool_change"(ExtruderChangeCode) code to GCode
     if (colorprint_change && custom_code != ExtruderChangeCode) {
@@ -1936,28 +1918,6 @@ void GCode::process_layer(
             }
             gcode += custom_code + "\n";
         }
-
-        /*
-        if (single_material_print || custom_code != ExtruderChangeCode)
-        {
-            // add tag for analyzer
-            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
-            // add tag for time estimator
-            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-            if (single_material_print && custom_code == ExtruderChangeCode)
-                custom_code = ColorChangeCode;
-
-            if (!single_material_print && custom_code == ColorChangeCode && 
-                m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
-                // && !MMU1
-                ) {
-                gcode += "M601\n"; // pause print
-                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
-            }
-            else 
-                gcode += custom_code + "\n";
-        }
-    */
     }
 
 
