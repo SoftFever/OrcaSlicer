@@ -47,6 +47,7 @@ ExtruderSequenceDialog::ExtruderSequenceDialog(const DoubleSlider::ExtrudersSequ
 
     wxRadioButton* rb_by_layers = new wxRadioButton(this, ID_RADIO_BUTTON, "", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     rb_by_layers->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { m_sequence.is_mm_intervals = false; });
+    rb_by_layers->SetValue(!m_sequence.is_mm_intervals);
 
     wxStaticText* st_by_layers = new wxStaticText(this, wxID_ANY, _(L("layers")));
     m_interval_by_layers = new wxTextCtrl(this, wxID_ANY, 
