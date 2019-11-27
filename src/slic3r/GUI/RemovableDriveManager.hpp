@@ -24,7 +24,7 @@ public:
 	void operator=(RemovableDriveManager const&) = delete;
 	
 	//update() searches for removable devices, returns false if empty.
-	static bool update(); 
+	static bool update(long time = 0);  //time = 0 is forced update
 	static bool is_drive_mounted(const std::string &path);
 	static void eject_drive(const std::string &path);
 	static std::string get_last_drive_path();
@@ -34,6 +34,7 @@ private:
 	RemovableDriveManager(){}
 	static void search_for_drives();
 	static std::vector<DriveData> m_current_drives;
+	static long m_last_update;
 #if _WIN32
 #else
 	static void search_path(const std::string &path, const dev_t &parentDevID);
