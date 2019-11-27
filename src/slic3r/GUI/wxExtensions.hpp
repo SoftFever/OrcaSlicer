@@ -927,6 +927,7 @@ private:
     bool        m_suppress_add_code = false;
     ManipulationState m_state = msSingleExtruder;
     std::string m_custom_gcode = "";
+    std::string m_pause_print_msg;
     int         m_current_extruder = -1;
 
     wxRect      m_rect_lower_thumb;

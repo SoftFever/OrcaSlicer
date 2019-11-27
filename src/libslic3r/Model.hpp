@@ -772,7 +772,8 @@ public:
         std::string gcode;
         int         extruder;   // 0    - "gcode" will be applied for whole print
                                 // else - "gcode" will be applied only for "extruder" print
-        std::string color;
+        std::string color;      // if gcode is equal to PausePrintCode, 
+                                // this field is used for save a short message shown on Printer display 
     };
     std::vector<CustomGCode> custom_gcode_per_height;
     

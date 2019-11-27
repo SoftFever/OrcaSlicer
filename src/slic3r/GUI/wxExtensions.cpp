@@ -27,6 +27,7 @@
 #include "../Utils/MacDarkMode.hpp"
 
 using Slic3r::GUI::from_u8;
+using Slic3r::GUI::into_u8;
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
@@ -2321,6 +2322,7 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     m_cog_icon_dim    = int((float)m_bmp_cog.bmp().GetSize().x / scale_factor);
 
     m_selection = ssUndef;
+    m_pause_print_msg = _utf8(L("Place bearings in slots and resume"));
 
     // slider events
     Bind(wxEVT_PAINT,       &DoubleSlider::OnPaint,    this);
@@ -2795,7 +2797,7 @@ void DoubleSlider::draw_ticks(wxDC& dc)
         // Draw icon for "Pause print" or "Custom Gcode"
         if (tick.gcode != Slic3r::ColorChangeCode && tick.gcode != Slic3r::ExtruderChangeCode)
         {
-            wxBitmap icon = create_scaled_bitmap(nullptr, tick.gcode == Slic3r::PausePrintCode ? "pause_add.png" : "add_gcode");
+            wxBitmap icon = create_scaled_bitmap(nullptr, tick.gcode == Slic3r::PausePrintCode ? "pause_print" : "edit_gcode");
 
             wxCoord x_draw, y_draw;
             is_horizontal() ? x_draw = pos - 0.5 * m_tick_icon_dim : y_draw = pos - 0.5 * m_tick_icon_dim;
@@ -3084,19 +3086,17 @@ wxString DoubleSlider::get_tooltip(IconFocus icon_focus)
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
         const auto tick_code_it = m_ticks_.find(tick);
-        tooltip = tick_code_it == m_ticks_.end()            ? (m_state == msSingleExtruder ? //_(L("Add color change")) :
+        tooltip = tick_code_it == m_ticks_.end()            ? (m_state == msSingleExtruder ?
                         _(L("For add color change use left mouse button click")) :
                         _(L("For add change extruder use left mouse button click"))) + "\n" +
                         _(L("For add another code use right mouse button click")) :
-                  // tick_code_it->gcode == Slic3r::ColorChangeCode          ? _(L("Delete color change")) :
-                  tick_code_it->gcode == Slic3r::ColorChangeCode             ? ( m_state == msSingleExtruder ? //_(L("Delete color change")) :
+                  tick_code_it->gcode == Slic3r::ColorChangeCode             ? ( m_state == msSingleExtruder ?
                       _(L("For Delete color change use left mouse button click\n"
                           "For Edit color use right mouse button click")) :
                       from_u8((boost::format(_utf8(L("Delete color change for Extruder %1%"))) % tick_code_it->extruder).str()) ):
-                  tick_code_it->gcode == Slic3r::PausePrintCode             ? _(L("Delete pause")) :
-                  tick_code_it->gcode == Slic3r::ExtruderChangeCode         ? //( m_state == msSingleExtruder ? _(L("Delete color change")) :
-                      from_u8((boost::format(_utf8(L("Delete extruder change to \"%1%\""))) % tick_code_it->extruder).str()) /*) */:
-                      // from_u8((boost::format(_utf8(L("Delete \"%1%\" code"))) % tick_code_it->gcode).str());
+//                  tick_code_it->gcode == Slic3r::PausePrintCode             ? _(L("Delete pause")) :
+                  tick_code_it->gcode == Slic3r::ExtruderChangeCode         ?
+                      from_u8((boost::format(_utf8(L("Delete extruder change to \"%1%\""))) % tick_code_it->extruder).str()) :
                       from_u8((boost::format(_utf8(L("For Delete \"%1%\" code use left mouse button click\n"
                                                        "For Edit \"%1%\" code use right mouse button click"))) % tick_code_it->gcode ).str());
     }
@@ -3373,7 +3373,7 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
             m_show_context_menu = true;
             return;
         }
-        if (it->gcode != Slic3r::ExtruderChangeCode && it->gcode != Slic3r::PausePrintCode)
+        if (it->gcode != Slic3r::ExtruderChangeCode)
         {
             // show "Edit" and "Delete" menu on OnRightUp()
             m_show_edit_menu = true;
@@ -3459,10 +3459,10 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
 
         if (m_state != msMultiExtruder) 
         append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
-            [this](wxCommandEvent&) { add_code(Slic3r::PausePrintCode); }, "pause_add.png", &menu);
+            [this](wxCommandEvent&) { add_code(Slic3r::PausePrintCode); }, "pause_print", &menu);
     
         append_menu_item(&menu, wxID_ANY, _(L("Add custom G-code")), "",
-            [this](wxCommandEvent&) { add_code(""); }, "add_gcode", &menu);
+            [this](wxCommandEvent&) { add_code(""); }, "edit_gcode", &menu);
     
         Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
 
@@ -3474,10 +3474,14 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
         std::set<TICK_CODE>::iterator it = m_ticks_.find(m_selection == ssLower ? m_lower_value : m_higher_value);
         const bool is_color_change = it->gcode == Slic3r::ColorChangeCode;
 
-        append_menu_item(&menu, wxID_ANY, is_color_change ? _(L("Edit color")) : _(L("Edit custom G-code")), "",
-            [this](wxCommandEvent&) { edit_tick(); }, "change_extruder", &menu);
+        append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Edit color")) :
+                                          it->gcode == Slic3r::PausePrintCode ? _(L("Edit pause print message")) :
+                                          _(L("Edit custom G-code")), "",
+            [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
 
-        append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Delete color change")) : _(L("Delete custom G-code")), "",
+        append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Delete color change")) : 
+                                          it->gcode == Slic3r::PausePrintCode ? _(L("Delete pause print")) :
+                                          _(L("Delete custom G-code")), "",
             [this](wxCommandEvent&) { action_tick(taDel); }, "colorchange_delete_off.png", &menu);
 
         Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
@@ -3521,6 +3525,20 @@ static std::string get_custom_code(const std::string& code_in, double height)
     return dlg.GetValue().ToStdString();
 }
 
+static std::string get_pause_print_msg(const std::string& msg_in, double height)
+{
+    wxString msg_text = from_u8(_utf8(L("Enter short message shown on Printer display during pause print"))) + " :";
+    wxString msg_header = from_u8((boost::format(_utf8(L("Message for pause print on current layer (%1% mm)."))) % height).str());
+
+    // get custom gcode
+    wxTextEntryDialog dlg(nullptr, msg_text, msg_header, from_u8(msg_in),
+        wxTextEntryDialogStyle);
+    if (dlg.ShowModal() != wxID_OK || dlg.GetValue().IsEmpty())
+        return "";
+
+    return into_u8(dlg.GetValue());
+}
+
 void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
@@ -3552,6 +3570,13 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
             color = get_new_color(color);
             if (color.empty())
                 return;
+        }
+        else if (code == Slic3r::PausePrintCode)
+        {
+            /* PausePrintCode doesn't need a color, so
+             * this field is used for save a short message shown on Printer display 
+             * */
+            m_pause_print_msg = color = get_pause_print_msg(m_pause_print_msg, m_values[tick]);
         }
         else if (code.empty())
         {
@@ -3586,6 +3611,8 @@ void DoubleSlider::edit_tick()
         std::string edited_value;
         if (it->gcode == Slic3r::ColorChangeCode)
             edited_value = get_new_color(it->color);
+        else if (it->gcode == Slic3r::PausePrintCode)
+            edited_value = get_pause_print_msg(it->color, m_values[it->tick]);
         else
             edited_value = get_custom_code(it->gcode, m_values[it->tick]);
 
@@ -3593,7 +3620,7 @@ void DoubleSlider::edit_tick()
             return;
 
         TICK_CODE changed_tick = *it;
-        if (it->gcode == Slic3r::ColorChangeCode) {
+        if (it->gcode == Slic3r::ColorChangeCode || it->gcode == Slic3r::PausePrintCode) {
             if (it->color == edited_value)
                 return;
             changed_tick.color = edited_value;

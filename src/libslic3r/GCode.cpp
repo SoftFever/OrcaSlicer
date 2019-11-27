@@ -1868,11 +1868,16 @@ void GCode::process_layer(
     //     colorprint_change = true;
     // } 
     std::string custom_code = "";
+    std::string pause_print_msg = "";
     int m600_before_extruder = -1;
     while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
         custom_code = m_custom_g_code_heights.front().gcode;
         if (custom_code == ColorChangeCode && m_custom_g_code_heights.front().extruder > 0)
             m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
+
+        if (custom_code == PausePrintCode)
+            pause_print_msg = m_custom_g_code_heights.front().color;
+
         m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
         colorprint_change = true;
     }
@@ -1903,6 +1908,7 @@ void GCode::process_layer(
             if (!single_material_print && m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
                 // && !MMU1
                 ) {
+                //! FIXME_in_fw show message during print pause
                 gcode += "M601\n"; // pause print
                 gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
             }
@@ -1915,6 +1921,9 @@ void GCode::process_layer(
             {
                 // add tag for analyzer
                 gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
+                //! FIXME_in_fw show message during print pause
+                if (!pause_print_msg.empty())
+                    gcode += "M117 " + pause_print_msg + "\n";
                 // add tag for time estimator
                 //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
             }
