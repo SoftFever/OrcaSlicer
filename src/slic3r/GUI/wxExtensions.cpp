@@ -2561,7 +2561,7 @@ void DoubleSlider::SetTicksValues(const std::vector<t_custom_code>& heights)
         m_ticks_.insert(TICK_CODE(it-m_values.begin(), h.gcode, h.extruder, h.color));
     }
     
-    if (!was_empty && m_ticks_.empty() && m_state != msMultiExtruder)
+    if (!was_empty && m_ticks_.empty())
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 
@@ -2847,15 +2847,15 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
     for (auto tick : m_ticks_)
     {
         if ( (m_state == msSingleExtruder && tick.gcode != Slic3r::ColorChangeCode) ||
-             (m_state == msMultiExtruderWholePrint && tick.gcode != Slic3r::ExtruderChangeCode) )
+             (m_state == msMultiExtruder && tick.gcode != Slic3r::ExtruderChangeCode) )
             continue;
 
         const wxCoord pos = get_position_from_value(tick.tick);
         is_horizontal() ? main_band.SetLeft(SLIDER_MARGIN + pos) :
             main_band.SetBottom(pos - 1);
 
-        clr = (m_state == msMultiExtruderWholePrint && tick.color.empty()) ? bg_clr :
-               m_state == msMultiExtruderWholePrint ? wxColour(colors[std::min<int>(colors_cnt - 1, tick.extruder-1)]) : wxColour(tick.color);
+        clr = (m_state == msMultiExtruder && tick.color.empty()) ? bg_clr :
+               m_state == msMultiExtruder ? wxColour(colors[std::min<int>(colors_cnt - 1, tick.extruder-1)]) : wxColour(tick.color);
         draw_band(dc, clr, main_band);
         i++;
     }
@@ -2900,7 +2900,7 @@ void DoubleSlider::draw_revert_icon(wxDC& dc)
 
 void DoubleSlider::draw_cog_icon(wxDC& dc)
 {
-    if (m_state != msMultiExtruderWholePrint)
+    if (m_state != msMultiExtruder)
         return;
 
     int width, height;
@@ -3016,7 +3016,7 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
         m_ticks_.clear();
         wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
     }
-    else if (is_point_in_rect(pos, m_rect_cog_icon) && m_state == msMultiExtruderWholePrint) {
+    else if (is_point_in_rect(pos, m_rect_cog_icon) && m_state == msMultiExtruder) {
         // show dialog for set extruder sequence
         m_edit_extruder_sequence = true;
     }
@@ -3160,7 +3160,7 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
 
     if (m_show_context_menu)
     {
-        if (m_state == msMultiExtruderWholePrint)
+        if (m_state == msMultiExtruder)
         {
             wxMenu menu;
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
@@ -3279,7 +3279,7 @@ void DoubleSlider::action_tick(const TicksAction action)
         if (m_suppress_add_code)
             return;
         m_suppress_add_code = true;
-        if (m_state != msMultiExtruderWholePrint)
+        if (m_state != msMultiExtruder)
             add_code(Slic3r::ColorChangeCode);
         m_suppress_add_code = false;
         return;
@@ -3423,7 +3423,7 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
     if (m_show_context_menu) {
         wxMenu menu;
 
-        if (m_state == msMultiExtruderWholePrint)
+        if (m_state == msMultiExtruder)
         {
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
             if (extruders_cnt > 1)
@@ -3457,7 +3457,6 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
         append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
             [this](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode); }, "colorchange_add_off.png", &menu);
 
-        if (m_state != msMultiExtruder) 
         append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
             [this](wxCommandEvent&) { add_code(Slic3r::PausePrintCode); }, "pause_print", &menu);
     
@@ -3584,14 +3583,12 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
         }
 
         int extruder = 1;
-        if (m_state == msMultiExtruderWholePrint) { 
+        if (m_state == msMultiExtruder) { 
             if (code == Slic3r::ColorChangeCode && selected_extruder >= 0)
                 extruder = selected_extruder;
             else
                 extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
         }
-        else if (m_state == msMultiExtruder && m_current_extruder > 0)
-            extruder = m_current_extruder;
 
         m_ticks_.insert(TICK_CODE(tick, code, extruder, color));
 

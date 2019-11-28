@@ -818,19 +818,16 @@ public:
     }
 
     enum ManipulationState {
-        msSingleExtruder,           // single extruder printer preset is selected
-        msMultiExtruder,            // multiple extruder printer preset is selected
-        msMultiExtruderWholePrint   // multiple extruder printer preset is selected, and "Whole print" is selected 
+        msSingleExtruder,   // single extruder printer preset is selected
+        msMultiExtruder     // multiple extruder printer preset is selected, and "Whole print" is selected 
     };
     void SetManipulationState(ManipulationState state) {
         m_state = state;
     }
-    ManipulationState GetManipulationState() const { return m_state; }
-    void SetExtruderID(int extruder) {
-        m_current_extruder = extruder;
-        m_state = extruder < 0 ? msSingleExtruder :
-                  extruder > 0 ? msMultiExtruder  : msMultiExtruderWholePrint;
+    void SetManipulationState(int extruders_cnt) {
+        m_state = extruders_cnt ==1 ? msSingleExtruder : msMultiExtruder;
     }
+    ManipulationState GetManipulationState() const { return m_state; }
 
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
@@ -928,7 +925,6 @@ private:
     ManipulationState m_state = msSingleExtruder;
     std::string m_custom_gcode = "";
     std::string m_pause_print_msg;
-    int         m_current_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;

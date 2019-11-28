@@ -697,11 +697,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
 
     m_slider->EnableTickManipulation(color_print_enable);
-    if (color_print_enable && wxGetApp().extruders_edited_cnt() > 1) {
-        m_slider->SetExtruderID(0);
-    }
-    else
-        m_slider->SetExtruderID(-1);
+    m_slider->SetManipulationState(wxGetApp().extruders_edited_cnt());
 }
 
 void Preview::reset_double_slider()
