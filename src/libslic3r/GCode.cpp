@@ -992,7 +992,7 @@ void GCode::_do_export(Print& print, FILE* file)
     {
         const size_t max_row_length = 78;
         ThumbnailsList thumbnails;
-        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
+        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
         for (const ThumbnailData& data : thumbnails)
         {
             if (data.is_valid())

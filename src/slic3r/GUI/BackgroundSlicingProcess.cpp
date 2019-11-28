@@ -148,8 +148,8 @@ void BackgroundSlicingProcess::process_sla()
             if (m_thumbnail_cb != nullptr)
             {
                 ThumbnailsList thumbnails;
-                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
-//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true); // renders also supports and pad
+                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
+//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true, true); // renders also supports and pad
                 for (const ThumbnailData& data : thumbnails)
                 {
                     if (data.is_valid())
@@ -473,8 +473,8 @@ void BackgroundSlicingProcess::prepare_upload()
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;
-            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
-//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true); // renders also supports and pad
+            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
+//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true, true); // renders also supports and pad
             for (const ThumbnailData& data : thumbnails)
             {
                 if (data.is_valid())

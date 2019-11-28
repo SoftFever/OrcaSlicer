@@ -1947,8 +1947,8 @@ struct Plater::priv
     bool can_reload_from_disk() const;
 
 #if ENABLE_THUMBNAIL_GENERATOR
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background);
-    void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
+    void generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
     void msw_rescale_object_menu();
@@ -2019,13 +2019,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
 #if ENABLE_THUMBNAIL_GENERATOR
-    background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background)
+    background_process.set_thumbnail_cb([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
         {
-            std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background) {
-                generate_thumbnails(thumbnails, sizes, printable_only, parts_only, transparent_background);
+            std::packaged_task<void(ThumbnailsList&, const Vec2ds&, bool, bool, bool, bool)> task([this](ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background) {
+                generate_thumbnails(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background);
                 });
             std::future<void> result = task.get_future();
-            wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, transparent_background); });
+            wxTheApp->CallAfter([&]() { task(thumbnails, sizes, printable_only, parts_only, show_bed, transparent_background); });
             result.wait();
         });
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -3653,19 +3653,19 @@ bool Plater::priv::init_object_menu()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, transparent_background);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, printable_only, parts_only, show_bed, transparent_background);
 }
 
-void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool transparent_background)
+void Plater::priv::generate_thumbnails(ThumbnailsList& thumbnails, const Vec2ds& sizes, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     thumbnails.clear();
     for (const Vec2d& size : sizes)
     {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), printable_only, parts_only, transparent_background);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), printable_only, parts_only, show_bed, transparent_background);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
@@ -4713,7 +4713,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     wxBusyCursor wait;
 #if ENABLE_THUMBNAIL_GENERATOR
     ThumbnailData thumbnail_data;
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true);
+    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true);
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, &thumbnail_data)) {
 #else
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {

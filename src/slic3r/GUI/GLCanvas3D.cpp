@@ -1924,13 +1924,13 @@ void GLCanvas3D::render()
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     switch (GLCanvas3DManager::get_framebuffers_type())
     {
-    case GLCanvas3DManager::FB_Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
-    case GLCanvas3DManager::FB_Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
-    default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, transparent_background); break; }
+    case GLCanvas3DManager::FB_Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
+    case GLCanvas3DManager::FB_Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
+    default: { _render_thumbnail_legacy(thumbnail_data, w, h, printable_only, parts_only, show_bed, transparent_background); break; }
     }
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -3884,7 +3884,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     auto is_visible = [](const GLVolume& v) -> bool
     {
@@ -3921,7 +3921,48 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.apply_view_matrix();
-    camera.apply_projection(box);
+
+    double near_z = -1.0;
+    double far_z = -1.0;
+
+    if (show_bed)
+    {
+        // extends the near and far z of the frustrum to avoid the bed being clipped
+        BoundingBoxf3 bed_box = m_bed.get_bounding_box(true);
+
+        // bed box vertices in world space
+        std::vector<Vec3d> vertices;
+        vertices.reserve(8);
+        vertices.push_back(bed_box.min);
+        vertices.emplace_back(bed_box.max(0), bed_box.min(1), bed_box.min(2));
+        vertices.emplace_back(bed_box.max(0), bed_box.max(1), bed_box.min(2));
+        vertices.emplace_back(bed_box.min(0), bed_box.max(1), bed_box.min(2));
+        vertices.emplace_back(bed_box.min(0), bed_box.min(1), bed_box.max(2));
+        vertices.emplace_back(bed_box.max(0), bed_box.min(1), bed_box.max(2));
+        vertices.push_back(bed_box.max);
+        vertices.emplace_back(bed_box.min(0), bed_box.max(1), bed_box.max(2));
+
+        double bed_box_min_z = DBL_MAX;
+        double bed_box_max_z = -DBL_MAX;
+        Transform3d view_matrix = camera.get_view_matrix();
+        for (const Vec3d& v : vertices)
+        {
+            Vec3d eye_v = view_matrix * v;
+            if (eye_v(2) < 0.0)
+            {
+                bed_box_min_z = std::min(bed_box_min_z, -eye_v(2));
+                bed_box_max_z = std::max(bed_box_max_z, -eye_v(2));
+            }
+        }
+
+        if (bed_box_min_z != DBL_MAX)
+            near_z = bed_box_min_z;
+
+        if (bed_box_max_z != -DBL_MAX)
+            far_z = bed_box_max_z;
+    }
+
+    camera.apply_projection(box, near_z, far_z);
 
     if (transparent_background)
         glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
@@ -3953,11 +3994,14 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
+    if (show_bed)
+        _render_bed(camera.get_theta(), false);
+
     if (transparent_background)
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4010,7 +4054,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
     {
-        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
 
         if (multisample)
         {
@@ -4061,7 +4105,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4114,7 +4158,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
     {
-        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
 
         if (multisample)
         {
@@ -4165,7 +4209,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -4182,7 +4226,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
+    _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, show_bed, transparent_background);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT

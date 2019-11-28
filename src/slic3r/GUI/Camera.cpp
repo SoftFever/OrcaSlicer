@@ -196,7 +196,7 @@ void Camera::apply_view_matrix() const
     glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, m_view_matrix.data()));
 }
 
-void Camera::apply_projection(const BoundingBoxf3& box) const
+void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double far_z) const
 {
     set_distance(DefaultDistance);
 
@@ -206,6 +206,12 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
     while (true)
     {
         m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+
+        if (near_z > 0.0)
+            m_frustrum_zs.first = std::min(m_frustrum_zs.first, near_z);
+
+        if (far_z > 0.0)
+            m_frustrum_zs.second = std::max(m_frustrum_zs.second, far_z);
 
         w = 0.5 * (double)m_viewport[2];
         h = 0.5 * (double)m_viewport[3];
@@ -539,7 +545,7 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canv
     double dx = margin_factor * (max_x - min_x);
     double dy = margin_factor * (max_y - min_y);
 
-    if ((dx == 0.0) || (dy == 0.0))
+    if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
     return std::min((double)canvas_w / dx, (double)canvas_h / dy);
