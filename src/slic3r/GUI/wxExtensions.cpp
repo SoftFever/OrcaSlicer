@@ -2300,15 +2300,15 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
 
     const float scale_factor = get_svg_scale_factor(this);
 
-    m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "up_half_circle.png",   16, true));
-    m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "down_half_circle.png", 16, true));
+    m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "thumb_up"));
+    m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "thumb_down"));
     m_thumb_size = m_bmp_thumb_lower.bmp().GetSize();
 
-    m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add_on.png");
-    m_bmp_add_tick_off = ScalableBitmap(this, "colorchange_add_off.png");
-    m_bmp_del_tick_on  = ScalableBitmap(this, "colorchange_delete_on.png");
-    m_bmp_del_tick_off = ScalableBitmap(this, "colorchange_delete_off.png");
-    m_tick_icon_dim = m_bmp_add_tick_on.bmp().GetSize().x;
+    m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add");
+    m_bmp_add_tick_off = ScalableBitmap(this, "colorchange_add_f");
+    m_bmp_del_tick_on  = ScalableBitmap(this, "colorchange_del");
+    m_bmp_del_tick_off = ScalableBitmap(this, "colorchange_del_f");
+    m_tick_icon_dim = int((float)m_bmp_add_tick_on.bmp().GetSize().x / scale_factor);
 
     m_bmp_one_layer_lock_on    = ScalableBitmap(this, "lock_closed");
     m_bmp_one_layer_lock_off   = ScalableBitmap(this, "lock_closed_f");
@@ -2341,7 +2341,7 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
     // control's view variables
     SLIDER_MARGIN     = 4 + Slic3r::GUI::wxGetApp().em_unit();
 
-    DARK_ORANGE_PEN   = wxPen(wxColour(253, 84, 2));
+    DARK_ORANGE_PEN   = wxPen(wxColour(237, 107, 33));
     ORANGE_PEN        = wxPen(wxColour(253, 126, 66));
     LIGHT_ORANGE_PEN  = wxPen(wxColour(254, 177, 139));
 
@@ -2716,7 +2716,7 @@ void DoubleSlider::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedS
         }
         else {
             x_draw = pos.x - int(0.5*m_thumb_size.x);
-            y_draw = pos.y+1;
+            y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
     else{
@@ -2726,7 +2726,7 @@ void DoubleSlider::draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedS
         }
         else {
             x_draw = pos.x - int(0.5*m_thumb_size.x);
-            y_draw = pos.y - m_thumb_size.y;
+            y_draw = pos.y - int(0.5*m_thumb_size.y);
         }
     }
     dc.DrawBitmap(selection == ssLower ? m_bmp_thumb_lower.bmp() : m_bmp_thumb_higher.bmp(), x_draw, y_draw);
@@ -2918,7 +2918,7 @@ void DoubleSlider::draw_cog_icon(wxDC& dc)
 
 void DoubleSlider::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
 {
-    const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, m_thumb_size.y);
+    const wxRect& rect = wxRect(begin_x, begin_y, m_thumb_size.x, int(m_thumb_size.y*0.5));
     if (selection == ssLower)
         m_rect_lower_thumb = rect;
     else
@@ -3166,18 +3166,6 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
             if (extruders_cnt > 1)
             {
-                /*
-                wxMenu* add_color_change_menu = new wxMenu();
-
-                for (int i = 1; i <= extruders_cnt; i++)
-                    append_menu_item(add_color_change_menu, wxID_ANY, wxString::Format(_(L("Extruder %d")), i), "",
-                        [this, i](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode, i); }, "", &menu);
-
-                const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
-                wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
-                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_off.png"));
-            */
-
                 const int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
 
                 wxMenu* change_extruder_menu = new wxMenu();
@@ -3450,12 +3438,12 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
 
                 const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
                 wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
-                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_off.png"));
+                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_m"));
             }
         }
         else
         append_menu_item(&menu, wxID_ANY, _(L("Add color change")) + " (M600)", "",
-            [this](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode); }, "colorchange_add_off.png", &menu);
+            [this](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode); }, "colorchange_add_m", &menu);
 
         append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
             [this](wxCommandEvent&) { add_code(Slic3r::PausePrintCode); }, "pause_print", &menu);
@@ -3481,7 +3469,7 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
         append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Delete color change")) : 
                                           it->gcode == Slic3r::PausePrintCode ? _(L("Delete pause print")) :
                                           _(L("Delete custom G-code")), "",
-            [this](wxCommandEvent&) { action_tick(taDel); }, "colorchange_delete_off.png", &menu);
+            [this](wxCommandEvent&) { action_tick(taDel); }, "colorchange_del_f", &menu);
 
         Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
 
