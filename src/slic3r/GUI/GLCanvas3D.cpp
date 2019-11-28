@@ -3884,8 +3884,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-
-static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volumes, ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool transparent_background)
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool printable_only, bool parts_only, bool transparent_background)
 {
     auto is_visible = [](const GLVolume& v) -> bool
     {
@@ -3899,7 +3898,7 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
 
     GLVolumePtrs visible_volumes;
 
-    for (GLVolume* vol : volumes)
+    for (GLVolume* vol : m_volumes.volumes)
     {
         if (!vol->is_modifier && !vol->is_wipe_tower && (!parts_only || (vol->composite_id.volume_id >= 0)))
         {
@@ -3930,9 +3929,9 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    shader.start_using();
+    m_shader.start_using();
 
-    GLint shader_id = shader.get_shader_program_id();
+    GLint shader_id = m_shader.get_shader_program_id();
     GLint color_id = ::glGetUniformLocation(shader_id, "uniform_color");
     GLint print_box_detection_id = ::glGetUniformLocation(shader_id, "print_box.volume_detection");
     glcheck();
@@ -3950,7 +3949,7 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
         vol->render();
     }
 
-    shader.stop_using();
+    m_shader.stop_using();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
@@ -4011,7 +4010,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
     {
-        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
 
         if (multisample)
         {
@@ -4115,7 +4114,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT)
     {
-        render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
+        _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
 
         if (multisample)
         {
@@ -4183,7 +4182,7 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     if (!thumbnail_data.is_valid())
         return;
 
-    render_volumes_in_thumbnail(m_shader, m_volumes.volumes, thumbnail_data, printable_only, parts_only, transparent_background);
+    _render_thumbnail_internal(thumbnail_data, printable_only, parts_only, transparent_background);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
