@@ -30,12 +30,16 @@ public:
 	static std::string get_last_drive_path();
 	static std::vector<DriveData> get_all_drives();
 	static bool is_path_on_removable_drive(const std::string &path);
+	static void add_callback(std::function<void()> callback);
+	static void print();
 private:
 	RemovableDriveManager(){}
 	static void search_for_drives();
+	static void check_and_notify();
 	static std::vector<DriveData> m_current_drives;
-	static long m_last_update;
+	static std::vector<std::function<void()>> m_callbacks;
 #if _WIN32
+	static void register_window();
 #else
 	static void search_path(const std::string &path, const dev_t &parentDevID);
 #endif

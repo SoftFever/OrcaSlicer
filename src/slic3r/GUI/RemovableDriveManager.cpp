@@ -23,7 +23,8 @@ namespace Slic3r {
 namespace GUI {
 
 std::vector<DriveData>  RemovableDriveManager::m_current_drives;
-long RemovableDriveManager::m_last_update = 0;
+std::vector<std::function<void()>>  RemovableDriveManager::m_callbacks;
+
 
 #if _WIN32
 void RemovableDriveManager::search_for_drives()
@@ -69,7 +70,7 @@ void RemovableDriveManager::search_for_drives()
 			}
 		}
 	}
-	
+	//std::cout << "found drives:" << m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::eject_drive(const std::string &path)
 {
@@ -114,6 +115,25 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 			return true;
 	}
 	return false;
+}
+void RemovableDriveManager::register_window()
+{
+	/*
+	WNDCLASSEX wndClass;
+
+	wndClass.cbSize = sizeof(WNDCLASSEX);
+	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	wndClass.hInstance = reinterpret_cast<HINSTANCE>(GetModuleHandle(0));
+	wndClass.lpfnWndProc = reinterpret_cast<WNDPROC>(WinProcCallback);
+	wndClass.cbClsExtra = 0;
+	wndClass.cbWndExtra = 0;
+	wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wndClass.hbrBackground = CreateSolidBrush(RGB(192, 192, 192));
+	wndClass.hCursor = LoadCursor(0, IDC_ARROW);
+	wndClass.lpszClassName = L"SlicerWindowClass";
+	wndClass.lpszMenuName = NULL;
+	wndClass.hIconSm = wndClass.hIcon;
+	*/
 }
 #else
 void RemovableDriveManager::search_for_drives()
@@ -218,19 +238,29 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 #endif
 bool RemovableDriveManager::update(long time)
 {
+	static long last_update = 0;
+	if(last_update == 0)
+	{
+		//add_callback(std::bind(&RemovableDriveManager::print, RemovableDriveManager::getInstance()));
+		add_callback([](void) { print(); });
+#if _WIN32
+		register_window();
+#endif
+	}
 	if(time != 0) //time = 0 is forced update
 	{
-		long diff = m_last_update - time;
+		long diff = last_update - time;
 		if(diff <= -2)
 		{
-			m_last_update = time;
+			last_update = time;
 		}else
 		{
 			return false; // return value shouldnt matter if update didnt run
 		}
 	}
-	std::cout << "RDM update " << m_last_update <<"\n";
+	//std::cout << "RDM update " << last_update <<"\n";
 	search_for_drives();
+	check_and_notify();
 	return !m_current_drives.empty();
 }
 
@@ -263,9 +293,24 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 {
 	return m_current_drives;
 }
-#if _WIN32
-
-#else
-
-#endif
+void RemovableDriveManager::check_and_notify()
+{
+	static int number_of_drives = 0;
+	if(number_of_drives != m_current_drives.size())
+	{
+		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+		{
+			(*it)();
+		}
+		number_of_drives = m_current_drives.size();
+	}
+}
+void RemovableDriveManager::add_callback(std::function<void()> callback)
+{
+	m_callbacks.push_back(callback);
+}
+void RemovableDriveManager::print()
+{
+	std::cout << "notified\n";
+}
 }}//namespace Slicer::Gui::
