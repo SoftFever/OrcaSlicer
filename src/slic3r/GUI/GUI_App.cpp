@@ -1126,7 +1126,6 @@ void GUI_App::gcode_thumbnails_debug()
                 }
                 else if (reading_image && boost::starts_with(gcode_line, END_MASK))
                 {
-#if ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
                     std::string out_filename = out_path + std::to_string(width) + "x" + std::to_string(height) + ".png";
                     boost::nowide::ofstream out_file(out_filename.c_str(), std::ios::binary);
                     if (out_file.good())
@@ -1138,46 +1137,6 @@ void GUI_App::gcode_thumbnails_debug()
                         out_file.write(decoded.c_str(), decoded.size());
                         out_file.close();
                     }
-#else
-                    if (!row.empty())
-                    {
-                        rows.push_back(row);
-                        row.clear();
-                    }
-
-                    if ((unsigned int)rows.size() == height)
-                    {
-                        std::vector<unsigned char> thumbnail(4 * width * height, 0);
-                        for (unsigned int r = 0; r < (unsigned int)rows.size(); ++r)
-                        {
-                            std::string decoded_row;
-                            decoded_row.resize(boost::beast::detail::base64::decoded_size(rows[r].size()));
-                            decoded_row.resize(boost::beast::detail::base64::decode((void*)&decoded_row[0], rows[r].data(), rows[r].size()).first);
-
-                            if ((unsigned int)decoded_row.size() == width * 4)
-                            {
-                                void* image_ptr = (void*)(thumbnail.data() + r * width * 4);
-                                ::memcpy(image_ptr, (const void*)decoded_row.c_str(), width * 4);
-                            }
-                        }
-
-                        wxImage image(width, height);
-                        image.InitAlpha();
-
-                        for (unsigned int r = 0; r < height; ++r)
-                        {
-                            unsigned int rr = r * width;
-                            for (unsigned int c = 0; c < width; ++c)
-                            {
-                                unsigned char* px = thumbnail.data() + 4 * (rr + c);
-                                image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
-                                image.SetAlpha((int)c, (int)r, px[3]);
-                            }
-                        }
-
-                        image.SaveFile(out_path + std::to_string(width) + "x" + std::to_string(height) + ".png", wxBITMAP_TYPE_PNG);
-                    }
-#endif // ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
 
                     reading_image = false;
                     width = 0;
@@ -1185,17 +1144,7 @@ void GUI_App::gcode_thumbnails_debug()
                     rows.clear();
                 }
                 else if (reading_image)
-                {
-#if !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
-                    if (!row.empty() && (gcode_line[1] == ' '))
-                    {
-                        rows.push_back(row);
-                        row.clear();
-                    }
-#endif // !ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE
-
                     row += gcode_line.substr(2);
-                }
             }
         }
 

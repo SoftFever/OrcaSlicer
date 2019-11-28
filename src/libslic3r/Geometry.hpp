@@ -137,6 +137,79 @@ inline bool segments_intersect(
 		   segments_could_intersect(jp1, jp2, ip1, ip2) <= 0;
 }
 
+// Based on Liang-Barsky function by Daniel White @ http://www.skytopia.com/project/articles/compsci/clipping.html
+template<typename T>
+bool liang_barsky_line_clipping(
+	// Start and end points of the source line, result will be stored there as well.
+	Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 						&x0,
+	Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 						&x1,
+	// Bounding box to clip with.
+	const BoundingBoxBase<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &bbox)
+{
+    Eigen::Matrix<T, 2, 1, Eigen::DontAlign> v = x1 - x0;
+    double t0 = 0.0;
+    double t1 = 1.0;
+
+	// Traverse through left, right, bottom, top edges.
+    for (int edge = 0; edge < 4; ++ edge)
+    {
+		double p, q;
+    	switch (edge) {
+    	case 0:	 p = - v.x();    q = - bbox.min.x() + x0.x();	break;
+        case 1:  p =   v.x();    q =   bbox.max.x() - x0.x();	break;
+        case 2:  p = - v.y();    q = - bbox.min.y() + x0.y();	break;
+        default: p =   v.y();    q =   bbox.max.y() - x0.y();   break;
+    	}
+        
+		if (p == 0) {
+			if (q < 0)
+				// Line parallel to the bounding box edge is fully outside of the bounding box.
+				return false;
+			// else don't clip
+		} else {
+	        double r = q / p;
+			if (p < 0) {
+				if (r > t1)
+            		// Fully clipped.
+            		return false;
+				if (r > t0)
+            		// Partially clipped.
+            		t0 = r;
+			} else {
+				assert(p > 0);
+				if (r < t0)
+            		// Fully clipped.
+            		return false;
+				if (r < t1)
+            		// Partially clipped.
+            		t1 = r;
+			}
+        }
+    }
+
+    // Clipped successfully.
+    x1  = x0 + t1 * v;
+    x0 += t0 * v;
+    return true;
+}
+
+// Based on Liang-Barsky function by Daniel White @ http://www.skytopia.com/project/articles/compsci/clipping.html
+template<typename T>
+bool liang_barsky_line_clipping(
+	// Start and end points of the source line.
+	const Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 					&x0src,
+	const Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 					&x1src,
+	// Bounding box to clip with.
+	const BoundingBoxBase<Eigen::Matrix<T, 2, 1, Eigen::DontAlign>> &bbox,
+	// Start and end points of the clipped line.
+	Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 						&x0clip,
+	Eigen::Matrix<T, 2, 1, Eigen::DontAlign> 						&x1clip)
+{
+	x0clip = x0src;
+	x1clip = x1src;
+	return liang_barsky_line_clipping(x0clip, x1clip, bbox);
+}
+
 Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);

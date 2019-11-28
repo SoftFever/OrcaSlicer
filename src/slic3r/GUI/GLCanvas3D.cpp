@@ -22,9 +22,11 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
+
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "Mouse3DController.hpp"
 #include "I18N.hpp"
 
 #if ENABLE_RETINA_GL
@@ -130,6 +132,9 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_object_max_z(0.f)
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    , m_adaptive_cusp(0.2f)
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
     , strength(0.005f)
@@ -150,7 +155,9 @@ GLCanvas3D::LayersEditing::~LayersEditing()
 }
 
 const float GLCanvas3D::LayersEditing::THICKNESS_BAR_WIDTH = 70.0f;
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 const float GLCanvas3D::LayersEditing::THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
 {
@@ -217,13 +224,103 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (!m_enabled)
         return;
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    static const ImVec4 orange(0.757f, 0.404f, 0.216f, 1.0f);
+
+    const Size& cnv_size = canvas.get_canvas_size();
+    float canvas_w = (float)cnv_size.get_width();
+    float canvas_h = (float)cnv_size.get_height();
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.set_next_window_pos(canvas_w - imgui.get_style_scaling() * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.set_next_window_bg_alpha(0.5f);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+    imgui.begin(_(L("Layer height profile")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    imgui.text(_(L("Left mouse button:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(_(L("Add detail")));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    imgui.text(_(L("Right mouse button:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(_(L("Remove detail")));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    imgui.text(_(L("Shift + Left mouse button:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(_(L("Reset to base")));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    imgui.text(_(L("Shift + Right mouse button:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(_(L("Smoothing")));
+
+    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    imgui.text(_(L("Mouse wheel:")));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    imgui.text(_(L("Increase/decrease edit area")));
+    
+    ImGui::Separator();
+    if (imgui.button(_(L("Adaptive"))))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_cusp));
+
+    ImGui::SameLine();
+    float text_align = ImGui::GetCursorPosX();
+    imgui.text(_(L("Cusp (mm)")));
+    ImGui::SameLine();
+    float widget_align = ImGui::GetCursorPosX();
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
+    m_adaptive_cusp = clamp((float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, m_adaptive_cusp);
+    ImGui::SliderFloat("", &m_adaptive_cusp, (float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, "%.2f");
+
+    ImGui::Separator();
+    if (imgui.button(_(L("Smooth"))))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params ));
+
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(text_align);
+    imgui.text(_(L("Radius")));
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
+    int radius = (int)m_smooth_params.radius;
+    if (ImGui::SliderInt("##1", &radius, 1, 10))
+        m_smooth_params.radius = (unsigned int)radius;
+
+    ImGui::SetCursorPosX(text_align);
+    imgui.text(_(L("Keep min")));
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
+    imgui.checkbox("##2", m_smooth_params.keep_min);
+
+    ImGui::Separator();
+    if (imgui.button(_(L("Reset"))))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
+
+    imgui.end();
+
+    ImGui::PopStyleVar();
+
+    const Rect& bar_rect = get_bar_rect_viewport(canvas);
+#else
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
     const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(reset_rect);
-    _render_active_object_annotations(canvas, bar_rect);
-    _render_profile(bar_rect);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    render_active_object_annotations(canvas, bar_rect);
+    render_profile(bar_rect);
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -248,11 +345,13 @@ bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, floa
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
 
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 bool GLCanvas3D::LayersEditing::reset_rect_contains(const GLCanvas3D& canvas, float x, float y)
 {
     const Rect& rect = get_reset_rect_screen(canvas);
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
 {
@@ -260,9 +359,14 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h);
+#else
     return Rect(w - thickness_bar_width(canvas), 0.0f, w, h - reset_button_height(canvas));
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
 
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
@@ -271,6 +375,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
 
     return Rect(w - thickness_bar_width(canvas), h - reset_button_height(canvas), w, h);
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
 {
@@ -281,9 +386,14 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+#else
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
 
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
@@ -295,13 +405,43 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
-
-bool GLCanvas3D::LayersEditing::_is_initialized() const
+bool GLCanvas3D::LayersEditing::is_initialized() const
 {
     return m_shader.is_initialized();
 }
 
+std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) const
+{
+    std::string ret;
+    if (m_enabled && (m_layer_height_profile.size() >= 4))
+    {
+        float z = get_cursor_z_relative(canvas);
+        if (z != -1000.0f)
+        {
+            z *= m_object_max_z;
+
+            float h = 0.0f;
+            for (size_t i = m_layer_height_profile.size() - 2; i >= 2; i -= 2)
+            {
+                float zi = m_layer_height_profile[i];
+                float zi_1 = m_layer_height_profile[i - 2];
+                if ((zi_1 <= z) && (z <= zi))
+                {
+                    float dz = zi - zi_1;
+                    h = (dz != 0.0f) ? lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz) : m_layer_height_profile[i + 1];
+                    break;
+                }
+            }
+            if (h > 0.0f)
+                ret = std::to_string(h);
+        }
+    }
+    return ret;
+}
+
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
 {
     // TODO: do this with ImGui
@@ -347,8 +487,9 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
 
     GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
-void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const
+void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const
 {
     m_shader.start_using();
 
@@ -379,7 +520,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     m_shader.stop_using();
 }
 
-void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
+void GLCanvas3D::LayersEditing::render_profile(const Rect& bar_rect) const
 {
     //FIXME show some kind of legend.
 
@@ -496,6 +637,24 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp)
+{
+    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object, cusp);
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+}
+
+void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params)
+{
+    m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, smoothing_params);
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
 {
 	this->update_slicing_parameters();
@@ -530,7 +689,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
-            wxGetApp().plater()->take_snapshot(_(L("Layers heights")));
+            wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Manual edit")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
@@ -557,6 +716,7 @@ float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
          * THICKNESS_BAR_WIDTH;
 }
 
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 {
     return
@@ -567,6 +727,7 @@ float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 #endif
          * THICKNESS_RESET_BUTTON_HEIGHT;
 }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
@@ -1196,6 +1357,11 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
+wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
@@ -1450,7 +1616,7 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::bed_shape_changed()
 {
-    m_camera.set_scene_box(scene_bounding_box());
+    refresh_camera_scene_box();
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
     if (m_bed.is_prusa())
@@ -1476,7 +1642,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box(false));
+    bb.merge(m_bed.get_bounding_box(true));
 
     if (m_config != nullptr)
     {
@@ -1497,6 +1663,32 @@ bool GLCanvas3D::is_layers_editing_allowed() const
 {
     return m_layers_editing.is_allowed();
 }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+void GLCanvas3D::reset_layer_height_profile()
+{
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Reset")));
+    m_layers_editing.reset_layer_height_profile(*this);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+
+void GLCanvas3D::adaptive_layer_height_profile(float cusp)
+{
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Adaptive")));
+    m_layers_editing.adaptive_layer_height_profile(*this, cusp);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+
+void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params)
+{
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Smooth all")));
+    m_layers_editing.smooth_layer_height_profile(*this, smoothing_params);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::is_reload_delayed() const
 {
@@ -1624,10 +1816,11 @@ void GLCanvas3D::render()
         return;
     }
 
+    const Size& cnv_size = get_canvas_size();
+
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
-        const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_camera.requires_zoom_to_bed = false;
     }
@@ -1717,6 +1910,8 @@ void GLCanvas3D::render()
 #if ENABLE_CAMERA_STATISTICS
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
+
+    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
 
     wxGetApp().imgui()->render();
 
@@ -2176,7 +2371,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
-    m_camera.set_scene_box(scene_bounding_box());
+    refresh_camera_scene_box();
 
     if (m_selection.is_empty())
     {
@@ -2212,11 +2407,11 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 
 static void load_gcode_retractions(const GCodePreviewData::Retraction& retractions, GLCanvas3D::GCodePreviewVolumeIndex::EType extrusion_type, GLVolumeCollection &volumes, GLCanvas3D::GCodePreviewVolumeIndex &volume_index, bool gl_initialized)
 {
-	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
-
 	// nothing to render, return
 	if (retractions.positions.empty())
 		return;
+
+	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
 
 	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba, VERTEX_BUFFER_RESERVE_SIZE);
 
@@ -2283,6 +2478,9 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
 	                		++ idx_volume_index_src;
 	                		idx_volume_of_this_type_last = (idx_volume_index_src + 1 == m_gcode_preview_volume_index.first_volumes.size()) ? m_volumes.volumes.size() : m_gcode_preview_volume_index.first_volumes[idx_volume_index_src + 1].id;
 	                		idx_volume_of_this_type_first_new = idx_volume_dst;
+	                		if (idx_volume_src == idx_volume_of_this_type_last)
+	                			// Empty sequence of volumes for the current index item.
+	                			continue;
 	                	}
 	                	if (! m_volumes.volumes[idx_volume_src]->print_zs.empty())
                 			m_volumes.volumes[idx_volume_dst ++] = m_volumes.volumes[idx_volume_src];
@@ -2416,14 +2614,21 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_main_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
+    bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(m_camera);
+    m_dirty |= mouse3d_controller_applied;
 
     if (!m_dirty)
         return;
 
     _refresh_if_shown_on_screen();
 
-    if (m_keep_dirty)
+    if (m_keep_dirty || mouse3d_controller_applied)
+    {
         m_dirty = true;
+        evt.RequestMore();
+    }
+    else
+        m_dirty = false;
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -2468,6 +2673,20 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
+
+#ifdef __APPLE__
+        case 'm':
+        case 'M':
+#else /* __APPLE__ */
+        case WXK_CONTROL_M:
+#endif /* __APPLE__ */
+            {
+                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                m_dirty = true;
+                break;
+            }
+
 #ifdef __APPLE__
         case 'v':
         case 'V':
@@ -2535,11 +2754,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
-        case 'i': { set_camera_zoom(1.0); break; }
+        case 'i': { _update_camera_zoom(1.0); break; }
         case 'K':
         case 'k': { m_camera.select_next_type(); m_dirty = true; break; }
         case 'O':
-        case 'o': { set_camera_zoom(-1.0); break; }
+        case 'o': { _update_camera_zoom(-1.0); break; }
 #if ENABLE_RENDER_PICKING_PASS
         case 'T':
         case 't': {
@@ -2642,6 +2861,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 {
+    // try to filter out events coming from mouse 3d 
+    Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+    if (controller.process_mouse_wheel())
+        return;
+
     if (!m_initialized)
         return;
 
@@ -2686,7 +2910,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
-    set_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+    _update_camera_zoom((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -2878,6 +3102,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos(0), pos(1)))
         {
             if (evt.LeftDown())
@@ -2890,6 +3115,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
             if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
@@ -3021,6 +3247,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         if ((m_layers_editing.state != LayersEditing::Unknown) && (layer_editing_object_idx != -1))
         {
+            set_tooltip("");
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
@@ -3129,6 +3356,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         m_mouse.position = pos.cast<double>();
         std::string tooltip = "";
+
+        if (tooltip.empty())
+            tooltip = m_layers_editing.get_tooltip(*this);
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
@@ -3469,13 +3699,6 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     m_dirty = true;
 }
 
-void GLCanvas3D::set_camera_zoom(double zoom)
-{
-    const Size& cnv_size = get_canvas_size();
-    m_camera.set_zoom(zoom, _max_bounding_box(false, true), cnv_size.get_width(), cnv_size.get_height());
-    m_dirty = true;
-}
-
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
@@ -3702,7 +3925,7 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     camera.apply_projection(box);
 
     if (transparent_background)
-        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 0.0f));
+        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -4261,8 +4484,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // updates camera
     m_camera.apply_viewport(0, 0, w, h);
-
-    m_dirty = false;
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
@@ -4298,6 +4519,12 @@ void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box)
     m_dirty = true;
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR
+
+void GLCanvas3D::_update_camera_zoom(double zoom)
+{
+    m_camera.update_zoom(zoom);
+    m_dirty = true;
+}
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {

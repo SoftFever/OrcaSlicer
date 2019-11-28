@@ -2,6 +2,7 @@
 
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
+#include "../Geometry.hpp"
 #include "../Surface.hpp"
 #include "../PrintConfig.hpp"
 #include "../libslic3r.h"
@@ -777,6 +778,8 @@ void mark_boundary_segments_touching_infill(
 		const Vec2d 								*pt2;
 	} visitor(grid, boundary, boundary_data, distance_colliding * distance_colliding);
 
+	BoundingBoxf bboxf(boundary_bbox.min.cast<double>(), boundary_bbox.max.cast<double>());
+	bboxf.offset(- SCALED_EPSILON);
 	for (const Polyline &polyline : infill) {
 		// Clip the infill polyline by the Eucledian distance along the polyline.
 		SegmentPoint start_point = clip_start_segment_and_point(polyline.points, clip_distance);
@@ -814,10 +817,12 @@ void mark_boundary_segments_touching_infill(
 				Vec2d vperp(-v.y(), v.x());
 				Vec2d a = pt1 - v - vperp;
 				Vec2d b = pt1 + v - vperp;
-				grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
+					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 				a = pt1 - v + vperp;
 				b = pt1 + v + vperp;
-				grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
+					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 #endif
 			}
 		}

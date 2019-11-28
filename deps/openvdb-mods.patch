@@ -1,8 +1,9 @@
-From e48f4a835fe7cb391f9f90945472bd367fb4c4f1 Mon Sep 17 00:00:00 2001
+From dbe038fce8a15ddc9a5c83ec5156d7bc9e178015 Mon Sep 17 00:00:00 2001
 From: tamasmeszaros <meszaros.q@gmail.com>
 Date: Wed, 16 Oct 2019 17:42:50 +0200
 Subject: [PATCH] Build fixes for PrusaSlicer integration
 
+Signed-off-by: tamasmeszaros <meszaros.q@gmail.com>
 ---
  CMakeLists.txt                  |   3 -
  cmake/FindBlosc.cmake           | 218 ---------------

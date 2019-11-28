@@ -81,6 +81,8 @@ template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
 using Vec3dEvent = Event<Vec3d>;
 template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
+using HeightProfileSmoothEvent = Event<HeightProfileSmoothingParams>;
+
 wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
@@ -104,6 +106,11 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
+wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 class GLCanvas3D
 {
@@ -153,13 +160,17 @@ private:
 
     private:
         static const float THICKNESS_BAR_WIDTH;
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static const float THICKNESS_RESET_BUTTON_HEIGHT;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         bool                        m_enabled;
         Shader                      m_shader;
         unsigned int                m_z_texture_id;
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         mutable GLTexture           m_tooltip_texture;
         mutable GLTexture           m_reset_texture;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         // Not owned by LayersEditing.
         const DynamicPrintConfig   *m_config;
         // ModelObject for the currently selected object (Model::objects[last_object_id]).
@@ -168,8 +179,13 @@ private:
         float                       m_object_max_z;
         // Owned by LayersEditing.
         SlicingParameters          *m_slicing_parameters;
-        std::vector<coordf_t>       m_layer_height_profile;
+        std::vector<double>         m_layer_height_profile;
         bool                        m_layer_height_profile_modified;
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+        mutable float               m_adaptive_cusp;
+        mutable HeightProfileSmoothingParams m_smooth_params;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         class LayersTexture
         {
@@ -217,28 +233,44 @@ private:
 		void adjust_layer_height_profile();
 		void accept_changes(GLCanvas3D& canvas);
         void reset_layer_height_profile(GLCanvas3D& canvas);
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+        void adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp);
+        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_paramsn);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static bool reset_rect_contains(const GLCanvas3D& canvas, float x, float y);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static Rect get_reset_rect_screen(const GLCanvas3D& canvas);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static Rect get_reset_rect_viewport(const GLCanvas3D& canvas);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         float object_max_z() const { return m_object_max_z; }
 
+        std::string get_tooltip(const GLCanvas3D& canvas) const;
+
     private:
-        bool _is_initialized() const;
+        bool is_initialized() const;
         void generate_layer_height_texture();
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const Rect& reset_rect) const;
-        void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
-        void _render_profile(const Rect& bar_rect) const;
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+        void render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
+        void render_profile(const Rect& bar_rect) const;
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D &canvas);
+#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         static float reset_button_height(const GLCanvas3D &canvas);
+#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     };
 
     struct Mouse
@@ -496,12 +528,19 @@ public:
     void set_color_by(const std::string& value);
 
     const Camera& get_camera() const { return m_camera; }
+    Camera& get_camera() { return m_camera; }
 
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    void reset_layer_height_profile();
+    void adaptive_layer_height_profile(float cusp);
+    void smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params);
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     bool is_reload_delayed() const;
 
@@ -578,8 +617,6 @@ public:
     void do_scale(const std::string& snapshot_type);
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
     void do_mirror(const std::string& snapshot_type);
-
-    void set_camera_zoom(double zoom);
 
     void update_gizmos_on_off_state();
     void reset_all_gizmos() { m_gizmos.reset_all_states(); }
@@ -659,6 +696,7 @@ private:
 #else
     void _zoom_to_box(const BoundingBoxf3& box);
 #endif // ENABLE_THUMBNAIL_GENERATOR
+    void _update_camera_zoom(double zoom);
 
     void _refresh_if_shown_on_screen();
 
