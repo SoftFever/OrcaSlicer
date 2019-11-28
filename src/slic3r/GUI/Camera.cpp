@@ -440,8 +440,10 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     vertices.push_back(box.max);
     vertices.emplace_back(box.min(0), box.max(1), box.max(2));
 
-    double max_x = 0.0;
-    double max_y = 0.0;
+    double min_x = DBL_MAX;
+    double min_y = DBL_MAX;
+    double max_x = -DBL_MAX;
+    double max_y = -DBL_MAX;
 
 #if !ENABLE_THUMBNAIL_GENERATOR
     // margin factor to give some empty space around the box
@@ -458,17 +460,24 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
         double x_on_plane = proj_on_plane.dot(right);
         double y_on_plane = proj_on_plane.dot(up);
 
-        max_x = std::max(max_x, std::abs(x_on_plane));
-        max_y = std::max(max_y, std::abs(y_on_plane));
+        min_x = std::min(min_x, x_on_plane);
+        min_y = std::min(min_y, y_on_plane);
+        max_x = std::max(max_x, x_on_plane);
+        max_y = std::max(max_y, y_on_plane);
     }
 
-    if ((max_x == 0.0) || (max_y == 0.0))
+    double dx = max_x - min_x;
+    double dy = max_y - min_y;
+    if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
-    max_x *= margin_factor;
-    max_y *= margin_factor;
+    double med_x = 0.5 * (max_x + min_x);
+    double med_y = 0.5 * (max_y + min_y);
 
-    return std::min((double)canvas_w / (2.0 * max_x), (double)canvas_h / (2.0 * max_y));
+    dx *= margin_factor;
+    dy *= margin_factor;
+
+    return std::min((double)canvas_w / dx, (double)canvas_h / dy);
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR

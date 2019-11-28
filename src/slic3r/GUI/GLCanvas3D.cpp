@@ -1079,7 +1079,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         size_t color_pos = 4 * extruders_cnt;
         size_t color_in_pos = 4 * (color_cnt - 1);
         
-        for (unsigned int i = 0; i < extruders_cnt; ++i)
+        for (unsigned int i = 0; i < (unsigned int)extruders_cnt; ++i)
             cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
 
         ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
