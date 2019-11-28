@@ -2302,7 +2302,7 @@ DoubleSlider::DoubleSlider( wxWindow *parent,
 
     m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "thumb_up"));
     m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "thumb_down"));
-    m_thumb_size = m_bmp_thumb_lower.bmp().GetSize();
+    m_thumb_size = m_bmp_thumb_lower.bmp().GetSize()*(1.0/scale_factor);
 
     m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add");
     m_bmp_add_tick_off = ScalableBitmap(this, "colorchange_add_f");
@@ -2797,11 +2797,11 @@ void DoubleSlider::draw_ticks(wxDC& dc)
         // Draw icon for "Pause print" or "Custom Gcode"
         if (tick.gcode != Slic3r::ColorChangeCode && tick.gcode != Slic3r::ExtruderChangeCode)
         {
-            wxBitmap icon = create_scaled_bitmap(nullptr, tick.gcode == Slic3r::PausePrintCode ? "pause_print" : "edit_gcode");
+            wxBitmap icon = create_scaled_bitmap(this, tick.gcode == Slic3r::PausePrintCode ? "pause_print" : "edit_gcode");
 
             wxCoord x_draw, y_draw;
             is_horizontal() ? x_draw = pos - 0.5 * m_tick_icon_dim : y_draw = pos - 0.5 * m_tick_icon_dim;
-            is_horizontal() ? y_draw = mid + 22 : x_draw = mid + 22 ;
+            is_horizontal() ? y_draw = mid + 22 : x_draw = mid + m_thumb_size.x + 3;
 
             dc.DrawBitmap(icon, x_draw, y_draw);
         }
