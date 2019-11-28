@@ -171,6 +171,7 @@ void Bed3D::Axes::render() const
     glsafe(::glPopMatrix());
 
     glsafe(::glDisable(GL_LIGHTING));
+    glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
 void Bed3D::Axes::render_axis(double length) const
@@ -264,11 +265,14 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor) const
+void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool show_axes) const
 {
     m_scale_factor = scale_factor;
 
-    render_axes();
+    if (show_axes)
+        render_axes();
+
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     switch (m_type)
     {
@@ -280,6 +284,8 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor) const
     default:
     case Custom: { render_custom(canvas, theta > 90.0f); break; }
     }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
 void Bed3D::calc_bounding_boxes() const

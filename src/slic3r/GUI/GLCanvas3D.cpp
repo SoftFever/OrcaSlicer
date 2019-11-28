@@ -1861,7 +1861,7 @@ void GLCanvas3D::render()
     _render_objects();
     _render_sla_slices();
     _render_selection();
-    _render_bed(theta);
+    _render_bed(theta, true);
 
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
@@ -4707,13 +4707,13 @@ void GLCanvas3D::_render_background() const
     glsafe(::glPopMatrix());
 }
 
-void GLCanvas3D::_render_bed(float theta) const
+void GLCanvas3D::_render_bed(float theta, bool show_axes) const
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
-    m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor);
+    m_bed.render(const_cast<GLCanvas3D&>(*this), theta, scale_factor, show_axes);
 }
 
 void GLCanvas3D::_render_objects() const
