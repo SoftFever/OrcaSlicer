@@ -22,8 +22,8 @@ DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
 namespace Slic3r {
 namespace GUI {
 
-std::vector<DriveData>  RemovableDriveManager::m_current_drives;
-std::vector<std::function<void()>>  RemovableDriveManager::m_callbacks;
+//std::vector<DriveData>  RemovableDriveManager::m_current_drives;
+//std::vector<std::function<void()>>  RemovableDriveManager::m_callbacks;
 
 
 #if _WIN32
@@ -242,7 +242,7 @@ bool RemovableDriveManager::update(long time)
 	if(last_update == 0)
 	{
 		//add_callback(std::bind(&RemovableDriveManager::print, RemovableDriveManager::getInstance()));
-		add_callback([](void) { print(); });
+		add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
 		register_window();
 #endif

@@ -4662,11 +4662,11 @@ void Plater::export_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-	if (GUI::RemovableDriveManager::getInstance().update())
+	if (GUI::RemovableDriveManager::get_instance().update())
 	{
-		if (!RemovableDriveManager::getInstance().is_path_on_removable_drive(start_dir))
+		if (!RemovableDriveManager::get_instance().is_path_on_removable_drive(start_dir))
 		{
-			start_dir = RemovableDriveManager::getInstance().get_last_drive_path();
+			start_dir = RemovableDriveManager::get_instance().get_last_drive_path();
 		}
 	}
     wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save SL1 file as:")),

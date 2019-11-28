@@ -272,7 +272,7 @@ bool GUI_App::on_init_inner()
 
         this->obj_manipul()->update_if_dirty();
 
-		RemovableDriveManager::getInstance().update(wxGetLocalTime());
+		RemovableDriveManager::get_instance().update(wxGetLocalTime());
         // Preset updating & Configwizard are done after the above initializations,
         // and after MainFrame is created & shown.
         // The extra CallAfter() is needed because of Mac, where this is the only way
