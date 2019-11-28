@@ -102,16 +102,7 @@ static void hid_wrapper_udev_close()
 }
 
 static const char *hid_wrapper_libudev_paths[] = {
-	// First try to find the libudev1.
-	"/lib/x86_64-linux-gnu/libudev.so.1", 	// Ubuntu, Xubuntu, Mint
-  	"/usr/lib64/libudev.so.1", 				// SUSE, Fedora
-  	"/usr/lib/libudev.so.1", 				// Arch, Fedora 32bit
-  	"/lib/i386-linux-gnu/libudev.so.1", 	// Ubuntu 32bit
-  	// If the search fails, try to find libudev0 (supporting CentOS6 and possibly other LTS distros).
-	"/lib/x86_64-linux-gnu/libudev.so.0", 	// Ubuntu, Xubuntu, Mint
-  	"/usr/lib64/libudev.so.0", 				// SUSE, Fedora
-  	"/usr/lib/libudev.so.0", 				// Arch, Fedora 32bit
-  	"/lib/i386-linux-gnu/libudev.so.0" 		// Ubuntu 32bit
+    "libudev.so.1", "libudev.so.0"
 };
 
 static int hid_wrapper_udev_init()
