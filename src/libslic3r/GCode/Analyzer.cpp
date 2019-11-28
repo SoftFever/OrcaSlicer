@@ -29,6 +29,9 @@ const std::string GCodeAnalyzer::Mm3_Per_Mm_Tag = "_ANALYZER_MM3_PER_MM:";
 const std::string GCodeAnalyzer::Width_Tag = "_ANALYZER_WIDTH:";
 const std::string GCodeAnalyzer::Height_Tag = "_ANALYZER_HEIGHT:";
 const std::string GCodeAnalyzer::Color_Change_Tag = "_ANALYZER_COLOR_CHANGE";
+const std::string GCodeAnalyzer::Pause_Print_Tag = "_ANALYZER_PAUSE_PRINT";
+const std::string GCodeAnalyzer::Custom_Code_Tag = "_ANALYZER_CUSTOM_CODE";
+const std::string GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag = "_ANALYZER_END_PAUSE_PRINT_OR_CUSTOM_CODE";
 
 const double GCodeAnalyzer::Default_mm3_per_mm = 0.0;
 const float GCodeAnalyzer::Default_Width = 0.0f;
@@ -118,6 +121,8 @@ void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap
 void GCodeAnalyzer::set_extruders_count(unsigned int count)
 {
     m_extruders_count = count;
+    for (unsigned int i=0; i<m_extruders_count; i++)
+        m_extruder_color[i] = i;
 }
 
 void GCodeAnalyzer::set_gcode_flavor(const GCodeFlavor& flavor)
@@ -147,6 +152,7 @@ void GCodeAnalyzer::reset()
     m_moves_map.clear();
     m_extruder_offsets.clear();
     m_extruders_count = 1;
+    m_extruder_color.clear();
 }
 
 const std::string& GCodeAnalyzer::process_gcode(const std::string& gcode)
@@ -595,7 +601,11 @@ void GCodeAnalyzer::_processT(const std::string& cmd)
                     BOOST_LOG_TRIVIAL(error) << "GCodeAnalyzer encountered an invalid toolchange, maybe from a custom gcode.";
             }
             else
+            {
                 _set_extruder_id(id);
+                if (_get_cp_color_id() != INT_MAX)
+                    _set_cp_color_id(m_extruder_color[id]);
+            }
 
             // stores tool change move
             _store_move(GCodeMove::Tool_change);
@@ -648,7 +658,33 @@ bool GCodeAnalyzer::_process_tags(const GCodeReader::GCodeLine& line)
     pos = comment.find(Color_Change_Tag);
     if (pos != comment.npos)
     {
-        _process_color_change_tag();
+        pos = comment.find_last_of(",T");
+        int extruder = pos == comment.npos ? 0 : std::atoi(comment.substr(pos + 1, comment.npos).c_str());
+        _process_color_change_tag(extruder);
+        return true;
+    }
+
+    // color change tag
+    pos = comment.find(Pause_Print_Tag);
+    if (pos != comment.npos)
+    {
+        _process_pause_print_or_custom_code_tag();
+        return true;
+    }
+
+    // color change tag
+    pos = comment.find(Custom_Code_Tag);
+    if (pos != comment.npos)
+    {
+        _process_pause_print_or_custom_code_tag();
+        return true;
+    }
+
+    // color change tag
+    pos = comment.find(End_Pause_Print_Or_Custom_Code_Tag);
+    if (pos != comment.npos)
+    {
+        _process_end_pause_print_or_custom_code_tag();
         return true;
     }
 
@@ -681,10 +717,24 @@ void GCodeAnalyzer::_process_height_tag(const std::string& comment, size_t pos)
     _set_height((float)::strtod(comment.substr(pos + Height_Tag.length()).c_str(), nullptr));
 }
 
-void GCodeAnalyzer::_process_color_change_tag()
+void GCodeAnalyzer::_process_color_change_tag(int extruder)
 {
-    m_state.cur_cp_color_id++;
-    _set_cp_color_id(m_state.cur_cp_color_id);
+    m_extruder_color[extruder] = m_extruders_count + m_state.cp_color_counter; // color_change position in list of color for preview
+    m_state.cp_color_counter++;
+
+    if (_get_extruder_id() == extruder)
+        _set_cp_color_id(m_extruder_color[extruder]);
+}
+
+void GCodeAnalyzer::_process_pause_print_or_custom_code_tag()
+{
+    _set_cp_color_id(INT_MAX);
+}
+
+void GCodeAnalyzer::_process_end_pause_print_or_custom_code_tag()
+{
+    if (_get_cp_color_id() == INT_MAX)
+        _set_cp_color_id(m_extruder_color[_get_extruder_id()]);
 }
 
 void GCodeAnalyzer::_set_units(GCodeAnalyzer::EUnits units)

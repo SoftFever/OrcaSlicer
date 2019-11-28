@@ -267,7 +267,7 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     int current_facet = 0;
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     while (slice_z <= slicing_params.object_print_z_height()) {
-        double height = 999.0;
+        double height = slicing_params.max_layer_height;
 #else
     double height = slicing_params.first_object_layer_height;
     while ((slice_z - height) <= slicing_params.object_print_z_height()) {

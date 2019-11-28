@@ -223,6 +223,7 @@ public:
     void on_activate();
     const DynamicPrintConfig* get_plater_config() const;
     std::vector<std::string> get_extruder_colors_from_plater_config() const;
+    std::vector<std::string> get_colors_for_color_print() const;
 
     void update_object_menu();
 

@@ -51,6 +51,7 @@ const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
+const std::string CUSTOM_GCODE_PER_HEIGHT_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_height.xml";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -417,6 +418,8 @@ namespace Slic3r {
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
+        void _extract_custom_gcode_per_height_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
@@ -625,6 +628,11 @@ namespace Slic3r {
                 {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, filename);
+                }
+                if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_HEIGHT_FILE))
+                {
+                    // extract slic3r layer config ranges file
+                    _extract_custom_gcode_per_height_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE))
                 {
@@ -1054,6 +1062,43 @@ namespace Slic3r {
         }
 
         return true;
+    }
+
+    void _3MF_Importer::_extract_custom_gcode_per_height_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading custom Gcodes per height data to buffer");
+                return;
+            }
+
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree main_tree;
+            pt::read_xml(iss, main_tree);
+
+            if (main_tree.front().first != "custom_gcodes_per_height")
+                return;
+            pt::ptree code_tree = main_tree.front().second;
+
+            if (!m_model->custom_gcode_per_height.empty())
+                m_model->custom_gcode_per_height.clear();
+
+            for (const auto& code : code_tree)
+            {
+                if (code.first != "code")
+                    continue;
+                pt::ptree tree = code.second;
+                double height       = tree.get<double>("<xmlattr>.height");
+                std::string gcode   = tree.get<std::string>("<xmlattr>.gcode");
+                int extruder        = tree.get<int>("<xmlattr>.extruder");
+                std::string color   = tree.get<std::string>("<xmlattr>.color");
+
+                m_model->custom_gcode_per_height.push_back(Model::CustomGCode(height, gcode, extruder, color)) ;
+            }
+        }
     }
 
     void _3MF_Importer::_handle_start_model_xml_element(const char* name, const char** attributes)
@@ -1838,6 +1883,7 @@ namespace Slic3r {
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
+        bool _add_custom_gcode_per_height_file_to_archive(mz_zip_archive& archive, Model& model);
     };
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1934,6 +1980,15 @@ namespace Slic3r {
         // All  sla support points of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_height.xml").
+        // All custom gcode per height of whole Model are stored here
+        if (!_add_custom_gcode_per_height_file_to_archive(archive, model))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2324,7 +2379,7 @@ namespace Slic3r {
         if (!tree.empty())
         {
             std::ostringstream oss;
-            boost::property_tree::write_xml(oss, tree);
+            pt::write_xml(oss, tree);
             out = oss.str();
 
             // Post processing("beautification") of the output string for a better preview
@@ -2510,7 +2565,49 @@ namespace Slic3r {
         return true;
     }
 
-    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
+bool _3MF_Exporter::_add_custom_gcode_per_height_file_to_archive( mz_zip_archive& archive, Model& model)
+{
+    std::string out = "";
+
+    if (!model.custom_gcode_per_height.empty())
+    {
+        pt::ptree tree;
+        pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
+
+        for (const Model::CustomGCode& code : model.custom_gcode_per_height)
+        {
+            pt::ptree& code_tree = main_tree.add("code", "");
+            // store minX and maxZ
+            code_tree.put("<xmlattr>.height"    , code.height   );
+            code_tree.put("<xmlattr>.gcode"     , code.gcode    );
+            code_tree.put("<xmlattr>.extruder"  , code.extruder );
+            code_tree.put("<xmlattr>.color"     , code.color    );
+        }       
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            boost::property_tree::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string
+            boost::replace_all(out, "><", ">\n<");
+        }
+    } 
+
+    if (!out.empty())
+    {
+        if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_HEIGHT_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        {
+            add_error("Unable to add custom Gcodes per height file to archive");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool check_version)
     {
         if ((path == nullptr) || (config == nullptr) || (model == nullptr))
             return false;

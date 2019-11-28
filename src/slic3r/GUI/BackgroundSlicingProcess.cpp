@@ -33,6 +33,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
+#include "GUI.hpp"
 
 namespace Slic3r {
 
@@ -92,7 +93,15 @@ void BackgroundSlicingProcess::process_fff()
 #else
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
-    if (this->set_step_started(bspsGCodeFinalize)) {
+
+    if (m_fff_print->model().custom_gcode_per_height != GUI::wxGetApp().model().custom_gcode_per_height) {
+        GUI::wxGetApp().model().custom_gcode_per_height = m_fff_print->model().custom_gcode_per_height;
+        // #ys_FIXME : controll text
+        GUI::show_info(nullptr, _(L("To except of redundant tool manipulation, \n"
+                                    "Color change(s) for unused extruder(s) was(were) deleted")), _(L("Info")));
+    }
+
+	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
@@ -108,7 +117,7 @@ void BackgroundSlicingProcess::process_fff()
 			m_print->set_status(100, _utf8(L("Slicing complete")));
 	    }
 		this->set_step_done(bspsGCodeFinalize);
-    }
+	}
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -139,8 +148,8 @@ void BackgroundSlicingProcess::process_sla()
             if (m_thumbnail_cb != nullptr)
             {
                 ThumbnailsList thumbnails;
-                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
-//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, false); // renders also supports and pad
+                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
+//                m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true); // renders also supports and pad
                 for (const ThumbnailData& data : thumbnails)
                 {
                     if (data.is_valid())
@@ -464,8 +473,8 @@ void BackgroundSlicingProcess::prepare_upload()
         if (m_thumbnail_cb != nullptr)
         {
             ThumbnailsList thumbnails;
-            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
-//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, false); // renders also supports and pad
+            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
+//            m_thumbnail_cb(thumbnails, current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, false, true); // renders also supports and pad
             for (const ThumbnailData& data : thumbnails)
             {
                 if (data.is_valid())

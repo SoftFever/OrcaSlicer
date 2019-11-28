@@ -2325,6 +2325,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
                     }
+
+                    this->model.custom_gcode_per_height = model.custom_gcode_per_height;
                 }
 
                 if (load_config)
@@ -2743,8 +2745,7 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    auto& config = wxGetApp().preset_bundle->project_config;
-    config.option<ConfigOptionFloats>("colorprint_heights")->values.clear();
+    model.custom_gcode_per_height.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -2975,6 +2976,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     this->update_print_volume_state();
     // Apply new config to the possibly running background task.
     bool               was_running = this->background_process.running();
+    this->background_process.set_force_update_print_regions(force_validation);
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
@@ -3180,9 +3182,13 @@ void Plater::priv::reload_from_disk()
     for (unsigned int idx : selected_volumes_idxs)
     {
         const GLVolume* v = selection.get_volume(idx);
-        int o_idx = v->object_idx();
         int v_idx = v->volume_idx();
-        selected_volumes.push_back({ o_idx, v_idx });
+        if (v_idx >= 0)
+        {
+            int o_idx = v->object_idx();
+            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+                selected_volumes.push_back({ o_idx, v_idx });
+        }
     }
     std::sort(selected_volumes.begin(), selected_volumes.end());
     selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
@@ -4176,6 +4182,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     // Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+
     // Make a copy of the snapshot, undo/redo could invalidate the iterator
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
     // Do the jump in time.
@@ -4782,7 +4789,7 @@ void Plater::reslice()
         p->show_action_buttons(true);
 
     // update type of preview
-    p->preview->update_view_type();
+    p->preview->update_view_type(true);
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
@@ -5061,12 +5068,26 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
         return extruder_colors;
 
     extruder_colors = (config->option<ConfigOptionStrings>("extruder_colour"))->values;
+    if (!wxGetApp().plater())
+        return extruder_colors;
+
     const std::vector<std::string>& filament_colours = (p->config->option<ConfigOptionStrings>("filament_colour"))->values;
     for (size_t i = 0; i < extruder_colors.size(); ++i)
         if (extruder_colors[i] == "" && i < filament_colours.size())
             extruder_colors[i] = filament_colours[i];
 
     return extruder_colors;
+}
+
+std::vector<std::string> Plater::get_colors_for_color_print() const
+{
+    std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_height)
+        if (code.gcode == ColorChangeCode)
+            colors.push_back(code.color);
+
+    return colors;
 }
 
 wxString Plater::get_project_filename(const wxString& extension) const

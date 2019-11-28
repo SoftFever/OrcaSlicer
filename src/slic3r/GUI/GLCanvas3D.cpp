@@ -22,6 +22,7 @@
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
+
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -277,9 +278,9 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.text(_(L("Cusp (mm)")));
     ImGui::SameLine();
     float widget_align = ImGui::GetCursorPosX();
-    ImGui::PushItemWidth(120.0f);
-    m_adaptive_cusp = std::min(m_adaptive_cusp, (float)m_slicing_parameters->max_layer_height);
-    ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, (float)m_slicing_parameters->max_layer_height, "%.2f");
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
+    m_adaptive_cusp = clamp((float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, m_adaptive_cusp);
+    ImGui::SliderFloat("", &m_adaptive_cusp, (float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, "%.2f");
 
     ImGui::Separator();
     if (imgui.button(_(L("Smooth"))))
@@ -289,8 +290,8 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Radius")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
     ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     int radius = (int)m_smooth_params.radius;
     if (ImGui::SliderInt("##1", &radius, 1, 10))
         m_smooth_params.radius = (unsigned int)radius;
@@ -298,8 +299,8 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(text_align);
     imgui.text(_(L("Keep min")));
     ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
     ImGui::SetCursorPosX(widget_align);
+    ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
     ImGui::Separator();
@@ -409,6 +410,35 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
 bool GLCanvas3D::LayersEditing::is_initialized() const
 {
     return m_shader.is_initialized();
+}
+
+std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) const
+{
+    std::string ret;
+    if (m_enabled && (m_layer_height_profile.size() >= 4))
+    {
+        float z = get_cursor_z_relative(canvas);
+        if (z != -1000.0f)
+        {
+            z *= m_object_max_z;
+
+            float h = 0.0f;
+            for (size_t i = m_layer_height_profile.size() - 2; i >= 2; i -= 2)
+            {
+                float zi = m_layer_height_profile[i];
+                float zi_1 = m_layer_height_profile[i - 2];
+                if ((zi_1 <= z) && (z <= zi))
+                {
+                    float dz = zi - zi_1;
+                    h = (dz != 0.0f) ? lerp(m_layer_height_profile[i - 1], m_layer_height_profile[i + 1], (z - zi_1) / dz) : m_layer_height_profile[i + 1];
+                    break;
+                }
+            }
+            if (h > 0.0f)
+                ret = std::to_string(h);
+        }
+    }
+    return ret;
 }
 
 #if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
@@ -659,7 +689,7 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
 {
     if (last_object_id >= 0) {
         if (m_layer_height_profile_modified) {
-            wxGetApp().plater()->take_snapshot(_(L("Layers heights")));
+            wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Manual edit")));
             const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
 			canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
@@ -967,47 +997,125 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
-                                                               std::vector<std::pair<double, double>>& cp_legend_values)
+void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D& canvas,
+                                                                const std::vector<float>& colors_in,
+                                                                std::vector<float>& colors,
+                                                                std::vector<std::string>& cp_legend_items)
 {
-    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint && 
-        wxGetApp().extruders_edited_cnt() == 1) // show color change legend only for single-material presets
+    std::vector<Model::CustomGCode> custom_gcode_per_height = wxGetApp().plater()->model().custom_gcode_per_height;
+
+    const int extruders_cnt = wxGetApp().extruders_edited_cnt();
+    if (extruders_cnt == 1) 
     {
-        auto& config = wxGetApp().preset_bundle->project_config;
-        const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
-        
-        if (!color_print_values.empty()) {
-            std::vector<double> print_zs = canvas.get_current_print_zs(true);
-            for (auto cp_value : color_print_values)
-            {
-                auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), cp_value - DoubleSlider::epsilon());
-
-                if (lower_b == print_zs.end())
-                    continue;
-
-                double current_z    = *lower_b;
-                double previous_z   = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
-
-                // to avoid duplicate values, check adding values
-                if (cp_legend_values.empty() || 
-                    !(cp_legend_values.back().first == previous_z && cp_legend_values.back().second == current_z) )
-                    cp_legend_values.push_back(std::pair<double, double>(previous_z, current_z));
-            }
+        if (custom_gcode_per_height.empty()) {
+            cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
+            colors = colors_in;
+            return;
         }
+        std::vector<std::pair<double, double>> cp_values;
+        
+        std::vector<double> print_zs = canvas.get_current_print_zs(true);
+        for (auto custom_code : custom_gcode_per_height)
+        {
+            if (custom_code.gcode != ColorChangeCode)
+                continue;
+            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.height - DoubleSlider::epsilon());
+
+            if (lower_b == print_zs.end())
+                continue;
+
+            double current_z = *lower_b;
+            double previous_z = lower_b == print_zs.begin() ? 0.0 : *(--lower_b);
+
+            // to avoid duplicate values, check adding values
+            if (cp_values.empty() ||
+                !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
+                cp_values.push_back(std::pair<double, double>(previous_z, current_z));
+        }
+
+        const auto items_cnt = (int)cp_values.size();
+        if (items_cnt == 0) // There is no one color change, but there is/are some pause print or custom Gcode
+        {
+            cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
+            cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+            colors = colors_in;
+            return;
+        }
+
+        const int color_cnt = (int)colors_in.size() / 4;
+        colors.resize(colors_in.size(), 0.0);
+                
+        ::memcpy((void*)(colors.data()), (const void*)(colors_in.data() + (color_cnt - 1) * 4), 4 * sizeof(float));
+        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+        size_t color_pos = 4;
+
+        for (int i = items_cnt; i >= 0; --i, color_pos+=4)
+        {
+            // update colors for color print item
+            ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + i * 4), 4 * sizeof(float));
+
+            // create label for color print item
+            std::string id_str = std::to_string(i + 1) + ": ";
+
+            if (i == 0) {
+                cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values[0].first).str());
+                break;
+            }
+            if (i == items_cnt) {
+                cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
+                continue;
+            }
+
+            cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
+        }
+    }
+    else
+    {
+        // colors = colors_in;
+        const int color_cnt = (int)colors_in.size() / 4;
+        colors.resize(colors_in.size(), 0.0);
+
+        ::memcpy((void*)(colors.data()), (const void*)(colors_in.data()), 4 * extruders_cnt * sizeof(float));
+        size_t color_pos = 4 * extruders_cnt;
+        size_t color_in_pos = 4 * (color_cnt - 1);
+        
+        for (unsigned int i = 0; i < extruders_cnt; ++i)
+            cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+
+        ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
+        color_pos += 4;
+        color_in_pos -= 4;
+        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+
+        int cnt = custom_gcode_per_height.size();
+        for (int i = cnt-1; i >= 0; --i)
+            if (custom_gcode_per_height[i].gcode == ColorChangeCode) {
+                ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
+                color_pos += 4;
+                color_in_pos -= 4;
+                cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_height[i].extruder % custom_gcode_per_height[i].height).str());
+            }
     }
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors_in, const GLCanvas3D& canvas, bool compress)
 {
     reset();
 
     // collects items to render
     auto title = _(preview_data.get_legend_title());
 
-    std::vector<std::pair<double, double>> cp_legend_values;
-    fill_color_print_legend_values(preview_data, canvas, cp_legend_values);
+    std::vector<std::string> cp_legend_items;
+    std::vector<float> cp_colors;
 
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_values);
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
+    {
+        cp_legend_items.reserve(cp_colors.size());
+        fill_color_print_legend_items(canvas, tool_colors_in, cp_colors, cp_legend_items);
+    }
+
+    const std::vector<float>& tool_colors = preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint ? cp_colors : tool_colors_in;
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_items);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
@@ -1559,6 +1667,7 @@ bool GLCanvas3D::is_layers_editing_allowed() const
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::reset_layer_height_profile()
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Reset")));
     m_layers_editing.reset_layer_height_profile(*this);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
@@ -1566,6 +1675,7 @@ void GLCanvas3D::reset_layer_height_profile()
 
 void GLCanvas3D::adaptive_layer_height_profile(float cusp)
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Adaptive")));
     m_layers_editing.adaptive_layer_height_profile(*this, cusp);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
@@ -1573,6 +1683,7 @@ void GLCanvas3D::adaptive_layer_height_profile(float cusp)
 
 void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params)
 {
+    wxGetApp().plater()->take_snapshot(_(L("Layer height profile-Smooth all")));
     m_layers_editing.smooth_layer_height_profile(*this, smoothing_params);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
@@ -2408,7 +2519,7 @@ void GLCanvas3D::load_sla_preview()
     }
 }
 
-void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
@@ -3136,6 +3247,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         if ((m_layers_editing.state != LayersEditing::Unknown) && (layer_editing_object_idx != -1))
         {
+            set_tooltip("");
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
@@ -3244,6 +3356,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         m_mouse.position = pos.cast<double>();
         std::string tooltip = "";
+
+        if (tooltip.empty())
+            tooltip = m_layers_editing.get_tooltip(*this);
 
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
@@ -3810,7 +3925,7 @@ static void render_volumes_in_thumbnail(Shader& shader, const GLVolumePtrs& volu
     camera.apply_projection(box);
 
     if (transparent_background)
-        glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 0.0f));
+        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -5210,7 +5325,7 @@ void GLCanvas3D::_load_print_toolpaths()
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
-void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
+void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
 {
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
@@ -5222,11 +5337,14 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_infill;
         bool                         has_support;
         const std::vector<float>*    tool_colors;
-        const std::vector<double>*   color_print_values;
+        bool                         is_single_material_print;
+        int                          extruders_cnt;
+        const std::vector<Model::CustomGCode>*   color_print_values;
 
         static const float*          color_perimeters() { static float color[4] = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
         static const float*          color_infill() { static float color[4] = { 1.0f, 0.5f, 0.5f, 1.f }; return color; } // redish
         static const float*          color_support() { static float color[4] = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
+        static const float*          color_pause_or_custom_code() { static float color[4] = { 0.5f, 0.5f, 0.5f, 1.f }; return color; } // gray
 
         // For cloring by a tool, return a parsed color.
         bool                         color_by_tool() const { return tool_colors != nullptr; }
@@ -5236,9 +5354,106 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
+            const Model::CustomGCode value(layers[layer_idx]->print_z + EPSILON, "", 0, "");
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
         }
+
+        const size_t                 color_print_color_idx_by_layer_idx_and_extruder(const size_t layer_idx, const int extruder) const
+        {
+            const coordf_t print_z = layers[layer_idx]->print_z;
+
+            auto it = std::find_if(color_print_values->begin(), color_print_values->end(),
+                [print_z](const Model::CustomGCode& code)
+                { return fabs(code.height - print_z) < EPSILON; });
+            if (it != color_print_values->end())
+            {
+                const std::string& code = it->gcode;
+                // pause print or custom Gcode
+                if (code == PausePrintCode || 
+                    (code != ColorChangeCode && code != ExtruderChangeCode))
+                    return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
+
+                // change tool (extruder) 
+                if (code == ExtruderChangeCode)
+                    return get_color_idx_for_tool_change(it, extruder);
+                // change color for current extruder
+                if (code == ColorChangeCode) {
+                    int color_idx = get_color_idx_for_color_change(it, extruder);
+                    if (color_idx >= 0)
+                        return color_idx;
+                }
+            }
+
+            const Model::CustomGCode value(print_z + EPSILON, "", 0, "");
+            it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
+            while (it != color_print_values->begin())
+            {
+                --it;
+                // change color for current extruder
+                if (it->gcode == ColorChangeCode) {
+                    int color_idx = get_color_idx_for_color_change(it, extruder);
+                    if (color_idx >= 0)
+                        return color_idx;
+                }
+                // change tool (extruder) 
+                if (it->gcode == ExtruderChangeCode)
+                    return get_color_idx_for_tool_change(it, extruder);
+            }
+
+            return std::min<int>(extruders_cnt - 1, std::max<int>(extruder - 1, 0));;
+        }
+
+    private:
+        int get_m600_color_idx(std::vector<Model::CustomGCode>::const_iterator it) const 
+        {
+            int shift = 0;
+            while (it != color_print_values->begin()) {
+                --it;
+                if (it->gcode == ColorChangeCode)
+                    shift++;
+            }
+            return extruders_cnt + shift;
+        }
+
+        int get_color_idx_for_tool_change(std::vector<Model::CustomGCode>::const_iterator it, const int extruder) const 
+        {
+            const int current_extruder = it->extruder == 0 ? extruder : it->extruder;
+            if (number_tools() == extruders_cnt + 1) // there is no one "M600"
+                return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
+
+            auto it_n = it;
+            while (it_n != color_print_values->begin()) {
+                --it_n;
+                if (it_n->gcode == ColorChangeCode && it_n->extruder == current_extruder)
+                    return get_m600_color_idx(it_n);
+            }
+
+            return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
+        }
+
+        int get_color_idx_for_color_change(std::vector<Model::CustomGCode>::const_iterator it, const int extruder) const 
+        {
+            if (extruders_cnt == 1)
+                return get_m600_color_idx(it);
+
+            auto it_n = it;
+            bool is_tool_change = false;
+            while (it_n != color_print_values->begin()) {
+                --it_n;
+                if (it_n->gcode == ExtruderChangeCode) {
+                    is_tool_change = true;
+                    if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
+                        return get_m600_color_idx(it);
+                    break;
+                }
+            }
+            if (!is_tool_change && it->extruder == extruder)
+                return get_m600_color_idx(it);
+
+            return -1;
+        }
+
     } ctxt;
 
     ctxt.has_perimeters = print_object.is_step_done(posPerimeters);
@@ -5246,6 +5461,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.has_support = print_object.is_step_done(posSupportMaterial);
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
     ctxt.color_print_values = color_print_values.empty() ? nullptr : &color_print_values;
+    ctxt.is_single_material_print = this->fff_print()->extruders().size()==1;
+    ctxt.extruders_cnt = wxGetApp().extruders_edited_cnt();
 
     ctxt.shifted_copies = &print_object.copies();
 
@@ -5269,6 +5486,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     // Maximum size of an allocation block: 32MB / sizeof(float)
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start" << m_volumes.log_memory_info() << log_memory_info();
 
+    const bool is_selected_separate_extruder = m_selected_extruder > 0 && ctxt.color_by_color_print();
+
     //FIXME Improve the heuristics for a grain size.
     size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
@@ -5286,32 +5505,18 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     const size_t    volumes_cnt_initial = m_volumes.volumes.size();
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
-        [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
+        [&ctxt, &new_volume, is_selected_separate_extruder, this](const tbb::blocked_range<size_t>& range) {
         GLVolumePtrs 		vols;
         std::vector<size_t>	color_print_layer_to_glvolume;
-        auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {
-            return *vols[ctxt.color_by_color_print() ?
-            	color_print_layer_to_glvolume[layer_idx - range.begin()] :
+        auto                volume = [&ctxt, &vols, &color_print_layer_to_glvolume, &range](size_t layer_idx, int extruder, int feature) -> GLVolume& {            
+            return *vols[ctxt.color_by_color_print()?
+                ctxt.color_print_color_idx_by_layer_idx_and_extruder(layer_idx, extruder) :
 				ctxt.color_by_tool() ? 
 					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) : 
 					feature
 				];
         };
-        if (ctxt.color_by_color_print()) {
-        	// Create a map from the layer index to a GLVolume, which is initialized with the correct layer span color.
-        	std::vector<int> color_print_tool_to_glvolume(ctxt.number_tools(), -1);
-        	color_print_layer_to_glvolume.reserve(range.end() - range.begin());
-        	vols.reserve(ctxt.number_tools());
-	        for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
-	        	int idx_tool = (int)ctxt.color_print_color_idx_by_layer_idx(idx_layer);
-	        	if (color_print_tool_to_glvolume[idx_tool] == -1) {
-	        		color_print_tool_to_glvolume[idx_tool] = (int)vols.size();
-	        		vols.emplace_back(new_volume(ctxt.color_tool(idx_tool)));
-	        	}
-	        	color_print_layer_to_glvolume.emplace_back(color_print_tool_to_glvolume[idx_tool]);
-	        }
-        }
-        else if (ctxt.color_by_tool()) {
+        if (ctxt.color_by_color_print() || ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
         }
@@ -5322,6 +5527,26 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         	vol->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
+
+            if (is_selected_separate_extruder)
+            {
+                bool at_least_one_has_correct_extruder = false;
+                for (const LayerRegion* layerm : layer->regions())
+                {
+                    if (layerm->slices.surfaces.empty())
+                        continue;
+                    const PrintRegionConfig& cfg = layerm->region()->config();
+                    if (cfg.perimeter_extruder.value    == m_selected_extruder ||
+                        cfg.infill_extruder.value       == m_selected_extruder ||
+                        cfg.solid_infill_extruder.value == m_selected_extruder ) {
+                        at_least_one_has_correct_extruder = true;
+                        break;
+                    }
+                }
+                if (!at_least_one_has_correct_extruder)
+                    continue;
+            }
+
             for (GLVolume *vol : vols)
                 if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
                     vol->print_zs.push_back(layer->print_z);
@@ -5330,6 +5555,14 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             for (const Point &copy : *ctxt.shifted_copies) {
                 for (const LayerRegion *layerm : layer->regions()) {
+                    if (is_selected_separate_extruder)
+                    {
+                        const PrintRegionConfig& cfg = layerm->region()->config();
+                        if (cfg.perimeter_extruder.value    != m_selected_extruder ||
+                            cfg.infill_extruder.value       != m_selected_extruder ||
+                            cfg.solid_infill_extruder.value != m_selected_extruder)
+                            continue;
+                    }
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
                         	volume(idx_layer, layerm->region()->config().perimeter_extruder.value, 0));
@@ -5613,11 +5846,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             case GCodePreviewData::Extrusion::ColorPrint:
             {
                 int color_cnt = (int)tool_colors.size() / 4;
+                int val = value > color_cnt ? color_cnt - 1 : value;
 
-                int val = int(value);
-                while (val >= color_cnt)
-                    val -= color_cnt;
-                    
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
 
@@ -5678,10 +5908,13 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 	    BOOST_LOG_TRIVIAL(debug) << "Loading G-code extrusion paths - populate volumes" << m_volumes.log_memory_info() << log_memory_info();
 
 	    // populates volumes
+        const bool is_selected_separate_extruder = m_selected_extruder > 0 && preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint;
 		for (const GCodePreviewData::Extrusion::Layer& layer : preview_data.extrusion.layers)
 		{
 			for (const GCodePreviewData::Extrusion::Path& path : layer.paths)
 			{
+                if (is_selected_separate_extruder && path.extruder_id != m_selected_extruder - 1)
+                    continue;
 				std::vector<std::pair<float, GLVolume*>> &filters = roles_filters[size_t(path.extrusion_role)];
 				auto key = std::make_pair<float, GLVolume*>(Helper::path_filter(preview_data.extrusion.view_type, path), nullptr);
 				auto it_filter = std::lower_bound(filters.begin(), filters.end(), key);

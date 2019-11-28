@@ -5,6 +5,7 @@
 #include "libslic3r/Point.hpp"
 
 #include <string>
+#include "libslic3r/Model.hpp"
 
 class wxNotebook;
 class wxGLCanvas;
@@ -12,6 +13,7 @@ class wxBoxSizer;
 class wxStaticText;
 class wxChoice;
 class wxComboCtrl;
+class wxBitmapComboBox;
 class wxCheckBox;
 class DoubleSlider;
 
@@ -101,7 +103,7 @@ class Preview : public wxPanel
     bool m_loaded;
     bool m_enabled;
 
-    DoubleSlider* m_slider {nullptr};
+    DoubleSlider*       m_slider {nullptr};
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
@@ -128,7 +130,7 @@ public:
     void move_double_slider(wxKeyEvent& evt);
     void edit_double_slider(wxKeyEvent& evt);
 
-    void update_view_type();
+    void update_view_type(bool slice_completed);
 
     bool is_loaded() const { return m_loaded; }
 
@@ -140,7 +142,7 @@ private:
 
     void show_hide_ui_elements(const std::string& what);
 
-    void reset_sliders();
+    void reset_sliders(bool reset_all);
     void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);
 
     void on_size(wxSizeEvent& evt);
@@ -154,9 +156,9 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
+    void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
+                             const std::vector<double> &layers_z);
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
-    void check_slider_values(std::vector<double> &ticks_from_config,
-                            const std::vector<double> &layers_z);
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);

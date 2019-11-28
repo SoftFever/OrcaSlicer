@@ -924,8 +924,9 @@ void GCode::_do_export(Print& print, FILE* file)
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
 
-    // Initialize colorprint.
-    m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
+    // Initialize custom gcode
+    Model* model = print.get_object(0)->model_object()->get_model();
+    m_custom_g_code_heights = model->custom_gcode_per_height;
 
     // Initialize autospeed.
     {
@@ -991,7 +992,7 @@ void GCode::_do_export(Print& print, FILE* file)
     {
         const size_t max_row_length = 78;
         ThumbnailsList thumbnails;
-        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, false);
+        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true);
         for (const ThumbnailData& data : thumbnails)
         {
             if (data.is_valid())
@@ -1112,6 +1113,47 @@ void GCode::_do_export(Print& print, FILE* file)
         assert(final_extruder_id != (unsigned int)-1);
     }
     print.throw_if_canceled();
+
+    /* To avoid change filament for non-used extruder for Multi-material,
+     * check model->custom_gcode_per_height using tool_ordering values
+     * */
+    if (!m_custom_g_code_heights. empty())
+    {
+        bool delete_executed = false;
+        auto it = m_custom_g_code_heights.end();
+        while (it != m_custom_g_code_heights.begin())
+        {
+            --it;
+            if (it->gcode != ColorChangeCode)
+                continue;
+
+            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), LayerTools(it->height));
+
+            bool used_extruder = false;
+            for (; it_layer_tools != tool_ordering.end(); it_layer_tools++)
+            {
+                const std::vector<unsigned>& extruders = it_layer_tools->extruders;
+                if (std::find(extruders.begin(), extruders.end(), (unsigned)(it->extruder-1)) != extruders.end())
+                {
+                    used_extruder = true;
+                    break;
+                }
+            }
+            if (used_extruder)
+                continue;
+
+            /* If we are there, current extruder wouldn't be used,
+             * so this color change is a redundant move.
+             * Delete this item from m_custom_g_code_heights
+             * */
+            it = m_custom_g_code_heights.erase(it);
+            delete_executed = true;
+        }
+
+        if (delete_executed)
+            model->custom_gcode_per_height = m_custom_g_code_heights;
+    }
+
 
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
@@ -1779,19 +1821,66 @@ void GCode::process_layer(
     // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
     // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
     bool colorprint_change = false;
-    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
-        m_colorprint_heights.erase(m_colorprint_heights.begin());
+
+    std::string custom_code = "";
+    std::string pause_print_msg = "";
+    int m600_before_extruder = -1;
+    while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
+        custom_code = m_custom_g_code_heights.front().gcode;
+
+        if (custom_code == ColorChangeCode && m_custom_g_code_heights.front().extruder > 0)
+            m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
+        if (custom_code == PausePrintCode)
+            pause_print_msg = m_custom_g_code_heights.front().color;
+
+        m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
         colorprint_change = true;
     }
 
     // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
-    if (colorprint_change && print./*extruders()*/config().nozzle_diameter.size()==1)
-    {
-        // add tag for analyzer
-        gcode += "; " + GCodeAnalyzer::Color_Change_Tag + "\n";
-        // add tag for time estimator
-        gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-        gcode += "M600\n";
+
+    // don't save "tool_change"(ExtruderChangeCode) code to GCode
+    if (colorprint_change && custom_code != ExtruderChangeCode) {
+        const bool single_material_print = print.config().nozzle_diameter.size() == 1;
+        
+        if (custom_code == ColorChangeCode) // color change
+        {
+            // add tag for analyzer
+            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_before_extruder) + "\n";
+            // add tag for time estimator
+            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+
+            if (!single_material_print && m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
+                // && !MMU1
+                ) {
+                //! FIXME_in_fw show message during print pause
+                gcode += "M601\n"; // pause print
+                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
+            }
+            else 
+                gcode += custom_code + "\n";
+        } 
+        else
+        {
+            if (custom_code == PausePrintCode) // Pause print
+            {
+                // add tag for analyzer
+                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
+                //! FIXME_in_fw show message during print pause
+                if (!pause_print_msg.empty())
+                    gcode += "M117 " + pause_print_msg + "\n";
+                // add tag for time estimator
+                //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
+            }
+            else // custom Gcode
+            {
+                // add tag for analyzer
+                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
+                // add tag for time estimator
+                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+            }
+            gcode += custom_code + "\n";
+        }
     }
 
 
@@ -2100,6 +2189,12 @@ void GCode::process_layer(
     // Apply cooling logic; this may alter speeds.
     if (m_cooling_buffer)
         gcode = m_cooling_buffer->process_layer(gcode, layer.id());
+
+    // add tag for analyzer
+    if (gcode.find(GCodeAnalyzer::Pause_Print_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
+    else if (gcode.find(GCodeAnalyzer::Custom_Code_Tag) != gcode.npos)
+        gcode += "\n; " + GCodeAnalyzer::End_Pause_Print_Or_Custom_Code_Tag + "\n";
 
 #ifdef HAS_PRESSURE_EQUALIZER
     // Apply pressure equalization if enabled;

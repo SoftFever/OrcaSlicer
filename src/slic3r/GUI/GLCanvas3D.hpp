@@ -179,7 +179,7 @@ private:
         float                       m_object_max_z;
         // Owned by LayersEditing.
         SlicingParameters          *m_slicing_parameters;
-        std::vector<coordf_t>       m_layer_height_profile;
+        std::vector<double>         m_layer_height_profile;
         bool                        m_layer_height_profile_modified;
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
@@ -253,6 +253,8 @@ private:
 #endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         float object_max_z() const { return m_object_max_z; }
+
+        std::string get_tooltip(const GLCanvas3D& canvas) const;
 
     private:
         bool is_initialized() const;
@@ -382,8 +384,10 @@ private:
 
     public:
         LegendTexture();
-        void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
-                                     std::vector<std::pair<double, double>>& cp_legend_values);
+        void fill_color_print_legend_items(const GLCanvas3D& canvas,
+                                           const std::vector<float>& colors_in,
+                                           std::vector<float>& colors,
+                                           std::vector<std::string>& cp_legend_items);
 
         bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool compress);
 
@@ -473,6 +477,7 @@ private:
 #endif // ENABLE_RENDER_STATISTICS
 
     int m_imgui_undo_redo_hovered_pos{ -1 };
+    int m_selected_extruder;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
@@ -586,7 +591,7 @@ public:
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_sla_preview();
-    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values);
+    void load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values);
     void bind_event_handlers();
     void unbind_event_handlers();
 
@@ -625,6 +630,7 @@ public:
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
+    void set_selected_extruder(int extruder) { m_selected_extruder = extruder;}
     
     class WipeTowerInfo {
     protected:
@@ -748,7 +754,7 @@ private:
     // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
     // one for perimeters, one for infill and one for supports.
     void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-                                      const std::vector<double>& color_print_values);
+                                      const std::vector<Model::CustomGCode>& color_print_values);
     // Create 3D thick extrusion lines for wipe tower extrusions
     void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
 

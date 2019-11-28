@@ -20,6 +20,9 @@ public:
     static const std::string Width_Tag;
     static const std::string Height_Tag;
     static const std::string Color_Change_Tag;
+    static const std::string Pause_Print_Tag;
+    static const std::string Custom_Code_Tag;
+    static const std::string End_Pause_Print_Or_Custom_Code_Tag;
 
     static const double Default_mm3_per_mm;
     static const float Default_Width;
@@ -89,6 +92,7 @@ public:
     typedef std::vector<GCodeMove> GCodeMovesList;
     typedef std::map<GCodeMove::EType, GCodeMovesList> TypeToMovesMap;
     typedef std::map<unsigned int, Vec2d> ExtruderOffsetsMap;
+    typedef std::map<unsigned int, unsigned int> ExtruderToColorMap;
 
 private:
     struct State
@@ -102,7 +106,7 @@ private:
         float start_extrusion;
         float position[Num_Axis];
         float origin[Num_Axis];
-        unsigned int cur_cp_color_id = 0;
+        unsigned int cp_color_counter = 0;
     };
 
 private:
@@ -112,6 +116,8 @@ private:
     ExtruderOffsetsMap m_extruder_offsets;
     unsigned int m_extruders_count;
     GCodeFlavor m_gcode_flavor;
+
+    ExtruderToColorMap m_extruder_color;
 
     // The output of process_layer()
     std::string m_process_output;
@@ -212,7 +218,13 @@ private:
     void _process_height_tag(const std::string& comment, size_t pos);
 
     // Processes color change tag
-    void _process_color_change_tag();
+    void _process_color_change_tag(int extruder);
+
+    // Processes pause print and custom gcode tag
+    void _process_pause_print_or_custom_code_tag();
+
+    // Processes new layer tag
+    void _process_end_pause_print_or_custom_code_tag();
 
     void _set_units(EUnits units);
     EUnits _get_units() const;
