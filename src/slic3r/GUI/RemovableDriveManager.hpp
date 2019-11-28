@@ -41,7 +41,8 @@ private:
 #if _WIN32
 	void register_window();
 #else
-	void search_path(const std::string &path, const dev_t &parentDevID);
+	void search_path(const std::string &path, const std::string &parent_path);
+	bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
 #endif
 };
 }}

@@ -1,6 +1,5 @@
 #include "RemovableDriveManager.hpp"
 #include <iostream>
-#include <stdio.h>
 #include "boost/nowide/convert.hpp"
 
 #if _WIN32
@@ -17,6 +16,7 @@ DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
 #include <sys/stat.h>
 #include <glob.h>
 #include <libgen.h>
+#include <pwd.h>
 #endif
 
 namespace Slic3r {
@@ -96,8 +96,6 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 			{
 				std::cerr << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
 			}
-
-
 			m_current_drives.erase(it);
 			break;
 		}
@@ -138,65 +136,85 @@ void RemovableDriveManager::register_window()
 #else
 void RemovableDriveManager::search_for_drives()
 {
-    struct stat buf;
-    std::string path(std::getenv("USER"));
-	std::string pp(path);
-
+    
 	m_current_drives.clear();
 	m_current_drives.reserve(26);
 
     //search /media/* folder
-    stat("/media/",&buf);
-    //std::cout << "/media ID: " <<buf.st_dev << "\n";
-	search_path("/media/*", buf.st_dev);
+	search_path("/media/*", "/media");
 
-	//search /media/USERNAME/* folder
-	pp = "/media/"+pp;
-	path = "/media/" + path + "/*";
+    std::string path(std::getenv("USER"));
+	std::string pp(path);
+	//std::cout << "user: "<< path << "\n";
+	if(path == "root"){ //if program is run with sudo, we have to search for all users 
+		while (true) {
+	        passwd* entry = getpwent();
+	        if (!entry) {
+	            break;
+	        }
+	        path = entry->pw_name;
+	        pp = path;
+	        //search /media/USERNAME/* folder
+			pp = "/media/"+pp;
+			path = "/media/" + path + "/*";
+			search_path(path, pp);
 
-	stat(pp.c_str() ,&buf);
-    //std::cout << pp <<" ID: " <<buf.st_dev << "\n";
-	search_path(path, buf.st_dev);
+			//search /run/media/USERNAME/* folder
+			path = "/run" + path;
+			pp = "/run"+pp;
+			search_path(path, pp);
+	    }
+	    endpwent();
+	}else
+	{
+		//search /media/USERNAME/* folder
+		pp = "/media/"+pp;
+		path = "/media/" + path + "/*";
+		search_path(path, pp);
 
-	//search /run/media/USERNAME/* folder
-	path = "/run" + path;
-	pp = "/run"+pp;
-	stat(pp.c_str() ,&buf);
-    //std::cout << pp <<" ID: " <<buf.st_dev << "\n";
-	search_path(path, buf.st_dev);
+		//search /run/media/USERNAME/* folder
+		path = "/run" + path;
+		pp = "/run"+pp;
+		search_path(path, pp);
 
-	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
+	}
+	
+	std::cout << "found drives:" <<m_current_drives.size() << "\n";
 }
-void RemovableDriveManager::search_path(const std::string &path,const dev_t &parentDevID)
+void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
 {
     glob_t globbuf;
 	globbuf.gl_offs = 2;
-    //std::cout<<"searching "<<path<<"\n";
 	int error = glob(path.c_str(), GLOB_TILDE, NULL, &globbuf);
-	if(error)
-	{
-		//std::cout<<"glob error "<< error<< "\n";
-	}else
+	if(error == 0) 
 	{
 		for(size_t i = 0; i < globbuf.gl_pathc; i++)
 		{
-			//std::cout<<globbuf.gl_pathv[i]<<"\n";
-			//TODO check if mounted
-			std::string name = basename(globbuf.gl_pathv[i]);
-	        //std::cout<<name<<"\n";
-	        struct stat buf;
-			stat(globbuf.gl_pathv[i],&buf);
-			//std::cout << buf.st_dev << "\n";
-			if(buf.st_dev != parentDevID)// not same file system
+			//if not same file system - could be removable drive
+			if(!compare_filesystem_id(globbuf.gl_pathv[i], parent_path))
 			{
+				std::string name = basename(globbuf.gl_pathv[i]);
 	            m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
 			}
 		}
+	}else
+	{
+		//if error - path probably doesnt exists so function just exits
+		//std::cout<<"glob error "<< error<< "\n";
 	}
 	
 	globfree(&globbuf);
 }
 
+bool RemovableDriveManager::compare_filesystem_id(const std::string &path_a, const std::string &path_b)
+{
+	struct stat buf;
+	stat(path_a.c_str() ,&buf);
+	dev_t id_a = buf.st_dev;
+	stat(path_b.c_str() ,&buf);
+	dev_t id_b = buf.st_dev;
+	return id_a == id_b;
+}
 void RemovableDriveManager::eject_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
@@ -206,7 +224,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 	{
 		if((*it).path == path)
 		{
-            //std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
+            std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
             int error = umount2(path.c_str(),MNT_DETACH);
             if(error)
             {
@@ -224,13 +242,9 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
 		return false;
-	struct stat path_buf;
-	stat(path.c_str(), &path_buf);
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
-		struct stat drive_buf; 
-		stat((*it).path.c_str(), &drive_buf);
-		if(drive_buf.st_dev == path_buf.st_dev)
+		if(compare_filesystem_id(path, (*it).path))
 			return true;
 	}
 	return false;
@@ -261,6 +275,7 @@ bool RemovableDriveManager::update(long time)
 	//std::cout << "RDM update " << last_update <<"\n";
 	search_for_drives();
 	check_and_notify();
+	eject_drive(m_current_drives.back().path);
 	return !m_current_drives.empty();
 }
 
@@ -295,7 +310,7 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 }
 void RemovableDriveManager::check_and_notify()
 {
-	static int number_of_drives = 0;
+	static size_t number_of_drives = 0;
 	if(number_of_drives != m_current_drives.size())
 	{
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
