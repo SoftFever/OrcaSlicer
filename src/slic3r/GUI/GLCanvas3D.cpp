@@ -3928,38 +3928,11 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
     if (show_bed)
     {
         // extends the near and far z of the frustrum to avoid the bed being clipped
-        BoundingBoxf3 bed_box = m_bed.get_bounding_box(true);
 
-        // bed box vertices in world space
-        std::vector<Vec3d> vertices;
-        vertices.reserve(8);
-        vertices.push_back(bed_box.min);
-        vertices.emplace_back(bed_box.max(0), bed_box.min(1), bed_box.min(2));
-        vertices.emplace_back(bed_box.max(0), bed_box.max(1), bed_box.min(2));
-        vertices.emplace_back(bed_box.min(0), bed_box.max(1), bed_box.min(2));
-        vertices.emplace_back(bed_box.min(0), bed_box.min(1), bed_box.max(2));
-        vertices.emplace_back(bed_box.max(0), bed_box.min(1), bed_box.max(2));
-        vertices.push_back(bed_box.max);
-        vertices.emplace_back(bed_box.min(0), bed_box.max(1), bed_box.max(2));
-
-        double bed_box_min_z = DBL_MAX;
-        double bed_box_max_z = -DBL_MAX;
-        Transform3d view_matrix = camera.get_view_matrix();
-        for (const Vec3d& v : vertices)
-        {
-            Vec3d eye_v = view_matrix * v;
-            if (eye_v(2) < 0.0)
-            {
-                bed_box_min_z = std::min(bed_box_min_z, -eye_v(2));
-                bed_box_max_z = std::max(bed_box_max_z, -eye_v(2));
-            }
-        }
-
-        if (bed_box_min_z != DBL_MAX)
-            near_z = bed_box_min_z;
-
-        if (bed_box_max_z != -DBL_MAX)
-            far_z = bed_box_max_z;
+        // box in eye space
+        BoundingBoxf3 t_bed_box = m_bed.get_bounding_box(true).transformed(camera.get_view_matrix());
+        near_z = -t_bed_box.max(2);
+        far_z = -t_bed_box.min(2);
     }
 
     camera.apply_projection(box, near_z, far_z);

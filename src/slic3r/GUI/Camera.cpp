@@ -367,27 +367,10 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     while (true)
     {
-        ret = std::make_pair(DBL_MAX, -DBL_MAX);
-
-        // box vertices in world space
-        std::vector<Vec3d> vertices;
-        vertices.reserve(8);
-        vertices.push_back(box.min);
-        vertices.emplace_back(box.max(0), box.min(1), box.min(2));
-        vertices.emplace_back(box.max(0), box.max(1), box.min(2));
-        vertices.emplace_back(box.min(0), box.max(1), box.min(2));
-        vertices.emplace_back(box.min(0), box.min(1), box.max(2));
-        vertices.emplace_back(box.max(0), box.min(1), box.max(2));
-        vertices.push_back(box.max);
-        vertices.emplace_back(box.min(0), box.max(1), box.max(2));
-
-        // set the Z range in eye coordinates (negative Zs are in front of the camera)
-        for (const Vec3d& v : vertices)
-        {
-            double z = -(m_view_matrix * v)(2);
-            ret.first = std::min(ret.first, z);
-            ret.second = std::max(ret.second, z);
-        }
+        // box in eye space
+        BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
+        ret.first = -eye_box.max(2);
+        ret.second = -eye_box.min(2);
 
         // apply margin
         ret.first -= FrustrumZMargin;
