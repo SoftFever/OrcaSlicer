@@ -139,6 +139,8 @@ public:
     // If the "vendor" section is missing, enable all models and variants of the particular vendor.
     void                        load_installed_printers(const AppConfig &config);
 
+    const std::string&          get_preset_name_by_alias(const Preset::Type& preset_type, const std::string& alias) const;
+
     static const char *PRUSA_BUNDLE;
 private:
     std::string                 load_system_presets();

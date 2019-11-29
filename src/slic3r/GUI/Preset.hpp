@@ -329,7 +329,7 @@ public:
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 
-    const std::string& get_preset_name_by_alias(const std::string& alias);
+    const std::string& get_preset_name_by_alias(const std::string& alias) const;
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }

@@ -810,6 +810,8 @@ void PresetCollection::save_current_preset(const std::string &new_name)
         preset.is_external = false;
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible  = true;
+        // Just system presets have aliases
+        preset.alias.clear();
     }
     // 2) Activate the saved preset.
     this->select_preset_by_name(new_name, true);
@@ -903,7 +905,7 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
     return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
 }
 
-const std::string& PresetCollection::get_preset_name_by_alias(const std::string& alias)
+const std::string& PresetCollection::get_preset_name_by_alias(const std::string& alias) const
 {
     for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
         const Preset& preset = this->m_presets[i];

@@ -329,6 +329,20 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
     }
 }
 
+const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& preset_type, const std::string& alias) const
+{
+    // there are not aliases for Printers profiles
+    if (preset_type == Preset::TYPE_PRINTER || preset_type == Preset::TYPE_INVALID)
+        return alias;
+
+    const PresetCollection& presets = preset_type == Preset::TYPE_PRINT     ? prints :
+                                      preset_type == Preset::TYPE_SLA_PRINT ? sla_prints :
+                                      preset_type == Preset::TYPE_FILAMENT  ? filaments :
+                                      sla_materials;
+
+    return presets.get_preset_name_by_alias(alias);
+}
+
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
     if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
