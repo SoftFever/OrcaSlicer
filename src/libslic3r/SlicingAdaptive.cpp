@@ -37,15 +37,33 @@ void SlicingAdaptive::prepare()
     m_mesh = m_object->raw_mesh();
     const ModelInstance* first_instance = m_object->instances.front();
     m_mesh.transform(first_instance->get_matrix(), first_instance->is_left_handed());
-    for (stl_facet& facet : m_mesh.stl.facet_start)
-    {
-        facet.normal.normalize();
-    }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "transform: " << std::endl;
+    std::cout << "position: " << to_string(first_instance->get_offset()) << std::endl;
+    std::cout << "rotation: " << to_string(first_instance->get_rotation()) << std::endl;
+    std::cout << "mesh box: " << to_string(m_mesh.bounding_box().min) << " - " << to_string(m_mesh.bounding_box().max) << std::endl;
+    std::cout << "mesh center: " << to_string(m_mesh.bounding_box().center()) << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    for (stl_facet& facet : m_mesh.stl.facet_start)
+//    {
+//        facet.normal.normalize();
+//    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // 1) Collect faces from mesh.
     m_faces.reserve(m_mesh.stl.stats.number_of_facets);
-    for (const stl_facet& face : m_mesh.stl.facet_start)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    for (stl_facet& face : m_mesh.stl.facet_start)
+    {
+        face.normal.normalize();
         m_faces.emplace_back(&face);
+    }
+//    for (const stl_facet& face : m_mesh.stl.facet_start)
+//        m_faces.emplace_back(&face);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #else
     // 1) Collect faces of all meshes.
     int nfaces_total = 0;
