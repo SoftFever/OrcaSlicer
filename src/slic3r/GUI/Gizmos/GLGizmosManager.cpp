@@ -491,7 +491,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 processed = true;
             }
         }
-        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::RightDown))
+        else if (evt.RightDown() && (selected_object_idx != -1) && (m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::RightDown))
         {
             // we need to set the following right up as processed to avoid showing the context menu if the user release the mouse over the object
             pending_right_up = true;
@@ -642,7 +642,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
         {
             // Sla gizmo selects all support points
-            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::SelectAll))
+            if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::SelectAll))
                 processed = true;
 
             break;
