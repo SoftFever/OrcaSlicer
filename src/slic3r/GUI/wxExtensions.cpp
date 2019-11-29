@@ -2816,18 +2816,13 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
     int height, width;
     get_size(&width, &height);
 
-    wxRect main_band = m_rect_lower_thumb;
-    if (is_horizontal()) {
-        main_band.SetLeft(SLIDER_MARGIN);
-        main_band.SetRight(width - SLIDER_MARGIN + 1);
-    }
-    else {
-        const int cut = 2;
-        main_band.x += cut;
-        main_band.width -= 2*cut;
-        main_band.SetTop(SLIDER_MARGIN);
-        main_band.SetBottom(height - SLIDER_MARGIN + 1);
-    }
+    const wxCoord mid = is_horizontal() ? 0.5 * height : 0.5 * width;
+
+    wxRect main_band = is_horizontal() ?
+                       wxRect(SLIDER_MARGIN, lround(mid - 0.375 * m_thumb_size.y), 
+                            width - 2 * SLIDER_MARGIN + 1, lround(0.75 * m_thumb_size.y)) :
+                       wxRect(lround(mid - 0.375 * m_thumb_size.x), SLIDER_MARGIN, 
+                              lround(0.75 * m_thumb_size.x), height - 2 * SLIDER_MARGIN + 1);
 
     auto draw_band = [](wxDC& dc, const wxColour& clr, const wxRect& band_rc) {
         dc.SetPen(clr);
