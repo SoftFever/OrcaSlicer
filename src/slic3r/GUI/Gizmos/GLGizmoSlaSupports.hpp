@@ -99,7 +99,6 @@ private:
 
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
-    bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same

@@ -37,7 +37,7 @@ GLGizmoHollow::~GLGizmoHollow()
 
 bool GLGizmoHollow::on_init()
 {
-    m_shortcut_key = WXK_CONTROL_L;
+    m_shortcut_key = WXK_CONTROL_H;
 
     m_desc["head_diameter"]    = _(L("Head diameter")) + ": ";
     m_desc["lock_supports"]    = _(L("Lock supports under new islands"));
@@ -595,7 +595,6 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_volume_with_cavity->set_volume_transformation(volume_trafo);
         m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
     }
-    
     m_parent.toggle_model_objects_visibility(! m_cavity_mesh, m_model_object, m_active_instance);
 }
 
@@ -751,10 +750,9 @@ RENDER_AGAIN:
     if (ImGui::SliderFloat("     ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
-    if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
-        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_model_object, m_active_instance);
-        force_refresh = true;
-    }
+    // make sure supports are shown/hidden as appropriate
+    m_imgui->checkbox(m_desc["show_supports"], m_show_supports);
+    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_model_object, m_active_instance);
 
     m_imgui->end();
 

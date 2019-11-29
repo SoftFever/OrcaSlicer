@@ -738,11 +738,6 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_l
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 RENDER_AGAIN:
-    //m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    //const ImVec2 window_size(m_imgui->scaled(18.f, 16.f));
-    //ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
-    //ImGui::SetNextWindowSize(ImVec2(window_size));
-    
     const float approx_height = m_imgui->scaled(18.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
@@ -760,7 +755,6 @@ RENDER_AGAIN:
 
     float window_width = minimal_slider_width + std::max(std::max(settings_sliders_left, clipping_slider_left), diameter_slider_left);
     window_width = std::max(std::max(window_width, buttons_width_approx), lock_supports_width_approx);
-
 
     bool force_refresh = false;
     bool remove_selected = false;
@@ -917,11 +911,11 @@ RENDER_AGAIN:
 
     m_imgui->end();
 
-    if (m_editing_mode != m_old_editing_state) { // user toggled between editing/non-editing mode
-        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode, m_model_object, m_active_instance);
-        force_refresh = true;
-    }
-    m_old_editing_state = m_editing_mode;
+    // Make sure that the supports are (not) visible as they should be. This
+    // is done on each refresh because the user can switch the editing mode
+    // before background process finishes.
+    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(
+                ! m_editing_mode, m_model_object, m_active_instance);
 
     if (remove_selected || remove_all) {
         force_refresh = false;
