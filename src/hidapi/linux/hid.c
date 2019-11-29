@@ -29,6 +29,7 @@
 #include <errno.h>
 
 /* Unix */
+#include <dlfcn.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -44,6 +45,126 @@
 #include <libudev.h>
 
 #include "hidapi.h"
+
+typedef const char* 			(*hid_wrapper_udev_device_get_devnode_type)(struct udev_device *udev_device);
+typedef struct udev_device* 	(*hid_wrapper_udev_device_get_parent_with_subsystem_devtype_type)(struct udev_device *udev_device, const char *subsystem, const char *devtype);
+typedef const char*				(*hid_wrapper_udev_device_get_sysattr_value_type)(struct udev_device *udev_device, const char *sysattr);
+typedef struct udev_device*		(*hid_wrapper_udev_device_new_from_devnum_type)(struct udev *udev, char type, dev_t devnum);
+typedef struct udev_device* 	(*hid_wrapper_udev_device_new_from_syspath_type)(struct udev *udev, const char *syspath);
+typedef struct udev_device* 	(*hid_wrapper_udev_device_unref_type)(struct udev_device *udev_device);
+typedef int 					(*hid_wrapper_udev_enumerate_add_match_subsystem_type)(struct udev_enumerate *udev_enumerate, const char *subsystem);
+typedef struct udev_list_entry* (*hid_wrapper_udev_enumerate_get_list_entry_type)(struct udev_enumerate *udev_enumerate);
+typedef struct udev_enumerate*  (*hid_wrapper_udev_enumerate_new_type)(struct udev *udev);
+typedef int 					(*hid_wrapper_udev_enumerate_scan_devices_type)(struct udev_enumerate *udev_enumerate);
+typedef struct udev_enumerate* 	(*hid_wrapper_udev_enumerate_unref_type)(struct udev_enumerate *udev_enumerate);
+typedef const char*				(*hid_wrapper_udev_list_entry_get_name_type)(struct udev_list_entry *list_entry);
+typedef struct udev_list_entry* (*hid_wrapper_udev_list_entry_get_next_type)(struct udev_list_entry *list_entry);
+typedef struct udev*			(*hid_wrapper_udev_new_type)(void);
+typedef struct udev*			(*hid_wrapper_udev_unref_type)(struct udev *udev);
+
+void  																   *hid_wrapper_handle 											= NULL;
+static hid_wrapper_udev_device_get_devnode_type 						hid_wrapper_udev_device_get_devnode 						= NULL;
+static hid_wrapper_udev_device_get_parent_with_subsystem_devtype_type 	hid_wrapper_udev_device_get_parent_with_subsystem_devtype 	= NULL;
+static hid_wrapper_udev_device_get_sysattr_value_type					hid_wrapper_udev_device_get_sysattr_value 					= NULL;
+static hid_wrapper_udev_device_new_from_devnum_type 					hid_wrapper_udev_device_new_from_devnum 					= NULL;
+static hid_wrapper_udev_device_new_from_syspath_type					hid_wrapper_udev_device_new_from_syspath 					= NULL;
+static hid_wrapper_udev_device_unref_type 								hid_wrapper_udev_device_unref 								= NULL;
+static hid_wrapper_udev_enumerate_add_match_subsystem_type 				hid_wrapper_udev_enumerate_add_match_subsystem 				= NULL;
+static hid_wrapper_udev_enumerate_get_list_entry_type 					hid_wrapper_udev_enumerate_get_list_entry 					= NULL;
+static hid_wrapper_udev_enumerate_new_type 								hid_wrapper_udev_enumerate_new 								= NULL;
+static hid_wrapper_udev_enumerate_scan_devices_type 					hid_wrapper_udev_enumerate_scan_devices 					= NULL;
+static hid_wrapper_udev_enumerate_unref_type 							hid_wrapper_udev_enumerate_unref 							= NULL;
+static hid_wrapper_udev_list_entry_get_name_type 						hid_wrapper_udev_list_entry_get_name 						= NULL;
+static hid_wrapper_udev_list_entry_get_next_type 						hid_wrapper_udev_list_entry_get_next 						= NULL;
+static hid_wrapper_udev_new_type 										hid_wrapper_udev_new 										= NULL;
+static hid_wrapper_udev_unref_type 										hid_wrapper_udev_unref 										= NULL;
+
+static void hid_wrapper_udev_close()
+{
+	if (hid_wrapper_handle)
+		dlclose(hid_wrapper_handle);
+	hid_wrapper_handle 											= NULL;
+	hid_wrapper_udev_device_get_devnode 						= NULL;
+	hid_wrapper_udev_device_get_parent_with_subsystem_devtype 	= NULL;
+	hid_wrapper_udev_device_get_sysattr_value 					= NULL;
+	hid_wrapper_udev_device_new_from_devnum 					= NULL;
+	hid_wrapper_udev_device_new_from_syspath 					= NULL;
+	hid_wrapper_udev_device_unref 								= NULL;
+	hid_wrapper_udev_enumerate_add_match_subsystem 				= NULL;
+	hid_wrapper_udev_enumerate_get_list_entry 					= NULL;
+	hid_wrapper_udev_enumerate_new 								= NULL;
+	hid_wrapper_udev_enumerate_scan_devices 					= NULL;
+	hid_wrapper_udev_enumerate_unref 							= NULL;
+	hid_wrapper_udev_list_entry_get_name 						= NULL;
+	hid_wrapper_udev_list_entry_get_next 						= NULL;
+	hid_wrapper_udev_new 										= NULL;
+	hid_wrapper_udev_unref 										= NULL;
+}
+
+static const char *hid_wrapper_libudev_paths[] = {
+    "libudev.so.1", "libudev.so.0"
+};
+
+static int hid_wrapper_udev_init()
+{
+	int i;
+
+	hid_wrapper_udev_close();
+
+	// Search for the libudev0 or libudev1 library.
+	for (i = 0; i < sizeof(hid_wrapper_libudev_paths) / sizeof(hid_wrapper_libudev_paths[0]); ++ i)
+	  	if ((hid_wrapper_handle = dlopen(hid_wrapper_libudev_paths[i], RTLD_NOW | RTLD_GLOBAL)) != NULL)
+	  		break;
+
+	if (hid_wrapper_handle == NULL) {
+		// Error, close the shared library handle and finish.
+		hid_wrapper_udev_close();
+		return -1;
+	}
+
+	// Resolve the functions.
+	hid_wrapper_udev_device_get_devnode 						= (hid_wrapper_udev_device_get_devnode_type)						dlsym(hid_wrapper_handle, "udev_device_get_devnode");
+	hid_wrapper_udev_device_get_parent_with_subsystem_devtype 	= (hid_wrapper_udev_device_get_parent_with_subsystem_devtype_type)	dlsym(hid_wrapper_handle, "udev_device_get_parent_with_subsystem_devtype");
+	hid_wrapper_udev_device_get_sysattr_value 					= (hid_wrapper_udev_device_get_sysattr_value_type)					dlsym(hid_wrapper_handle, "udev_device_get_sysattr_value");
+	hid_wrapper_udev_device_new_from_devnum 					= (hid_wrapper_udev_device_new_from_devnum_type)					dlsym(hid_wrapper_handle, "udev_device_new_from_devnum");
+	hid_wrapper_udev_device_new_from_syspath 					= (hid_wrapper_udev_device_new_from_syspath_type)					dlsym(hid_wrapper_handle, "udev_device_new_from_syspath");
+	hid_wrapper_udev_device_unref 								= (hid_wrapper_udev_device_unref_type)								dlsym(hid_wrapper_handle, "udev_device_unref");
+	hid_wrapper_udev_enumerate_add_match_subsystem 				= (hid_wrapper_udev_enumerate_add_match_subsystem_type)				dlsym(hid_wrapper_handle, "udev_enumerate_add_match_subsystem");
+	hid_wrapper_udev_enumerate_get_list_entry 					= (hid_wrapper_udev_enumerate_get_list_entry_type)					dlsym(hid_wrapper_handle, "udev_enumerate_get_list_entry");
+	hid_wrapper_udev_enumerate_new    	 	 					= (hid_wrapper_udev_enumerate_new_type)								dlsym(hid_wrapper_handle, "udev_enumerate_new");
+	hid_wrapper_udev_enumerate_scan_devices	 					= (hid_wrapper_udev_enumerate_scan_devices_type)					dlsym(hid_wrapper_handle, "udev_enumerate_scan_devices");
+	hid_wrapper_udev_enumerate_unref	 						= (hid_wrapper_udev_enumerate_unref_type)							dlsym(hid_wrapper_handle, "udev_enumerate_unref");
+	hid_wrapper_udev_list_entry_get_name 						= (hid_wrapper_udev_list_entry_get_name_type)						dlsym(hid_wrapper_handle, "udev_list_entry_get_name");
+	hid_wrapper_udev_list_entry_get_next 						= (hid_wrapper_udev_list_entry_get_next_type)						dlsym(hid_wrapper_handle, "udev_list_entry_get_next");
+	hid_wrapper_udev_new 										= (hid_wrapper_udev_new_type)										dlsym(hid_wrapper_handle, "udev_new");
+	hid_wrapper_udev_unref 										= (hid_wrapper_udev_unref_type)										dlsym(hid_wrapper_handle, "udev_unref");
+
+	// Were all the funcions resolved?
+	if (hid_wrapper_handle 											== NULL ||
+		hid_wrapper_udev_device_get_devnode 						== NULL ||
+		hid_wrapper_udev_device_get_parent_with_subsystem_devtype 	== NULL ||
+		hid_wrapper_udev_device_get_sysattr_value 					== NULL ||
+		hid_wrapper_udev_device_new_from_devnum 					== NULL ||
+		hid_wrapper_udev_device_new_from_syspath 					== NULL ||
+		hid_wrapper_udev_device_unref 								== NULL ||
+		hid_wrapper_udev_enumerate_add_match_subsystem 				== NULL ||
+		hid_wrapper_udev_enumerate_get_list_entry 					== NULL ||
+		hid_wrapper_udev_enumerate_new 								== NULL ||
+		hid_wrapper_udev_enumerate_scan_devices 					== NULL ||
+		hid_wrapper_udev_enumerate_unref 							== NULL ||
+		hid_wrapper_udev_list_entry_get_name 						== NULL ||
+		hid_wrapper_udev_list_entry_get_next 						== NULL ||
+		hid_wrapper_udev_new 										== NULL ||
+		hid_wrapper_udev_unref 										== NULL)
+	{
+		// Error, close the shared library handle and finish.
+		hid_wrapper_udev_close();
+		return -1;
+	}
+
+	// Success.
+	return 0;
+}
 
 /* Definitions from linux/hidraw.h. Since these are new, some distros
    may not have header files which contain them. */
@@ -134,7 +255,7 @@ static wchar_t *utf8_to_wchar_t(const char *utf8)
    string. The returned string must be freed with free() when done.*/
 static wchar_t *copy_udev_string(struct udev_device *dev, const char *udev_name)
 {
-	return utf8_to_wchar_t(udev_device_get_sysattr_value(dev, udev_name));
+	return utf8_to_wchar_t(hid_wrapper_udev_device_get_sysattr_value(dev, udev_name));
 }
 
 /* uses_numbered_reports() returns 1 if report_descriptor describes a device
@@ -267,7 +388,7 @@ static int get_device_string(hid_device *dev, enum device_string_id key, wchar_t
         char *product_name_utf8 = NULL;
 
 	/* Create the udev object */
-	udev = udev_new();
+	udev = hid_wrapper_udev_new();
 	if (!udev) {
 		printf("Can't create udev\n");
 		return -1;
@@ -278,9 +399,9 @@ static int get_device_string(hid_device *dev, enum device_string_id key, wchar_t
 	if (-1 == ret)
 		return ret;
 	/* Open a udev device from the dev_t. 'c' means character device. */
-	udev_dev = udev_device_new_from_devnum(udev, 'c', s.st_rdev);
+	udev_dev = hid_wrapper_udev_device_new_from_devnum(udev, 'c', s.st_rdev);
 	if (udev_dev) {
-		hid_dev = udev_device_get_parent_with_subsystem_devtype(
+		hid_dev = hid_wrapper_udev_device_get_parent_with_subsystem_devtype(
 			udev_dev,
 			"hid",
 			NULL);
@@ -291,7 +412,7 @@ static int get_device_string(hid_device *dev, enum device_string_id key, wchar_t
 			size_t retm;
 
 			ret = parse_uevent_info(
-			           udev_device_get_sysattr_value(hid_dev, "uevent"),
+			           hid_wrapper_udev_device_get_sysattr_value(hid_dev, "uevent"),
 			           &bus_type,
 			           &dev_vid,
 			           &dev_pid,
@@ -320,7 +441,7 @@ static int get_device_string(hid_device *dev, enum device_string_id key, wchar_t
 			}
 			else {
 				/* This is a USB device. Find its parent USB Device node. */
-				parent = udev_device_get_parent_with_subsystem_devtype(
+				parent = hid_wrapper_udev_device_get_parent_with_subsystem_devtype(
 					   udev_dev,
 					   "usb",
 					   "usb_device");
@@ -335,7 +456,7 @@ static int get_device_string(hid_device *dev, enum device_string_id key, wchar_t
 						goto end;
 					}
 
-					str = udev_device_get_sysattr_value(parent, key_str);
+					str = hid_wrapper_udev_device_get_sysattr_value(parent, key_str);
 					if (str) {
 						/* Convert the string from UTF-8 to wchar_t */
 						retm = mbstowcs(string, str, maxlen);
@@ -351,10 +472,10 @@ end:
         free(serial_number_utf8);
         free(product_name_utf8);
 
-	udev_device_unref(udev_dev);
+	hid_wrapper_udev_device_unref(udev_dev);
 	/* parent and hid_dev don't need to be (and can't be) unref'd.
 	   I'm not sure why, but they'll throw double-free() errors. */
-	udev_unref(udev);
+	hid_wrapper_udev_unref(udev);
 
 	return ret;
 }
@@ -370,15 +491,15 @@ int HID_API_EXPORT hid_init(void)
 
 	kernel_version = detect_kernel_version();
 
-	return 0;
+	return hid_wrapper_udev_init();
 }
 
 int HID_API_EXPORT hid_exit(void)
 {
 	/* Nothing to do for this in the Linux/hidraw implementation. */
+	hid_wrapper_udev_close();
 	return 0;
 }
-
 
 struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id)
 {
@@ -393,20 +514,20 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	hid_init();
 
 	/* Create the udev object */
-	udev = udev_new();
+	udev = hid_wrapper_udev_new();
 	if (!udev) {
 		printf("Can't create udev\n");
 		return NULL;
 	}
 
 	/* Create a list of the devices in the 'hidraw' subsystem. */
-	enumerate = udev_enumerate_new(udev);
-	udev_enumerate_add_match_subsystem(enumerate, "hidraw");
-	udev_enumerate_scan_devices(enumerate);
-	devices = udev_enumerate_get_list_entry(enumerate);
+	enumerate = hid_wrapper_udev_enumerate_new(udev);
+	hid_wrapper_udev_enumerate_add_match_subsystem(enumerate, "hidraw");
+	hid_wrapper_udev_enumerate_scan_devices(enumerate);
+	devices = hid_wrapper_udev_enumerate_get_list_entry(enumerate);
 	/* For each item, see if it matches the vid/pid, and if so
 	   create a udev_device record for it */
-	udev_list_entry_foreach(dev_list_entry, devices) {
+    for (dev_list_entry = devices; dev_list_entry; dev_list_entry = hid_wrapper_udev_list_entry_get_next(dev_list_entry)) {
 		const char *sysfs_path;
 		const char *dev_path;
 		const char *str;
@@ -423,11 +544,11 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 		/* Get the filename of the /sys entry for the device
 		   and create a udev_device object (dev) representing it */
-		sysfs_path = udev_list_entry_get_name(dev_list_entry);
-		raw_dev = udev_device_new_from_syspath(udev, sysfs_path);
-		dev_path = udev_device_get_devnode(raw_dev);
+		sysfs_path = hid_wrapper_udev_list_entry_get_name(dev_list_entry);
+		raw_dev = hid_wrapper_udev_device_new_from_syspath(udev, sysfs_path);
+		dev_path = hid_wrapper_udev_device_get_devnode(raw_dev);
 
-		hid_dev = udev_device_get_parent_with_subsystem_devtype(
+		hid_dev = hid_wrapper_udev_device_get_parent_with_subsystem_devtype(
 			raw_dev,
 			"hid",
 			NULL);
@@ -438,7 +559,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 		}
 
 		result = parse_uevent_info(
-			udev_device_get_sysattr_value(hid_dev, "uevent"),
+			hid_wrapper_udev_device_get_sysattr_value(hid_dev, "uevent"),
 			&bus_type,
 			&dev_vid,
 			&dev_pid,
@@ -496,7 +617,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 					   subsystem/devtype pair of "usb"/"usb_device". This will
 					   be several levels up the tree, but the function will find
 					   it. */
-					usb_dev = udev_device_get_parent_with_subsystem_devtype(
+					usb_dev = hid_wrapper_udev_device_get_parent_with_subsystem_devtype(
 							raw_dev,
 							"usb",
 							"usb_device");
@@ -524,16 +645,16 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 					cur_dev->product_string = copy_udev_string(usb_dev, device_string_names[DEVICE_STRING_PRODUCT]);
 
 					/* Release Number */
-					str = udev_device_get_sysattr_value(usb_dev, "bcdDevice");
+					str = hid_wrapper_udev_device_get_sysattr_value(usb_dev, "bcdDevice");
 					cur_dev->release_number = (str)? strtol(str, NULL, 16): 0x0;
 
 					/* Get a handle to the interface's udev node. */
-					intf_dev = udev_device_get_parent_with_subsystem_devtype(
+					intf_dev = hid_wrapper_udev_device_get_parent_with_subsystem_devtype(
 							raw_dev,
 							"usb",
 							"usb_interface");
 					if (intf_dev) {
-						str = udev_device_get_sysattr_value(intf_dev, "bInterfaceNumber");
+						str = hid_wrapper_udev_device_get_sysattr_value(intf_dev, "bInterfaceNumber");
 						cur_dev->interface_number = (str)? strtol(str, NULL, 16): -1;
 					}
 
@@ -556,14 +677,14 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	next:
 		free(serial_number_utf8);
 		free(product_name_utf8);
-		udev_device_unref(raw_dev);
+		hid_wrapper_udev_device_unref(raw_dev);
 		/* hid_dev, usb_dev and intf_dev don't need to be (and can't be)
 		   unref()d.  It will cause a double-free() error.  I'm not
 		   sure why.  */
 	}
 	/* Free the enumerator and udev objects. */
-	udev_enumerate_unref(enumerate);
-	udev_unref(udev);
+	hid_wrapper_udev_enumerate_unref(enumerate);
+	hid_wrapper_udev_unref(udev);
 
 	return root;
 }
