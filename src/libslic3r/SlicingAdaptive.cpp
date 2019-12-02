@@ -38,33 +38,13 @@ void SlicingAdaptive::prepare()
     const ModelInstance* first_instance = m_object->instances.front();
     m_mesh.transform(first_instance->get_matrix(), first_instance->is_left_handed());
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "transform: " << std::endl;
-    std::cout << "position: " << to_string(first_instance->get_offset()) << std::endl;
-    std::cout << "rotation: " << to_string(first_instance->get_rotation()) << std::endl;
-    std::cout << "mesh box: " << to_string(m_mesh.bounding_box().min) << " - " << to_string(m_mesh.bounding_box().max) << std::endl;
-    std::cout << "mesh center: " << to_string(m_mesh.bounding_box().center()) << std::endl;
-    std::cout << "mesh facets count: " << m_mesh.stl.stats.number_of_facets << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    for (stl_facet& facet : m_mesh.stl.facet_start)
-//    {
-//        facet.normal.normalize();
-//    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     // 1) Collect faces from mesh.
     m_faces.reserve(m_mesh.stl.stats.number_of_facets);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     for (stl_facet& face : m_mesh.stl.facet_start)
     {
         face.normal.normalize();
         m_faces.emplace_back(&face);
     }
-//    for (const stl_facet& face : m_mesh.stl.facet_start)
-//        m_faces.emplace_back(&face);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #else
     // 1) Collect faces of all meshes.
     int nfaces_total = 0;
@@ -77,26 +57,12 @@ void SlicingAdaptive::prepare()
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 	// 2) Sort faces lexicographically by their Z span.
-	std::sort(m_faces.begin(), m_faces.end(), [](const stl_facet *f1, const stl_facet *f2) {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        return face_z_span(f1) < face_z_span(f2);
-//        std::pair<float, float> span1 = face_z_span(f1);
-//		  std::pair<float, float> span2 = face_z_span(f2);
-//        return span1 < span2;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    });
+	std::sort(m_faces.begin(), m_faces.end(), [](const stl_facet *f1, const stl_facet *f2) { return face_z_span(f1) < face_z_span(f2); });
 
 	// 3) Generate Z components of the facet normals.
 	m_face_normal_z.assign(m_faces.size(), 0.0f);
     for (size_t iface = 0; iface < m_faces.size(); ++ iface)
     	m_face_normal_z[iface] = m_faces[iface]->normal(2);
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    for (size_t iface = 0; iface < m_faces.size(); ++iface)
-    {
-        std::cout << "face: " << iface << " -> normal z: " << m_face_normal_z[iface] << std::endl;
-    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet)
@@ -117,25 +83,13 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 			if (! first_hit) {
 				first_hit = true;
 				current_facet = ordered_id;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                std::cout << "z: " << z << " - first_hit: " << current_facet << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
 			// skip touching facets which could otherwise cause small cusp values
 			if (zspan.second <= z + EPSILON)
 				continue;
 			// compute cusp-height for this facet and store minimum of all heights
 			float normal_z = m_face_normal_z[ordered_id];
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            float new_height = std::min(height, (normal_z == 0.0f) ? (float)m_slicing_params.max_layer_height : std::abs(cusp_value / normal_z));
-            if (height != new_height)
-            {
-                height = new_height;
-                std::cout << "z: " << z << " - new height 1: " << new_height << " at normal_z: " << normal_z << "(id: " << ordered_id << ")" << std::endl;
-            }
-
-//            height = std::min(height, (normal_z == 0.0f) ? (float)m_slicing_params.max_layer_height : std::abs(cusp_value / normal_z));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            height = std::min(height, (normal_z == 0.0f) ? (float)m_slicing_params.max_layer_height : std::abs(cusp_value / normal_z));
         }
 	}
 
@@ -160,10 +114,6 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 
 			float z_diff = zspan.first - z;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            float old_height = height;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 			// handle horizontal facets
             if (normal_z > 0.999f) {
                 // Slic3r::debugf "cusp computation, height is reduced from %f", $height;
@@ -180,13 +130,6 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 				height = z_diff;
 				// Slic3r::debugf "to z-diff: %f\n", $height;
 			}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            if (old_height != height)
-            {
-                std::cout << "z: " << z << " - new height 2: " << height << " at normal_z: " << normal_z << "(id: " << ordered_id << ")" << std::endl;
-            }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 		}
 		// lower height limit due to printer capabilities again
 		height = std::max(height, float(m_slicing_params.min_layer_height));

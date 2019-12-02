@@ -234,13 +234,6 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     const ModelVolumePtrs		&volumes)
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "4) layer_height_profile_adaptive() - cusp value: " << cusp_value << std::endl;
-    std::cout << "min_layer_height: " << slicing_params.min_layer_height << std::endl;
-    std::cout << "max_layer_height: " << slicing_params.max_layer_height << std::endl;
-    std::cout << "layer_height: " << slicing_params.layer_height << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     // 1) Initialize the SlicingAdaptive class with the object meshes.
     SlicingAdaptive as;
@@ -350,14 +343,6 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     layer_height_profile.push_back(slicing_params.first_object_layer_height);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "profile size: " << layer_height_profile.size() << std::endl;
-    for (size_t i = 0; i < layer_height_profile.size(); i += 2)
-    {
-        std::cout << 1 + i / 2 << ") " << layer_height_profile[i] << " - " << layer_height_profile[i + 1] << std::endl;
-    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     return layer_height_profile;
 }
 
@@ -441,14 +426,7 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
         return ret;
     };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << "4) smooth_height_profile() - radius: " << smoothing_params.radius << std::endl;
-    std::vector<double> ret = gauss_blur(profile, smoothing_params);
-    std::cout << "profile size: " << ret.size() << std::endl;
-    return ret;
-
-//    return gauss_blur(profile, smoothing_params);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(
