@@ -3027,7 +3027,8 @@ void DoubleSlider::OnLeftDown(wxMouseEvent& event)
                               get_value_from_position(pos.x, pos.y);
         if (mouse_val >= 0)
         {
-            if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
+            // if (abs(mouse_val - m_lower_value) < abs(mouse_val - m_higher_value)) {
+            if ( mouse_val <= m_lower_value ) {
                 SetLowerValue(mouse_val);
                 correct_lower_value();
                 m_selection = ssLower;
