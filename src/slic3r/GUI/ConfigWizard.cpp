@@ -1401,8 +1401,6 @@ void ConfigWizard::priv::load_vendors()
         pair.second.preset_bundle->load_installed_printers(appconfig_new);
     }
 
-    update_materials(T_ANY);
-
     if (app_config->has_section(AppConfig::SECTION_FILAMENTS)) {
         appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, app_config->get_section(AppConfig::SECTION_FILAMENTS));
     }
@@ -1427,10 +1425,22 @@ void ConfigWizard::priv::enable_next(bool enable)
 void ConfigWizard::priv::set_start_page(ConfigWizard::StartPage start_page)
 {
     switch (start_page) {
-        case ConfigWizard::SP_PRINTERS: index->go_to(page_fff); break;
-        case ConfigWizard::SP_FILAMENTS: index->go_to(page_filaments); break;
-        case ConfigWizard::SP_MATERIALS: index->go_to(page_sla_materials); break;
-        default: index->go_to(page_welcome); break;
+        case ConfigWizard::SP_PRINTERS: 
+            index->go_to(page_fff); 
+            btn_next->SetFocus();
+            break;
+        case ConfigWizard::SP_FILAMENTS:
+            index->go_to(page_filaments);
+            btn_finish->SetFocus();
+            break;
+        case ConfigWizard::SP_MATERIALS:
+            index->go_to(page_sla_materials);
+            btn_finish->SetFocus();
+            break;
+        default:
+            index->go_to(page_welcome);
+            btn_next->SetFocus();
+            break;
     }
 }
 
@@ -1767,6 +1777,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->any_sla_selected = p->page_msla->any_selected();
     p->any_fff_selected = p->page_fff->any_selected();
 
+    p->update_materials(T_ANY);
+
     p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
         _(L("Filament Profiles Selection")), _(L("Filaments")), _(L("Type:")) ));
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
@@ -1818,6 +1830,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         const bool is_last = p->index->active_is_last();
         p->btn_next->Show(! is_last);
 //        p->btn_finish->Show(is_last);
+        if (is_last)
+            p->btn_finish->SetFocus();
 
         Layout();
     });
