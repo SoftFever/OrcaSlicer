@@ -3558,11 +3558,17 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
             /* PausePrintCode doesn't need a color, so
              * this field is used for save a short message shown on Printer display 
              * */
-            m_pause_print_msg = color = get_pause_print_msg(m_pause_print_msg, m_values[tick]);
+            color = get_pause_print_msg(m_pause_print_msg, m_values[tick]);
+            if (color.empty())
+                return;
+            m_pause_print_msg = color;
         }
         else if (code.empty())
         {
-            m_custom_gcode = code = get_custom_code(m_custom_gcode, m_values[tick]);
+            code = get_custom_code(m_custom_gcode, m_values[tick]);
+            if (code.empty())
+                return;
+            m_custom_gcode = code;
         }
 
         int extruder = 1;
