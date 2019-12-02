@@ -111,9 +111,9 @@ protected:
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
 
-    void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const FillParams &params);
-
 public:
+    static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, double spacing, const FillParams &params);
+
     static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 
     // Align a coordinate to a grid. The coordinate may be negative,
