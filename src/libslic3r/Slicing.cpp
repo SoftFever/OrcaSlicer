@@ -236,6 +236,9 @@ std::vector<coordf_t> layer_height_profile_adaptive(
 {
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     std::cout << "4) layer_height_profile_adaptive() - cusp value: " << cusp_value << std::endl;
+    std::cout << "min_layer_height: " << slicing_params.min_layer_height << std::endl;
+    std::cout << "max_layer_height: " << slicing_params.max_layer_height << std::endl;
+    std::cout << "layer_height: " << slicing_params.layer_height << std::endl;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
