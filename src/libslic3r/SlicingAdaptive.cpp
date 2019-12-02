@@ -37,15 +37,14 @@ void SlicingAdaptive::prepare()
     m_mesh = m_object->raw_mesh();
     const ModelInstance* first_instance = m_object->instances.front();
     m_mesh.transform(first_instance->get_matrix(), first_instance->is_left_handed());
-    for (stl_facet& facet : m_mesh.stl.facet_start)
-    {
-        facet.normal.normalize();
-    }
 
     // 1) Collect faces from mesh.
     m_faces.reserve(m_mesh.stl.stats.number_of_facets);
-    for (const stl_facet& face : m_mesh.stl.facet_start)
+    for (stl_facet& face : m_mesh.stl.facet_start)
+    {
+        face.normal.normalize();
         m_faces.emplace_back(&face);
+    }
 #else
     // 1) Collect faces of all meshes.
     int nfaces_total = 0;
@@ -58,14 +57,10 @@ void SlicingAdaptive::prepare()
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 	// 2) Sort faces lexicographically by their Z span.
-	std::sort(m_faces.begin(), m_faces.end(), [](const stl_facet *f1, const stl_facet *f2) {
-        std::pair<float, float> span1 = face_z_span(f1);
-		std::pair<float, float> span2 = face_z_span(f2);
-        return span1 < span2;
-    });
+	std::sort(m_faces.begin(), m_faces.end(), [](const stl_facet *f1, const stl_facet *f2) { return face_z_span(f1) < face_z_span(f2); });
 
 	// 3) Generate Z components of the facet normals.
-	m_face_normal_z.assign(m_faces.size(), 0.f);
+	m_face_normal_z.assign(m_faces.size(), 0.0f);
     for (size_t iface = 0; iface < m_faces.size(); ++ iface)
     	m_face_normal_z[iface] = m_faces[iface]->normal(2);
 }
@@ -88,7 +83,7 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 			if (! first_hit) {
 				first_hit = true;
 				current_facet = ordered_id;
-			}
+            }
 			// skip touching facets which could otherwise cause small cusp values
 			if (zspan.second <= z + EPSILON)
 				continue;
@@ -115,7 +110,7 @@ float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet
 
 			// Compute cusp-height for this facet and check against height.
 			float normal_z = m_face_normal_z[ordered_id];
-            float cusp = (normal_z == 0.0f) ? (float)m_slicing_params.max_layer_height : abs(cusp_value / normal_z);
+            float cusp = (normal_z == 0.0f) ? (float)m_slicing_params.max_layer_height : std::abs(cusp_value / normal_z);
 
 			float z_diff = zspan.first - z;
 

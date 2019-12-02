@@ -284,7 +284,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGui::Separator();
     if (imgui.button(_(L("Smooth"))))
-        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params ));
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
 
     ImGui::SameLine();
     ImGui::SetCursorPosX(text_align);
@@ -640,6 +640,7 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp)
 {
+    this->update_slicing_parameters();
     m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object, cusp);
     const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
     m_layers_texture.valid = false;
@@ -648,6 +649,8 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
 
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params)
 {
+    this->update_slicing_parameters();
+
     m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, smoothing_params);
     const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
     m_layers_texture.valid = false;
