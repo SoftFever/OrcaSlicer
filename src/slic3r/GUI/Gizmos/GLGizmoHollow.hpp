@@ -43,32 +43,6 @@ private:
     mutable int m_print_object_idx = -1;
     mutable int m_print_objects_count = -1;
 
-    class CacheEntry {
-    public:
-        CacheEntry() :
-            drain_hole(sla::DrainHole()), selected(false) {}
-
-        CacheEntry(const sla::DrainHole& point, bool sel = false) :
-            drain_hole(point), selected(sel) {}
-
-        bool operator==(const CacheEntry& rhs) const {
-            return (drain_hole == rhs.drain_hole);
-        }
-
-        bool operator!=(const CacheEntry& rhs) const {
-            return ! ((*this) == rhs);
-        }
-
-        sla::DrainHole drain_hole;
-        bool selected; // whether the point is selected
-
-        template<class Archive>
-        void serialize(Archive & ar)
-        {
-            ar(drain_hole, selected);
-        }
-    };
-
 public:
     GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoHollow() override;
@@ -90,7 +64,6 @@ private:
     void on_render() const override;
     void on_render_for_picking() const override;
 
-    //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
@@ -102,15 +75,21 @@ private:
     bool  m_show_supports = true;
     float m_new_hole_radius;        // Size of a new hole.
     float m_new_hole_height = 5.f;
-    float m_old_hole_radius = 0.;   // undo/redo - so we know what state was edited
-    Vec3f m_hole_before_drag = Vec3f::Zero();
-    float m_minimal_point_distance_stash = 0.f; // and again
-    float m_density_stash = 0.f;                // and again
     mutable std::vector<bool> m_selected; // which holes are currently selected
 
-    float m_offset = 2.0f;
-    float m_accuracy = 0.5f;
-    float m_closing_d = 2.f;
+    bool m_enable_hollowing = true;
+
+    // Stashes to keep data for undo redo. Is taken after the editing
+    // is done, the data are updated continuously.
+    float m_offset_stash = 2.0f;
+    float m_quality_stash = 0.5f;
+    float m_closing_d_stash = 2.f;
+    Vec3f m_hole_before_drag = Vec3f::Zero();
+
+
+    sla::DrainHoles m_holes_stash;
+
+
     
     float m_clipping_plane_distance = 0.f;
     std::unique_ptr<ClippingPlane> m_clipping_plane;
@@ -130,7 +109,6 @@ private:
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_mesh_point_clipped(const Vec3d& point) const;
-    //void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:

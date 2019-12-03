@@ -38,20 +38,17 @@ GLGizmoHollow::~GLGizmoHollow()
 bool GLGizmoHollow::on_init()
 {
     m_shortcut_key = WXK_CONTROL_H;
-
-    m_desc["head_diameter"]    = _(L("Head diameter")) + ": ";
-    m_desc["lock_supports"]    = _(L("Lock supports under new islands"));
+    m_desc["enable"]           = _(L("Hollow this object"));
+    m_desc["preview"]          = _(L("Preview"));
+    m_desc["offset"]           = _(L("Offset")) + ": ";
+    m_desc["quality"]          = _(L("Quality")) + ": ";
+    m_desc["closing_distance"] = _(L("Closing distance")) + ": ";
+    m_desc["hole_diameter"]    = _(L("Hole diameter")) + ": ";
+    m_desc["hole_depth"]       = _(L("Hole depth")) + ": ";
     m_desc["remove_selected"]  = _(L("Remove selected holes"));
     m_desc["remove_all"]       = _(L("Remove all holes"));
-    m_desc["apply_changes"]    = _(L("Apply changes"));
-    m_desc["discard_changes"]  = _(L("Discard changes"));
-    m_desc["minimal_distance"] = _(L("Minimal points distance")) + ": ";
-    m_desc["points_density"]   = _(L("Support points density")) + ": ";
-    m_desc["auto_generate"]    = _(L("Auto-generate points"));
-    m_desc["manual_editing"]   = _(L("Manual editing"));
     m_desc["clipping_of_view"] = _(L("Clipping of view"))+ ": ";
     m_desc["reset_direction"]  = _(L("Reset direction"));
-    m_desc["hollow"]           = _(L("Hollow"));
     m_desc["show_supports"]    = _(L("Show supports"));
 
     return true;
@@ -206,8 +203,7 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
         ::glPopMatrix();
     }
 
-    if (m_supports_clipper && ! m_supports_clipper->get_triangles().empty()) {
-        // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
+    if (m_show_supports && m_supports_clipper && ! m_supports_clipper->get_triangles().empty()) {
         ::glPushMatrix();
         ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
@@ -250,7 +246,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
         const sla::DrainHole& drain_hole = m_model_object->sla_drain_holes[i];
         const bool& point_selected = m_selected[i];
 
-        if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
+        if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -565,7 +561,13 @@ void GLGizmoHollow::on_update(const UpdateData& data)
 
 std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowing_parameters() const
 {
-    return std::make_pair(m_mesh, sla::HollowingConfig{double(m_offset), double(m_accuracy), double(m_closing_d)});
+    // FIXME this function is probably obsolete, caller could
+    // get the data from model config himself
+    std::vector<const ConfigOption*> opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
+    float offset = static_cast<const ConfigOptionFloat*>(opts[0])->value;
+    float quality = static_cast<const ConfigOptionFloat*>(opts[1])->value;
+    float closing_d = static_cast<const ConfigOptionFloat*>(opts[2])->value;
+    return std::make_pair(m_mesh, sla::HollowingConfig{double(offset), double(quality), double(closing_d)});
 }
 
 void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
@@ -596,6 +598,10 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
     }
     m_parent.toggle_model_objects_visibility(! m_cavity_mesh, m_model_object, m_active_instance);
+    if (m_clipping_plane_distance == 0.f) {
+        m_clipping_plane_distance = 0.5f;
+        update_clipping_plane();
+    }
 }
 
 std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
@@ -643,74 +649,151 @@ void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 RENDER_AGAIN:
-    const float approx_height = m_imgui->scaled(18.0f);
+    const float approx_height = m_imgui->scaled(20.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
-    const float settings_sliders_left = std::max(m_imgui->calc_text_size(m_desc.at("minimal_distance")).x, m_imgui->calc_text_size(m_desc.at("points_density")).x) + m_imgui->scaled(1.f);
+    const float settings_sliders_left =
+      std::max(std::max(m_imgui->calc_text_size(m_desc.at("offset")).x,
+                        m_imgui->calc_text_size(m_desc.at("quality")).x),
+                        m_imgui->calc_text_size(m_desc.at("closing_distance")).x)
+                        + m_imgui->scaled(1.f);
+
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
-    const float diameter_slider_left = m_imgui->calc_text_size(m_desc.at("head_diameter")).x + m_imgui->scaled(1.f);
+    const float diameter_slider_left = m_imgui->calc_text_size(m_desc.at("hole_diameter")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
-    const float buttons_width_approx = m_imgui->calc_text_size(m_desc.at("apply_changes")).x + m_imgui->calc_text_size(m_desc.at("discard_changes")).x + m_imgui->scaled(1.5f);
-    const float lock_supports_width_approx = m_imgui->calc_text_size(m_desc.at("lock_supports")).x + m_imgui->scaled(2.f);
+    //const float buttons_width_approx = m_imgui->calc_text_size(m_desc.at("apply_changes")).x + m_imgui->calc_text_size(m_desc.at("discard_changes")).x + m_imgui->scaled(1.5f);
 
     float window_width = minimal_slider_width + std::max(std::max(settings_sliders_left, clipping_slider_left), diameter_slider_left);
-    window_width = std::max(std::max(window_width, buttons_width_approx), lock_supports_width_approx);
+    window_width = std::max(std::max(window_width, /*buttons_width_approx*/0.f), 0.f);
+
+    {
+        std::vector<const ConfigOption*> opts = get_config_options({"hollowing_enable"});
+        m_enable_hollowing = static_cast<const ConfigOptionBool*>(opts[0])->value;
+        if (m_imgui->checkbox(m_desc["enable"], m_enable_hollowing)) {
+            m_model_object->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
+        }
+    }
+    m_imgui->disabled_begin(! m_enable_hollowing);
+
+    ImGui::SameLine();
+    if (m_imgui->button(m_desc["preview"]))
+        hollow_mesh();
+
+    std::vector<const ConfigOption*> opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
+    float offset = static_cast<const ConfigOptionFloat*>(opts[0])->value;
+    float quality = static_cast<const ConfigOptionFloat*>(opts[1])->value;
+    float closing_d = static_cast<const ConfigOptionFloat*>(opts[2])->value;
+
+    m_imgui->text(m_desc.at("offset"));
+    ImGui::SameLine(settings_sliders_left);
+    ImGui::PushItemWidth(window_width - settings_sliders_left);
+    ImGui::SliderFloat("   ", &offset, 0.f, 5.f, "%.1f");
+    bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
+    bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
+    bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
+
+    m_imgui->text(m_desc.at("quality"));
+    ImGui::SameLine(settings_sliders_left);
+    ImGui::SliderFloat("    ", &quality, 0.f, 1.f, "%.1f");
+    slider_clicked |= ImGui::IsItemClicked();
+    slider_edited |= ImGui::IsItemEdited();
+    slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+
+    m_imgui->text(m_desc.at("closing_distance"));
+    ImGui::SameLine(settings_sliders_left);
+    ImGui::SliderFloat("      ", &closing_d, 0.f, 10.f, "%.1f");
+    slider_clicked |= ImGui::IsItemClicked();
+    slider_edited |= ImGui::IsItemEdited();
+    slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+
+    if (slider_clicked) {
+        m_offset_stash = offset;
+        m_quality_stash = quality;
+        m_closing_d_stash = closing_d;
+    }
+    if (slider_edited || slider_released) {
+        if (slider_released) {
+            m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = m_offset_stash;
+            m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = m_quality_stash;
+            m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = m_closing_d_stash;
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Hollowing parameter change")));
+        }
+        m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = offset;
+        m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = quality;
+        m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = closing_d;
+        if (slider_released)
+            wxGetApp().obj_list()->update_and_show_object_settings_item();
+    }
+
+    m_imgui->disabled_end();
 
     bool force_refresh = false;
     bool remove_selected = false;
     bool remove_all = false;
 
-    if (m_imgui->button(m_desc.at("hollow")))
-        hollow_mesh();
+    m_imgui->text(" "); // vertical gap
 
     float diameter_upper_cap = 20.f; //static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
     if (m_new_hole_radius > diameter_upper_cap)
         m_new_hole_radius = diameter_upper_cap;
-    m_imgui->text(m_desc.at("head_diameter"));
+    m_imgui->text(m_desc.at("hole_diameter"));
     ImGui::SameLine(diameter_slider_left);
     ImGui::PushItemWidth(window_width - diameter_slider_left);
+
+    ImGui::SliderFloat("", &m_new_hole_radius, 0.1f, diameter_upper_cap, "%.1f");
+    bool clicked = ImGui::IsItemClicked();
+    bool edited = ImGui::IsItemEdited();
+    bool deactivated = ImGui::IsItemDeactivatedAfterEdit();
+
+    m_imgui->text(m_desc["hole_depth"]);
+    ImGui::SameLine(diameter_slider_left);
+    m_new_hole_height -= HoleStickOutLength;
+    ImGui::SliderFloat("  ", &m_new_hole_height, 0.f, 10.f, "%.1f");
+    m_new_hole_height += HoleStickOutLength;
+
+    clicked |= ImGui::IsItemClicked();
+    edited |= ImGui::IsItemEdited();
+    deactivated |= ImGui::IsItemDeactivatedAfterEdit();
 
     // Following is a nasty way to:
     //  - save the initial value of the slider before one starts messing with it
     //  - keep updating the head radius during sliding so it is continuosly refreshed in 3D scene
     //  - take correct undo/redo snapshot after the user is done with moving the slider
-    float initial_value = m_new_hole_radius;
-    ImGui::SliderFloat("", &m_new_hole_radius, 0.1f, diameter_upper_cap, "%.1f");
-    if (ImGui::IsItemClicked()) {
-        if (m_old_hole_radius == 0.f)
-            m_old_hole_radius = initial_value;
+    if (! m_selection_empty) {
+        if (clicked) {
+            m_holes_stash = m_model_object->sla_drain_holes;
+        }
+        if (edited) {
+            for (size_t idx=0; idx<m_selected.size(); ++idx)
+                if (m_selected[idx]) {
+                    m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
+                    m_model_object->sla_drain_holes[idx].height = m_new_hole_height;
+                }
+        }
+        if (deactivated) {
+            // momentarily restore the old value to take snapshot
+            sla::DrainHoles new_holes = m_model_object->sla_drain_holes;
+            m_model_object->sla_drain_holes = m_holes_stash;
+            float backup_rad = m_new_hole_radius;
+            float backup_hei = m_new_hole_height;
+            for (size_t i=0; i<m_holes_stash.size(); ++i) {
+                if (m_selected[i]) {
+                    m_new_hole_radius = m_holes_stash[i].radius;
+                    m_new_hole_height = m_holes_stash[i].height;
+                    break;
+                }
+            }
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change drainage hole diameter")));
+            m_new_hole_radius = backup_rad;
+            m_new_hole_height = backup_hei;
+            m_model_object->sla_drain_holes = new_holes;
+        }
     }
-    if (ImGui::IsItemEdited()) {
-        for (size_t idx=0; idx<m_selected.size(); ++idx)
-            if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
-    }
-    if (ImGui::IsItemDeactivatedAfterEdit()) {
-        // momentarily restore the old value to take snapshot
-        for (size_t idx=0; idx<m_selected.size(); ++idx)
-            if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].radius = m_old_hole_radius;
-        float backup = m_new_hole_radius;
-        m_new_hole_radius = m_old_hole_radius;
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change drainage hole diameter")));
-        m_new_hole_radius = backup;
-        for (size_t idx=0; idx<m_selected.size(); ++idx)
-            if (m_selected[idx])
-                m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
-        m_old_hole_radius = 0.f;
-    }
-
-    // !!!! Something as above should be done for the undo/redo
-    m_imgui->text("Hole height: ");
-    ImGui::SameLine();
-    ImGui::SliderFloat("  ", &m_new_hole_height, 0.1f, 10.f, "%.1f");
-    for (size_t idx=0; idx<m_selected.size(); ++idx)
-        if (m_selected[idx])
-            m_model_object->sla_drain_holes[idx].height = m_new_hole_height;
 
     m_imgui->disabled_begin(m_selection_empty);
     remove_selected = m_imgui->button(m_desc.at("remove_selected"));
@@ -719,19 +802,6 @@ RENDER_AGAIN:
     m_imgui->disabled_begin(m_model_object->sla_drain_holes.empty());
     remove_all = m_imgui->button(m_desc.at("remove_all"));
     m_imgui->disabled_end();
-
-    m_imgui->text(" "); // vertical gap
-
-
-    m_imgui->text("Offset: ");
-    ImGui::SameLine();
-    ImGui::SliderFloat("   ", &m_offset, 0.f, 5.f, "%.1f");
-    m_imgui->text("Quality: ");
-    ImGui::SameLine();
-    ImGui::SliderFloat("    ", &m_accuracy, 0.f, 1.f, "%.1f");
-    m_imgui->text("Closing distance: ");
-    ImGui::SameLine();
-    ImGui::SliderFloat("      ", &m_closing_d, 0.f, 10.f, "%.1f");
 
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
