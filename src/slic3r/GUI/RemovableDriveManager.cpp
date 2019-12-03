@@ -62,6 +62,7 @@ void RemovableDriveManager::search_for_drives()
 						//std::cout << std::string(volumeName.begin(), volumeName.end()) << " " << std::string(fileSystemName.begin(), fileSystemName.end()) << " " << freeSpace.QuadPart << "\n";
 						if (free_space.QuadPart > 0)
 						{
+							path += "\\";
 							m_current_drives.push_back(DriveData(boost::nowide::narrow(volume_name), path));
 						}
 					}
@@ -82,6 +83,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 		if ((*it).path == path)
 		{
 			std::string mpath = "\\\\.\\" + path;
+			mpath = mpath.substr(0, mpath.size() - 1);
+			std::cout << "Ejecting " << mpath << "\n";
 			HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 			if (handle == INVALID_HANDLE_VALUE)
 			{
@@ -299,11 +302,11 @@ std::string RemovableDriveManager::get_last_drive_path()
 {
 	if (!m_current_drives.empty())
 	{
-#if _WIN32
-		return m_current_drives.back().path + "\\";
-#else
+//#if _WIN32
+//		return m_current_drives.back().path + "\\";
+//#else
 		return m_current_drives.back().path;
-#endif	
+//#endif	
 	}
 	return "";
 }
