@@ -20,8 +20,7 @@ DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
 #endif
 
 namespace Slic3r {
-namespace GUI {
-
+namespace GUI { 
 //std::vector<DriveData>  RemovableDriveManager::m_current_drives;
 //std::vector<std::function<void()>>  RemovableDriveManager::m_callbacks;
 
@@ -95,7 +94,10 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 			if (error == 0)
 			{
 				std::cerr << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
+				return;
 			}
+
+
 			m_current_drives.erase(it);
 			break;
 		}
@@ -179,7 +181,7 @@ void RemovableDriveManager::search_for_drives()
 
 	}
 	
-	std::cout << "found drives:" <<m_current_drives.size() << "\n";
+	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
 {
@@ -225,13 +227,16 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 		if((*it).path == path)
 		{
             std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
-            int error = umount2(path.c_str(),MNT_DETACH);
-            if(error)
+            std::string command = "umount ";
+            command += (*it).path;
+            int err = system(command.c_str());
+            if(err)
             {
-                int errsv = errno;
-                std::cerr<<"Ejecting failed Error "<< errsv<<"\n";
+                std::cerr<<"Ejecting failed\n";
+                return;
             }
             m_current_drives.erase(it);
+            		
             break;
 		}
 
@@ -272,10 +277,8 @@ bool RemovableDriveManager::update(long time)
 			return false; // return value shouldnt matter if update didnt run
 		}
 	}
-	//std::cout << "RDM update " << last_update <<"\n";
 	search_for_drives();
 	check_and_notify();
-	eject_drive(m_current_drives.back().path);
 	return !m_current_drives.empty();
 }
 
@@ -310,15 +313,17 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 }
 void RemovableDriveManager::check_and_notify()
 {
-	static size_t number_of_drives = 0;
-	if(number_of_drives != m_current_drives.size())
+	//std::cout<<"drives count: "<<m_drives_count;
+	if(m_drives_count != m_current_drives.size())
 	{
+		//std::cout<<" vs "<< m_current_drives.size();
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 		{
 			(*it)();
 		}
-		number_of_drives = m_current_drives.size();
+		m_drives_count = m_current_drives.size();
 	}
+	//std::cout<<"\n";
 }
 void RemovableDriveManager::add_callback(std::function<void()> callback)
 {

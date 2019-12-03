@@ -33,11 +33,12 @@ public:
 	void add_callback(std::function<void()> callback);
 	void print();
 private:
-	RemovableDriveManager(){}
+	RemovableDriveManager():m_drives_count(0){}
 	void search_for_drives();
 	void check_and_notify();
 	std::vector<DriveData> m_current_drives;
 	std::vector<std::function<void()>> m_callbacks;
+	size_t m_drives_count;
 #if _WIN32
 	void register_window();
 #else
