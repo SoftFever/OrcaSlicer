@@ -111,6 +111,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/WipeTowerDialog.hpp
     GUI/RammingChart.cpp
     GUI/RammingChart.hpp
+    GUI/RemovableDriveManager.cpp
+    GUI/RemovableDriveManager.hpp
     GUI/BonjourDialog.cpp
     GUI/BonjourDialog.hpp
     GUI/ButtonsDescription.cpp
