@@ -51,10 +51,10 @@
 #include <Shlobj.h>
 #endif // __WXMSW__
 
-#if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/nowide/fstream.hpp>
-#endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
 namespace Slic3r {
 namespace GUI {
