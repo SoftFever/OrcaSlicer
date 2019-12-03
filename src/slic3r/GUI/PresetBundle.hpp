@@ -109,8 +109,8 @@ public:
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false);
 
-    // Update a filament selection combo box on the platter for an idx_extruder.
-    void                        update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui);
+    // Update a filament selection combo box on the plater for an idx_extruder.
+    void                        update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);

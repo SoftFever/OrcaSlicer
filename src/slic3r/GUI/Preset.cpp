@@ -1026,7 +1026,7 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
 
 // Update the wxChoice UI component from this list of presets.
 // Hide the
-void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
+void PresetCollection::update_plater_ui(GUI::PresetComboBox *ui)
 {
     if (ui == nullptr)
         return;

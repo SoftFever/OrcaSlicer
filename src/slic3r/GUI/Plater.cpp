@@ -323,7 +323,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
                 cfg_new.set_key_value("extruder_colour", colors);
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
+                wxGetApp().preset_bundle->update_plater_filament_ui(extruder_idx, this);
                 wxGetApp().plater()->on_config_change(cfg_new);
             }
         });
@@ -949,18 +949,18 @@ void Sidebar::update_all_preset_comboboxes()
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     if (print_tech == ptFFF)
-        preset_bundle.prints.update_platter_ui(p->combo_print);
+        preset_bundle.prints.update_plater_ui(p->combo_print);
     else {
-        preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
-        preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
+        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
     }
     // Update the printer choosers, update the dirty flags.
-    preset_bundle.printers.update_platter_ui(p->combo_printer);
+    preset_bundle.printers.update_plater_ui(p->combo_printer);
     // Update the filament choosers to only contain the compatible presets, update the color preview,
     // update the dirty flags.
     if (print_tech == ptFFF) {
         for (size_t i = 0; i < p->combos_filament.size(); ++i)
-            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
     }
 }
 
@@ -983,22 +983,22 @@ void Sidebar::update_presets(Preset::Type preset_type)
         }
 
         for (size_t i = 0; i < filament_cnt; i++) {
-            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+            preset_bundle.update_plater_filament_ui(i, p->combos_filament[i]);
         }
 
         break;
     }
 
     case Preset::TYPE_PRINT:
-        preset_bundle.prints.update_platter_ui(p->combo_print);
+        preset_bundle.prints.update_plater_ui(p->combo_print);
         break;
 
     case Preset::TYPE_SLA_PRINT:
-        preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+        preset_bundle.sla_prints.update_plater_ui(p->combo_sla_print);
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        preset_bundle.sla_materials.update_plater_ui(p->combo_sla_material);
         break;
 
     case Preset::TYPE_PRINTER:
@@ -2072,7 +2072,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Default printer technology for default config.
     background_process.select_technology(this->printer_technology);
-    // Register progress callback from the Print class to the Platter.
+    // Register progress callback from the Print class to the Plater.
 
     auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus &status) {
         wxQueueEvent(this->q, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
@@ -3473,8 +3473,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
-        // Only update the platter UI for the 2nd and other filaments.
-        wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo);
+        // Only update the plater UI for the 2nd and other filaments.
+        wxGetApp().preset_bundle->update_plater_filament_ui(idx, combo);
     }
     else {
         wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
@@ -5128,7 +5128,7 @@ void Plater::on_extruders_change(size_t num_extruders)
         choices.push_back(choice);
 
         // initialize selection
-        wxGetApp().preset_bundle->update_platter_filament_ui(i, choice);
+        wxGetApp().preset_bundle->update_plater_filament_ui(i, choice);
         ++i;
     }
 

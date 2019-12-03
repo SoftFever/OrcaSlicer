@@ -231,7 +231,7 @@ public:
     // Counter for the updating (because of an update() function can have a recursive behavior):
     // 1. increase value from the very beginning of an update() function
     // 2. decrease value at the end of an update() function
-    // 3. propagate changed configuration to the Platter when (m_update_cnt == 0) only
+    // 3. propagate changed configuration to the Plater when (m_update_cnt == 0) only
     int                 m_update_cnt = 0;
 
 public:

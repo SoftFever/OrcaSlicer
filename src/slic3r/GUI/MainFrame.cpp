@@ -124,7 +124,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
         _3DScene::remove_all_canvases();
 //         Slic3r::GUI::deregister_on_request_update_callback();
 
-        // set to null tabs and a platter
+        // set to null tabs and a plater
         // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
         wxGetApp().tabs_list.clear();
         wxGetApp().plater_ = nullptr;
@@ -1006,7 +1006,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 }
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
-// Also update the platter with the new presets.
+// Also update the plater with the new presets.
 void MainFrame::load_config(const DynamicPrintConfig& config)
 {
 	PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();

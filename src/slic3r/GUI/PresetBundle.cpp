@@ -1572,7 +1572,7 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->load_compatible_bitmaps(window);
 }
 
-void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
+void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
 {
     if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA ||
         this->filament_presets.size() <= idx_extruder )

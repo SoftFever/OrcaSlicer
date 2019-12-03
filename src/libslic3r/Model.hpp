@@ -236,7 +236,7 @@ public:
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-    // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D platter.
+    // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D plater.
     TriangleMesh raw_mesh() const;
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     TriangleMesh full_raw_mesh() const;

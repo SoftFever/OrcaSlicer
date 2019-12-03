@@ -555,7 +555,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             update_data();
 
             wxGetApp().obj_manipul()->set_dirty();
-            // Let the platter know that the dragging finished, so a delayed refresh
+            // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             // updates camera target constraints

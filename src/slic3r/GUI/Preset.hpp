@@ -442,7 +442,7 @@ public:
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    void            update_platter_ui(GUI::PresetComboBox *ui);
+    void            update_plater_ui(GUI::PresetComboBox *ui);
 
     // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
     // Return true if the dirty flag changed.
@@ -531,7 +531,7 @@ private:
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;
-    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Platter.
+    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Plater.
     // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
     const wxBitmap         *m_bitmap_compatible   = nullptr;
     const wxBitmap         *m_bitmap_incompatible = nullptr;
