@@ -38,6 +38,8 @@
 #define ENABLE_2_2_0_ALPHA1 1
 
 // Enable thumbnail generator
+// When removing this technology, remove it also from stable branch, 
+// where it has been partially copied for patch 2.1.1
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
