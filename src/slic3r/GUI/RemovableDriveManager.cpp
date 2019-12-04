@@ -248,6 +248,15 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 	{
 		if((*it).path == path)
 		{
+            
+            std::string correct_path(path);
+            for (size_t i = 0; i < correct_path.size(); ++i)
+            {
+            	if(correct_path[i]==' ')
+            	{
+            		correct_path = correct_path.insert(i,"\\");
+            	}
+            }
             std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
             std::string command = "umount ";
             command += (*it).path;
@@ -301,6 +310,7 @@ bool RemovableDriveManager::update(long time)
 	}
 	search_for_drives();
 	check_and_notify();
+	eject_drive(m_current_drives.back().path);
 	return !m_current_drives.empty();
 }
 
