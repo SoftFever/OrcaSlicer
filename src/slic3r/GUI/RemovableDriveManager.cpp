@@ -121,6 +121,7 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 }
 void RemovableDriveManager::register_window()
 {
+	//std::cout << "Registering for device notification\n";
 	/*
 	WNDCLASSEX wndClass;
 
@@ -137,6 +138,7 @@ void RemovableDriveManager::register_window()
 	wndClass.lpszMenuName = NULL;
 	wndClass.hIconSm = wndClass.hIcon;
 	*/
+	//std::cout << "Failed\n";
 }
 #else
 void RemovableDriveManager::search_for_drives()
@@ -191,7 +193,7 @@ void RemovableDriveManager::search_for_drives()
 
 	}
 	
-	std::cout << "found drives:" <<m_current_drives.size() << "\n";
+	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
 {
@@ -295,21 +297,19 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 #endif
 bool RemovableDriveManager::update(long time)
 {
-	static long last_update = 0;
-	if(last_update == 0)
+	if(m_last_update == 0)
 	{
-		//add_callback(std::bind(&RemovableDriveManager::print, RemovableDriveManager::getInstance()));
-		add_callback([](void) { RemovableDriveManager::get_instance().print(); });
+		//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
 		register_window();
 #endif
 	}
 	if(time != 0) //time = 0 is forced update
 	{
-		long diff = last_update - time;
+		long diff = m_last_update - time;
 		if(diff <= -2)
 		{
-			last_update = time;
+			m_last_update = time;
 		}else
 		{
 			return false; // return value shouldnt matter if update didnt run
