@@ -148,6 +148,9 @@ void RemovableDriveManager::search_for_drives()
     //search /media/* folder
 	search_path("/media/*", "/media");
 
+	//search /Volumes/* folder (OSX)
+	search_path("/Volumes/*", "/Volumes");
+
     std::string path(std::getenv("USER"));
 	std::string pp(path);
 	//std::cout << "user: "<< path << "\n";
