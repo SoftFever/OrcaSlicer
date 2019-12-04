@@ -1186,10 +1186,10 @@ void GLGizmoSlaSupports::get_data_from_backend()
 
 void GLGizmoSlaSupports::auto_generate()
 {
-    wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L(
-                "Autogeneration will erase all manually edited points.\n\n"
-                "Are you sure you want to do it?\n"
-                )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+    wxMessageDialog dlg(GUI::wxGetApp().plater(), 
+                        _(L("Autogeneration will erase all manually edited points.")) + "\n\n" +
+                        _(L("Are you sure you want to do it?")) + "\n",
+                        _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
     if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_normal_cache.empty() || dlg.ShowModal() == wxID_YES) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Autogenerate support points")));

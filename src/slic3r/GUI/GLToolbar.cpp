@@ -368,7 +368,7 @@ void GLToolbar::get_additional_tooltip(int item_id, std::string& text)
         }
     }
 
-    text = L("");
+    text.clear();
 }
 
 void GLToolbar::set_additional_tooltip(int item_id, const std::string& text)
@@ -443,7 +443,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     if (item_id == -1)
     {
         // mouse is outside the toolbar
-        m_tooltip = L("");
+        m_tooltip.clear();
     }
     else
     {
@@ -610,7 +610,7 @@ void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas
 std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
     if (!m_enabled)
-        return L("");
+        return "";
 
     switch (m_layout.type)
     {
@@ -665,7 +665,7 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
                 {
                     const std::string& additional_tooltip = item->get_additional_tooltip();
                     if (!additional_tooltip.empty())
-                        tooltip += L("\n") + additional_tooltip;
+                        tooltip += "\n" + additional_tooltip;
                 }
             }
 
@@ -769,7 +769,7 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
                 {
                     const std::string& additional_tooltip = item->get_additional_tooltip();
                     if (!additional_tooltip.empty())
-                        tooltip += L("\n") + additional_tooltip;
+                        tooltip += "\n" + additional_tooltip;
                 }
             }
 

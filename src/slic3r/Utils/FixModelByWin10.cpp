@@ -423,7 +423,7 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 		wxMessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
 		dlg.ShowModal();
 	} else {
-		wxMessageDialog dlg(nullptr, _(L("Model repair failed: \n")) + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
+		wxMessageDialog dlg(nullptr, _(L("Model repair failed:")) + " \n" + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
 		dlg.ShowModal();
 	}
 	worker_thread.join();
