@@ -1065,7 +1065,7 @@ std::vector<size_t> chain_points(const Points &points, Point *start_near)
 }
 
 #ifndef NDEBUG
-//	#define DEBUG_SVG_OUTPUT
+	// #define DEBUG_SVG_OUTPUT
 #endif /* NDEBUG */
 
 #ifdef DEBUG_SVG_OUTPUT
@@ -1597,7 +1597,6 @@ static inline void reorder_by_two_exchanges_with_segment_flipping(std::vector<Fl
 	}
 }
 
-
 static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<FlipEdge> &edges)
 {
 	if (edges.size() < 3) {
@@ -1681,6 +1680,173 @@ static inline void reorder_by_three_exchanges_with_segment_flipping(std::vector<
 	}
 }
 
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> Matrixd;
+
+class FourOptCosts {
+public:
+	FourOptCosts(const ConnectionCost &c1, const ConnectionCost &c2, const ConnectionCost &c3, const ConnectionCost &c4) : costs { &c1, &c2, &c3, &c4 } {}
+
+	double operator()(size_t piece_idx, bool flipped) const { return flipped ? costs[piece_idx]->cost_flipped : costs[piece_idx]->cost; }
+
+private:
+	const ConnectionCost* costs[4];
+};
+
+static inline std::pair<double, size_t> minimum_crossover_cost(
+	const FourOptCosts				  &segment_costs,
+	const Matrixd 					  &segment_end_point_distance_matrix,
+	const double					   cost_current)
+{
+	// Distance from the end of span1 to the start of span2.
+	auto end_point_distance = [&segment_end_point_distance_matrix](size_t span1, bool reversed1, bool flipped1, size_t span2, bool reversed2, bool flipped2) {
+		return segment_end_point_distance_matrix(span1 * 4 + (! reversed1) * 2 + flipped1, span2 * 4 + reversed2 * 2 + flipped2);
+	};
+	auto connection_cost = [&segment_costs, end_point_distance](
+		const size_t span1, bool reversed1, bool flipped1,
+		const size_t span2, bool reversed2, bool flipped2,
+		const size_t span3, bool reversed3, bool flipped3,
+		const size_t span4, bool reversed4, bool flipped4) {
+		// Calculate the cost of reverting chains and / or flipping segment orientations.
+		return segment_costs(span1, flipped1) + segment_costs(span2, flipped2) + segment_costs(span3, flipped3) + segment_costs(span4, flipped4) +
+			   end_point_distance(span1, reversed1, flipped1, span2, reversed2, flipped2) +
+			   end_point_distance(span2, reversed2, flipped2, span3, reversed3, flipped3) +
+			   end_point_distance(span3, reversed3, flipped3, span4, reversed4, flipped4);
+	};
+
+#ifndef NDEBUG
+	{
+		double c = connection_cost(0, false, false, 1, false, false, 2, false, false, 3, false, false);
+		assert(std::abs(c - cost_current) < SCALED_EPSILON);
+	}
+#endif /* NDEBUG */
+
+	double cost_min = cost_current;
+	size_t flip_min = 0; // no flip, no improvement
+	for (size_t i = 0; i < (1 << 8); ++ i) {
+		// From the three combinations of 1,2,3 ordering, the other three are reversals of the first three.
+		size_t permutation = 0;
+		for (double c : {
+				(i == 0) ? cost_current : 
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 1, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 2, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 1, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 3, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 2, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 2, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 1, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 2, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 3, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 1, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 3, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 1, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 2, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(0, (i & 1) != 0, (i & (1 << 1)) != 0, 3, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 2, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 1, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(1, (i & 1) != 0, (i & (1 << 1)) != 0, 0, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 2, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(1, (i & 1) != 0, (i & (1 << 1)) != 0, 0, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 3, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 2, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(1, (i & 1) != 0, (i & (1 << 1)) != 0, 2, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 0, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(1, (i & 1) != 0, (i & (1 << 1)) != 0, 3, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 0, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 2, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(2, (i & 1) != 0, (i & (1 << 1)) != 0, 0, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 1, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0),
+				connection_cost(2, (i & 1) != 0, (i & (1 << 1)) != 0, 1, (i & (1 << 2)) != 0, (i & (1 << 3)) != 0, 0, (i & (1 << 4)) != 0, (i & (1 << 5)) != 0, 3, (i & (1 << 6)) != 0, (i & (1 << 7)) != 0)
+			}) {
+			if (c < cost_min) {
+				cost_min = c;
+				flip_min = i + (permutation << 8);
+			}
+			++ permutation;
+		}
+	}
+	return std::make_pair(cost_min, flip_min);
+}
+
+static inline void reorder_by_three_exchanges_with_segment_flipping2(std::vector<FlipEdge> &edges)
+{
+	if (edges.size() < 3) {
+		reorder_by_two_exchanges_with_segment_flipping(edges);
+		return;
+	}
+
+	std::vector<ConnectionCost> 			connections(edges.size());
+	std::vector<FlipEdge> 					edges_tmp(edges);
+	std::vector<std::pair<double, size_t>>	connection_lengths(edges.size() - 1, std::pair<double, size_t>(0., 0));
+	std::vector<char>						connection_tried(edges.size(), false);
+	for (size_t iter = 0; iter < edges.size(); ++ iter) {
+		// Initialize connection costs and connection lengths.
+		for (size_t i = 1; i < edges.size(); ++ i) {
+			const FlipEdge   	 &e1 = edges[i - 1];
+			const FlipEdge   	 &e2 = edges[i];
+			ConnectionCost	     &c  = connections[i];
+			c = connections[i - 1];
+			double l = (e2.p1 - e1.p2).norm();
+			c.cost += l;
+			c.cost_flipped += (e2.p2 - e1.p1).norm();
+			connection_lengths[i - 1] = std::make_pair(l, i);
+		}
+		std::sort(connection_lengths.begin(), connection_lengths.end(), [](const std::pair<double, size_t> &l, const std::pair<double, size_t> &r) { return l.first > r.first; });
+		std::fill(connection_tried.begin(), connection_tried.end(), false);
+		size_t crossover1_pos_final = std::numeric_limits<size_t>::max();
+		size_t crossover2_pos_final = std::numeric_limits<size_t>::max();
+		size_t crossover3_pos_final = std::numeric_limits<size_t>::max();
+		size_t crossover_flip_final = 0;
+		// Distances between the end points of the four pieces of the current segment sequence.
+#ifdef NDEBUG
+		Matrixd segment_end_point_distance_matrix(4 * 4, 4 * 4);
+#else /* NDEBUG */
+		Matrixd segment_end_point_distance_matrix = Matrixd::Constant(4 * 4, 4 * 4, std::numeric_limits<double>::max());
+#endif /* NDEBUG */
+		for (const std::pair<double, size_t> &first_crossover_candidate : connection_lengths) {
+			double longest_connection_length = first_crossover_candidate.first;
+			size_t longest_connection_idx    = first_crossover_candidate.second;
+			connection_tried[longest_connection_idx] = true;
+			// Find the second crossover connection with the lowest total chain cost.
+			size_t crossover_pos_min  = std::numeric_limits<size_t>::max();
+			double crossover_cost_min = connections.back().cost;
+			for (size_t j = 1; j < connections.size(); ++ j)
+				if (! connection_tried[j]) {
+					for (size_t k = j + 1; k < connections.size(); ++ k)
+						if (! connection_tried[k]) {
+							size_t a = longest_connection_idx;
+							size_t b = j;
+							size_t c = k;
+							if (a > c)
+								std::swap(a, c);
+							if (a > b)
+								std::swap(a, b);
+							if (b > c)
+								std::swap(b, c);
+							const Vec2d* endpts[16] = {
+								&edges[0].p1, &edges[0].p2, &edges[a - 1].p2, &edges[a - 1].p1,
+								&edges[a].p1, &edges[a].p2, &edges[b - 1].p2, &edges[b - 1].p1,
+								&edges[b].p1, &edges[b].p2, &edges[c - 1].p2, &edges[c - 1].p1,
+								&edges[c].p1, &edges[c].p2, &edges.back().p2, &edges.back().p1 };
+							for (size_t v = 0; v < 16; ++ v) {
+								const Vec2d &p1 = *endpts[v];
+								for (size_t u = (v & (~3)) + 4; u < 16; ++ u)
+									segment_end_point_distance_matrix(u, v) = segment_end_point_distance_matrix(v, u) = (*endpts[u] - p1).norm();
+							}
+							FourOptCosts segment_costs(connections[a - 1], connections[b - 1] - connections[a], connections[c - 1] - connections[b],  connections.back() - connections[c]);
+							std::pair<double, size_t> cost_and_flip = minimum_crossover_cost(segment_costs, segment_end_point_distance_matrix, connections.back().cost);
+							if (cost_and_flip.second > 0 && cost_and_flip.first < crossover_cost_min) {
+								crossover_cost_min   = cost_and_flip.first;
+								crossover1_pos_final = a;
+								crossover2_pos_final = b;
+								crossover3_pos_final = c;
+								crossover_flip_final = cost_and_flip.second;
+								assert(crossover_cost_min < connections.back().cost + EPSILON);
+							}
+						}
+				}
+			if (crossover_flip_final > 0) {
+				// The cost of the chain with the proposed two crossovers has a lower total cost than the current chain. Apply the crossover.
+				break;
+			} else {
+				// Continue with another long candidate edge.
+			}
+		}
+		if (crossover_flip_final > 0) {
+			// Pair of cross over positions and flip / reverse constellation has been found, which improves the total cost of the connection.
+			// Perform a crossover.
+			do_crossover(edges, edges_tmp, std::make_pair(size_t(0), crossover1_pos_final), std::make_pair(crossover1_pos_final, crossover2_pos_final), 
+				std::make_pair(crossover2_pos_final, crossover3_pos_final), std::make_pair(crossover3_pos_final, edges.size()), crossover_flip_final);
+			edges.swap(edges_tmp);
+		} else {
+			// No valid pair of cross over positions was found improving the total cost. Giving up.
+			break;
+		}
+	}
+}
+
 // Flip the sequences of polylines to lower the total length of connecting lines.
 static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polylines &polylines, bool fixed_start)
 {
@@ -1707,7 +1873,8 @@ static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polyl
 #if 1
 	reorder_by_two_exchanges_with_segment_flipping(edges);
 #else
-	reorder_by_three_exchanges_with_segment_flipping(edges);
+	// reorder_by_three_exchanges_with_segment_flipping(edges);
+	reorder_by_three_exchanges_with_segment_flipping2(edges);
 #endif
 	Polylines out;
 	out.reserve(polylines.size());

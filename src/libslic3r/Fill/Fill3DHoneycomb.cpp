@@ -169,7 +169,7 @@ void Fill3DHoneycomb::_fill_surface_single(
         if (params.dont_connect)
             append(polylines_out, std::move(polylines_chained));
         else
-            this->connect_infill(std::move(polylines_chained), expolygon, polylines_out, params);
+            this->connect_infill(std::move(polylines_chained), expolygon, polylines_out, this->spacing, params);
     }
 }
 
