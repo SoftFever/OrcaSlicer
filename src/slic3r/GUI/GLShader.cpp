@@ -118,9 +118,9 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     glsafe(::glGetProgramiv(this->shader_program_id, GL_LINK_STATUS, &params));
     if (params == GL_FALSE) {
         // Linking failed. Get the log.
-        glsafe(::glGetProgramiv(this->vertex_program_id, GL_INFO_LOG_LENGTH, &params));
+        glsafe(::glGetProgramiv(this->shader_program_id, GL_INFO_LOG_LENGTH, &params));
         std::vector<char> msg(params);
-        glsafe(::glGetProgramInfoLog(this->vertex_program_id, params, &params, msg.data()));
+        glsafe(::glGetProgramInfoLog(this->shader_program_id, params, &params, msg.data()));
         this->last_error = std::string("Shader linking failed:\n") + msg.data();
         this->release();
         return false;
