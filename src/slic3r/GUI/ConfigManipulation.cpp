@@ -77,7 +77,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                 "- no top solid layers\n"
                                 "- 0% fill density\n"
                                 "- no support material\n"
-                                "- no ensure_vertical_shell_thickness"));
+                                "- inactive Ensure vertical shell thickness"));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable Spiral Vase?"));
         wxMessageDialog dialog(nullptr, msg_text, _(L("Spiral Vase")),

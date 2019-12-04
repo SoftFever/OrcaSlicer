@@ -267,11 +267,11 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::PopStyleColor();
 
     float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-    if (ImGui::SliderFloat(_(L("Translation##1")), &translation_scale, 0.5f, 2.0f, "%.1f"))
+    if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.5f, 2.0f, "%.1f"))
         m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
 
     float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-    if (ImGui::SliderFloat(_(L("Rotation##1")), &rotation_scale, 0.5f, 2.0f, "%.1f"))
+    if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.5f, 2.0f, "%.1f"))
         m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
 
     ImGui::Separator();
@@ -280,11 +280,11 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGui::PopStyleColor();
 
     float translation_deadzone = (float)m_state.get_translation_deadzone();
-    if (ImGui::SliderFloat(_(L("Translation##2")), &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
+    if (imgui.slider_float(_(L("Translation")) + "##2", &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
         m_state.set_translation_deadzone((double)translation_deadzone);
 
     float rotation_deadzone = m_state.get_rotation_deadzone();
-    if (ImGui::SliderFloat(_(L("Rotation##2")), &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
+    if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
         m_state.set_rotation_deadzone(rotation_deadzone);
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT

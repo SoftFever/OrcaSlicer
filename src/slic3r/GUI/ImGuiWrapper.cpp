@@ -317,6 +317,22 @@ void ImGuiWrapper::text(const wxString &label)
     this->text(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    return ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+}
+
+bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    return this->slider_float(label.c_str(), v, v_min, v_max, format, power);
+}
+
+bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    auto label_utf8 = into_u8(label);
+    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power);
+}
+
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
 {
     // this is to force the label to the left of the widget:

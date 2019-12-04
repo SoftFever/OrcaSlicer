@@ -525,6 +525,8 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     if (!m_config)
         return;
 
+    take_snapshot(_(L("Change Extruder")));
+
     const int extruder = m_objects_model->GetExtruderNumber(item);
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
@@ -3845,6 +3847,9 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
+
+    if (!sels.empty())
+        take_snapshot(_(L("Change Extruders")));
 
     for (const wxDataViewItem& item : sels)
     {

@@ -778,8 +778,8 @@ PageMode::PageMode(ConfigWizard *parent)
 {
     append_text(_(L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
         "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
-        "The other two offer progressivly more sophisticated fine-tuning, "
-        "they are suitable for advanced and expert usiser, respectively.")));
+        "The other two offer progressively more sophisticated fine-tuning, "
+        "they are suitable for advanced and expert users, respectively.")));
 
     radio_simple = new wxRadioButton(this, wxID_ANY, _(L("Simple mode")));
     radio_advanced = new wxRadioButton(this, wxID_ANY, _(L("Advanced mode")));
