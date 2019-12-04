@@ -17,9 +17,12 @@ class PrintConfig;
 enum GCodeFlavor : unsigned char;
 
 
+
 class WipeTower
 {
 public:
+    static char const* never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
+
     struct Extrusion
     {
 		Extrusion(const Vec2f &pos, float width, unsigned int tool) : pos(pos), width(width), tool(tool) {}
@@ -93,6 +96,8 @@ public:
 
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width; }
+
+
 
 
 
