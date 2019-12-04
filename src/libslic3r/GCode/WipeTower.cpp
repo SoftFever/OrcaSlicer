@@ -1004,9 +1004,10 @@ void WipeTower::toolchange_Change(
     writer.append("[toolchange_gcode]\n");
 
     // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
-    // gcode could have left the extruder somewhere, we cannot just start extruding.
-	Vec2f current_pos = writer.pos_rotated();
-    writer.append(std::string("G1 X") + std::to_string(current_pos.x()) +  " Y" + std::to_string(current_pos.y()) +  "\n");
+    // gcode could have left the extruder somewhere, we cannot just start extruding. We should also inform the
+    // postprocessor that we absolutely want to have this in the gcode, even if it thought it is the same as before.
+    Vec2f current_pos = writer.pos_rotated();
+    writer.append(std::string("G1 X") + std::to_string(current_pos.x()) +  " Y" + std::to_string(current_pos.y()) + never_skip_tag() + "\n");
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.
