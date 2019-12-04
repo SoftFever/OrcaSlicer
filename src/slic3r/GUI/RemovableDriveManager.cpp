@@ -258,7 +258,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             		i++;
             	}
             }
-            std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<"\n";
+            std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
             std::string command = "umount ";
             command += correct_path;
             int err = system(command.c_str());
