@@ -317,7 +317,7 @@ bool RemovableDriveManager::update(long time)
 	}
 	search_for_drives();
 	check_and_notify();
-	eject_drive(m_current_drives.back().path);
+	//eject_drive(m_current_drives.back().path);
 	return !m_current_drives.empty();
 }
 
