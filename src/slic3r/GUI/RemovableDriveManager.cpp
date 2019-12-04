@@ -154,7 +154,10 @@ void RemovableDriveManager::search_for_drives()
     std::string path(std::getenv("USER"));
 	std::string pp(path);
 	//std::cout << "user: "<< path << "\n";
-	if(path == "root"){ //if program is run with sudo, we have to search for all users 
+	//if program is run with sudo, we have to search for all users 
+	// but do we want that?
+	/*
+	if(path == "root"){ 
 		while (true) {
 	        passwd* entry = getpwent();
 	        if (!entry) {
@@ -174,6 +177,7 @@ void RemovableDriveManager::search_for_drives()
 	    }
 	    endpwent();
 	}else
+	*/
 	{
 		//search /media/USERNAME/* folder
 		pp = "/media/"+pp;
@@ -187,7 +191,7 @@ void RemovableDriveManager::search_for_drives()
 
 	}
 	
-	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
+	std::cout << "found drives:" <<m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
 {
@@ -201,8 +205,20 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 			//if not same file system - could be removable drive
 			if(!compare_filesystem_id(globbuf.gl_pathv[i], parent_path))
 			{
-				std::string name = basename(globbuf.gl_pathv[i]);
-	            m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+				//user id
+				struct stat buf;
+				stat(globbuf.gl_pathv[i],&buf);
+				uid_t uid = buf.st_uid;
+				std::string username(std::getenv("USER"));
+				struct passwd *pw = getpwuid(uid);
+				if(pw != 0)
+				{
+					if(pw->pw_name == username)
+					{
+						std::string name = basename(globbuf.gl_pathv[i]);
+	            		m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+					}
+				}
 			}
 		}
 	}else
