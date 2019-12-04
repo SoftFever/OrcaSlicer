@@ -259,7 +259,13 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             	}
             }
             std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
-            std::string command = "umount ";
+
+            std::string command = "";
+#if __APPLE__
+            command = "diskutil unmount ";
+#else
+            command = "umount ";
+#endif
             command += correct_path;
             int err = system(command.c_str());
             if(err)
