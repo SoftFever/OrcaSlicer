@@ -254,13 +254,13 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             {
             	if(correct_path[i]==' ')
             	{
-            		correct_path = correct_path.insert(i,"\\");
+            		correct_path = correct_path.insert(i,1,'\\');
             		i++;
             	}
             }
-            std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
+            std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<"\n";
             std::string command = "umount ";
-            command += (*it).path;
+            command += correct_path;
             int err = system(command.c_str());
             if(err)
             {
