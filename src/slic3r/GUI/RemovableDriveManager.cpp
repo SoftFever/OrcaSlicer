@@ -255,6 +255,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             	if(correct_path[i]==' ')
             	{
             		correct_path = correct_path.insert(i,"\\");
+            		i++;
             	}
             }
             std::cout<<"Ejecting "<<(*it).name<<" from "<< (*it).path<<"\n";
