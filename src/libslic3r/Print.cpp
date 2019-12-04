@@ -1680,11 +1680,18 @@ void Print::_make_skirt()
     if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
         double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
         double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
-        Vec2d pt = Vec2d(m_config.wipe_tower_x-m_wipe_tower_data.brim_width, m_config.wipe_tower_y-m_wipe_tower_data.brim_width);
-        points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
-        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y())));
-        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y()+depth)));
-        points.push_back(Point(scale_(pt.x()), scale_(pt.y()+depth)));
+        Vec2d pt = Vec2d(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
+
+        std::vector<Vec2d> pts;
+        pts.push_back(Vec2d(pt.x(), pt.y()));
+        pts.push_back(Vec2d(pt.x()+width, pt.y()));
+        pts.push_back(Vec2d(pt.x()+width, pt.y()+depth));
+        pts.push_back(Vec2d(pt.x(), pt.y()+depth));
+        for (Vec2d& pt : pts) {
+            pt = Eigen::Rotation2Dd(Geometry::deg2rad(m_config.wipe_tower_rotation_angle.value)) * pt;
+            pt += Vec2d(m_config.wipe_tower_x.value, m_config.wipe_tower_y.value);
+            points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        }
     }
 
     if (points.size() < 3)
