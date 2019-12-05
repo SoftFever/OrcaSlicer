@@ -7,8 +7,11 @@
 #include <tchar.h>
 #include <winioctl.h>
 #include <shlwapi.h>
-DEFINE_GUID(GUID_DEVINTERFACE_USB_DEVICE,
-	0xA5DCBF10L, 0x6530, 0x11D2, 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED);
+
+//#include <Dbt.h>
+//GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
+//					  0x8a,0x6d,0xb5,0x4c,0x2b,0x4f,0xc8,0x35 };
+
 #else
 //linux includes
 #include <errno.h>
@@ -26,6 +29,7 @@ namespace GUI {
 
 
 #if _WIN32
+//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void RemovableDriveManager::search_for_drives()
 {
 	m_current_drives.clear();
@@ -84,7 +88,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 		{
 			std::string mpath = "\\\\.\\" + path;
 			mpath = mpath.substr(0, mpath.size() - 1);
-			std::cout << "Ejecting " << mpath << "\n";
+			//std::cout << "Ejecting " << mpath << "\n";
 			HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 			if (handle == INVALID_HANDLE_VALUE)
 			{
@@ -119,10 +123,24 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	}
 	return false;
 }
+std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
+{
+	int letter = PathGetDriveNumberA(path.c_str());
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		char drive = (*it).path[0];
+		if (drive == ('A' + letter))
+			return (*it).path;
+	}
+	return "";
+}
 void RemovableDriveManager::register_window()
 {
-	//std::cout << "Registering for device notification\n";
 	/*
+	std::cout << "Registering for device notification\n";
+	
+	
+
 	WNDCLASSEX wndClass;
 
 	wndClass.cbSize = sizeof(WNDCLASSEX);
@@ -134,12 +152,109 @@ void RemovableDriveManager::register_window()
 	wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
 	wndClass.hbrBackground = CreateSolidBrush(RGB(192, 192, 192));
 	wndClass.hCursor = LoadCursor(0, IDC_ARROW);
-	wndClass.lpszClassName = L"SlicerWindowClass";
+	wndClass.lpszClassName = L"PrusaSlicer_aux_class";
 	wndClass.lpszMenuName = NULL;
 	wndClass.hIconSm = wndClass.hIcon;
-	*/
-	//std::cout << "Failed\n";
+
+	HINSTANCE hInstanceExe = GetModuleHandle(NULL);
+
+	HWND hWnd = CreateWindowEx(
+		WS_EX_CLIENTEDGE | WS_EX_APPWINDOW,
+		L"PrusaSlicer_aux_class",
+		L"PrusaSlicer_aux_wnd",
+		WS_OVERLAPPEDWINDOW, // style
+		CW_USEDEFAULT, 0,
+		640, 480,
+		NULL, NULL,
+		hInstanceExe,
+		NULL);
+*/
 }
+/*
+INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT lRet = 1;
+	static HDEVNOTIFY hDeviceNotify;
+	static HWND hEditWnd;
+	static ULONGLONG msgCount = 0;
+
+	switch (message)
+	{
+	case WM_CREATE:
+
+
+		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
+
+		ZeroMemory(&NotificationFilter, sizeof(NotificationFilter));
+		NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		NotificationFilter.dbcc_classguid = WceusbshGUID;
+
+		hDeviceNotify = RegisterDeviceNotification(
+			hWnd,                       // events recipient
+			&NotificationFilter,        // type of device
+			DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
+		);
+		break;
+
+
+
+	case WM_DEVICECHANGE:
+	{
+		std::cout << "WM_DEVICECHANGE\n";
+		/*
+		// This is the actual message from the interface via Windows messaging.
+		// This code includes some additional decoding for this particular device type
+		// and some common validation checks.
+		//
+		// Note that not all devices utilize these optional parameters in the same
+		// way. Refer to the extended information for your particular device type
+		// specified by your GUID.
+		//
+		PDEV_BROADCAST_DEVICEINTERFACE b = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
+		TCHAR strBuff[256];
+
+		// Output some messages to the window.
+		switch (wParam)
+		{
+		case DBT_DEVICEARRIVAL:
+			msgCount++;
+			StringCchPrintf(
+				strBuff, 256,
+				TEXT("Message %d: DBT_DEVICEARRIVAL\n"), msgCount);
+			break;
+		case DBT_DEVICEREMOVECOMPLETE:
+			msgCount++;
+			StringCchPrintf(
+				strBuff, 256,
+				TEXT("Message %d: DBT_DEVICEREMOVECOMPLETE\n"), msgCount);
+			break;
+		case DBT_DEVNODES_CHANGED:
+			msgCount++;
+			StringCchPrintf(
+				strBuff, 256,
+				TEXT("Message %d: DBT_DEVNODES_CHANGED\n"), msgCount);
+			break;
+		default:
+			msgCount++;
+			StringCchPrintf(
+				strBuff, 256,
+				TEXT("Message %d: WM_DEVICECHANGE message received, value %d unhandled.\n"),
+				msgCount, wParam);
+			break;
+		}
+		OutputMessage(hEditWnd, wParam, (LPARAM)strBuff);
+		/
+	}
+	break;
+	default:
+		// Send all other messages on to the default windows handler.
+		lRet = DefWindowProc(hWnd, message, wParam, lParam);
+		break;
+	}
+	return lRet;
+}
+*/
 #else
 void RemovableDriveManager::search_for_drives()
 {
@@ -294,6 +409,16 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	}
 	return false;
 }
+std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
+{
+	//check if same filesystem
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		if (compare_filesystem_id(path, (*it).path))
+			return (*it).path;
+	}
+	return "";
+}
 #endif
 bool RemovableDriveManager::update(long time)
 {
@@ -301,7 +426,7 @@ bool RemovableDriveManager::update(long time)
 	{
 		//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
-		register_window();
+		//register_window();
 #endif
 	}
 	if(time != 0) //time = 0 is forced update
@@ -338,11 +463,9 @@ std::string RemovableDriveManager::get_last_drive_path()
 {
 	if (!m_current_drives.empty())
 	{
-//#if _WIN32
-//		return m_current_drives.back().path + "\\";
-//#else
+		if (m_last_save_path != "")
+			return m_last_save_path;
 		return m_current_drives.back().path;
-//#endif	
 	}
 	return "";
 }
@@ -356,9 +479,12 @@ void RemovableDriveManager::check_and_notify()
 	if(m_drives_count != m_current_drives.size())
 	{
 		//std::cout<<" vs "<< m_current_drives.size();
-		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+		if(m_drives_count > m_current_drives.size())
 		{
-			(*it)();
+			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+			{
+				(*it)();
+			}
 		}
 		m_drives_count = m_current_drives.size();
 	}
@@ -367,6 +493,26 @@ void RemovableDriveManager::check_and_notify()
 void RemovableDriveManager::add_callback(std::function<void()> callback)
 {
 	m_callbacks.push_back(callback);
+}
+void RemovableDriveManager::set_last_save_path(const std::string& path)
+{
+	std::string last_drive = get_drive_from_path(path);
+	if(last_drive != "")
+	{
+		m_last_save_path = last_drive;
+	}
+}
+bool RemovableDriveManager::is_last_drive_removed()
+{
+	if(m_last_save_path == "")
+	{
+		return true;
+	}
+	return !is_drive_mounted(m_last_save_path);
+}
+void RemovableDriveManager::reset_last_save_path()
+{
+	m_last_save_path = "";
 }
 void RemovableDriveManager::print()
 {
