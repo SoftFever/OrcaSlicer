@@ -71,6 +71,8 @@ public:
 	// Returns configs().end() if such version does not exist in the index. This shall never happen
 	// if the index is valid.
 	const_iterator				recommended() const;
+	// Recommended config for a provided slic3r version. Used when checking for slic3r update (slic3r_version is the old one read out from PrusaSlicer.ini)
+	const_iterator				recommended(const Semver &slic3r_version) const;
 
 	// Returns the filesystem path from which this index has originally been loaded
 	const boost::filesystem::path& path() const { return m_path; }

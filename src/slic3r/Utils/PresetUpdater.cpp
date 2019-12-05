@@ -156,7 +156,7 @@ struct PresetUpdater::priv
 	void sync_config(const VendorMap vendors);
 
 	void check_install_indices() const;
-	Updates get_config_updates() const;
+	Updates get_config_updates(const Semver& old_slic3r_version) const;
 	void perform_updates(Updates &&updates, bool snapshot = true) const;
 };
 
@@ -167,7 +167,9 @@ PresetUpdater::priv::priv()
 	, cancel(false)
 {
 	set_download_prefs(GUI::wxGetApp().app_config);
+	// Install indicies from resources. Only installs those that are either missing or older than in resources.
 	check_install_indices();
+	// Load indices from the cache directory.
 	index_db = Index::load_db();
 }
 
@@ -273,6 +275,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 	if (!enabled_config_update) { return; }
 
 	// Donwload vendor preset bundles
+	// Over all indices from the cache directory:
 	for (auto &index : index_db) {
 		if (cancel) { return; }
 
@@ -366,13 +369,16 @@ void PresetUpdater::priv::check_install_indices() const
 		}
 }
 
-// Generates a list of bundle updates that are to be performed
-Updates PresetUpdater::priv::get_config_updates() const
+// Generates a list of bundle updates that are to be performed.
+// Version of slic3r that was running the last time and which was read out from PrusaSlicer.ini is provided
+// as a parameter.
+Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version) const
 {
 	Updates updates;
 
 	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
 
+	// Over all indices from the cache directory:
 	for (const auto idx : index_db) {
 		auto bundle_path = vendor_path / (idx.vendor() + ".ini");
 		auto bundle_path_idx = vendor_path / idx.path().filename();
@@ -382,7 +388,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 			continue;
 		}
 
-		// Perform a basic load and check the version
+		// Perform a basic load and check the version of the installed preset bundle.
 		auto vp = VendorProfile::from_ini(bundle_path, false);
 
 		// Getting a recommended version from the latest index, wich may have been downloaded
@@ -414,7 +420,8 @@ Updates PresetUpdater::priv::get_config_updates() const
 			BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
 			updates.incompats.emplace_back(std::move(bundle_path), *ver_current, vp.name);
 		} else if (recommended->config_version > vp.config_version) {
-			// Config bundle update situation
+			// Config bundle update situation. The recommended config bundle version for this PrusaSlicer version from the index from the cache is newer
+			// than the version of the currently installed config bundle.
 
 			// Load 'installed' idx, if any.
 			// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
@@ -423,8 +430,9 @@ Updates PresetUpdater::priv::get_config_updates() const
 				Index existing_idx;
 				try {
 					existing_idx.load(bundle_path_idx);
-
-					const auto existing_recommended = existing_idx.recommended();
+					// Find a recommended config bundle version for the slic3r version last executed. This makes sure that a config bundle update will not be missed
+					// when upgrading an application. On the other side, the user will be bugged every time he will switch between slic3r versions.
+					const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
 					if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
 						// The user has already seen (and presumably rejected) this update
 						BOOST_LOG_TRIVIAL(info) << boost::format("Downloaded index for `%1%` is the same as installed one, not offering an update.") % idx.vendor();
@@ -607,11 +615,11 @@ void PresetUpdater::slic3r_update_notify()
 	}
 }
 
-PresetUpdater::UpdateResult PresetUpdater::config_update() const
+PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver &old_slic3r_version) const
 {
 	if (! p->enabled_config_update) { return R_NOOP; }
 
-	auto updates = p->get_config_updates();
+	auto updates = p->get_config_updates(old_slic3r_version);
 	if (updates.incompats.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << boost::format("%1% bundles incompatible. Asking for action...") % updates.incompats.size();
 
