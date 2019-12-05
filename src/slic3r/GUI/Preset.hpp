@@ -91,6 +91,17 @@ public:
     bool        operator==(const VendorProfile &rhs) const { return this->id == rhs.id; }
 };
 
+class Preset;
+
+// Helper to hold a profile with its vendor definition, where the vendor definition may have been extracted from a parent system preset.
+// The parent preset is only accessible through PresetCollection, therefore to allow definition of the various is_compatible_with methods
+// outside of the PresetCollection, this composite is returned by PresetCollection::get_preset_with_vendor_profile() when needed.
+struct PresetWithVendorProfile {
+	PresetWithVendorProfile(const Preset &preset, const VendorProfile *vendor) : preset(preset), vendor(vendor) {}
+	const Preset 		&preset;
+	const VendorProfile *vendor;
+};
+
 // Note: it is imporant that map is used here rather than unordered_map,
 // because we need iterators to not be invalidated,
 // because Preset and the ConfigWizard hold pointers to VendorProfiles.
@@ -161,10 +172,6 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
-    bool                is_compatible_with_print(const Preset &active_print) const;
-    bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
-    bool                is_compatible_with_printer(const Preset &active_printer) const;
-
     // Returns the name of the preset, from which this preset inherits.
     static std::string& inherits(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("inherits", true)->value; }
     std::string&        inherits() { return Preset::inherits(this->config); }
@@ -198,9 +205,6 @@ public:
     // This call returns a reference, it may add a new entry into the DynamicPrintConfig.
     PrinterTechnology&  printer_technology_ref() { return this->config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value; }
 
-    // Mark this preset as compatible if it is compatible with active_printer.
-    bool                update_compatible(const Preset &active_printer, const DynamicPrintConfig *extra_config, const Preset *active_print = nullptr);
-
     // Set is_visible according to application config
     void                set_visible_from_appconfig(const AppConfig &app_config);
 
@@ -232,6 +236,10 @@ protected:
     friend class        PresetBundle;
     static std::string  remove_suffix_modified(const std::string &name);
 };
+
+bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print);
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config);
+bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
 
 // Collections of presets of the same type (one of the Print, Filament or Printer type).
 class PresetCollection
@@ -329,6 +337,10 @@ public:
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 
+    // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.
+    PresetWithVendorProfile get_preset_with_vendor_profile(const Preset &preset) const;
+    PresetWithVendorProfile get_edited_preset_with_vendor_profile() const { return this->get_preset_with_vendor_profile(this->get_edited_preset()); }
+
     const std::string& get_preset_name_by_alias(const std::string& alias) const;
 
 	// used to update preset_choice from Tab
@@ -388,13 +400,13 @@ public:
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     template<typename PreferedCondition>
-    void            update_compatible(const Preset &active_printer, const Preset *active_print, bool select_other_if_incompatible, PreferedCondition prefered_condition)
+    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool select_other_if_incompatible, PreferedCondition prefered_condition)
     {
         if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
             // Find some other compatible preset, or the "-- default --" preset.
             this->select_preset(this->first_compatible_idx(prefered_condition));        
     }
-    void            update_compatible(const Preset &active_printer, const Preset *active_print, bool select_other_if_incompatible)
+    void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const std::string&){return true;}); }
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
@@ -477,7 +489,7 @@ private:
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
 
-    size_t update_compatible_internal(const Preset &active_printer, const Preset *active_print, bool unselect_if_incompatible);
+    size_t update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, bool unselect_if_incompatible);
 
     static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
 

@@ -1516,23 +1516,19 @@ void ConfigWizard::priv::update_materials(Technology technology)
         for (const auto &pair : bundles) {
             for (const auto &filament : pair.second.preset_bundle->filaments) {
                 // Check if filament is already added
-                if (filaments.containts(&filament)) { continue; }
-
+                if (filaments.containts(&filament)) 
+                	continue;
                 // Iterate printers in all bundles
-                for (const auto &pair : bundles) {
-                    for (const auto &printer : pair.second.preset_bundle->printers) {
+                // For now, we only allow the profiles to be compatible with another profiles inside the same bundle.
+//                for (const auto &pair : bundles)
+                    for (const auto &printer : pair.second.preset_bundle->printers)
                         // Filter out inapplicable printers
-                        if (!printer.is_visible || printer.printer_technology() != ptFFF) {
-                            continue;
-                        }
-
-                        if (filament.is_compatible_with_printer(printer)) {
+                        if (printer.is_visible && printer.printer_technology() == ptFFF && 
+                        	is_compatible_with_printer(PresetWithVendorProfile(filament, nullptr), PresetWithVendorProfile(printer, nullptr))) {
                             filaments.push(&filament);
                             if (!filament.alias.empty())
                                 aliases_fff[filament.alias].insert(filament.name);
                         }
-                    }
-                }
             }
         }
     }
@@ -1545,23 +1541,19 @@ void ConfigWizard::priv::update_materials(Technology technology)
         for (const auto &pair : bundles) {
             for (const auto &material : pair.second.preset_bundle->sla_materials) {
                 // Check if material is already added
-                if (sla_materials.containts(&material)) { continue; }
-
+                if (sla_materials.containts(&material))
+                	continue;
                 // Iterate printers in all bundles
-                for (const auto &pair : bundles) {
-                    for (const auto &printer : pair.second.preset_bundle->printers) {
+				// For now, we only allow the profiles to be compatible with another profiles inside the same bundle.
+//                for (const auto &pair : bundles) 
+                    for (const auto &printer : pair.second.preset_bundle->printers)
                         // Filter out inapplicable printers
-                        if (!printer.is_visible || printer.printer_technology() != ptSLA) {
-                            continue;
-                        }
-
-                        if (material.is_compatible_with_printer(printer)) {
+                        if (printer.is_visible && printer.printer_technology() == ptSLA && 
+                        	is_compatible_with_printer(PresetWithVendorProfile(material, nullptr), PresetWithVendorProfile(printer, nullptr))) {
                             sla_materials.push(&material);
                             if (!material.alias.empty())
                                 aliases_sla[material.alias].insert(material.name);
                         }
-                    }
-                }
             }
         }
     }

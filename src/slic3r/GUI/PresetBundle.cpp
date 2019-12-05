@@ -346,55 +346,47 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
     if (! config.has_section(AppConfig::SECTION_FILAMENTS)) {
-        std::unordered_set<const Preset*> comp_filaments;
-
-        for (const Preset &printer : printers) {
-            if (! printer.is_visible || printer.printer_technology() != ptFFF) {
-                continue;
-            }
-
-            for (const Preset &filament : filaments) {
-                if (filament.is_compatible_with_printer(printer)) {
-                    comp_filaments.insert(&filament);
-                }
-            }
-        }
-
-        for (const auto &filament: comp_filaments) {
+		// Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
+		// Find all filament profiles, which are compatible with installed printers, and act as if these filament profiles
+		// were installed.
+        std::unordered_set<const Preset*> compatible_filaments;
+        for (const Preset &printer : printers)
+            if (printer.is_visible && printer.printer_technology() == ptFFF) {
+				const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
+				for (const Preset &filament : filaments)
+					if (is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_with_vendor_profile))
+						compatible_filaments.insert(&filament);
+			}
+		// and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
+        for (const auto &filament: compatible_filaments)
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "1");
-        }
     }
 
-    for (auto &preset : filaments) {
+    for (auto &preset : filaments)
         preset.set_visible_from_appconfig(config);
-    }
 }
 
 void PresetBundle::load_installed_sla_materials(AppConfig &config)
 {
     if (! config.has_section(AppConfig::SECTION_MATERIALS)) {
         std::unordered_set<const Preset*> comp_sla_materials;
-
-        for (const Preset &printer : printers) {
-            if (! printer.is_visible || printer.printer_technology() != ptSLA) {
-                continue;
-            }
-
-            for (const Preset &material : sla_materials) {
-                if (material.is_compatible_with_printer(printer)) {
-                    comp_sla_materials.insert(&material);
-                }
-            }
-        }
-
-        for (const auto &material: comp_sla_materials) {
+		// Compatibility with the PrusaSlicer 2.1.1 and older, where the SLA material profiles were not installable yet.
+		// Find all SLA material profiles, which are compatible with installed printers, and act as if these SLA material profiles
+		// were installed.
+        for (const Preset &printer : printers)
+            if (printer.is_visible && printer.printer_technology() == ptSLA) {
+				const PresetWithVendorProfile printer_with_vendor_profile = printers.get_preset_with_vendor_profile(printer);
+				for (const Preset &material : sla_materials)
+					if (is_compatible_with_printer(sla_materials.get_preset_with_vendor_profile(material), printer_with_vendor_profile))
+						comp_sla_materials.insert(&material);
+			}
+		// and mark these SLA materials as installed, therefore this code will not be executed at the next start of the application.
+		for (const auto &material: comp_sla_materials)
             config.set(AppConfig::SECTION_MATERIALS, material->name, "1");
-        }
     }
 
-    for (auto &preset : sla_materials) {
+    for (auto &preset : sla_materials)
         preset.set_visible_from_appconfig(config);
-    }
 }
 
 // Load selections (current print, current filaments, current printer) from config.ini
@@ -1385,23 +1377,24 @@ void PresetBundle::update_multi_material_filament_presets()
 
 void PresetBundle::update_compatible(bool select_other_if_incompatible)
 {
-    const Preset &printer_preset = this->printers.get_edited_preset();
+    const Preset					&printer_preset					    = this->printers.get_edited_preset();
+	const PresetWithVendorProfile    printer_preset_with_vendor_profile = this->printers.get_preset_with_vendor_profile(printer_preset);
 
 	switch (printer_preset.printer_technology()) {
     case ptFFF:
     {
 		assert(printer_preset.config.has("default_print_profile"));
 		assert(printer_preset.config.has("default_filament_profile"));
-        const Preset                   &print_preset = this->prints.get_edited_preset();
+		const PresetWithVendorProfile   print_preset_with_vendor_profile = this->prints.get_edited_preset_with_vendor_profile();
 		const std::string              &prefered_print_profile = printer_preset.config.opt_string("default_print_profile");
         const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
         prefered_print_profile.empty() ?
-            this->prints.update_compatible(printer_preset, nullptr, select_other_if_incompatible) :
-            this->prints.update_compatible(printer_preset, nullptr, select_other_if_incompatible,
+            this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible) :
+            this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible,
                 [&prefered_print_profile](const std::string& profile_name) { return profile_name == prefered_print_profile; });
         prefered_filament_profiles.empty() ?
-            this->filaments.update_compatible(printer_preset, &print_preset, select_other_if_incompatible) :
-            this->filaments.update_compatible(printer_preset, &print_preset, select_other_if_incompatible,
+            this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_if_incompatible) :
+            this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_if_incompatible,
                 [&prefered_filament_profiles](const std::string& profile_name)
                     { return std::find(prefered_filament_profiles.begin(), prefered_filament_profiles.end(), profile_name) != prefered_filament_profiles.end(); });
         if (select_other_if_incompatible) {
@@ -1433,16 +1426,16 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
     {
 		assert(printer_preset.config.has("default_sla_print_profile"));
 		assert(printer_preset.config.has("default_sla_material_profile"));
-        const Preset      &sla_print_preset = this->sla_prints.get_edited_preset();
-		const std::string &prefered_sla_print_profile = printer_preset.config.opt_string("default_sla_print_profile");
+		const PresetWithVendorProfile    sla_print_preset_with_vendor_profile = this->sla_prints.get_edited_preset_with_vendor_profile();
+		const std::string				&prefered_sla_print_profile = printer_preset.config.opt_string("default_sla_print_profile");
 		(prefered_sla_print_profile.empty()) ?
-			this->sla_prints.update_compatible(printer_preset, nullptr, select_other_if_incompatible) :
-			this->sla_prints.update_compatible(printer_preset, nullptr, select_other_if_incompatible,
+			this->sla_prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible) :
+			this->sla_prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible,
 			[&prefered_sla_print_profile](const std::string& profile_name){ return profile_name == prefered_sla_print_profile; });
 		const std::string &prefered_sla_material_profile = printer_preset.config.opt_string("default_sla_material_profile");
         prefered_sla_material_profile.empty() ?
-            this->sla_materials.update_compatible(printer_preset, &sla_print_preset, select_other_if_incompatible) :
-			this->sla_materials.update_compatible(printer_preset, &sla_print_preset, select_other_if_incompatible,
+            this->sla_materials.update_compatible(printer_preset_with_vendor_profile, &sla_print_preset_with_vendor_profile, select_other_if_incompatible) :
+			this->sla_materials.update_compatible(printer_preset_with_vendor_profile, &sla_print_preset_with_vendor_profile, select_other_if_incompatible,
                 [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });
 		break;
 	}
