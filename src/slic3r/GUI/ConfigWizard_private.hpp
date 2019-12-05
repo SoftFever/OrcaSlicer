@@ -58,15 +58,16 @@ enum Technology {
 struct Materials
 {
     Technology technology;
-    std::set<const Preset*> presets;
+    // use vector for the presets to purpose of save of presets sorting in the bundle
+    std::vector<const Preset*> presets;
     std::set<std::string> types;
 
     Materials(Technology technology) : technology(technology) {}
 
     void push(const Preset *preset);
     void clear();
-    bool containts(const Preset *preset) {
-        return presets.find(preset) != presets.end(); 
+    bool containts(const Preset *preset) const {
+        return std::find(presets.begin(), presets.end(), preset) != presets.end(); 
     }
 
     const std::string& appconfig_section() const;

@@ -655,14 +655,6 @@ void PageMaterials::update_lists(int sel1, int sel2)
 
         sel2_prev = sel2;
     }
-
-    // for the very begining
-    if ((wizard_p()->run_reason == ConfigWizard::RR_DATA_EMPTY || wizard_p()->run_reason == ConfigWizard::RR_DATA_LEGACY)
-        && list_l3->size() > 0 )
-    {
-        list_l3->Check(0, true);
-        wizard_p()->update_presets_in_config(materials->appconfig_section(), list_l3->get_data(0), true);
-    }
 }
 
 void PageMaterials::select_material(int i)
@@ -1254,7 +1246,7 @@ const std::string Materials::UNKNOWN = "(Unknown)";
 
 void Materials::push(const Preset *preset)
 {
-    presets.insert(preset);
+    presets.push_back(preset);
     types.insert(technology & T_FFF
         ? Materials::get_filament_type(preset)
         : Materials::get_material_type(preset));
@@ -1527,6 +1519,10 @@ void ConfigWizard::priv::update_materials(Technology technology)
                         }
 
                         if (filament.is_compatible_with_printer(printer)) {
+                            // Check if filament is already added
+                            if (filaments.containts(&filament)) 
+                                continue;
+
                             filaments.push(&filament);
                             if (!filament.alias.empty())
                                 aliases_fff[filament.alias].insert(filament.name);
@@ -1556,6 +1552,10 @@ void ConfigWizard::priv::update_materials(Technology technology)
                         }
 
                         if (material.is_compatible_with_printer(printer)) {
+                            // Check if material is already added
+                            if (sla_materials.containts(&material))
+                                continue;
+
                             sla_materials.push(&material);
                             if (!material.alias.empty())
                                 aliases_sla[material.alias].insert(material.name);
@@ -1905,14 +1905,23 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     });
 
     p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_prev(); });
-    p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_next(); });
+
+    p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
+    {
+        // check, that there is selected at least one filament/material
+        ConfigWizardPage* active_page = this->p->index->active_page();
+        if ( (active_page == p->page_filaments || active_page == p->page_sla_materials)
+            && !p->check_material_config())
+            return;
+        this->p->index->go_next();
+    });
+
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {
         if (!p->check_material_config())
             return;
         this->EndModal(wxID_OK);
     });
-//    p->btn_finish->Hide();
 
     p->btn_sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
         p->any_sla_selected = true;
@@ -1925,7 +1934,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->index->Bind(EVT_INDEX_PAGE, [this](const wxCommandEvent &) {
         const bool is_last = p->index->active_is_last();
         p->btn_next->Show(! is_last);
-//        p->btn_finish->Show(is_last);
         if (is_last)
             p->btn_finish->SetFocus();
 
