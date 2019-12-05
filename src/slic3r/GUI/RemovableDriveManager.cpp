@@ -420,11 +420,11 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 	return "";
 }
 #endif
-bool RemovableDriveManager::update(long time)
+bool RemovableDriveManager::update(const long time)
 {
 	if(m_last_update == 0)
 	{
-		//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
+		add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
 		//register_window();
 #endif
@@ -510,12 +510,18 @@ bool RemovableDriveManager::is_last_drive_removed()
 	}
 	return !is_drive_mounted(m_last_save_path);
 }
+bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
+{
+	update(time);
+	return is_last_drive_removed();
+}
 void RemovableDriveManager::reset_last_save_path()
 {
 	m_last_save_path = "";
 }
 void RemovableDriveManager::print()
 {
+	//std::cout << "Removed Device: "<<(int)is_last_drive_removed()<<"\n";
 	std::cout << "notified\n";
 }
 }}//namespace Slicer::Gui::
