@@ -11,6 +11,7 @@ namespace Slic3r {
 
 class AppConfig;
 class PresetBundle;
+class Semver;
 
 class PresetUpdater
 {
