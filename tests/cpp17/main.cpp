@@ -2,6 +2,13 @@
 #include <iostream>
 #include <tuple>
 #include <string>
+
+// Test new headers in cpp17
+#include <variant>
+#include <optional>
+#include <any>
+#include <string_view>
+
 // Test for nested namespace definition
 namespace PrusaSlicer::Cpp17 {
 
