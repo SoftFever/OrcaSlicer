@@ -956,9 +956,9 @@ bool GLGizmosManager::generate_icons_texture() const
     states.push_back(std::make_pair(0, true));
 
     unsigned int sprite_size_px = (unsigned int)(m_overlay_icons_size * m_overlay_scale);
-    // force even size
-    if (sprite_size_px % 2 != 0)
-        sprite_size_px += 1;
+//    // force even size
+//    if (sprite_size_px % 2 != 0)
+//        sprite_size_px += 1;
 
     bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, sprite_size_px, false);
     if (res)
