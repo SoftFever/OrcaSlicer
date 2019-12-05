@@ -2930,7 +2930,13 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #ifdef __linux__
     std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 #else
-//	wxWindowUpdateLocker noUpdates(this);
+    /* On Windows we use DoubleBuffering during rendering,
+     * so on Window is no needed to call a Freeze/Thaw functions.
+     * But under OSX (builds compiled with MacOSX10.14.sdk) wxStaticBitmap rendering is broken without Freeze/Thaw call.
+     */
+#ifdef __WXOSX__
+	wxWindowUpdateLocker noUpdates(this);
+#endif
 #endif
 
     if (m_pages.empty())
