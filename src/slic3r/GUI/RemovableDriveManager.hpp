@@ -24,6 +24,7 @@ public:
 	void operator=(RemovableDriveManager const&) = delete;
 	
 	//update() searches for removable devices, returns false if empty.
+	void init();
 	bool update(const long time = 0);  //time = 0 is forced update, time expects wxGetLocalTime()
 	bool is_drive_mounted(const std::string &path);
 	void eject_drive(const std::string &path);
@@ -36,6 +37,7 @@ public:
 	bool is_last_drive_removed(); //if we dont need info about this drive, call reset_last_save_path();
 	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
 	void reset_last_save_path();
+	void on_drive_removed_callback();
 	void print();
 private:
 	RemovableDriveManager():m_drives_count(0),m_last_update(0),m_last_save_path(""){}
