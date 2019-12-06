@@ -228,15 +228,6 @@ bool is_valid_object_type(const std::string& type)
     return false;
 }
 
-template<class...Args> std::string string_printf(const char *const fmt, Args &&...args)
-{
-    int bufflen = snprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
-    std::vector<char> buffer(size_t(bufflen), '\0');
-    
-    snprintf(buffer.data(), buffer.size(), fmt, std::forward<Args>(args)...);
-    return std::string(buffer.begin(), buffer.end());
-}
-
 namespace Slic3r {
 
 //! macro used to mark string used at localization,
