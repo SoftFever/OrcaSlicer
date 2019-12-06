@@ -31,6 +31,7 @@ public:
 	std::vector<DriveData> get_all_drives();
 	bool is_path_on_removable_drive(const std::string &path);
 	void add_callback(std::function<void()> callback); // callback will notify only if device with last save path was removed
+	void erase_callbacks(); // erases all callbacks added by add_callback()
 	void set_last_save_path(const std::string &path);
 	bool is_last_drive_removed(); //if we dont need info about this drive, call reset_last_save_path();
 	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
