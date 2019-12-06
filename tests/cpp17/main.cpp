@@ -72,6 +72,7 @@ int main()
     
     static_assert (isIntegral(10), "" );
     // would fail to compile: static_assert (isIntegral(10.0), "" );
+    
     std::cout << "Integer is integral: " << isIntegral(0) << std::endl;
     std::cout << "Floating point is not integral: " << isIntegral(0.0) << std::endl;
     
