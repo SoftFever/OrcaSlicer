@@ -1385,13 +1385,13 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
     {
 		assert(printer_preset.config.has("default_print_profile"));
 		assert(printer_preset.config.has("default_filament_profile"));
-		const PresetWithVendorProfile   print_preset_with_vendor_profile = this->prints.get_edited_preset_with_vendor_profile();
 		const std::string              &prefered_print_profile = printer_preset.config.opt_string("default_print_profile");
         const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
         prefered_print_profile.empty() ?
             this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible) :
             this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_if_incompatible,
                 [&prefered_print_profile](const std::string& profile_name) { return profile_name == prefered_print_profile; });
+        const PresetWithVendorProfile   print_preset_with_vendor_profile = this->prints.get_edited_preset_with_vendor_profile();
         prefered_filament_profiles.empty() ?
             this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_if_incompatible) :
             this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_if_incompatible,
