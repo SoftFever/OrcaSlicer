@@ -1320,7 +1320,7 @@ std::string Print::validate() const
                             } while (ref_z == next_ref_z);
                         }
                         if (std::abs(this_height - ref_height) > EPSILON)
-                            return L("The Wipe tower is only supported if all objects have the same layer height profile");
+                            return L("The Wipe tower is only supported if all objects have the same variable layer height");
                         i += 2;
                     }
                 }

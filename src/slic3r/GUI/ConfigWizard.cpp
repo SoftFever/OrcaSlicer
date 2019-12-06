@@ -813,7 +813,7 @@ PageVendors::PageVendors(ConfigWizard *parent)
 {
     const AppConfig &appconfig = this->wizard_p()->appconfig_new;
 
-    append_text(wxString::Format(_(L("Pick another vendor supported by %s: (FIXME: this text)")), SLIC3R_APP_NAME));
+    append_text(wxString::Format(_(L("Pick another vendor supported by %s")), SLIC3R_APP_NAME) + ":");
 
     auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);
