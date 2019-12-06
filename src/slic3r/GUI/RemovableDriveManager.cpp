@@ -479,7 +479,7 @@ void RemovableDriveManager::check_and_notify()
 	if(m_drives_count != m_current_drives.size())
 	{
 		//std::cout<<" vs "<< m_current_drives.size();
-		if(m_drives_count > m_current_drives.size())
+		if(m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
 		{
 			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 			{
