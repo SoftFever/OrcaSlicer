@@ -8,9 +8,9 @@
 #include <winioctl.h>
 #include <shlwapi.h>
 
-//#include <Dbt.h>
-//GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
-//					  0x8a,0x6d,0xb5,0x4c,0x2b,0x4f,0xc8,0x35 };
+#include <Dbt.h>
+GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
+					  0x8a,0x6d,0xb5,0x4c,0x2b,0x4f,0xc8,0x35 };
 
 #else
 //linux includes
@@ -29,7 +29,7 @@ namespace GUI {
 
 
 #if _WIN32
-//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void RemovableDriveManager::search_for_drives()
 {
 	m_current_drives.clear();
@@ -136,13 +136,8 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 }
 void RemovableDriveManager::register_window()
 {
-	/*
 	std::cout << "Registering for device notification\n";
-	
-	
-
 	WNDCLASSEX wndClass;
-
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	wndClass.hInstance = reinterpret_cast<HINSTANCE>(GetModuleHandle(0));
@@ -155,34 +150,41 @@ void RemovableDriveManager::register_window()
 	wndClass.lpszClassName = L"PrusaSlicer_aux_class";
 	wndClass.lpszMenuName = NULL;
 	wndClass.hIconSm = wndClass.hIcon;
-
-	HINSTANCE hInstanceExe = GetModuleHandle(NULL);
+	if(!RegisterClassEx(&wndClass))
+	{
+		DWORD err = GetLastError();
+		return;
+	}
 
 	HWND hWnd = CreateWindowEx(
-		WS_EX_CLIENTEDGE | WS_EX_APPWINDOW,
+		WS_EX_NOACTIVATE,
 		L"PrusaSlicer_aux_class",
 		L"PrusaSlicer_aux_wnd",
-		WS_OVERLAPPEDWINDOW, // style
+		WS_DISABLED, // style
 		CW_USEDEFAULT, 0,
 		640, 480,
 		NULL, NULL,
-		hInstanceExe,
+		GetModuleHandle(NULL),
 		NULL);
-*/
+	if(hWnd == NULL)
+	{
+		DWORD err = GetLastError();
+	}
+	//ShowWindow(hWnd, SW_SHOWNORMAL);
+	UpdateWindow(hWnd);
 }
-/*
+
 INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT lRet = 1;
 	static HDEVNOTIFY hDeviceNotify;
+
 	static HWND hEditWnd;
 	static ULONGLONG msgCount = 0;
 
 	switch (message)
 	{
 	case WM_CREATE:
-
-
 		DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
 
 		ZeroMemory(&NotificationFilter, sizeof(NotificationFilter));
@@ -196,55 +198,13 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 			DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
 		);
 		break;
-
-
-
 	case WM_DEVICECHANGE:
 	{
-		std::cout << "WM_DEVICECHANGE\n";
-		/*
-		// This is the actual message from the interface via Windows messaging.
-		// This code includes some additional decoding for this particular device type
-		// and some common validation checks.
-		//
-		// Note that not all devices utilize these optional parameters in the same
-		// way. Refer to the extended information for your particular device type
-		// specified by your GUID.
-		//
-		PDEV_BROADCAST_DEVICEINTERFACE b = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
-		TCHAR strBuff[256];
-
-		// Output some messages to the window.
-		switch (wParam)
+		if(wParam == DBT_DEVICEREMOVECOMPLETE)
 		{
-		case DBT_DEVICEARRIVAL:
-			msgCount++;
-			StringCchPrintf(
-				strBuff, 256,
-				TEXT("Message %d: DBT_DEVICEARRIVAL\n"), msgCount);
-			break;
-		case DBT_DEVICEREMOVECOMPLETE:
-			msgCount++;
-			StringCchPrintf(
-				strBuff, 256,
-				TEXT("Message %d: DBT_DEVICEREMOVECOMPLETE\n"), msgCount);
-			break;
-		case DBT_DEVNODES_CHANGED:
-			msgCount++;
-			StringCchPrintf(
-				strBuff, 256,
-				TEXT("Message %d: DBT_DEVNODES_CHANGED\n"), msgCount);
-			break;
-		default:
-			msgCount++;
-			StringCchPrintf(
-				strBuff, 256,
-				TEXT("Message %d: WM_DEVICECHANGE message received, value %d unhandled.\n"),
-				msgCount, wParam);
-			break;
+			std::cout << "WM_DEVICECHANGE\n";
+			RemovableDriveManager::get_instance().on_drive_removed_callback();
 		}
-		OutputMessage(hEditWnd, wParam, (LPARAM)strBuff);
-		/
 	}
 	break;
 	default:
@@ -254,7 +214,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	}
 	return lRet;
 }
-*/
+
 #else
 void RemovableDriveManager::search_for_drives()
 {
@@ -420,15 +380,16 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 	return "";
 }
 #endif
+void RemovableDriveManager::init()
+{
+	add_callback([](void) { RemovableDriveManager::get_instance().print(); });
+#if _WIN32
+	register_window();
+#endif
+	update();
+}
 bool RemovableDriveManager::update(const long time)
 {
-	if(m_last_update == 0)
-	{
-		add_callback([](void) { RemovableDriveManager::get_instance().print(); });
-#if _WIN32
-		//register_window();
-#endif
-	}
 	if(time != 0) //time = 0 is forced update
 	{
 		long diff = m_last_update - time;
@@ -442,7 +403,6 @@ bool RemovableDriveManager::update(const long time)
 	}
 	search_for_drives();
 	check_and_notify();
-	//eject_drive(m_current_drives.back().path);
 	return !m_current_drives.empty();
 }
 
@@ -522,6 +482,10 @@ bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
 void RemovableDriveManager::reset_last_save_path()
 {
 	m_last_save_path = "";
+}
+void RemovableDriveManager::on_drive_removed_callback()
+{
+	update();
 }
 void RemovableDriveManager::print()
 {

@@ -271,7 +271,7 @@ bool GUI_App::on_init_inner()
         this->obj_manipul()->update_if_dirty();
 
 
-		RemovableDriveManager::get_instance().update(wxGetLocalTime());
+		//RemovableDriveManager::get_instance().update(wxGetLocalTime());
 
 
         // Preset updating & Configwizard are done after the above initializations,
@@ -301,6 +301,7 @@ bool GUI_App::on_init_inner()
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
+			RemovableDriveManager::get_instance().init();
         }
     });
 
