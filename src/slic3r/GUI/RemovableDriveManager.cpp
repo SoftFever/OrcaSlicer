@@ -494,6 +494,10 @@ void RemovableDriveManager::add_callback(std::function<void()> callback)
 {
 	m_callbacks.push_back(callback);
 }
+void  RemovableDriveManager::erase_callbacks()
+{
+	m_callbacks.clear();
+}
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
 	std::string last_drive = get_drive_from_path(path);
