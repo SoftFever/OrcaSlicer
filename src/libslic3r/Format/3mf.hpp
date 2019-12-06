@@ -19,6 +19,10 @@ namespace Slic3r {
     enum {
         support_points_format_version = 1
     };
+    
+    enum {
+        drain_holes_format_version = 1
+    };
 
     class Model;
     class DynamicPrintConfig;
