@@ -136,7 +136,7 @@ void GLGizmoSlaSupports::on_render() const
 
 void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f)
+    if (m_clipping_plane_distance == 0.f || m_mesh->empty())
         return;
 
     // Get transformation of the instance
@@ -177,7 +177,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
     if (m_print_object_idx >= 0) {
         const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
 
-        if (print_object->is_step_done(slaposSupportTree)) {
+        if (print_object->is_step_done(slaposSupportTree) && !print_object->get_mesh(slaposSupportTree).empty()) {
             // If the supports are already calculated, save the timestamp of the respective step
             // so we can later tell they were recalculated.
             size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
