@@ -538,7 +538,9 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
-    refresh_print();
+    m_gcode_preview_data->ranges.feedrate.set_mode(GCodePreviewData::FeedrateKind::TRAVEL, m_gcode_preview_data->travel.is_visible);
+    // Rather than refresh, reload print so that speed color ranges get recomputed (affected by travel visibility)
+    reload_print();
 }
 
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
