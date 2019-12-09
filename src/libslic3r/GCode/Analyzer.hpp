@@ -123,12 +123,14 @@ private:
     std::string m_process_output;
 
 public:
-    GCodeAnalyzer();
+    GCodeAnalyzer() { reset(); }
 
-    void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets);
+    void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets) { m_extruder_offsets = extruder_offsets; }
     void set_extruders_count(unsigned int count);
 
-    void set_gcode_flavor(const GCodeFlavor& flavor);
+    void set_extrusion_axis(char axis) { m_parser.set_extrusion_axis(axis); }
+
+    void set_gcode_flavor(const GCodeFlavor& flavor) { m_gcode_flavor = flavor; }
 
     // Reinitialize the analyzer
     void reset();

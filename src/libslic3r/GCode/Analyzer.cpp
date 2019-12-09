@@ -108,26 +108,11 @@ GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, const GCodeAnalyzer::
 {
 }
 
-GCodeAnalyzer::GCodeAnalyzer()
-{
-    reset();
-}
-
-void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap& extruder_offsets)
-{
-    m_extruder_offsets = extruder_offsets;
-}
-
 void GCodeAnalyzer::set_extruders_count(unsigned int count)
 {
     m_extruders_count = count;
     for (unsigned int i=0; i<m_extruders_count; i++)
         m_extruder_color[i] = i;
-}
-
-void GCodeAnalyzer::set_gcode_flavor(const GCodeFlavor& flavor)
-{
-    m_gcode_flavor = flavor;
 }
 
 void GCodeAnalyzer::reset()
