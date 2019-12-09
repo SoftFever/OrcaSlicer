@@ -169,6 +169,7 @@ if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
             Utils/RetinaHelperImpl.mm
             Utils/MacDarkMode.mm
+            GUI/RemovableDriveManager.mm
         )
 endif ()
 

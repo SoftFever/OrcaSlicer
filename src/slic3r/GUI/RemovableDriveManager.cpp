@@ -203,7 +203,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		if(wParam == DBT_DEVICEREMOVECOMPLETE)
 		{
 			std::cout << "WM_DEVICECHANGE\n";
-			RemovableDriveManager::get_instance().on_drive_removed_callback();
+			RemovableDriveManager::get_instance().update();
 		}
 	}
 	break;
@@ -219,6 +219,10 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 void RemovableDriveManager::search_for_drives()
 {
     
+#if __APPLE__
+	list_devices();
+#endif
+
 	m_current_drives.clear();
 	m_current_drives.reserve(26);
 
@@ -483,10 +487,7 @@ void RemovableDriveManager::reset_last_save_path()
 {
 	m_last_save_path = "";
 }
-void RemovableDriveManager::on_drive_removed_callback()
-{
-	update();
-}
+
 void RemovableDriveManager::print()
 {
 	//std::cout << "Removed Device: "<<(int)is_last_drive_removed()<<"\n";
