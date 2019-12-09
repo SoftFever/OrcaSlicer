@@ -37,7 +37,6 @@ public:
 	bool is_last_drive_removed(); //if we dont need info about this drive, call reset_last_save_path();
 	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
 	void reset_last_save_path();
-	void on_drive_removed_callback();
 	void print();
 private:
 	RemovableDriveManager():m_drives_count(0),m_last_update(0),m_last_save_path(""){}
@@ -52,6 +51,9 @@ private:
 #if _WIN32
 	void register_window();
 	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+#elif __APPLE__
+	void register_window();
+	void list_devices();
 #else
 	void search_path(const std::string &path, const std::string &parent_path);
 	bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
