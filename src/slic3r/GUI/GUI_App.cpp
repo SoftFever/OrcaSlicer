@@ -466,6 +466,9 @@ void GUI_App::recreate_GUI()
 
         dlg.Update(30, _(L("Recreating")) + dots);
         topwindow->Destroy();
+
+        // For this moment ConfigWizard is deleted, invalidate it
+        m_wizard = nullptr;
     }
 
     dlg.Update(80, _(L("Loading of current presets")) + dots);
