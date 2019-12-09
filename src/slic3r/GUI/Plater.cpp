@@ -3221,7 +3221,6 @@ void Plater::priv::reload_from_disk()
         catch (std::exception&)
         {
             // error while loading
-            view3D->get_canvas3d()->enable_render(true);
             return;
         }
 
