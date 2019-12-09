@@ -104,6 +104,9 @@ protected:
         if (id < 3)
             m_gizmos[id].disable_grabber(0);
     }
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+    virtual bool on_is_activable() const;
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
     virtual void on_start_dragging();
     virtual void on_stop_dragging();
     virtual void on_update(const UpdateData& data)
