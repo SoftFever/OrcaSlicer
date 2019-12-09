@@ -260,6 +260,8 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
+	RemovableDriveManager::get_instance().init();
+
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
         if (! plater_)
@@ -301,7 +303,7 @@ bool GUI_App::on_init_inner()
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
-			RemovableDriveManager::get_instance().init();
+			
         }
     });
 
