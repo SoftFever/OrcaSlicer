@@ -114,6 +114,9 @@ else()
     include("deps-linux.cmake")
 endif()
 
+include(GLEW/GLEW.cmake)
+include(OpenCSG/OpenCSG.cmake)
+
 if (MSVC)
 
     add_custom_target(deps ALL
@@ -128,6 +131,7 @@ if (MSVC)
         # dep_qhull # Experimental
         dep_zlib    # on Windows we still need zlib
         dep_openvdb
+        dep_OpenCSG
     )
 
 else()
@@ -143,6 +147,7 @@ else()
         dep_nlopt
         dep_qhull
         dep_openvdb
+        dep_OpenCSG
         # dep_libigl # Not working, static build has different Eigen
     )
 
