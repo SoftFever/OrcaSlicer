@@ -45,6 +45,7 @@ option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
+
 function(prusaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR" "CMAKE_ARGS" ${ARGN})
 
@@ -62,10 +63,12 @@ function(prusaslicer_add_cmake_project projectname)
         CMAKE_ARGS         
             -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
             -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             ${_configs_line}
+            ${DEP_CMAKE_OPTS}
             ${P_ARGS_CMAKE_ARGS}
        ${P_ARGS_UNPARSED_ARGUMENTS}
     )
