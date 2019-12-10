@@ -231,9 +231,10 @@ void RemovableDriveManager::search_for_drives()
     //search /media/* folder
 	search_path("/media/*", "/media");
 
+/*
 	//search /Volumes/* folder (OSX)
 	search_path("/Volumes/*", "/Volumes");
-
+*/
     std::string path(std::getenv("USER"));
 	std::string pp(path);
 	//std::cout << "user: "<< path << "\n";
@@ -286,7 +287,7 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 	{
 		for(size_t i = 0; i < globbuf.gl_pathc; i++)
 		{
-			
+			inspect_file(globbuf.gl_pathv[i], parent_path);
 		}
 	}else
 	{
@@ -299,11 +300,11 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path)
 {
 	//if not same file system - could be removable drive
-	if(!compare_filesystem_id(globbuf.gl_pathv[i], parent_path))
+	if(!compare_filesystem_id(path, parent_path))
 	{
 		//user id
 		struct stat buf;
-		stat(globbuf.gl_pathv[i],&buf);
+		stat(path.c_str(), &buf);
 		uid_t uid = buf.st_uid;
 		std::string username(std::getenv("USER"));
 		struct passwd *pw = getpwuid(uid);
@@ -311,8 +312,8 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 		{
 			if(pw->pw_name == username)
 			{
-				std::string name = basename(globbuf.gl_pathv[i]);
-	       		m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+				std::string name = basename(const_cast<char*>(path.c_str()));
+	       		m_current_drives.push_back(DriveData(name,path));
 			}
 		}
 	}
