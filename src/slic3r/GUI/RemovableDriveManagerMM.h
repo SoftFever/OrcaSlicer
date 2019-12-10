@@ -5,5 +5,5 @@
 -(instancetype) init;
 -(void) add_unmount_observer;
 -(void) on_device_unmount: (NSNotification*) notification;
--(void) list_dev;
+-(NSArray*) list_dev;
 @end
