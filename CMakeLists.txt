@@ -403,6 +403,29 @@ if(SLIC3R_STATIC)
     set(USE_BLOSC TRUE)
 endif()
 
+set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
+function(prusaslicer_copy_dlls target)
+    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+        set(_bits 64)
+    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
+        set(_bits 32)
+    endif ()
+    
+    get_target_property(_out_dir ${target} BINARY_DIR)
+    
+    # This has to be a separate target due to the windows command line lenght limits    
+    add_custom_command(TARGET ${target} POST_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll ${_out_dir}/
+        COMMENT "Copy gmp runtime to build tree"
+        VERBATIM)
+    
+    add_custom_command(TARGET ${target} POST_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll ${_out_dir}/
+        COMMENT "Copy mpfr runtime to build tree"
+        VERBATIM)
+
+endfunction()
+
 #find_package(OpenVDB 5.0 COMPONENTS openvdb)
 #slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 

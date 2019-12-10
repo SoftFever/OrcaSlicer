@@ -195,6 +195,11 @@ if (WIN32)
             VERBATIM
         )
     endif ()
+    
+    # This has to be a separate target due to the windows command line lenght limits
+    add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
+    prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
+    
 elseif (XCODE)
     # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
     add_custom_command(TARGET PrusaSlicer POST_BUILD
