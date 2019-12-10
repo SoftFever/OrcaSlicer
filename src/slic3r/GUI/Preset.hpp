@@ -79,6 +79,8 @@ public:
     VendorProfile() {}
     VendorProfile(std::string id) : id(std::move(id)) {}
 
+    bool 		valid() const { return ! name.empty() && ! id.empty() && config_version.valid(); }
+
     // Load VendorProfile from an ini file.
     // If `load_all` is false, only the header with basic info (name, version, URLs) is loaded.
     static VendorProfile from_ini(const boost::filesystem::path &path, bool load_all=true);

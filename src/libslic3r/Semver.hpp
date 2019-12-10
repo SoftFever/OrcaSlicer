@@ -114,6 +114,7 @@ public:
 	bool operator&(const Semver &b) const { return ::semver_satisfies_patch(ver, b.ver) != 0; }
 	bool operator^(const Semver &b) const { return ::semver_satisfies_caret(ver, b.ver) != 0; }
 	bool in_range(const Semver &low, const Semver &high) const { return low <= *this && *this <= high; }
+	bool valid()                    const { return *this != zero() && *this != inf() && *this != invalid(); }
 
 	// Conversion
 	std::string to_string() const {
