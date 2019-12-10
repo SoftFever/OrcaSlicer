@@ -96,7 +96,7 @@ void ImGuiWrapper::set_language(const std::string &language)
         ranges = ranges_turkish;
     } else if (lang == "vi") {
         ranges = ranges_vietnamese;
-    } else if (lang == "jp") {
+    } else if (lang == "ja") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese(); // Default + Hiragana, Katakana, Half-Width, Selection of 1946 Ideographs
         m_font_cjk = true;
     } else if (lang == "ko") {
