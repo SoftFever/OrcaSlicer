@@ -1605,7 +1605,7 @@ void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool i
     load_pages();
 }
 
-bool ConfigWizard::priv::check_material_config()
+bool ConfigWizard::priv::check_material_config(Technology technology)
 {
     const auto exist_preset = [this](const std::string& section, const Materials& materials)
     {
@@ -1620,13 +1620,13 @@ bool ConfigWizard::priv::check_material_config()
         return false;
     };
 
-    if (any_fff_selected && !exist_preset(AppConfig::SECTION_FILAMENTS, filaments))
+    if (any_fff_selected && technology & T_FFF && !exist_preset(AppConfig::SECTION_FILAMENTS, filaments))
     {
         show_info(q, _(L("You have to select at least one filament for selected printers")), "");
         return false;
     }
 
-    if (any_sla_selected && !exist_preset(AppConfig::SECTION_MATERIALS, sla_materials))
+    if (any_sla_selected && technology & T_SLA && !exist_preset(AppConfig::SECTION_MATERIALS, sla_materials))
     {
         show_info(q, _(L("You have to select at least one material for selected printers")), "");
         return false;
@@ -1861,7 +1861,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
         _(L("Filament Profiles Selection")), _(L("Filaments")), _(L("Type:")) ));
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
-        _(L("SLA Material Profiles Selection")), _(L("SLA Materials")), _(L("Layer height:")) ));
+        _(L("SLA Material Profiles Selection")) + " ", _(L("SLA Materials")), _(L("Layer height:")) ));
 
     p->add_page(p->page_custom   = new PageCustom(this));
     p->add_page(p->page_update   = new PageUpdate(this));
@@ -1899,14 +1899,14 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         // check, that there is selected at least one filament/material
         ConfigWizardPage* active_page = this->p->index->active_page();
         if ( (active_page == p->page_filaments || active_page == p->page_sla_materials)
-            && !p->check_material_config())
+            && !p->check_material_config(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
             return;
         this->p->index->go_next();
     });
 
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {
-        if (!p->check_material_config())
+        if (!p->check_material_config(T_ANY))
             return;
         this->EndModal(wxID_OK);
     });
