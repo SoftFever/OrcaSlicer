@@ -1,22 +1,39 @@
 #import "RemovableDriveManager.hpp"
 
-@implementation RemovableDriveManager
+#import <AppKit/AppKit.h> 
+
+@implementation RemovableDriveManagerMM
 
 namespace Slic3r {
 namespace GUI {
 
-void RemovableDriveManager::register_window()
+-(instancetype) init
 {
-	//[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(volumesChanged:) name:NSWorkspaceDidMountNotification object: nil];
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(on_device_unmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+	self = [super init];
+	if(self)
+	{
+		[self add_unmount_observer]
+	}
+	return self;
 }
-
 -(void) on_device_unmount: (NSNotification*) notification
 {
     NSLog(@"on device change");
     RemovableDriveManager::get_instance().update();
 }
+-(void) add_unmount_observer
+{
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(on_device_unmount:) name:NSWorkspaceDidUnmountNotification object:nil];
+}
 
+void RemovableDriveManager::register_window()
+{
+	m_rdmmm = nullptr;
+	m_rdmmm = [[RemovableDriveManagerMM alloc] init];
+}
+
+
+/*
 -(void) RemovableDriveManager::list_devices()
 {
 	NSLog(@"---");
@@ -47,5 +64,5 @@ void RemovableDriveManager::register_window()
 	    NSLog(@"Result:%i Volume: %@, Removable:%i, W:%i, Unmountable:%i, Desc:%@, type:%@", result, volumePath, isRemovable, isWritable, isUnmountable, description, type);
 	}
 }
-
+*/
 }}//namespace Slicer::GUI
