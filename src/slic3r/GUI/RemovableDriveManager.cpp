@@ -220,9 +220,11 @@ void RemovableDriveManager::search_for_drives()
 {
  
 #if __APPLE__
-	list_devices();
-#endif
-
+	if(m_rdmmm)
+	{
+		m_rdmmm->list_devices();
+	}
+#else
 	m_current_drives.clear();
 	m_current_drives.reserve(26);
 
@@ -273,6 +275,7 @@ void RemovableDriveManager::search_for_drives()
 	}
 	
 	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
+#endif
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
 {
@@ -283,24 +286,7 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 	{
 		for(size_t i = 0; i < globbuf.gl_pathc; i++)
 		{
-			//if not same file system - could be removable drive
-			if(!compare_filesystem_id(globbuf.gl_pathv[i], parent_path))
-			{
-				//user id
-				struct stat buf;
-				stat(globbuf.gl_pathv[i],&buf);
-				uid_t uid = buf.st_uid;
-				std::string username(std::getenv("USER"));
-				struct passwd *pw = getpwuid(uid);
-				if(pw != 0)
-				{
-					if(pw->pw_name == username)
-					{
-						std::string name = basename(globbuf.gl_pathv[i]);
-	            		m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
-					}
-				}
-			}
+			
 		}
 	}else
 	{
@@ -310,7 +296,27 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 	
 	globfree(&globbuf);
 }
-
+void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path)
+{
+	//if not same file system - could be removable drive
+	if(!compare_filesystem_id(globbuf.gl_pathv[i], parent_path))
+	{
+		//user id
+		struct stat buf;
+		stat(globbuf.gl_pathv[i],&buf);
+		uid_t uid = buf.st_uid;
+		std::string username(std::getenv("USER"));
+		struct passwd *pw = getpwuid(uid);
+		if(pw != 0)
+		{
+			if(pw->pw_name == username)
+			{
+				std::string name = basename(globbuf.gl_pathv[i]);
+	       		m_current_drives.push_back(DriveData(name,globbuf.gl_pathv[i]));
+			}
+		}
+	}
+}
 bool RemovableDriveManager::compare_filesystem_id(const std::string &path_a, const std::string &path_b)
 {
 	struct stat buf;

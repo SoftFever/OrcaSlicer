@@ -39,7 +39,11 @@ public:
 	void reset_last_save_path();
 	void print();
 private:
-	RemovableDriveManager():m_drives_count(0),m_last_update(0),m_last_save_path(""),m_rdmmm(nullptr){}
+#if __APPLE__
+	RemovableDriveManager():m_drives_count(0),m_last_update(0),m_last_save_path(""),m_rdmmm(new RemovableDriveManagerMM()){}
+#else
+	RemovableDriveManager() : m_drives_count(0), m_last_update(0), m_last_save_path(""){}
+#endif
 	void search_for_drives();
 	void check_and_notify();
 	std::string get_drive_from_path(const std::string& path);//returns drive path (same as path in DriveData) if exists otherwise empty string ""
@@ -51,16 +55,27 @@ private:
 #if _WIN32
 	void register_window();
 	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-#elif __APPLE__
-	void *m_rdmmm;
-	void register_window();
-	void list_devices();
-    void search_path(const std::string &path, const std::string &parent_path);
-    bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
 #else
-	void search_path(const std::string &path, const std::string &parent_path);
-	bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
+#if __APPLE__
+	RemovableDriveManagerMM * m_rdmmm;
+ #endif
+    void search_path(const std::string &path, const std::string &parent_path);
+    void inspect_file(const std::string &path, const std::string &parent_path);
+    bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
 #endif
 };
+#if __APPLE__
+class RemovableDriveManagerMM
+{
+public:
+	RemovableDriveManagerMM();
+	~RemovableDriveManagerMM();
+	register_window();
+	list_devices();
+private:
+	RemovableDriveManagerMMImpl *m_imp;
+	friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
+};
+#endif
 }}
 #endif
