@@ -83,7 +83,9 @@ template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
 using HeightProfileSmoothEvent = Event<HeightProfileSmoothingParams>;
 
+#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
+#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -681,6 +683,9 @@ private:
     bool _init_toolbars();
     bool _init_main_toolbar();
     bool _init_undoredo_toolbar();
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    bool _init_view_toolbar();
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
