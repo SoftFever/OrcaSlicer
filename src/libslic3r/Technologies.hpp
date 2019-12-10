@@ -52,4 +52,7 @@
 // Enable fix for view toolbar background not showing up on Mac with dark mode
 #define ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX (1 && ENABLE_2_2_0_ALPHA1)
 
+// Enable selection for missing files in reload from disk command
+#define ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION (1 && ENABLE_2_2_0_ALPHA1)
+
 #endif // _technologies_h_
