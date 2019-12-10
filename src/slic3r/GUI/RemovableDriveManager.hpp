@@ -52,8 +52,9 @@ private:
 	void register_window();
 	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 #elif __APPLE__
+	void *m_rdmmm;
 	void register_window();
-	void list_devices();
+	//void list_devices();
 #else
 	void search_path(const std::string &path, const std::string &parent_path);
 	bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
