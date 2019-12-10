@@ -218,11 +218,11 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 #else
 void RemovableDriveManager::search_for_drives()
 {
- /*
+ 
 #if __APPLE__
 	list_devices();
 #endif
-*/
+
 	m_current_drives.clear();
 	m_current_drives.reserve(26);
 
