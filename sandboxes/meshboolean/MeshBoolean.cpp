@@ -44,12 +44,15 @@ void mesh_boolean_test(const std::string &fname)
 //  update(viewer);
 
   //igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
-
-
+  
+  
+    std::cout << fname.c_str() << std::endl;
 	TriangleMesh mesh;
+    
 	mesh.ReadSTLFile(fname.c_str());
 	mesh.repair(true);
     its_write_obj(mesh.its, (fname + "-imported0.obj").c_str());
+    
 
 	Eigen::MatrixXd VA,VB,VC;
 	Eigen::VectorXi J,I;
@@ -64,8 +67,7 @@ void mesh_boolean_test(const std::string &fname)
     Eigen::MatrixXi F = MapMatrixXiUnaligned(mesh.its.indices.front().data(), mesh.its.indices.size(), 3);
 
     its_write_obj(V, F, (fname + "-imported.obj").c_str());
-
-    // Self-union to clean up 
+    // Self-union to clean up
     igl::copyleft::cgal::mesh_boolean(V, F, Eigen::MatrixXd(), Eigen::MatrixXi(), boolean_type, VC, FC);
 
     its_write_obj(VC, FC, (fname + "-fixed.obj").c_str());
