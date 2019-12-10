@@ -119,6 +119,7 @@ public:
     bool                    show_reslice(bool show) const;
 	bool                    show_export(bool show) const;
 	bool                    show_send(bool show) const;
+    bool                    show_disconnect(bool show)const;
     bool                    is_multifilament();
     void                    update_mode();
 
