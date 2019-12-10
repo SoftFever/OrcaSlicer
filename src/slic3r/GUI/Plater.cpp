@@ -700,6 +700,7 @@ struct Sidebar::priv
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
     wxButton *btn_send_gcode;
+    ScalableButton *btn_disconnect;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -848,22 +849,39 @@ Sidebar::Sidebar(Plater *parent)
 
     // Buttons underneath the scrolled area
 
-    auto init_btn = [this](wxButton **btn, wxString label) {
+    auto init_btn = [this](wxButton **btn, wxString label, const std::string icon_name = "", wxString tooltip = wxEmptyString) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
                             wxDefaultSize, wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
+        (*btn)->SetToolTip(tooltip);
+
+        if (!icon_name.empty())
+            (*btn)->SetBitmap(create_scaled_bitmap(this, icon_name));
     };
 
-    init_btn(&p->btn_send_gcode,   _(L("Send to printer")));
+    init_btn(&p->btn_send_gcode,   /*_(L("Send to printer"))*/"", "export_gcode", _(L("Send to printer")));
     p->btn_send_gcode->Hide();
     init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots);
     init_btn(&p->btn_reslice,      _(L("Slice now")));
+
+    p->btn_disconnect = new ScalableButton(this, wxID_ANY, "revert_all_", "",
+        wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT);
+    p->btn_disconnect->Hide();
+    p->btn_disconnect->SetToolTip(_(L("Remove device")));
+
     enable_buttons(false);
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
+    complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
+    complect_btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND);
+    complect_btns_sizer->Add(p->btn_disconnect);
+
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
-    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, margin_5);
-    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
+    btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
+//    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, margin_5);
+//    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -882,6 +900,9 @@ Sidebar::Sidebar(Plater *parent)
         p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
+    p->btn_disconnect->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { 
+        // #dk_FIXME
+    });
 }
 
 Sidebar::~Sidebar() {}
@@ -1255,11 +1276,13 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
+    p->btn_disconnect->Enable(enable);
 }
 
 bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
 bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
 bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
+bool Sidebar::show_disconnect(bool show)const { return p->btn_disconnect->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -4125,20 +4148,24 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     wxWindowUpdateLocker noUpdater(sidebar);
     const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
+    
+    const bool disconnect_shown = true; // #dk_FIXME
 
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
         if (sidebar->show_reslice(false) |
             sidebar->show_export(true) |
-            sidebar->show_send(send_gcode_shown))
+            sidebar->show_send(send_gcode_shown) |
+            sidebar->show_disconnect(disconnect_shown))
             sidebar->Layout();
     }
     else
     {
         if (sidebar->show_reslice(is_ready_to_slice) |
             sidebar->show_export(!is_ready_to_slice) |
-            sidebar->show_send(send_gcode_shown && !is_ready_to_slice))
+            sidebar->show_send(send_gcode_shown && !is_ready_to_slice) |
+            sidebar->show_disconnect(disconnect_shown && !is_ready_to_slice))
             sidebar->Layout();
     }
 }
@@ -4379,7 +4406,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
     {
         case ActionButtonType::abReslice:   p->btn_reslice->SetLabelText(label);        break;
         case ActionButtonType::abExport:    p->btn_export_gcode->SetLabelText(label);   break;
-        case ActionButtonType::abSendGCode: p->btn_send_gcode->SetLabelText(label);     break;
+        case ActionButtonType::abSendGCode: /*p->btn_send_gcode->SetLabelText(label);*/     break;
     }
 }
 
