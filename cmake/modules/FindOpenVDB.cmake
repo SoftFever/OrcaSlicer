@@ -158,7 +158,7 @@ set(_OPENVDB_ROOT_SEARCH_DIR "")
 
 # Additionally try and use pkconfig to find OpenVDB
 
-find_package(PkgConfig ${_quiet} ${_required})
+find_package(PkgConfig ${_quiet} )
 pkg_check_modules(PC_OpenVDB QUIET OpenVDB)
 
 # ------------------------------------------------------------------------
