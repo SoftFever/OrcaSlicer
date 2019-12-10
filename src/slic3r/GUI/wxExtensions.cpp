@@ -3496,7 +3496,7 @@ static std::string get_new_color(const std::string& color)
 
 static std::string get_custom_code(const std::string& code_in, double height)
 {
-    wxString msg_text = from_u8(_utf8(L("Enter custom G-code used on current layer"))) + " :";
+    wxString msg_text = from_u8(_utf8(L("Enter custom G-code used on current layer"))) + ":";
     wxString msg_header = from_u8((boost::format(_utf8(L("Custom Gcode on current layer (%1% mm)."))) % height).str());
 
     // get custom gcode
@@ -3510,7 +3510,7 @@ static std::string get_custom_code(const std::string& code_in, double height)
 
 static std::string get_pause_print_msg(const std::string& msg_in, double height)
 {
-    wxString msg_text = from_u8(_utf8(L("Enter short message shown on Printer display during pause print"))) + " :";
+    wxString msg_text = from_u8(_utf8(L("Enter short message shown on Printer display during pause print"))) + ":";
     wxString msg_header = from_u8((boost::format(_utf8(L("Message for pause print on current layer (%1% mm)."))) % height).str());
 
     // get custom gcode

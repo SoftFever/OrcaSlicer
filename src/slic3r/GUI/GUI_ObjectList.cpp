@@ -807,7 +807,7 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
 
     if (!item) {
         if (col == nullptr) {
-            if (wxOSX)
+            if (wxOSX && !multiple_selection())
                 UnselectAll();
             else if (!evt_context_menu) 
                 // Case, when last item was deleted and under GTK was called wxEVT_DATAVIEW_SELECTION_CHANGED,
@@ -822,8 +822,13 @@ void ObjectList::list_manipulation(bool evt_context_menu/* = false*/)
     }
 
     if (wxOSX && item && col) {
+        wxDataViewItemArray sels;
+        GetSelections(sels);
         UnselectAll();
-        Select(item);
+        if (sels.Count() > 1)
+            SetSelections(sels);
+        else
+            Select(item);
     }
 
     const wxString title = col->GetTitle();

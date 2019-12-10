@@ -45,6 +45,36 @@ option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
+function(prusaslicer_add_cmake_project projectname)
+    cmake_parse_arguments(P_ARGS "" "INSTALL_DIR" "CMAKE_ARGS" ${ARGN})
+
+    get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
+
+    if (_is_multi)
+        set(_configs_line "")
+    endif ()
+
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}/usr/local
+        CMAKE_ARGS         
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_configs_line}
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+    )
+
+endfunction(prusaslicer_add_cmake_project)
+
+
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         message(STATUS "\nDetected 64-bit compiler => building 64-bit deps bundle\n")
@@ -83,6 +113,10 @@ else()
     include("deps-linux.cmake")
 endif()
 
+include(GMP/GMP.cmake)
+include(MPFR/MPFR.cmake)
+include(CGAL/CGAL.cmake)
+
 if (MSVC)
 
     add_custom_target(deps ALL
@@ -97,6 +131,7 @@ if (MSVC)
         # dep_qhull # Experimental
         dep_zlib    # on Windows we still need zlib
         dep_openvdb
+        dep_cgal
     )
 
 else()
@@ -112,6 +147,7 @@ else()
         dep_nlopt
         dep_qhull
         dep_openvdb
+        dep_cgal
         # dep_libigl # Not working, static build has different Eigen
     )
 

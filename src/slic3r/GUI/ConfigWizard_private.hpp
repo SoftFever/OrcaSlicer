@@ -489,7 +489,7 @@ struct ConfigWizard::priv
     void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);
     void on_3rdparty_install(const VendorProfile *vendor, bool install);
 
-    bool check_material_config();
+    bool check_material_config(Technology technology);
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
     // #ys_FIXME_alise
     void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);
