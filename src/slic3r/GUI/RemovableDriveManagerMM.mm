@@ -1,37 +1,38 @@
 #import "RemovableDriveManager.hpp"
-
+#import "RemovableDriveManagerMM.h"
 #import <AppKit/AppKit.h> 
 
 @implementation RemovableDriveManagerMM
 
-namespace Slic3r {
-namespace GUI {
+
 
 -(instancetype) init
 {
 	self = [super init];
 	if(self)
 	{
-		[self add_unmount_observer]
+        [self add_unmount_observer];
 	}
 	return self;
 }
 -(void) on_device_unmount: (NSNotification*) notification
 {
     NSLog(@"on device change");
-    RemovableDriveManager::get_instance().update();
+    Slic3r::GUI::RemovableDriveManager::get_instance().update();
 }
 -(void) add_unmount_observer
 {
+    NSLog(@"add unmount observer");
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector: @selector(on_device_unmount:) name:NSWorkspaceDidUnmountNotification object:nil];
 }
-
+namespace Slic3r {
+namespace GUI {
 void RemovableDriveManager::register_window()
 {
 	m_rdmmm = nullptr;
 	m_rdmmm = [[RemovableDriveManagerMM alloc] init];
 }
-
+}}//namespace Slicer::GUI
 
 /*
 -(void) RemovableDriveManager::list_devices()
@@ -65,4 +66,5 @@ void RemovableDriveManager::register_window()
 	}
 }
 */
-}}//namespace Slicer::GUI
+
+@end
