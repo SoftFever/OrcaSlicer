@@ -17,4 +17,13 @@ if (MSVC)
 
     add_custom_target(dep_MPFR SOURCES ${_output})
 
+else ()
+    ExternalProject_Add(dep_MPFR
+        URL https://www.mpfr.org/mpfr-3.1.6/mpfr-3.1.6.tar.bz2
+        BUILD_IN_SOURCE ON
+        CONFIGURE_COMMAND ./configure --prefix=${DESTDIR}/usr/local --with-gmp=${DESTDIR}/usr/local --with-pic
+        BUILD_COMMAND make -j
+        INSTALL_COMMAND make install
+        DEPENDS dep_GMP
+    )
 endif ()
