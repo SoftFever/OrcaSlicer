@@ -293,6 +293,9 @@ public:
 
     bool is_any_item_pressed() const;
 
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    unsigned int get_items_count() const { return (unsigned int)m_items.size(); }
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     int get_item_id(const std::string& name) const;
 
     void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }

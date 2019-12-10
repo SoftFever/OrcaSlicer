@@ -49,7 +49,12 @@ std::string GLGizmoScale3D::on_get_name() const
 
 bool GLGizmoScale3D::on_is_activable() const
 {
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+    const Selection& selection = m_parent.get_selection();
+    return !selection.is_empty() && !selection.is_wipe_tower();
+#else
     return !m_parent.get_selection().is_wipe_tower();
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 }
 
 void GLGizmoScale3D::on_start_dragging()

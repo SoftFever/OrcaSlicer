@@ -33,6 +33,9 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+    virtual bool on_is_activable() const;
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
     virtual void on_start_dragging();
     virtual void on_stop_dragging();
     virtual void on_update(const UpdateData& data);

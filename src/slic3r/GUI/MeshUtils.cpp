@@ -129,10 +129,9 @@ MeshRaycaster::MeshRaycaster(const TriangleMesh& mesh)
 {
 }
 
-MeshRaycaster::~MeshRaycaster()
-{
-    delete m_AABB_wrapper;
-}
+// Define the default destructor here. This is needed for the PIMPL with
+// unique_ptr to work, the AABBWrapper is complete here.
+MeshRaycaster::~MeshRaycaster() = default;
 
 Vec3f MeshRaycaster::AABBWrapper::get_hit_pos(const igl::Hit& hit) const
 {

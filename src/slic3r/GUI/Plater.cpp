@@ -1819,6 +1819,10 @@ struct Plater::priv
     bool is_preview_loaded() const { return preview->is_loaded(); }
     bool is_view3D_shown() const { return current_panel == view3D; }
 
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    bool init_view_toolbar();
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+
     void reset_all_gizmos();
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -1964,7 +1968,9 @@ private:
     bool complit_init_object_menu();
     bool complit_init_sla_object_menu();
     bool complit_init_part_menu();
+#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     void init_view_toolbar();
+#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     bool can_split() const;
     bool layers_height_allowed() const;
@@ -2116,7 +2122,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
+#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
         {
             set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
@@ -3221,7 +3229,6 @@ void Plater::priv::reload_from_disk()
         catch (std::exception&)
         {
             // error while loading
-            view3D->get_canvas3d()->enable_render(true);
             return;
         }
 
@@ -3833,8 +3840,18 @@ bool Plater::priv::complit_init_part_menu()
     return true;
 }
 
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+bool Plater::priv::init_view_toolbar()
+#else
 void Plater::priv::init_view_toolbar()
+#endif //!ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 {
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    if (view_toolbar.get_items_count() > 0)
+        // already initialized
+        return true;
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
     background_data.left = 16;
@@ -3843,7 +3860,11 @@ void Plater::priv::init_view_toolbar()
     background_data.bottom = 16;
 
     if (!view_toolbar.init(background_data))
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+        return false;
+#else
         return;
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Bottom);
@@ -3858,7 +3879,11 @@ void Plater::priv::init_view_toolbar()
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     if (!view_toolbar.add_item(item))
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+        return false;
+#else
         return;
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     item.name = "Preview";
     item.icon_filename = "preview.svg";
@@ -3866,10 +3891,18 @@ void Plater::priv::init_view_toolbar()
     item.sprite_id = 1;
     item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     if (!view_toolbar.add_item(item))
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+        return false;
+#else
         return;
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     view_toolbar.select_item("3D");
     view_toolbar.set_enabled(true);
+
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    return true;
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 }
 
 bool Plater::priv::can_set_instance_to_object() const
@@ -5241,6 +5274,13 @@ void Plater::msw_rescale()
     Layout();
     GetParent()->Layout();
 }
+
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+bool Plater::init_view_toolbar()
+{
+    return p->init_view_toolbar();
+}
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
 const Camera& Plater::get_camera() const
 {

@@ -119,6 +119,7 @@ public:
     float  f() const { return m_position[F]; }
 
     char   extrusion_axis() const { return m_extrusion_axis; }
+    void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
 
 private:
     const char* parse_line_internal(const char *ptr, GCodeLine &gline, std::pair<const char*, const char*> &command);

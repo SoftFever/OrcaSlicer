@@ -83,7 +83,9 @@ template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
 using HeightProfileSmoothEvent = Event<HeightProfileSmoothingParams>;
 
+#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
+#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -417,7 +419,6 @@ private:
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
     bool m_in_render;
-    bool m_render_enabled;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;
@@ -555,9 +556,6 @@ public:
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
-    void enable_render(bool enable) { m_render_enabled = enable; }
-    bool is_render_enabled() const { return m_render_enabled; }
-
     void zoom_to_bed();
     void zoom_to_volumes();
     void zoom_to_selection();
@@ -685,6 +683,9 @@ private:
     bool _init_toolbars();
     bool _init_main_toolbar();
     bool _init_undoredo_toolbar();
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    bool _init_view_toolbar();
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);

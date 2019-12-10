@@ -449,6 +449,13 @@ std::string GLGizmoRotate3D::on_get_name() const
     return (_(L("Rotate")) + " [R]").ToUTF8().data();
 }
 
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+bool GLGizmoRotate3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_empty();
+}
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+
 void GLGizmoRotate3D::on_start_dragging()
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
