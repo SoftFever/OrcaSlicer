@@ -429,10 +429,6 @@ bool RemovableDriveManager::update(const long time, bool check)
 			return false; // return value shouldnt matter if update didnt run
 		}
 	}
-    if(check)
-    {
-        m_rdmmm->log("update");
-    }
 	search_for_drives();
 	if(check)check_and_notify();
 	return !m_current_drives.empty();
@@ -474,7 +470,7 @@ void RemovableDriveManager::check_and_notify()
 	//std::cout<<"drives count: "<<m_drives_count;
 	if(m_drives_count != m_current_drives.size())
 	{
-        m_rdmmm->log("drives count not same");
+        //m_rdmmm->log("drives count not same");
 		//std::cout<<" vs "<< m_current_drives.size();
 		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
 		{
@@ -505,13 +501,16 @@ void RemovableDriveManager::set_last_save_path(const std::string& path)
 }
 bool RemovableDriveManager::is_last_drive_removed()
 {
+	std::cout<<"is last: "<<m_last_save_path;
 	m_drives_count = m_current_drives.size();
 	if(m_last_save_path == "")
 	{
+		std::cout<<"\n";
 		return true;
 	}
 	bool r = !is_drive_mounted(m_last_save_path);
 	if (r) reset_last_save_path();
+	std::cout<<" "<< r <<"\n";
 	return r;
 }
 bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
