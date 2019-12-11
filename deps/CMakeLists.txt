@@ -147,7 +147,7 @@ if (MSVC)
         dep_ZLIB    # on Windows we still need zlib
         dep_openvdb
         dep_OpenCSG
-        dep_cgal
+        dep_CGAL
     )
 
 else()
@@ -164,7 +164,7 @@ else()
         dep_qhull
         dep_openvdb
         dep_OpenCSG
-        dep_cgal
+        dep_CGAL
         # dep_libigl # Not working, static build has different Eigen
     )
 
