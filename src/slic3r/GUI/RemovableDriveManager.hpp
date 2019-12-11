@@ -6,9 +6,9 @@
 
 namespace Slic3r {
 namespace GUI {
-class RDMMMWrapper;
 #if __APPLE__
-
+class RDMMMWrapper;
+#endif
     
 struct DriveData
 {
@@ -18,6 +18,9 @@ struct DriveData
 };
 class RemovableDriveManager
 {
+#if __APPLE__
+friend class RDMMMWrapper;
+#endif
 public:
 	static RemovableDriveManager& get_instance()
 	{
@@ -42,12 +45,9 @@ public:
 	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
 	void reset_last_save_path();
 	void print();
+
 private:
-#if __APPLE__
-	RemovableDriveManager():m_drives_count(0),m_last_update(0),m_last_save_path(""),m_rdmmm(new RemovableDriveManagerMM()){}
-#else
-	RemovableDriveManager() : m_drives_count(0), m_last_update(0), m_last_save_path(""){}
-#endif
+    RemovableDriveManager();
 	void search_for_drives();
 	void check_and_notify();
 	std::string get_drive_from_path(const std::string& path);//returns drive path (same as path in DriveData) if exists otherwise empty string ""
@@ -64,21 +64,23 @@ private:
 	RDMMMWrapper * m_rdmmm;
  #endif
     void search_path(const std::string &path, const std::string &parent_path);
-    void inspect_file(const std::string &path, const std::string &parent_path);
     bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
+    void inspect_file(const std::string &path, const std::string &parent_path);
 #endif
 };
-    class RDMMMWrapper
-    {
-    public:
-        RDMMMWrapper();
-        ~RDMMMWrapper();
-        void register_window();
-        void list_devices();
-    private:
-        void *m_imp;
-        friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
-    };
+    
+#if __APPLE__
+class RDMMMWrapper
+{
+public:
+    RDMMMWrapper();
+    ~RDMMMWrapper();
+    void register_window();
+    void list_devices();
+protected:
+    void *m_imp;
+    //friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
+};
 #endif
 }}
 #endif
