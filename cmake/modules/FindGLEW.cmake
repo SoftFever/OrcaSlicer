@@ -104,7 +104,7 @@ function(__glew_set_find_library_suffix shared_or_static)
   elseif(WIN32 AND "${shared_or_static}" MATCHES "SHARED")
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" PARENT_SCOPE)
   elseif(WIN32 AND "${shared_or_static}" MATCHES "STATIC")
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib;.dll.a" PARENT_SCOPE)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib;.a;.dll.a" PARENT_SCOPE)
   endif()
 
   if(GLEW_VERBOSE)

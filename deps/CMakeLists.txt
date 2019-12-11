@@ -45,6 +45,9 @@ option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
+find_package(Git REQUIRED)
+
+
 function(prusaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
@@ -67,6 +70,7 @@ function(prusaslicer_add_cmake_project projectname)
         ${_gen}
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
             -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
@@ -140,7 +144,7 @@ if (MSVC)
         dep_cereal
         dep_nlopt
         # dep_qhull # Experimental
-        dep_zlib    # on Windows we still need zlib
+        dep_ZLIB    # on Windows we still need zlib
         dep_openvdb
         dep_OpenCSG
         dep_cgal
