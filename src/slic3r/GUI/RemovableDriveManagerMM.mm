@@ -27,10 +27,6 @@
 -(NSArray*) list_dev
 {
     NSArray* devices = [[NSWorkspace sharedWorkspace] mountedRemovableMedia];
-    for (NSString* volumePath in devices)
-    {
-        NSLog(@"%@", volumePath);
-	}
 	return devices;
     
 }
