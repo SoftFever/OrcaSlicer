@@ -514,13 +514,18 @@ void ImGuiWrapper::init_style()
             (hex_color & 0xff) / 255.0f);
     };
 
-    static const unsigned COL_GREY_DARK = 0x444444ff;
+    static const unsigned COL_WINDOW_BACKGROND = 0x222222cc;
+    static const unsigned COL_GREY_DARK = 0x555555ff;
     static const unsigned COL_GREY_LIGHT = 0x666666ff;
     static const unsigned COL_ORANGE_DARK = 0xc16737ff;
     static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
-    // Generics
+    // Window
+    style.WindowRounding = 4.0f;
+    set_color(ImGuiCol_WindowBg, COL_WINDOW_BACKGROND);
     set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
+
+    // Generics
     set_color(ImGuiCol_FrameBg, COL_GREY_DARK);
     set_color(ImGuiCol_FrameBgHovered, COL_GREY_LIGHT);
     set_color(ImGuiCol_FrameBgActive, COL_GREY_LIGHT);

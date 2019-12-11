@@ -322,7 +322,6 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, int canvas_w, int canv
 void Camera::debug_render() const
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();

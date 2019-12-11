@@ -248,9 +248,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
-    imgui.set_next_window_bg_alpha(0.5f);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
@@ -327,8 +324,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     imgui.end();
-
-    ImGui::PopStyleVar();
 }
 
 bool Mouse3DController::connect_device()
