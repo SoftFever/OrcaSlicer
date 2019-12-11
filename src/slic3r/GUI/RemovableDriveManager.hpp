@@ -80,6 +80,7 @@ public:
     ~RDMMMWrapper();
     void register_window();
     void list_devices();
+    void log(const std::string &msg);
 protected:
     void *m_imp;
     //friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
