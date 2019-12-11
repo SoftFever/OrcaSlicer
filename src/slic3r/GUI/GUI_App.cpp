@@ -273,7 +273,7 @@ bool GUI_App::on_init_inner()
         this->obj_manipul()->update_if_dirty();
 
 
-		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
+		//RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
 
 
         // Preset updating & Configwizard are done after the above initializations,

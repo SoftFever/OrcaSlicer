@@ -96,14 +96,16 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 				return;
 			}
 			DWORD deviceControlRetVal(0);
+			DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+			DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 			BOOL error = DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
-			CloseHandle(handle);
 			if (error == 0)
 			{
+				CloseHandle(handle);
 				std::cerr << "Ejecting " << mpath << " failed " << deviceControlRetVal << " " << GetLastError() << " \n";
 				return;
 			}
-
+			CloseHandle(handle);
 
 			m_current_drives.erase(it);
 			break;
@@ -198,7 +200,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 			DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
 		);
 		break;
-	/*
+	
 	case WM_DEVICECHANGE:
 	{
 		if(wParam == DBT_DEVICEREMOVECOMPLETE)
@@ -207,7 +209,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		}
 	}
 	break;
-	*/
+	
 	default:
 		// Send all other messages on to the default windows handler.
 		lRet = DefWindowProc(hWnd, message, wParam, lParam);
