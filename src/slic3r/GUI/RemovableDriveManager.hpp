@@ -32,7 +32,7 @@ public:
 	
 	//update() searches for removable devices, returns false if empty.
 	void init();
-	bool update(const long time = 0);  //time = 0 is forced update, time expects wxGetLocalTime()
+	bool update(const long time = 0, bool check = true);  //time = 0 is forced update, time expects wxGetLocalTime()
 	bool is_drive_mounted(const std::string &path);
 	void eject_drive(const std::string &path);
 	std::string get_last_drive_path();
@@ -41,9 +41,8 @@ public:
 	void add_callback(std::function<void()> callback); // callback will notify only if device with last save path was removed
 	void erase_callbacks(); // erases all callbacks added by add_callback()
 	void set_last_save_path(const std::string &path);
-	bool is_last_drive_removed(); //if we dont need info about this drive, call reset_last_save_path();
+	bool is_last_drive_removed();
 	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
-	void reset_last_save_path();
 	void print();
 
 private:
@@ -51,11 +50,14 @@ private:
 	void search_for_drives();
 	void check_and_notify();
 	std::string get_drive_from_path(const std::string& path);//returns drive path (same as path in DriveData) if exists otherwise empty string ""
+	void reset_last_save_path();
+
 	std::vector<DriveData> m_current_drives;
 	std::vector<std::function<void()>> m_callbacks;
 	size_t m_drives_count;
 	long m_last_update;
 	std::string m_last_save_path;
+
 #if _WIN32
 	void register_window();
 	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
