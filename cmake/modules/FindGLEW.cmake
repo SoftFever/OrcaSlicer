@@ -161,7 +161,7 @@ find_library(GLEW_STATIC_LIBRARY_RELEASE
              PATHS ENV GLEW_ROOT)
 
 find_library(GLEW_STATIC_LIBRARY_DEBUG
-             NAMES GLEWds glewds glew32ds
+             NAMES GLEWds glewd glewds glew32ds
              PATH_SUFFIXES lib lib64
              PATHS ENV GLEW_ROOT)
 
