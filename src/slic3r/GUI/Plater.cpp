@@ -4997,12 +4997,11 @@ void Plater::send_gcode()
 
 void Plater::eject_drive()
 {
-	if (GUI::RemovableDriveManager::get_instance().update(0, true))
-	{
-		RemovableDriveManager::get_instance().erase_callbacks();
-		RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
-		RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
-	}	
+	RemovableDriveManager::get_instance().update(0, true);
+	RemovableDriveManager::get_instance().erase_callbacks();
+	RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+	RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
+		
 }
 void Plater::drive_ejected_callback()
 {
