@@ -6,6 +6,10 @@ prusaslicer_add_cmake_project(OpenCSG
     DEPENDS dep_GLEW
 )
 
+if (TARGET dep_ZLIB)
+    add_dependencies(dep_OpenCSG dep_ZLIB)
+endif()
+
 if (MSVC)
     add_debug_dep(dep_OpenCSG)
 endif ()

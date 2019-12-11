@@ -9,6 +9,8 @@ elseif (MSVC)
 endif()
 
 find_package(OpenGL REQUIRED)
+
+set(GLEW_VERBOSE ON)
 find_package(GLEW 1.13.0 REQUIRED)
 
 set(_srcfiles 
