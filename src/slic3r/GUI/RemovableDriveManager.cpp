@@ -198,15 +198,16 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 			DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
 		);
 		break;
+	/*
 	case WM_DEVICECHANGE:
 	{
 		if(wParam == DBT_DEVICEREMOVECOMPLETE)
 		{
-			std::cout << "WM_DEVICECHANGE\n";
-			RemovableDriveManager::get_instance().update();
+-			RemovableDriveManager::get_instance().update(0, true);
 		}
 	}
 	break;
+	*/
 	default:
 		// Send all other messages on to the default windows handler.
 		lRet = DefWindowProc(hWnd, message, wParam, lParam);
@@ -403,7 +404,7 @@ RemovableDriveManager::RemovableDriveManager():
 
 void RemovableDriveManager::init()
 {
-	add_callback([](void) { RemovableDriveManager::get_instance().print(); });
+	//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
 	register_window();
 #elif __APPLE__
@@ -441,8 +442,18 @@ bool  RemovableDriveManager::is_drive_mounted(const std::string &path)
 	}
 	return false;
 }
-
-std::string RemovableDriveManager::get_last_drive_path()
+std::string RemovableDriveManager::get_drive_path()
+{
+	if (m_current_drives.size() == 0)
+	{
+		reset_last_save_path();
+		return "";
+	}
+	if (m_last_save_path != "")
+		return m_last_save_path;
+	return m_current_drives.back().path;
+}
+std::string RemovableDriveManager::get_last_save_path()
 {
 	return m_last_save_path;
 }
@@ -456,7 +467,7 @@ void RemovableDriveManager::check_and_notify()
 	if(m_drives_count != m_current_drives.size())
 	{
 		//std::cout<<" vs "<< m_current_drives.size();
-		if(m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
+		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
 		{
 			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 			{
@@ -485,6 +496,7 @@ void RemovableDriveManager::set_last_save_path(const std::string& path)
 }
 bool RemovableDriveManager::is_last_drive_removed()
 {
+	m_drives_count = m_current_drives.size();
 	if(m_last_save_path == "")
 	{
 		return true;
