@@ -6,6 +6,10 @@
 
 namespace Slic3r {
 namespace GUI {
+class RDMMMWrapper;
+#if __APPLE__
+
+    
 struct DriveData
 {
 	std::string name;
@@ -57,25 +61,24 @@ private:
 	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 #else
 #if __APPLE__
-	RemovableDriveManagerMM * m_rdmmm;
+	RDMMMWrapper * m_rdmmm;
  #endif
     void search_path(const std::string &path, const std::string &parent_path);
     void inspect_file(const std::string &path, const std::string &parent_path);
     bool compare_filesystem_id(const std::string &path_a, const std::string &path_b);
 #endif
 };
-#if __APPLE__
-class RemovableDriveManagerMM
-{
-public:
-	RemovableDriveManagerMM();
-	~RemovableDriveManagerMM();
-	register_window();
-	list_devices();
-private:
-	RemovableDriveManagerMMImpl *m_imp;
-	friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
-};
+    class RDMMMWrapper
+    {
+    public:
+        RDMMMWrapper();
+        ~RDMMMWrapper();
+        void register_window();
+        void list_devices();
+    private:
+        void *m_imp;
+        friend void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path);
+    };
 #endif
 }}
 #endif

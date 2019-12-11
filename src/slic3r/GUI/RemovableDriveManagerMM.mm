@@ -36,31 +36,28 @@
 }
 namespace Slic3r {
 namespace GUI {
-struct RemovableDriveManagerMMImpl{
-	RemovableDriveManagerMM * wrap;
+RDMMMWrapper::RDMMMWrapper():m_imp(nullptr){
+	m_imp = [[RemovableDriveManagerMM alloc] init];
 }
-RemovableDriveManagerMM():impl(new RemovableDriveManagerMMImpl){
-	impl->wrap = [[RemovableDriveManagerMM alloc] init];
-}
-RemovableDriveManagerMM::~RemovableDriveManagerMM()
+RDMMMWrapper::~RDMMMWrapper()
 {
-	if(impl)
+	if(m_imp)
 	{
-		[impl->wrap release];
+		[m_imp release];
 	}
 }
 void  RDMMMWrapper::register_window()
 {
-	if(impl->wrap)
+	if(m_imp)
 	{
-		[impl->wrap add_unmount_observer];
+		[m_imp add_unmount_observer];
 	}
 }
 void  RDMMMWrapper::list_devices()
 {
-    if(impl->wrap)
+    if(m_imp)
     {
-    	NSArray* devices = [impl->wrap list_dev];
+    	NSArray* devices = [m_imp list_dev];
     	for (NSString* volumePath in devices)
     	{
         	NSLog(@"%@", volumePath);
