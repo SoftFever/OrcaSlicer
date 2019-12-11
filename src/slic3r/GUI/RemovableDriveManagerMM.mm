@@ -61,6 +61,10 @@ void  RDMMMWrapper::list_devices()
 		}
     }
 }
+void RDMMMWrapper::log(const std::string &msg)
+{
+    NSLog(@"%s", msg.c_str());
+}
 }}//namespace Slicer::GUI
 
 /*
