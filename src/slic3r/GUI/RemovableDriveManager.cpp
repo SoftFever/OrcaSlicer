@@ -395,9 +395,9 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 RemovableDriveManager::RemovableDriveManager():
     m_drives_count(0),
     m_last_update(0),
-    m_last_save_path(""),
+    m_last_save_path("")
 #if __APPLE__
-    m_rdmmm(new RDMMMWrapper())
+	, m_rdmmm(new RDMMMWrapper())
 #endif
 {}
 
@@ -411,7 +411,7 @@ void RemovableDriveManager::init()
 #endif
 	update();
 }
-bool RemovableDriveManager::update(const long time)
+bool RemovableDriveManager::update(const long time, bool check)
 {
 	if(time != 0) //time = 0 is forced update
 	{
@@ -425,7 +425,7 @@ bool RemovableDriveManager::update(const long time)
 		}
 	}
 	search_for_drives();
-	check_and_notify();
+	if(check)check_and_notify();
 	return !m_current_drives.empty();
 }
 
@@ -444,13 +444,7 @@ bool  RemovableDriveManager::is_drive_mounted(const std::string &path)
 
 std::string RemovableDriveManager::get_last_drive_path()
 {
-	if (!m_current_drives.empty())
-	{
-		if (m_last_save_path != "")
-			return m_last_save_path;
-		return m_current_drives.back().path;
-	}
-	return "";
+	return m_last_save_path;
 }
 std::vector<DriveData> RemovableDriveManager::get_all_drives()
 {
@@ -495,11 +489,13 @@ bool RemovableDriveManager::is_last_drive_removed()
 	{
 		return true;
 	}
-	return !is_drive_mounted(m_last_save_path);
+	bool r = !is_drive_mounted(m_last_save_path);
+	if (r) reset_last_save_path();
+	return r;
 }
 bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
 {
-	update(time);
+	update(time, false);
 	return is_last_drive_removed();
 }
 void RemovableDriveManager::reset_last_save_path()
