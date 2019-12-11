@@ -89,7 +89,7 @@ ExternalProject_Add(dep_libcurl
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
-    GIT_TAG v3.1.1-patched
+    GIT_TAG v3.1.3-patched
     BUILD_IN_SOURCE 1
 #    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
     CONFIGURE_COMMAND env "CXXFLAGS=${DEP_WERRORS_SDK}" "CFLAGS=${DEP_WERRORS_SDK}" ./configure
