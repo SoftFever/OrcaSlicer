@@ -215,8 +215,6 @@ if (${DEP_DEBUG})
     )
 endif ()
 
-find_package(Git REQUIRED)
-
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
     #URL "https://github.com/qhull/qhull/archive/v7.3.2.tar.gz"

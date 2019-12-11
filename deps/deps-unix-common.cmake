@@ -54,7 +54,6 @@ ExternalProject_Add(dep_nlopt
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )
-find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1
