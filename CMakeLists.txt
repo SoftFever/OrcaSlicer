@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 project(PrusaSlicer)
 
 include("version.inc")
@@ -369,18 +369,24 @@ if (NOT EXPAT_FOUND)
 endif ()
 include_directories(${EXPAT_INCLUDE_DIRS})
 
+find_package(OpenGL REQUIRED)
+
 # Find glew or use bundled version
-if (NOT SLIC3R_STATIC)
-    find_package(GLEW)
-endif ()
+if (SLIC3R_STATIC)
+    set(GLEW_USE_STATIC_LIBS ON)
+    set(GLEW_VERBOSE ON)
+endif()
+
+find_package(GLEW)
 if (NOT GLEW_FOUND)
+    message(STATUS "GLEW not found, using bundled version.")
     add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
-    set(GLEW_FOUND 1)
+    set(GLEW_FOUND TRUE)
     set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
-    set(GLEW_LIBRARIES glew)
-    add_definitions(-DGLEW_STATIC)
+    target_compile_definitions(glew PUBLIC GLEW_STATIC)
+    target_include_directories(glew PUBLIC ${GLEW_INCLUDE_DIRS})
+    add_library(GLEW::GLEW ALIAS glew)
 endif ()
-include_directories(${GLEW_INCLUDE_DIRS})
 
 # Find the Cereal serialization library
 add_library(cereal INTERFACE)

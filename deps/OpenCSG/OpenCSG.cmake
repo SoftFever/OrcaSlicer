@@ -5,3 +5,7 @@ prusaslicer_add_cmake_project(OpenCSG
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt.in ./CMakeLists.txt
     DEPENDS dep_GLEW
 )
+
+if (MSVC)
+    add_debug_dep(dep_OpenCSG)
+endif ()
