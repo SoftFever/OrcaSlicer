@@ -4709,7 +4709,9 @@ void Plater::export_gcode()
         fs::path path = into_path(dlg.GetPath());
         wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
         output_path = std::move(path);
-		RemovableDriveManager::get_instance().set_last_save_path(output_path.string());
+		RemovableDriveManager::get_instance().update(0, true);
+		RemovableDriveManager::get_instance().set_last_save_path(output_path.string()); 
+		
     }
     if (! output_path.empty())
         p->export_gcode(std::move(output_path), PrintHostJob());
