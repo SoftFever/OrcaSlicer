@@ -32,10 +32,11 @@ public:
 	
 	//update() searches for removable devices, returns false if empty.
 	void init();
-	bool update(const long time = 0, bool check = true);  //time = 0 is forced update, time expects wxGetLocalTime()
+	bool update(const long time = 0, bool check = false);  //time = 0 is forced update, time expects wxGetLocalTime()
 	bool is_drive_mounted(const std::string &path);
 	void eject_drive(const std::string &path);
-	std::string get_last_drive_path();
+	std::string get_last_save_path();
+	std::string get_drive_path();
 	std::vector<DriveData> get_all_drives();
 	bool is_path_on_removable_drive(const std::string &path);
 	void add_callback(std::function<void()> callback); // callback will notify only if device with last save path was removed

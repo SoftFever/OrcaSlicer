@@ -17,7 +17,7 @@
 -(void) on_device_unmount: (NSNotification*) notification
 {
     NSLog(@"on device change");
-    Slic3r::GUI::RemovableDriveManager::get_instance().update();
+    Slic3r::GUI::RemovableDriveManager::get_instance().update(0,true);
 }
 -(void) add_unmount_observer
 {

@@ -4588,7 +4588,7 @@ void Plater::export_gcode()
 	{
 		if (!RemovableDriveManager::get_instance().is_path_on_removable_drive(start_dir))
 		{
-			start_dir = RemovableDriveManager::get_instance().get_last_drive_path();
+			start_dir = RemovableDriveManager::get_instance().get_drive_path();
 		}
 	}
     wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save SL1 file as:")),
@@ -4889,11 +4889,11 @@ void Plater::send_gcode()
 
 void Plater::eject_drive()
 {
-	if (GUI::RemovableDriveManager::get_instance().update())
+	if (GUI::RemovableDriveManager::get_instance().update(0, true))
 	{
 		RemovableDriveManager::get_instance().erase_callbacks();
 		RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
-		RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_drive_path());		
+		RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
 	}	
 }
 void Plater::drive_ejected_callback()
