@@ -133,7 +133,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-    , m_adaptive_cusp(0.2f)
+    , m_adaptive_cusp(0.0f)
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
@@ -225,7 +225,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
         return;
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-    static const ImVec4 orange(0.757f, 0.404f, 0.216f, 1.0f);
+    static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
 
     const Size& cnv_size = canvas.get_canvas_size();
     float canvas_w = (float)cnv_size.get_width();
@@ -233,37 +233,34 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_pos(canvas_w - imgui.get_style_scaling() * THICKNESS_BAR_WIDTH, canvas_h, ImGuiCond_Always, 1.0f, 1.0f);
-    imgui.set_next_window_bg_alpha(0.5f);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
     imgui.begin(_(L("Variable layer height")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(_(L("Left mouse button:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     imgui.text(_(L("Add detail")));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(_(L("Right mouse button:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     imgui.text(_(L("Remove detail")));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(_(L("Shift + Left mouse button:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     imgui.text(_(L("Reset to base")));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(_(L("Shift + Right mouse button:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
     imgui.text(_(L("Smoothing")));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, orange);
+    ImGui::PushStyleColor(ImGuiCol_Text, ORANGE);
     imgui.text(_(L("Mouse wheel:")));
     ImGui::PopStyleColor();
     ImGui::SameLine();
@@ -275,12 +272,20 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGui::SameLine();
     float text_align = ImGui::GetCursorPosX();
+    ImGui::AlignTextToFramePadding();
     imgui.text(_(L("Cusp (mm)")));
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(_(L("I am a tooltip")));
+        ImGui::EndTooltip();
+    }
+
     ImGui::SameLine();
     float widget_align = ImGui::GetCursorPosX();
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
-    m_adaptive_cusp = clamp((float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, m_adaptive_cusp);
-    ImGui::SliderFloat("", &m_adaptive_cusp, (float)m_slicing_parameters->min_layer_height, (float)m_slicing_parameters->max_layer_height, "%.2f");
+    m_adaptive_cusp = clamp(0.0f, 0.5f * (float)m_slicing_parameters->layer_height, m_adaptive_cusp);
+    ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, 0.5f * (float)m_slicing_parameters->layer_height, "%.3f");
 
     ImGui::Separator();
     if (imgui.button(_(L("Smooth"))))
@@ -288,6 +293,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     ImGui::SameLine();
     ImGui::SetCursorPosX(text_align);
+    ImGui::AlignTextToFramePadding();
     imgui.text(_(L("Radius")));
     ImGui::SameLine();
     ImGui::SetCursorPosX(widget_align);
@@ -297,10 +303,12 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
         m_smooth_params.radius = (unsigned int)radius;
 
     ImGui::SetCursorPosX(text_align);
+    ImGui::AlignTextToFramePadding();
     imgui.text(_(L("Keep min")));
     ImGui::SameLine();
     if (ImGui::GetCursorPosX() < widget_align)  // because of line lenght after localization
         ImGui::SetCursorPosX(widget_align);
+
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     imgui.checkbox("##2", m_smooth_params.keep_min);
 
@@ -309,8 +317,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
 
     imgui.end();
-
-    ImGui::PopStyleVar();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
 #else
@@ -651,7 +657,6 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params)
 {
     this->update_slicing_parameters();
-
     m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, smoothing_params);
     const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
     m_layers_texture.valid = false;
@@ -707,6 +712,11 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 		m_slicing_parameters = new SlicingParameters();
     	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
     }
+
+#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
+    if (m_adaptive_cusp == 0.0f)
+        m_adaptive_cusp = 0.25f * m_slicing_parameters->layer_height;
+#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
@@ -1897,7 +1907,6 @@ void GLCanvas3D::render()
 
 #if ENABLE_RENDER_STATISTICS
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     imgui.text("Last frame: ");
     ImGui::SameLine();
@@ -3837,8 +3846,7 @@ void GLCanvas3D::_render_undo_redo_stack(const bool is_undo, float pos_x) const
 
     const float x = pos_x * (float)get_camera().get_zoom() + 0.5f * (float)get_canvas_size().get_width();
     imgui->set_next_window_pos(x, m_undoredo_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
-    imgui->set_next_window_bg_alpha(0.5f);
-	std::string title = is_undo ? L("Undo History") : L("Redo History");
+    std::string title = is_undo ? L("Undo History") : L("Redo History");
     imgui->begin(_(title), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     int hovered = m_imgui_undo_redo_hovered_pos;

@@ -124,12 +124,7 @@ protected:
             g.render_for_picking();
         }
     }
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 };
-
-
 
 } // namespace GUI
 } // namespace Slic3r
