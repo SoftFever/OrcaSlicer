@@ -272,7 +272,7 @@ bool GUI_App::on_init_inner()
 
         this->obj_manipul()->update_if_dirty();
 
-#if __linux__
+#if !__APPLE__
 		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
 #endif
 
