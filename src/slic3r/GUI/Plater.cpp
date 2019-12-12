@@ -3580,6 +3580,8 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 	//added to show disconnect_button after writing
 	show_action_buttons(false);
 
+	show_action_buttons(false);
+
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
