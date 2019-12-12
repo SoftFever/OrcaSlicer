@@ -96,7 +96,7 @@ void ImGuiWrapper::set_language(const std::string &language)
         ranges = ranges_turkish;
     } else if (lang == "vi") {
         ranges = ranges_vietnamese;
-    } else if (lang == "jp") {
+    } else if (lang == "ja") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese(); // Default + Hiragana, Katakana, Half-Width, Selection of 1946 Ideographs
         m_font_cjk = true;
     } else if (lang == "ko") {
@@ -317,6 +317,22 @@ void ImGuiWrapper::text(const wxString &label)
     this->text(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    return ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+}
+
+bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    return this->slider_float(label.c_str(), v, v_min, v_max, format, power);
+}
+
+bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/)
+{
+    auto label_utf8 = into_u8(label);
+    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power);
+}
+
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
 {
     // this is to force the label to the left of the widget:
@@ -498,13 +514,18 @@ void ImGuiWrapper::init_style()
             (hex_color & 0xff) / 255.0f);
     };
 
-    static const unsigned COL_GREY_DARK = 0x444444ff;
+    static const unsigned COL_WINDOW_BACKGROND = 0x222222cc;
+    static const unsigned COL_GREY_DARK = 0x555555ff;
     static const unsigned COL_GREY_LIGHT = 0x666666ff;
     static const unsigned COL_ORANGE_DARK = 0xc16737ff;
     static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
-    // Generics
+    // Window
+    style.WindowRounding = 4.0f;
+    set_color(ImGuiCol_WindowBg, COL_WINDOW_BACKGROND);
     set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
+
+    // Generics
     set_color(ImGuiCol_FrameBg, COL_GREY_DARK);
     set_color(ImGuiCol_FrameBgHovered, COL_GREY_LIGHT);
     set_color(ImGuiCol_FrameBgActive, COL_GREY_LIGHT);
@@ -528,6 +549,9 @@ void ImGuiWrapper::init_style()
     // Slider
     set_color(ImGuiCol_SliderGrab, COL_ORANGE_DARK);
     set_color(ImGuiCol_SliderGrabActive, COL_ORANGE_LIGHT);
+
+    // Separator
+    set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)

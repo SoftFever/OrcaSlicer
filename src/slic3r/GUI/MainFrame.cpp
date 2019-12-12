@@ -24,6 +24,7 @@
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
+#include "Mouse3DController.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
@@ -684,7 +685,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
         helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, _(L("DEBUG gcode thumbnails")), _(L("DEBUG ONLY - read the selected gcode file and generates png for the contained thumbnails")),
+        append_menu_item(helpMenu, wxID_ANY, "DEBUG gcode thumbnails", "DEBUG ONLY - read the selected gcode file and generates png for the contained thumbnails",
             [this](wxCommandEvent&) { wxGetApp().gcode_thumbnails_debug(); });
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
     }

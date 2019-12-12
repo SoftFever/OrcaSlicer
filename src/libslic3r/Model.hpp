@@ -749,6 +749,37 @@ public:
     ModelObjectPtrs     objects;
     // Wipe tower object.
     ModelWipeTower	    wipe_tower;
+
+    // Extensions for color print
+    struct CustomGCode
+    {
+        CustomGCode(double height, const std::string& code, int extruder, const std::string& color) :
+            height(height), gcode(code), extruder(extruder), color(color) {}
+
+        bool operator<(const CustomGCode& other) const { return other.height > this->height; }
+        bool operator==(const CustomGCode& other) const
+        {
+            return (other.height    == this->height)     && 
+                   (other.gcode     == this->gcode)      && 
+                   (other.extruder  == this->extruder   )&& 
+                   (other.color     == this->color   );
+        }
+        bool operator!=(const CustomGCode& other) const
+        {
+            return (other.height    != this->height)     || 
+                   (other.gcode     != this->gcode)      || 
+                   (other.extruder  != this->extruder   )|| 
+                   (other.color     != this->color   );
+        }
+        
+        double      height;
+        std::string gcode;
+        int         extruder;   // 0    - "gcode" will be applied for whole print
+                                // else - "gcode" will be applied only for "extruder" print
+        std::string color;      // if gcode is equal to PausePrintCode, 
+                                // this field is used for save a short message shown on Printer display 
+    };
+    std::vector<CustomGCode> custom_gcode_per_height;
     
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }
@@ -813,6 +844,9 @@ public:
     std::string   propose_export_file_name_and_path() const;
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
+
+    // from custom_gcode_per_height get just tool_change codes
+    std::vector<std::pair<double, DynamicPrintConfig>> get_custom_tool_changes(double default_layer_height, size_t num_extruders) const;
 
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };

@@ -41,6 +41,7 @@ class ObjectSettings;
 class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
+class Mouse3DController;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -223,6 +224,7 @@ public:
     void on_activate();
     const DynamicPrintConfig* get_plater_config() const;
     std::vector<std::string> get_extruder_colors_from_plater_config() const;
+    std::vector<std::string> get_colors_for_color_print() const;
 
     void update_object_menu();
 
@@ -260,7 +262,13 @@ public:
 
     void msw_rescale();
 
+#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+    bool init_view_toolbar();
+#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
+
     const Camera& get_camera() const;
+    const Mouse3DController& get_mouse3d_controller() const;
+    Mouse3DController& get_mouse3d_controller();
 
 	// ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

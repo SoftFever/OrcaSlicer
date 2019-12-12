@@ -741,7 +741,6 @@ RENDER_AGAIN:
     const float approx_height = m_imgui->scaled(18.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
@@ -765,6 +764,7 @@ RENDER_AGAIN:
         float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
         if (m_new_point_head_diameter > diameter_upper_cap)
             m_new_point_head_diameter = diameter_upper_cap;
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("head_diameter"));
         ImGui::SameLine(diameter_slider_left);
         ImGui::PushItemWidth(window_width - diameter_slider_left);
@@ -825,6 +825,7 @@ RENDER_AGAIN:
         }
     }
     else { // not in editing mode:
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("minimal_distance"));
         ImGui::SameLine(settings_sliders_left);
         ImGui::PushItemWidth(window_width - settings_sliders_left);
@@ -838,6 +839,7 @@ RENDER_AGAIN:
         bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
         bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
 
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("points_density"));
         ImGui::SameLine(settings_sliders_left);
 
@@ -868,7 +870,7 @@ RENDER_AGAIN:
         if (generate)
             auto_generate();
 
-        m_imgui->text("");
+        ImGui::Separator();
         if (m_imgui->button(m_desc.at("manual_editing")))
             switch_to_editing_mode();
 
@@ -885,9 +887,12 @@ RENDER_AGAIN:
 
 
     // Following is rendered in both editing and non-editing mode:
-    m_imgui->text("");
+    ImGui::Separator();
     if (m_clipping_plane_distance == 0.f)
+    {
+        ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
+    }
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
             wxGetApp().CallAfter([this](){
@@ -1226,10 +1231,10 @@ void GLGizmoSlaSupports::get_data_from_backend()
 
 void GLGizmoSlaSupports::auto_generate()
 {
-    wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L(
-                "Autogeneration will erase all manually edited points.\n\n"
-                "Are you sure you want to do it?\n"
-                )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+    wxMessageDialog dlg(GUI::wxGetApp().plater(), 
+                        _(L("Autogeneration will erase all manually edited points.")) + "\n\n" +
+                        _(L("Are you sure you want to do it?")) + "\n",
+                        _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
     if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_normal_cache.empty() || dlg.ShowModal() == wxID_YES) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Autogenerate support points")));

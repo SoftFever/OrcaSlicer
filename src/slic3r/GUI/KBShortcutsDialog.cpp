@@ -157,6 +157,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("Z",        L("Zoom to selected object")));
     plater_shortcuts.push_back(Shortcut("I",        L("Zoom in")));
     plater_shortcuts.push_back(Shortcut("O",        L("Zoom out")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"M",   L("Show/Hide 3Dconnexion devices settings dialog")));
     plater_shortcuts.push_back(Shortcut("ESC",      L("Unselect gizmo / Clear selection")));
 #if ENABLE_RENDER_PICKING_PASS
     // Don't localize debugging texts.

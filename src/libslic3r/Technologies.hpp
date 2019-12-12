@@ -26,8 +26,6 @@
 
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0_ALPHA1)
-// Disable imgui dialog for move, rotate and scale gizmos
-#define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
@@ -38,8 +36,21 @@
 #define ENABLE_2_2_0_ALPHA1 1
 
 // Enable thumbnail generator
+// When removing this technology, remove it also from stable branch, 
+// where it has been partially copied for patch 2.1.1
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
-#define ENABLE_THUMBNAIL_GENERATOR_PNG_TO_GCODE (1 && ENABLE_THUMBNAIL_GENERATOR)
+
+// Enable adaptive layer height profile
+#define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
+
+// Enable grayed variant for gizmos icons in non activable state
+#define ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE (1 && ENABLE_2_2_0_ALPHA1)
+
+// Enable fix for view toolbar background not showing up on Mac with dark mode
+#define ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX (1 && ENABLE_2_2_0_ALPHA1)
+
+// Enable selection for missing files in reload from disk command
+#define ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION (1 && ENABLE_2_2_0_ALPHA1)
 
 #endif // _technologies_h_

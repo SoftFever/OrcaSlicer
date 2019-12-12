@@ -303,6 +303,8 @@ public:
         int             instance_id;
 		bool operator==(const CompositeID &rhs) const { return object_id == rhs.object_id && volume_id == rhs.volume_id && instance_id == rhs.instance_id; }
 		bool operator!=(const CompositeID &rhs) const { return ! (*this == rhs); }
+		bool operator< (const CompositeID &rhs) const 
+			{ return object_id < rhs.object_id || (object_id == rhs.object_id && (volume_id < rhs.volume_id || (volume_id == rhs.volume_id && instance_id < rhs.instance_id))); }
     };
     CompositeID         composite_id;
     // Fingerprint of the source geometry. For ModelVolumes, it is the ModelVolume::ID and ModelInstanceID, 

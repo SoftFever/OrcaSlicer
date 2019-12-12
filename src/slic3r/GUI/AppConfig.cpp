@@ -103,7 +103,7 @@ void AppConfig::load()
         // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
         throw std::runtime_error(
         	_utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
-                    "Try to manualy delete the file to recover from the error. Your user profiles will not be affected.")) + 
+                    "Try to manually delete the file to recover from the error. Your user profiles will not be affected.")) + 
         	"\n\n" + AppConfig::config_path() + "\n\n" + ex.what());
     }
 
@@ -269,6 +269,80 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     {
         it->second[std::to_string(i + 1)] = recent_projects[i];
     }
+}
+
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type(key, std::map<std::string, std::string>())).first;
+
+    it->second.clear();
+    it->second["translation_speed"] = std::to_string(translation_speed);
+    it->second["translation_deadzone"] = std::to_string(translation_deadzone);
+    it->second["rotation_speed"] = std::to_string(rotation_speed);
+    it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
+}
+
+bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("translation_speed");
+    if (it_val == it->second.end())
+        return false;
+
+    speed = ::atof(it_val->second.c_str());
+    return true;
+}
+
+bool AppConfig::get_mouse_device_translation_deadzone(const std::string& name, double& deadzone)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("translation_deadzone");
+    if (it_val == it->second.end())
+        return false;
+
+    deadzone = ::atof(it_val->second.c_str());
+    return true;
+}
+
+bool AppConfig::get_mouse_device_rotation_speed(const std::string& name, float& speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("rotation_speed");
+    if (it_val == it->second.end())
+        return false;
+
+    speed = (float)::atof(it_val->second.c_str());
+    return true;
+}
+
+bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, float& deadzone)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("rotation_deadzone");
+    if (it_val == it->second.end())
+        return false;
+
+    deadzone = (float)::atof(it_val->second.c_str());
+    return true;
 }
 
 void AppConfig::update_config_dir(const std::string &dir)

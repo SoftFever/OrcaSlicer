@@ -16,6 +16,10 @@
 
 #include "AMF.hpp"
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+namespace pt = boost::property_tree;
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -147,6 +151,8 @@ struct AMFParserContext
         NODE_TYPE_MIRRORY,              // amf/constellation/instance/mirrory
         NODE_TYPE_MIRRORZ,              // amf/constellation/instance/mirrorz
         NODE_TYPE_PRINTABLE,            // amf/constellation/instance/mirrorz
+        NODE_TYPE_CUSTOM_GCODE,         // amf/custom_code_per_height
+        NODE_TYPE_GCODE_PER_HEIGHT,     // amf/custom_code_per_height/code
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
@@ -227,7 +233,7 @@ struct AMFParserContext
     // Current instance allocated for an amf/constellation/instance subtree.
     Instance                *m_instance;
     // Generic string buffer for vertices, face indices, metadata etc.
-    std::string              m_value[3];
+    std::string              m_value[4];
     // Pointer to config to update if config data are stored inside the amf file
     DynamicPrintConfig      *m_config;
 
@@ -268,6 +274,8 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             }
         } else if (strcmp(name, "constellation") == 0) {
             node_type_new = NODE_TYPE_CONSTELLATION;
+        } else if (strcmp(name, "custom_gcodes_per_height") == 0) {
+            node_type_new = NODE_TYPE_CUSTOM_GCODE;
         }
         break;
     case 2:
@@ -294,6 +302,13 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             }
             else
                 this->stop();
+        } 
+        else if (strcmp(name, "code") == 0 && m_path[1] == NODE_TYPE_CUSTOM_GCODE) {
+            node_type_new = NODE_TYPE_GCODE_PER_HEIGHT;
+            m_value[0] = get_attribute(atts, "height");
+            m_value[1] = get_attribute(atts, "gcode");
+            m_value[2] = get_attribute(atts, "extruder");
+            m_value[3] = get_attribute(atts, "color");
         }
         break;
     case 3:
@@ -616,6 +631,19 @@ void AMFParserContext::endElement(const char * /* name */)
         m_instance = nullptr;
         break;
 
+    case NODE_TYPE_GCODE_PER_HEIGHT: {
+        double height = double(atof(m_value[0].c_str()));
+        const std::string& gcode = m_value[1];
+        int extruder = atoi(m_value[2].c_str());
+        const std::string& color = m_value[3];
+
+        m_model.custom_gcode_per_height.push_back(Model::CustomGCode(height, gcode, extruder, color));
+
+        for (std::string& val: m_value)
+            val.clear();
+        break;
+        }
+
     case NODE_TYPE_METADATA:
         if ((m_config != nullptr) && strncmp(m_value[0].c_str(), SLIC3R_CONFIG_TYPE, strlen(SLIC3R_CONFIG_TYPE)) == 0)
             m_config->load_from_gcode_string(m_value[1].c_str());
@@ -884,8 +912,10 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     if (check_version && (ctx.m_version > VERSION_AMF))
     {
-        std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
-        throw std::runtime_error(msg.c_str());
+        // std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
+        // throw std::runtime_error(msg.c_str());
+        const std::string msg = (boost::format(_(L("The selected amf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
+        throw std::runtime_error(msg);
     }
 
     return true;
@@ -1190,6 +1220,42 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         stream << instances;
         stream << "  </constellation>\n";
     }
+
+    if (!model->custom_gcode_per_height.empty())
+    {
+        std::string out = "";
+        pt::ptree tree;
+
+        pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
+
+        for (const Model::CustomGCode& code : model->custom_gcode_per_height)
+        {
+            pt::ptree& code_tree = main_tree.add("code", "");
+            // store minX and maxZ
+            code_tree.put("<xmlattr>.height", code.height);
+            code_tree.put("<xmlattr>.gcode", code.gcode);
+            code_tree.put("<xmlattr>.extruder", code.extruder);
+            code_tree.put("<xmlattr>.color", code.color);
+        }
+
+        if (!tree.empty())
+        {
+            std::ostringstream oss;
+            pt::write_xml(oss, tree);
+            out = oss.str();
+
+            int del_header_pos = out.find("<custom_gcodes_per_height");
+            if (del_header_pos != std::string::npos)
+                out.erase(out.begin(), out.begin() + del_header_pos);
+
+            // Post processing("beautification") of the output string
+            boost::replace_all(out, "><code", ">\n  <code");
+            boost::replace_all(out, "><", ">\n<");
+
+            stream << out << "\n";
+        }
+    }
+
     stream << "</amf>\n";
 
     std::string internal_amf_filename = boost::ireplace_last_copy(boost::filesystem::path(export_path).filename().string(), ".zip.amf", ".amf");

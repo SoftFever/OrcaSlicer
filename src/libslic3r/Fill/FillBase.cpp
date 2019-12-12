@@ -2,6 +2,7 @@
 
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
+#include "../Geometry.hpp"
 #include "../Surface.hpp"
 #include "../PrintConfig.hpp"
 #include "../libslic3r.h"
@@ -609,16 +610,15 @@ static inline SegmentPoint clip_start_segment_and_point(const Points &polyline, 
 	// Initialized to "invalid".
 	SegmentPoint out;
 	if (polyline.size() >= 2) {
-		const double d2 = distance * distance;
 	    Vec2d pt_prev = polyline.front().cast<double>();
 		for (int i = 1; i < polyline.size(); ++ i) {
 			Vec2d pt = polyline[i].cast<double>();
 			Vec2d v = pt - pt_prev;
 	        double l2 = v.squaredNorm();
-	        if (l2 > d2) {
+	        if (l2 > distance * distance) {
 	        	out.idx_segment = i;
 	        	out.t 			= distance / sqrt(l2);
-	        	out.point 		= pt + out.t * v;
+	        	out.point 		= pt_prev + out.t * v;
 	            break;
 	        }
 	        distance -= sqrt(l2);
@@ -635,16 +635,17 @@ static inline SegmentPoint clip_end_segment_and_point(const Points &polyline, do
 	// Initialized to "invalid".
 	SegmentPoint out;
 	if (polyline.size() >= 2) {
-		const double d2 = distance * distance;
 	    Vec2d pt_next = polyline.back().cast<double>();
 		for (int i = int(polyline.size()) - 2; i >= 0; -- i) {
 			Vec2d pt = polyline[i].cast<double>();
 			Vec2d v = pt - pt_next;
 	        double l2 = v.squaredNorm();
-	        if (l2 > d2) {
+	        if (l2 > distance * distance) {
 	        	out.idx_segment = i;
 	        	out.t 			= distance / sqrt(l2);
-	        	out.point 		= pt + out.t * v;
+	        	out.point 		= pt_next + out.t * v;
+				// Store the parameter referenced to the starting point of a segment.
+				out.t			= 1. - out.t;
 	            break;
 	        }
 	        distance -= sqrt(l2);
@@ -654,21 +655,26 @@ static inline SegmentPoint clip_end_segment_and_point(const Points &polyline, do
 	return out;
 }
 
+// Optimized version with the precalculated v1 = p1b - p1a and l1_2 = v1.squaredNorm().
+// Assumption: l1_2 < EPSILON.
+static inline double segment_point_distance_squared(const Vec2d &p1a, const Vec2d &p1b, const Vec2d &v1, const double l1_2, const Vec2d &p2)
+{
+	assert(l1_2 > EPSILON);
+	Vec2d  v12 = p2 - p1a;
+	double t   = v12.dot(v1);
+	return (t <= 0.  ) ? v12.squaredNorm() :
+	       (t >= l1_2) ? (p2 - p1a).squaredNorm() :
+		   ((t / l1_2) * v1 - v12).squaredNorm();
+}
+
 static inline double segment_point_distance_squared(const Vec2d &p1a, const Vec2d &p1b, const Vec2d &p2)
 {
-    const Vec2d   v  = p1b - p1a;
-    const Vec2d   va = p2  - p1a;
-    const double  l2 = v.squaredNorm();
+    const Vec2d  v  = p1b - p1a;
+    const double l2 = v.squaredNorm();
     if (l2 < EPSILON)
         // p1a == p1b
-        return va.squaredNorm();
-    // Project p2 onto the (p1a, p1b) segment.
-    const double t = va.dot(v);
-    if (t < 0.)
-    	return va.squaredNorm();
-    else if (t > l2)
-    	return (p2 - p1b).squaredNorm();
-    return ((t / l2) * v - va).squaredNorm();
+        return (p2  - p1a).squaredNorm();
+	return segment_point_distance_squared(p1a, p1b, v, v.squaredNorm(), p2);
 }
 
 // Distance to the closest point of line.
@@ -684,43 +690,11 @@ static inline double min_distance_of_segments(const Vec2d &p1a, const Vec2d &p1b
     double  l2_2 	= v2.squaredNorm();
     if (l2_2 < EPSILON)
         // p2a == p2b: Return distance of p2a from the (p1a, p1b) segment.
-        return segment_point_distance_squared(p1a, p1b, p2a);
-
-    // Project p2a, p2b onto the (p1a, p1b) segment.
-	auto project_p2a_p2b_onto_seg_p1a_p1b = [](const Vec2d& p1a, const Vec2d& p1b, const Vec2d& p2a, const Vec2d& p2b, const Vec2d& v1, const double l1_2) {
-		Vec2d   v1a2a = p2a - p1a;
-		Vec2d   v1a2b = p2b - p1a;
-		double 	t1 = v1a2a.dot(v1);
-		double 	t2 = v1a2b.dot(v1);
-		if (t1 <= 0.) {
-			if (t2 <= 0.)
-				// Both p2a and p2b are left of v1.
-				return (((t1 < t2) ? p2b : p2a) - p1a).squaredNorm();
-			else if (t2 < l1_2)
-				// Project p2b onto the (p1a, p1b) segment.
-				return ((t2 / l1_2) * v1 - v1a2b).squaredNorm();
-		}
-		else if (t1 >= l1_2) {
-			if (t2 >= l1_2)
-				// Both p2a and p2b are right of v1.
-				return (((t1 < t2) ? p2a : p2b) - p1b).squaredNorm();
-			else if (t2 < l1_2)
-				// Project p2b onto the (p1a, p1b) segment.
-				return ((t2 / l1_2) * v1 - v1a2b).squaredNorm();
-		}
-		else {
-			// Project p1b onto the (p1a, p1b) segment.
-			double dist_min = ((t2 / l1_2) * v1 - v1a2a).squaredNorm();
-			if (t2 > 0. && t2 < l1_2)
-				dist_min = std::min(dist_min, ((t2 / l1_2) * v1 - v1a2b).squaredNorm());
-			return dist_min;
-		}
-		return std::numeric_limits<double>::max();
-	};
+        return segment_point_distance_squared(p1a, p1b, v1, l1_2, p2a);
 
 	return std::min(
-		project_p2a_p2b_onto_seg_p1a_p1b(p1a, p1b, p2a, p2b, v1, l1_2),
-		project_p2a_p2b_onto_seg_p1a_p1b(p2a, p2b, p1a, p1b, v2, l2_2));
+		std::min(segment_point_distance_squared(p1a, p1b, v1, l1_2, p2a), segment_point_distance_squared(p1a, p1b, v1, l1_2, p2b)),
+		std::min(segment_point_distance_squared(p2a, p2b, v2, l2_2, p1a), segment_point_distance_squared(p2a, p2b, v2, l2_2, p1b)));
 }
 
 // Mark the segments of split boundary as consumed if they are very close to some of the infill line.
@@ -756,11 +730,26 @@ void mark_boundary_segments_touching_infill(
 				const Vec2d seg_pt2 = segment.second.cast<double>();
 				if (min_distance_of_segments(seg_pt1, seg_pt2, *this->pt1, *this->pt2) < this->dist2_max) {
 					// Mark this boundary segment as touching the infill line.
-					ContourPointData&bdp = boundary_data[it_contour_and_segment->first][it_contour_and_segment->second];
+					ContourPointData &bdp = boundary_data[it_contour_and_segment->first][it_contour_and_segment->second];
 					bdp.segment_consumed = true;
 					// There is no need for checking seg_pt2 as it will be checked the next time.
-					if (segment_point_distance_squared(*this->pt1, *this->pt2, seg_pt1) < this->dist2_max)
+					bool point_touching = false;
+					if (segment_point_distance_squared(*this->pt1, *this->pt2, seg_pt1) < this->dist2_max) {
+						point_touching = true;
 						bdp.point_consumed = true;
+					}
+#if 0
+					{
+						static size_t iRun = 0;
+						ExPolygon expoly(Polygon(*grid.contours().front()));
+						for (size_t i = 1; i < grid.contours().size(); ++i)
+							expoly.holes.emplace_back(Polygon(*grid.contours()[i]));
+						SVG svg(debug_out_path("%s-%d.svg", "FillBase-mark_boundary_segments_touching_infill", iRun ++).c_str(), get_extents(expoly));
+						svg.draw(expoly, "green");
+						svg.draw(Line(segment.first, segment.second), "red");
+						svg.draw(Line(this->pt1->cast<coord_t>(), this->pt2->cast<coord_t>()), "magenta");
+					}
+#endif
 				}
 			}
 			// Continue traversing the grid along the edge.
@@ -776,6 +765,9 @@ void mark_boundary_segments_touching_infill(
 		const Vec2d 								*pt1;
 		const Vec2d 								*pt2;
 	} visitor(grid, boundary, boundary_data, distance_colliding * distance_colliding);
+
+	BoundingBoxf bboxf(boundary_bbox.min.cast<double>(), boundary_bbox.max.cast<double>());
+	bboxf.offset(- SCALED_EPSILON);
 
 	for (const Polyline &polyline : infill) {
 		// Clip the infill polyline by the Eucledian distance along the polyline.
@@ -806,25 +798,39 @@ void mark_boundary_segments_touching_infill(
 				visitor.init(pt1d, pt2d);
 				grid.visit_cells_intersecting_thick_line(pt1, pt2, distance_colliding, visitor);
 #else
-				Vec2d pt1 = (point_idx == start_point.idx_segment) ? start_point.point : polyline.points[point_idx].cast<double>();
-				Vec2d pt2 = (point_idx == end_point  .idx_segment) ? end_point  .point : polyline.points[point_idx].cast<double>();
+				Vec2d pt1 = (point_idx == start_point.idx_segment) ? start_point.point : polyline.points[point_idx    ].cast<double>();
+				Vec2d pt2 = (point_idx == end_point  .idx_segment) ? end_point  .point : polyline.points[point_idx + 1].cast<double>();
+#if 0
+					{
+						static size_t iRun = 0;
+						ExPolygon expoly(Polygon(*grid.contours().front()));
+						for (size_t i = 1; i < grid.contours().size(); ++i)
+							expoly.holes.emplace_back(Polygon(*grid.contours()[i]));
+						SVG svg(debug_out_path("%s-%d.svg", "FillBase-mark_boundary_segments_touching_infill0", iRun ++).c_str(), get_extents(expoly));
+						svg.draw(expoly, "green");
+						svg.draw(polyline, "blue");
+						svg.draw(Line(pt1.cast<coord_t>(), pt2.cast<coord_t>()), "magenta", scale_(0.1));
+					}
+#endif
 				visitor.init(pt1, pt2);
 				// Simulate tracing of a thick line. This only works reliably if distance_colliding <= grid cell size.
 				Vec2d v = (pt2 - pt1).normalized() * distance_colliding;
 				Vec2d vperp(-v.y(), v.x());
 				Vec2d a = pt1 - v - vperp;
 				Vec2d b = pt1 + v - vperp;
-				grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
+					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 				a = pt1 - v + vperp;
 				b = pt1 + v + vperp;
-				grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
+				if (Geometry::liang_barsky_line_clipping(a, b, bboxf))
+					grid.visit_cells_intersecting_line(a.cast<coord_t>(), b.cast<coord_t>(), visitor);
 #endif
 			}
 		}
 	}
 }
 
-void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_src, Polylines &polylines_out, const FillParams &params)
+void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_src, Polylines &polylines_out, const double spacing, const FillParams &params)
 {
 	assert(! infill_ordered.empty());
 	assert(! boundary_src.contour.points.empty());
@@ -900,16 +906,16 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 
 	// Mark the points and segments of split boundary as consumed if they are very close to some of the infill line.
 	{
-		//const double clip_distance		= scale_(this->spacing);
-		const double clip_distance		= 3. * scale_(this->spacing);
-		const double distance_colliding = scale_(this->spacing);
+		// @supermerill used 2. * scale_(spacing)
+		const double clip_distance		= 3. * scale_(spacing);
+		const double distance_colliding = 1.1 * scale_(spacing);
 		mark_boundary_segments_touching_infill(boundary, boundary_data, bbox, infill_ordered, clip_distance, distance_colliding);
 	}
 
 	// Connection from end of one infill line to the start of another infill line.
-	//const float length_max = scale_(this->spacing);
-//	const float length_max = scale_((2. / params.density) * this->spacing);
-	const float length_max = scale_((1000. / params.density) * this->spacing);
+	//const float length_max = scale_(spacing);
+//	const float length_max = scale_((2. / params.density) * spacing);
+	const float length_max = scale_((1000. / params.density) * spacing);
 	std::vector<size_t> merged_with(infill_ordered.size());
 	for (size_t i = 0; i < merged_with.size(); ++ i)
 		merged_with[i] = i;
@@ -951,12 +957,26 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 
 	size_t idx_chain_last = 0;
 	for (ConnectionCost &connection_cost : connections_sorted) {
-		const std::pair<size_t, size_t>	*cp1 = &map_infill_end_point_to_boundary[connection_cost.idx_first * 2 + 1];
-		const std::pair<size_t, size_t>	*cp2 = &map_infill_end_point_to_boundary[(connection_cost.idx_first + 1) * 2];
+		const std::pair<size_t, size_t>	*cp1     = &map_infill_end_point_to_boundary[connection_cost.idx_first * 2 + 1];
+		const std::pair<size_t, size_t>	*cp1prev = cp1 - 1;
+		const std::pair<size_t, size_t>	*cp2     = &map_infill_end_point_to_boundary[(connection_cost.idx_first + 1) * 2];
+		const std::pair<size_t, size_t>	*cp2next = cp2 + 1;
 		assert(cp1->first == cp2->first);
 		std::vector<ContourPointData>	&contour_data = boundary_data[cp1->first];
 		if (connection_cost.reversed)
 			std::swap(cp1, cp2);
+		// Mark the the other end points of the segments to be taken as consumed temporarily, so they will not be crossed
+		// by the new connection line.
+		bool prev_marked = false;
+		bool next_marked = false;
+		if (cp1prev->first == cp1->first && ! contour_data[cp1prev->second].point_consumed) {
+			contour_data[cp1prev->second].point_consumed = true;
+			prev_marked = true;
+		}
+		if (cp2next->first == cp1->first && ! contour_data[cp2next->second].point_consumed) {
+			contour_data[cp2next->second].point_consumed = true;
+			next_marked = true;
+		}
 		if (could_take(contour_data, cp1->second, cp2->second)) {
 			// Indices of the polygons to be connected.
 			size_t idx_first  = connection_cost.idx_first;
@@ -975,6 +995,10 @@ void Fill::connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary_
 			// Mark the second polygon as merged with the first one.
 			merged_with[idx_second] = merged_with[idx_first];
 		}
+		if (prev_marked)
+			contour_data[cp1prev->second].point_consumed = false;
+		if (next_marked)
+			contour_data[cp2next->second].point_consumed = false;
 	}
 	polylines_out.reserve(polylines_out.size() + std::count_if(infill_ordered.begin(), infill_ordered.end(), [](const Polyline &pl) { return ! pl.empty(); }));
 	for (Polyline &pl : infill_ordered)

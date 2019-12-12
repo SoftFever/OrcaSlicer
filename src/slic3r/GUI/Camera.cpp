@@ -91,10 +91,16 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-    m_target = target;
-    m_target(0) = clamp(m_scene_box.min(0), m_scene_box.max(0), m_target(0));
-    m_target(1) = clamp(m_scene_box.min(1), m_scene_box.max(1), m_target(1));
-    m_target(2) = clamp(m_scene_box.min(2), m_scene_box.max(2), m_target(2));
+    BoundingBoxf3 test_box = m_scene_box;
+    test_box.translate(-m_scene_box.center());
+    // We may let this factor be customizable
+    static const double ScaleFactor = 1.5;
+    test_box.scale(ScaleFactor);
+    test_box.translate(m_scene_box.center());
+
+    m_target(0) = clamp(test_box.min(0), test_box.max(0), target(0));
+    m_target(1) = clamp(test_box.min(1), test_box.max(1), target(1));
+    m_target(2) = clamp(test_box.min(2), test_box.max(2), target(2));
 }
 
 void Camera::set_theta(float theta, bool apply_limit)
@@ -109,20 +115,20 @@ void Camera::set_theta(float theta, bool apply_limit)
     }
 }
 
-void Camera::set_zoom(double zoom, const BoundingBoxf3& max_box, int canvas_w, int canvas_h)
+void Camera::update_zoom(double delta_zoom)
 {
-    zoom = std::max(std::min(zoom, 4.0), -4.0) / 10.0;
-    zoom = m_zoom / (1.0 - zoom);
+    set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1));
+}
 
+void Camera::set_zoom(double zoom)
+{
     // Don't allow to zoom too far outside the scene.
-    double zoom_min = calc_zoom_to_bounding_box_factor(max_box, canvas_w, canvas_h);
+    double zoom_min = calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
     if (zoom_min > 0.0)
         zoom = std::max(zoom, zoom_min * 0.7);
 
     // Don't allow to zoom too close to the scene.
-    zoom = std::min(zoom, 100.0);
-
-    m_zoom = zoom;
+    m_zoom = std::min(zoom, 100.0);
 }
 
 bool Camera::select_view(const std::string& direction)
@@ -190,7 +196,7 @@ void Camera::apply_view_matrix() const
     glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, m_view_matrix.data()));
 }
 
-void Camera::apply_projection(const BoundingBoxf3& box) const
+void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double far_z) const
 {
     set_distance(DefaultDistance);
 
@@ -200,6 +206,12 @@ void Camera::apply_projection(const BoundingBoxf3& box) const
     while (true)
     {
         m_frustrum_zs = calc_tight_frustrum_zs_around(box);
+
+        if (near_z > 0.0)
+            m_frustrum_zs.first = std::min(m_frustrum_zs.first, near_z);
+
+        if (far_z > 0.0)
+            m_frustrum_zs.second = std::max(m_frustrum_zs.second, far_z);
 
         w = 0.5 * (double)m_viewport[2];
         h = 0.5 * (double)m_viewport[3];
@@ -310,7 +322,6 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, int canvas_w, int canv
 void Camera::debug_render() const
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
@@ -355,27 +366,10 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     while (true)
     {
-        ret = std::make_pair(DBL_MAX, -DBL_MAX);
-
-        // box vertices in world space
-        std::vector<Vec3d> vertices;
-        vertices.reserve(8);
-        vertices.push_back(box.min);
-        vertices.emplace_back(box.max(0), box.min(1), box.min(2));
-        vertices.emplace_back(box.max(0), box.max(1), box.min(2));
-        vertices.emplace_back(box.min(0), box.max(1), box.min(2));
-        vertices.emplace_back(box.min(0), box.min(1), box.max(2));
-        vertices.emplace_back(box.max(0), box.min(1), box.max(2));
-        vertices.push_back(box.max);
-        vertices.emplace_back(box.min(0), box.max(1), box.max(2));
-
-        // set the Z range in eye coordinates (negative Zs are in front of the camera)
-        for (const Vec3d& v : vertices)
-        {
-            double z = -(m_view_matrix * v)(2);
-            ret.first = std::min(ret.first, z);
-            ret.second = std::max(ret.second, z);
-        }
+        // box in eye space
+        BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
+        ret.first = -eye_box.max(2);
+        ret.second = -eye_box.min(2);
 
         // apply margin
         ret.first -= FrustrumZMargin;
@@ -434,8 +428,10 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
     vertices.push_back(box.max);
     vertices.emplace_back(box.min(0), box.max(1), box.max(2));
 
-    double max_x = 0.0;
-    double max_y = 0.0;
+    double min_x = DBL_MAX;
+    double min_y = DBL_MAX;
+    double max_x = -DBL_MAX;
+    double max_y = -DBL_MAX;
 
 #if !ENABLE_THUMBNAIL_GENERATOR
     // margin factor to give some empty space around the box
@@ -452,17 +448,24 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int ca
         double x_on_plane = proj_on_plane.dot(right);
         double y_on_plane = proj_on_plane.dot(up);
 
-        max_x = std::max(max_x, std::abs(x_on_plane));
-        max_y = std::max(max_y, std::abs(y_on_plane));
+        min_x = std::min(min_x, x_on_plane);
+        min_y = std::min(min_y, y_on_plane);
+        max_x = std::max(max_x, x_on_plane);
+        max_y = std::max(max_y, y_on_plane);
     }
 
-    if ((max_x == 0.0) || (max_y == 0.0))
+    double dx = max_x - min_x;
+    double dy = max_y - min_y;
+    if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
-    max_x *= margin_factor;
-    max_y *= margin_factor;
+    double med_x = 0.5 * (max_x + min_x);
+    double med_y = 0.5 * (max_y + min_y);
 
-    return std::min((double)canvas_w / (2.0 * max_x), (double)canvas_h / (2.0 * max_y));
+    dx *= margin_factor;
+    dy *= margin_factor;
+
+    return std::min((double)canvas_w / dx, (double)canvas_h / dy);
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -524,7 +527,7 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canv
     double dx = margin_factor * (max_x - min_x);
     double dy = margin_factor * (max_y - min_y);
 
-    if ((dx == 0.0) || (dy == 0.0))
+    if ((dx <= 0.0) || (dy <= 0.0))
         return -1.0f;
 
     return std::min((double)canvas_w / dx, (double)canvas_h / dy);

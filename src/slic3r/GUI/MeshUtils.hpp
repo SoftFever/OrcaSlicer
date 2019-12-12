@@ -18,7 +18,7 @@ namespace GUI {
 struct Camera;
 
 
-
+// lm_FIXME: Following class might possibly be replaced by Eigen::Hyperplane
 class ClippingPlane
 {
     double m_data[4];
@@ -68,13 +68,23 @@ public:
 };
 
 
-
+// MeshClipper class cuts a mesh and is able to return a triangulated cut.
 class MeshClipper {
 public:
+    // Inform MeshClipper about which plane we want to use to cut the mesh
+    // This is supposed to be in world coordinates.
     void set_plane(const ClippingPlane& plane);
+
+    // Which mesh to cut. MeshClipper remembers const * to it, caller
+    // must make sure that it stays valid.
     void set_mesh(const TriangleMesh& mesh);
+
+    // Inform the MeshClipper about the transformation that transforms the mesh
+    // into world coordinates.
     void set_transformation(const Geometry::Transformation& trafo);
 
+    // Return the triangulated cut. The points are returned directly
+    // in world coordinates.
     const std::vector<Vec3f>& get_triangles();
 
 private:
@@ -91,21 +101,39 @@ private:
 
 
 
-
+// MeshRaycaster class answers queries such as where on the mesh someone clicked,
+// whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
+    // The class saves a const* to the mesh, calledz is responsible
+    // for making sure it does not get invalid.
     MeshRaycaster(const TriangleMesh& mesh)
-        : m_mesh(&mesh), m_emesh(mesh)
+        : m_emesh(mesh), m_mesh(&mesh)
     {}
-    void set_transformation(const Geometry::Transformation& trafo);
-    void set_camera(const Camera& camera);
 
-    bool unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                           Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane = nullptr) const;
+    // Given a mouse position, this returns true in case it is on the mesh.
+    bool unproject_on_mesh(
+        const Vec2d& mouse_pos,
+        const Transform3d& trafo, // how to get the mesh into world coords
+        const Camera& camera, // current camera position
+        Vec3f& position, // where to save the positibon of the hit (mesh coords)
+        Vec3f& normal, // normal of the triangle that was hit
+        const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
+    ) const;
 
-    std::vector<unsigned> get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera,
-                                              const std::vector<Vec3f>& points, const ClippingPlane* clipping_plane = nullptr) const;
+    // Given a vector of points in woorld coordinates, this returns vector
+    // of indices of points that are visible (i.e. not cut by clipping plane
+    // or obscured by part of the mesh.
+    std::vector<unsigned> get_unobscured_idxs(
+        const Geometry::Transformation& trafo,  // how to get the mesh into world coords
+        const Camera& camera,                   // current camera position
+        const std::vector<Vec3f>& points,       // points in world coords
+        const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
+    ) const;
 
+    // Given a point in world coords, the method returns closest point on the mesh.
+    // The output is in mesh coords.
+    // normal* can be used to also get normal of the respective triangle.
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
 private:

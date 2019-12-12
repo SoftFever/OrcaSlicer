@@ -95,6 +95,7 @@ void MeshClipper::recalculate_triangles()
 }
 
 
+
 bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                                       Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane) const
 {

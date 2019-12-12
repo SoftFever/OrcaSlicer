@@ -185,6 +185,7 @@ void FillGyroid::_fill_surface_single(
     if (! polylines.empty())
 		// remove too small bits (larger than longer)
 		polylines.erase(
+			//FIXME what is the small size? Removing tiny extrusions disconnects walls!
 			std::remove_if(polylines.begin(), polylines.end(), [this](const Polyline &pl) { return pl.length() < scale_(this->spacing * 3); }),
 			polylines.end());
 
@@ -195,7 +196,7 @@ void FillGyroid::_fill_surface_single(
 		if (params.dont_connect)
         	append(polylines_out, std::move(polylines));
         else
-            this->connect_infill(std::move(polylines), expolygon, polylines_out, params);
+            this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 	    // new paths must be rotated back
 	    if (abs(infill_angle) >= EPSILON) {
 	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)

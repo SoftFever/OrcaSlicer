@@ -107,6 +107,17 @@ bool Line::intersection(const Line &l2, Point *intersection) const
     return false;  // not intersecting
 }
 
+bool Line::clip_with_bbox(const BoundingBox &bbox)
+{
+	Vec2d x0clip, x1clip;
+	bool result = Geometry::liang_barsky_line_clipping<double>(this->a.cast<double>(), this->b.cast<double>(), BoundingBoxf(bbox.min.cast<double>(), bbox.max.cast<double>()), x0clip, x1clip);
+	if (result) {
+		this->a = x0clip.cast<coord_t>();
+		this->b = x1clip.cast<coord_t>();
+	}
+	return result;
+}
+
 Vec3d Linef3::intersect_plane(double z) const
 {
     auto   v = (this->b - this->a).cast<double>();

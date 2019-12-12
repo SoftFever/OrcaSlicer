@@ -905,7 +905,11 @@ void GLGizmosManager::do_render_overlay() const
         GLGizmoBase* gizmo = m_gizmos[idx].get();
 
         unsigned int sprite_id = gizmo->get_sprite_id();
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+        int icon_idx = (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3));
+#else
         int icon_idx = m_current == idx ? 2 : (m_hover == idx ? 1 : 0);
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 
         float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
         float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
@@ -971,11 +975,19 @@ bool GLGizmosManager::generate_icons_texture() const
     }
 
     std::vector<std::pair<int, bool>> states;
-    states.push_back(std::make_pair(1, false));
-    states.push_back(std::make_pair(0, false));
-    states.push_back(std::make_pair(0, true));
+    states.push_back(std::make_pair(1, false)); // Activable
+    states.push_back(std::make_pair(0, false)); // Hovered
+    states.push_back(std::make_pair(0, true));  // Selected
+#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
+    states.push_back(std::make_pair(2, false)); // Disabled
+#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale), true);
+    unsigned int sprite_size_px = (unsigned int)(m_overlay_icons_size * m_overlay_scale);
+//    // force even size
+//    if (sprite_size_px % 2 != 0)
+//        sprite_size_px += 1;
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, sprite_size_px, false);
     if (res)
         m_icons_texture_dirty = false;
 

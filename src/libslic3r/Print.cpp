@@ -637,11 +637,59 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             else
                 m_ranges.emplace_back(t_layer_height_range(m_ranges.back().first.second, DBL_MAX), nullptr);
         }
+
+        // Convert input config ranges into continuous non-overlapping sorted vector of intervals and their configs,
+        // considering custom_tool_change values
+        void assign(const t_layer_config_ranges &in, const std::vector<std::pair<double, DynamicPrintConfig>> &custom_tool_changes) {
+            m_ranges.clear();
+            m_ranges.reserve(in.size());
+            // Input ranges are sorted lexicographically. First range trims the other ranges.
+            coordf_t last_z = 0;
+            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in)
+				if (range.first.second > last_z) {
+                    coordf_t min_z = std::max(range.first.first, 0.);
+                    if (min_z > last_z + EPSILON) {
+                        m_ranges.emplace_back(t_layer_height_range(last_z, min_z), nullptr);
+                        last_z = min_z;
+                    }
+                    if (range.first.second > last_z + EPSILON) {
+						const DynamicPrintConfig* cfg = &range.second;
+                        m_ranges.emplace_back(t_layer_height_range(last_z, range.first.second), cfg);
+                        last_z = range.first.second;
+                    }
+                }
+
+            // add ranges for extruder changes from custom_tool_changes
+            for (size_t i = 0; i < custom_tool_changes.size(); i++) {
+                const DynamicPrintConfig* cfg = &custom_tool_changes[i].second;
+                coordf_t cur_Z = custom_tool_changes[i].first;
+                coordf_t next_Z = i == custom_tool_changes.size()-1 ? DBL_MAX : custom_tool_changes[i+1].first;
+                if (cur_Z > last_z + EPSILON) {
+                    if (i==0)
+                        m_ranges.emplace_back(t_layer_height_range(last_z, cur_Z), nullptr);
+                    m_ranges.emplace_back(t_layer_height_range(cur_Z, next_Z), cfg);
+                }
+                else if (next_Z > last_z + EPSILON)
+                    m_ranges.emplace_back(t_layer_height_range(last_z, next_Z), cfg);
+            }
+
+            if (m_ranges.empty())
+                m_ranges.emplace_back(t_layer_height_range(0, DBL_MAX), nullptr);
+            else if (m_ranges.back().second == nullptr)
+                m_ranges.back().first.second = DBL_MAX;
+            else if (m_ranges.back().first.second != DBL_MAX)
+                m_ranges.emplace_back(t_layer_height_range(m_ranges.back().first.second, DBL_MAX), nullptr);
+        }
         const DynamicPrintConfig* config(const t_layer_height_range &range) const {
             auto it = std::lower_bound(m_ranges.begin(), m_ranges.end(), std::make_pair< t_layer_height_range, const DynamicPrintConfig*>(t_layer_height_range(range.first - EPSILON, range.second - EPSILON), nullptr));
-            assert(it != m_ranges.end());
-            assert(it == m_ranges.end() || std::abs(it->first.first  - range.first ) < EPSILON);
-            assert(it == m_ranges.end() || std::abs(it->first.second - range.second) < EPSILON);
+            // #ys_FIXME_COLOR
+            // assert(it != m_ranges.end());
+            // assert(it == m_ranges.end() || std::abs(it->first.first  - range.first ) < EPSILON);
+            // assert(it == m_ranges.end() || std::abs(it->first.second - range.second) < EPSILON);
+            if (it == m_ranges.end() ||
+                std::abs(it->first.first - range.first) > EPSILON ||
+                std::abs(it->first.second - range.second) > EPSILON )
+                return nullptr; // desired range doesn't found
             return (it == m_ranges.end()) ? nullptr : it->second;
         }
         std::vector<std::pair<t_layer_height_range, const DynamicPrintConfig*>>::const_iterator begin() const { return m_ranges.cbegin(); }
@@ -689,6 +737,13 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             // The object list did not change.
 			for (const ModelObject *model_object : m_model.objects)
 				model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
+
+            // But if custom gcode per layer height was changed
+            if (m_model.custom_gcode_per_height != model.custom_gcode_per_height) {
+                // we should stop background processing
+                update_apply_status(this->invalidate_step(psGCodeExport));
+                m_model.custom_gcode_per_height = model.custom_gcode_per_height;
+            }
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
             update_apply_status(this->invalidate_step(psGCodeExport));
@@ -780,6 +835,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     for (PrintObject *print_object : m_objects)
         print_object_status.emplace(PrintObjectStatus(print_object));
 
+    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes = 
+        m_model.get_custom_tool_changes(m_default_object_config.layer_height, num_extruders);
+
     // 3) Synchronize ModelObjects & PrintObjects.
     for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
         ModelObject &model_object = *m_model.objects[idx_model_object];
@@ -787,7 +845,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         assert(it_status != model_object_status.end());
         assert(it_status->status != ModelObjectStatus::Deleted);
 		const ModelObject& model_object_new = *model.objects[idx_model_object];
-		const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges);
+        // ys_FIXME_COLOR
+		// const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges);
+        const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges, custom_tool_changes);
         if (it_status->status == ModelObjectStatus::New)
             // PrintObject instances will be added in the next loop.
             continue;
@@ -955,6 +1015,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         PrintRegionConfig  this_region_config;
         bool               this_region_config_set = false;
         for (PrintObject *print_object : m_objects) {
+            if(m_force_update_print_regions && !custom_tool_changes.empty())
+                goto print_object_end;
             const LayerRanges *layer_ranges;
             {
                 auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
@@ -1190,6 +1252,8 @@ std::string Print::validate() const
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         if (m_config.use_volumetric_e)
             return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
+        if (m_config.complete_objects && extruders().size() > 1)
+            return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1258,7 +1322,7 @@ std::string Print::validate() const
                             } while (ref_z == next_ref_z);
                         }
                         if (std::abs(this_height - ref_height) > EPSILON)
-                            return L("The Wipe tower is only supported if all objects have the same layer height profile");
+                            return L("The Wipe tower is only supported if all objects have the same variable layer height");
                         i += 2;
                     }
                 }
@@ -1538,7 +1602,7 @@ void Print::process()
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
 #if ENABLE_THUMBNAIL_GENERATOR
-std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, const std::vector<ThumbnailData>* thumbnail_data)
+std::string Print::export_gcode(const std::string& path_template, GCodePreviewData* preview_data, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
 std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -1559,7 +1623,7 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     // The following line may die for multiple reasons.
     GCode gcode;
 #if ENABLE_THUMBNAIL_GENERATOR
-    gcode.do_export(this, path.c_str(), preview_data, thumbnail_data);
+    gcode.do_export(this, path.c_str(), preview_data, thumbnail_cb);
 #else
     gcode.do_export(this, path.c_str(), preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -1618,11 +1682,18 @@ void Print::_make_skirt()
     if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
         double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
         double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
-        Vec2d pt = Vec2d(m_config.wipe_tower_x-m_wipe_tower_data.brim_width, m_config.wipe_tower_y-m_wipe_tower_data.brim_width);
-        points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
-        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y())));
-        points.push_back(Point(scale_(pt.x()+width), scale_(pt.y()+depth)));
-        points.push_back(Point(scale_(pt.x()), scale_(pt.y()+depth)));
+        Vec2d pt = Vec2d(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
+
+        std::vector<Vec2d> pts;
+        pts.push_back(Vec2d(pt.x(), pt.y()));
+        pts.push_back(Vec2d(pt.x()+width, pt.y()));
+        pts.push_back(Vec2d(pt.x()+width, pt.y()+depth));
+        pts.push_back(Vec2d(pt.x(), pt.y()+depth));
+        for (Vec2d& pt : pts) {
+            pt = Eigen::Rotation2Dd(Geometry::deg2rad(m_config.wipe_tower_rotation_angle.value)) * pt;
+            pt += Vec2d(m_config.wipe_tower_x.value, m_config.wipe_tower_y.value);
+            points.push_back(Point(scale_(pt.x()), scale_(pt.y())));
+        }
     }
 
     if (points.size() < 3)
