@@ -377,7 +377,7 @@ bool GLGizmoSlaSupports::is_mesh_point_clipped(const Vec3d& point) const
     if (m_clipping_plane_distance == 0.f)
         return false;
 
-    Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
+    Vec3d transformed_point = m_model_object->instances[m_active_instance]->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
     return m_clipping_plane->is_point_clipped(transformed_point);
 }

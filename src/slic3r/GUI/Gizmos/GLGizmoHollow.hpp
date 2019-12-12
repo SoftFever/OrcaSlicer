@@ -48,7 +48,7 @@ public:
     ~GLGizmoHollow() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
-    void delete_selected_points(bool force = false);
+    void delete_selected_points();
     ClippingPlane get_sla_clipping_plane() const;
     
     
