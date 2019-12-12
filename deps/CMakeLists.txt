@@ -59,7 +59,7 @@ function(prusaslicer_add_cmake_project projectname)
     set(_gen "")
     set(_build_j "-j${NPROC}")
     if (MSVC)
-        set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}")
+        set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}" CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}")
         set(_build_j "/m")
     endif ()
 
