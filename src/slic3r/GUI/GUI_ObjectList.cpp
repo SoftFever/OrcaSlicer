@@ -3953,8 +3953,15 @@ void ObjectList::update_after_undo_redo()
     Plater::SuppressSnapshots suppress(wxGetApp().plater());
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
-    unselect_objects();//this->UnselectAll();
+
+    /* To avoid execution of selection_changed() 
+     * from wxEVT_DATAVIEW_SELECTION_CHANGED emitted from DeleteAll(), 
+     * wrap this two functions into m_prevent_list_events *
+     * */
+    m_prevent_list_events = true;
+    this->UnselectAll();
     m_objects_model->DeleteAll();
+    m_prevent_list_events = false;
 
     size_t obj_idx = 0;
     std::vector<size_t> obj_idxs;
