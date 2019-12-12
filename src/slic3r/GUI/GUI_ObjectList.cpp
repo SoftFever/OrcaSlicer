@@ -1192,7 +1192,13 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 {
     wxArrayString names;
     wxArrayInt selections;
-    wxDataViewItem item = GetSelection();
+
+    /* If we try to add settings for object/part from 3Dscene,
+     * for the second try there is selected ItemSettings in ObjectList.
+     * So, check if selected item isn't SettingsItem. And get a SettingsItem's parent item, if yes
+     */
+    const wxDataViewItem selected_item = GetSelection();
+    wxDataViewItem item = m_objects_model->GetItemType(selected_item) & itSettings ? m_objects_model->GetParent(selected_item) : selected_item;
 
     const ItemType item_type = m_objects_model->GetItemType(item);
 
@@ -1726,7 +1732,15 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     wxMenu *menu = new wxMenu;
 
     settings_menu_hierarchy settings_menu;
-    const bool is_part = !(m_objects_model->GetItemType(GetSelection()) == itObject || scene_selection().is_single_full_object());
+
+    /* If we try to add settings for object/part from 3Dscene, 
+     * for the second try there is selected ItemSettings in ObjectList.
+     * So, check if selected item isn't SettingsItem. And get a SettingsItem's parent item, if yes
+     */
+    const wxDataViewItem selected_item = GetSelection();
+    wxDataViewItem item = m_objects_model->GetItemType(selected_item) & itSettings ? m_objects_model->GetParent(selected_item) : selected_item;
+
+    const bool is_part = !(m_objects_model->GetItemType(item) == itObject || scene_selection().is_single_full_object());
     get_options_menu(settings_menu, is_part);
 
     for (auto cat : settings_menu) {
@@ -3005,7 +3019,8 @@ void ObjectList::update_selections()
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
         const Selection::ObjectIdxsToInstanceIdxsMap& objects_content = selection.get_content();
-        if (m_selection_mode & (smSettings | smLayer | smLayerRoot))
+        // it's impossible to select Settings, Layer or LayerRoot for several objects
+        if (!selection.is_multiple_full_object() && (m_selection_mode & (smSettings | smLayer | smLayerRoot)))
         {
             auto obj_idx = objects_content.begin()->first;
             wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
