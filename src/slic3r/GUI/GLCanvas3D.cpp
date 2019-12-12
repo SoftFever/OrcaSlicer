@@ -1398,7 +1398,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
-    , m_keep_dirty(false)
+    , m_extra_frame_requested(false)
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -1636,8 +1636,6 @@ void GLCanvas3D::bed_shape_changed()
     refresh_camera_scene_box();
     m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
-    if (m_bed.is_prusa())
-        start_keeping_dirty();
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -2632,10 +2630,11 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     _refresh_if_shown_on_screen();
 
-    if (m_keep_dirty || mouse3d_controller_applied)
+    if (m_extra_frame_requested || mouse3d_controller_applied)
     {
         m_dirty = true;
         evt.RequestMore();
+        m_extra_frame_requested = false;
     }
     else
         m_dirty = false;

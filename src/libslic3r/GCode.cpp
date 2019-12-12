@@ -496,37 +496,37 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
     assert(m_layer_idx == 0);
     std::string gcode;
 
-    if (&m_priming != nullptr) {
-        // Disable linear advance for the wipe tower operations.
-            //gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
 
-        for (const WipeTower::ToolChangeResult& tcr : m_priming) {
-            if (!tcr.extrusions.empty())
-                gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
+    // Disable linear advance for the wipe tower operations.
+        //gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
+
+    for (const WipeTower::ToolChangeResult& tcr : m_priming) {
+        if (!tcr.extrusions.empty())
+            gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
 
 
-            // Let the tool change be executed by the wipe tower class.
-            // Inform the G-code writer about the changes done behind its back.
-            //gcode += tcr.gcode;
-            // Let the m_writer know the current extruder_id, but ignore the generated G-code.
-      //      unsigned int current_extruder_id = tcr.extrusions.back().tool;
-      //      gcodegen.writer().toolchange(current_extruder_id);
-      //      gcodegen.placeholder_parser().set("current_extruder", current_extruder_id);
+        // Let the tool change be executed by the wipe tower class.
+        // Inform the G-code writer about the changes done behind its back.
+        //gcode += tcr.gcode;
+        // Let the m_writer know the current extruder_id, but ignore the generated G-code.
+  //      unsigned int current_extruder_id = tcr.extrusions.back().tool;
+  //      gcodegen.writer().toolchange(current_extruder_id);
+  //      gcodegen.placeholder_parser().set("current_extruder", current_extruder_id);
 
-        }
-
-        // A phony move to the end position at the wipe tower.
-       /* gcodegen.writer().travel_to_xy(Vec2d(m_priming.back().end_pos.x, m_priming.back().end_pos.y));
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.back().end_pos));
-        // Prepare a future wipe.
-        gcodegen.m_wipe.path.points.clear();
-        // Start the wipe at the current position.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, m_priming.back().end_pos));
-        // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen,
-            WipeTower::xy((std::abs(m_left - m_priming.back().end_pos.x) < std::abs(m_right - m_priming.back().end_pos.x)) ? m_right : m_left,
-            m_priming.back().end_pos.y)));*/
     }
+
+    // A phony move to the end position at the wipe tower.
+   /* gcodegen.writer().travel_to_xy(Vec2d(m_priming.back().end_pos.x, m_priming.back().end_pos.y));
+    gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.back().end_pos));
+    // Prepare a future wipe.
+    gcodegen.m_wipe.path.points.clear();
+    // Start the wipe at the current position.
+    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, m_priming.back().end_pos));
+    // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
+    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen,
+        WipeTower::xy((std::abs(m_left - m_priming.back().end_pos.x) < std::abs(m_right - m_priming.back().end_pos.x)) ? m_right : m_left,
+        m_priming.back().end_pos.y)));*/
+
     return gcode;
 }
 
