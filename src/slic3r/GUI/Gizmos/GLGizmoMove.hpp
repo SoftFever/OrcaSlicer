@@ -41,9 +41,6 @@ protected:
     virtual void on_update(const UpdateData& data);
     virtual void on_render() const;
     virtual void on_render_for_picking() const;
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 private:
     double calc_projection(const UpdateData& data) const;

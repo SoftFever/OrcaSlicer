@@ -1252,6 +1252,8 @@ std::string Print::validate() const
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         if (m_config.use_volumetric_e)
             return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
+        if (m_config.complete_objects && extruders().size() > 1)
+            return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
