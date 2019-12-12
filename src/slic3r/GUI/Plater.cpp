@@ -3171,7 +3171,7 @@ void Plater::priv::update_fff_scene()
         this->preview->reload_print();
     // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     view3D->reload_scene(true);
-	show_action_buttons(false);
+	
 }
 
 void Plater::priv::update_sla_scene()
@@ -3517,6 +3517,8 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         break;
     default: break;
     }
+
+	show_action_buttons(false);
 
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
