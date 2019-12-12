@@ -24,9 +24,6 @@ GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
 
 namespace Slic3r {
 namespace GUI { 
-//std::vector<DriveData>  RemovableDriveManager::m_current_drives;
-//std::vector<std::function<void()>>  RemovableDriveManager::m_callbacks;
-
 
 #if _WIN32
 INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -42,7 +39,6 @@ void RemovableDriveManager::search_for_drives()
 			std::string path (1,(char)('A' + i));
 			path+=":";
 			UINT drive_type = GetDriveTypeA(path.c_str());
-			//std::cout << "found drive" << (char)('A' + i) << ": type:" <<driveType << "\n";
 			if (drive_type ==  DRIVE_REMOVABLE)
 			{
 				// get name of drive
@@ -63,7 +59,6 @@ void RemovableDriveManager::search_for_drives()
 					{
 						ULARGE_INTEGER free_space;
 						GetDiskFreeSpaceExA(path.c_str(), &free_space, NULL, NULL);
-						//std::cout << std::string(volumeName.begin(), volumeName.end()) << " " << std::string(fileSystemName.begin(), fileSystemName.end()) << " " << freeSpace.QuadPart << "\n";
 						if (free_space.QuadPart > 0)
 						{
 							path += "\\";
@@ -74,12 +69,9 @@ void RemovableDriveManager::search_for_drives()
 			}
 		}
 	}
-	//std::cout << "found drives:" << m_current_drives.size() << "\n";
 }
 void RemovableDriveManager::eject_drive(const std::string &path)
 {
-
-	//if (!update() || !is_drive_mounted(path))
 	if(m_current_drives.empty())
 		return;
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
@@ -88,7 +80,6 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 		{
 			std::string mpath = "\\\\.\\" + path;
 			mpath = mpath.substr(0, mpath.size() - 1);
-			//std::cout << "Ejecting " << mpath << "\n";
 			HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 			if (handle == INVALID_HANDLE_VALUE)
 			{
@@ -138,7 +129,7 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 }
 void RemovableDriveManager::register_window()
 {
-	std::cout << "Registering for device notification\n";
+	//creates new unvisible window that is recieving callbacks from system
 	WNDCLASSEX wndClass;
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -181,9 +172,6 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	LRESULT lRet = 1;
 	static HDEVNOTIFY hDeviceNotify;
 
-	static HWND hEditWnd;
-	static ULONGLONG msgCount = 0;
-
 	switch (message)
 	{
 	case WM_CREATE:
@@ -194,11 +182,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 		NotificationFilter.dbcc_classguid = WceusbshGUID;
 
-		hDeviceNotify = RegisterDeviceNotification(
-			hWnd,                       // events recipient
-			&NotificationFilter,        // type of device
-			DEVICE_NOTIFY_WINDOW_HANDLE // type of recipient handle
-		);
+		hDeviceNotify = RegisterDeviceNotification(hWnd, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
 		break;
 	
 	case WM_DEVICECHANGE:
@@ -280,7 +264,6 @@ void RemovableDriveManager::search_for_drives()
 
 	}
 	
-	//std::cout << "found drives:" <<m_current_drives.size() << "\n";
 #endif
 }
 void RemovableDriveManager::search_path(const std::string &path,const std::string &parent_path)
@@ -416,7 +399,7 @@ void RemovableDriveManager::init()
 #endif
 	update();
 }
-bool RemovableDriveManager::update(const long time, bool check)
+bool RemovableDriveManager::update(const long time,const bool check)
 {
 	if(time != 0) //time = 0 is forced update
 	{
@@ -467,11 +450,8 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 }
 void RemovableDriveManager::check_and_notify()
 {
-	//std::cout<<"drives count: "<<m_drives_count;
 	if(m_drives_count != m_current_drives.size())
 	{
-        //m_rdmmm->log("drives count not same");
-		//std::cout<<" vs "<< m_current_drives.size();
 		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
 		{
 			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
@@ -481,7 +461,6 @@ void RemovableDriveManager::check_and_notify()
 		}
 		m_drives_count = m_current_drives.size();
 	}
-	//std::cout<<"\n";
 }
 void RemovableDriveManager::add_callback(std::function<void()> callback)
 {
@@ -522,10 +501,4 @@ void RemovableDriveManager::reset_last_save_path()
 {
 	m_last_save_path = "";
 }
-
-void RemovableDriveManager::print()
-{
-	//std::cout << "Removed Device: "<<(int)is_last_drive_removed()<<"\n";
-	std::cout << "notified\n";
-}
-}}//namespace Slicer::Gui::
+}}//namespace Slicer::Gui
