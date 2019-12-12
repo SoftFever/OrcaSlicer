@@ -195,10 +195,10 @@ Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
     Vec3d closest_point;
     m_emesh.squared_distance(point.cast<double>(), idx, closest_point);
     if (normal) {
-        const stl_triangle_vertex_indices& indices = m_mesh->its.indices[idx];
-        Vec3f a(m_mesh->its.vertices[indices(1)] - m_mesh->its.vertices[indices(0)]);
-        Vec3f b(m_mesh->its.vertices[indices(2)] - m_mesh->its.vertices[indices(0)]);
-        *normal = Vec3f(a.cross(b));
+        auto indices = m_emesh.F().row(idx);
+        Vec3d a(m_emesh.V().row(indices(1)) - m_emesh.V().row(indices(0)));
+        Vec3d b(m_emesh.V().row(indices(2)) - m_emesh.V().row(indices(0)));
+        *normal = Vec3f(a.cross(b).cast<float>());
     }
     return closest_point.cast<float>();
 }

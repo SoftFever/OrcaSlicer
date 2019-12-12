@@ -105,10 +105,10 @@ private:
 // whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
-    // The class saves a const* to the mesh, calledz is responsible
-    // for making sure it does not get invalid.
+    // The class makes a copy of the mesh as EigenMesh3D.
+    // The pointer can be invalidated after constructor returns.
     MeshRaycaster(const TriangleMesh& mesh)
-        : m_emesh(mesh), m_mesh(&mesh)
+        : m_emesh(mesh)
     {}
 
     // Given a mouse position, this returns true in case it is on the mesh.
@@ -138,7 +138,6 @@ public:
 
 private:
     sla::EigenMesh3D m_emesh;
-    const TriangleMesh* m_mesh = nullptr;
 };
 
     
