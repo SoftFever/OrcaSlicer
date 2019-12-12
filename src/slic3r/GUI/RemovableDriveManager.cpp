@@ -410,7 +410,7 @@ void RemovableDriveManager::init()
 {
 	//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
 #if _WIN32
-	register_window();
+	//register_window();
 #elif __APPLE__
     m_rdmmm->register_window();
 #endif
@@ -501,16 +501,16 @@ void RemovableDriveManager::set_last_save_path(const std::string& path)
 }
 bool RemovableDriveManager::is_last_drive_removed()
 {
-	std::cout<<"is last: "<<m_last_save_path;
+	//std::cout<<"is last: "<<m_last_save_path;
 	m_drives_count = m_current_drives.size();
 	if(m_last_save_path == "")
 	{
-		std::cout<<"\n";
+		//std::cout<<"\n";
 		return true;
 	}
 	bool r = !is_drive_mounted(m_last_save_path);
 	if (r) reset_last_save_path();
-	std::cout<<" "<< r <<"\n";
+	//std::cout<<" "<< r <<"\n";
 	return r;
 }
 bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
