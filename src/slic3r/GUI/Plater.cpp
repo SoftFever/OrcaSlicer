@@ -3171,6 +3171,7 @@ void Plater::priv::update_fff_scene()
         this->preview->reload_print();
     // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     view3D->reload_scene(true);
+	show_action_buttons(false);
 }
 
 void Plater::priv::update_sla_scene()
@@ -4052,7 +4053,7 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
         if (sidebar->show_reslice(false) |
             sidebar->show_export(true) |
             sidebar->show_send(send_gcode_shown) |
-            sidebar->show_disconnect(false/*disconnect_shown*/))
+            sidebar->show_disconnect(disconnect_shown))
             sidebar->Layout();
     }
     else
@@ -4606,9 +4607,10 @@ void Plater::export_gcode()
     }
     if (! output_path.empty())
 	{
-		RemovableDriveManager::get_instance().update(0, true);
-		RemovableDriveManager::get_instance().set_last_save_path(output_path.string());
+		std::string path = output_path.string();
         p->export_gcode(std::move(output_path), PrintHostJob());
+		RemovableDriveManager::get_instance().update(0, true);
+		RemovableDriveManager::get_instance().set_last_save_path(path);
 	}
 	
 }
