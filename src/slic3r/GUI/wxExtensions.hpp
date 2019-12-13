@@ -1110,6 +1110,7 @@ public:
 
     void SetBitmap_(const ScalableBitmap& bmp);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
+    int  GetBitmapHeight();
 
     void    msw_rescale();
 
