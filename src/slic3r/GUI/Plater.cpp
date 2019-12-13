@@ -699,8 +699,8 @@ struct Sidebar::priv
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
-    wxButton *btn_send_gcode;
-    ScalableButton *btn_disconnect;
+    ScalableButton *btn_send_gcode;
+    ScalableButton *btn_remove_device;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -849,25 +849,30 @@ Sidebar::Sidebar(Plater *parent)
 
     // Buttons underneath the scrolled area
 
-    auto init_btn = [this](wxButton **btn, wxString label, const std::string icon_name = "", wxString tooltip = wxEmptyString) {
-        *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
-                            wxDefaultSize, wxBU_EXACTFIT);
-        (*btn)->SetFont(wxGetApp().bold_font());
-        (*btn)->SetToolTip(tooltip);
+    // rescalable bitmap buttons "Send to printer" and "Remove device" 
 
-        if (!icon_name.empty())
-            (*btn)->SetBitmap(create_scaled_bitmap(this, icon_name));
+    auto init_scalable_btn = [this](ScalableButton** btn, const std::string& icon_name, wxString tooltip = wxEmptyString)
+    {
+        ScalableBitmap bmp = ScalableBitmap(this, icon_name, int(2.5 * wxGetApp().em_unit()));
+        *btn = new ScalableButton(this, wxID_ANY, bmp, "", wxBU_EXACTFIT);
+        (*btn)->SetToolTip(tooltip);
+        (*btn)->Hide();
     };
 
-    init_btn(&p->btn_send_gcode,   /*_(L("Send to printer"))*/"", "export_gcode", _(L("Send to printer")));
-    p->btn_send_gcode->Hide();
-    init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots);
-    init_btn(&p->btn_reslice,      _(L("Slice now")));
+    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
+    init_scalable_btn(&p->btn_remove_device, "revert_all_" , _(L("Remove device")));
 
-    p->btn_disconnect = new ScalableButton(this, wxID_ANY, "revert_all_", "",
-        wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT);
-    p->btn_disconnect->Hide();
-    p->btn_disconnect->SetToolTip(_(L("Remove device")));
+    // regular buttons "Slice now" and "Export G-code" 
+
+    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
+        *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
+                            wxSize(-1, button_height), wxBU_EXACTFIT);
+        (*btn)->SetFont(wxGetApp().bold_font());
+    };
+
+    init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots , scaled_height);
+    init_btn(&p->btn_reslice     , _(L("Slice now"))            , scaled_height);
 
     enable_buttons(false);
 
@@ -876,12 +881,10 @@ Sidebar::Sidebar(Plater *parent)
     auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
     complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
     complect_btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND);
-    complect_btns_sizer->Add(p->btn_disconnect);
+    complect_btns_sizer->Add(p->btn_remove_device);
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
     btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
-//    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, margin_5);
-//    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -900,10 +903,7 @@ Sidebar::Sidebar(Plater *parent)
         p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
-    p->btn_disconnect->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { 
-        // #dk_FIXME
-		p->plater->eject_drive();
-    });
+    p->btn_remove_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 }
 
 Sidebar::~Sidebar() {}
@@ -1048,6 +1048,12 @@ void Sidebar::msw_rescale()
     p->object_layers->msw_rescale();
 
     p->object_info->msw_rescale();
+
+    p->btn_send_gcode->msw_rescale();
+    p->btn_remove_device->msw_rescale();
+    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    p->btn_export_gcode->SetMinSize(wxSize(-1, scaled_height));
+    p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
     p->scrolled->Layout();
 }
@@ -1277,13 +1283,13 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
-    p->btn_disconnect->Enable(enable);
+    p->btn_remove_device->Enable(enable);
 }
 
 bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
 bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
 bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
-bool Sidebar::show_disconnect(bool show)const { return p->btn_disconnect->Show(show); }
+bool Sidebar::show_disconnect(bool show)const { return p->btn_remove_device->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
