@@ -436,7 +436,9 @@ private:
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
-    bool m_keep_dirty;
+    // when true renders an extra frame by not resetting m_dirty to false
+    // see request_extra_frame()
+    bool m_extra_frame_requested;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -664,9 +666,7 @@ public:
     void set_cursor(ECursorType type);
     void msw_rescale();
 
-    bool is_keeping_dirty() const { return m_keep_dirty; }
-    void start_keeping_dirty() { m_keep_dirty = true; }
-    void stop_keeping_dirty() { m_keep_dirty = false; }
+    void request_extra_frame() { m_extra_frame_requested = true; }
 
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }

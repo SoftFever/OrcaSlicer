@@ -116,7 +116,5 @@
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <true/>
-    <key>NSRequiresAquaSystemAppearance</key>
-    <true/>
   </dict>
 </plist>

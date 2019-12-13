@@ -1192,7 +1192,13 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 {
     wxArrayString names;
     wxArrayInt selections;
-    wxDataViewItem item = GetSelection();
+
+    /* If we try to add settings for object/part from 3Dscene,
+     * for the second try there is selected ItemSettings in ObjectList.
+     * So, check if selected item isn't SettingsItem. And get a SettingsItem's parent item, if yes
+     */
+    const wxDataViewItem selected_item = GetSelection();
+    wxDataViewItem item = m_objects_model->GetItemType(selected_item) & itSettings ? m_objects_model->GetParent(selected_item) : selected_item;
 
     const ItemType item_type = m_objects_model->GetItemType(item);
 
@@ -1318,11 +1324,17 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
     std::vector<std::string> options = get_options_for_bundle(bundle_name);
     const Selection& selection = scene_selection();
-    wxDataViewItem item = GetSelectedItemsCount() > 1 && selection.is_single_full_object() ? 
-                          m_objects_model->GetItemById(selection.get_object_idx()) : 
-                          GetSelection();
+    const wxDataViewItem sel_item = // when all instances in object are selected
+                                    GetSelectedItemsCount() > 1 && selection.is_single_full_object() ? 
+                                    m_objects_model->GetItemById(selection.get_object_idx()) : 
+                                    GetSelection();
 
-    ItemType item_type = m_objects_model->GetItemType(item);
+    /* If we try to add settings for object/part from 3Dscene,
+     * for the second try there is selected ItemSettings in ObjectList.
+     * So, check if selected item isn't SettingsItem. And get a SettingsItem's parent item, if yes
+     */
+    wxDataViewItem item = m_objects_model->GetItemType(sel_item) & itSettings ? m_objects_model->GetParent(sel_item) : sel_item;
+    const ItemType item_type = m_objects_model->GetItemType(item);
 
     /* Because of we couldn't edited layer_height for ItVolume from settings list,
      * correct options according to the selected item type :
@@ -1546,17 +1558,21 @@ wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent)
 {
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _(L("Set as a Separated Object")), "",
-        [this](wxCommandEvent&) { split_instances(); }, "", menu, [](){return wxGetApp().plater()->can_set_instance_to_object(); }, parent);
+        [this](wxCommandEvent&) { split_instances(); }, "", menu);
 
     /* New behavior logic:
      * 1. Split Object to several separated object, if ALL instances are selected
      * 2. Separate selected instances from the initial object to the separated object,
      *    if some (not all) instances are selected
      */
-    parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        evt.SetText(wxGetApp().plater()->canvas3D()->get_selection().is_single_full_object() ?
-            _(L("Set as a Separated Objects")) : _(L("Set as a Separated Object")));
-        }, menu_item->GetId());
+    parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt)
+    {
+        const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+        evt.SetText(selection.is_single_full_object() ?
+        _(L("Set as a Separated Objects")) : _(L("Set as a Separated Object")));
+
+        evt.Enable(wxGetApp().plater()->can_set_instance_to_object());
+    }, menu_item->GetId());
 
     return menu_item;
 }
@@ -1726,7 +1742,15 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     wxMenu *menu = new wxMenu;
 
     settings_menu_hierarchy settings_menu;
-    const bool is_part = !(m_objects_model->GetItemType(GetSelection()) == itObject || scene_selection().is_single_full_object());
+
+    /* If we try to add settings for object/part from 3Dscene, 
+     * for the second try there is selected ItemSettings in ObjectList.
+     * So, check if selected item isn't SettingsItem. And get a SettingsItem's parent item, if yes
+     */
+    const wxDataViewItem selected_item = GetSelection();
+    wxDataViewItem item = m_objects_model->GetItemType(selected_item) & itSettings ? m_objects_model->GetParent(selected_item) : selected_item;
+
+    const bool is_part = !(m_objects_model->GetItemType(item) == itObject || scene_selection().is_single_full_object());
     get_options_menu(settings_menu, is_part);
 
     for (auto cat : settings_menu) {
@@ -3005,7 +3029,8 @@ void ObjectList::update_selections()
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
         const Selection::ObjectIdxsToInstanceIdxsMap& objects_content = selection.get_content();
-        if (m_selection_mode & (smSettings | smLayer | smLayerRoot))
+        // it's impossible to select Settings, Layer or LayerRoot for several objects
+        if (!selection.is_multiple_full_object() && (m_selection_mode & (smSettings | smLayer | smLayerRoot)))
         {
             auto obj_idx = objects_content.begin()->first;
             wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
@@ -3938,8 +3963,15 @@ void ObjectList::update_after_undo_redo()
     Plater::SuppressSnapshots suppress(wxGetApp().plater());
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
-    unselect_objects();//this->UnselectAll();
+
+    /* To avoid execution of selection_changed() 
+     * from wxEVT_DATAVIEW_SELECTION_CHANGED emitted from DeleteAll(), 
+     * wrap this two functions into m_prevent_list_events *
+     * */
+    m_prevent_list_events = true;
+    this->UnselectAll();
     m_objects_model->DeleteAll();
+    m_prevent_list_events = false;
 
     size_t obj_idx = 0;
     std::vector<size_t> obj_idxs;
