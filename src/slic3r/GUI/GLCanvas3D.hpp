@@ -185,7 +185,7 @@ private:
         bool                        m_layer_height_profile_modified;
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        mutable float               m_adaptive_cusp;
+        mutable float               m_adaptive_quality;
         mutable HeightProfileSmoothingParams m_smooth_params;
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
@@ -236,8 +236,8 @@ private:
 		void accept_changes(GLCanvas3D& canvas);
         void reset_layer_height_profile(GLCanvas3D& canvas);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        void adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp);
-        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_paramsn);
+        void adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor);
+        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
@@ -539,7 +539,7 @@ public:
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     void reset_layer_height_profile();
-    void adaptive_layer_height_profile(float cusp);
+    void adaptive_layer_height_profile(float quality_factor);
     void smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
