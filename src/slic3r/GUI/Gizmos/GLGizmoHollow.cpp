@@ -1,4 +1,3 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoHollow.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmos.hpp"
@@ -12,6 +11,8 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/MeshBoolean.hpp"
 
 
 namespace Slic3r {
@@ -107,14 +108,14 @@ void GLGizmoHollow::on_render() const
     if (! m_mesh)
         const_cast<GLGizmoHollow*>(this)->update_mesh();
 
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
     if (m_volume_with_cavity) {
         m_parent.get_shader().start_using();
         m_volume_with_cavity->render();
         m_parent.get_shader().stop_using();
     }
-
-    glsafe(::glEnable(GL_BLEND));
-    glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
@@ -583,12 +584,31 @@ void GLGizmoHollow::hollow_mesh()
     wxGetApp().plater()->hollow();
 }
 
+
 void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 {
     // Called from Plater when the UI job finishes
     m_cavity_mesh = std::move(mesh);
     
-    if(m_cavity_mesh) {// create a new GLVolume that only has the cavity inside
+    if(m_cavity_mesh) {
+        // First subtract the holes:
+        if (! m_model_object->sla_drain_holes.empty()) {
+            TriangleMesh holes_mesh;
+            for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
+                TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/8);
+                Eigen::Quaternionf q;
+                Transform3f m = Transform3f::Identity();
+                m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3f::UnitZ(), hole.normal).toRotationMatrix();
+                hole_mesh.transform(m.cast<double>());
+                hole_mesh.translate(hole.pos);
+                holes_mesh.merge(hole_mesh);
+                //MeshBoolean::minus(*m_cavity_mesh.get(), hole_mesh);
+            }
+            MeshBoolean::minus(*m_cavity_mesh.get(), holes_mesh);
+        }
+
+
+        // create a new GLVolume that only has the cavity inside
         Geometry::Transformation volume_trafo = m_model_object->volumes.front()->get_transformation();
         volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
         m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));

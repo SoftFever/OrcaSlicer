@@ -117,6 +117,8 @@ add_library(libslic3r STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
+    MeshBoolean.cpp
+    MeshBoolean.hpp
     Model.cpp
     Model.hpp
     Arrange.hpp
