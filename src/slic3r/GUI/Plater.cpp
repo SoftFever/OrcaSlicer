@@ -853,18 +853,23 @@ Sidebar::Sidebar(Plater *parent)
 
     auto init_scalable_btn = [this](ScalableButton** btn, const std::string& icon_name, wxString tooltip = wxEmptyString)
     {
-        ScalableBitmap bmp = ScalableBitmap(this, icon_name, int(2.5 * wxGetApp().em_unit()));
+#ifdef __APPLE__
+        int bmp_px_cnt = 16;
+#else
+        int bmp_px_cnt = 32;
+#endif //__APPLE__
+        ScalableBitmap bmp = ScalableBitmap(this, icon_name, bmp_px_cnt);
         *btn = new ScalableButton(this, wxID_ANY, bmp, "", wxBU_EXACTFIT);
         (*btn)->SetToolTip(tooltip);
         (*btn)->Hide();
     };
 
     init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
-    init_scalable_btn(&p->btn_remove_device, "revert_all_" , _(L("Remove device")));
+    init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
 
     // regular buttons "Slice now" and "Export G-code" 
 
-    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    const int scaled_height = p->btn_remove_device->GetBitmapHeight() + 4;
     auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
                             wxSize(-1, button_height), wxBU_EXACTFIT);
@@ -880,7 +885,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
     complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
-    complect_btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND);
+    complect_btns_sizer->Add(p->btn_send_gcode);
     complect_btns_sizer->Add(p->btn_remove_device);
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);

@@ -3961,6 +3961,12 @@ void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
     m_disabled_icon_name = bmp.name();
 }
 
+int ScalableButton::GetBitmapHeight()
+{
+    const float scale_factor = get_svg_scale_factor(m_parent);
+    return int((float)GetBitmap().GetHeight() / scale_factor);
+}
+
 void ScalableButton::msw_rescale()
 {
     SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name, m_px_cnt, m_is_horizontal));
