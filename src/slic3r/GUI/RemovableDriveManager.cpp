@@ -30,7 +30,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 void RemovableDriveManager::search_for_drives()
 {
 	m_current_drives.clear();
-	m_current_drives.reserve(26);
+	//get logical drives flags by letter in alphabetical order
 	DWORD drives_mask = GetLogicalDrives();
 	for (size_t i = 0; i < 26; i++)
 	{
@@ -39,6 +39,7 @@ void RemovableDriveManager::search_for_drives()
 			std::string path (1,(char)('A' + i));
 			path+=":";
 			UINT drive_type = GetDriveTypeA(path.c_str());
+			// DRIVE_REMOVABLE on W are sd cards and usb thumbnails (not usb harddrives)
 			if (drive_type ==  DRIVE_REMOVABLE)
 			{
 				// get name of drive
@@ -51,10 +52,12 @@ void RemovableDriveManager::search_for_drives()
 				BOOL error = GetVolumeInformationW(wpath.c_str(), &volume_name[0], sizeof(volume_name), NULL, NULL, NULL, &file_system_name[0], sizeof(file_system_name));
 				if(error != 0)
 				{
+					/*
 					if (volume_name == L"")
 					{
 						volume_name = L"REMOVABLE DRIVE";
 					}
+					*/
 					if (file_system_name != L"")
 					{
 						ULARGE_INTEGER free_space;
@@ -78,6 +81,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 	{
 		if ((*it).path == path)
 		{
+			// get handle to device
 			std::string mpath = "\\\\.\\" + path;
 			mpath = mpath.substr(0, mpath.size() - 1);
 			HANDLE handle = CreateFileA(mpath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
@@ -87,8 +91,12 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 				return;
 			}
 			DWORD deviceControlRetVal(0);
+			//these 3 commands should eject device safely but they dont, the device does disappear from file explorer but the "device was safely remove" notification doesnt trigger.
+			//sd cards does  trigger WM_DEVICECHANGE messege, usb drives dont
+			
 			DeviceIoControl(handle, FSCTL_LOCK_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 			DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
+			// some implemenatations also calls IOCTL_STORAGE_MEDIA_REMOVAL here but it returns error to me
 			BOOL error = DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, nullptr, 0, nullptr, 0, &deviceControlRetVal, nullptr);
 			if (error == 0)
 			{
@@ -130,11 +138,12 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 void RemovableDriveManager::register_window()
 {
 	//creates new unvisible window that is recieving callbacks from system
+	// structure to register 
 	WNDCLASSEX wndClass;
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	wndClass.hInstance = reinterpret_cast<HINSTANCE>(GetModuleHandle(0));
-	wndClass.lpfnWndProc = reinterpret_cast<WNDPROC>(WinProcCallback);
+	wndClass.lpfnWndProc = reinterpret_cast<WNDPROC>(WinProcCallback);//this is callback
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
@@ -169,6 +178,9 @@ void RemovableDriveManager::register_window()
 
 INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	// here we need to catch messeges about device removal
+	// problem is that when ejecting usb (how is it implemented above) there is no messege dispached. Only after physical removal of the device.
+	//uncomment register_window() in init() to register and comment update() in GUI_App.cpp (only for windows!) to stop recieving periodical updates 
 	LRESULT lRet = 1;
 	static HDEVNOTIFY hDeviceNotify;
 
@@ -187,6 +199,7 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	
 	case WM_DEVICECHANGE:
 	{
+		// here is the important
 		if(wParam == DBT_DEVICEREMOVECOMPLETE)
 		{
 -			RemovableDriveManager::get_instance().update(0, true);
@@ -207,9 +220,9 @@ void RemovableDriveManager::search_for_drives()
 {
     
     m_current_drives.clear();
-    m_current_drives.reserve(26);
     
 #if __APPLE__
+	// if on macos obj-c class will enumerate
 	if(m_rdmmm)
 	{
 		m_rdmmm->list_devices();
@@ -287,6 +300,8 @@ void RemovableDriveManager::search_path(const std::string &path,const std::strin
 }
 void RemovableDriveManager::inspect_file(const std::string &path, const std::string &parent_path)
 {
+	//confirms if the file is removable drive and adds it to vector
+
 	//if not same file system - could be removable drive
 	if(!compare_filesystem_id(path, parent_path))
 	{
@@ -335,7 +350,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             	}
             }
             std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
-
+// there is no usable command in c++ so terminal command is used instead
+// but neither triggers "succesful safe removal messege"
             std::string command = "";
 #if __APPLE__
             command = "diskutil unmount ";

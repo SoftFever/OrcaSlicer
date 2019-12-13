@@ -29,26 +29,34 @@ public:
 	}
 	RemovableDriveManager(RemovableDriveManager const&) = delete;
 	void operator=(RemovableDriveManager const&) = delete;
-	
-	//update() searches for removable devices, returns false if empty.
+	//call only once. on apple register for unmnount callbacks. on windows register for device notification is prepared but not called (eject usb drive on widnows doesnt trigger the callback, sdc ard does), also enumerates devices for first time so init shoud be called on linux too.
 	void init();
-	bool update(const long time = 0,const bool check = false);  //time = 0 is forced update, time expects wxGetLocalTime()
+	//update() searches for removable devices, returns false if empty. /time = 0 is forced update, time expects wxGetLocalTime()
+	bool update(const long time = 0,const bool check = false);  
 	bool is_drive_mounted(const std::string &path);
 	void eject_drive(const std::string &path);
+	//returns path to last drive which was used, if none was used, returns device that was enumerated last
 	std::string get_last_save_path();
+	//returns path to last drive which was used, if none was used, returns empty string
 	std::string get_drive_path();
 	std::vector<DriveData> get_all_drives();
 	bool is_path_on_removable_drive(const std::string &path);
-	void add_callback(std::function<void()> callback); // callback will notify only if device with last save path was removed
-	void erase_callbacks(); // erases all callbacks added by add_callback()
+	// callback will notify only if device with last save path was removed
+	void add_callback(std::function<void()> callback);
+	// erases all callbacks added by add_callback()
+	void erase_callbacks(); 
+	// marks one of the eveices in vector as last used
 	void set_last_save_path(const std::string &path);
 	bool is_last_drive_removed();
-	bool is_last_drive_removed_with_update(const long time = 0); // param as update()
+	// param as update()
+	bool is_last_drive_removed_with_update(const long time = 0);
 private:
     RemovableDriveManager();
 	void search_for_drives();
+	//triggers callbacks if last used drive was removed
 	void check_and_notify();
-	std::string get_drive_from_path(const std::string& path);//returns drive path (same as path in DriveData) if exists otherwise empty string ""
+	//returns drive path (same as path in DriveData) if exists otherwise empty string ""
+	std::string get_drive_from_path(const std::string& path);
 	void reset_last_save_path();
 
 	std::vector<DriveData> m_current_drives;
@@ -58,8 +66,8 @@ private:
 	std::string m_last_save_path;
 
 #if _WIN32
+	//registers for notifications by creating invisible window
 	void register_window();
-	//INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 #else
 #if __APPLE__
 	RDMMMWrapper * m_rdmmm;
@@ -69,7 +77,7 @@ private:
     void inspect_file(const std::string &path, const std::string &parent_path);
 #endif
 };
-    
+// apple wrapper for RemovableDriveManagerMM which searches for drives and/or ejects them    
 #if __APPLE__
 class RDMMMWrapper
 {

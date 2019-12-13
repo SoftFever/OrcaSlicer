@@ -3523,7 +3523,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         break;
     default: break;
     }
-
+	//added to show disconnect_button after writing
 	show_action_buttons(false);
 
     if (canceled) {
