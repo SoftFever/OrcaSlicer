@@ -3583,8 +3583,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         break;
     default: break;
     }
-	//added to show disconnect_button after writing
-	show_action_buttons(false);
+	
 
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
@@ -3593,6 +3592,11 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     }
     else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
+	else if(RemovableDriveManager::get_instance().get_is_writing())
+	{
+		RemovableDriveManager::get_instance().set_is_writing(false);
+		show_action_buttons(false);
+	}
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -4722,6 +4726,7 @@ void Plater::export_gcode()
     if (! output_path.empty())
 	{
 		std::string path = output_path.string();
+		RemovableDriveManager::get_instance().set_is_writing(true);
         p->export_gcode(std::move(output_path), PrintHostJob());
 		RemovableDriveManager::get_instance().update(0, true);
 		RemovableDriveManager::get_instance().set_last_save_path(path);
@@ -5016,6 +5021,8 @@ void Plater::eject_drive()
 }
 void Plater::drive_ejected_callback()
 {
+	wxString message = "Unmounting succesesful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
+	wxMessageBox(message);
 	p->show_action_buttons(false);
 }
 

@@ -43,7 +43,7 @@ void RemovableDriveManager::search_for_drives()
 			if (drive_type ==  DRIVE_REMOVABLE)
 			{
 				// get name of drive
-				std::wstring wpath = std::wstring(path.begin(), path.end());
+				std::wstring wpath = boost::nowide::widen(path);//std::wstring(path.begin(), path.end());
 				std::wstring volume_name;
 				volume_name.resize(1024);
 				std::wstring file_system_name;
@@ -52,6 +52,7 @@ void RemovableDriveManager::search_for_drives()
 				BOOL error = GetVolumeInformationW(wpath.c_str(), &volume_name[0], sizeof(volume_name), NULL, NULL, NULL, &file_system_name[0], sizeof(file_system_name));
 				if(error != 0)
 				{
+					volume_name.erase(std::find(volume_name.begin(), volume_name.end(), '\0'), volume_name.end());
 					/*
 					if (volume_name == L"")
 					{
@@ -398,7 +399,9 @@ std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 RemovableDriveManager::RemovableDriveManager():
     m_drives_count(0),
     m_last_update(0),
-    m_last_save_path("")
+    m_last_save_path(""),
+	m_last_save_name(""),
+	m_is_writing(false)
 #if __APPLE__
 	, m_rdmmm(new RDMMMWrapper())
 #endif
@@ -459,6 +462,10 @@ std::string RemovableDriveManager::get_last_save_path()
 {
 	return m_last_save_path;
 }
+std::string RemovableDriveManager::get_last_save_name()
+{
+	return m_last_save_name;
+}
 std::vector<DriveData> RemovableDriveManager::get_all_drives()
 {
 	return m_current_drives;
@@ -491,7 +498,21 @@ void RemovableDriveManager::set_last_save_path(const std::string& path)
 	if(last_drive != "")
 	{
 		m_last_save_path = last_drive;
+		m_last_save_name = get_drive_name(last_drive);
 	}
+}
+std::string RemovableDriveManager::get_drive_name(const std::string& path)
+{
+	if (m_current_drives.size() == 0)
+		return "";
+	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
+	{
+		if ((*it).path == path)
+		{
+			return (*it).name;
+		}
+	}
+	return "";
 }
 bool RemovableDriveManager::is_last_drive_removed()
 {
@@ -515,5 +536,14 @@ bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
 void RemovableDriveManager::reset_last_save_path()
 {
 	m_last_save_path = "";
+	m_last_save_name = "";
+}
+void RemovableDriveManager::set_is_writing(const bool b)
+{
+	m_is_writing = b;
+}
+bool RemovableDriveManager::get_is_writing()
+{
+	return m_is_writing;
 }
 }}//namespace Slicer::Gui

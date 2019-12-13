@@ -37,6 +37,7 @@ public:
 	void eject_drive(const std::string &path);
 	//returns path to last drive which was used, if none was used, returns device that was enumerated last
 	std::string get_last_save_path();
+	std::string get_last_save_name();
 	//returns path to last drive which was used, if none was used, returns empty string
 	std::string get_drive_path();
 	std::vector<DriveData> get_all_drives();
@@ -50,6 +51,9 @@ public:
 	bool is_last_drive_removed();
 	// param as update()
 	bool is_last_drive_removed_with_update(const long time = 0);
+	void set_is_writing(const bool b);
+	bool get_is_writing();
+	std::string get_drive_name(const std::string& path);
 private:
     RemovableDriveManager();
 	void search_for_drives();
@@ -64,6 +68,8 @@ private:
 	size_t m_drives_count;
 	long m_last_update;
 	std::string m_last_save_path;
+	std::string m_last_save_name;
+	bool m_is_writing;//on device
 
 #if _WIN32
 	//registers for notifications by creating invisible window
