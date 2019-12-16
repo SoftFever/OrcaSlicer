@@ -517,7 +517,13 @@ void Camera::view()
     glRotatef(m_rot.y(), 1.0, 0.0, 0.0);
     glRotatef(m_rot.x(), 0.0, 0.0, 1.0);
     
-    // glClipPlane()
+    if (m_clip_z > 0.) {
+        GLdouble plane[] = {0., 0., 1., m_clip_z};
+        glClipPlane(GL_CLIP_PLANE0, plane);
+        glEnable(GL_CLIP_PLANE0);
+    } else {
+        glDisable(GL_CLIP_PLANE0);
+    }
 }
 
 void PerspectiveCamera::set_screen(long width, long height)

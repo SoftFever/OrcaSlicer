@@ -27,20 +27,8 @@ public:
         Slic3r::GL::Display::set_active(w, h);
     }
     
-    void repaint(long width, long height) override
-    {
-        Slic3r::GL::Display::repaint(width, height);
-    }
-    
-    using Slic3r::GL::Display::repaint;
-    
     void swap_buffers() override { SwapBuffers(); }
-    
-    void on_scroll(long v, long d, Slic3r::GL::MouseInput::WheelAxis wa) override
-    {
-        Slic3r::GL::Display::on_scroll(v, d, wa);
-    }
-    
+        
     template<class...Args>
     Canvas(Args &&...args): wxGLCanvas(std::forward<Args>(args)...)
     {
