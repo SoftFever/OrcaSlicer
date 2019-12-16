@@ -220,8 +220,17 @@ public:
 
 class CSGSettings {
     OpenCSG::Algorithm m_csgalg = OpenCSG::Algorithm::Automatic;
+    OpenCSG::DepthComplexityAlgorithm m_depth_algo = OpenCSG::DepthComplexityAlgorithm::NoDepthComplexitySampling;
+    OpenCSG::Optimization m_optim = OpenCSG::Optimization::OptimizationDefault;
 public:
-    void set_csg_algo(OpenCSG::Algorithm alg);
+    int get_algo() const { return int(m_csgalg); }
+    void set_algo(OpenCSG::Algorithm alg) { m_csgalg = alg; }
+    
+    int get_depth_algo() const { return int(m_depth_algo); }
+    void set_depth_algo(OpenCSG::DepthComplexityAlgorithm alg) { m_depth_algo = alg; }
+    
+    int  get_optimization() const { return int(m_optim); }
+    void set_optimization(OpenCSG::Optimization o) { m_optim = o; }
 };
        
 class Display : public std::enable_shared_from_this<Display>,
@@ -265,8 +274,8 @@ public:
     
     void move_clip_plane(double z) { m_camera->set_clip_z(z); }
     
-    const CSGSettings & csgsettings() const { return m_csgsettings; }
-    void csgsettings(const CSGSettings &settings) { m_csgsettings = settings; }
+    const CSGSettings & get_csgsettings() const { return m_csgsettings; }
+    void apply_csgsettings(const CSGSettings &settings);
     
     virtual void on_scene_updated();
     virtual void clear_screen();

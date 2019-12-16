@@ -100,8 +100,8 @@ public:
              // drivers would most likely work with some alpha plane, but
              // glReadPixels would not return the alpha channel on NVIDIA if
              // not requested when the GL context is created.
-             WX_GL_MIN_ALPHA, 8, WX_GL_DEPTH_SIZE, 8, WX_GL_STENCIL_SIZE, 8, WX_GL_SAMPLE_BUFFERS,
-             GL_TRUE, WX_GL_SAMPLES, 4, 0};
+             WX_GL_MIN_ALPHA, 8, WX_GL_DEPTH_SIZE, 8, WX_GL_STENCIL_SIZE, 8,
+             WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0};
 
         m_canvas = std::make_shared<Canvas>(this, wxID_ANY, attribList,
                                             wxDefaultPosition, wxDefaultSize,
@@ -111,17 +111,33 @@ public:
         auto controlsizer = new wxBoxSizer(wxHORIZONTAL);
         auto slider_sizer = new wxBoxSizer(wxVERTICAL);
         auto console_sizer = new wxBoxSizer(wxVERTICAL);
-        
+          
         auto slider = new wxSlider(control_panel, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL);
-        auto toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
-        wxString algorithms [] = {"Default", "Different"};
-        auto alg_select = new wxComboBox(control_panel, wxID_ANY, "Default", wxDefaultPosition, wxDefaultSize, 2, algorithms);
-        
         slider_sizer->Add(slider, 1, wxEXPAND);
-        console_sizer->Add(toggle, 0, wxALL, 5);
-        console_sizer->Add(alg_select, 0, wxALL, 5);
+        
+        auto toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
+        console_sizer->Add(toggle, 0, wxALL | wxEXPAND, 5);
+
+        auto add_combobox = [control_panel, console_sizer]
+            (const wxString &label, std::vector<wxString> &&list) {
+            auto widget = new wxComboBox(control_panel, wxID_ANY, list[0],
+                                         wxDefaultPosition, wxDefaultSize,
+                                         int(list.size()), list.data());
+            auto sz = new wxBoxSizer(wxHORIZONTAL);
+            sz->Add(new wxStaticText(control_panel, wxID_ANY, label), 0, wxALL | wxALIGN_CENTER, 5);
+            sz->Add(widget, 1, wxALL | wxEXPAND, 5);
+            console_sizer->Add(sz, 0, wxEXPAND);
+            return widget;
+        };
+
+        auto alg_select = add_combobox("Algorithm", {"Auto", "Goldfeather", "SCS"});
+        auto depth_select = add_combobox("Depth Complexity", {"Off", "OcclusionQuery", "On"});
+        depth_select->Disable();
+        auto optimization_select = add_combobox("Optimization", { "Default", "ForceOn", "On", "Off" });
+                       
         controlsizer->Add(slider_sizer, 0, wxEXPAND);
         controlsizer->Add(console_sizer, 1, wxEXPAND);
+        
         control_panel->SetSizer(controlsizer);
         
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -140,6 +156,31 @@ public:
             enable_multisampling(toggle->GetValue());
             m_canvas->repaint();
         }, toggle->GetId());
+        
+        Bind(wxEVT_COMBOBOX, [this, alg_select, depth_select](wxCommandEvent &)
+        {
+            int sel = alg_select->GetSelection();
+            depth_select->Enable(sel > 0);
+            CSGSettings settings = m_canvas->get_csgsettings();
+            settings.set_algo(OpenCSG::Algorithm(sel));
+            m_canvas->apply_csgsettings(settings);
+        }, alg_select->GetId());
+        
+        Bind(wxEVT_COMBOBOX, [this, depth_select](wxCommandEvent &)
+        {
+            int sel = depth_select->GetSelection();
+            CSGSettings settings = m_canvas->get_csgsettings();
+            settings.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(sel));
+            m_canvas->apply_csgsettings(settings);
+        }, depth_select->GetId());
+        
+        Bind(wxEVT_COMBOBOX, [this, optimization_select](wxCommandEvent &)
+        {
+            int sel = optimization_select->GetSelection();
+            CSGSettings settings = m_canvas->get_csgsettings();
+            settings.set_optimization(OpenCSG::Optimization(sel));
+            m_canvas->apply_csgsettings(settings);
+        }, depth_select->GetId());
         
         m_canvas->set_scene(std::make_shared<Slic3r::GL::Scene>());
     }

@@ -454,7 +454,14 @@ void Display::on_moved_to(long x, long y)
     m_mouse_pos = {x, y};
 }
 
-void CSGSettings::set_csg_algo(OpenCSG::Algorithm alg) { m_csgalg = alg; }
+void Display::apply_csgsettings(const CSGSettings &settings)
+{
+    using namespace OpenCSG;
+    m_csgsettings = settings;
+    setOption(AlgorithmSetting, m_csgsettings.get_algo());
+    setOption(DepthComplexitySetting, m_csgsettings.get_depth_algo());
+    setOption(DepthBoundsOptimization, m_csgsettings.get_optimization());
+}
 
 void Display::on_scene_updated()
 {
