@@ -14,6 +14,7 @@
 #include <wx/slider.h>
 #include <wx/tglbtn.h>
 #include <wx/combobox.h>
+#include <wx/spinctrl.h>
 #include <wx/glcanvas.h>
 
 #include "Canvas.hpp"
@@ -111,24 +112,52 @@ public:
         auto controlsizer = new wxBoxSizer(wxHORIZONTAL);
         auto slider_sizer = new wxBoxSizer(wxVERTICAL);
         auto console_sizer = new wxBoxSizer(wxVERTICAL);
-          
-        auto slider = new wxSlider(control_panel, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL);
+
+        auto slider = new wxSlider(control_panel, wxID_ANY, 0, 0, 100,
+                                   wxDefaultPosition, wxDefaultSize,
+                                   wxSL_VERTICAL);
         slider_sizer->Add(slider, 1, wxEXPAND);
         
-        auto toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
-        console_sizer->Add(toggle, 0, wxALL | wxEXPAND, 5);
-
+        auto ms_toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
+        console_sizer->Add(ms_toggle, 0, wxALL | wxEXPAND, 5);
+        
+        auto csg_toggle = new wxToggleButton(control_panel, wxID_ANY, "CSG");
+        csg_toggle->SetValue(true);
+        console_sizer->Add(csg_toggle, 0, wxALL | wxEXPAND, 5);
+        
         auto add_combobox = [control_panel, console_sizer]
-            (const wxString &label, std::vector<wxString> &&list) {
+            (const wxString &label, std::vector<wxString> &&list)
+        {
             auto widget = new wxComboBox(control_panel, wxID_ANY, list[0],
                                          wxDefaultPosition, wxDefaultSize,
                                          int(list.size()), list.data());
+
             auto sz = new wxBoxSizer(wxHORIZONTAL);
-            sz->Add(new wxStaticText(control_panel, wxID_ANY, label), 0, wxALL | wxALIGN_CENTER, 5);
+            sz->Add(new wxStaticText(control_panel, wxID_ANY, label), 0,
+                    wxALL | wxALIGN_CENTER, 5);
             sz->Add(widget, 1, wxALL | wxEXPAND, 5);
             console_sizer->Add(sz, 0, wxEXPAND);
             return widget;
         };
+
+        auto add_spinctl = [control_panel, console_sizer]
+            (const wxString &label, int initial, int min, int max)
+        {    
+            auto widget = new wxSpinCtrl(
+                control_panel, wxID_ANY,
+                wxString::Format("%d", initial),
+                wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, min, max,
+                initial);
+
+            auto sz = new wxBoxSizer(wxHORIZONTAL);
+            sz->Add(new wxStaticText(control_panel, wxID_ANY, label), 0,
+                    wxALL | wxALIGN_CENTER, 5);
+            sz->Add(widget, 1, wxALL | wxEXPAND, 5);
+            console_sizer->Add(sz, 0, wxEXPAND);
+            return widget;
+        };
+        
+        auto convexity_spin = add_spinctl("Convexity", CSGSettings::DEFAULT_CONVEXITY, 0, 100);
 
         auto alg_select = add_combobox("Algorithm", {"Auto", "Goldfeather", "SCS"});
         auto depth_select = add_combobox("Depth Complexity", {"Off", "OcclusionQuery", "On"});
@@ -152,10 +181,16 @@ public:
             m_canvas->move_clip_plane(double(slider->GetValue()));
         }, slider->GetId());
         
-        Bind(wxEVT_TOGGLEBUTTON, [this, toggle](wxCommandEvent &){
-            enable_multisampling(toggle->GetValue());
+        Bind(wxEVT_TOGGLEBUTTON, [this, ms_toggle](wxCommandEvent &){
+            enable_multisampling(ms_toggle->GetValue());
             m_canvas->repaint();
-        }, toggle->GetId());
+        }, ms_toggle->GetId());
+        
+        Bind(wxEVT_TOGGLEBUTTON, [this, csg_toggle](wxCommandEvent &){
+            CSGSettings settings = m_canvas->get_csgsettings();
+            settings.enable_csg(csg_toggle->GetValue());
+            m_canvas->apply_csgsettings(settings);
+        }, csg_toggle->GetId());
         
         Bind(wxEVT_COMBOBOX, [this, alg_select, depth_select](wxCommandEvent &)
         {
@@ -181,6 +216,16 @@ public:
             settings.set_optimization(OpenCSG::Optimization(sel));
             m_canvas->apply_csgsettings(settings);
         }, depth_select->GetId());
+        
+        Bind(wxEVT_SPINCTRL, [this, convexity_spin](wxSpinEvent &) {
+            CSGSettings settings = m_canvas->get_csgsettings();
+            int c = convexity_spin->GetValue();
+            
+            if (c > 0) {
+                settings.set_convexity(unsigned(c));
+                m_canvas->apply_csgsettings(settings);
+            }
+        }, convexity_spin->GetId());
         
         m_canvas->set_scene(std::make_shared<Slic3r::GL::Scene>());
     }

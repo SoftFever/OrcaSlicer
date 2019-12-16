@@ -45,8 +45,7 @@ public:
     
     class Listener {
     public:
-        
-        virtual ~Listener() = default;
+        virtual ~Listener();
         
         virtual void on_left_click_down() {}
         virtual void on_left_click_up() {}
@@ -219,9 +218,16 @@ public:
 };
 
 class CSGSettings {
+public:
+    static const constexpr unsigned DEFAULT_CONVEXITY = 10;
+    
+private:
     OpenCSG::Algorithm m_csgalg = OpenCSG::Algorithm::Automatic;
     OpenCSG::DepthComplexityAlgorithm m_depth_algo = OpenCSG::DepthComplexityAlgorithm::NoDepthComplexitySampling;
     OpenCSG::Optimization m_optim = OpenCSG::Optimization::OptimizationDefault;
+    bool m_enable = true;
+    unsigned int m_convexity = DEFAULT_CONVEXITY;
+    
 public:
     int get_algo() const { return int(m_csgalg); }
     void set_algo(OpenCSG::Algorithm alg) { m_csgalg = alg; }
@@ -231,6 +237,12 @@ public:
     
     int  get_optimization() const { return int(m_optim); }
     void set_optimization(OpenCSG::Optimization o) { m_optim = o; }
+    
+    void enable_csg(bool en = true) { m_enable = en; }
+    bool is_enabled() const { return m_enable; }
+    
+    unsigned get_convexity() const { return m_convexity; }
+    void set_convexity(unsigned c) { m_convexity = c; }
 };
        
 class Display : public std::enable_shared_from_this<Display>,
@@ -246,6 +258,19 @@ protected:
     CSGSettings m_csgsettings;
     
     shptr<Camera> m_camera;
+    
+    struct SceneCache {
+        Collection<shptr<Primitive>> primitives;
+        Collection<Primitive *> primitives_free;
+        Collection<OpenCSG::Primitive *> primitives_csg;
+        
+        void clear();
+        
+        shptr<Primitive> add_mesh(const TriangleMesh &mesh);
+        shptr<Primitive> add_mesh(const TriangleMesh &mesh,
+                                  OpenCSG::Operation  op,
+                                  unsigned            covexity);
+    } m_scene_cache;
     
 public:
     Display(shptr<Scene> scene = nullptr, shptr<Camera> camera = nullptr)
@@ -284,25 +309,11 @@ public:
 
 class Scene: public MouseInput::Listener
 {
-    Collection<shptr<Primitive>> m_primitives;
-    Collection<Primitive *> m_primitives_free;
-    Collection<OpenCSG::Primitive *> m_primitives_csg;
-    
     uqptr<SLAPrint> m_print;
 public:
     
     Scene();
     ~Scene();
-    
-    const Collection<Primitive*>& free_primitives() const 
-    { 
-        return m_primitives_free; 
-    }
-    
-    const Collection<OpenCSG::Primitive*>& csg_primitives() const 
-    { 
-        return m_primitives_csg; 
-    }
     
     void add_display(shptr<Display> disp)
     {
@@ -311,15 +322,9 @@ public:
     }
     
     void set_print(uqptr<SLAPrint> &&print);
+    const SLAPrint * get_print() const { return m_print.get(); }
     
     BoundingBoxf3 get_bounding_box() const;
-
-protected:
-    
-    shptr<Primitive> add_mesh(const TriangleMesh &mesh);
-    shptr<Primitive> add_mesh(const TriangleMesh &mesh,
-                                OpenCSG::Operation op,
-                                unsigned covexity);
 
 private:
     

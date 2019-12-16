@@ -99,13 +99,15 @@ void Display::render_scene()
     GLfloat color[] = {1.f, 1.f, 0.f, 0.f};
     glsafe(::glColor4fv(color));
     
-    OpenCSG::render(m_scene->csg_primitives());
+    if (m_csgsettings.is_enabled()) {
+        OpenCSG::render(m_scene_cache.primitives_csg);
+        glDepthFunc(GL_EQUAL);
+    }
     
-    glDepthFunc(GL_EQUAL);
-    for (auto& p : m_scene->csg_primitives()) p->render();
-    glDepthFunc(GL_LESS);
+    for (auto& p : m_scene_cache.primitives_csg) p->render();
+    if (m_csgsettings.is_enabled()) glDepthFunc(GL_LESS);
     
-    for (auto& p : m_scene->free_primitives()) p->render();
+    for (auto& p : m_scene_cache.primitives_free) p->render();
     
     glFlush();
 }
@@ -127,53 +129,8 @@ std::vector<V> transform_pts(
 }
 
 void Scene::set_print(uqptr<SLAPrint> &&print)
-{
+{   
     m_print = std::move(print);
-    
-    for (const SLAPrintObject *po : m_print->objects()) {
-        const ModelObject *mo = po->model_object();
-        TriangleMesh msh = mo->raw_mesh();
-        
-        sla::DrainHoles holedata = mo->sla_drain_holes;
-        
-        for (const ModelInstance *mi : mo->instances) {
-            
-            TriangleMesh mshinst = msh;
-            auto interior = po->hollowed_interior_mesh();
-            interior.transform(po->trafo().inverse());
-            
-            mshinst.merge(interior);
-            mshinst.require_shared_vertices();
-            
-            mi->transform_mesh(&mshinst);
-
-            auto bb = mshinst.bounding_box();
-            auto center = bb.center().cast<float>();
-            mshinst.translate(-center);
-
-            mshinst.require_shared_vertices();
-            add_mesh(mshinst, OpenCSG::Intersection, 15);
-
-            auto tr = Transform3f::Identity();
-            tr.translate(-center);
-
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.pos;
-                          });
-
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.normal;
-                          });
-        }
-        
-        for (const sla::DrainHole &holept : holedata) {
-            TriangleMesh holemesh = sla::to_triangle_mesh(holept.to_mesh());
-            holemesh.require_shared_vertices();
-            add_mesh(holemesh, OpenCSG::Subtraction, 1);
-        }
-    }
         
     // Notify displays
     call(&Display::on_scene_updated, m_displays);
@@ -184,21 +141,30 @@ BoundingBoxf3 Scene::get_bounding_box() const
     return m_print->model().bounding_box();
 }
 
-shptr<Primitive> Scene::add_mesh(const TriangleMesh &mesh)
+void Display::SceneCache::clear()
+{
+    primitives_csg.clear();
+    primitives_free.clear();
+    primitives.clear();
+}
+
+shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh)
 {
     auto p = std::make_shared<Primitive>();
     p->load_mesh(mesh);
-    m_primitives.emplace_back(p);
-    m_primitives_free.emplace_back(p.get());
+    primitives.emplace_back(p);
+    primitives_free.emplace_back(p.get());
     return p;
 }
 
-shptr<Primitive> Scene::add_mesh(const TriangleMesh &mesh, OpenCSG::Operation o, unsigned c)
+shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh,
+                                               OpenCSG::Operation  o,
+                                               unsigned            c)
 {
     auto p = std::make_shared<Primitive>(o, c);
     p->load_mesh(mesh);
-    m_primitives.emplace_back(p);
-    m_primitives_csg.emplace_back(p.get());
+    primitives.emplace_back(p);
+    primitives_csg.emplace_back(p.get());
     return p;
 }
 
@@ -457,18 +423,79 @@ void Display::on_moved_to(long x, long y)
 void Display::apply_csgsettings(const CSGSettings &settings)
 {
     using namespace OpenCSG;
+    
+    bool update = m_csgsettings.get_convexity() != settings.get_convexity();
+    
     m_csgsettings = settings;
     setOption(AlgorithmSetting, m_csgsettings.get_algo());
     setOption(DepthComplexitySetting, m_csgsettings.get_depth_algo());
     setOption(DepthBoundsOptimization, m_csgsettings.get_optimization());
+    
+    if (update) on_scene_updated();
+    
+    repaint();
 }
 
 void Display::on_scene_updated()
 {
+    const SLAPrint *print = m_scene->get_print();
+    if (!print) return;
+    
+    {
     auto bb = m_scene->get_bounding_box();
     double d = std::max(std::max(bb.size().x(), bb.size().y()), bb.size().z());
     m_wheel_pos = long(2 * d);
     m_camera->set_zoom(m_wheel_pos);
+    }
+    
+    m_scene_cache.clear();
+    
+    for (const SLAPrintObject *po : print->objects()) {
+        const ModelObject *mo = po->model_object();
+        TriangleMesh msh = mo->raw_mesh();
+        
+        sla::DrainHoles holedata = mo->sla_drain_holes;
+        
+        for (const ModelInstance *mi : mo->instances) {
+            
+            TriangleMesh mshinst = msh;
+            auto interior = po->hollowed_interior_mesh();
+            interior.transform(po->trafo().inverse());
+            
+            mshinst.merge(interior);
+            mshinst.require_shared_vertices();
+            
+            mi->transform_mesh(&mshinst);
+            
+            auto bb = mshinst.bounding_box();
+            auto center = bb.center().cast<float>();
+            mshinst.translate(-center);
+            
+            mshinst.require_shared_vertices();
+            m_scene_cache.add_mesh(mshinst, OpenCSG::Intersection,
+                                   m_csgsettings.get_convexity());
+
+            auto tr = Transform3f::Identity();
+            tr.translate(-center);
+            
+            transform_pts(holedata.begin(), holedata.end(), tr,
+                          [](const sla::DrainHole &dh) {
+                              return dh.pos;
+                          });
+            
+            transform_pts(holedata.begin(), holedata.end(), tr,
+                          [](const sla::DrainHole &dh) {
+                              return dh.normal;
+                          });
+        }
+        
+        for (const sla::DrainHole &holept : holedata) {
+            TriangleMesh holemesh = sla::to_triangle_mesh(holept.to_mesh());
+            holemesh.require_shared_vertices();
+            m_scene_cache.add_mesh(holemesh, OpenCSG::Subtraction, 1);
+        }
+    }
+    
     repaint();
 }
 
@@ -512,5 +539,7 @@ bool enable_multisampling(bool e)
     if (is_ms_context) { glEnable(GL_MULTISAMPLE); return true; }
     else return false;
 }
+
+MouseInput::Listener::~Listener() = default;
 
 }} // namespace Slic3r::GL
