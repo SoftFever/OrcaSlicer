@@ -422,7 +422,7 @@ void RemovableDriveManager::init()
 #elif __APPLE__
     m_rdmmm->register_window();
 #endif
-	update();
+	update(0, true);
 }
 bool RemovableDriveManager::update(const long time,const bool check)
 {
