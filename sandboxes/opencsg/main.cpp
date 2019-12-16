@@ -31,49 +31,31 @@ using namespace Slic3r::GL;
 
 class MyFrame: public wxFrame
 {
-    std::shared_ptr<Canvas> m_canvas;
-    std::shared_ptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
-    std::unique_ptr<Slic3r::GUI::Job> m_ui_job;
+    shptr<Scene>      m_scene;    // Model
+    shptr<Canvas>     m_canvas;   // View
+    shptr<Controller> m_ctl;      // Controller
+
+    shptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
+    uqptr<Slic3r::GUI::Job> m_ui_job;
     
     class SLAJob: public Slic3r::GUI::Job {
         MyFrame *m_parent;
         std::unique_ptr<Slic3r::SLAPrint> m_print;
         std::string m_fname;
     public:
-        
-        SLAJob(MyFrame *frame, const std::string &fname) 
+        SLAJob(MyFrame *frame, const std::string &fname)
             : Slic3r::GUI::Job{frame->m_stbar}
             , m_parent{frame}
             , m_fname{fname}
-        {
-        }
-        
-        void process() override 
-        {
-            using Status = Slic3r::PrintBase::SlicingStatus;
-            
-            Slic3r::DynamicPrintConfig cfg;
-            auto model = Slic3r::Model::read_from_file(m_fname, &cfg);
-            
-            m_print = std::make_unique<Slic3r::SLAPrint>();
-            m_print->apply(model, cfg);
-            
-            Slic3r::PrintBase::TaskParams params;
-            params.to_object_step = Slic3r::slaposHollowing;
-            m_print->set_task(params);
-            
-            m_print->set_status_callback([this](const Status &status) {
-                update_status(status.percent, status.text);
-            });
-            
-            m_print->process();
-        }
+        {}
+
+        void process() override;
         
     protected:
         
         void finalize() override 
         {
-            m_parent->m_canvas->get_scene()->set_print(std::move(m_print));
+            m_parent->m_scene->set_print(std::move(m_print));
             m_parent->m_stbar->set_status_text(
                         wxString::Format("Model %s loaded.", m_fname));
         }
@@ -83,6 +65,8 @@ public:
     MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
     
 private:
+    
+    void bind_canvas_events_to_controller();
     
     void OnExit(wxCommandEvent& /*event*/) 
     {
@@ -108,7 +92,8 @@ private:
         const wxSize ClientSize = GetClientSize();
         m_canvas->set_active(ClientSize.x, ClientSize.y); 
         
-        m_canvas->repaint(ClientSize.x, ClientSize.y);
+        m_canvas->set_screen_size(ClientSize.x, ClientSize.y);
+        m_canvas->repaint();
         
         // Do the repaint continuously
         Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
@@ -159,9 +144,14 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
      WX_GL_MIN_ALPHA, 8, WX_GL_DEPTH_SIZE, 8, WX_GL_STENCIL_SIZE, 8,
      WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0};
     
+    m_scene = std::make_shared<Scene>();
+    m_ctl = std::make_shared<Controller>();
+    m_ctl->set_scene(m_scene);
+    
     m_canvas = std::make_shared<Canvas>(this, wxID_ANY, attribList,
                                         wxDefaultPosition, wxDefaultSize,
                                         wxWANTS_CHARS | wxFULL_REPAINT_ON_RESIZE);
+    m_ctl->add_display(m_canvas);
     
     wxPanel *control_panel = new wxPanel(this);
     auto controlsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -234,7 +224,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
     Bind(wxEVT_SHOW, &MyFrame::OnShown, this, GetId());
     
     Bind(wxEVT_SLIDER, [this, slider](wxCommandEvent &) {
-        m_canvas->move_clip_plane(double(slider->GetValue()));
+        m_ctl->move_clip_plane(double(slider->GetValue()));
     });
     
     ms_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, ms_toggle](wxCommandEvent &){
@@ -283,5 +273,73 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
         }
     });
     
-    m_canvas->set_scene(std::make_shared<Slic3r::GL::Scene>());
+    bind_canvas_events_to_controller();
+}
+
+void MyFrame::bind_canvas_events_to_controller()
+{
+    m_canvas->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent &evt) {
+        m_ctl->on_scroll(evt.GetWheelRotation(), evt.GetWheelDelta(),
+                         evt.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ?
+                             Slic3r::GL::MouseInput::waVertical :
+                             Slic3r::GL::MouseInput::waHorizontal);
+    });
+
+    m_canvas->Bind(wxEVT_MOTION, [this](wxMouseEvent &evt) {
+        m_ctl->on_moved_to(evt.GetPosition().x, evt.GetPosition().y);
+    });
+
+    m_canvas->Bind(wxEVT_RIGHT_DOWN, [this](wxMouseEvent & /*evt*/) {
+        m_ctl->on_right_click_down();
+    });
+
+    m_canvas->Bind(wxEVT_RIGHT_UP, [this](wxMouseEvent & /*evt*/) {
+        m_ctl->on_right_click_up();
+    });
+
+    m_canvas->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & /*evt*/) {
+        m_ctl->on_left_click_down();
+    });
+
+    m_canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent & /*evt*/) {
+        m_ctl->on_left_click_up();
+    });
+
+    m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
+        // This is required even though dc is not used otherwise.
+        wxPaintDC dc(this);
+        
+        // Set the OpenGL viewport according to the client size of this
+        // canvas. This is done here rather than in a wxSizeEvent handler
+        // because our OpenGL rendering context (and thus viewport setting) is
+        // used with multiple canvases: If we updated the viewport in the
+        // wxSizeEvent handler, changing the size of one canvas causes a
+        // viewport setting that is wrong when next another canvas is
+        // repainted.
+        const wxSize ClientSize = m_canvas->GetClientSize();
+        
+        m_canvas->set_screen_size(ClientSize.x, ClientSize.y);
+        m_canvas->repaint();
+    });
+}
+
+void MyFrame::SLAJob::process() 
+{
+    using Status = Slic3r::PrintBase::SlicingStatus;
+    
+    Slic3r::DynamicPrintConfig cfg;
+    auto model = Slic3r::Model::read_from_file(m_fname, &cfg);
+    
+    m_print = std::make_unique<Slic3r::SLAPrint>();
+    m_print->apply(model, cfg);
+    
+    Slic3r::PrintBase::TaskParams params;
+    params.to_object_step = Slic3r::slaposHollowing;
+    m_print->set_task(params);
+    
+    m_print->set_status_callback([this](const Status &status) {
+        update_status(status.percent, status.text);
+    });
+    
+    m_print->process();
 }
