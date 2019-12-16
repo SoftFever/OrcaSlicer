@@ -117,8 +117,6 @@ add_library(libslic3r STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
-    MeshBoolean.cpp
-    MeshBoolean.hpp
     Model.cpp
     Model.hpp
     Arrange.hpp
@@ -220,6 +218,24 @@ add_library(libslic3r STATIC
     SLA/Clustering.hpp
 )
 
+if (SLIC3R_STATIC)
+    set(CGAL_Boost_USE_STATIC_LIBS ON)
+    set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
+endif ()
+
+find_package(CGAL REQUIRED)
+
+add_library(libslic3r_cgal OBJECT MeshBoolean.cpp MeshBoolean.hpp)
+target_include_directories(libslic3r_cgal PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    $<TARGET_PROPERTY:libigl,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_INCLUDE_DIRECTORIES>)
+target_compile_definitions(libslic3r_cgal PRIVATE 
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_DEFINITIONS>)
+target_compile_options(libslic3r_cgal PRIVATE 
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_OPTIONS>)
+target_sources(libslic3r PRIVATE $<TARGET_OBJECTS:libslic3r_cgal>)
+
 encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
@@ -240,6 +256,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_LINK_LIBRARIES>
     ${CMAKE_DL_LIBS}
     )
 
