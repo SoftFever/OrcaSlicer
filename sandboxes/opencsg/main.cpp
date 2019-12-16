@@ -235,45 +235,45 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
     
     Bind(wxEVT_SLIDER, [this, slider](wxCommandEvent &) {
         m_canvas->move_clip_plane(double(slider->GetValue()));
-    }, slider->GetId());
+    });
     
-    Bind(wxEVT_TOGGLEBUTTON, [this, ms_toggle](wxCommandEvent &){
+    ms_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, ms_toggle](wxCommandEvent &){
         enable_multisampling(ms_toggle->GetValue());
         m_canvas->repaint();
-    }, ms_toggle->GetId());
+    });
     
-    Bind(wxEVT_TOGGLEBUTTON, [this, csg_toggle](wxCommandEvent &){
+    csg_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, csg_toggle](wxCommandEvent &){
         CSGSettings settings = m_canvas->get_csgsettings();
         settings.enable_csg(csg_toggle->GetValue());
         m_canvas->apply_csgsettings(settings);
-    }, csg_toggle->GetId());
+    });
     
-    Bind(wxEVT_COMBOBOX, [this, alg_select, depth_select](wxCommandEvent &)
+    alg_select->Bind(wxEVT_COMBOBOX,
+                     [this, alg_select, depth_select](wxCommandEvent &)
     {
         int sel = alg_select->GetSelection();
         depth_select->Enable(sel > 0);
         CSGSettings settings = m_canvas->get_csgsettings();
         settings.set_algo(OpenCSG::Algorithm(sel));
         m_canvas->apply_csgsettings(settings);
-    }, alg_select->GetId());
+    });
     
-    Bind(wxEVT_COMBOBOX, [this, depth_select](wxCommandEvent &)
-    {
+    depth_select->Bind(wxEVT_COMBOBOX, [this, depth_select](wxCommandEvent &) {
         int sel = depth_select->GetSelection();
         CSGSettings settings = m_canvas->get_csgsettings();
         settings.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(sel));
         m_canvas->apply_csgsettings(settings);
-    }, depth_select->GetId());
+    });
     
-    Bind(wxEVT_COMBOBOX, [this, optimization_select](wxCommandEvent &)
-    {
+    optimization_select->Bind(wxEVT_COMBOBOX,
+                              [this, optimization_select](wxCommandEvent &) {
         int sel = optimization_select->GetSelection();
         CSGSettings settings = m_canvas->get_csgsettings();
         settings.set_optimization(OpenCSG::Optimization(sel));
         m_canvas->apply_csgsettings(settings);
-    }, depth_select->GetId());
+    });
     
-    Bind(wxEVT_SPINCTRL, [this, convexity_spin](wxSpinEvent &) {
+    convexity_spin->Bind(wxEVT_SPINCTRL, [this, convexity_spin](wxSpinEvent &) {
         CSGSettings settings = m_canvas->get_csgsettings();
         int c = convexity_spin->GetValue();
         
@@ -281,7 +281,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
             settings.set_convexity(unsigned(c));
             m_canvas->apply_csgsettings(settings);
         }
-    }, convexity_spin->GetId());
+    });
     
     m_canvas->set_scene(std::make_shared<Slic3r::GL::Scene>());
 }
