@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <libslic3r/SLA/Common.hpp>
+#include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/JobController.hpp>
 
 namespace Slic3r {
@@ -41,6 +42,8 @@ struct DrainHole
 
     bool get_intersections(const Vec3f& s, const Vec3f& dir,
                            std::array<std::pair<float, Vec3d>, 2>& out) const;
+    
+    Contour3D to_mesh() const;
     
     template<class Archive> inline void serialize(Archive &ar)
     {
