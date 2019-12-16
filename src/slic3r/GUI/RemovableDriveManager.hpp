@@ -29,6 +29,7 @@ public:
 	}
 	RemovableDriveManager(RemovableDriveManager const&) = delete;
 	void operator=(RemovableDriveManager const&) = delete;
+	~RemovableDriveManager();
 	//call only once. on apple register for unmnount callbacks. on windows register for device notification is prepared but not called (eject usb drive on widnows doesnt trigger the callback, sdc ard does), also enumerates devices for first time so init shoud be called on linux too.
 	void init();
 	//update() searches for removable devices, returns false if empty. /time = 0 is forced update, time expects wxGetLocalTime()
@@ -53,6 +54,7 @@ public:
 	bool is_last_drive_removed_with_update(const long time = 0);
 	void set_is_writing(const bool b);
 	bool get_is_writing();
+	bool get_did_eject();
 	std::string get_drive_name(const std::string& path);
 private:
     RemovableDriveManager();
@@ -70,6 +72,7 @@ private:
 	std::string m_last_save_path;
 	std::string m_last_save_name;
 	bool m_is_writing;//on device
+	bool m_did_eject;
 
 #if _WIN32
 	//registers for notifications by creating invisible window

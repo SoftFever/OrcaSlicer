@@ -3600,6 +3600,8 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 	else if(RemovableDriveManager::get_instance().get_is_writing())
 	{
 		RemovableDriveManager::get_instance().set_is_writing(false);
+		//RemovableDriveManager::get_instance().erase_callbacks();
+		//RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, q));
 		show_action_buttons(false);
 	}
 }
@@ -4168,8 +4170,7 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
     
-    const bool disconnect_shown = !(RemovableDriveManager::get_instance().is_last_drive_removed()); // #dk_FIXME
-
+    bool disconnect_shown = !RemovableDriveManager::get_instance().is_last_drive_removed() ; // #dk_FIXME
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
@@ -4735,6 +4736,11 @@ void Plater::export_gcode()
         p->export_gcode(std::move(output_path), PrintHostJob());
 		RemovableDriveManager::get_instance().update(0, true);
 		RemovableDriveManager::get_instance().set_last_save_path(path);
+		if(!RemovableDriveManager::get_instance().is_last_drive_removed())
+		{
+			RemovableDriveManager::get_instance().erase_callbacks();
+			RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+		}
 	}
 	
 }
@@ -5019,15 +5025,18 @@ void Plater::send_gcode()
 void Plater::eject_drive()
 {
 	RemovableDriveManager::get_instance().update(0, true);
-	RemovableDriveManager::get_instance().erase_callbacks();
-	RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+	//RemovableDriveManager::get_instance().erase_callbacks();
+	//RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
 	RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
 		
 }
 void Plater::drive_ejected_callback()
 {
-	wxString message = "Unmounting succesesful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
-	wxMessageBox(message);
+	if (RemovableDriveManager::get_instance().get_did_eject())
+	{
+		wxString message = "Unmounting succesesful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
+		wxMessageBox(message);
+	}
 	p->show_action_buttons(false);
 }
 

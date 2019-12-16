@@ -106,7 +106,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 				return;
 			}
 			CloseHandle(handle);
-
+			m_did_eject = true;
 			m_current_drives.erase(it);
 			break;
 		}
@@ -365,6 +365,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
                 std::cerr<<"Ejecting failed\n";
                 return;
             }
+			m_did_eject = true;
             m_current_drives.erase(it);
             		
             break;
@@ -401,12 +402,18 @@ RemovableDriveManager::RemovableDriveManager():
     m_last_update(0),
     m_last_save_path(""),
 	m_last_save_name(""),
-	m_is_writing(false)
+	m_is_writing(false),
+	m_did_eject(false)
 #if __APPLE__
 	, m_rdmmm(new RDMMMWrapper())
 #endif
 {}
-
+RemovableDriveManager::~RemovableDriveManager()
+{
+#if __APPLE__
+	delete m_rdmmm;
+#endif
+}
 void RemovableDriveManager::init()
 {
 	//add_callback([](void) { RemovableDriveManager::get_instance().print(); });
@@ -517,7 +524,7 @@ std::string RemovableDriveManager::get_drive_name(const std::string& path)
 bool RemovableDriveManager::is_last_drive_removed()
 {
 	//std::cout<<"is last: "<<m_last_save_path;
-	m_drives_count = m_current_drives.size();
+	//m_drives_count = m_current_drives.size();
 	if(m_last_save_path == "")
 	{
 		//std::cout<<"\n";
@@ -541,9 +548,17 @@ void RemovableDriveManager::reset_last_save_path()
 void RemovableDriveManager::set_is_writing(const bool b)
 {
 	m_is_writing = b;
+	if (b)
+	{
+		m_did_eject = false;
+	}
 }
 bool RemovableDriveManager::get_is_writing()
 {
 	return m_is_writing;
+}
+bool RemovableDriveManager::get_did_eject()
+{
+	return m_did_eject;
 }
 }}//namespace Slicer::Gui
