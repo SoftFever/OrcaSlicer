@@ -4733,9 +4733,9 @@ void Plater::export_gcode()
 	{
 		std::string path = output_path.string();
 		RemovableDriveManager::get_instance().set_is_writing(true);
-        p->export_gcode(std::move(output_path), PrintHostJob());
 		RemovableDriveManager::get_instance().update(0, true);
 		RemovableDriveManager::get_instance().set_last_save_path(path);
+        p->export_gcode(std::move(output_path), PrintHostJob());
 		if(!RemovableDriveManager::get_instance().is_last_drive_removed())
 		{
 			RemovableDriveManager::get_instance().erase_callbacks();
