@@ -58,7 +58,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 #endif // _WIN32
 
 	// initialize status bar
-	m_statusbar.reset(new ProgressStatusBar(this));
+	m_statusbar = std::make_shared<ProgressStatusBar>(this);
+    m_statusbar->set_font(GUI::wxGetApp().normal_font());
 	m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +

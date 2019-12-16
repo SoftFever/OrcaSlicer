@@ -15,8 +15,7 @@
 namespace Slic3r {
 
 ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id)
-    : self{new wxStatusBar(parent ? parent : GUI::wxGetApp().mainframe,
-                           id == -1 ? wxID_ANY : id)}
+    : self{new wxStatusBar(parent, id == -1 ? wxID_ANY : id)}
     , m_prog{new wxGauge(self,
                          wxGA_HORIZONTAL,
                          100,
@@ -32,7 +31,6 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id)
     m_prog->Hide();
     m_cancelbutton->Hide();
 
-	self->SetFont(GUI::wxGetApp().normal_font());
     self->SetFieldsCount(3);
     int w[] = {-1, 150, 155};
     self->SetStatusWidths(3, w);
@@ -149,8 +147,7 @@ void ProgressStatusBar::run(int rate)
 
 void ProgressStatusBar::embed(wxFrame *frame)
 {
-    wxFrame* mf = frame ? frame : GUI::wxGetApp().mainframe;
-    if(mf) mf->SetStatusBar(self);
+    if(frame) frame->SetStatusBar(self);
 }
 
 void ProgressStatusBar::set_status_text(const wxString& txt)
@@ -171,6 +168,11 @@ void ProgressStatusBar::set_status_text(const char *txt)
 wxString ProgressStatusBar::get_status_text() const
 {
     return self->GetStatusText();
+}
+
+void ProgressStatusBar::set_font(const wxFont &font)
+{
+    self->SetFont(font);
 }
 
 void ProgressStatusBar::show_cancel_button()

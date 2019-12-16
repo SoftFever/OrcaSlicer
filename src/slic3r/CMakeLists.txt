@@ -140,6 +140,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProgressStatusBar.cpp
     GUI/PrintHostDialogs.cpp
     GUI/PrintHostDialogs.hpp
+    GUI/Job.hpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
     Utils/Http.cpp
