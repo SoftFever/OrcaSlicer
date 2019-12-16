@@ -5,6 +5,7 @@
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/Contour3D.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
+#include <libslic3r/SLA/SupportTreeBuilder.hpp>
 
 #include <boost/log/trivial.hpp>
 
@@ -120,6 +121,17 @@ std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &   mesh,
                            hc.closing_distance));
 }
 
+Contour3D DrainHole::to_mesh() const
+{
+    auto r = double(radius);
+    auto h = double(height);
+    sla::Contour3D hole = sla::cylinder(r, h);
+    Eigen::Quaterniond q;
+    q.setFromTwoVectors(Vec3d{0., 0., 1.}, normal.cast<double>());
+    for(auto& p : hole.points) p = q * p + pos.cast<double>();
+    return hole;
+}
+
 bool DrainHole::operator==(const DrainHole &sp) const
 {
     return (pos == sp.pos) && (normal == sp.normal) &&
@@ -131,7 +143,7 @@ bool DrainHole::is_inside(const Vec3f& pt) const
 {
     Eigen::Hyperplane<float, 3> plane(normal, pos);
     float dist = plane.signedDistance(pt);
-    if (dist < EPSILON || dist > height)
+    if (dist < float(EPSILON) || dist > height)
         return false;
 
     Eigen::ParametrizedLine<float, 3> axis(pos, normal);
