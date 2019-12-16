@@ -49,6 +49,7 @@ public:
 	void erase_callbacks(); 
 	// marks one of the eveices in vector as last used
 	void set_last_save_path(const std::string &path);
+	void verify_last_save_path();
 	bool is_last_drive_removed();
 	// param as update()
 	bool is_last_drive_removed_with_update(const long time = 0);
@@ -70,10 +71,10 @@ private:
 	size_t m_drives_count;
 	long m_last_update;
 	std::string m_last_save_path;
+	bool m_last_save_path_verified;
 	std::string m_last_save_name;
 	bool m_is_writing;//on device
 	bool m_did_eject;
-
 #if _WIN32
 	//registers for notifications by creating invisible window
 	void register_window();
