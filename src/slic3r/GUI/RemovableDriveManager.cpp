@@ -402,6 +402,7 @@ RemovableDriveManager::RemovableDriveManager():
     m_last_update(0),
     m_last_save_path(""),
 	m_last_save_name(""),
+	m_last_save_path_verified(false),
 	m_is_writing(false),
 	m_did_eject(false)
 #if __APPLE__
@@ -442,7 +443,6 @@ bool RemovableDriveManager::update(const long time,const bool check)
 	return !m_current_drives.empty();
 }
 
-
 bool  RemovableDriveManager::is_drive_mounted(const std::string &path)
 {
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
@@ -461,12 +461,14 @@ std::string RemovableDriveManager::get_drive_path()
 		reset_last_save_path();
 		return "";
 	}
-	if (m_last_save_path != "")
+	if (m_last_save_path_verified)
 		return m_last_save_path;
 	return m_current_drives.back().path;
 }
 std::string RemovableDriveManager::get_last_save_path()
 {
+	if (!m_last_save_path_verified)
+		return "";
 	return m_last_save_path;
 }
 std::string RemovableDriveManager::get_last_save_name()
@@ -481,7 +483,7 @@ void RemovableDriveManager::check_and_notify()
 {
 	if(m_drives_count != m_current_drives.size())
 	{
-		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path != "" && !is_drive_mounted(m_last_save_path))
+		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
 		{
 			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 			{
@@ -501,9 +503,14 @@ void  RemovableDriveManager::erase_callbacks()
 }
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
-	std::string last_drive = get_drive_from_path(path);
-	if(last_drive != "")
+	m_last_save_path = path;
+}
+void RemovableDriveManager::verify_last_save_path()
+{
+	std::string last_drive = get_drive_from_path(m_last_save_path);
+	if (last_drive != "")
 	{
+		m_last_save_path_verified = true;
 		m_last_save_path = last_drive;
 		m_last_save_name = get_drive_name(last_drive);
 	}
@@ -525,7 +532,7 @@ bool RemovableDriveManager::is_last_drive_removed()
 {
 	//std::cout<<"is last: "<<m_last_save_path;
 	//m_drives_count = m_current_drives.size();
-	if(m_last_save_path == "")
+	if(!m_last_save_path_verified)
 	{
 		//std::cout<<"\n";
 		return true;
@@ -542,6 +549,7 @@ bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
 }
 void RemovableDriveManager::reset_last_save_path()
 {
+	m_last_save_path_verified = false;
 	m_last_save_path = "";
 	m_last_save_name = "";
 }
