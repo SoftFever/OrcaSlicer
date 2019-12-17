@@ -219,11 +219,14 @@ add_library(libslic3r STATIC
 )
 
 if (SLIC3R_STATIC)
-    set(CGAL_Boost_USE_STATIC_LIBS ON)
-    set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
+    set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
+set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 
+cmake_policy(PUSH)
+cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+cmake_policy(POP)
 
 add_library(libslic3r_cgal OBJECT MeshBoolean.cpp MeshBoolean.hpp)
 target_include_directories(libslic3r_cgal PRIVATE
@@ -234,7 +237,6 @@ target_compile_definitions(libslic3r_cgal PRIVATE
     $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_DEFINITIONS>)
 target_compile_options(libslic3r_cgal PRIVATE 
     $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_OPTIONS>)
-target_sources(libslic3r PRIVATE $<TARGET_OBJECTS:libslic3r_cgal>)
 
 encoding_check(libslic3r)
 
@@ -275,3 +277,5 @@ endif()
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
 endif ()
+
+target_sources(libslic3r PRIVATE $<TARGET_OBJECTS:libslic3r_cgal>)
