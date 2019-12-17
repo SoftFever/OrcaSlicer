@@ -133,7 +133,7 @@ void Scene::set_print(uqptr<SLAPrint> &&print)
     m_print = std::move(print);
         
     // Notify displays
-    call(&Display::on_scene_updated, m_displays);
+    call(&Listener::on_scene_updated, m_listeners, *this);
 }
 
 BoundingBoxf3 Scene::get_bounding_box() const
@@ -383,13 +383,18 @@ void Display::set_active(long width, long height)
     m_camera->set_screen(width, height);
 }
 
-void Display::repaint(long width, long height)
+void Display::set_screen_size(long width, long height)
 {
     if (m_size.x() != width || m_size.y() != height)
         m_camera->set_screen(width, height);
     
     m_size = {width, height};
     
+    repaint();
+}
+
+void Display::repaint()
+{
     clear_screen();
     
     m_camera->view();
@@ -400,23 +405,34 @@ void Display::repaint(long width, long height)
     swap_buffers();
 }
 
-void Display::on_scroll(long v, long d, MouseInput::WheelAxis wa)
+void Controller::on_scene_updated(const Scene &scene)
+{
+    const SLAPrint *print = scene.get_print();
+    if (!print) return;
+    
+    auto bb = scene.get_bounding_box();
+    double d = std::max(std::max(bb.size().x(), bb.size().y()), bb.size().z());
+    m_wheel_pos = long(2 * d);
+    
+    call_cameras(&Camera::set_zoom, m_wheel_pos);
+    call(&Display::on_scene_updated, m_displays, scene);    
+}
+
+void Controller::on_scroll(long v, long d, MouseInput::WheelAxis /*wa*/)
 {
     m_wheel_pos += v / d;
     
-    m_camera->set_zoom(m_wheel_pos);
-    
-    m_scene->on_scroll(v, d, wa);
-    
-    repaint(m_size.x(), m_size.y());
+    call_cameras(&Camera::set_zoom, m_wheel_pos);
+    call(&Display::repaint, m_displays);
 }
 
-void Display::on_moved_to(long x, long y)
+void Controller::on_moved_to(long x, long y)
 {
     if (m_left_btn) {
-        m_camera->rotate((Vec2i{x, y} - m_mouse_pos).cast<float>());
-        repaint();
+        call_cameras(&Camera::rotate, (Vec2i{x, y} - m_mouse_pos).cast<float>());
+        call(&Display::repaint, m_displays);
     }
+    
     m_mouse_pos = {x, y};
 }
 
@@ -424,29 +440,26 @@ void Display::apply_csgsettings(const CSGSettings &settings)
 {
     using namespace OpenCSG;
     
-    bool update = m_csgsettings.get_convexity() != settings.get_convexity();
+    bool needupdate = m_csgsettings.get_convexity() != settings.get_convexity();
     
     m_csgsettings = settings;
     setOption(AlgorithmSetting, m_csgsettings.get_algo());
     setOption(DepthComplexitySetting, m_csgsettings.get_depth_algo());
     setOption(DepthBoundsOptimization, m_csgsettings.get_optimization());
     
-    if (update) on_scene_updated();
+    if (needupdate) {
+        for (OpenCSG::Primitive * p : m_scene_cache.primitives_csg)
+            if (p->getConvexity() > 1)
+                p->setConvexity(m_csgsettings.get_convexity());
+    }
     
     repaint();
 }
 
-void Display::on_scene_updated()
+void Display::on_scene_updated(const Scene &scene)
 {
-    const SLAPrint *print = m_scene->get_print();
+    const SLAPrint *print = scene.get_print();
     if (!print) return;
-    
-    {
-    auto bb = m_scene->get_bounding_box();
-    double d = std::max(std::max(bb.size().x(), bb.size().y()), bb.size().z());
-    m_wheel_pos = long(2 * d);
-    m_camera->set_zoom(m_wheel_pos);
-    }
     
     m_scene_cache.clear();
     
@@ -497,12 +510,6 @@ void Display::on_scene_updated()
     }
     
     repaint();
-}
-
-void Display::set_scene(shptr<Scene> scene)
-{
-    m_scene = scene;
-    m_scene->add_display(shared_from_this());
 }
 
 void Camera::view()

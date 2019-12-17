@@ -21,16 +21,16 @@ template<class T> using uqptr = std::unique_ptr<T>;
 template<class T> using wkptr = std::weak_ptr<T>;
 
 template<class T, class A = std::allocator<T>>
-using Collection = std::vector<T, A>;
+using vector = std::vector<T, A>;
 
-template<class L> void cleanup(Collection<std::weak_ptr<L>> &listeners) {
+template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
     auto it = std::remove_if(listeners.begin(), listeners.end(),
                              [](auto &l) { return !l.lock(); });
     listeners.erase(it, listeners.end());
 }
 
 template<class F, class L, class...Args>
-void call(F &&f, Collection<std::weak_ptr<L>> &listeners, Args&&... args) {
+void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
     for (auto &l : listeners)
         if (auto p = l.lock()) ((p.get())->*f)(std::forward<Args>(args)...);
 }
@@ -57,7 +57,7 @@ public:
     };
     
 private:
-    Collection<wkptr<Listener>> m_listeners;
+    vector<wkptr<Listener>> m_listeners;
         
 public:
     virtual ~MouseInput() = default;
@@ -104,9 +104,9 @@ public:
 
     // Vertices and their normals, interleaved to be used by void
     // glInterleavedArrays(GL_N3F_V3F, 0, x)
-    Collection<float> vertices_and_normals_interleaved;
-    Collection<int>   triangle_indices;
-    Collection<int>   quad_indices;
+    vector<float> vertices_and_normals_interleaved;
+    vector<int>   triangle_indices;
+    vector<int>   quad_indices;
 
     // When the geometry data is loaded into the graphics card as Vertex
     // Buffer Objects, the above mentioned std::vectors are cleared and the
@@ -223,8 +223,8 @@ public:
     
 private:
     OpenCSG::Algorithm m_csgalg = OpenCSG::Algorithm::Automatic;
-    OpenCSG::DepthComplexityAlgorithm m_depth_algo = OpenCSG::DepthComplexityAlgorithm::NoDepthComplexitySampling;
-    OpenCSG::Optimization m_optim = OpenCSG::Optimization::OptimizationDefault;
+    OpenCSG::DepthComplexityAlgorithm m_depth_algo = OpenCSG::NoDepthComplexitySampling;
+    OpenCSG::Optimization m_optim = OpenCSG::OptimizationDefault;
     bool m_enable = true;
     unsigned int m_convexity = DEFAULT_CONVEXITY;
     
@@ -244,25 +244,48 @@ public:
     unsigned get_convexity() const { return m_convexity; }
     void set_convexity(unsigned c) { m_convexity = c; }
 };
-       
-class Display : public std::enable_shared_from_this<Display>,
-                public MouseInput::Listener
+      
+class Scene
+{
+    uqptr<SLAPrint> m_print;
+public:
+    
+    class Listener {
+    public:
+        virtual ~Listener() = default;
+        virtual void on_scene_updated(const Scene &scene) = 0;
+    };
+    
+    Scene();
+    ~Scene();
+    
+    void set_print(uqptr<SLAPrint> &&print);
+    const SLAPrint * get_print() const { return m_print.get(); }
+    
+    BoundingBoxf3 get_bounding_box() const;
+    
+    void add_listener(shptr<Listener> listener)
+    {
+        m_listeners.emplace_back(listener);
+        cleanup(m_listeners);
+    }
+    
+private:
+    vector<wkptr<Listener>> m_listeners;
+};
+
+class Display : public Scene::Listener
 {
 protected:
-    shptr<Scene> m_scene;
-    long m_wheel_pos = 0;
-    Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
     Vec2i m_size;
-    bool m_initialized = false, m_left_btn = false, m_right_btn = false;
+    bool m_initialized = false;
     
     CSGSettings m_csgsettings;
     
-    shptr<Camera> m_camera;
-    
     struct SceneCache {
-        Collection<shptr<Primitive>> primitives;
-        Collection<Primitive *> primitives_free;
-        Collection<OpenCSG::Primitive *> primitives_csg;
+        vector<shptr<Primitive>> primitives;
+        vector<Primitive *> primitives_free;
+        vector<OpenCSG::Primitive *> primitives_csg;
         
         void clear();
         
@@ -272,64 +295,80 @@ protected:
                                   unsigned            covexity);
     } m_scene_cache;
     
+    shptr<Camera>  m_camera;
+    
 public:
-    Display(shptr<Scene> scene = nullptr, shptr<Camera> camera = nullptr)
-        : m_scene(scene)
-        , m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
+    
+    explicit Display(shptr<Camera> camera = nullptr)
+        : m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
     {}
-
+    
+    Camera * camera() { return m_camera.get(); }
+    
     virtual void swap_buffers() = 0;
-    
     virtual void set_active(long width, long height);
+    virtual void set_screen_size(long width, long height);
+    Vec2i get_screen_size() const { return m_size; }
     
-    virtual void repaint(long width, long height);    
-    void repaint() { repaint(m_size.x(), m_size.y()); }
-    
-    void set_scene(shptr<Scene> scene);
-    shptr<Scene> get_scene() { return m_scene; }
+    virtual void repaint();
     
     bool is_initialized() const { return m_initialized; }
-    
-    void on_scroll(long v, long d, MouseInput::WheelAxis wa) override;
-    void on_moved_to(long x, long y) override;
-    void on_left_click_down() override { m_left_btn = true; }
-    void on_left_click_up() override { m_left_btn = false;  }
-    void on_right_click_down() override { m_right_btn = true;  }
-    void on_right_click_up() override { m_right_btn = false; }
-    
-    void move_clip_plane(double z) { m_camera->set_clip_z(z); }
     
     const CSGSettings & get_csgsettings() const { return m_csgsettings; }
     void apply_csgsettings(const CSGSettings &settings);
     
-    virtual void on_scene_updated();
+    void on_scene_updated(const Scene &scene) override;
+    
     virtual void clear_screen();
     virtual void render_scene();
 };
 
-class Scene: public MouseInput::Listener
+class Controller : public std::enable_shared_from_this<Controller>,
+                   public MouseInput::Listener,
+                   public Scene::Listener
 {
-    uqptr<SLAPrint> m_print;
+    long m_wheel_pos = 0;
+    Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
+    bool m_left_btn = false, m_right_btn = false;
+
+    shptr<Scene>               m_scene;
+    vector<wkptr<Display>> m_displays;
+    
+    // Call a method of Camera on all the cameras of the attached displays
+    template<class F, class...Args>
+    void call_cameras(F &&f, Args&&... args) {
+        for (wkptr<Display> &l : m_displays)
+            if (auto disp = l.lock()) if (disp->camera())
+                (disp->camera()->*f)(std::forward<Args>(args)...);
+    }
+    
 public:
     
-    Scene();
-    ~Scene();
+    void set_scene(shptr<Scene> scene)
+    {
+        m_scene = scene;
+        m_scene->add_listener(shared_from_this());
+    }
     
+    const Scene * get_scene() const { return m_scene.get(); }
+
     void add_display(shptr<Display> disp)
     {
         m_displays.emplace_back(disp);
         cleanup(m_displays);
     }
     
-    void set_print(uqptr<SLAPrint> &&print);
-    const SLAPrint * get_print() const { return m_print.get(); }
+    void on_scene_updated(const Scene &scene) override;
     
-    BoundingBoxf3 get_bounding_box() const;
+    void on_left_click_down() override { m_left_btn = true; }
+    void on_left_click_up() override { m_left_btn = false;  }
+    void on_right_click_down() override { m_right_btn = true;  }
+    void on_right_click_up() override { m_right_btn = false; }
+    
+    void on_scroll(long v, long d, MouseInput::WheelAxis wa) override;
+    void on_moved_to(long x, long y) override;
 
-private:
-    
-    Collection<wkptr<Display>> m_displays;
+    void move_clip_plane(double z) { call_cameras(&Camera::set_clip_z, z); }
 };
-
 }}     // namespace Slic3r::GL
 #endif // GLSCENE_HPP
