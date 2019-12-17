@@ -739,10 +739,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
 
             // But if custom gcode per layer height was changed
-            if (m_model.custom_gcode_per_height != model.custom_gcode_per_height) {
+            if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
                 // we should stop background processing
                 update_apply_status(this->invalidate_step(psGCodeExport));
-                m_model.custom_gcode_per_height = model.custom_gcode_per_height;
+                m_model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
             }
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.

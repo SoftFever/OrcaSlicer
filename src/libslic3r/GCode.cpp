@@ -936,7 +936,7 @@ void GCode::_do_export(Print& print, FILE* file)
 
     // Initialize custom gcode
     Model* model = print.get_object(0)->model_object()->get_model();
-    m_custom_g_code_heights = model->custom_gcode_per_height;
+    m_custom_gcode_per_print_z = model->custom_gcode_per_print_z;
 
     // Initialize autospeed.
     {
@@ -1125,19 +1125,19 @@ void GCode::_do_export(Print& print, FILE* file)
     print.throw_if_canceled();
 
     /* To avoid change filament for non-used extruder for Multi-material,
-     * check model->custom_gcode_per_height using tool_ordering values
+     * check model->custom_gcode_per_print_z using tool_ordering values
      * */
-    if (!m_custom_g_code_heights. empty())
+    if (!m_custom_gcode_per_print_z. empty())
     {
         bool delete_executed = false;
-        auto it = m_custom_g_code_heights.end();
-        while (it != m_custom_g_code_heights.begin())
+        auto it = m_custom_gcode_per_print_z.end();
+        while (it != m_custom_gcode_per_print_z.begin())
         {
             --it;
             if (it->gcode != ColorChangeCode)
                 continue;
 
-            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), LayerTools(it->height));
+            auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), LayerTools(it->print_z));
 
             bool used_extruder = false;
             for (; it_layer_tools != tool_ordering.end(); it_layer_tools++)
@@ -1154,14 +1154,14 @@ void GCode::_do_export(Print& print, FILE* file)
 
             /* If we are there, current extruder wouldn't be used,
              * so this color change is a redundant move.
-             * Delete this item from m_custom_g_code_heights
+             * Delete this item from m_custom_gcode_per_print_z
              * */
-            it = m_custom_g_code_heights.erase(it);
+            it = m_custom_gcode_per_print_z.erase(it);
             delete_executed = true;
         }
 
         if (delete_executed)
-            model->custom_gcode_per_height = m_custom_g_code_heights;
+            model->custom_gcode_per_print_z = m_custom_gcode_per_print_z;
     }
 
 
@@ -1461,7 +1461,7 @@ void GCode::_do_export(Print& print, FILE* file)
                 dst.first += buf;
                 ++ dst.second;
             };
-            print.m_print_statistics.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
+            print.m_print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
             append(out_filament_used_mm,  "%.1lf", used_filament);
             append(out_filament_used_cm3, "%.1lf", extruded_volume * 0.001);
             if (filament_weight > 0.) {
@@ -1835,15 +1835,15 @@ void GCode::process_layer(
     std::string custom_code = "";
     std::string pause_print_msg = "";
     int m600_before_extruder = -1;
-    while (!m_custom_g_code_heights.empty() && m_custom_g_code_heights.front().height-EPSILON < layer.print_z) {
-        custom_code = m_custom_g_code_heights.front().gcode;
+    while (!m_custom_gcode_per_print_z.empty() && m_custom_gcode_per_print_z.front().print_z - EPSILON < layer.print_z) {
+        custom_code = m_custom_gcode_per_print_z.front().gcode;
 
-        if (custom_code == ColorChangeCode && m_custom_g_code_heights.front().extruder > 0)
-            m600_before_extruder = m_custom_g_code_heights.front().extruder - 1;
+        if (custom_code == ColorChangeCode && m_custom_gcode_per_print_z.front().extruder > 0)
+            m600_before_extruder = m_custom_gcode_per_print_z.front().extruder - 1;
         if (custom_code == PausePrintCode)
-            pause_print_msg = m_custom_g_code_heights.front().color;
+            pause_print_msg = m_custom_gcode_per_print_z.front().color;
 
-        m_custom_g_code_heights.erase(m_custom_g_code_heights.begin());
+        m_custom_gcode_per_print_z.erase(m_custom_gcode_per_print_z.begin());
         colorprint_change = true;
     }
 
