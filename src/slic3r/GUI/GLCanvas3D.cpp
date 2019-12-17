@@ -133,7 +133,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-    , m_adaptive_cusp(0.0f)
+    , m_adaptive_quality(0.5f)
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
@@ -268,24 +268,24 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     
     ImGui::Separator();
     if (imgui.button(_(L("Adaptive"))))
-        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_cusp));
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
 
     ImGui::SameLine();
     float text_align = ImGui::GetCursorPosX();
     ImGui::AlignTextToFramePadding();
-    imgui.text(_(L("Cusp (mm)")));
+    imgui.text(_(L("Quality / Speed")));
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted(_(L("I am a tooltip")));
+        ImGui::TextUnformatted(_(L("Higher print quality versus higher print speed.")));
         ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
     float widget_align = ImGui::GetCursorPosX();
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
-    m_adaptive_cusp = clamp(0.0f, 0.5f * (float)m_slicing_parameters->layer_height, m_adaptive_cusp);
-    ImGui::SliderFloat("", &m_adaptive_cusp, 0.0f, 0.5f * (float)m_slicing_parameters->layer_height, "%.3f");
+    m_adaptive_quality = clamp(0.0f, 1.f, m_adaptive_quality);
+    ImGui::SliderFloat("", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
 
     ImGui::Separator();
     if (imgui.button(_(L("Smooth"))))
@@ -645,10 +645,10 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 }
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp)
+void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor)
 {
     this->update_slicing_parameters();
-    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object, cusp);
+    m_layer_height_profile = layer_height_profile_adaptive(*m_slicing_parameters, *m_model_object, quality_factor);
     const_cast<ModelObject*>(m_model_object)->layer_height_profile = m_layer_height_profile;
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -712,11 +712,6 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 		m_slicing_parameters = new SlicingParameters();
     	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
     }
-
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-    if (m_adaptive_cusp == 0.0f)
-        m_adaptive_cusp = 0.25f * m_slicing_parameters->layer_height;
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
@@ -1688,10 +1683,10 @@ void GLCanvas3D::reset_layer_height_profile()
     m_dirty = true;
 }
 
-void GLCanvas3D::adaptive_layer_height_profile(float cusp)
+void GLCanvas3D::adaptive_layer_height_profile(float quality_factor)
 {
     wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Adaptive")));
-    m_layers_editing.adaptive_layer_height_profile(*this, cusp);
+    m_layers_editing.adaptive_layer_height_profile(*this, quality_factor);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
@@ -1925,7 +1920,11 @@ void GLCanvas3D::render()
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
+#else
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     wxGetApp().imgui()->render();
 
@@ -2633,8 +2632,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     if (m_extra_frame_requested || mouse3d_controller_applied)
     {
         m_dirty = true;
-        evt.RequestMore();
         m_extra_frame_requested = false;
+        evt.RequestMore();
     }
     else
         m_dirty = false;

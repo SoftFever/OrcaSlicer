@@ -5,6 +5,9 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "AppConfig.hpp"
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+#include "GLCanvas3D.hpp"
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
 #include <wx/glcanvas.h>
 
@@ -184,7 +187,10 @@ Mouse3DController::Mouse3DController()
     , m_device(nullptr)
     , m_device_str("")
     , m_running(false)
-    , m_settings_dialog(false)
+    , m_show_settings_dialog(false)
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+    , m_settings_dialog_closed_by_user(false)
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
     m_last_time = std::chrono::high_resolution_clock::now();
 }
@@ -229,8 +235,11 @@ bool Mouse3DController::apply(Camera& camera)
     if (!m_running && is_device_connected())
     {
         disconnect_device();
-        // hides the settings dialog if the user re-plug the device
-        m_settings_dialog = false;
+        // hides the settings dialog if the user un-plug the device
+        m_show_settings_dialog = false;
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+        m_settings_dialog_closed_by_user = false;
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     }
 
     // check if the user plugged the device
@@ -240,88 +249,144 @@ bool Mouse3DController::apply(Camera& camera)
     return is_device_connected() ? m_state.apply(camera) : false;
 }
 
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
+#else
 void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
-    if (!m_running || !m_settings_dialog)
+    if (!m_running || !m_show_settings_dialog)
         return;
 
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-
-    imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
-
-    imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-
-    const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text(_(L("Device:")));
-    ImGui::PopStyleColor();
-    ImGui::SameLine();
-    imgui.text(m_device_str);
-
-    ImGui::Separator();
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text(_(L("Speed:")));
-    ImGui::PopStyleColor();
-
-    float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-    if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.5f, 2.0f, "%.1f"))
-        m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
-
-    float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-    if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.5f, 2.0f, "%.1f"))
-        m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
-
-    ImGui::Separator();
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text(_(L("Deadzone:")));
-    ImGui::PopStyleColor();
-
-    float translation_deadzone = (float)m_state.get_translation_deadzone();
-    if (imgui.slider_float(_(L("Translation")) + "##2", &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
-        m_state.set_translation_deadzone((double)translation_deadzone);
-
-    float rotation_deadzone = m_state.get_rotation_deadzone();
-    if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
-        m_state.set_rotation_deadzone(rotation_deadzone);
-
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-    ImGui::Separator();
-    ImGui::Separator();
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text("DEBUG:");
-    imgui.text("Vectors:");
-    ImGui::PopStyleColor();
-    Vec3f translation = m_state.get_translation().cast<float>();
-    Vec3f rotation = m_state.get_rotation();
-    ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
-
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text("Queue size:");
-    ImGui::PopStyleColor();
-
-    int translation_size[2] = { (int)m_state.get_translation_queue_size(), (int)m_state.get_translation_queue_max_size() };
-    int rotation_size[2] = { (int)m_state.get_rotation_queue_size(), (int)m_state.get_rotation_queue_max_size() };
-    int buttons_size[2] = { (int)m_state.get_buttons_queue_size(), (int)m_state.get_buttons_queue_max_size() };
-
-    ImGui::InputInt2("Translation##4", translation_size, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
-
-    int queue_size = (int)m_state.get_queues_max_size();
-    if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+    // when the user clicks on [X] or [Close] button we need to trigger
+    // an extra frame to let the dialog disappear
+    if (m_settings_dialog_closed_by_user)
     {
-        if (queue_size > 0)
-            m_state.set_queues_max_size(queue_size);
+        m_show_settings_dialog = false;
+        m_settings_dialog_closed_by_user = false;
+        canvas.request_extra_frame();
+        return;
     }
 
-    ImGui::Separator();
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    imgui.text("Camera:");
-    ImGui::PopStyleColor();
-    Vec3f target = wxGetApp().plater()->get_camera().get_target().cast<float>();
-    ImGui::InputFloat3("Target", target.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+    Size cnv_size = canvas.get_canvas_size();
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+    imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
+#else
+    imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+    static ImVec2 last_win_size(0.0f, 0.0f);
+    bool shown = true;
+    if (imgui.begin(_(L("3Dconnexion settings")), &shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
+    {
+        if (shown)
+        {
+            ImVec2 win_size = ImGui::GetWindowSize();
+            if ((last_win_size.x != win_size.x) || (last_win_size.y != win_size.y))
+            {
+                // when the user clicks on [X] button, the next time the dialog is shown 
+                // has a dummy size, so we trigger an extra frame to let it have the correct size
+                last_win_size = win_size;
+                canvas.request_extra_frame();
+            }
+#else
+    imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+
+            const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text(_(L("Device:")));
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            imgui.text(m_device_str);
+
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text(_(L("Speed:")));
+            ImGui::PopStyleColor();
+
+            float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
+            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.5f, 2.0f, "%.1f"))
+                m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
+
+            float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
+            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.5f, 2.0f, "%.1f"))
+                m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
+
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text(_(L("Deadzone:")));
+            ImGui::PopStyleColor();
+
+            float translation_deadzone = (float)m_state.get_translation_deadzone();
+            if (imgui.slider_float(_(L("Translation")) + "##2", &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
+                m_state.set_translation_deadzone((double)translation_deadzone);
+
+            float rotation_deadzone = m_state.get_rotation_deadzone();
+            if (imgui.slider_float(_(L("Rotation")) + "##2", &rotation_deadzone, 0.0f, State::MaxRotationDeadzone, "%.2f"))
+                m_state.set_rotation_deadzone(rotation_deadzone);
+
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+            ImGui::Separator();
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text("DEBUG:");
+            imgui.text("Vectors:");
+            ImGui::PopStyleColor();
+            Vec3f translation = m_state.get_translation().cast<float>();
+            Vec3f rotation = m_state.get_rotation();
+            ImGui::InputFloat3("Translation##3", translation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputFloat3("Rotation##3", rotation.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text("Queue size:");
+            ImGui::PopStyleColor();
+
+            int translation_size[2] = { (int)m_state.get_translation_queue_size(), (int)m_state.get_translation_queue_max_size() };
+            int rotation_size[2] = { (int)m_state.get_rotation_queue_size(), (int)m_state.get_rotation_queue_max_size() };
+            int buttons_size[2] = { (int)m_state.get_buttons_queue_size(), (int)m_state.get_buttons_queue_max_size() };
+
+            ImGui::InputInt2("Translation##4", translation_size, ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputInt2("Rotation##4", rotation_size, ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputInt2("Buttons", buttons_size, ImGuiInputTextFlags_ReadOnly);
+
+            int queue_size = (int)m_state.get_queues_max_size();
+            if (ImGui::InputInt("Max size", &queue_size, 1, 1, ImGuiInputTextFlags_ReadOnly))
+            {
+                if (queue_size > 0)
+                    m_state.set_queues_max_size(queue_size);
+            }
+
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            imgui.text("Camera:");
+            ImGui::PopStyleColor();
+            Vec3f target = wxGetApp().plater()->get_camera().get_target().cast<float>();
+            ImGui::InputFloat3("Target", target.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
+
+            ImGui::Separator();
+            if (imgui.button(_(L("Close"))))
+            {
+                // the user clicked on the [Close] button
+                m_settings_dialog_closed_by_user = true;
+                canvas.set_as_dirty();
+            }
+        }
+        else
+        {
+            // the user clicked on the [X] button
+            m_settings_dialog_closed_by_user = true;
+            canvas.set_as_dirty();
+        }
+    }
+#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     imgui.end();
 }

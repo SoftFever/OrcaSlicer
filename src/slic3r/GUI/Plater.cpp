@@ -3282,21 +3282,29 @@ void Plater::priv::reload_from_disk()
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
 
-            std::string sel_path = fs::path(sel_filename_path).remove_filename().string();
+            fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
             std::vector<fs::path>::iterator it = missing_input_paths.begin();
             while (it != missing_input_paths.end())
             {
                 // try to use the path of the selected file with all remaining missing files
-                std::string repathed_filename = sel_path + "/" + it->filename().string();
+                fs::path repathed_filename = sel_path;
+                repathed_filename /= it->filename();
                 if (fs::exists(repathed_filename))
                 {
-                    input_paths.push_back(repathed_filename);
+                    input_paths.push_back(repathed_filename.string());
                     it = missing_input_paths.erase(it);
                 }
                 else
                     ++it;
             }
+        }
+        else
+        {
+            wxString message = _(L("It is not allowed to change the file to reload")) + " (" + from_u8(fs::path(search).filename().string())+ ").\n" + _(L("Do you want to retry")) + " ?";
+            wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 #endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
