@@ -135,7 +135,7 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
 }
 
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* common_data_ptr)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
@@ -146,6 +146,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     , m_dragging(false)
     , m_imgui(wxGetApp().imgui())
     , m_first_input_window_render(true)
+    , m_c(common_data_ptr)
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 4 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 4 * sizeof(float));

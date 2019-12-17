@@ -21,10 +21,10 @@ enum class SLAGizmoEventType : unsigned char;
 class GLGizmoHollow : public GLGizmoBase
 {
 private:
-    ModelObject* m_model_object = nullptr;
-    ObjectID m_model_object_id = 0;
-    int m_active_instance = -1;
-    float m_active_instance_bb_radius; // to cache the bb
+    //ModelObject* m_model_object = nullptr;
+    //ObjectID m_model_object_id = 0;
+    //int m_active_instance = -1;
+    //float m_active_instance_bb_radius; // to cache the bb
     mutable double m_z_shift = 0.;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
@@ -32,19 +32,16 @@ private:
 
     GLUquadricObj* m_quadric;
 
-    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    std::unique_ptr<TriangleMesh> m_cavity_mesh;
-    std::unique_ptr<GLVolume> m_volume_with_cavity;
-    const TriangleMesh* m_mesh;
-    mutable const TriangleMesh* m_supports_mesh;
-    mutable std::vector<Vec2f> m_triangles;
-    mutable std::vector<Vec2f> m_supports_triangles;
-    mutable int m_old_timestamp = -1;
-    mutable int m_print_object_idx = -1;
-    mutable int m_print_objects_count = -1;
+    //std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
+    //std::unique_ptr<TriangleMesh> m_cavity_mesh;
+    //std::unique_ptr<GLVolume> m_volume_with_cavity;
+    //const TriangleMesh* m_mesh;
+    //mutable int m_old_timestamp = -1;
+    //mutable int m_print_object_idx = -1;
+    //mutable int m_print_objects_count = -1;
 
 public:
-    GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd);
     ~GLGizmoHollow() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
@@ -70,7 +67,6 @@ private:
     void update_mesh();
     void hollow_mesh();
     bool unsaved_changes() const;
-    const TriangleMesh* mesh() const;
 
     bool  m_show_supports = true;
     float m_new_hole_radius;        // Size of a new hole.
@@ -104,8 +100,8 @@ private:
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    mutable std::unique_ptr<MeshClipper> m_object_clipper;
-    mutable std::unique_ptr<MeshClipper> m_supports_clipper;
+    //mutable std::unique_ptr<MeshClipper> m_object_clipper;
+    //mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_mesh_point_clipped(const Vec3d& point) const;
@@ -126,7 +122,7 @@ protected:
     void on_set_hover_id() override
 
     {
-        if (int(m_model_object->sla_drain_holes.size()) <= m_hover_id)
+        if (int(m_c->m_model_object->sla_drain_holes.size()) <= m_hover_id)
             m_hover_id = -1;
     }
     void on_start_dragging() override;

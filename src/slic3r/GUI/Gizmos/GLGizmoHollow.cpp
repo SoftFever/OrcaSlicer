@@ -18,8 +18,8 @@
 namespace Slic3r {
 namespace GUI {
 
-GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoBase(parent, icon_filename, sprite_id)
+GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd)
+    : GLGizmoBase(parent, icon_filename, sprite_id, cd)
     , m_quadric(nullptr)
 {
     m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
@@ -58,23 +58,23 @@ bool GLGizmoHollow::on_init()
 void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
     if (! model_object || selection.is_empty()) {
-        m_model_object = nullptr;
+        m_c->m_model_object = nullptr;
         return;
     }
 
-    if (m_model_object != model_object || m_model_object_id != model_object->id()) {
-        m_model_object = model_object;
-        m_print_object_idx = -1;
+    if (m_c->m_model_object != model_object || m_c->m_model_object_id != model_object->id()) {
+        m_c->m_model_object = model_object;
+        m_c->m_print_object_idx = -1;
     }
 
-    m_active_instance = selection.get_instance_idx();
+    m_c->m_active_instance = selection.get_instance_idx();
 
     if (model_object && selection.is_from_single_instance())
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
         //FIXME calling ModelObject::instance_bounding_box() is expensive!
-        m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
+        m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
 
         if (is_mesh_update_necessary()) {
             update_mesh();
@@ -83,7 +83,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -96,24 +96,24 @@ void GLGizmoHollow::on_render() const
 {
     const Selection& selection = m_parent.get_selection();
 
-    // If current m_model_object does not match selection, ask GLCanvas3D to turn us off
+    // If current m_c->m_model_object does not match selection, ask GLCanvas3D to turn us off
     if (m_state == On
-     && (m_model_object != selection.get_model()->objects[selection.get_object_idx()]
-      || m_active_instance != selection.get_instance_idx()
-      || m_model_object_id != m_model_object->id())) {
+     && (m_c->m_model_object != selection.get_model()->objects[selection.get_object_idx()]
+      || m_c->m_active_instance != selection.get_instance_idx()
+      || m_c->m_model_object_id != m_c->m_model_object->id())) {
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
 
-    if (! m_mesh)
+    if (! m_c->m_mesh)
         const_cast<GLGizmoHollow*>(this)->update_mesh();
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (m_volume_with_cavity) {
+    if (m_c->m_volume_with_cavity) {
         m_parent.get_shader().start_using();
-        m_volume_with_cavity->render();
+        m_c->m_volume_with_cavity->render();
         m_parent.get_shader().stop_using();
     }
 
@@ -132,7 +132,7 @@ void GLGizmoHollow::on_render() const
 
 void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f || mesh()->empty())
+    if (m_clipping_plane_distance == 0.f || m_c->mesh()->empty())
         return;
 
     // Get transformation of the instance
@@ -150,65 +150,65 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
                                     1.));
 
     // Now initialize the TMS for the object, perform the cut and save the result.
-    if (! m_object_clipper) {
-        m_object_clipper.reset(new MeshClipper);
-        m_object_clipper->set_mesh(*mesh());
+    if (! m_c->m_object_clipper) {
+        m_c->m_object_clipper.reset(new MeshClipper);
+        m_c->m_object_clipper->set_mesh(*m_c->mesh());
     }
-    m_object_clipper->set_plane(*m_clipping_plane);
-    m_object_clipper->set_transformation(trafo);
+    m_c->m_object_clipper->set_plane(*m_clipping_plane);
+    m_c->m_object_clipper->set_transformation(trafo);
 
 
     // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
     // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
     // cached so we don't have todo it on each render. We only search for the po if needed:
-    if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
-        m_print_objects_count = m_parent.sla_print()->objects().size();
-        m_print_object_idx = -1;
+    if (m_c->m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_c->m_print_objects_count) {
+        m_c->m_print_objects_count = m_parent.sla_print()->objects().size();
+        m_c->m_print_object_idx = -1;
         for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
-            ++m_print_object_idx;
-            if (po->model_object()->id() == m_model_object->id())
+            ++m_c->m_print_object_idx;
+            if (po->model_object()->id() == m_c->m_model_object->id())
                 break;
         }
     }
-    if (m_print_object_idx >= 0) {
-        const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
+    if (m_c->m_print_object_idx >= 0) {
+        const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_c->m_print_object_idx];
 
         if (print_object->is_step_done(slaposSupportTree) && !print_object->get_mesh(slaposSupportTree).empty()) {
             // If the supports are already calculated, save the timestamp of the respective step
             // so we can later tell they were recalculated.
             size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
 
-            if (! m_supports_clipper || (int)timestamp != m_old_timestamp) {
+            if (! m_c->m_supports_clipper || (int)timestamp != m_c->m_old_timestamp) {
                 // The timestamp has changed.
-                m_supports_clipper.reset(new MeshClipper);
+                m_c->m_supports_clipper.reset(new MeshClipper);
                 // The mesh should already have the shared vertices calculated.
-                m_supports_clipper->set_mesh(print_object->support_mesh());
-                m_old_timestamp = timestamp;
+                m_c->m_supports_clipper->set_mesh(print_object->support_mesh());
+                m_c->m_old_timestamp = timestamp;
             }
-            m_supports_clipper->set_plane(*m_clipping_plane);
-            m_supports_clipper->set_transformation(supports_trafo);
+            m_c->m_supports_clipper->set_plane(*m_clipping_plane);
+            m_c->m_supports_clipper->set_transformation(supports_trafo);
         }
         else
             // The supports are not valid. We better dump the cached data.
-            m_supports_clipper.reset();
+            m_c->m_supports_clipper.reset();
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
-    if (! m_object_clipper->get_triangles().empty()) {
+    if (! m_c->m_object_clipper->get_triangles().empty()) {
         ::glPushMatrix();
         ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_object_clipper->get_triangles())
+        for (const Vec3f& point : m_c->m_object_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
         ::glPopMatrix();
     }
 
-    if (m_show_supports && m_supports_clipper && ! m_supports_clipper->get_triangles().empty()) {
+    if (m_show_supports && m_c->m_supports_clipper && ! m_c->m_supports_clipper->get_triangles().empty()) {
         ::glPushMatrix();
         ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
-        for (const Vec3f& point : m_supports_clipper->get_triangles())
+        for (const Vec3f& point : m_c->m_supports_clipper->get_triangles())
             ::glVertex3f(point(0), point(1), point(2));
         ::glEnd();
         ::glPopMatrix();
@@ -241,10 +241,10 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
     float render_color[4];
-    size_t cache_size = m_model_object->sla_drain_holes.size();
+    size_t cache_size = m_c->m_model_object->sla_drain_holes.size();
     for (size_t i = 0; i < cache_size; ++i)
     {
-        const sla::DrainHole& drain_hole = m_model_object->sla_drain_holes[i];
+        const sla::DrainHole& drain_hole = m_c->m_model_object->sla_drain_holes[i];
         const bool& point_selected = m_selected[i];
 
         if (is_mesh_point_clipped((drain_hole.pos+HoleStickOutLength*drain_hole.normal).cast<double>()))
@@ -324,7 +324,7 @@ bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const
     if (m_clipping_plane_distance == 0.f)
         return false;
 
-    Vec3d transformed_point = m_model_object->instances[m_active_instance]->get_transformation().get_matrix() * point;
+    Vec3d transformed_point = m_c->m_model_object->instances[m_c->m_active_instance]->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
     return m_clipping_plane->is_point_clipped(transformed_point);
 }
@@ -333,34 +333,34 @@ bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const
 
 bool GLGizmoHollow::is_mesh_update_necessary() const
 {
-    return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object->id() != m_model_object_id) || ! m_mesh);
+    return ((m_state == On) && (m_c->m_model_object != nullptr) && !m_c->m_model_object->instances.empty())
+        && ((m_c->m_model_object->id() != m_c->m_model_object_id) || ! m_c->m_mesh);
 }
 
 
 
 void GLGizmoHollow::update_mesh()
 {
-    if (! m_model_object)
+    if (! m_c->m_model_object)
         return;
 
     wxBusyCursor wait;
     // this way we can use that mesh directly.
     // This mesh does not account for the possible Z up SLA offset.
-    m_mesh = &m_model_object->volumes.front()->mesh();
+    m_c->m_mesh = &m_c->m_model_object->volumes.front()->mesh();
 
     // If this is different mesh than last time
-    if (m_model_object_id != m_model_object->id()) {
-        m_cavity_mesh.reset(); // dump the cavity
-        m_volume_with_cavity.reset();
-        m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
-        m_mesh_raycaster.reset();
+    if (m_c->m_model_object_id != m_c->m_model_object->id()) {
+        m_c->m_cavity_mesh.reset(); // dump the cavity
+        m_c->m_volume_with_cavity.reset();
+        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_c->m_mesh_raycaster.reset();
     }
 
-    if (! m_mesh_raycaster)
-        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
+    if (! m_c->m_mesh_raycaster)
+        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
 
-    m_model_object_id = m_model_object->id();
+    m_c->m_model_object_id = m_c->m_model_object->id();
 }
 
 
@@ -370,7 +370,7 @@ void GLGizmoHollow::update_mesh()
 bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (! m_mesh_raycaster)
+    if (! m_c->m_mesh_raycaster)
         update_mesh();
 
     const Camera& camera = m_parent.get_camera();
@@ -382,7 +382,7 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
         // Return both the point and the facet normal.
         pos_and_normal = std::make_pair(hit, normal);
         return true;
@@ -427,10 +427,10 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             std::pair<Vec3f, Vec3f> pos_and_normal;
             if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add drainage hole")));
-                m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second,
+                m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second,
                                                              -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+HoleStickOutLength);
                 m_selected.push_back(false);
-                assert(m_selected.size() == m_model_object->sla_drain_holes.size());
+                assert(m_selected.size() == m_c->m_model_object->sla_drain_holes.size());
                 m_parent.set_as_dirty();
                 m_wait_for_up_event = true;
             }
@@ -449,11 +449,11 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
         GLSelectionRectangle::EState rectangle_status = m_selection_rectangle.get_state();
 
         // First collect positions of all the points in world coordinates.
-        Geometry::Transformation trafo = m_model_object->instances[m_active_instance]->get_transformation();
+        Geometry::Transformation trafo = m_c->m_model_object->instances[m_c->m_active_instance]->get_transformation();
         trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_z_shift));
         std::vector<Vec3d> points;
-        for (unsigned int i=0; i<m_model_object->sla_drain_holes.size(); ++i)
-            points.push_back(trafo.get_matrix() * m_model_object->sla_drain_holes[i].pos.cast<double>());
+        for (unsigned int i=0; i<m_c->m_model_object->sla_drain_holes.size(); ++i)
+            points.push_back(trafo.get_matrix() * m_c->m_model_object->sla_drain_holes[i].pos.cast<double>());
 
         // Now ask the rectangle which of the points are inside.
         std::vector<Vec3f> points_inside;
@@ -462,7 +462,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             points_inside.push_back(points[idx].cast<float>());
 
         // Only select/deselect points that are actually visible
-        for (size_t idx :  m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_clipping_plane.get()))
+        for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_clipping_plane.get()))
         {
             if (rectangle_status == GLSelectionRectangle::Deselect)
                 unselect_point(points_idxs[idx]);
@@ -539,10 +539,10 @@ void GLGizmoHollow::delete_selected_points()
 {
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete drainage hole")));
 
-    for (unsigned int idx=0; idx<m_model_object->sla_drain_holes.size(); ++idx) {
+    for (unsigned int idx=0; idx<m_c->m_model_object->sla_drain_holes.size(); ++idx) {
         if (m_selected[idx]) {
             m_selected.erase(m_selected.begin()+idx);
-            m_model_object->sla_drain_holes.erase(m_model_object->sla_drain_holes.begin() + (idx--));
+            m_c->m_model_object->sla_drain_holes.erase(m_c->m_model_object->sla_drain_holes.begin() + (idx--));
         }
     }
 
@@ -555,8 +555,8 @@ void GLGizmoHollow::on_update(const UpdateData& data)
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (! unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal))
             return;
-        m_model_object->sla_drain_holes[m_hover_id].pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
-        m_model_object->sla_drain_holes[m_hover_id].normal = -pos_and_normal.second;
+        m_c->m_model_object->sla_drain_holes[m_hover_id].pos = pos_and_normal.first + HoleStickOutLength * pos_and_normal.second;
+        m_c->m_model_object->sla_drain_holes[m_hover_id].normal = -pos_and_normal.second;
     }
 }
 
@@ -568,14 +568,14 @@ std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowi
     double offset = static_cast<const ConfigOptionFloat*>(opts[0])->value;
     double quality = static_cast<const ConfigOptionFloat*>(opts[1])->value;
     double closing_d = static_cast<const ConfigOptionFloat*>(opts[2])->value;
-    return std::make_pair(m_mesh, sla::HollowingConfig{offset, quality, closing_d});
+    return std::make_pair(m_c->m_mesh, sla::HollowingConfig{offset, quality, closing_d});
 }
 
 void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
 {
-    m_mesh_raycaster = std::move(rc);
-    m_object_clipper.reset();
-    m_volume_with_cavity.reset();
+    m_c->m_mesh_raycaster = std::move(rc);
+    m_c->m_object_clipper.reset();
+    m_c->m_volume_with_cavity.reset();
 }
 
 void GLGizmoHollow::hollow_mesh()
@@ -588,13 +588,13 @@ void GLGizmoHollow::hollow_mesh()
 void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 {
     // Called from Plater when the UI job finishes
-    m_cavity_mesh = std::move(mesh);
+    m_c->m_cavity_mesh = std::move(mesh);
     
-    if(m_cavity_mesh) {
+    if(m_c->m_cavity_mesh) {
         // First subtract the holes:
-        if (! m_model_object->sla_drain_holes.empty()) {
+        if (! m_c->m_model_object->sla_drain_holes.empty()) {
             TriangleMesh holes_mesh;
-            for (const sla::DrainHole& hole : m_model_object->sla_drain_holes) {
+            for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
                 TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/8);
                 Eigen::Quaternionf q;
                 Transform3f m = Transform3f::Identity();
@@ -602,22 +602,22 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
                 hole_mesh.transform(m.cast<double>());
                 hole_mesh.translate(hole.pos);
                 holes_mesh.merge(hole_mesh);
-                //MeshBoolean::minus(*m_cavity_mesh.get(), hole_mesh);
+                //MeshBoolean::minus(*m_c->m_cavity_mesh.get(), hole_mesh);
             }
-            MeshBoolean::minus(*m_cavity_mesh.get(), holes_mesh);
+            MeshBoolean::minus(*m_c->m_cavity_mesh.get(), holes_mesh);
         }
 
 
         // create a new GLVolume that only has the cavity inside
-        Geometry::Transformation volume_trafo = m_model_object->volumes.front()->get_transformation();
+        Geometry::Transformation volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
         volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
-        m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
-        m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_cavity_mesh.get());
-        m_volume_with_cavity->finalize_geometry(true);
-        m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_volume_with_cavity->set_instance_transformation(m_model_object->instances[size_t(m_active_instance)]->get_transformation());
+        m_c->m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
+        m_c->m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_c->m_cavity_mesh.get());
+        m_c->m_volume_with_cavity->finalize_geometry(true);
+        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
+        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
     }
-    m_parent.toggle_model_objects_visibility(! m_cavity_mesh, m_model_object, m_active_instance);
+    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
     if (m_clipping_plane_distance == 0.f) {
         m_clipping_plane_distance = 0.5f;
         update_clipping_plane();
@@ -628,10 +628,10 @@ std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::ve
 {
     std::vector<const ConfigOption*> out;
 
-    if (!m_model_object)
+    if (!m_c->m_model_object)
         return out;
 
-    const DynamicPrintConfig& object_cfg = m_model_object->config;
+    const DynamicPrintConfig& object_cfg = m_c->m_model_object->config;
     const DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
 
@@ -654,7 +654,7 @@ std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::ve
 
 ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
 {
-    if (!m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
+    if (!m_c->m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
         return ClippingPlane::ClipsNothing();
     else
         return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
@@ -663,7 +663,7 @@ ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
 
 void GLGizmoHollow::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (! m_model_object)
+    if (! m_c->m_model_object)
         return;
 
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
@@ -694,7 +694,7 @@ RENDER_AGAIN:
         std::vector<const ConfigOption*> opts = get_config_options({"hollowing_enable"});
         m_enable_hollowing = static_cast<const ConfigOptionBool*>(opts[0])->value;
         if (m_imgui->checkbox(m_desc["enable"], m_enable_hollowing)) {
-            m_model_object->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
+            m_c->m_model_object->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
             wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
     }
@@ -738,14 +738,14 @@ RENDER_AGAIN:
     }
     if (slider_edited || slider_released) {
         if (slider_released) {
-            m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = m_offset_stash;
-            m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = m_quality_stash;
-            m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = m_closing_d_stash;
+            m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = m_offset_stash;
+            m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = m_quality_stash;
+            m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = m_closing_d_stash;
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Hollowing parameter change")));
         }
-        m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = offset;
-        m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = quality;
-        m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = closing_d;
+        m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_min_thickness", true)->value = offset;
+        m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_quality", true)->value = quality;
+        m_c->m_model_object->config.opt<ConfigOptionFloat>("hollowing_closing_distance", true)->value = closing_d;
         if (slider_released)
             wxGetApp().obj_list()->update_and_show_object_settings_item();
     }
@@ -786,19 +786,19 @@ RENDER_AGAIN:
     //  - take correct undo/redo snapshot after the user is done with moving the slider
     if (! m_selection_empty) {
         if (clicked) {
-            m_holes_stash = m_model_object->sla_drain_holes;
+            m_holes_stash = m_c->m_model_object->sla_drain_holes;
         }
         if (edited) {
             for (size_t idx=0; idx<m_selected.size(); ++idx)
                 if (m_selected[idx]) {
-                    m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
-                    m_model_object->sla_drain_holes[idx].height = m_new_hole_height;
+                    m_c->m_model_object->sla_drain_holes[idx].radius = m_new_hole_radius;
+                    m_c->m_model_object->sla_drain_holes[idx].height = m_new_hole_height;
                 }
         }
         if (deactivated) {
             // momentarily restore the old value to take snapshot
-            sla::DrainHoles new_holes = m_model_object->sla_drain_holes;
-            m_model_object->sla_drain_holes = m_holes_stash;
+            sla::DrainHoles new_holes = m_c->m_model_object->sla_drain_holes;
+            m_c->m_model_object->sla_drain_holes = m_holes_stash;
             float backup_rad = m_new_hole_radius;
             float backup_hei = m_new_hole_height;
             for (size_t i=0; i<m_holes_stash.size(); ++i) {
@@ -811,7 +811,7 @@ RENDER_AGAIN:
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change drainage hole diameter")));
             m_new_hole_radius = backup_rad;
             m_new_hole_height = backup_hei;
-            m_model_object->sla_drain_holes = new_holes;
+            m_c->m_model_object->sla_drain_holes = new_holes;
         }
     }
 
@@ -819,7 +819,7 @@ RENDER_AGAIN:
     remove_selected = m_imgui->button(m_desc.at("remove_selected"));
     m_imgui->disabled_end();
 
-    m_imgui->disabled_begin(m_model_object->sla_drain_holes.empty());
+    m_imgui->disabled_begin(m_c->m_model_object->sla_drain_holes.empty());
     remove_all = m_imgui->button(m_desc.at("remove_all"));
     m_imgui->disabled_end();
 
@@ -842,7 +842,7 @@ RENDER_AGAIN:
 
     // make sure supports are shown/hidden as appropriate
     m_imgui->checkbox(m_desc["show_supports"], m_show_supports);
-    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_model_object, m_active_instance);
+    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
 
     m_imgui->end();
 
@@ -896,19 +896,19 @@ std::string GLGizmoHollow::on_get_name() const
 }
 
 
-const TriangleMesh* GLGizmoHollow::mesh() const {
-    return (! m_mesh ? nullptr : (m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
-}
+//const TriangleMesh* GLGizmoHollow::mesh() const {
+//    return (! m_c->m_mesh ? nullptr : (m_c->m_cavity_mesh ? m_c->m_cavity_mesh.get() : m_c->m_mesh));
+//}
 
 
 void GLGizmoHollow::on_set_state()
 {
-    // m_model_object pointer can be invalid (for instance because of undo/redo action),
+    // m_c->m_model_object pointer can be invalid (for instance because of undo/redo action),
     // we should recover it from the object id
-    m_model_object = nullptr;
+    m_c->m_model_object = nullptr;
     for (const auto mo : wxGetApp().model().objects) {
-        if (mo->id() == m_model_object_id) {
-            m_model_object = mo;
+        if (mo->id() == m_c->m_model_object_id) {
+            m_c->m_model_object = mo;
             break;
         }
     }
@@ -922,12 +922,12 @@ void GLGizmoHollow::on_set_state()
             update_mesh();
 
         // we'll now reload support points:
-        if (m_model_object)
+        if (m_c->m_model_object)
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+        if (m_c->m_model_object)
+            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
 
         // Set default head diameter from config.
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
@@ -938,11 +938,11 @@ void GLGizmoHollow::on_set_state()
         m_parent.toggle_model_objects_visibility(true);
         m_clipping_plane_distance = 0.f;
         // Release clippers and the AABB raycaster.
-        m_object_clipper.reset();
-        m_supports_clipper.reset();
-        m_mesh_raycaster.reset();
-        m_cavity_mesh.reset();
-        m_volume_with_cavity.reset();
+        m_c->m_object_clipper.reset();
+        m_c->m_supports_clipper.reset();
+        m_c->m_mesh_raycaster.reset();
+        m_c->m_cavity_mesh.reset();
+        m_c->m_volume_with_cavity.reset();
     }
     m_old_state = m_state;
 }
@@ -954,7 +954,7 @@ void GLGizmoHollow::on_start_dragging()
     if (m_hover_id != -1) {
         select_point(NoPoints);
         select_point(m_hover_id);
-        m_hole_before_drag = m_model_object->sla_drain_holes[m_hover_id].pos;
+        m_hole_before_drag = m_c->m_model_object->sla_drain_holes[m_hover_id].pos;
     }
     else
         m_hole_before_drag = Vec3f::Zero();
@@ -964,14 +964,14 @@ void GLGizmoHollow::on_start_dragging()
 void GLGizmoHollow::on_stop_dragging()
 {
     if (m_hover_id != -1) {
-        Vec3f backup = m_model_object->sla_drain_holes[m_hover_id].pos;
+        Vec3f backup = m_c->m_model_object->sla_drain_holes[m_hover_id].pos;
 
         if (m_hole_before_drag != Vec3f::Zero() // some point was touched
          && backup != m_hole_before_drag) // and it was moved, not just selected
         {
-            m_model_object->sla_drain_holes[m_hover_id].pos = m_hole_before_drag;
+            m_c->m_model_object->sla_drain_holes[m_hover_id].pos = m_hole_before_drag;
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Move drainage hole")));
-            m_model_object->sla_drain_holes[m_hover_id].pos = backup;
+            m_c->m_model_object->sla_drain_holes[m_hover_id].pos = backup;
         }
     }
     m_hole_before_drag = Vec3f::Zero();
@@ -983,7 +983,7 @@ void GLGizmoHollow::on_load(cereal::BinaryInputArchive& ar)
 {
     ar(m_clipping_plane_distance,
        *m_clipping_plane,
-       m_model_object_id,
+       m_c->m_model_object_id,
        m_new_hole_radius,
        m_new_hole_height,
        m_selected,
@@ -997,7 +997,7 @@ void GLGizmoHollow::on_save(cereal::BinaryOutputArchive& ar) const
 {
     ar(m_clipping_plane_distance,
        *m_clipping_plane,
-       m_model_object_id,
+       m_c->m_model_object_id,
        m_new_hole_radius,
        m_new_hole_height,
        m_selected,
@@ -1014,8 +1014,8 @@ void GLGizmoHollow::select_point(int i)
         m_selection_empty = (i == NoPoints);
 
         if (i == AllPoints) {
-            m_new_hole_radius = m_model_object->sla_drain_holes[0].radius;
-            m_new_hole_height = m_model_object->sla_drain_holes[0].height;
+            m_new_hole_radius = m_c->m_model_object->sla_drain_holes[0].radius;
+            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height;
         }
     }
     else {
@@ -1023,8 +1023,8 @@ void GLGizmoHollow::select_point(int i)
             m_selected.push_back(false);
         m_selected[i] = true;
         m_selection_empty = false;
-        m_new_hole_radius = m_model_object->sla_drain_holes[i].radius;
-        m_new_hole_height = m_model_object->sla_drain_holes[i].height;
+        m_new_hole_radius = m_c->m_model_object->sla_drain_holes[i].radius;
+        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height;
     }
 }
 
@@ -1044,7 +1044,7 @@ void GLGizmoHollow::unselect_point(int i)
 void GLGizmoHollow::reload_cache()
 {
     m_selected.clear();
-    m_selected.assign(m_model_object->sla_drain_holes.size(), false);
+    m_selected.assign(m_c->m_model_object->sla_drain_holes.size(), false);
 }
 
 void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
@@ -1052,9 +1052,9 @@ void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
     Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
                         m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 
-    const Vec3d& center = m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
+    const Vec3d& center = m_c->m_model_object->instances[m_c->m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
     float dist = normal.dot(center);
-    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
+    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
     m_parent.set_as_dirty();
 }
 
