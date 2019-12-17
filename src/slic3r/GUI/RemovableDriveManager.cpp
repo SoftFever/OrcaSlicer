@@ -354,6 +354,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 // but neither triggers "succesful safe removal messege"
             std::string command = "";
 #if __APPLE__
+            //m_rdmmm->eject_device(path);
             command = "diskutil unmount ";
 #else
             command = "umount ";
@@ -365,6 +366,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
                 std::cerr<<"Ejecting failed\n";
                 return;
             }
+
 			m_did_eject = true;
             m_current_drives.erase(it);
             		

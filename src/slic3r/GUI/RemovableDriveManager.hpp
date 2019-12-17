@@ -96,6 +96,7 @@ public:
     ~RDMMMWrapper();
     void register_window();
     void list_devices();
+    void eject_device(const std::string &path);
     void log(const std::string &msg);
 protected:
     void *m_imp;
