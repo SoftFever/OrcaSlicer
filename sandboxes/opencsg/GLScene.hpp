@@ -21,16 +21,16 @@ template<class T> using uqptr = std::unique_ptr<T>;
 template<class T> using wkptr = std::weak_ptr<T>;
 
 template<class T, class A = std::allocator<T>>
-using Collection = std::vector<T, A>;
+using vector = std::vector<T, A>;
 
-template<class L> void cleanup(Collection<std::weak_ptr<L>> &listeners) {
+template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
     auto it = std::remove_if(listeners.begin(), listeners.end(),
                              [](auto &l) { return !l.lock(); });
     listeners.erase(it, listeners.end());
 }
 
 template<class F, class L, class...Args>
-void call(F &&f, Collection<std::weak_ptr<L>> &listeners, Args&&... args) {
+void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
     for (auto &l : listeners)
         if (auto p = l.lock()) ((p.get())->*f)(std::forward<Args>(args)...);
 }
@@ -57,7 +57,7 @@ public:
     };
     
 private:
-    Collection<wkptr<Listener>> m_listeners;
+    vector<wkptr<Listener>> m_listeners;
         
 public:
     virtual ~MouseInput() = default;
@@ -104,9 +104,9 @@ public:
 
     // Vertices and their normals, interleaved to be used by void
     // glInterleavedArrays(GL_N3F_V3F, 0, x)
-    Collection<float> vertices_and_normals_interleaved;
-    Collection<int>   triangle_indices;
-    Collection<int>   quad_indices;
+    vector<float> vertices_and_normals_interleaved;
+    vector<int>   triangle_indices;
+    vector<int>   quad_indices;
 
     // When the geometry data is loaded into the graphics card as Vertex
     // Buffer Objects, the above mentioned std::vectors are cleared and the
@@ -271,7 +271,7 @@ public:
     }
     
 private:
-    Collection<wkptr<Listener>> m_listeners;
+    vector<wkptr<Listener>> m_listeners;
 };
 
 class Display : public Scene::Listener
@@ -283,9 +283,9 @@ protected:
     CSGSettings m_csgsettings;
     
     struct SceneCache {
-        Collection<shptr<Primitive>> primitives;
-        Collection<Primitive *> primitives_free;
-        Collection<OpenCSG::Primitive *> primitives_csg;
+        vector<shptr<Primitive>> primitives;
+        vector<Primitive *> primitives_free;
+        vector<OpenCSG::Primitive *> primitives_csg;
         
         void clear();
         
@@ -332,8 +332,9 @@ class Controller : public std::enable_shared_from_this<Controller>,
     bool m_left_btn = false, m_right_btn = false;
 
     shptr<Scene>               m_scene;
-    Collection<wkptr<Display>> m_displays;
+    vector<wkptr<Display>> m_displays;
     
+    // Call a method of Camera on all the cameras of the attached displays
     template<class F, class...Args>
     void call_cameras(F &&f, Args&&... args) {
         for (wkptr<Display> &l : m_displays)

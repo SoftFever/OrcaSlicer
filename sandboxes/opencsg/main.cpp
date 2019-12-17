@@ -15,9 +15,9 @@
 #include <wx/tglbtn.h>
 #include <wx/combobox.h>
 #include <wx/spinctrl.h>
+#include <wx/msgdlg.h>
 #include <wx/glcanvas.h>
 
-#include "Canvas.hpp"
 #include "GLScene.hpp"
 
 #include "libslic3r/Model.hpp"
@@ -28,6 +28,33 @@
 #include "slic3r/GUI/ProgressStatusBar.hpp"
 
 using namespace Slic3r::GL;
+
+class Canvas: public wxGLCanvas, public Slic3r::GL::Display
+{
+    std::unique_ptr<wxGLContext> m_context;
+public:
+    
+    void set_active(long w, long h) override
+    {
+        SetCurrent(*m_context);
+        Slic3r::GL::Display::set_active(w, h);
+    }
+    
+    void swap_buffers() override { SwapBuffers(); }
+    
+    template<class...Args>
+    Canvas(Args &&...args): wxGLCanvas(std::forward<Args>(args)...)
+    {
+        auto ctx = new wxGLContext(this);
+        if (!ctx || !ctx->IsOK()) {
+            wxMessageBox("Could not create OpenGL context.", "Error",
+                         wxOK | wxICON_ERROR);
+            return;
+        }
+        
+        m_context.reset(ctx);
+    }
+};
 
 class MyFrame: public wxFrame
 {
