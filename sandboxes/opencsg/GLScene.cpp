@@ -5,11 +5,11 @@
 
 #include <GL/glew.h>
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+//#ifdef __APPLE__
+//#include <GLUT/glut.h>
+//#else
+//#include <GL/glut.h>
+//#endif
 
 #include <boost/log/trivial.hpp>
 
@@ -63,7 +63,7 @@ void renderfps () {
     static int msec = 0;
     
     last = msec;
-    msec = glutGet(GLUT_ELAPSED_TIME);
+//    msec = glutGet(GLUT_ELAPSED_TIME);
     if (last / 1000 != msec / 1000) {
         
         float correctedFps = fps * 1000.0f / float(msec - ancient);
@@ -82,9 +82,9 @@ void renderfps () {
     glRasterPos2f(-1.0f, -1.0f);
     glDisable(GL_LIGHTING);
     std::string s = fpsStream.str();
-    for (unsigned int i=0; i<s.size(); ++i) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
-    }
+//    for (unsigned int i=0; i<s.size(); ++i) {
+//        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
+//    }
     glEnable(GL_LIGHTING);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -347,21 +347,24 @@ void Display::clear_screen()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+Display::~Display()
+{
+    OpenCSG::freeResources();
+}
+
 void Display::set_active(long width, long height)
 {
     static int argc = 0;
     
     if (!m_initialized) {
         glewInit();
-        glutInit(&argc, nullptr);
+//        glutInit(&argc, nullptr);
         m_initialized = true;
     }
-    
-    m_size = {width, height};
-    
+
     // gray background
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-    
+
     // Enable two OpenGL lights
     GLfloat light_diffuse[]   = { 1.0f,  1.0f,  0.0f,  1.0f};  // White diffuse light
     GLfloat light_position0[] = {-1.0f, -1.0f, -1.0f,  0.0f};  // Infinite light location
@@ -380,7 +383,7 @@ void Display::set_active(long width, long height)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
     
-    m_camera->set_screen(width, height);
+    set_screen_size(width, height);
 }
 
 void Display::set_screen_size(long width, long height)
@@ -389,8 +392,6 @@ void Display::set_screen_size(long width, long height)
         m_camera->set_screen(width, height);
     
     m_size = {width, height};
-    
-    repaint();
 }
 
 void Display::repaint()

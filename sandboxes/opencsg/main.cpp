@@ -8,7 +8,7 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
-    #include <wx/wx.h>
+#include <wx/wx.h>
 #endif
 
 #include <wx/slider.h>
@@ -31,7 +31,7 @@ using namespace Slic3r::GL;
 
 class Canvas: public wxGLCanvas, public Slic3r::GL::Display
 {
-    std::unique_ptr<wxGLContext> m_context;
+    shptr<wxGLContext> m_context;
 public:
     
     void set_active(long w, long h) override
@@ -53,6 +53,12 @@ public:
         }
         
         m_context.reset(ctx);
+    }
+
+    ~Canvas() override
+    {
+        m_scene_cache.clear();
+        m_context.reset();
     }
 };
 
@@ -95,11 +101,11 @@ private:
     
     void bind_canvas_events_to_controller();
     
-    void OnExit(wxCommandEvent& /*event*/) 
+    void OnClose(wxCloseEvent& /*event*/) 
     {
         RemoveChild(m_canvas.get());
-        m_canvas->Destroy();
-        Close( true );
+        m_canvas.reset();
+        Destroy();
     }
     
     void OnOpen(wxCommandEvent &/*evt*/)
@@ -117,10 +123,7 @@ private:
     void OnShown(wxShowEvent&)
     {
         const wxSize ClientSize = GetClientSize();
-        m_canvas->set_active(ClientSize.x, ClientSize.y); 
-        
-        m_canvas->set_screen_size(ClientSize.x, ClientSize.y);
-        m_canvas->repaint();
+        m_canvas->set_active(ClientSize.x, ClientSize.y);
         
         // Do the repaint continuously
         Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
@@ -179,8 +182,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
                                         wxDefaultPosition, wxDefaultSize,
                                         wxWANTS_CHARS | wxFULL_REPAINT_ON_RESIZE);
     m_ctl->add_display(m_canvas);
-    
+
     wxPanel *control_panel = new wxPanel(this);
+
     auto controlsizer = new wxBoxSizer(wxHORIZONTAL);
     auto slider_sizer = new wxBoxSizer(wxVERTICAL);
     auto console_sizer = new wxBoxSizer(wxVERTICAL);
@@ -247,7 +251,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
     SetSizer(sizer);
     
     Bind(wxEVT_MENU, &MyFrame::OnOpen, this, wxID_OPEN);
-    Bind(wxEVT_MENU, &MyFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
+    Bind(wxEVT_MENU, [this](wxCommandEvent &) { Close(true); }, wxID_EXIT);
+    
     Bind(wxEVT_SHOW, &MyFrame::OnShown, this, GetId());
     
     Bind(wxEVT_SLIDER, [this, slider](wxCommandEvent &) {
@@ -334,7 +340,7 @@ void MyFrame::bind_canvas_events_to_controller()
 
     m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
         // This is required even though dc is not used otherwise.
-        wxPaintDC dc(this);
+        wxPaintDC dc(m_canvas.get());
         
         // Set the OpenGL viewport according to the client size of this
         // canvas. This is done here rather than in a wxSizeEvent handler
@@ -347,7 +353,7 @@ void MyFrame::bind_canvas_events_to_controller()
         
         m_canvas->set_screen_size(ClientSize.x, ClientSize.y);
         m_canvas->repaint();
-    });
+    }, m_canvas->GetId());
 }
 
 void MyFrame::SLAJob::process() 
@@ -370,3 +376,5 @@ void MyFrame::SLAJob::process()
     
     m_print->process();
 }
+
+//int main() {}

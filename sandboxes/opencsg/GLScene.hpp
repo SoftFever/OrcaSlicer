@@ -303,6 +303,8 @@ public:
         : m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
     {}
     
+    ~Display() override;
+    
     Camera * camera() { return m_camera.get(); }
     
     virtual void swap_buffers() = 0;
@@ -370,5 +372,6 @@ public:
 
     void move_clip_plane(double z) { call_cameras(&Camera::set_clip_z, z); }
 };
+
 }}     // namespace Slic3r::GL
 #endif // GLSCENE_HPP
