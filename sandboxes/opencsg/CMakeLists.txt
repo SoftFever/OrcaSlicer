@@ -11,7 +11,7 @@ find_package(wxWidgets 3.1 REQUIRED COMPONENTS core base gl html)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenCSG REQUIRED)
-# find_package(GLUT REQUIRED)
+ find_package(GLUT REQUIRED)
 include(${wxWidgets_USE_FILE})
 
 
@@ -22,6 +22,7 @@ target_compile_definitions(opencsg_example PRIVATE ${wxWidgets_DEFINITIONS})
 target_link_libraries(opencsg_example ${wxWidgets_LIBRARIES} 
     OpenCSG::opencsg 
     GLEW::GLEW
+    GLUT::GLUT
     OpenGL::GL 
     #-lXrandr -lXext -lX11
     )

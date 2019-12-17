@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "GLScene.hpp"
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/SLAPrint.hpp>
@@ -5,11 +7,11 @@
 
 #include <GL/glew.h>
 
-//#ifdef __APPLE__
-//#include <GLUT/glut.h>
-//#else
-//#include <GL/glut.h>
-//#endif
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
 #include <boost/log/trivial.hpp>
 
@@ -56,23 +58,36 @@ Scene::Scene() = default;
 Scene::~Scene() = default;
 
 void renderfps () {
-    static std::ostringstream fpsStream;
-    static int fps = 0;
-    static int ancient = 0;
-    static int last = 0;
-    static int msec = 0;
+    using Clock = std::chrono::high_resolution_clock;
+    using Duration = Clock::duration;
+    using TimePoint = Clock::time_point;
     
-    last = msec;
-//    msec = glutGet(GLUT_ELAPSED_TIME);
-    if (last / 1000 != msec / 1000) {
+    static std::ostringstream fpsStream;
+    static int frames = 0;
+    static TimePoint last = Clock::now();
+    
+    static const double resolution = 0.01;
+    static double fps = 0.;
+    
+    auto to_sec = [](Duration d) -> double {
+        return d.count() * double(Duration::period::num) / Duration::period::den;
+    };
+    
+    ++frames;
+    
+    TimePoint msec = Clock::now();
+    double seconds = to_sec(msec - last);
+    if (seconds >= resolution) {
+        last = msec;
         
-        float correctedFps = fps * 1000.0f / float(msec - ancient);
+        fps = 0.5 * (fps + frames / seconds);
+        
         fpsStream.str("");
-        fpsStream << "fps: " << correctedFps << std::ends;
+        fpsStream << "fps: " << std::setprecision(4) << fps << std::ends;
         
-        ancient = msec;
-        fps = 0;
+        frames = 0;
     }
+    
     glDisable(GL_DEPTH_TEST);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
@@ -82,15 +97,14 @@ void renderfps () {
     glRasterPos2f(-1.0f, -1.0f);
     glDisable(GL_LIGHTING);
     std::string s = fpsStream.str();
-//    for (unsigned int i=0; i<s.size(); ++i) {
-//        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
-//    }
+    for (unsigned int i=0; i<s.size(); ++i) {
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
+    }
     glEnable(GL_LIGHTING);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_DEPTH_TEST);
     
-    ++fps;
     glFlush();
 }
 
@@ -358,7 +372,7 @@ void Display::set_active(long width, long height)
     
     if (!m_initialized) {
         glewInit();
-//        glutInit(&argc, nullptr);
+        glutInit(&argc, nullptr);
         m_initialized = true;
     }
 
