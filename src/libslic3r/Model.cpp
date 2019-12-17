@@ -19,6 +19,7 @@
 #include "SVG.hpp"
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
+#include "GCode/PreviewData.hpp"
 
 namespace Slic3r {
 
@@ -125,6 +126,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (add_default_instances)
         model.add_default_instances();
 
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+
     return model;
 }
 
@@ -159,6 +162,8 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     if (add_default_instances)
         model.add_default_instances();
+
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
 
     return model;
 }
@@ -1931,6 +1936,30 @@ extern bool model_has_advanced_features(const Model &model)
             	return true;
     }
     return false;
+}
+
+extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config)
+{
+    if (!config->has("colorprint_heights"))
+        return;
+
+    const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+
+    const auto& colorprint_values = config->option<ConfigOptionFloats>("colorprint_heights")->values;
+    
+    if (!colorprint_values.empty())
+    {
+        custom_gcode_per_print_z.clear();
+        custom_gcode_per_print_z.reserve(colorprint_values.size());
+        int i = 0;
+        for (auto val : colorprint_values)
+            custom_gcode_per_print_z.emplace_back(Model::CustomGCode{ val, ColorChangeCode, 1, colors[(++i)%7] });
+    }
+
+    /* There is one and only place this configuration option is used now.
+     * It wouldn't be used in the future, so erase it.
+     * */
+    config->erase("colorprint_heights");
 }
 
 #ifndef NDEBUG

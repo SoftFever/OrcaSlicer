@@ -94,12 +94,13 @@ void BackgroundSlicingProcess::process_fff()
     m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
+    /* #ys_FIXME_no_exported_codes
     if (m_fff_print->model().custom_gcode_per_print_z != GUI::wxGetApp().model().custom_gcode_per_print_z) {
         GUI::wxGetApp().model().custom_gcode_per_print_z = m_fff_print->model().custom_gcode_per_print_z;
-        // #ys_FIXME : controll text
         GUI::show_info(nullptr, _(L("To except of redundant tool manipulation, \n"
                                     "Color change(s) for unused extruder(s) was(were) deleted")), _(L("Info")));
     }
+    */
 
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {

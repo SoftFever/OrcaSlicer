@@ -874,6 +874,10 @@ extern bool model_volume_list_changed(const ModelObject &model_object_old, const
 extern bool model_has_multi_part_objects(const Model &model);
 // If the model has advanced features, then it cannot be processed in simple mode.
 extern bool model_has_advanced_features(const Model &model);
+/* If loaded configuration has a "colorprint_heights" option (if it was imported from older Slicer), 
+ * then model.custom_gcode_per_print_z should be updated considering this option
+ * */
+extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config);
 
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.

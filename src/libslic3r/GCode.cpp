@@ -1124,9 +1124,11 @@ void GCode::_do_export(Print& print, FILE* file)
     }
     print.throw_if_canceled();
 
+// #ys_FIXME_no_exported_codes
+    /*
     /* To avoid change filament for non-used extruder for Multi-material,
      * check model->custom_gcode_per_print_z using tool_ordering values
-     * */
+     * /
     if (!m_custom_gcode_per_print_z. empty())
     {
         bool delete_executed = false;
@@ -1155,7 +1157,7 @@ void GCode::_do_export(Print& print, FILE* file)
             /* If we are there, current extruder wouldn't be used,
              * so this color change is a redundant move.
              * Delete this item from m_custom_gcode_per_print_z
-             * */
+             * /
             it = m_custom_gcode_per_print_z.erase(it);
             delete_executed = true;
         }
@@ -1163,7 +1165,7 @@ void GCode::_do_export(Print& print, FILE* file)
         if (delete_executed)
             model->custom_gcode_per_print_z = m_custom_gcode_per_print_z;
     }
-
+*/
 
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
