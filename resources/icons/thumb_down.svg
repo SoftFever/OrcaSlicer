@@ -4,7 +4,7 @@
 	 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
 <g id="hex_x5F_plus">
 	<g>
-		<polygon fill="#ED6B21" points="2,8 2,11 8,15 14,11 14,8 "/>
+		<polygon fill="#ED6B21" points="1,8 1,11 8,16 15,11 15,8 " style="stroke:white;stroke-width:1"/>
 	</g>
 </g>
 </svg>

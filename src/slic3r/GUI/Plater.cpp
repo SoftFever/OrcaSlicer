@@ -2334,7 +2334,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         config += std::move(config_loaded);
                     }
 
-                    this->model.custom_gcode_per_height = model.custom_gcode_per_height;
+                    this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
 
                 if (load_config)
@@ -2753,7 +2753,7 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    model.custom_gcode_per_height.clear();
+    model.custom_gcode_per_print_z.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -3615,7 +3615,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second) // right button was clicked on empty space
             menu = &default_menu;
         else
+        {
+            sidebar->obj_list()->show_multi_selection_menu();
             return;
+        }
     }
     else
     {
@@ -5174,6 +5177,7 @@ const DynamicPrintConfig* Plater::get_plater_config() const
     return p->config;
 }
 
+// Get vector of extruder colors considering filament color, if extruder color is undefined.
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -5193,13 +5197,17 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
     return extruder_colors;
 }
 
+/* Get vector of colors used for rendering of a Preview scene in "Color print" mode
+ * It consists of extruder colors and colors, saved in model.custom_gcode_per_print_z
+ */
 std::vector<std::string> Plater::get_colors_for_color_print() const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.size());
 
-    for (const Model::CustomGCode& code : p->model.custom_gcode_per_height)
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z)
         if (code.gcode == ColorChangeCode)
-            colors.push_back(code.color);
+            colors.emplace_back(code.color);
 
     return colors;
 }

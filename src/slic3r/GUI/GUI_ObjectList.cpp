@@ -3874,8 +3874,8 @@ void ObjectList::show_multi_selection_menu()
     GetSelections(sels);
 
     for (const wxDataViewItem& item : sels)
-        if (!(m_objects_model->GetItemType(item) & (itVolume | itObject)))
-            // show this menu only for Object(s)/Volume(s) selection
+        if (!(m_objects_model->GetItemType(item) & (itVolume | itObject | itInstance)))
+            // show this menu only for Objects(Instances mixed with Objects)/Volumes selection
             return;
 
     wxMenu* menu = new wxMenu();
@@ -3885,7 +3885,12 @@ void ObjectList::show_multi_selection_menu()
             _(L("Select extruder number for selected objects and/or parts")),
             [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
 
-    PopupMenu(menu);
+    append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
+        [this](wxCommandEvent&) { wxGetApp().plater()->reload_from_disk(); }, "", menu, []() {
+        return wxGetApp().plater()->can_reload_from_disk();
+    }, wxGetApp().plater());
+
+    wxGetApp().plater()->PopupMenu(menu);
 }
 
 void ObjectList::extruder_selection()
