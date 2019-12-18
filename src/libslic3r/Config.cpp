@@ -612,7 +612,7 @@ void ConfigBase::load_from_gcode_file(const std::string &file)
 	}
     ifs.seekg(0, ifs.end);
 	auto file_length = ifs.tellg();
-	auto data_length = std::min<std::fstream::streampos>(65535, file_length);
+	auto data_length = std::min<std::fstream::pos_type>(65535, file_length);
 	ifs.seekg(file_length - data_length, ifs.beg);
     std::vector<char> data(size_t(data_length) + 1, 0);
     ifs.read(data.data(), data_length);
