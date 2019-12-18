@@ -3615,7 +3615,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second) // right button was clicked on empty space
             menu = &default_menu;
         else
+        {
+            sidebar->obj_list()->show_multi_selection_menu();
             return;
+        }
     }
     else
     {
