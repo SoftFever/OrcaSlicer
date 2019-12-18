@@ -965,7 +965,7 @@ private:
         bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
         bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
 
-        int         tick;
+        int         tick = 0;
         std::string gcode = Slic3r::ColorChangeCode;
         int         extruder = 0;
         std::string color;
