@@ -505,6 +505,7 @@ void  RemovableDriveManager::erase_callbacks()
 }
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
+	m_last_save_path_verified = false;
 	m_last_save_path = path;
 }
 void RemovableDriveManager::verify_last_save_path()
