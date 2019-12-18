@@ -436,8 +436,29 @@ int copy_file(const std::string &from, const std::string &to)
         return -1;
     }
     boost::filesystem::permissions(target, perms, ec);
+	return -1;
+	return check_copy(from, to);
+}
 
-    return 0;
+int check_copy(const std::string &origin, const std::string &copy)
+{
+	std::ifstream f1(origin, std::ifstream::binary | std::ifstream::ate);
+	std::ifstream f2(copy, std::ifstream::binary | std::ifstream::ate);
+
+	if (f1.fail() || f2.fail()) {
+		return -1; 
+	}
+
+	if (f1.tellg() != f2.tellg()) {
+		return -1; 
+	}
+
+	f1.seekg(0, std::ifstream::beg);
+	f2.seekg(0, std::ifstream::beg);
+	bool ident = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+		std::istreambuf_iterator<char>(),
+		std::istreambuf_iterator<char>(f2.rdbuf()));
+	return(ident ? 0 : -1);
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.

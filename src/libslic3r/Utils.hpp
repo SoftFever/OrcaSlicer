@@ -67,6 +67,9 @@ extern std::error_code rename_file(const std::string &from, const std::string &t
 // Copy a file, adjust the access attributes, so that the target is writable.
 extern int copy_file(const std::string &from, const std::string &to);
 
+// Compares two files, returns 0 if identical.
+extern int check_copy(const std::string& origin, const std::string& copy);
+
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
 // https://github.com/prusa3d/PrusaSlicer/issues/1298
 extern bool is_plain_file(const boost::filesystem::directory_entry &path);
