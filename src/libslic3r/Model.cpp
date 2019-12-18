@@ -18,6 +18,8 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include "GCodeWriter.hpp"
+#include "GCode/PreviewData.hpp"
 
 namespace Slic3r {
 
@@ -43,7 +45,7 @@ Model& Model::assign_copy(const Model &rhs)
     }
 
     // copy custom code per height
-    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
+    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
     return *this;
 }
 
@@ -64,7 +66,7 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.objects.clear();
 
     // copy custom code per height
-    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
+    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
     return *this;
 }
 
@@ -124,6 +126,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (add_default_instances)
         model.add_default_instances();
 
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+
     return model;
 }
 
@@ -158,6 +162,8 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     if (add_default_instances)
         model.add_default_instances();
+
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
 
     return model;
 }
@@ -595,16 +601,15 @@ std::string Model::propose_export_file_name_and_path(const std::string &new_exte
 std::vector<std::pair<double, DynamicPrintConfig>> Model::get_custom_tool_changes(double default_layer_height, size_t num_extruders) const
 {
     std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes;
-    if (!custom_gcode_per_height.empty()) {
-        for (const CustomGCode& custom_gcode : custom_gcode_per_height)
-            if (custom_gcode.gcode == ExtruderChangeCode) {
-                DynamicPrintConfig config;
-                // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
-                config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder > num_extruders ? 0 : custom_gcode.extruder));
-                // For correct extruders(tools) changing, we should decrease custom_gcode.height value by one default layer height
-                custom_tool_changes.push_back({ custom_gcode.height - default_layer_height, config });
-            }
-    }
+    for (const CustomGCode& custom_gcode : custom_gcode_per_print_z)
+        if (custom_gcode.gcode == ExtruderChangeCode) {
+            DynamicPrintConfig config;
+            // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
+            config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder > num_extruders ? 0 : custom_gcode.extruder));
+            // For correct extruders(tools) changing, we should decrease custom_gcode.height value by one default layer height
+            custom_tool_changes.push_back({ custom_gcode.print_z - default_layer_height, config });
+        }
+
     return custom_tool_changes;
 }
 
@@ -1931,6 +1936,30 @@ extern bool model_has_advanced_features(const Model &model)
             	return true;
     }
     return false;
+}
+
+extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config)
+{
+    if (!config->has("colorprint_heights"))
+        return;
+
+    const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+
+    const auto& colorprint_values = config->option<ConfigOptionFloats>("colorprint_heights")->values;
+    
+    if (!colorprint_values.empty())
+    {
+        custom_gcode_per_print_z.clear();
+        custom_gcode_per_print_z.reserve(colorprint_values.size());
+        int i = 0;
+        for (auto val : colorprint_values)
+            custom_gcode_per_print_z.emplace_back(Model::CustomGCode{ val, ColorChangeCode, 1, colors[(++i)%7] });
+    }
+
+    /* There is one and only place this configuration option is used now.
+     * It wouldn't be used in the future, so erase it.
+     * */
+    config->erase("colorprint_heights");
 }
 
 #ifndef NDEBUG

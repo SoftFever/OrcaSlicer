@@ -2370,7 +2370,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         config += std::move(config_loaded);
                     }
 
-                    this->model.custom_gcode_per_height = model.custom_gcode_per_height;
+                    this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
 
                 if (load_config)
@@ -2789,7 +2789,7 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    model.custom_gcode_per_height.clear();
+    model.custom_gcode_per_print_z.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -3282,21 +3282,29 @@ void Plater::priv::reload_from_disk()
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
 
-            std::string sel_path = fs::path(sel_filename_path).remove_filename().string();
+            fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
             std::vector<fs::path>::iterator it = missing_input_paths.begin();
             while (it != missing_input_paths.end())
             {
                 // try to use the path of the selected file with all remaining missing files
-                std::string repathed_filename = sel_path + "/" + it->filename().string();
+                fs::path repathed_filename = sel_path;
+                repathed_filename /= it->filename();
                 if (fs::exists(repathed_filename))
                 {
-                    input_paths.push_back(repathed_filename);
+                    input_paths.push_back(repathed_filename.string());
                     it = missing_input_paths.erase(it);
                 }
                 else
                     ++it;
             }
+        }
+        else
+        {
+            wxString message = _(L("It is not allowed to change the file to reload")) + " (" + from_u8(fs::path(search).filename().string())+ ").\n" + _(L("Do you want to retry")) + " ?";
+            wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 #endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
@@ -5042,6 +5050,7 @@ void Plater::drive_ejected_callback()
 {
 	if (RemovableDriveManager::get_instance().get_did_eject())
 	{
+        RemovableDriveManager::get_instance().set_did_eject(false);
 		wxString message = "Unmounting succesesful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
 		wxMessageBox(message);
 	}
@@ -5260,6 +5269,7 @@ const DynamicPrintConfig* Plater::get_plater_config() const
     return p->config;
 }
 
+// Get vector of extruder colors considering filament color, if extruder color is undefined.
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -5279,13 +5289,17 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
     return extruder_colors;
 }
 
+/* Get vector of colors used for rendering of a Preview scene in "Color print" mode
+ * It consists of extruder colors and colors, saved in model.custom_gcode_per_print_z
+ */
 std::vector<std::string> Plater::get_colors_for_color_print() const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.size());
 
-    for (const Model::CustomGCode& code : p->model.custom_gcode_per_height)
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z)
         if (code.gcode == ColorChangeCode)
-            colors.push_back(code.color);
+            colors.emplace_back(code.color);
 
     return colors;
 }

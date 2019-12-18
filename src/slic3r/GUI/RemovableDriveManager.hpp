@@ -56,6 +56,7 @@ public:
 	void set_is_writing(const bool b);
 	bool get_is_writing();
 	bool get_did_eject();
+	void set_did_eject(const bool b);
 	std::string get_drive_name(const std::string& path);
 private:
     RemovableDriveManager();

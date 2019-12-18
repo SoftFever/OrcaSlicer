@@ -20,7 +20,7 @@ else ()
     ExternalProject_Add(dep_GMP
         URL  https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2
         BUILD_IN_SOURCE ON 
-        CONFIGURE_COMMAND ./configure --enable-shared=no --enable-static=yes "--prefix=${DESTDIR}/usr/local" --with-pic
+        CONFIGURE_COMMAND ./configure --enable-shared=no --enable-cxx=yes --enable-static=yes "--prefix=${DESTDIR}/usr/local" --with-pic
         BUILD_COMMAND     make -j
         INSTALL_COMMAND   make install
     )

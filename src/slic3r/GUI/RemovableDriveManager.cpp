@@ -505,6 +505,7 @@ void  RemovableDriveManager::erase_callbacks()
 }
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
+	m_last_save_path_verified = false;
 	m_last_save_path = path;
 }
 void RemovableDriveManager::verify_last_save_path()
@@ -570,5 +571,9 @@ bool RemovableDriveManager::get_is_writing()
 bool RemovableDriveManager::get_did_eject()
 {
 	return m_did_eject;
+}
+void RemovableDriveManager::set_did_eject(const bool b)
+{
+	m_did_eject = b;
 }
 }}//namespace Slicer::Gui

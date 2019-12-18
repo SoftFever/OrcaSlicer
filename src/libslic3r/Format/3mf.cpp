@@ -51,7 +51,7 @@ const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
-const std::string CUSTOM_GCODE_PER_HEIGHT_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_height.xml";
+const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -418,7 +418,7 @@ namespace Slic3r {
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
-        void _extract_custom_gcode_per_height_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_custom_gcode_per_print_z_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
@@ -629,10 +629,10 @@ namespace Slic3r {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, filename);
                 }
-                if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_HEIGHT_FILE))
+                if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE))
                 {
                     // extract slic3r layer config ranges file
-                    _extract_custom_gcode_per_height_from_archive(archive, stat);
+                    _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE))
                 {
@@ -1064,7 +1064,7 @@ namespace Slic3r {
         return true;
     }
 
-    void _3MF_Importer::_extract_custom_gcode_per_height_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
+    void _3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
         if (stat.m_uncomp_size > 0)
         {
@@ -1079,24 +1079,23 @@ namespace Slic3r {
             pt::ptree main_tree;
             pt::read_xml(iss, main_tree);
 
-            if (main_tree.front().first != "custom_gcodes_per_height")
+            if (main_tree.front().first != "custom_gcodes_per_print_z")
                 return;
             pt::ptree code_tree = main_tree.front().second;
 
-            if (!m_model->custom_gcode_per_height.empty())
-                m_model->custom_gcode_per_height.clear();
+            m_model->custom_gcode_per_print_z.clear();
 
             for (const auto& code : code_tree)
             {
                 if (code.first != "code")
                     continue;
                 pt::ptree tree = code.second;
-                double height       = tree.get<double>("<xmlattr>.height");
-                std::string gcode   = tree.get<std::string>("<xmlattr>.gcode");
-                int extruder        = tree.get<int>("<xmlattr>.extruder");
-                std::string color   = tree.get<std::string>("<xmlattr>.color");
+                double print_z      = tree.get<double>      ("<xmlattr>.print_z"    );
+                std::string gcode   = tree.get<std::string> ("<xmlattr>.gcode"      );
+                int extruder        = tree.get<int>         ("<xmlattr>.extruder"   );
+                std::string color   = tree.get<std::string> ("<xmlattr>.color"      );
 
-                m_model->custom_gcode_per_height.push_back(Model::CustomGCode(height, gcode, extruder, color)) ;
+                m_model->custom_gcode_per_print_z.push_back(Model::CustomGCode{print_z, gcode, extruder, color}) ;
             }
         }
     }
@@ -1885,7 +1884,7 @@ namespace Slic3r {
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
-        bool _add_custom_gcode_per_height_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model);
     };
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1988,9 +1987,9 @@ namespace Slic3r {
             return false;
         }
 
-        // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_height.xml").
+        // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
         // All custom gcode per height of whole Model are stored here
-        if (!_add_custom_gcode_per_height_file_to_archive(archive, model))
+        if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model))
         {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2567,20 +2566,20 @@ namespace Slic3r {
         return true;
     }
 
-bool _3MF_Exporter::_add_custom_gcode_per_height_file_to_archive( mz_zip_archive& archive, Model& model)
+bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model)
 {
     std::string out = "";
 
-    if (!model.custom_gcode_per_height.empty())
+    if (!model.custom_gcode_per_print_z.empty())
     {
         pt::ptree tree;
-        pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
+        pt::ptree& main_tree = tree.add("custom_gcodes_per_print_z", "");
 
-        for (const Model::CustomGCode& code : model.custom_gcode_per_height)
+        for (const Model::CustomGCode& code : model.custom_gcode_per_print_z)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
             // store minX and maxZ
-            code_tree.put("<xmlattr>.height"    , code.height   );
+            code_tree.put("<xmlattr>.print_z"   , code.print_z  );
             code_tree.put("<xmlattr>.gcode"     , code.gcode    );
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
@@ -2599,9 +2598,9 @@ bool _3MF_Exporter::_add_custom_gcode_per_height_file_to_archive( mz_zip_archive
 
     if (!out.empty())
     {
-        if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_HEIGHT_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+        if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_PRINT_Z_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
         {
-            add_error("Unable to add custom Gcodes per height file to archive");
+            add_error("Unable to add custom Gcodes per print_z file to archive");
             return false;
         }
     }

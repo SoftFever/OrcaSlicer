@@ -254,6 +254,16 @@ bool ImGuiWrapper::begin(const wxString &name, int flags)
     return begin(into_u8(name), flags);
 }
 
+bool ImGuiWrapper::begin(const std::string& name, bool* close, int flags)
+{
+    return ImGui::Begin(name.c_str(), close, (ImGuiWindowFlags)flags);
+}
+
+bool ImGuiWrapper::begin(const wxString& name, bool* close, int flags)
+{
+    return begin(into_u8(name), close, flags);
+}
+
 void ImGuiWrapper::end()
 {
     ImGui::End();
