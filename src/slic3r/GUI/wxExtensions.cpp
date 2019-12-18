@@ -14,6 +14,7 @@
 #include <wx/colordlg.h>
 
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 #include "BitmapCache.hpp"
 #include "GUI.hpp"
@@ -57,7 +58,7 @@ void msw_rescale_menu(wxMenu* menu)
 #endif /* __WXMSW__ */
 #endif /* no __WXGTK__ */
 
-void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item)
+void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item, wxWindow* win)
 {
     const bool enable = cb_condition();
     evt.Enable(enable);
@@ -66,7 +67,7 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
     const auto it = msw_menuitem_bitmaps.find(item->GetId());
     if (it != msw_menuitem_bitmaps.end())
     {
-        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second, 16, false, !enable);
+        const wxBitmap& item_icon = create_scaled_bitmap(win, it->second, 16, false, !enable);
         if (item_icon.IsOk())
             item->SetBitmap(item_icon);
     }
@@ -94,8 +95,8 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
         menu->Bind(wxEVT_MENU, cb, id);
 
     if (parent) {
-        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
-            enable_menu_item(evt, cb_condition, item); }, id);
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item, parent](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item, parent); }, id);
     }
 
     return item;
@@ -108,7 +109,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     if (id == wxID_ANY)
         id = wxNewId();
 
-    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(nullptr, icon) : wxNullBitmap;   // FIXME: pass window ptr
+    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(parent, icon) : wxNullBitmap;   // FIXME: pass window ptr
 //#ifdef __WXMSW__
 #ifndef __WXGTK__
     if (bmp.IsOk())
@@ -126,7 +127,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty()) {
-        item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
+        item->SetBitmap(create_scaled_bitmap(parent, icon));    // FIXME: pass window ptr
 //#ifdef __WXMSW__
 #ifndef __WXGTK__
         msw_menuitem_bitmaps[id] = icon;
@@ -137,8 +138,8 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     menu->Append(item);
 
     if (parent) {
-        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
-            enable_menu_item(evt, cb_condition, item); }, id);
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item, parent](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item, parent); }, id);
     }
 
     return item;
@@ -424,6 +425,28 @@ static float get_svg_scale_factor(wxWindow *win)
 #endif
 }
 
+// in the Dark mode of any platform, we should draw icons in respect to OS background
+static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
+{
+#ifdef __WXMSW__
+    const std::string folder = "white\\";
+#else
+    const std::string folder = "white/";
+#endif
+    std::string bmp_name = Slic3r::GUI::wxGetApp().dark_mode() ? folder + bmp_name_in : bmp_name_in;
+    boost::replace_last(bmp_name, ".png", "");
+    FILE* fp = NULL;
+    fp = boost::nowide::fopen(Slic3r::var(bmp_name + ".svg").c_str(), "rb");
+    if (!fp)
+    {
+        bmp_name = bmp_name_in;
+        boost::replace_last(bmp_name, ".png", "");
+        if (fp) fclose(fp);
+    }
+
+    return bmp_name;
+}
+
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
     const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
@@ -450,8 +473,10 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 
     scale_base = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
 
-    std::string bmp_name = bmp_name_in;
-    boost::replace_last(bmp_name, ".png", "");
+//    std::string bmp_name = bmp_name_in;
+//    boost::replace_last(bmp_name, ".png", "");
+
+    std::string bmp_name = icon_name_respected_to_mode(bmp_name_in);
 
     // Try loading an SVG first, then PNG if SVG is not found:
     wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale);

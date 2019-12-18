@@ -334,16 +334,11 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 
 bool GUI_App::dark_mode()
 {
-    const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    return luma < 128;
-}
-
-bool GUI_App::dark_mode_menus()
-{
 #if __APPLE__
     return mac_dark_mode();
 #else
-    return dark_mode();
+    const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    return luma < 128;
 #endif
 }
 
