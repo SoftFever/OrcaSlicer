@@ -417,7 +417,7 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
-int copy_file(const std::string &from, const std::string &to)
+int copy_file(const std::string &from, const std::string &to, const bool with_check)
 {
     const boost::filesystem::path source(from);
     const boost::filesystem::path target(to);
@@ -436,8 +436,7 @@ int copy_file(const std::string &from, const std::string &to)
         return -1;
     }
     boost::filesystem::permissions(target, perms, ec);
-	return -1;
-	return check_copy(from, to);
+	return (with_check ? check_copy(from, to) : 0);
 }
 
 int check_copy(const std::string &origin, const std::string &copy)
