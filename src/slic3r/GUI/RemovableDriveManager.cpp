@@ -380,9 +380,11 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
 		return false;
+	std::size_t found = path.find_last_of("/");
+	std::string new_path = path.substr(0,found);
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
-		if(compare_filesystem_id(path, (*it).path))
+		if(compare_filesystem_id(new_path, (*it).path))
 			return true;
 	}
 	return false;
