@@ -165,7 +165,6 @@ public:
 };
 
 bool enable_multisampling(bool e = true);
-void renderfps();
 
 class Primitive : public OpenCSG::Primitive
 {
@@ -190,8 +189,6 @@ public:
     }
 };
 
-class Scene;
-
 class Camera {
 protected:
     Vec2f m_rot = {0., 0.};
@@ -210,6 +207,20 @@ public:
     void set_zoom(double z) { m_zoom = z; }
     void set_reference_point(const Vec3d &p) { m_referene = p; }
     void set_clip_z(double z) { m_clip_z = z; }
+};
+
+inline void reset(Camera &cam)
+{
+    cam.set_rotation({0., 0.});
+    cam.set_zoom(0.);
+    cam.set_reference_point({0., 0., 0.});
+    cam.set_clip_z(0.);
+}
+
+class PerspectiveCamera: public Camera {
+public:
+    
+    void set_screen(long width, long height) override;
 };
 
 class FpsCounter {
@@ -232,25 +243,7 @@ class FpsCounter {
     
 public:
     
-    void update()
-    {
-        ++m_frames;
-        
-        TimePoint msec = Clock::now();
-        
-        double seconds_window = to_sec(msec - m_window);
-        m_fps = 0.5 * m_fps + 0.5 * (m_frames / seconds_window);
-        
-        if (to_sec(msec - m_last) >= m_resolution) {
-            m_last = msec;
-            for (auto &l : m_listeners) l(m_fps);
-        }
-        
-        if (seconds_window >= m_window_size) {
-            m_frames = 0;
-            m_window = msec;
-        }
-    }
+    void update();
 
     void add_listener(std::function<void(double)> lst)
     {
@@ -264,12 +257,6 @@ public:
     
     double get_notification_interval() const { return m_resolution; }
     double get_mesure_window_size() const { return m_window_size; }
-};
-
-class PerspectiveCamera: public Camera {
-public:
-    
-    void set_screen(long width, long height) override;
 };
 
 class CSGSettings {
@@ -397,7 +384,7 @@ class Controller : public std::enable_shared_from_this<Controller>,
     Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
     bool m_left_btn = false, m_right_btn = false;
 
-    shptr<Scene>               m_scene;
+    shptr<Scene>           m_scene;
     vector<wkptr<Display>> m_displays;
     
     // Call a method of Camera on all the cameras of the attached displays

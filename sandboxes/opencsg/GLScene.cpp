@@ -352,7 +352,6 @@ void Display::repaint()
     m_camera->view();
     render_scene();
     
-//    renderfps();
     m_fps_counter.update();
     
     swap_buffers();
@@ -507,5 +506,25 @@ bool enable_multisampling(bool e)
 }
 
 MouseInput::Listener::~Listener() = default;
+
+void FpsCounter::update()
+{
+    ++m_frames;
+    
+    TimePoint msec = Clock::now();
+    
+    double seconds_window = to_sec(msec - m_window);
+    m_fps = 0.5 * m_fps + 0.5 * (m_frames / seconds_window);
+    
+    if (to_sec(msec - m_last) >= m_resolution) {
+        m_last = msec;
+        for (auto &l : m_listeners) l(m_fps);
+    }
+    
+    if (seconds_window >= m_window_size) {
+        m_frames = 0;
+        m_window = msec;
+    }
+}
 
 }} // namespace Slic3r::GL

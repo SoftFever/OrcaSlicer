@@ -53,12 +53,116 @@ public:
         }
         
         m_context.reset(ctx);
+        
+        Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
+            // This is required even though dc is not used otherwise.
+            wxPaintDC dc(this);
+
+            // Set the OpenGL viewport according to the client size of this
+            // canvas. This is done here rather than in a wxSizeEvent handler
+            // because our OpenGL rendering context (and thus viewport
+            // setting) is used with multiple canvases: If we updated the
+            // viewport in the wxSizeEvent handler, changing the size of one
+            // canvas causes a viewport setting that is wrong when next
+            // another canvas is repainted.
+            const wxSize ClientSize = GetClientSize();
+            
+            set_screen_size(ClientSize.x, ClientSize.y);
+            repaint();
+        });
     }
 
     ~Canvas() override
     {
         m_scene_cache.clear();
         m_context.reset();
+    }
+};
+
+enum EEvents { LCLK_U, RCLK_U, LCLK_D, RCLK_D, DDCLK, SCRL, MV };
+struct Event
+{
+    EEvents type;
+    long    a, b;
+    Event(EEvents t, long x = 0, long y = 0) : type{t}, a{x}, b{y} {}
+};
+
+class RecorderMouseInput: public MouseInput {
+    std::vector<Event> m_events;
+    bool m_recording = false, m_playing = false;
+    
+public:
+    void left_click_down() override
+    {
+        if (m_recording) m_events.emplace_back(LCLK_D);
+        if (!m_playing) MouseInput::left_click_down();
+    }
+    void left_click_up() override
+    {
+        if (m_recording) m_events.emplace_back(LCLK_U);
+        if (!m_playing) MouseInput::left_click_up();
+    }
+    void right_click_down() override
+    {
+        if (m_recording) m_events.emplace_back(RCLK_D);
+        if (!m_playing) MouseInput::right_click_down();
+    }
+    void right_click_up() override
+    {
+        if (m_recording) m_events.emplace_back(RCLK_U);
+        if (!m_playing) MouseInput::right_click_up();
+    }
+    void double_click() override
+    {
+        if (m_recording) m_events.emplace_back(DDCLK);
+        if (!m_playing) MouseInput::double_click();
+    }
+    void scroll(long v, long d, WheelAxis wa) override
+    {
+        if (m_recording) m_events.emplace_back(SCRL, v, d);
+        if (!m_playing) MouseInput::scroll(v, d, wa);
+    }
+    void move_to(long x, long y) override
+    {
+        if (m_recording) m_events.emplace_back(MV, x, y);
+        if (!m_playing) MouseInput::move_to(x, y);
+    }
+    
+    void save(std::ostream &stream)
+    {
+        for (const Event &evt : m_events)
+            stream << evt.type << " " << evt.a << " " << evt.b << std::endl;
+    }
+    
+    void load(std::istream &stream)
+    {
+        m_events.clear();
+        while (stream.good()) {
+            int type; long a, b;
+            stream >> type >> a >> b;
+            m_events.emplace_back(EEvents(type), a, b);
+        }
+    }    
+    
+    void record(bool r) { m_recording = r; if (r) m_events.clear(); }
+    
+    void play()
+    {
+        m_playing = true;
+        for (const Event &evt : m_events) {
+            switch (evt.type) {
+            case LCLK_U: MouseInput::left_click_up(); break;
+            case LCLK_D: MouseInput::left_click_down(); break;
+            case RCLK_U: MouseInput::right_click_up(); break;
+            case RCLK_D: MouseInput::right_click_down(); break;
+            case DDCLK:  MouseInput::double_click(); break;
+            case SCRL:   MouseInput::scroll(evt.a, evt.b, WheelAxis::waVertical); break;
+            case MV:     MouseInput::move_to(evt.a, evt.b); break;
+            }
+            
+            wxSafeYield();
+        }
+        m_playing = false;
     }
 };
 
@@ -69,12 +173,14 @@ class MyFrame: public wxFrame
     shptr<Controller> m_ctl;      // Controller
 
     shptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
-    uqptr<Slic3r::GUI::Job> m_ui_job;
+    
+    RecorderMouseInput m_mouse;
     
     class SLAJob: public Slic3r::GUI::Job {
         MyFrame *m_parent;
         std::unique_ptr<Slic3r::SLAPrint> m_print;
         std::string m_fname;
+        
     public:
         SLAJob(MyFrame *frame, const std::string &fname)
             : Slic3r::GUI::Job{frame->m_stbar}
@@ -84,8 +190,9 @@ class MyFrame: public wxFrame
 
         void process() override;
         
-    protected:
+        const std::string & get_project_fname() const { return m_fname; }
         
+    protected:
         void finalize() override 
         {
             m_parent->m_scene->set_print(std::move(m_print));
@@ -94,52 +201,53 @@ class MyFrame: public wxFrame
         }
     };
     
+    uqptr<SLAJob> m_ui_job;
+    
 public:
     MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
     
-private:
-    
-    void bind_canvas_events_to_controller();
-    
-    void OnClose(wxCloseEvent& /*event*/) 
-    {
-        RemoveChild(m_canvas.get());
-        m_canvas.reset();
-        Destroy();
+    void load_model(const std::string &fname) {
+        m_ui_job = std::make_unique<SLAJob>(this, fname);
+        m_ui_job->start();
     }
     
-    void OnOpen(wxCommandEvent &/*evt*/)
+    void play_back_mouse(const std::string &events_fname)
     {
-        wxFileDialog dlg(this, "Select project file", 
-                         wxEmptyString, wxEmptyString, "*.3mf");
-        
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            m_ui_job = std::make_unique<SLAJob>(this, dlg.GetPath().ToStdString());
-            m_ui_job->start();
+        std::fstream stream(events_fname, std::fstream::in);
+
+        if (stream.good()) {
+            std::string model_name;
+            std::getline(stream, model_name);
+            load_model(model_name);
+            m_mouse.load(stream);
+            m_mouse.play();
         }
     }
     
-    void OnShown(wxShowEvent&)
-    {
-        const wxSize ClientSize = GetClientSize();
-        m_canvas->set_active(ClientSize.x, ClientSize.y);
-        
-        // Do the repaint continuously
-        Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
-            m_canvas->repaint();
-            evt.RequestMore();
-        });
-    }
+    void bind_canvas_events(MouseInput &msinput);
 };
 
 class App : public wxApp {
     MyFrame *m_frame;
+    
 public:
     bool OnInit() override {
+        
+        std::string fname;
+        std::string command;
+        
+        if (argc > 2) {
+            command = argv[1];
+            fname = argv[2];
+        }
+            
         m_frame = new MyFrame("PrusaSlicer OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768));
         
-        m_frame->Show( true );
+        if (command == "play") {
+            m_frame->Show( true );
+            m_frame->play_back_mouse(fname);
+            m_frame->Close( true );
+        } else m_frame->Show( true );
         
         return true;
     }
@@ -246,6 +354,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
         fpstext->SetLabel(wxString::Format("fps: %.2f", fps) ); 
     });
     
+    auto record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
+    console_sizer->Add(record_btn, 0, wxALL | wxEXPAND, 5);
+    
     controlsizer->Add(slider_sizer, 0, wxEXPAND);
     controlsizer->Add(console_sizer, 1, wxEXPAND);
     
@@ -256,11 +367,26 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
     sizer->Add(control_panel, 0, wxEXPAND);
     SetSizer(sizer);
     
-    Bind(wxEVT_MENU, &MyFrame::OnOpen, this, wxID_OPEN);
-    Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &){
+        RemoveChild(m_canvas.get());
+        m_canvas.reset();
+        Destroy();
+    });    
+    
+    Bind(wxEVT_MENU, [this](wxCommandEvent &) {
+        wxFileDialog dlg(this, "Select project file",  wxEmptyString,
+                         wxEmptyString, "*.3mf", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+
+        if (dlg.ShowModal() == wxID_OK) load_model(dlg.GetPath().ToStdString());
+    }, wxID_OPEN);
+    
     Bind(wxEVT_MENU, [this](wxCommandEvent &) { Close(true); }, wxID_EXIT);
     
-    Bind(wxEVT_SHOW, &MyFrame::OnShown, this, GetId());
+    Bind(wxEVT_SHOW, [this, ms_toggle](wxShowEvent &) {
+        const wxSize ClientSize = GetClientSize();
+        m_canvas->set_active(ClientSize.x, ClientSize.y);
+        enable_multisampling(ms_toggle->GetValue());
+    });
     
     Bind(wxEVT_SLIDER, [this, slider](wxCommandEvent &) {
         m_ctl->move_clip_plane(double(slider->GetValue()));
@@ -312,54 +438,73 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
         }
     });
     
-    bind_canvas_events_to_controller();
+    record_btn->Bind(wxEVT_TOGGLEBUTTON, [this, record_btn](wxCommandEvent &) {
+        if (!m_ui_job) {
+            m_stbar->set_status_text("No project loaded!");
+            return;
+        }
+        
+        if (record_btn->GetValue()) {
+            if (m_canvas->camera()) reset(*m_canvas->camera());
+            m_ctl->on_scene_updated(*m_scene);
+            m_mouse.record(true);
+        } else {
+            m_mouse.record(false);
+            wxFileDialog dlg(this, "Select output file",
+                             wxEmptyString, wxEmptyString, "*.events",
+                             wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+            
+            if (dlg.ShowModal() == wxID_OK) {
+                std::fstream stream(dlg.GetPath().ToStdString(),
+                                    std::fstream::out);
+                
+                if (stream.good()) {
+                    stream << m_ui_job->get_project_fname() << "\n";
+                    m_mouse.save(stream);
+                }
+            }
+        }
+    });
+    
+    // Do the repaint continuously
+    m_canvas->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
+        if (m_canvas->IsShown()) m_canvas->repaint();
+        evt.RequestMore();
+    });
+    
+    bind_canvas_events(m_mouse);
 }
 
-void MyFrame::bind_canvas_events_to_controller()
+void MyFrame::bind_canvas_events(MouseInput &ms)
 {
-    m_canvas->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent &evt) {
-        m_ctl->on_scroll(evt.GetWheelRotation(), evt.GetWheelDelta(),
-                         evt.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ?
-                             Slic3r::GL::MouseInput::waVertical :
-                             Slic3r::GL::MouseInput::waHorizontal);
+    m_canvas->Bind(wxEVT_MOUSEWHEEL, [&ms](wxMouseEvent &evt) {
+        ms.scroll(evt.GetWheelRotation(), evt.GetWheelDelta(),
+                  evt.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ?
+                      Slic3r::GL::MouseInput::waVertical :
+                      Slic3r::GL::MouseInput::waHorizontal);
     });
 
-    m_canvas->Bind(wxEVT_MOTION, [this](wxMouseEvent &evt) {
-        m_ctl->on_moved_to(evt.GetPosition().x, evt.GetPosition().y);
+    m_canvas->Bind(wxEVT_MOTION, [&ms](wxMouseEvent &evt) {
+        ms.move_to(evt.GetPosition().x, evt.GetPosition().y);
     });
 
-    m_canvas->Bind(wxEVT_RIGHT_DOWN, [this](wxMouseEvent & /*evt*/) {
-        m_ctl->on_right_click_down();
+    m_canvas->Bind(wxEVT_RIGHT_DOWN, [&ms](wxMouseEvent & /*evt*/) {
+        ms.right_click_down();
     });
 
-    m_canvas->Bind(wxEVT_RIGHT_UP, [this](wxMouseEvent & /*evt*/) {
-        m_ctl->on_right_click_up();
+    m_canvas->Bind(wxEVT_RIGHT_UP, [&ms](wxMouseEvent & /*evt*/) {
+        ms.right_click_up();
     });
 
-    m_canvas->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & /*evt*/) {
-        m_ctl->on_left_click_down();
+    m_canvas->Bind(wxEVT_LEFT_DOWN, [&ms](wxMouseEvent & /*evt*/) {
+        ms.left_click_down();
     });
 
-    m_canvas->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent & /*evt*/) {
-        m_ctl->on_left_click_up();
+    m_canvas->Bind(wxEVT_LEFT_UP, [&ms](wxMouseEvent & /*evt*/) {
+        ms.left_click_up();
     });
-
-    m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
-        // This is required even though dc is not used otherwise.
-        wxPaintDC dc(m_canvas.get());
-        
-        // Set the OpenGL viewport according to the client size of this
-        // canvas. This is done here rather than in a wxSizeEvent handler
-        // because our OpenGL rendering context (and thus viewport setting) is
-        // used with multiple canvases: If we updated the viewport in the
-        // wxSizeEvent handler, changing the size of one canvas causes a
-        // viewport setting that is wrong when next another canvas is
-        // repainted.
-        const wxSize ClientSize = m_canvas->GetClientSize();
-        
-        m_canvas->set_screen_size(ClientSize.x, ClientSize.y);
-        m_canvas->repaint();
-    }, m_canvas->GetId());
+    
+    ms.add_listener(m_ctl);
 }
 
 void MyFrame::SLAJob::process() 
@@ -380,7 +525,11 @@ void MyFrame::SLAJob::process()
         update_status(status.percent, status.text);
     });
     
-    m_print->process();
+    try {
+        m_print->process();
+    } catch(std::exception &e) {
+        update_status(0, wxString("Exception during processing: ") + e.what());
+    }
 }
 
 //int main() {}
