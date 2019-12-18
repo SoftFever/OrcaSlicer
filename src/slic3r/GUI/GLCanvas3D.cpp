@@ -1011,24 +1011,25 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
                                                                 std::vector<float>& colors,
                                                                 std::vector<std::string>& cp_legend_items)
 {
-    std::vector<Model::CustomGCode> custom_gcode_per_height = wxGetApp().plater()->model().custom_gcode_per_height;
+    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
     if (extruders_cnt == 1) 
     {
-        if (custom_gcode_per_height.empty()) {
-            cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
+        if (custom_gcode_per_print_z.empty()) {
+            cp_legend_items.emplace_back(I18N::translate_utf8(L("Default print color")));
             colors = colors_in;
             return;
         }
         std::vector<std::pair<double, double>> cp_values;
+        cp_values.reserve(custom_gcode_per_print_z.size());
         
         std::vector<double> print_zs = canvas.get_current_print_zs(true);
-        for (auto custom_code : custom_gcode_per_height)
+        for (auto custom_code : custom_gcode_per_print_z)
         {
             if (custom_code.gcode != ColorChangeCode)
                 continue;
-            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.height - DoubleSlider::epsilon());
+            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - DoubleSlider::epsilon());
 
             if (lower_b == print_zs.end())
                 continue;
@@ -1039,14 +1040,14 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
             // to avoid duplicate values, check adding values
             if (cp_values.empty() ||
                 !(cp_values.back().first == previous_z && cp_values.back().second == current_z))
-                cp_values.push_back(std::pair<double, double>(previous_z, current_z));
+                cp_values.emplace_back(std::pair<double, double>(previous_z, current_z));
         }
 
         const auto items_cnt = (int)cp_values.size();
         if (items_cnt == 0) // There is no one color change, but there is/are some pause print or custom Gcode
         {
-            cp_legend_items.push_back(I18N::translate_utf8(L("Default print color")));
-            cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+            cp_legend_items.emplace_back(I18N::translate_utf8(L("Default print color")));
+            cp_legend_items.emplace_back(I18N::translate_utf8(L("Pause print or custom G-code")));
             colors = colors_in;
             return;
         }
@@ -1055,7 +1056,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         colors.resize(colors_in.size(), 0.0);
                 
         ::memcpy((void*)(colors.data()), (const void*)(colors_in.data() + (color_cnt - 1) * 4), 4 * sizeof(float));
-        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+        cp_legend_items.emplace_back(I18N::translate_utf8(L("Pause print or custom G-code")));
         size_t color_pos = 4;
 
         for (int i = items_cnt; i >= 0; --i, color_pos+=4)
@@ -1067,15 +1068,15 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
             std::string id_str = std::to_string(i + 1) + ": ";
 
             if (i == 0) {
-                cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values[0].first).str());
+                cp_legend_items.emplace_back(id_str + (boost::format(I18N::translate_utf8(L("up to %.2f mm"))) % cp_values[0].first).str());
                 break;
             }
             if (i == items_cnt) {
-                cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
+                cp_legend_items.emplace_back(id_str + (boost::format(I18N::translate_utf8(L("above %.2f mm"))) % cp_values[i - 1].second).str());
                 continue;
             }
 
-            cp_legend_items.push_back(id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
+            cp_legend_items.emplace_back(id_str + (boost::format(I18N::translate_utf8(L("%.2f - %.2f mm"))) % cp_values[i - 1].second % cp_values[i].first).str());
         }
     }
     else
@@ -1089,20 +1090,20 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         size_t color_in_pos = 4 * (color_cnt - 1);
         
         for (unsigned int i = 0; i < (unsigned int)extruders_cnt; ++i)
-            cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
+            cp_legend_items.emplace_back((boost::format(I18N::translate_utf8(L("Extruder %d"))) % (i + 1)).str());
 
         ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
         color_pos += 4;
         color_in_pos -= 4;
-        cp_legend_items.push_back(I18N::translate_utf8(L("Pause print or custom G-code")));
+        cp_legend_items.emplace_back(I18N::translate_utf8(L("Pause print or custom G-code")));
 
-        int cnt = custom_gcode_per_height.size();
+        int cnt = custom_gcode_per_print_z.size();
         for (int i = cnt-1; i >= 0; --i)
-            if (custom_gcode_per_height[i].gcode == ColorChangeCode) {
+            if (custom_gcode_per_print_z[i].gcode == ColorChangeCode) {
                 ::memcpy((void*)(colors.data() + color_pos), (const void*)(colors_in.data() + color_in_pos), 4 * sizeof(float));
                 color_pos += 4;
                 color_in_pos -= 4;
-                cp_legend_items.push_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_height[i].extruder % custom_gcode_per_height[i].height).str());
+                cp_legend_items.emplace_back((boost::format(I18N::translate_utf8(L("Color change for Extruder %d at %.2f mm"))) % custom_gcode_per_print_z[i].extruder % custom_gcode_per_print_z[i].print_z).str());
             }
     }
 }
@@ -5389,7 +5390,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            const Model::CustomGCode value(layers[layer_idx]->print_z + EPSILON, "", 0, "");
+            const Model::CustomGCode value{layers[layer_idx]->print_z + EPSILON, "", 0, ""};
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
         }
@@ -5400,7 +5401,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 
             auto it = std::find_if(color_print_values->begin(), color_print_values->end(),
                 [print_z](const Model::CustomGCode& code)
-                { return fabs(code.height - print_z) < EPSILON; });
+                { return fabs(code.print_z - print_z) < EPSILON; });
             if (it != color_print_values->end())
             {
                 const std::string& code = it->gcode;
@@ -5420,7 +5421,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             }
 
-            const Model::CustomGCode value(print_z + EPSILON, "", 0, "");
+            const Model::CustomGCode value{print_z + EPSILON, "", 0, ""};
             it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             while (it != color_print_values->begin())
             {

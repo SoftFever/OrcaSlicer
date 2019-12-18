@@ -17,6 +17,7 @@
 #include <set>
 #include <functional>
 #include "libslic3r/Model.hpp"
+#include "libslic3r/GCodeWriter.hpp"
 
 namespace Slic3r {
     enum class ModelVolumeType : int;
@@ -958,24 +959,12 @@ private:
 
     struct TICK_CODE
     {
-        TICK_CODE(int tick):tick(tick), gcode(Slic3r::ColorChangeCode), extruder(0), color("") {}
-        TICK_CODE(int tick, const std::string& code) : 
-                            tick(tick), gcode(code), extruder(0) {}
-        TICK_CODE(int tick, int extruder) :
-                            tick(tick), gcode(Slic3r::ColorChangeCode), extruder(extruder) {}
-        TICK_CODE(int tick, const std::string& code, int extruder, const std::string& color) : 
-                            tick(tick), gcode(code), extruder(extruder), color(color) {}
-
         bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
         bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
-        TICK_CODE operator=(const TICK_CODE& other) const {
-            TICK_CODE ret_val(other.tick, other.gcode, other.extruder, other.color);
-            return ret_val;
-        }
 
-        int         tick;
-        std::string gcode;
-        int         extruder;
+        int         tick = 0;
+        std::string gcode = Slic3r::ColorChangeCode;
+        int         extruder = 0;
         std::string color;
     };
 

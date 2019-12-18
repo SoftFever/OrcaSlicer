@@ -367,7 +367,7 @@ protected:
      * Updated before the export and erased during the process,
      * so no toolchange occurs twice.
      * */
-    std::vector<Model::CustomGCode> m_custom_g_code_heights;
+    std::vector<Model::CustomGCode> m_custom_gcode_per_print_z;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;
