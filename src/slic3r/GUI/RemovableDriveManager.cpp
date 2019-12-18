@@ -572,4 +572,8 @@ bool RemovableDriveManager::get_did_eject()
 {
 	return m_did_eject;
 }
+void RemovableDriveManager::set_did_eject(const bool b)
+{
+	m_did_eject = b;
+}
 }}//namespace Slicer::Gui
