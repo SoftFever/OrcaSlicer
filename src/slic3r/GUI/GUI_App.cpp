@@ -46,6 +46,7 @@
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
 #include "UpdateDialogs.hpp"
+#include "RemovableDriveManager.hpp"
 
 #ifdef __WXMSW__
 #include <Shlobj.h>
@@ -261,6 +262,8 @@ bool GUI_App::on_init_inner()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
+	RemovableDriveManager::get_instance().init();
+
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
         if (! plater_)
@@ -270,6 +273,10 @@ bool GUI_App::on_init_inner()
             app_config->save();
 
         this->obj_manipul()->update_if_dirty();
+
+#if !__APPLE__
+		RemovableDriveManager::get_instance().update(wxGetLocalTime(), true);
+#endif
 
         // Preset updating & Configwizard are done after the above initializations,
         // and after MainFrame is created & shown.
@@ -298,6 +305,7 @@ bool GUI_App::on_init_inner()
                 preset_updater->slic3r_update_notify();
                 preset_updater->sync(preset_bundle);
             });
+			
         }
     });
 

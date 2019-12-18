@@ -77,6 +77,7 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/Thread.hpp"
+#include "RemovableDriveManager.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -698,7 +699,8 @@ struct Sidebar::priv
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
-    wxButton *btn_send_gcode;
+    ScalableButton *btn_send_gcode;
+    ScalableButton *btn_remove_device;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -847,22 +849,47 @@ Sidebar::Sidebar(Plater *parent)
 
     // Buttons underneath the scrolled area
 
-    auto init_btn = [this](wxButton **btn, wxString label) {
+    // rescalable bitmap buttons "Send to printer" and "Remove device" 
+
+    auto init_scalable_btn = [this](ScalableButton** btn, const std::string& icon_name, wxString tooltip = wxEmptyString)
+    {
+#ifdef __APPLE__
+        int bmp_px_cnt = 16;
+#else
+        int bmp_px_cnt = 32;
+#endif //__APPLE__
+        ScalableBitmap bmp = ScalableBitmap(this, icon_name, bmp_px_cnt);
+        *btn = new ScalableButton(this, wxID_ANY, bmp, "", wxBU_EXACTFIT);
+        (*btn)->SetToolTip(tooltip);
+        (*btn)->Hide();
+    };
+
+    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
+    init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
+
+    // regular buttons "Slice now" and "Export G-code" 
+
+    const int scaled_height = p->btn_remove_device->GetBitmapHeight() + 4;
+    auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
-                            wxDefaultSize, wxBU_EXACTFIT);
+                            wxSize(-1, button_height), wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 
-    init_btn(&p->btn_send_gcode,   _(L("Send to printer")));
-    p->btn_send_gcode->Hide();
-    init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots);
-    init_btn(&p->btn_reslice,      _(L("Slice now")));
+    init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots , scaled_height);
+    init_btn(&p->btn_reslice     , _(L("Slice now"))            , scaled_height);
+
     enable_buttons(false);
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
+    complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
+    complect_btns_sizer->Add(p->btn_send_gcode);
+    complect_btns_sizer->Add(p->btn_remove_device);
+
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
-    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, margin_5);
-    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
+    btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -881,6 +908,7 @@ Sidebar::Sidebar(Plater *parent)
         p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
+    p->btn_remove_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 }
 
 Sidebar::~Sidebar() {}
@@ -1025,6 +1053,12 @@ void Sidebar::msw_rescale()
     p->object_layers->msw_rescale();
 
     p->object_info->msw_rescale();
+
+    p->btn_send_gcode->msw_rescale();
+    p->btn_remove_device->msw_rescale();
+    const int scaled_height = p->btn_remove_device->GetBitmap().GetHeight() + 4;
+    p->btn_export_gcode->SetMinSize(wxSize(-1, scaled_height));
+    p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
     p->scrolled->Layout();
 }
@@ -1254,11 +1288,13 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
+    p->btn_remove_device->Enable(enable);
 }
 
 bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
 bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
 bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
+bool Sidebar::show_disconnect(bool show)const { return p->btn_remove_device->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -3154,6 +3190,7 @@ void Plater::priv::update_fff_scene()
         this->preview->reload_print();
     // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     view3D->reload_scene(true);
+	
 }
 
 void Plater::priv::update_sla_scene()
@@ -3559,6 +3596,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         break;
     default: break;
     }
+	
 
     if (canceled) {
         if (wxGetApp().get_mode() == comSimple)
@@ -3567,6 +3605,19 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     }
     else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
+	if(RemovableDriveManager::get_instance().get_is_writing())
+	{
+		RemovableDriveManager::get_instance().set_is_writing(false);
+		RemovableDriveManager::get_instance().verify_last_save_path();
+		if (!RemovableDriveManager::get_instance().is_last_drive_removed())
+		{
+
+			RemovableDriveManager::get_instance().erase_callbacks();
+			RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, q));
+			show_action_buttons(false);
+		}
+		
+	}
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -3615,7 +3666,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second) // right button was clicked on empty space
             menu = &default_menu;
         else
+        {
+            sidebar->obj_list()->show_multi_selection_menu();
             return;
+        }
     }
     else
     {
@@ -4132,20 +4186,23 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     wxWindowUpdateLocker noUpdater(sidebar);
     const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
-
+    
+    bool disconnect_shown = !RemovableDriveManager::get_instance().is_last_drive_removed() ; // #dk_FIXME
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
         if (sidebar->show_reslice(false) |
             sidebar->show_export(true) |
-            sidebar->show_send(send_gcode_shown))
+            sidebar->show_send(send_gcode_shown) |
+            sidebar->show_disconnect(disconnect_shown))
             sidebar->Layout();
     }
     else
     {
         if (sidebar->show_reslice(is_ready_to_slice) |
             sidebar->show_export(!is_ready_to_slice) |
-            sidebar->show_send(send_gcode_shown && !is_ready_to_slice))
+            sidebar->show_send(send_gcode_shown && !is_ready_to_slice) |
+            sidebar->show_disconnect(disconnect_shown && !is_ready_to_slice))
             sidebar->Layout();
     }
 }
@@ -4386,7 +4443,7 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
     {
         case ActionButtonType::abReslice:   p->btn_reslice->SetLabelText(label);        break;
         case ActionButtonType::abExport:    p->btn_export_gcode->SetLabelText(label);   break;
-        case ActionButtonType::abSendGCode: p->btn_send_gcode->SetLabelText(label);     break;
+        case ActionButtonType::abSendGCode: /*p->btn_send_gcode->SetLabelText(label);*/     break;
     }
 }
 
@@ -4669,7 +4726,13 @@ void Plater::export_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-
+	if (GUI::RemovableDriveManager::get_instance().update())
+	{
+		if (!RemovableDriveManager::get_instance().is_path_on_removable_drive(start_dir))
+		{
+			start_dir = RemovableDriveManager::get_instance().get_drive_path();
+		}
+	}
     wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save SL1 file as:")),
         start_dir,
         from_path(default_output_file.filename()),
@@ -4684,7 +4747,21 @@ void Plater::export_gcode()
         output_path = std::move(path);
     }
     if (! output_path.empty())
+	{
+		std::string path = output_path.string();
+		RemovableDriveManager::get_instance().set_is_writing(true);
+		RemovableDriveManager::get_instance().update(0, true);
         p->export_gcode(std::move(output_path), PrintHostJob());
+		RemovableDriveManager::get_instance().set_last_save_path(path);
+		/*
+		if(!RemovableDriveManager::get_instance().is_last_drive_removed())
+		{
+			RemovableDriveManager::get_instance().erase_callbacks();
+			RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+		}
+		*/
+	}
+	
 }
 
 void Plater::export_stl(bool extended, bool selection_only)
@@ -4963,6 +5040,27 @@ void Plater::send_gcode()
         p->export_gcode(fs::path(), std::move(upload_job));
     }
 }
+
+void Plater::eject_drive()
+{
+	RemovableDriveManager::get_instance().update(0, true);
+	//RemovableDriveManager::get_instance().erase_callbacks();
+	//RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+	RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
+		
+}
+void Plater::drive_ejected_callback()
+{
+	if (RemovableDriveManager::get_instance().get_did_eject())
+	{
+        RemovableDriveManager::get_instance().set_did_eject(false);
+		wxString message = "Unmounting succesesful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
+		wxMessageBox(message);
+	}
+	p->show_action_buttons(false);
+}
+
+
 
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }

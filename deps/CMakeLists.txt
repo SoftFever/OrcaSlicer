@@ -47,6 +47,7 @@ message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
 
+get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 function(prusaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})

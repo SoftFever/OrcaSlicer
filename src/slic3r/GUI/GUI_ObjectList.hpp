@@ -366,6 +366,8 @@ public:
     void update_printable_state(int obj_idx, int instance_idx);
     void toggle_printable_state(wxDataViewItem item);
 
+    void show_multi_selection_menu();
+
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);
@@ -384,8 +386,6 @@ private:
 	void OnEditingStarted(wxDataViewEvent &event);
 #endif /* __WXMSW__ */
     void OnEditingDone(wxDataViewEvent &event);
-
-    void show_multi_selection_menu();
     void extruder_selection();
     void set_extruder_for_selected_items(const int extruder) const ;
 
