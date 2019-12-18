@@ -240,6 +240,12 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
     auto optimization_select = add_combobox("Optimization", { "Default", "ForceOn", "On", "Off" });
     depth_select->Disable();
     
+    auto fpstext = new wxStaticText(control_panel, wxID_ANY, "");
+    console_sizer->Add(fpstext, 0, wxALL, 5);
+    m_canvas->get_fps_counter().add_listener([fpstext](double fps) {
+        fpstext->SetLabel(wxString::Format("fps: %.2f", fps) ); 
+    });
+    
     controlsizer->Add(slider_sizer, 0, wxEXPAND);
     controlsizer->Add(console_sizer, 1, wxEXPAND);
     

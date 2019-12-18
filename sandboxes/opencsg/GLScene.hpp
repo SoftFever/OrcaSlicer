@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include <libslic3r/Geometry.hpp>
 #include <libslic3r/Model.hpp>
@@ -211,6 +212,60 @@ public:
     void set_clip_z(double z) { m_clip_z = z; }
 };
 
+class FpsCounter {
+    vector<std::function<void(double)>> m_listeners;
+    
+    using Clock = std::chrono::high_resolution_clock;
+    using Duration = Clock::duration;
+    using TimePoint = Clock::time_point;
+    
+    int m_frames = 0;
+    TimePoint m_last = Clock::now(), m_window = m_last;
+    
+    double m_resolution = 0.1, m_window_size = 1.0;
+    double m_fps = 0.;
+    
+    static double to_sec(Duration d)
+    {
+        return d.count() * double(Duration::period::num) / Duration::period::den;
+    }    
+    
+public:
+    
+    void update()
+    {
+        ++m_frames;
+        
+        TimePoint msec = Clock::now();
+        
+        double seconds_window = to_sec(msec - m_window);
+        m_fps = 0.5 * m_fps + 0.5 * (m_frames / seconds_window);
+        
+        if (to_sec(msec - m_last) >= m_resolution) {
+            m_last = msec;
+            for (auto &l : m_listeners) l(m_fps);
+        }
+        
+        if (seconds_window >= m_window_size) {
+            m_frames = 0;
+            m_window = msec;
+        }
+    }
+
+    void add_listener(std::function<void(double)> lst)
+    {
+        m_listeners.emplace_back(lst);
+    }
+    
+    void clear_listeners() { m_listeners = {}; }
+
+    void set_notification_interval(double seconds);
+    void set_measure_window_size(double seconds);
+    
+    double get_notification_interval() const { return m_resolution; }
+    double get_mesure_window_size() const { return m_window_size; }
+};
+
 class PerspectiveCamera: public Camera {
 public:
     
@@ -296,6 +351,7 @@ protected:
     } m_scene_cache;
     
     shptr<Camera>  m_camera;
+    FpsCounter m_fps_counter;
     
 public:
     
@@ -323,6 +379,14 @@ public:
     
     virtual void clear_screen();
     virtual void render_scene();
+    
+    template<class _FpsCounter> void set_fps_counter(_FpsCounter &&fpsc)
+    {
+        m_fps_counter = std::forward<_FpsCounter>(fpsc);
+    }
+
+    const FpsCounter &get_fps_counter() const { return m_fps_counter; }
+    FpsCounter &get_fps_counter() { return m_fps_counter; }
 };
 
 class Controller : public std::enable_shared_from_this<Controller>,

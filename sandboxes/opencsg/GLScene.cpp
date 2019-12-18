@@ -1,17 +1,9 @@
-#include <chrono>
-
 #include "GLScene.hpp"
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/SLAPrint.hpp>
 #include <libslic3r/MTUtils.hpp>
 
 #include <GL/glew.h>
-
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 
 #include <boost/log/trivial.hpp>
 
@@ -54,59 +46,7 @@ inline void glAssertRecentCall() { }
 namespace Slic3r { namespace GL {
 
 Scene::Scene() = default;
-
 Scene::~Scene() = default;
-
-void renderfps () {
-    using Clock = std::chrono::high_resolution_clock;
-    using Duration = Clock::duration;
-    using TimePoint = Clock::time_point;
-    
-    static std::ostringstream fpsStream;
-    static int frames = 0;
-    static TimePoint last = Clock::now();
-    
-    static const double resolution = 0.01;
-    static double fps = 0.;
-    
-    auto to_sec = [](Duration d) -> double {
-        return d.count() * double(Duration::period::num) / Duration::period::den;
-    };
-    
-    ++frames;
-    
-    TimePoint msec = Clock::now();
-    double seconds = to_sec(msec - last);
-    if (seconds >= resolution) {
-        last = msec;
-        
-        fps = 0.5 * (fps + frames / seconds);
-        
-        fpsStream.str("");
-        fpsStream << "fps: " << std::setprecision(4) << fps << std::ends;
-        
-        frames = 0;
-    }
-    
-    glDisable(GL_DEPTH_TEST);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glRasterPos2f(-1.0f, -1.0f);
-    glDisable(GL_LIGHTING);
-    std::string s = fpsStream.str();
-    for (unsigned int i=0; i<s.size(); ++i) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
-    }
-    glEnable(GL_LIGHTING);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_DEPTH_TEST);
-    
-    glFlush();
-}
 
 void Display::render_scene()
 {
@@ -367,12 +307,9 @@ Display::~Display()
 }
 
 void Display::set_active(long width, long height)
-{
-    static int argc = 0;
-    
+{   
     if (!m_initialized) {
         glewInit();
-        glutInit(&argc, nullptr);
         m_initialized = true;
     }
 
@@ -415,7 +352,8 @@ void Display::repaint()
     m_camera->view();
     render_scene();
     
-    renderfps(); 
+//    renderfps();
+    m_fps_counter.update();
     
     swap_buffers();
 }
