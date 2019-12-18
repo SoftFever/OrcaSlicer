@@ -3234,7 +3234,13 @@ void Plater::priv::reload_from_disk()
     {
         // ask user to select the missing file
         std::string search = missing_input_paths.back().string();
-        wxFileDialog dialog(q, _(L("Please select the file to reload:")), "", from_u8(fs::path(search).filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        wxString title = _(L("Please select the file to reload"));
+#if defined(__APPLE__)
+        title += " (" + from_u8(fs::path(search).filename().string()) + "):";
+#else
+        title += ":";
+#endif // __APPLE__
+        wxFileDialog dialog(q, title, "", from_u8(fs::path(search).filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dialog.ShowModal() != wxID_OK)
             return;
 
