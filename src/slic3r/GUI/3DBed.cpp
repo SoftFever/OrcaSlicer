@@ -204,7 +204,6 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     std::string cst_texture(custom_texture);
     if (!cst_texture.empty())
     {
-        std::replace(cst_texture.begin(), cst_texture.end(), '\\', '/');
         if ((!boost::algorithm::iends_with(custom_texture, ".png") && !boost::algorithm::iends_with(custom_texture, ".svg")) || !boost::filesystem::exists(custom_texture))
             cst_texture = "";
     }
@@ -213,7 +212,6 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     std::string cst_model(custom_model);
     if (!cst_model.empty())
     {
-        std::replace(cst_model.begin(), cst_model.end(), '\\', '/');
         if (!boost::algorithm::iends_with(custom_model, ".stl") || !boost::filesystem::exists(custom_model))
             cst_model = "";
     }
