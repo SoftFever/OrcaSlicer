@@ -3611,17 +3611,14 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     }
     else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
-	if(RemovableDriveManager::get_instance().get_is_writing())
-	{
-		RemovableDriveManager::get_instance().set_is_writing(false);
-		RemovableDriveManager::get_instance().verify_last_save_path();
-		if (!RemovableDriveManager::get_instance().is_last_drive_removed())
-		{
 
-			RemovableDriveManager::get_instance().erase_callbacks();
-			RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, q));
+	if(!canceled && RemovableDriveManager::get_instance().get_is_writing())
+	{	
+		//if (!RemovableDriveManager::get_instance().is_last_drive_removed())
+		//{
+			RemovableDriveManager::get_instance().set_is_writing(false);
 			show_action_buttons(false);
-		}
+		//}
 		
 	}
 }
@@ -4755,19 +4752,20 @@ void Plater::export_gcode()
     if (! output_path.empty())
 	{
 		std::string path = output_path.string();
-		RemovableDriveManager::get_instance().set_is_writing(true);
-		RemovableDriveManager::get_instance().update(0, true);
         p->export_gcode(std::move(output_path), PrintHostJob());
+
+		RemovableDriveManager::get_instance().update(0, false);
 		RemovableDriveManager::get_instance().set_last_save_path(path);
-		/*
+		RemovableDriveManager::get_instance().verify_last_save_path();
+		
 		if(!RemovableDriveManager::get_instance().is_last_drive_removed())
 		{
+			RemovableDriveManager::get_instance().set_is_writing(true);
 			RemovableDriveManager::get_instance().erase_callbacks();
 			RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
 		}
-		*/
+		
 	}
-	
 }
 
 void Plater::export_stl(bool extended, bool selection_only)
