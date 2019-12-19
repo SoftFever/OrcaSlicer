@@ -3233,20 +3233,20 @@ void Plater::priv::reload_from_disk()
     while (!missing_input_paths.empty())
     {
         // ask user to select the missing file
-        std::string search = missing_input_paths.back().string();
+        fs::path search = missing_input_paths.back();
         wxString title = _(L("Please select the file to reload"));
 #if defined(__APPLE__)
-        title += " (" + from_u8(fs::path(search).filename().string()) + "):";
+        title += " (" + from_u8(search.filename().string()) + "):";
 #else
         title += ":";
 #endif // __APPLE__
-        wxFileDialog dialog(q, title, "", from_u8(fs::path(search).filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        wxFileDialog dialog(q, title, "", from_u8(search.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dialog.ShowModal() != wxID_OK)
             return;
 
         std::string sel_filename_path = dialog.GetPath().ToUTF8().data();
         std::string sel_filename = fs::path(sel_filename_path).filename().string();
-        if (boost::algorithm::iends_with(search, sel_filename))
+        if (boost::algorithm::iequals(search.filename().string(), sel_filename))
         {
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
@@ -3270,7 +3270,7 @@ void Plater::priv::reload_from_disk()
         }
         else
         {
-            wxString message = _(L("It is not allowed to change the file to reload")) + " (" + from_u8(fs::path(search).filename().string())+ ").\n" + _(L("Do you want to retry")) + " ?";
+            wxString message = _(L("It is not allowed to change the file to reload")) + " (" + from_u8(search.filename().string()) + ").\n" + _(L("Do you want to retry")) + " ?";
             wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() != wxID_YES)
                 return;
@@ -3309,7 +3309,8 @@ void Plater::priv::reload_from_disk()
             int new_volume_idx = old_volume->source.volume_idx;
             int new_object_idx = old_volume->source.object_idx;
 
-            if (old_volume->source.input_file == path)
+            if (boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(),
+                fs::path(path).filename().string()))
             {
                 assert(new_object_idx < (int)new_model.objects.size());
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
@@ -3323,6 +3324,7 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation());
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                    new_volume->source.input_file = path;
                     std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                 }
