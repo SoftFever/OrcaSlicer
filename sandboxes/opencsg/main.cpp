@@ -30,8 +30,11 @@
 
 using namespace Slic3r::GL;
 
+// The opengl rendering facility. Here we implement the rendering objects.
 class Canvas: public wxGLCanvas
 {
+    
+    // Tell the CSGDisplay how to swap buffers and set the gl context.
     class OCSGRenderer: public Slic3r::GL::CSGDisplay {
         Canvas *m_canvas;
         shptr<wxGLContext> m_context;
@@ -62,8 +65,10 @@ class Canvas: public wxGLCanvas
         ~OCSGRenderer() override { m_scene_cache.clear(); }
     };
     
+    // Create the OCSGDisplay for rendering with OpenCSG algorithms
     shptr<OCSGRenderer> m_ocsgdisplay = std::make_shared<OCSGRenderer>(this);
     
+    // One display is active at a time, the OCSGRenderer by default.
     shptr<Slic3r::GL::Display> m_display = m_ocsgdisplay;
     
 public:
@@ -94,6 +99,7 @@ public:
     shptr<Slic3r::GL::CSGDisplay> get_ocsg_display() const { return m_ocsgdisplay; }
 };
 
+// Enumerate possible mouse events, we will record them.
 enum EEvents { LCLK_U, RCLK_U, LCLK_D, RCLK_D, DDCLK, SCRL, MV };
 struct Event
 {
@@ -102,6 +108,8 @@ struct Event
     Event(EEvents t, long x = 0, long y = 0) : type{t}, a{x}, b{y} {}
 };
 
+// Create a special mouse input adapter, which can store (record) the received
+// mouse signals into a file and play back the stored events later.
 class RecorderMouseInput: public MouseInput {
     std::vector<Event> m_events;
     bool m_recording = false, m_playing = false;
@@ -181,16 +189,20 @@ public:
     }
 };
 
+// The top level frame of the application.
 class MyFrame: public wxFrame
 {
+    // Instantiate the 3D engine.
     shptr<Scene>      m_scene;    // Model
     shptr<Canvas>     m_canvas;   // View
     shptr<Controller> m_ctl;      // Controller
-
+    
+    // Add a status bar with progress indication.
     shptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
     
     RecorderMouseInput m_mouse;
     
+    // When loading a Model from 3mf and preparing it, we use a separate thread.
     class SLAJob: public Slic3r::GUI::Job {
         MyFrame *m_parent;
         std::unique_ptr<Slic3r::SLAPrint> m_print;
@@ -202,12 +214,15 @@ class MyFrame: public wxFrame
             , m_parent{frame}
             , m_fname{fname}
         {}
-
+        
+        // Runs in separate thread
         void process() override;
         
         const std::string & get_project_fname() const { return m_fname; }
         
     protected:
+        
+        // Runs in the UI thread.
         void finalize() override 
         {
             m_parent->m_scene->set_print(std::move(m_print));
@@ -218,16 +233,22 @@ class MyFrame: public wxFrame
     
     uqptr<SLAJob> m_ui_job;
     
+    // To keep track of the running average of measured fps values.
     double m_fps_avg = 0.;
     
 public:
-    MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, const Slic3r::GL::CSGSettings &settings);
+    MyFrame(const wxString &               title,
+            const wxPoint &                pos,
+            const wxSize &                 size,
+            const Slic3r::GL::CSGSettings &settings);
     
+    // Grab a 3mf and load (hollow it out) within the UI job.
     void load_model(const std::string &fname) {
         m_ui_job = std::make_unique<SLAJob>(this, fname);
         m_ui_job->start();
     }
     
+    // Load a previously stored mouse event log and play it back.
     void play_back_mouse(const std::string &events_fname)
     {
         std::fstream stream(events_fname, std::fstream::in);
@@ -249,11 +270,14 @@ public:
     Canvas * canvas() { return m_canvas.get(); }
     const Canvas * canvas() const { return m_canvas.get(); }
     
+    // Bind the canvas mouse events to a class implementing MouseInput interface
     void bind_canvas_events(MouseInput &msinput);
     
     double get_fps_average() const { return m_fps_avg; }
 };
 
+// Possible OpenCSG configuration values. Will be used on the command line and
+// on the UI widgets.
 static const std::vector<wxString> CSG_ALGS  = {"Auto", "Goldfeather", "SCS"};
 static const std::vector<wxString> CSG_DEPTH = {"Off", "OcclusionQuery", "On"};
 static const std::vector<wxString> CSG_OPT   = { "Default", "ForceOn", "On", "Off" };
@@ -482,9 +506,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     });
     
     csg_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, csg_toggle](wxCommandEvent &){
-        CSGSettings settings = m_canvas->get_ocsg_display()->get_csgsettings();
-        settings.enable_csg(csg_toggle->GetValue());
-        m_canvas->get_ocsg_display()->apply_csgsettings(settings);
+        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
+        stt.enable_csg(csg_toggle->GetValue());
+        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
     });
     
     alg_select->Bind(wxEVT_COMBOBOX,
@@ -492,33 +516,33 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     {
         int sel = alg_select->GetSelection();
         depth_select->Enable(sel > 0);
-        CSGSettings settings = m_canvas->get_ocsg_display()->get_csgsettings();
-        settings.set_algo(OpenCSG::Algorithm(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(settings);
+        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
+        stt.set_algo(OpenCSG::Algorithm(sel));
+        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
     });
     
     depth_select->Bind(wxEVT_COMBOBOX, [this, depth_select](wxCommandEvent &) {
         int sel = depth_select->GetSelection();
-        CSGSettings settings = m_canvas->get_ocsg_display()->get_csgsettings();
-        settings.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(settings);
+        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
+        stt.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(sel));
+        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
     });
     
     optimization_select->Bind(wxEVT_COMBOBOX,
                               [this, optimization_select](wxCommandEvent &) {
         int sel = optimization_select->GetSelection();
-        CSGSettings settings = m_canvas->get_ocsg_display()->get_csgsettings();
-        settings.set_optimization(OpenCSG::Optimization(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(settings);
+        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
+        stt.set_optimization(OpenCSG::Optimization(sel));
+        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
     });
     
     convexity_spin->Bind(wxEVT_SPINCTRL, [this, convexity_spin](wxSpinEvent &) {
-        CSGSettings settings = m_canvas->get_ocsg_display()->get_csgsettings();
+        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
         int c = convexity_spin->GetValue();
         
         if (c > 0) {
-            settings.set_convexity(unsigned(c));
-            m_canvas->get_ocsg_display()->apply_csgsettings(settings);
+            stt.set_convexity(unsigned(c));
+            m_canvas->get_ocsg_display()->apply_csgsettings(stt);
         }
     });
     
