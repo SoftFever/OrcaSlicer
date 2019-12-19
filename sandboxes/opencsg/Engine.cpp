@@ -1,4 +1,4 @@
-#include "GLScene.hpp"
+#include "Engine.hpp"
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/SLAPrint.hpp>
 #include <libslic3r/MTUtils.hpp>
@@ -48,7 +48,7 @@ namespace Slic3r { namespace GL {
 Scene::Scene() = default;
 Scene::~Scene() = default;
 
-void Display::render_scene()
+void CSGDisplay::render_scene()
 {
     GLfloat color[] = {1.f, 1.f, 0.f, 0.f};
     glsafe(::glColor4fv(color));
@@ -95,14 +95,14 @@ BoundingBoxf3 Scene::get_bounding_box() const
     return m_print->model().bounding_box();
 }
 
-void Display::SceneCache::clear()
+void CSGDisplay::SceneCache::clear()
 {
     primitives_csg.clear();
     primitives_free.clear();
     primitives.clear();
 }
 
-shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh)
+shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh)
 {
     auto p = std::make_shared<Primitive>();
     p->load_mesh(mesh);
@@ -111,9 +111,9 @@ shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh)
     return p;
 }
 
-shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh,
-                                               OpenCSG::Operation  o,
-                                               unsigned            c)
+shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh,
+                                                   OpenCSG::Operation  o,
+                                                   unsigned            c)
 {
     auto p = std::make_shared<Primitive>(o, c);
     p->load_mesh(mesh);
@@ -388,7 +388,7 @@ void Controller::on_moved_to(long x, long y)
     m_mouse_pos = {x, y};
 }
 
-void Display::apply_csgsettings(const CSGSettings &settings)
+void CSGDisplay::apply_csgsettings(const CSGSettings &settings)
 {
     using namespace OpenCSG;
     
@@ -404,11 +404,9 @@ void Display::apply_csgsettings(const CSGSettings &settings)
             if (p->getConvexity() > 1)
                 p->setConvexity(m_csgsettings.get_convexity());
     }
-    
-    repaint();
 }
 
-void Display::on_scene_updated(const Scene &scene)
+void CSGDisplay::on_scene_updated(const Scene &scene)
 {
     const SLAPrint *print = scene.get_print();
     if (!print) return;

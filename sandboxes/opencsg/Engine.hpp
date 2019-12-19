@@ -1,5 +1,5 @@
-#ifndef GLSCENE_HPP
-#define GLSCENE_HPP
+#ifndef SLIC3R_OCSG_EXMP_ENGINE_HPP
+#define SLIC3R_OCSG_EXMP_ENGINE_HPP_HPP
 
 #include <vector>
 #include <memory>
@@ -322,21 +322,6 @@ protected:
     Vec2i m_size;
     bool m_initialized = false;
     
-    CSGSettings m_csgsettings;
-    
-    struct SceneCache {
-        vector<shptr<Primitive>> primitives;
-        vector<Primitive *> primitives_free;
-        vector<OpenCSG::Primitive *> primitives_csg;
-        
-        void clear();
-        
-        shptr<Primitive> add_mesh(const TriangleMesh &mesh);
-        shptr<Primitive> add_mesh(const TriangleMesh &mesh,
-                                  OpenCSG::Operation  op,
-                                  unsigned            covexity);
-    } m_scene_cache;
-    
     shptr<Camera>  m_camera;
     FpsCounter m_fps_counter;
     
@@ -359,13 +344,8 @@ public:
     
     bool is_initialized() const { return m_initialized; }
     
-    const CSGSettings & get_csgsettings() const { return m_csgsettings; }
-    void apply_csgsettings(const CSGSettings &settings);
-    
-    void on_scene_updated(const Scene &scene) override;
-    
     virtual void clear_screen();
-    virtual void render_scene();
+    virtual void render_scene() {}
     
     template<class _FpsCounter> void set_fps_counter(_FpsCounter &&fpsc)
     {
@@ -374,6 +354,33 @@ public:
 
     const FpsCounter &get_fps_counter() const { return m_fps_counter; }
     FpsCounter &get_fps_counter() { return m_fps_counter; }
+};
+
+class CSGDisplay : public Display {
+protected:
+    CSGSettings m_csgsettings;
+    
+    struct SceneCache {
+        vector<shptr<Primitive>> primitives;
+        vector<Primitive *> primitives_free;
+        vector<OpenCSG::Primitive *> primitives_csg;
+        
+        void clear();
+        
+        shptr<Primitive> add_mesh(const TriangleMesh &mesh);
+        shptr<Primitive> add_mesh(const TriangleMesh &mesh,
+                                  OpenCSG::Operation  op,
+                                  unsigned            covexity);
+    } m_scene_cache;
+    
+public:
+    
+    const CSGSettings & get_csgsettings() const { return m_csgsettings; }
+    void apply_csgsettings(const CSGSettings &settings);
+    
+    void render_scene() override;
+    
+    void on_scene_updated(const Scene &scene) override;
 };
 
 class Controller : public std::enable_shared_from_this<Controller>,
@@ -425,4 +432,4 @@ public:
 };
 
 }}     // namespace Slic3r::GL
-#endif // GLSCENE_HPP
+#endif // SLIC3R_OCSG_EXMP_ENGINE_HPP
