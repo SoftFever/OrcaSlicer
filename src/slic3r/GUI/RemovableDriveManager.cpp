@@ -116,7 +116,9 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 {
 	if (m_current_drives.empty())
 		return false;
-	int letter = PathGetDriveNumberA(path.c_str());
+	std::size_t found = path.find_last_of("\\");
+	std::string new_path = path.substr(0, found);
+	int letter = PathGetDriveNumberA(new_path.c_str());
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
 		char drive = (*it).path[0];
@@ -127,7 +129,9 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 }
 std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 {
-	int letter = PathGetDriveNumberA(path.c_str());
+	std::size_t found = path.find_last_of("\\");
+	std::string new_path = path.substr(0, found);
+	int letter = PathGetDriveNumberA(new_path.c_str());
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
 		char drive = (*it).path[0];
@@ -391,10 +395,12 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 }
 std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 {
+	std::size_t found = path.find_last_of("/");
+	std::string new_path = path.substr(0, found);
 	//check if same filesystem
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
-		if (compare_filesystem_id(path, (*it).path))
+		if (compare_filesystem_id(new_path, (*it).path))
 			return (*it).path;
 	}
 	return "";
