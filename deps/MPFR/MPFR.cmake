@@ -19,7 +19,7 @@ if (MSVC)
 
 else ()
     ExternalProject_Add(dep_MPFR
-        URL https://www.mpfr.org/mpfr-3.1.6/mpfr-3.1.6.tar.bz2
+        URL http://ftp.vim.org/ftp/gnu/mpfr/mpfr-3.1.6.tar.bz2 https://www.mpfr.org/mpfr-3.1.6/mpfr-3.1.6.tar.bz2  # mirrors are allowed
         BUILD_IN_SOURCE ON
         CONFIGURE_COMMAND ./configure --prefix=${DESTDIR}/usr/local --with-gmp=${DESTDIR}/usr/local --with-pic
         BUILD_COMMAND make -j
