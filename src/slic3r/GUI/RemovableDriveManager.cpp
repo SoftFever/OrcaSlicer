@@ -20,6 +20,7 @@ GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
 #include <glob.h>
 #include <libgen.h>
 #include <pwd.h>
+#include <filesystem>
 #endif
 
 namespace Slic3r {
@@ -309,20 +310,27 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 	//if not same file system - could be removable drive
 	if(!compare_filesystem_id(path, parent_path))
 	{
-		//user id
-		struct stat buf;
-		stat(path.c_str(), &buf);
-		uid_t uid = buf.st_uid;
-		std::string username(std::getenv("USER"));
-		struct passwd *pw = getpwuid(uid);
-		if(pw != 0)
+		//free space
+		std::filesystem::space_info fs_si = std::filesystem::space(path);
+		//std::cout << "Free space: " << fs_si.free << "Available space: " << fs_si.available << " " << path << '\n';
+		if(fs_si.free != 0 && fs_si.available != 0)
 		{
-			if(pw->pw_name == username)
+			//user id
+			struct stat buf;
+			stat(path.c_str(), &buf);
+			uid_t uid = buf.st_uid;
+			std::string username(std::getenv("USER"));
+			struct passwd *pw = getpwuid(uid);
+			if(pw != 0)
 			{
-				std::string name = basename(const_cast<char*>(path.c_str()));
-	       		m_current_drives.push_back(DriveData(name,path));
+				if(pw->pw_name == username)
+				{
+					std::string name = basename(const_cast<char*>(path.c_str()));
+		       		m_current_drives.push_back(DriveData(name,path));
+				}
 			}
 		}
+		
 	}
 }
 bool RemovableDriveManager::compare_filesystem_id(const std::string &path_a, const std::string &path_b)
