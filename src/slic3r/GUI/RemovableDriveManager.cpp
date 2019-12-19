@@ -20,7 +20,7 @@ GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
 #include <glob.h>
 #include <libgen.h>
 #include <pwd.h>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #endif
 
 namespace Slic3r {
@@ -311,9 +311,9 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 	if(!compare_filesystem_id(path, parent_path))
 	{
 		//free space
-		std::filesystem::space_info fs_si = std::filesystem::space(path);
+		boost::filesystem::space_info si = boost::filesystem::space(path);
 		//std::cout << "Free space: " << fs_si.free << "Available space: " << fs_si.available << " " << path << '\n';
-		if(fs_si.free != 0 && fs_si.available != 0)
+		if(si.available != 0)
 		{
 			//user id
 			struct stat buf;
