@@ -449,7 +449,11 @@ bool RemovableDriveManager::update(const long time,const bool check)
 		}
 	}
 	search_for_drives();
-	if(check)check_and_notify();
+	if (m_drives_count != m_current_drives.size())
+	{
+		if (check)check_and_notify();
+		m_drives_count = m_current_drives.size();
+	}
 	return !m_current_drives.empty();
 }
 
@@ -491,16 +495,12 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 }
 void RemovableDriveManager::check_and_notify()
 {
-	if(m_drives_count != m_current_drives.size())
+	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
 	{
-		if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
+		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 		{
-			for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
-			{
-				(*it)();
-			}
+			(*it)();
 		}
-		m_drives_count = m_current_drives.size();
 	}
 }
 void RemovableDriveManager::add_callback(std::function<void()> callback)
@@ -524,6 +524,9 @@ void RemovableDriveManager::verify_last_save_path()
 		m_last_save_path_verified = true;
 		m_last_save_path = last_drive;
 		m_last_save_name = get_drive_name(last_drive);
+	}else
+	{
+		reset_last_save_path();
 	}
 }
 std::string RemovableDriveManager::get_drive_name(const std::string& path)
