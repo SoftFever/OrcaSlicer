@@ -2,6 +2,8 @@
 #include <utility>
 #include <memory>
 
+#include "GLScene.hpp"
+
 #include <GL/glew.h>
 
 #include <opencsg/opencsg.h>
@@ -17,8 +19,6 @@
 #include <wx/spinctrl.h>
 #include <wx/msgdlg.h>
 #include <wx/glcanvas.h>
-
-#include "GLScene.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
@@ -68,7 +68,7 @@ public:
             const wxSize ClientSize = GetClientSize();
             
             set_screen_size(ClientSize.x, ClientSize.y);
-            repaint();
+//            repaint();
         });
     }
 
@@ -280,7 +280,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size):
      // glReadPixels would not return the alpha channel on NVIDIA if
      // not requested when the GL context is created.
      WX_GL_MIN_ALPHA, 8, WX_GL_DEPTH_SIZE, 8, WX_GL_STENCIL_SIZE, 8,
-     WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0};
+     /*WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4,*/ 0};
     
     m_scene = std::make_shared<Scene>();
     m_ctl = std::make_shared<Controller>();
@@ -509,7 +509,7 @@ void MyFrame::bind_canvas_events(MouseInput &ms)
 
 void MyFrame::SLAJob::process() 
 {
-    using Status = Slic3r::PrintBase::SlicingStatus;
+    using SlStatus = Slic3r::PrintBase::SlicingStatus;
     
     Slic3r::DynamicPrintConfig cfg;
     auto model = Slic3r::Model::read_from_file(m_fname, &cfg);
@@ -521,7 +521,7 @@ void MyFrame::SLAJob::process()
     params.to_object_step = Slic3r::slaposHollowing;
     m_print->set_task(params);
     
-    m_print->set_status_callback([this](const Status &status) {
+    m_print->set_status_callback([this](const SlStatus &status) {
         update_status(status.percent, status.text);
     });
     
