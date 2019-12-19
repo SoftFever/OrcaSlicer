@@ -1,8 +1,9 @@
-#ifndef GLSCENE_HPP
-#define GLSCENE_HPP
+#ifndef SLIC3R_OCSG_EXMP_ENGINE_HPP
+#define SLIC3R_OCSG_EXMP_ENGINE_HPP_HPP
 
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include <libslic3r/Geometry.hpp>
 #include <libslic3r/Model.hpp>
@@ -164,7 +165,6 @@ public:
 };
 
 bool enable_multisampling(bool e = true);
-void renderfps();
 
 class Primitive : public OpenCSG::Primitive
 {
@@ -189,8 +189,6 @@ public:
     }
 };
 
-class Scene;
-
 class Camera {
 protected:
     Vec2f m_rot = {0., 0.};
@@ -211,10 +209,54 @@ public:
     void set_clip_z(double z) { m_clip_z = z; }
 };
 
+inline void reset(Camera &cam)
+{
+    cam.set_rotation({0., 0.});
+    cam.set_zoom(0.);
+    cam.set_reference_point({0., 0., 0.});
+    cam.set_clip_z(0.);
+}
+
 class PerspectiveCamera: public Camera {
 public:
     
     void set_screen(long width, long height) override;
+};
+
+class FpsCounter {
+    vector<std::function<void(double)>> m_listeners;
+    
+    using Clock = std::chrono::high_resolution_clock;
+    using Duration = Clock::duration;
+    using TimePoint = Clock::time_point;
+    
+    int m_frames = 0;
+    TimePoint m_last = Clock::now(), m_window = m_last;
+    
+    double m_resolution = 0.1, m_window_size = 1.0;
+    double m_fps = 0.;
+    
+    static double to_sec(Duration d)
+    {
+        return d.count() * double(Duration::period::num) / Duration::period::den;
+    }    
+    
+public:
+    
+    void update();
+
+    void add_listener(std::function<void(double)> lst)
+    {
+        m_listeners.emplace_back(lst);
+    }
+    
+    void clear_listeners() { m_listeners = {}; }
+
+    void set_notification_interval(double seconds);
+    void set_measure_window_size(double seconds);
+    
+    double get_notification_interval() const { return m_resolution; }
+    double get_mesure_window_size() const { return m_window_size; }
 };
 
 class CSGSettings {
@@ -280,6 +322,42 @@ protected:
     Vec2i m_size;
     bool m_initialized = false;
     
+    shptr<Camera>  m_camera;
+    FpsCounter m_fps_counter;
+    
+public:
+    
+    explicit Display(shptr<Camera> camera = nullptr)
+        : m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
+    {}
+    
+    ~Display() override;
+    
+    Camera * camera() { return m_camera.get(); }
+    
+    virtual void swap_buffers() = 0;
+    virtual void set_active(long width, long height);
+    virtual void set_screen_size(long width, long height);
+    Vec2i get_screen_size() const { return m_size; }
+    
+    virtual void repaint();
+    
+    bool is_initialized() const { return m_initialized; }
+    
+    virtual void clear_screen();
+    virtual void render_scene() {}
+    
+    template<class _FpsCounter> void set_fps_counter(_FpsCounter &&fpsc)
+    {
+        m_fps_counter = std::forward<_FpsCounter>(fpsc);
+    }
+
+    const FpsCounter &get_fps_counter() const { return m_fps_counter; }
+    FpsCounter &get_fps_counter() { return m_fps_counter; }
+};
+
+class CSGDisplay : public Display {
+protected:
     CSGSettings m_csgsettings;
     
     struct SceneCache {
@@ -295,32 +373,14 @@ protected:
                                   unsigned            covexity);
     } m_scene_cache;
     
-    shptr<Camera>  m_camera;
-    
 public:
-    
-    explicit Display(shptr<Camera> camera = nullptr)
-        : m_camera(camera ? camera : std::make_shared<PerspectiveCamera>())
-    {}
-    
-    Camera * camera() { return m_camera.get(); }
-    
-    virtual void swap_buffers() = 0;
-    virtual void set_active(long width, long height);
-    virtual void set_screen_size(long width, long height);
-    Vec2i get_screen_size() const { return m_size; }
-    
-    virtual void repaint();
-    
-    bool is_initialized() const { return m_initialized; }
     
     const CSGSettings & get_csgsettings() const { return m_csgsettings; }
     void apply_csgsettings(const CSGSettings &settings);
     
-    void on_scene_updated(const Scene &scene) override;
+    void render_scene() override;
     
-    virtual void clear_screen();
-    virtual void render_scene();
+    void on_scene_updated(const Scene &scene) override;
 };
 
 class Controller : public std::enable_shared_from_this<Controller>,
@@ -331,7 +391,7 @@ class Controller : public std::enable_shared_from_this<Controller>,
     Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
     bool m_left_btn = false, m_right_btn = false;
 
-    shptr<Scene>               m_scene;
+    shptr<Scene>           m_scene;
     vector<wkptr<Display>> m_displays;
     
     // Call a method of Camera on all the cameras of the attached displays
@@ -370,5 +430,6 @@ public:
 
     void move_clip_plane(double z) { call_cameras(&Camera::set_clip_z, z); }
 };
+
 }}     // namespace Slic3r::GL
-#endif // GLSCENE_HPP
+#endif // SLIC3R_OCSG_EXMP_ENGINE_HPP

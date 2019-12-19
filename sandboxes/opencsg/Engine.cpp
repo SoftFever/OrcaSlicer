@@ -1,15 +1,9 @@
-#include "GLScene.hpp"
+#include "Engine.hpp"
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/SLAPrint.hpp>
 #include <libslic3r/MTUtils.hpp>
 
 #include <GL/glew.h>
-
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 
 #include <boost/log/trivial.hpp>
 
@@ -52,49 +46,9 @@ inline void glAssertRecentCall() { }
 namespace Slic3r { namespace GL {
 
 Scene::Scene() = default;
-
 Scene::~Scene() = default;
 
-void renderfps () {
-    static std::ostringstream fpsStream;
-    static int fps = 0;
-    static int ancient = 0;
-    static int last = 0;
-    static int msec = 0;
-    
-    last = msec;
-    msec = glutGet(GLUT_ELAPSED_TIME);
-    if (last / 1000 != msec / 1000) {
-        
-        float correctedFps = fps * 1000.0f / float(msec - ancient);
-        fpsStream.str("");
-        fpsStream << "fps: " << correctedFps << std::ends;
-        
-        ancient = msec;
-        fps = 0;
-    }
-    glDisable(GL_DEPTH_TEST);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glRasterPos2f(-1.0f, -1.0f);
-    glDisable(GL_LIGHTING);
-    std::string s = fpsStream.str();
-    for (unsigned int i=0; i<s.size(); ++i) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, s[i]);
-    }
-    glEnable(GL_LIGHTING);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_DEPTH_TEST);
-    
-    ++fps;
-    glFlush();
-}
-
-void Display::render_scene()
+void CSGDisplay::render_scene()
 {
     GLfloat color[] = {1.f, 1.f, 0.f, 0.f};
     glsafe(::glColor4fv(color));
@@ -141,14 +95,14 @@ BoundingBoxf3 Scene::get_bounding_box() const
     return m_print->model().bounding_box();
 }
 
-void Display::SceneCache::clear()
+void CSGDisplay::SceneCache::clear()
 {
     primitives_csg.clear();
     primitives_free.clear();
     primitives.clear();
 }
 
-shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh)
+shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh)
 {
     auto p = std::make_shared<Primitive>();
     p->load_mesh(mesh);
@@ -157,9 +111,9 @@ shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh)
     return p;
 }
 
-shptr<Primitive> Display::SceneCache::add_mesh(const TriangleMesh &mesh,
-                                               OpenCSG::Operation  o,
-                                               unsigned            c)
+shptr<Primitive> CSGDisplay::SceneCache::add_mesh(const TriangleMesh &mesh,
+                                                   OpenCSG::Operation  o,
+                                                   unsigned            c)
 {
     auto p = std::make_shared<Primitive>(o, c);
     p->load_mesh(mesh);
@@ -347,21 +301,21 @@ void Display::clear_screen()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void Display::set_active(long width, long height)
+Display::~Display()
 {
-    static int argc = 0;
-    
+    OpenCSG::freeResources();
+}
+
+void Display::set_active(long width, long height)
+{   
     if (!m_initialized) {
         glewInit();
-        glutInit(&argc, nullptr);
         m_initialized = true;
     }
-    
-    m_size = {width, height};
-    
+
     // gray background
     glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-    
+
     // Enable two OpenGL lights
     GLfloat light_diffuse[]   = { 1.0f,  1.0f,  0.0f,  1.0f};  // White diffuse light
     GLfloat light_position0[] = {-1.0f, -1.0f, -1.0f,  0.0f};  // Infinite light location
@@ -380,7 +334,7 @@ void Display::set_active(long width, long height)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
     
-    m_camera->set_screen(width, height);
+    set_screen_size(width, height);
 }
 
 void Display::set_screen_size(long width, long height)
@@ -389,8 +343,6 @@ void Display::set_screen_size(long width, long height)
         m_camera->set_screen(width, height);
     
     m_size = {width, height};
-    
-    repaint();
 }
 
 void Display::repaint()
@@ -400,7 +352,7 @@ void Display::repaint()
     m_camera->view();
     render_scene();
     
-    renderfps(); 
+    m_fps_counter.update();
     
     swap_buffers();
 }
@@ -436,7 +388,7 @@ void Controller::on_moved_to(long x, long y)
     m_mouse_pos = {x, y};
 }
 
-void Display::apply_csgsettings(const CSGSettings &settings)
+void CSGDisplay::apply_csgsettings(const CSGSettings &settings)
 {
     using namespace OpenCSG;
     
@@ -452,11 +404,9 @@ void Display::apply_csgsettings(const CSGSettings &settings)
             if (p->getConvexity() > 1)
                 p->setConvexity(m_csgsettings.get_convexity());
     }
-    
-    repaint();
 }
 
-void Display::on_scene_updated(const Scene &scene)
+void CSGDisplay::on_scene_updated(const Scene &scene)
 {
     const SLAPrint *print = scene.get_print();
     if (!print) return;
@@ -554,5 +504,25 @@ bool enable_multisampling(bool e)
 }
 
 MouseInput::Listener::~Listener() = default;
+
+void FpsCounter::update()
+{
+    ++m_frames;
+    
+    TimePoint msec = Clock::now();
+    
+    double seconds_window = to_sec(msec - m_window);
+    m_fps = 0.5 * m_fps + 0.5 * (m_frames / seconds_window);
+    
+    if (to_sec(msec - m_last) >= m_resolution) {
+        m_last = msec;
+        for (auto &l : m_listeners) l(m_fps);
+    }
+    
+    if (seconds_window >= m_window_size) {
+        m_frames = 0;
+        m_window = msec;
+    }
+}
 
 }} // namespace Slic3r::GL
