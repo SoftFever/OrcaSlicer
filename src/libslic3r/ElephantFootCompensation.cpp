@@ -472,7 +472,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			float	l2    = (pthis - pprev).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = exchange(j, prev_idx_modulo(j, contour));
+				int jprev = std::exchange(j, prev_idx_modulo(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -487,7 +487,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					prev  = use_min ? std::min(prev, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = exchange(j, prev_idx_modulo(j, contour));
+					jprev = std::exchange(j, prev_idx_modulo(j, contour));
 				}
 			}
 
@@ -497,7 +497,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 			l2 = (pprev - pthis).squaredNorm();
 			if (l2 < dist_min2) {
 				float l = sqrt(l2);
-				int jprev = exchange(j, next_idx_modulo(j, contour));
+				int jprev = std::exchange(j, next_idx_modulo(j, contour));
 				while (j != i) {
 					const Vec2f pp = contour[j].cast<float>();
 					const float lthis = (pp - pprev).norm();
@@ -512,7 +512,7 @@ static inline void smooth_compensation_banded(const Points &contour, float band,
 					next  = use_min ? std::min(next, compensation[j]) : compensation[j];
 					pprev = pp;
 					l     = lnext;
-					jprev = exchange(j, next_idx_modulo(j, contour));
+					jprev = std::exchange(j, next_idx_modulo(j, contour));
 				}
 			}
 
