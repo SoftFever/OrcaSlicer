@@ -417,26 +417,41 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
+int copy_file_inner(const std::string& from, const std::string& to)
+{
+	const boost::filesystem::path source(from);
+	const boost::filesystem::path target(to);
+	static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
+
+	// Make sure the file has correct permission both before and after we copy over it.
+	// NOTE: error_code variants are used here to supress expception throwing.
+	// Error code of permission() calls is ignored on purpose - if they fail,
+	// the copy_file() function will fail appropriately and we don't want the permission()
+	// calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
+	// or when the target file doesn't exist.
+	boost::system::error_code ec;
+	boost::filesystem::permissions(target, perms, ec);
+	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+	if (ec) {
+		return -1;
+	}
+	boost::filesystem::permissions(target, perms, ec);
+	return 0;
+}
+
 int copy_file(const std::string &from, const std::string &to, const bool with_check)
 {
-    const boost::filesystem::path source(from);
-    const boost::filesystem::path target(to);
-    static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
-
-    // Make sure the file has correct permission both before and after we copy over it.
-    // NOTE: error_code variants are used here to supress expception throwing.
-    // Error code of permission() calls is ignored on purpose - if they fail,
-    // the copy_file() function will fail appropriately and we don't want the permission()
-    // calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
-    // or when the target file doesn't exist.
-    boost::system::error_code ec;
-    boost::filesystem::permissions(target, perms, ec);
-    boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
-    if (ec) {
-        return -1;
-    }
-    boost::filesystem::permissions(target, perms, ec);
-	return (with_check ? check_copy(from, to) : 0);
+	std::string to_temp = to + ".tmp";
+	int ret_val = copy_file_inner(from,to_temp);
+	if(ret_val == 0 && with_check)
+	{
+		ret_val = check_copy(from, to_temp);
+		if (ret_val == 0)
+		{
+			rename_file(to_temp, to);
+		}
+	}
+	return ret_val;
 }
 
 int check_copy(const std::string &origin, const std::string &copy)
