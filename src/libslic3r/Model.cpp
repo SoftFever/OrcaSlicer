@@ -1359,6 +1359,8 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
         model_volume->set_mirror(Vec3d(1., 1., 1.));
         // Move the reference point of the volume to compensate for the change of the instance trafo.
         model_volume->set_offset(volume_offset_correction * volume_trafo.get_offset());
+        // reset the source to disable reload from disk
+        model_volume->source = ModelVolume::Source();
     }
 
     this->invalidate_bounding_box();
