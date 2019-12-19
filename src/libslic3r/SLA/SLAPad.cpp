@@ -337,18 +337,15 @@ PadSkeleton divide_blueprint(const ExPolygons &bp)
     for (ClipperLib::PolyTree::PolyNode *node : ptree.Childs) {
         ExPolygon poly(ClipperPath_to_Slic3rPolygon(node->Contour));
         for (ClipperLib::PolyTree::PolyNode *child : node->Childs) {
-            if (child->IsHole()) {
-                poly.holes.emplace_back(
-                    ClipperPath_to_Slic3rPolygon(child->Contour));
+            poly.holes.emplace_back(
+                ClipperPath_to_Slic3rPolygon(child->Contour));
 
-                traverse_pt_unordered(child->Childs, &ret.inner);
-            }
-            else traverse_pt_unordered(child, &ret.inner);
+            traverse_pt(child->Childs, &ret.inner);
         }
 
         ret.outer.emplace_back(poly);
     }
-
+    
     return ret;
 }
 
