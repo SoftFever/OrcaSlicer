@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include <numeric>
 #include <iostream>
 #include <boost/filesystem.hpp>
 
@@ -221,5 +222,80 @@ SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {
                 REQUIRE(res.front().points.size() == square_pl.points.size());
             }
         }
+    }
+}
+
+template<e_ordering o = e_ordering::OFF, class P, class Tree> 
+double polytree_area(const Tree &tree, std::vector<P> *out)
+{
+    traverse_pt<o>(tree, out);
+    
+    return std::accumulate(out->begin(), out->end(), 0.0,
+                           [](double a, const P &p) { return a + p.area(); });
+}
+
+size_t count_polys(const ExPolygons& expolys)
+{
+    size_t c = 0;
+    for (auto &ep : expolys) c += ep.holes.size() + 1;
+    
+    return c;
+}
+
+TEST_CASE("Traversing Clipper PolyTree", "[ClipperUtils]") {
+    // Create a polygon representing unit box
+    Polygon unitbox;
+    const auto UNIT = coord_t(1. / SCALING_FACTOR);
+    unitbox.points = {{0, 0}, {UNIT, 0}, {UNIT, UNIT}, {0, UNIT}};
+    
+    Polygon box_frame = unitbox;
+    box_frame.scale(20, 10);
+    
+    Polygon hole_left = unitbox;
+    hole_left.scale(8);
+    hole_left.translate(UNIT, UNIT);
+    hole_left.reverse();
+    
+    Polygon hole_right = hole_left;
+    hole_right.translate(UNIT * 10, 0);
+    
+    Polygon inner_left = unitbox;
+    inner_left.scale(4);
+    inner_left.translate(UNIT * 3, UNIT * 3);
+    
+    Polygon inner_right = inner_left;
+    inner_right.translate(UNIT * 10, 0);
+    
+    Polygons reference = union_({box_frame, hole_left, hole_right, inner_left, inner_right});
+    
+    ClipperLib::PolyTree tree = union_pt(reference);
+    double area_sum = box_frame.area() + hole_left.area() +
+                      hole_right.area() + inner_left.area() +
+                      inner_right.area();
+    
+    REQUIRE(area_sum > 0);
+
+    SECTION("Traverse into Polygons WITHOUT spatial ordering") {
+        Polygons output;
+        REQUIRE(area_sum == Approx(polytree_area(tree.GetFirst(), &output)));
+        REQUIRE(output.size() == reference.size());
+    }
+    
+    SECTION("Traverse into ExPolygons WITHOUT spatial ordering") {
+        ExPolygons output;
+        REQUIRE(area_sum == Approx(polytree_area(tree.GetFirst(), &output)));
+        REQUIRE(count_polys(output) == reference.size());
+    }
+    
+    SECTION("Traverse into Polygons WITH spatial ordering") {
+        Polygons output;
+        REQUIRE(area_sum == Approx(polytree_area<e_ordering::ON>(tree.GetFirst(), &output)));
+        REQUIRE(output.size() == reference.size());
+    }
+    
+    SECTION("Traverse into ExPolygons WITH spatial ordering") {
+        ExPolygons output;
+        REQUIRE(area_sum == Approx(polytree_area<e_ordering::ON>(tree.GetFirst(), &output)));
+        REQUIRE(count_polys(output) == reference.size());
     }
 }
