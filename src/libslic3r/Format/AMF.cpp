@@ -41,10 +41,11 @@ namespace pt = boost::property_tree;
 //     Added x and y components of rotation
 //     Added x, y and z components of scale
 //     Added x, y and z components of mirror
-// 3 : Meshes saved in their local system; Added volumes' matrices and source data
+// 3 : Added volumes' matrices and source data, meshes transformed back to their coordinate system on loading.
 // WARNING !! -> the version number has been rolled back to 2
 //               the next change should use 4
 const unsigned int VERSION_AMF = 2;
+const unsigned int VERSION_AMF_COMPATIBLE = 3;
 const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
 
 const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
@@ -230,6 +231,8 @@ struct AMFParserContext
     ModelVolume             *m_volume;
     // Faces collected for the current m_volume.
     std::vector<int>         m_volume_facets;
+    // Transformation matrix of a volume mesh from its coordinate system to Object's coordinate system.
+    Transform3d 			 m_volume_transform;
     // Current material allocated for an amf/metadata subtree.
     ModelMaterial           *m_material;
     // Current instance allocated for an amf/constellation/instance subtree.
@@ -321,6 +324,7 @@ void AMFParserContext::startElement(const char *name, const char **atts)
 			else if (strcmp(name, "volume") == 0) {
 				assert(! m_volume);
                 m_volume = m_object->add_volume(TriangleMesh());
+                m_volume_transform = Transform3d::Identity();
                 node_type_new = NODE_TYPE_VOLUME;
 			}
         } else if (m_path[2] == NODE_TYPE_INSTANCE) {
@@ -580,27 +584,25 @@ void AMFParserContext::endElement(const char * /* name */)
         stl.stats.original_num_facets = stl.stats.number_of_facets;
         stl_allocate(&stl);
 
-        Slic3r::Geometry::Transformation transform;
-        if (m_version > 2)
-            transform = m_volume->get_transformation();
-
-        Transform3d inv_matrix = transform.get_matrix().inverse();
-
+        bool has_transform = ! m_volume_transform.isApprox(Transform3d::Identity(), 1e-10);
+        Transform3d inv_matrix = m_volume_transform.inverse();
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
             for (unsigned int v = 0; v < 3; ++v)
             {
                 unsigned int tri_id = m_volume_facets[i++] * 3;
                 Vec3f vertex(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
-                if (m_version > 2)
+                facet.vertex[v] = has_transform ?
                     // revert the vertices to the original mesh reference system
-                    vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
-                ::memcpy((void*)facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
+                    (inv_matrix * vertex.cast<double>()).cast<float>() :
+                    vertex;
             }
-        }
+        }        
         stl_get_size(&stl);
         mesh.repair();
 		m_volume->set_mesh(std::move(mesh));
+		if (has_transform)
+			m_volume->set_transformation(m_volume_transform);
         if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART))
         {
             m_volume->source.object_idx = (int)m_model.objects.size() - 1;
@@ -720,9 +722,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     m_volume->set_type(ModelVolume::type_from_string(m_value[1]));
                 }
                 else if (strcmp(opt_key, "matrix") == 0) {
-                    Geometry::Transformation transform;
-                    transform.set_from_string(m_value[1]);
-                    m_volume->set_transformation(transform);
+                    m_volume_transform = Slic3r::Geometry::transform3d_from_string(m_value[1]);
                 }
                 else if (strcmp(opt_key, "source_file") == 0) {
                     m_volume->source.input_file = m_value[1];
@@ -912,7 +912,7 @@ bool extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_fi
 
     ctx.endDocument();
 
-    if (check_version && (ctx.m_version > VERSION_AMF))
+    if (check_version && (ctx.m_version > VERSION_AMF_COMPATIBLE))
     {
         // std::string msg = _(L("The selected amf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
         // throw std::runtime_error(msg.c_str());
@@ -1148,6 +1148,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
             stream << "        <metadata type=\"slic3r.matrix\">";
             const Transform3d& matrix = volume->get_matrix();
+			stream << std::setprecision(std::numeric_limits<double>::max_digits10);
             for (int r = 0; r < 4; ++r)
             {
                 for (int c = 0; c < 4; ++c)
@@ -1167,6 +1168,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "        <metadata type=\"slic3r.source_offset_y\">" << volume->source.mesh_offset(1) << "</metadata>\n";
                 stream << "        <metadata type=\"slic3r.source_offset_z\">" << volume->source.mesh_offset(2) << "</metadata>\n";
             }
+			stream << std::setprecision(std::numeric_limits<float>::max_digits10);
             const indexed_triangle_set &its = volume->mesh().its;
             for (size_t i = 0; i < its.indices.size(); ++i) {
                 stream << "        <triangle>\n";

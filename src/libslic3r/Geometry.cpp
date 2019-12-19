@@ -1187,14 +1187,12 @@ MedialAxis::validate_edge(const VD::edge_type* edge)
     return true;
 }
 
-const Line&
-MedialAxis::retrieve_segment(const VD::cell_type* cell) const
+const Line& MedialAxis::retrieve_segment(const VD::cell_type* cell) const
 {
     return this->lines[cell->source_index()];
 }
 
-const Point&
-MedialAxis::retrieve_endpoint(const VD::cell_type* cell) const
+const Point& MedialAxis::retrieve_endpoint(const VD::cell_type* cell) const
 {
     const Line& line = this->retrieve_segment(cell);
     if (cell->source_category() == SOURCE_CATEGORY_SEGMENT_START_POINT) {
@@ -1208,11 +1206,8 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation, const 
 {
     transform = Transform3d::Identity();
     transform.translate(translation);
-    transform.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
-    transform.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
-    transform.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
-    transform.scale(scale);
-    transform.scale(mirror);
+    transform.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+    transform.scale(scale.cwiseProduct(mirror));
 }
 
 Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale, const Vec3d& mirror)
@@ -1420,32 +1415,6 @@ void Transformation::set_from_transform(const Transform3d& transform)
 //        std::cout << "something went wrong in extracting data from matrix" << std::endl;
 }
 
-void Transformation::set_from_string(const std::string& transform_str)
-{
-    Transform3d transform = Transform3d::Identity();
-
-    if (!transform_str.empty())
-    {
-        std::vector<std::string> mat_elements_str;
-        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
-
-        unsigned int size = (unsigned int)mat_elements_str.size();
-        if (size == 16)
-        {
-            unsigned int i = 0;
-            for (unsigned int r = 0; r < 4; ++r)
-            {
-                for (unsigned int c = 0; c < 4; ++c)
-                {
-                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
-                }
-            }
-        }
-    }
-
-    set_from_transform(transform);
-}
-
 void Transformation::reset()
 {
     m_offset = Vec3d::Zero();
@@ -1534,6 +1503,33 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
     }
 
     return out;
+}
+
+// For parsing a transformation matrix from 3MF / AMF.
+Transform3d transform3d_from_string(const std::string& transform_str)
+{
+    Transform3d transform = Transform3d::Identity();
+
+    if (!transform_str.empty())
+    {
+        std::vector<std::string> mat_elements_str;
+        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
+
+        unsigned int size = (unsigned int)mat_elements_str.size();
+        if (size == 16)
+        {
+            unsigned int i = 0;
+            for (unsigned int r = 0; r < 4; ++r)
+            {
+                for (unsigned int c = 0; c < 4; ++c)
+                {
+                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
+                }
+            }
+        }
+    }
+
+    return transform;
 }
 
 Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)

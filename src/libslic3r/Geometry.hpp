@@ -360,7 +360,6 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
-    void set_from_string(const std::string& transform_str);
 
     void reset();
 
@@ -384,6 +383,9 @@ private:
 		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, construct.ptr()->m_mirror);
 	}
 };
+
+// For parsing a transformation matrix from 3MF / AMF.
+extern Transform3d transform3d_from_string(const std::string& transform_str);
 
 // Rotation when going from the first coordinate system with rotation rot_xyz_from applied
 // to a coordinate system with rot_xyz_to applied.

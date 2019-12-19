@@ -34,10 +34,12 @@ namespace pt = boost::property_tree;
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
-// 2 : Meshes saved in their local system; Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file.
+// 2 : Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file, meshes transformed back to their coordinate system on loading.
 // WARNING !! -> the version number has been rolled back to 1
 //               the next change should use 3
 const unsigned int VERSION_3MF = 1;
+// Allow loading version 2 file as well.
+const unsigned int VERSION_3MF_COMPATIBLE = 2;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
 const std::string MODEL_FOLDER = "3D/";
@@ -1513,7 +1515,7 @@ namespace Slic3r {
         {
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
 
-            if (m_check_version && (m_version > VERSION_3MF))
+            if (m_check_version && (m_version > VERSION_3MF_COMPATIBLE))
             {
                 // std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
                 // throw version_error(msg.c_str());
@@ -1699,20 +1701,19 @@ namespace Slic3r {
                 return false;
             }
 
-            Slic3r::Geometry::Transformation transform;
-            if (m_version > 1)
+            Transform3d volume_matrix_to_object = Transform3d::Identity();
+            bool        has_transform 		    = false;
+            // extract the volume transformation from the volume's metadata, if present
+            for (const Metadata& metadata : volume_data.metadata)
             {
-                // extract the volume transformation from the volume's metadata, if present
-                for (const Metadata& metadata : volume_data.metadata)
+                if (metadata.key == MATRIX_KEY)
                 {
-                    if (metadata.key == MATRIX_KEY)
-                    {
-                        transform.set_from_string(metadata.value);
-                        break;
-                    }
+                    volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
+                    has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
+                    break;
                 }
             }
-            Transform3d inv_matrix = transform.get_matrix().inverse();
+            Transform3d inv_matrix = volume_matrix_to_object.inverse();
 
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
@@ -1733,10 +1734,10 @@ namespace Slic3r {
                 {
                     unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
                     Vec3f vertex(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
-                    if (m_version > 1)
+                    facet.vertex[v] = has_transform ?
                         // revert the vertices to the original mesh reference system
-                        vertex = (inv_matrix * vertex.cast<double>()).cast<float>();
-                    ::memcpy(facet.vertex[v].data(), (const void*)vertex.data(), 3 * sizeof(float));
+                        (inv_matrix * vertex.cast<double>()).cast<float>() :
+                        vertex;
                 }
             }
 
@@ -1745,8 +1746,8 @@ namespace Slic3r {
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
             // apply the volume matrix taken from the metadata, if present
-            if (m_version > 1)
-                volume->set_transformation(transform);
+            if (has_transform)
+                volume->set_transformation(Slic3r::Geometry::Transformation(volume_matrix_to_object));
             volume->calculate_convex_hull();
 
             // apply the remaining volume's metadata
@@ -2471,6 +2472,9 @@ namespace Slic3r {
     bool _3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data)
     {
         std::stringstream stream;
+        // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
+        // when loaded as accurately as possible.
+		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << CONFIG_TAG << ">\n";
 
