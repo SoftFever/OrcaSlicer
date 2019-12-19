@@ -218,6 +218,8 @@ class MyFrame: public wxFrame
     
     uqptr<SLAJob> m_ui_job;
     
+    double m_fps_avg = 0.;
+    
 public:
     MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, const Slic3r::GL::CSGSettings &settings);
     
@@ -234,6 +236,11 @@ public:
             std::string model_name;
             std::getline(stream, model_name);
             load_model(model_name);
+            
+            int w, h;
+            stream >> w >> h;
+            SetSize(w, h);
+            
             m_mouse.load(stream);
             m_mouse.play();
         }
@@ -243,6 +250,8 @@ public:
     const Canvas * canvas() const { return m_canvas.get(); }
     
     void bind_canvas_events(MouseInput &msinput);
+    
+    double get_fps_average() const { return m_fps_avg; }
 };
 
 static const std::vector<wxString> CSG_ALGS  = {"Auto", "Goldfeather", "SCS"};
@@ -308,6 +317,7 @@ public:
             m_frame->Show( true );
             m_frame->play_back_mouse(fname.ToStdString());
             m_frame->Close( true );
+            std::cout << m_frame->get_fps_average() << std::endl;
             
         } else m_frame->Show( true );
         
@@ -416,8 +426,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     
     auto fpstext = new wxStaticText(control_panel, wxID_ANY, "");
     console_sizer->Add(fpstext, 0, wxALL, 5);
-    m_canvas->get_ocsg_display()->get_fps_counter().add_listener([fpstext](double fps) {
-        fpstext->SetLabel(wxString::Format("fps: %.2f", fps) ); 
+    m_canvas->get_ocsg_display()->get_fps_counter().add_listener([this, fpstext](double fps) {
+        fpstext->SetLabel(wxString::Format("fps: %.2f", fps) );
+        m_fps_avg = 0.9 * m_fps_avg + 0.1 * fps;
     });
     
     auto record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
@@ -533,6 +544,8 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
                 
                 if (stream.good()) {
                     stream << m_ui_job->get_project_fname() << "\n";
+                    wxSize winsize = GetSize();
+                    stream << winsize.x << " " << winsize.y << "\n";
                     m_mouse.save(stream);
                 }
             }
