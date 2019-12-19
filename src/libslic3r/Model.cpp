@@ -1302,6 +1302,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         }
 
         new_vol->set_offset(Vec3d::Zero());
+        // reset the source to disable reload from disk
+        new_vol->source = ModelVolume::Source();
         new_objects->emplace_back(new_object);
         delete mesh;
     }
@@ -1668,6 +1670,8 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->calculate_convex_hull();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
+            // reset the source to disable reload from disk
+            this->source = ModelVolume::Source();
         }
         else
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(*mesh)));
