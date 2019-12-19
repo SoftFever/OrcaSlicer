@@ -17,33 +17,36 @@ class SLAPrint;
 
 namespace GL {
 
+// Simple shorthands for smart pointers
 template<class T> using shptr = std::shared_ptr<T>;
 template<class T> using uqptr = std::unique_ptr<T>;
 template<class T> using wkptr = std::weak_ptr<T>;
 
-template<class T, class A = std::allocator<T>>
-using vector = std::vector<T, A>;
+template<class T, class A = std::allocator<T>> using vector = std::vector<T, A>;
 
+// remove empty weak pointers from a vector
 template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
     auto it = std::remove_if(listeners.begin(), listeners.end(),
                              [](auto &l) { return !l.lock(); });
     listeners.erase(it, listeners.end());
 }
 
+// Call a class method on each element of a vector of objects (weak pointers)
+// of the same type.
 template<class F, class L, class...Args>
 void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
     for (auto &l : listeners)
         if (auto p = l.lock()) ((p.get())->*f)(std::forward<Args>(args)...);
 }
 
+// A representation of a mouse input for the engine.
 class MouseInput
 {
 public:
+    enum WheelAxis { waVertical, waHorizontal };
     
-    enum WheelAxis {
-        waVertical, waHorizontal
-    };
-    
+    // Interface to implement if an object wants to receive notifications
+    // about mouse events.
     class Listener {
     public:
         virtual ~Listener();
@@ -99,6 +102,7 @@ public:
     }
 };
 
+// This is a stripped down version of Slic3r::IndexedVertexArray
 class IndexedVertexArray {
 public:
     ~IndexedVertexArray() { release_geometry(); }
@@ -164,8 +168,11 @@ public:
     void shrink_to_fit();
 };
 
+// Try to enable or disable multisampling.
 bool enable_multisampling(bool e = true);
 
+// A primitive that can be used with OpenCSG rendering algorithms.
+// Does a similar job to GLVolume.
 class Primitive : public OpenCSG::Primitive
 {
     IndexedVertexArray m_geom;
@@ -176,19 +183,21 @@ public:
     
     Primitive() : OpenCSG::Primitive(OpenCSG::Intersection, 1) {}
     
-    void render();
+    void render() override;
     
     void translation(const Vec3d &offset) { m_trafo.set_offset(offset); }
     void rotation(const Vec3d &rot) { m_trafo.set_rotation(rot); }
     void scale(const Vec3d &scaleing) { m_trafo.set_scaling_factor(scaleing); }
     void scale(double s) { scale({s, s, s}); }
     
-    inline void load_mesh(const TriangleMesh &mesh) {
+    inline void load_mesh(const TriangleMesh &mesh)
+    {
         m_geom.load_mesh(mesh);
         m_geom.finalize_geometry();
     }
 };
 
+// A simple representation of a camera in a 3D scene
 class Camera {
 protected:
     Vec2f m_rot = {0., 0.};
@@ -209,6 +218,7 @@ public:
     void set_clip_z(double z) { m_clip_z = z; }
 };
 
+// Reset a camera object
 inline void reset(Camera &cam)
 {
     cam.set_rotation({0., 0.});
@@ -217,12 +227,15 @@ inline void reset(Camera &cam)
     cam.set_clip_z(0.);
 }
 
+// Specialization of a camera which shows in perspective projection
 class PerspectiveCamera: public Camera {
 public:
     
     void set_screen(long width, long height) override;
 };
 
+// A simple counter of FPS. Subscribed objects will receive updates of the
+// current fps.
 class FpsCounter {
     vector<std::function<void(double)>> m_listeners;
     
@@ -259,6 +272,7 @@ public:
     double get_mesure_window_size() const { return m_window_size; }
 };
 
+// Collection of the used OpenCSG library settings.
 class CSGSettings {
 public:
     static const constexpr unsigned DEFAULT_CONVEXITY = 10;
@@ -286,12 +300,19 @@ public:
     unsigned get_convexity() const { return m_convexity; }
     void set_convexity(unsigned c) { m_convexity = c; }
 };
-      
+
+// The scene is a wrapper around SLAPrint which holds the data to be visualized.
 class Scene
 {
     uqptr<SLAPrint> m_print;
 public:
     
+    // Subscribers will be notified if the model is changed. This might be a
+    // display which will have to load the meshes and repaint itself when
+    // the scene data changes.
+    // eg. We load a new 3mf through the UI, this will notify the controller
+    // associated with the scene and all the displays that the controller is
+    // connected with.
     class Listener {
     public:
         virtual ~Listener() = default;
@@ -316,6 +337,11 @@ private:
     vector<wkptr<Listener>> m_listeners;
 };
 
+// The basic Display. This is almost just an interface but will do all the
+// initialization and show the fps values. Overriding the render_scene is
+// needed to show the scene content. The specific method of displaying the
+// scene is up the the particular implementation (OpenCSG or other screen space
+// boolean algorithms)
 class Display : public Scene::Listener
 {
 protected:
@@ -356,10 +382,13 @@ public:
     FpsCounter &get_fps_counter() { return m_fps_counter; }
 };
 
+// Special dispaly using OpenCSG for rendering the scene.
 class CSGDisplay : public Display {
 protected:
     CSGSettings m_csgsettings;
     
+    // Cache the renderable primitives. These will be fetched when the scene
+    // is modified.
     struct SceneCache {
         vector<shptr<Primitive>> primitives;
         vector<Primitive *> primitives_free;
@@ -375,6 +404,7 @@ protected:
     
 public:
     
+    // Receive or apply the new settings.
     const CSGSettings & get_csgsettings() const { return m_csgsettings; }
     void apply_csgsettings(const CSGSettings &settings);
     
@@ -383,6 +413,11 @@ public:
     void on_scene_updated(const Scene &scene) override;
 };
 
+
+// The controller is a hub which dispatches mouse events to the connected
+// displays. It keeps track of the mouse wheel position, the states whether
+// the mouse is being held, dragged, etc... All the connected displays will
+// mirror the camera movement (if there is more than one display).
 class Controller : public std::enable_shared_from_this<Controller>,
                    public MouseInput::Listener,
                    public Scene::Listener
@@ -404,6 +439,7 @@ class Controller : public std::enable_shared_from_this<Controller>,
     
 public:
     
+    // Set the scene that will be controlled.
     void set_scene(shptr<Scene> scene)
     {
         m_scene = scene;
