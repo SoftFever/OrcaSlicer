@@ -430,9 +430,11 @@ public:
 
         ExPolygons fullpad = diff_ex(fullcvh, model_bp_sticks);
 
-        remove_redundant_parts(fullpad);
-
         PadSkeleton divided = divide_blueprint(fullpad);
+        
+        remove_redundant_parts(divided.outer);
+        remove_redundant_parts(divided.inner);
+
         outer = std::move(divided.outer);
         inner = std::move(divided.inner);
     }
