@@ -42,7 +42,9 @@ namespace pt = boost::property_tree;
 //     Added x, y and z components of scale
 //     Added x, y and z components of mirror
 // 3 : Meshes saved in their local system; Added volumes' matrices and source data
-const unsigned int VERSION_AMF = 3;
+// WARNING !! -> the version number has been rolled back to 2
+//               the next change should use 4
+const unsigned int VERSION_AMF = 2;
 const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
 
 const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";

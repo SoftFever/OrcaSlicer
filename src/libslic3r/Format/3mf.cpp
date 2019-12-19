@@ -35,7 +35,9 @@ namespace pt = boost::property_tree;
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
 // 2 : Meshes saved in their local system; Volumes' matrices and source data added to Metadata/Slic3r_PE_model.config file.
-const unsigned int VERSION_3MF = 2;
+// WARNING !! -> the version number has been rolled back to 1
+//               the next change should use 3
+const unsigned int VERSION_3MF = 1;
 const char* SLIC3RPE_3MF_VERSION = "slic3rpe:Version3mf"; // definition of the metadata name saved into .model file
 
 const std::string MODEL_FOLDER = "3D/";
