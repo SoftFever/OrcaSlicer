@@ -109,6 +109,13 @@ public:
             m_display->set_screen_size(ClientSize.x, ClientSize.y);
             m_display->repaint();
         });
+        
+        Bind(wxEVT_SIZE, [this](wxSizeEvent &) {
+            const wxSize ClientSize = GetClientSize();
+            
+            m_display->set_screen_size(ClientSize.x, ClientSize.y);
+            m_display->repaint();
+        });
     }
     
     shptr<Slic3r::GL::Display> get_display() const { return m_display; }
@@ -200,7 +207,7 @@ public:
             case MV:     MouseInput::move_to(evt.a, evt.b); break;
             }
             
-            wxYield();
+            wxTheApp->Yield();
             if (!m_playing)
                 break;
         }
@@ -299,9 +306,9 @@ public:
             std::string model_name;
             std::getline(stream, model_name);
             load_model(model_name);
-            while (!m_ui_job->is_finalized()) {
-                wxYield();
-            }
+            
+            while (!m_ui_job->is_finalized())
+                wxTheApp->Yield();;
             
             int w, h;
             stream >> w >> h;
@@ -336,6 +343,7 @@ inline long get_idx(const wxString &a, const std::vector<wxString> &v)
 
 class App : public wxApp {
     MyFrame *m_frame = nullptr;
+    wxString m_fname;
 public:
     bool OnInit() override {
         
@@ -350,22 +358,22 @@ public:
         
         parser.Parse();
         
-        wxString fname;
-        bool is_play = parser.Found("play", &fname);
+        bool is_play = parser.Found("play", &m_fname);
         
         m_frame = new MyFrame("PrusaSlicer OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768), parser);
 
         if (is_play) {
+            Bind(wxEVT_IDLE, &App::Play, this);
             m_frame->Show( true );
-            m_frame->play_back_mouse(fname.ToStdString());
-            
-            std::cout << m_frame->get_fps_average() << std::endl;
-            
-            m_frame->Destroy();
-            
         } else m_frame->Show( true );
         
         return true;
+    }
+    
+    void Play(wxIdleEvent &) {
+        Unbind(wxEVT_IDLE, &App::Play, this);
+        m_frame->play_back_mouse(m_fname.ToStdString());
+        m_frame->Destroy();
     }
 };
 
@@ -438,7 +446,8 @@ void MyFrame::set_renderer_algorithm(const wxString &alg)
         canvas()->set_display(m_ocsgdisplay);
     }
     
-    if (cam) m_canvas->get_display()->set_camera(cam);
+    if (cam)
+        m_canvas->get_display()->set_camera(cam);
     
     m_ctl->remove_displays();
     m_ctl->add_display(m_canvas->get_display());
@@ -461,9 +470,7 @@ void MyFrame::activate_canvas_display()
     
     // Do the repaint continuously
     m_canvas->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
-        if (IsShown() && m_canvas->IsShown())
-            m_canvas->get_display()->repaint();
-        
+        m_canvas->get_display()->repaint();
         evt.RequestMore();
     });
     
