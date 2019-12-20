@@ -225,8 +225,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     
     if(po.m_config.supports_enable.getBool() || po.m_config.pad_enable.getBool())
     {
-        po.m_supportdata.reset(
-            new SLAPrintObject::SupportData(po.transformed_mesh()) );
+        po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
     }
 }
 

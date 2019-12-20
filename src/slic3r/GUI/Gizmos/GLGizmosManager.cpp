@@ -88,13 +88,15 @@ bool GLGizmosManager::init()
             return false;
     }
 
+    m_common_gizmos_data.reset(new CommonGizmosData());
+
     m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "move.svg", 0));
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "scale.svg", 1));
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "rotate.svg", 2));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
-    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5));
-    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 6));
+    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5, m_common_gizmos_data.get()));
+    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 6, m_common_gizmos_data.get()));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {

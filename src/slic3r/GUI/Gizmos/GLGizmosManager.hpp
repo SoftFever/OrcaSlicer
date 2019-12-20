@@ -101,6 +101,7 @@ private:
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
+    std::unique_ptr<CommonGizmosData> m_common_gizmos_data;
 
 public:
     explicit GLGizmosManager(GLCanvas3D& parent);
