@@ -3322,7 +3322,11 @@ void Plater::priv::reload_from_disk()
                     new_volume->config.apply(old_volume->config);
                     new_volume->set_type(old_volume->type());
                     new_volume->set_material_id(old_volume->material_id());
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+                    new_volume->set_transformation(old_volume->get_transformation() * old_volume->source.transform);
+#else
                     new_volume->set_transformation(old_volume->get_transformation());
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
                     new_volume->source.input_file = path;
                     std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
