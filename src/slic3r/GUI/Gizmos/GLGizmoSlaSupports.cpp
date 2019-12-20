@@ -93,7 +93,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);

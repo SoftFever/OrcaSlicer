@@ -83,7 +83,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -607,10 +607,18 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
             TriangleMesh holes_mesh;
             for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
                 TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/8);
+
+                // Rotate the cylinder appropriately
                 Eigen::Quaternionf q;
                 Transform3f m = Transform3f::Identity();
                 m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3f::UnitZ(), hole.normal).toRotationMatrix();
                 hole_mesh.transform(m.cast<double>());
+
+                // If the instance is scaled, undo the scaling of the hole
+                Vec3d scaling = m_c->m_model_object->instances[m_c->m_active_instance]->get_scaling_factor();
+                hole_mesh.scale(Vec3d(1/scaling(0), 1/scaling(1), 1/scaling(2)));
+
+                // Translate the hole into position and merge with the others
                 hole_mesh.translate(hole.pos);
                 holes_mesh.merge(hole_mesh);
                 holes_mesh.repair();
@@ -627,6 +635,9 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
         m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->force_transparent = false;
+
+        // Reset raycaster so it works with the new mesh:
+        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
     }
 
     if (m_clipping_plane_distance == 0.f) {
