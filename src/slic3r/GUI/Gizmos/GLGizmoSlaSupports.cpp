@@ -749,16 +749,35 @@ void GLGizmoSlaSupports::make_line_segments() const
 
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (!m_c->m_model_object)
+    static float last_y = 0.0f;
+    static float last_h = 0.0f;
+
+    if (! m_c->m_model_object)
         return;
 
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 RENDER_AGAIN:
-    const float approx_height = m_imgui->scaled(18.0f);
-    y = std::min(y, bottom_limit - approx_height);
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    //m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    //const ImVec2 window_size(m_imgui->scaled(18.f, 16.f));
+    //ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
+    //ImGui::SetNextWindowSize(ImVec2(window_size));
+
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
+    // adjust window position to avoid overlap the view toolbar
+    float win_h = ImGui::GetWindowHeight();
+    y = std::min(y, bottom_limit - win_h);
+    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    if ((last_h != win_h) || (last_y != y))
+    {
+        // ask canvas for another frame to render the window in the correct position
+        m_parent.request_extra_frame();
+        if (last_h != win_h)
+            last_h = win_h;
+        if (last_y != y)
+            last_y = y;
+    }
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
 

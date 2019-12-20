@@ -2252,7 +2252,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         config += std::move(config_loaded);
                     }
 
-                    this->model.custom_gcode_per_height = model.custom_gcode_per_height;
+                    this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                 }
 
                 if (load_config)
@@ -2671,7 +2671,7 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    model.custom_gcode_per_height.clear();
+    model.custom_gcode_per_print_z.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -3219,33 +3219,47 @@ void Plater::priv::reload_from_disk()
     while (!missing_input_paths.empty())
     {
         // ask user to select the missing file
-        std::string search = missing_input_paths.back().string();
-        wxFileDialog dialog(q, _(L("Please select the file to reload:")), "", search, file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        fs::path search = missing_input_paths.back();
+        wxString title = _(L("Please select the file to reload"));
+#if defined(__APPLE__)
+        title += " (" + from_u8(search.filename().string()) + "):";
+#else
+        title += ":";
+#endif // __APPLE__
+        wxFileDialog dialog(q, title, "", from_u8(search.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dialog.ShowModal() != wxID_OK)
             return;
 
         std::string sel_filename_path = dialog.GetPath().ToUTF8().data();
         std::string sel_filename = fs::path(sel_filename_path).filename().string();
-        if (boost::algorithm::iends_with(search, sel_filename))
+        if (boost::algorithm::iequals(search.filename().string(), sel_filename))
         {
             input_paths.push_back(sel_filename_path);
             missing_input_paths.pop_back();
 
-            std::string sel_path = fs::path(sel_filename_path).remove_filename().string();
+            fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
             std::vector<fs::path>::iterator it = missing_input_paths.begin();
             while (it != missing_input_paths.end())
             {
                 // try to use the path of the selected file with all remaining missing files
-                std::string repathed_filename = sel_path + "/" + it->filename().string();
+                fs::path repathed_filename = sel_path;
+                repathed_filename /= it->filename();
                 if (fs::exists(repathed_filename))
                 {
-                    input_paths.push_back(repathed_filename);
+                    input_paths.push_back(repathed_filename.string());
                     it = missing_input_paths.erase(it);
                 }
                 else
                     ++it;
             }
+        }
+        else
+        {
+            wxString message = _(L("It is not allowed to change the file to reload")) + " (" + from_u8(search.filename().string()) + ").\n" + _(L("Do you want to retry")) + " ?";
+            wxMessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 #endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
@@ -3281,7 +3295,8 @@ void Plater::priv::reload_from_disk()
             int new_volume_idx = old_volume->source.volume_idx;
             int new_object_idx = old_volume->source.object_idx;
 
-            if (old_volume->source.input_file == path)
+            if (boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(),
+                fs::path(path).filename().string()))
             {
                 assert(new_object_idx < (int)new_model.objects.size());
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
@@ -3295,6 +3310,7 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation());
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                    new_volume->source.input_file = path;
                     std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                 }
@@ -3593,7 +3609,10 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second) // right button was clicked on empty space
             menu = &default_menu;
         else
+        {
+            sidebar->obj_list()->show_multi_selection_menu();
             return;
+        }
     }
     else
     {
@@ -4623,6 +4642,13 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
+
+    Selection& selection = p->get_selection();
+    size_t last_id = p->model.objects.size() - 1;
+    for (size_t i = 0; i < new_objects.size(); ++i)
+    {
+        selection.add_object((unsigned int)(last_id - i), i == 0);
+    }
 }
 
 void Plater::export_gcode()
@@ -5157,6 +5183,7 @@ const DynamicPrintConfig* Plater::get_plater_config() const
     return p->config;
 }
 
+// Get vector of extruder colors considering filament color, if extruder color is undefined.
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -5176,13 +5203,17 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
     return extruder_colors;
 }
 
+/* Get vector of colors used for rendering of a Preview scene in "Color print" mode
+ * It consists of extruder colors and colors, saved in model.custom_gcode_per_print_z
+ */
 std::vector<std::string> Plater::get_colors_for_color_print() const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
+    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.size());
 
-    for (const Model::CustomGCode& code : p->model.custom_gcode_per_height)
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z)
         if (code.gcode == ColorChangeCode)
-            colors.push_back(code.color);
+            colors.emplace_back(code.color);
 
     return colors;
 }

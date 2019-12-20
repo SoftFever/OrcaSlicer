@@ -214,7 +214,6 @@ inline Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject, bool safety_
     return _clipper_ex(ClipperLib::ctUnion, to_polygons(subject), Slic3r::Polygons(), safety_offset_);
 }
 
-
 ClipperLib::PolyTree union_pt(const Slic3r::Polygons &subject, bool safety_offset_ = false);
 ClipperLib::PolyTree union_pt(const Slic3r::ExPolygons &subject, bool safety_offset_ = false);
 ClipperLib::PolyTree union_pt(Slic3r::Polygons &&subject, bool safety_offset_ = false);
@@ -222,13 +221,95 @@ ClipperLib::PolyTree union_pt(Slic3r::ExPolygons &&subject, bool safety_offset_ 
 
 Slic3r::Polygons union_pt_chained(const Slic3r::Polygons &subject, bool safety_offset_ = false);
 
-void traverse_pt(const ClipperLib::PolyNodes &nodes, Slic3r::Polygons *retval);
-void traverse_pt(const ClipperLib::PolyNodes &nodes, Slic3r::ExPolygons *retval);
-void traverse_pt(const ClipperLib::PolyNode  *tree,  Slic3r::ExPolygons *retval);
+ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes);
 
-void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Slic3r::Polygons *retval);
-void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Slic3r::ExPolygons *retval);
-void traverse_pt_unordered(const ClipperLib::PolyNode  *tree,  Slic3r::ExPolygons *retval);
+// Implementing generalized loop (foreach) over a list of nodes which can be
+// ordered or unordered (performance gain) based on template parameter
+enum class e_ordering {
+    ON,
+    OFF
+};
+
+// Create a template struct, template functions can not be partially specialized
+template<e_ordering o, class Fn> struct _foreach_node {
+    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn);
+};
+
+// Specialization with NO ordering
+template<class Fn> struct _foreach_node<e_ordering::OFF, Fn> {
+    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+    {
+        for (auto &n : nodes) fn(n);    
+    }
+};
+
+// Specialization with ordering
+template<class Fn> struct _foreach_node<e_ordering::ON, Fn> {
+    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+    {
+        auto ordered_nodes = order_nodes(nodes);
+        for (auto &n : nodes) fn(n);    
+    }
+};
+
+// Wrapper function for the foreach_node which can deduce arguments automatically
+template<e_ordering o, class Fn>
+void foreach_node(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+{
+    _foreach_node<o, Fn>()(nodes, std::forward<Fn>(fn));
+}
+
+// Collecting polygons of the tree into a list of Polygons, holes have clockwise
+// orientation.
+template<e_ordering ordering = e_ordering::OFF>
+void traverse_pt(const ClipperLib::PolyNode *tree, Polygons *out)
+{
+    if (!tree) return; // terminates recursion
+    
+    // Push the contour of the current level
+    out->emplace_back(ClipperPath_to_Slic3rPolygon(tree->Contour));
+    
+    // Do the recursion for all the children.
+    traverse_pt<ordering>(tree->Childs, out);
+}
+
+// Collecting polygons of the tree into a list of ExPolygons.
+template<e_ordering ordering = e_ordering::OFF>
+void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *out)
+{
+    if (!tree) return;
+    else if(tree->IsHole()) {
+        // Levels of holes are skipped and handled together with the
+        // contour levels.
+        traverse_pt<ordering>(tree->Childs, out);
+        return;
+    }
+    
+    ExPolygon level;
+    level.contour = ClipperPath_to_Slic3rPolygon(tree->Contour);
+    
+    foreach_node<ordering>(tree->Childs, 
+                           [out, &level] (const ClipperLib::PolyNode *node) {
+        
+        // Holes are collected here. 
+        level.holes.emplace_back(ClipperPath_to_Slic3rPolygon(node->Contour));
+        
+        // By doing a recursion, a new level expoly is created with the contour
+        // and holes of the lower level. Doing this for all the childs.
+        traverse_pt<ordering>(node->Childs, out);
+    }); 
+    
+    out->emplace_back(level);
+}
+
+template<e_ordering o = e_ordering::OFF, class ExOrJustPolygons>
+void traverse_pt(const ClipperLib::PolyNodes &nodes, ExOrJustPolygons *retval)
+{
+    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
+        traverse_pt<o>(node, retval);
+    });
+}
+
 
 /* OTHER */
 Slic3r::Polygons simplify_polygons(const Slic3r::Polygons &subject, bool preserve_collinear = false);

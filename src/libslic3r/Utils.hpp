@@ -217,14 +217,6 @@ inline typename CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER
 	return container[next_idx_modulo(idx, container.size())];
 }
 
-template<class T, class U = T>
-inline T exchange(T& obj, U&& new_value)
-{
-    T old_value = std::move(obj);
-    obj = std::forward<U>(new_value);
-    return old_value;
-}
-
 extern std::string xml_escape(std::string text);
 
 

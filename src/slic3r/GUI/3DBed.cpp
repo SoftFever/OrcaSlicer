@@ -191,7 +191,6 @@ Bed3D::Bed3D()
     : m_type(Custom)
     , m_custom_texture("")
     , m_custom_model("")
-    , m_requires_canvas_update(false)
     , m_vbo_id(0)
     , m_scale_factor(1.0f)
 {
@@ -205,7 +204,6 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     std::string cst_texture(custom_texture);
     if (!cst_texture.empty())
     {
-        std::replace(cst_texture.begin(), cst_texture.end(), '\\', '/');
         if ((!boost::algorithm::iends_with(custom_texture, ".png") && !boost::algorithm::iends_with(custom_texture, ".svg")) || !boost::filesystem::exists(custom_texture))
             cst_texture = "";
     }
@@ -214,7 +212,6 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     std::string cst_model(custom_model);
     if (!cst_model.empty())
     {
-        std::replace(cst_model.begin(), cst_model.end(), '\\', '/');
         if (!boost::algorithm::iends_with(custom_model, ".stl") || !boost::filesystem::exists(custom_model))
             cst_model = "";
     }
@@ -438,6 +435,7 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
                     render_default(bottom);
                     return;
                 }
+                canvas.request_extra_frame();
             }
 
             // starts generating the main texture, compression will run asynchronously
@@ -457,6 +455,7 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
                     render_default(bottom);
                     return;
                 }
+                canvas.request_extra_frame();
             }
 
             // starts generating the main texture, compression will run asynchronously
@@ -481,13 +480,9 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
         if (m_temp_texture.get_id() != 0)
             m_temp_texture.reset();
 
-        m_requires_canvas_update = true;
-    }
-    else if (m_requires_canvas_update && m_texture.all_compressed_data_sent_to_gpu())
-        m_requires_canvas_update = false;
+        canvas.request_extra_frame();
 
-    if (m_texture.all_compressed_data_sent_to_gpu() && canvas.is_keeping_dirty())
-        canvas.stop_keeping_dirty();
+    }
 
     if (m_triangles.get_vertices_count() > 0)
     {

@@ -339,18 +339,15 @@ PadSkeleton divide_blueprint(const ExPolygons &bp)
     for (ClipperLib::PolyTree::PolyNode *node : ptree.Childs) {
         ExPolygon poly(ClipperPath_to_Slic3rPolygon(node->Contour));
         for (ClipperLib::PolyTree::PolyNode *child : node->Childs) {
-            if (child->IsHole()) {
-                poly.holes.emplace_back(
-                    ClipperPath_to_Slic3rPolygon(child->Contour));
+            poly.holes.emplace_back(
+                ClipperPath_to_Slic3rPolygon(child->Contour));
 
-                traverse_pt_unordered(child->Childs, &ret.inner);
-            }
-            else traverse_pt_unordered(child, &ret.inner);
+            traverse_pt(child->Childs, &ret.inner);
         }
 
         ret.outer.emplace_back(poly);
     }
-
+    
     return ret;
 }
 
@@ -432,9 +429,11 @@ public:
 
         ExPolygons fullpad = diff_ex(fullcvh, model_bp_sticks);
 
-        remove_redundant_parts(fullpad);
-
         PadSkeleton divided = divide_blueprint(fullpad);
+        
+        remove_redundant_parts(divided.outer);
+        remove_redundant_parts(divided.inner);
+
         outer = std::move(divided.outer);
         inner = std::move(divided.inner);
     }

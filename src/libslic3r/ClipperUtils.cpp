@@ -679,133 +679,73 @@ ClipperLib::PolyTree union_pt(ExPolygons &&subject, bool safety_offset_)
     return _clipper_do<ClipperLib::PolyTree>(ClipperLib::ctUnion, std::move(subject), Polygons(), ClipperLib::pftEvenOdd, safety_offset_);
 }
 
-Polygons
-union_pt_chained(const Polygons &subject, bool safety_offset_)
-{
-    ClipperLib::PolyTree polytree = union_pt(subject, safety_offset_);
-    
-    Polygons retval;
-    traverse_pt(polytree.Childs, &retval);
-    return retval;
-}
-
-static ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes)
+// Simple spatial ordering of Polynodes
+ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes)
 {
     // collect ordering points
     Points ordering_points;
     ordering_points.reserve(nodes.size());
+    
     for (const ClipperLib::PolyNode *node : nodes)
-        ordering_points.emplace_back(Point(node->Contour.front().X, node->Contour.front().Y));
-    
+        ordering_points.emplace_back(
+            Point(node->Contour.front().X, node->Contour.front().Y));
+
     // perform the ordering
-    ClipperLib::PolyNodes ordered_nodes = chain_clipper_polynodes(ordering_points, nodes);
-    
+    ClipperLib::PolyNodes ordered_nodes =
+        chain_clipper_polynodes(ordering_points, nodes);
+
     return ordered_nodes;
 }
 
-enum class e_ordering {
-    ORDER_POLYNODES,
-    DONT_ORDER_POLYNODES
-};
-
-template<e_ordering o>
-void foreach_node(const ClipperLib::PolyNodes &nodes,
-                  std::function<void(const ClipperLib::PolyNode *)> fn);
-
-template<> void foreach_node<e_ordering::DONT_ORDER_POLYNODES>(
-    const ClipperLib::PolyNodes &                     nodes,
-    std::function<void(const ClipperLib::PolyNode *)> fn)
+static void traverse_pt_noholes(const ClipperLib::PolyNodes &nodes, Polygons *out)
 {
-    for (auto &n : nodes) fn(n);
+    foreach_node<e_ordering::ON>(nodes, [&out](const ClipperLib::PolyNode *node) 
+    {
+        traverse_pt_noholes(node->Childs, out);
+        out->emplace_back(ClipperPath_to_Slic3rPolygon(node->Contour));
+        if (node->IsHole()) out->back().reverse(); // ccw
+    });
 }
 
-template<> void foreach_node<e_ordering::ORDER_POLYNODES>(
-    const ClipperLib::PolyNodes &                     nodes,
-    std::function<void(const ClipperLib::PolyNode *)> fn)
-{
-    auto ordered_nodes = order_nodes(nodes);
-    for (auto &n : ordered_nodes) fn(n);
-}
-
-template<e_ordering o>
-void _traverse_pt(const ClipperLib::PolyNodes &nodes, Polygons *retval)
+static void traverse_pt_old(ClipperLib::PolyNodes &nodes, Polygons* retval)
 {
     /* use a nearest neighbor search to order these children
        TODO: supply start_near to chained_path() too? */
     
+    // collect ordering points
+    Points ordering_points;
+    ordering_points.reserve(nodes.size());
+    for (ClipperLib::PolyNodes::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+        Point p((*it)->Contour.front().X, (*it)->Contour.front().Y);
+        ordering_points.push_back(p);
+    }
+    
+    // perform the ordering
+    ClipperLib::PolyNodes ordered_nodes = chain_clipper_polynodes(ordering_points, nodes);
+    
     // push results recursively
-    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
+    for (ClipperLib::PolyNodes::iterator it = ordered_nodes.begin(); it != ordered_nodes.end(); ++it) {
         // traverse the next depth
-        _traverse_pt<o>(node->Childs, retval);
-        retval->emplace_back(ClipperPath_to_Slic3rPolygon(node->Contour));
-        if (node->IsHole()) retval->back().reverse();  // ccw
-    });
+        traverse_pt_old((*it)->Childs, retval);
+        retval->push_back(ClipperPath_to_Slic3rPolygon((*it)->Contour));
+        if ((*it)->IsHole()) retval->back().reverse();  // ccw
+    }
 }
 
-template<e_ordering o>
-void _traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *retval)
+Polygons union_pt_chained(const Polygons &subject, bool safety_offset_)
 {
-    if (!retval || !tree) return;
+    ClipperLib::PolyTree polytree = union_pt(subject, safety_offset_);
     
-    ExPolygons &retv = *retval;
+    Polygons retval;
+    traverse_pt_old(polytree.Childs, &retval);
+    return retval;
     
-    std::function<void(const ClipperLib::PolyNode*, ExPolygon&)> hole_fn;
+// TODO: This needs to be tested:
+//    ClipperLib::PolyTree polytree = union_pt(subject, safety_offset_);
     
-    auto contour_fn = [&retv, &hole_fn](const ClipperLib::PolyNode *pptr) {
-        ExPolygon poly;
-        poly.contour.points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
-        auto fn = std::bind(hole_fn, std::placeholders::_1, poly);
-        foreach_node<o>(pptr->Childs, fn);
-        retv.push_back(poly);
-    };
-    
-    hole_fn = [&contour_fn](const ClipperLib::PolyNode *pptr, ExPolygon& poly)
-    {   
-        poly.holes.emplace_back();
-        poly.holes.back().points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
-        foreach_node<o>(pptr->Childs, contour_fn);
-    };
-    
-    contour_fn(tree);
-}
-
-template<e_ordering o>
-void _traverse_pt(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
-{
-    // Here is the actual traverse
-    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
-        _traverse_pt<o>(node, retval);
-    });
-}
-
-void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *retval)
-{
-    _traverse_pt<e_ordering::ORDER_POLYNODES>(tree, retval);
-}
-
-void traverse_pt_unordered(const ClipperLib::PolyNode *tree, ExPolygons *retval)
-{
-    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(tree, retval);
-}
-
-void traverse_pt(const ClipperLib::PolyNodes &nodes, Polygons *retval)
-{
-    _traverse_pt<e_ordering::ORDER_POLYNODES>(nodes, retval);
-}
-
-void traverse_pt(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
-{
-    _traverse_pt<e_ordering::ORDER_POLYNODES>(nodes, retval);
-}
-
-void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, Polygons *retval)
-{
-    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(nodes, retval);
-}
-
-void traverse_pt_unordered(const ClipperLib::PolyNodes &nodes, ExPolygons *retval)
-{
-    _traverse_pt<e_ordering::DONT_ORDER_POLYNODES>(nodes, retval);
+//    Polygons retval;
+//    traverse_pt_noholes(polytree.Childs, &retval);
+//    return retval;
 }
 
 Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)

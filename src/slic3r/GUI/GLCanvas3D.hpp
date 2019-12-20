@@ -185,7 +185,7 @@ private:
         bool                        m_layer_height_profile_modified;
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        mutable float               m_adaptive_cusp;
+        mutable float               m_adaptive_quality;
         mutable HeightProfileSmoothingParams m_smooth_params;
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
@@ -236,8 +236,8 @@ private:
 		void accept_changes(GLCanvas3D& canvas);
         void reset_layer_height_profile(GLCanvas3D& canvas);
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        void adaptive_layer_height_profile(GLCanvas3D& canvas, float cusp);
-        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_paramsn);
+        void adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor);
+        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
@@ -436,7 +436,9 @@ private:
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
-    bool m_keep_dirty;
+    // when true renders an extra frame by not resetting m_dirty to false
+    // see request_extra_frame()
+    bool m_extra_frame_requested;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -540,7 +542,7 @@ public:
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     void reset_layer_height_profile();
-    void adaptive_layer_height_profile(float cusp);
+    void adaptive_layer_height_profile(float quality_factor);
     void smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params);
 #endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
@@ -665,9 +667,7 @@ public:
     void set_cursor(ECursorType type);
     void msw_rescale();
 
-    bool is_keeping_dirty() const { return m_keep_dirty; }
-    void start_keeping_dirty() { m_keep_dirty = true; }
-    void stop_keeping_dirty() { m_keep_dirty = false; }
+    void request_extra_frame() { m_extra_frame_requested = true; }
 
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }

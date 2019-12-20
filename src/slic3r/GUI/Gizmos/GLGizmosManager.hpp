@@ -65,12 +65,28 @@ public:
     };
 
 private:
+    struct Layout
+    {
+        float scale{ 1.0f };
+        float icons_size{ Default_Icons_Size };
+        float border{ 5.0f };
+        float gap_y{ 5.0f };
+
+        float stride_y() const { return icons_size + gap_y;}
+
+        float scaled_icons_size() const { return scale * icons_size; }
+        float scaled_border() const { return scale * border; }
+        float scaled_gap_y() const { return scale * gap_y; }
+        float scaled_stride_y() const { return scale * stride_y(); }
+    };
+
     GLCanvas3D& m_parent;
     bool m_enabled;
     std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
     mutable GLTexture m_icons_texture;
     mutable bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
+    Layout m_layout;
     EType m_current;
     EType m_hover;
 
@@ -79,11 +95,6 @@ private:
     size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
 
     void activate_gizmo(EType type);
-
-    float m_overlay_icons_size;
-    float m_overlay_scale;
-    float m_overlay_border;
-    float m_overlay_gap_y;
 
     struct MouseCapture
     {
@@ -205,8 +216,8 @@ private:
     void render_background(float left, float top, float right, float bottom, float border) const;
     void do_render_overlay() const;
 
-    float get_total_overlay_height() const;
-    float get_total_overlay_width() const;
+    float get_scaled_total_height() const;
+    float get_scaled_total_width() const;
 
     bool generate_icons_texture() const;
 
