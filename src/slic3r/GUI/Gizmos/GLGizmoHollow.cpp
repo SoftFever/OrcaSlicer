@@ -112,10 +112,21 @@ void GLGizmoHollow::on_render() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     if (m_c->m_volume_with_cavity) {
+        m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
-        m_c->m_volume_with_cavity->render();
+
+        GLint current_program_id;
+        glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
+        GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
+        GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
+        GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
+        glcheck();
+        m_c->m_volume_with_cavity->set_render_color();
+        m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
+    // Show/hide the original object
+    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
@@ -602,22 +613,22 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
                 hole_mesh.transform(m.cast<double>());
                 hole_mesh.translate(hole.pos);
                 holes_mesh.merge(hole_mesh);
-                //MeshBoolean::minus(*m_c->m_cavity_mesh.get(), hole_mesh);
+                holes_mesh.repair();
             }
             MeshBoolean::minus(*m_c->m_cavity_mesh.get(), holes_mesh);
         }
 
-
         // create a new GLVolume that only has the cavity inside
         Geometry::Transformation volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
         volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
-        m_c->m_volume_with_cavity.reset(new GLVolume(1.f, 0.f, 0.f, 0.5f));
+        m_c->m_volume_with_cavity.reset(new GLVolume(GLVolume::MODEL_COLOR[2]));
         m_c->m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_c->m_cavity_mesh.get());
         m_c->m_volume_with_cavity->finalize_geometry(true);
         m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
         m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
+        m_c->m_volume_with_cavity->force_transparent = false;
     }
-    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+
     if (m_clipping_plane_distance == 0.f) {
         m_clipping_plane_distance = 0.5f;
         update_clipping_plane();
@@ -672,7 +683,7 @@ RENDER_AGAIN:
     const float approx_height = m_imgui->scaled(20.0f);
     y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
+
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
@@ -756,7 +767,8 @@ RENDER_AGAIN:
     bool remove_selected = false;
     bool remove_all = false;
 
-    m_imgui->text(" "); // vertical gap
+   // m_imgui->text(" "); // vertical gap
+    ImGui::Separator();
 
     float diameter_upper_cap = 20.f; //static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
     if (m_new_hole_radius > diameter_upper_cap)
@@ -824,7 +836,8 @@ RENDER_AGAIN:
     m_imgui->disabled_end();
 
     // Following is rendered in both editing and non-editing mode:
-    m_imgui->text("");
+   // m_imgui->text("");
+    ImGui::Separator();
     if (m_clipping_plane_distance == 0.f)
         m_imgui->text(m_desc.at("clipping_of_view"));
     else {
@@ -940,9 +953,9 @@ void GLGizmoHollow::on_set_state()
         // Release clippers and the AABB raycaster.
         m_c->m_object_clipper.reset();
         m_c->m_supports_clipper.reset();
-        m_c->m_mesh_raycaster.reset();
-        m_c->m_cavity_mesh.reset();
-        m_c->m_volume_with_cavity.reset();
+        //m_c->m_mesh_raycaster.reset();
+        //m_c->m_cavity_mesh.reset();
+        //m_c->m_volume_with_cavity.reset();
     }
     m_old_state = m_state;
 }

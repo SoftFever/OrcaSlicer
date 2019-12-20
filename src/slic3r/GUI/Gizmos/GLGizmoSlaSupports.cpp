@@ -121,6 +121,23 @@ void GLGizmoSlaSupports::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
+    if (m_c->m_volume_with_cavity) {
+        m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
+        m_parent.get_shader().start_using();
+
+        GLint current_program_id;
+        glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
+        GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
+        GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
+        GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
+        glcheck();
+        m_c->m_volume_with_cavity->set_render_color();
+        m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
+        m_parent.get_shader().stop_using();
+    }
+    // Show/hide the original object
+    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
     if (m_quadric != nullptr && selection.is_from_single_instance())
@@ -328,41 +345,41 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     }
 
     // Now render the drain holes:
-    render_color[0] = 0.7f;
-    render_color[1] = 0.7f;
-    render_color[2] = 0.7f;
-    render_color[3] = 0.7f;
-    glsafe(::glColor4fv(render_color));
-    for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
-        // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
-        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+//    render_color[0] = 0.7f;
+//    render_color[1] = 0.7f;
+//    render_color[2] = 0.7f;
+//    render_color[3] = 0.7f;
+//    glsafe(::glColor4fv(render_color));
+//    for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
+//        // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
+//        glsafe(::glPushMatrix());
+//        glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
+//        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
-        if (vol->is_left_handed())
-            glFrontFace(GL_CW);
+//        if (vol->is_left_handed())
+//            glFrontFace(GL_CW);
 
-        // Matrices set, we can render the point mark now.
+//        // Matrices set, we can render the point mark now.
 
-        Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
-        Eigen::AngleAxisd aa(q);
-        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslated(0., 0., -drain_hole.height));
-        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
-        glsafe(::glTranslated(0., 0., drain_hole.height));
-        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-        glsafe(::glTranslated(0., 0., -drain_hole.height));
-        glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-        glsafe(::glPopMatrix());
+//        Eigen::Quaterniond q;
+//        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
+//        Eigen::AngleAxisd aa(q);
+//        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
+//        glsafe(::glPushMatrix());
+//        glsafe(::glTranslated(0., 0., -drain_hole.height));
+//        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
+//        glsafe(::glTranslated(0., 0., drain_hole.height));
+//        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+//        glsafe(::glTranslated(0., 0., -drain_hole.height));
+//        glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
+//        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+//        glsafe(::glPopMatrix());
 
-        if (vol->is_left_handed())
-            glFrontFace(GL_CCW);
-        glsafe(::glPopMatrix());
+//        if (vol->is_left_handed())
+//            glFrontFace(GL_CCW);
+//        glsafe(::glPopMatrix());
 
-    }
+//    }
 
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
