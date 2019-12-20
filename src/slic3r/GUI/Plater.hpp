@@ -119,6 +119,7 @@ public:
     bool                    show_reslice(bool show) const;
 	bool                    show_export(bool show) const;
 	bool                    show_send(bool show) const;
+    bool                    show_disconnect(bool show)const;
     bool                    is_multifilament();
     void                    update_mode();
 
@@ -201,6 +202,8 @@ public:
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
+	void eject_drive();
+	void drive_ejected_callback();
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);

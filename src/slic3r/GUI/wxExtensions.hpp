@@ -730,6 +730,9 @@ public:
     wxBitmap&           bmp()       { return m_bmp; }
     const std::string&  name() const{ return m_icon_name; }
 
+    int                 px_cnt()const           {return m_px_cnt;}
+    bool                is_horizontal()const    {return m_is_horizontal;}
+
 private:
     wxWindow*       m_parent{ nullptr };
     wxBitmap        m_bmp = wxBitmap();
@@ -1096,6 +1099,7 @@ public:
 
     void SetBitmap_(const ScalableBitmap& bmp);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
+    int  GetBitmapHeight();
 
     void    msw_rescale();
 
@@ -1105,6 +1109,10 @@ private:
     std::string     m_disabled_icon_name = "";
     int             m_width {-1}; // should be multiplied to em_unit
     int             m_height{-1}; // should be multiplied to em_unit
+
+    // bitmap dimensions 
+    int             m_px_cnt{ 16 };
+    bool            m_is_horizontal{ false };
 };
 
 

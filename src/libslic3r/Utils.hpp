@@ -65,7 +65,11 @@ extern std::string normalize_utf8_nfc(const char *src);
 extern std::error_code rename_file(const std::string &from, const std::string &to);
 
 // Copy a file, adjust the access attributes, so that the target is writable.
-extern int copy_file(const std::string &from, const std::string &to);
+int copy_file_inner(const std::string &from, const std::string &to);
+extern int copy_file(const std::string &from, const std::string &to, const bool with_check = false);
+
+// Compares two files, returns 0 if identical.
+extern int check_copy(const std::string& origin, const std::string& copy);
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
 // https://github.com/prusa3d/PrusaSlicer/issues/1298
