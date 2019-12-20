@@ -1,5 +1,5 @@
 #ifndef SLIC3R_OCSG_EXMP_ENGINE_HPP
-#define SLIC3R_OCSG_EXMP_ENGINE_HPP_HPP
+#define SLIC3R_OCSG_EXMP_ENGINE_HPP
 
 #include <vector>
 #include <memory>
@@ -25,7 +25,7 @@ template<class T> using wkptr = std::weak_ptr<T>;
 template<class T, class A = std::allocator<T>> using vector = std::vector<T, A>;
 
 // remove empty weak pointers from a vector
-template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
+template<class L> inline void cleanup(vector<std::weak_ptr<L>> &listeners) {
     auto it = std::remove_if(listeners.begin(), listeners.end(),
                              [](auto &l) { return !l.lock(); });
     listeners.erase(it, listeners.end());
@@ -34,7 +34,7 @@ template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
 // Call a class method on each element of a vector of objects (weak pointers)
 // of the same type.
 template<class F, class L, class...Args>
-void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
+inline void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
     for (auto &l : listeners)
         if (auto p = l.lock()) ((p.get())->*f)(std::forward<Args>(args)...);
 }
@@ -171,19 +171,30 @@ public:
 // Try to enable or disable multisampling.
 bool enable_multisampling(bool e = true);
 
-// A primitive that can be used with OpenCSG rendering algorithms.
-// Does a similar job to GLVolume.
-class Primitive : public OpenCSG::Primitive
+template<class It,
+         class Trafo,
+         class GetPt,
+         class V = typename std::iterator_traits<It>::value_type>
+inline std::vector<V> transform_pts(
+    It from, It to, Trafo &&tr, GetPt &&point)
 {
+    vector<V> ret;
+    ret.reserve(to - from);
+    for(auto it = from; it != to; ++it) {
+        V v = *it;
+        v.pos = tr * point(*it);
+        ret.emplace_back(std::move(v));
+    }
+    return ret;
+}
+
+class Volume {
     IndexedVertexArray m_geom;
     Geometry::Transformation m_trafo;
+    
 public:
     
-    using OpenCSG::Primitive::Primitive;
-    
-    Primitive() : OpenCSG::Primitive(OpenCSG::Intersection, 1) {}
-    
-    void render() override;
+    void render();
     
     void translation(const Vec3d &offset) { m_trafo.set_offset(offset); }
     void rotation(const Vec3d &rot) { m_trafo.set_rotation(rot); }
@@ -195,6 +206,18 @@ public:
         m_geom.load_mesh(mesh);
         m_geom.finalize_geometry();
     }
+};
+
+// A primitive that can be used with OpenCSG rendering algorithms.
+// Does a similar job to GLVolume.
+class Primitive : public Volume, public OpenCSG::Primitive
+{
+public:
+    using OpenCSG::Primitive::Primitive;
+    
+    Primitive() : OpenCSG::Primitive(OpenCSG::Intersection, 1) {}
+    
+    void render() override { Volume::render(); }
 };
 
 // A simple representation of a camera in a 3D scene
