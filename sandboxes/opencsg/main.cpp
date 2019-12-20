@@ -183,10 +183,15 @@ public:
             case MV:     MouseInput::move_to(evt.a, evt.b); break;
             }
             
-            wxSafeYield();
+            wxYield();
+            if (!m_playing)
+                break;
         }
         m_playing = false;
     }
+    
+    void stop() { m_playing = false; }
+    bool is_playing() const { return m_playing; }
 };
 
 // The top level frame of the application.
@@ -236,6 +241,8 @@ class MyFrame: public wxFrame
     // To keep track of the running average of measured fps values.
     double m_fps_avg = 0.;
     
+    wxToggleButton *m_record_btn;
+    
 public:
     MyFrame(const wxString &               title,
             const wxPoint &                pos,
@@ -263,6 +270,7 @@ public:
             SetSize(w, h);
             
             m_mouse.load(stream);
+            if (m_record_btn) m_record_btn->Disable();
             m_mouse.play();
         }
     }
@@ -284,7 +292,6 @@ static const std::vector<wxString> CSG_OPT   = { "Default", "ForceOn", "On", "Of
 
 class App : public wxApp {
     MyFrame *m_frame = nullptr;
-    
 public:
     bool OnInit() override {
         
@@ -340,8 +347,10 @@ public:
         if (is_play) {
             m_frame->Show( true );
             m_frame->play_back_mouse(fname.ToStdString());
-            m_frame->Close( true );
+            
             std::cout << m_frame->get_fps_average() << std::endl;
+            
+            m_frame->Destroy();
             
         } else m_frame->Show( true );
         
@@ -455,8 +464,8 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
         m_fps_avg = 0.9 * m_fps_avg + 0.1 * fps;
     });
     
-    auto record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
-    console_sizer->Add(record_btn, 0, wxALL | wxEXPAND, 5);
+    m_record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
+    console_sizer->Add(m_record_btn, 0, wxALL | wxEXPAND, 5);
     
     controlsizer->Add(slider_sizer, 0, wxEXPAND);
     controlsizer->Add(console_sizer, 1, wxEXPAND);
@@ -475,10 +484,11 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     convexity_spin->SetValue(int(settings.get_convexity()));
     csg_toggle->SetValue(settings.is_enabled());
     
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &){
-        RemoveChild(m_canvas.get());
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt){
+        if (m_canvas) RemoveChild(m_canvas.get());
         m_canvas.reset();
-        Destroy();
+        if (!m_mouse.is_playing()) evt.Skip();
+        else m_mouse.stop();
     });    
     
     Bind(wxEVT_MENU, [this](wxCommandEvent &) {
@@ -546,13 +556,13 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
         }
     });
     
-    record_btn->Bind(wxEVT_TOGGLEBUTTON, [this, record_btn](wxCommandEvent &) {
+    m_record_btn->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &) {
         if (!m_ui_job) {
             m_stbar->set_status_text("No project loaded!");
             return;
         }
         
-        if (record_btn->GetValue()) {
+        if (m_record_btn->GetValue()) {
             if (auto c = m_canvas->get_display()->camera()) reset(*c);
             m_ctl->on_scene_updated(*m_scene);
             m_mouse.record(true);
