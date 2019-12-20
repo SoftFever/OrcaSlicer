@@ -309,13 +309,25 @@ private:
     
 public:
     int get_algo() const { return int(m_csgalg); }
-    void set_algo(OpenCSG::Algorithm alg) { m_csgalg = alg; }
+    void set_algo(int alg)
+    {
+        if (alg < OpenCSG::Algorithm::AlgorithmUnused)
+            m_csgalg = OpenCSG::Algorithm(alg);
+    }
     
     int get_depth_algo() const { return int(m_depth_algo); }
-    void set_depth_algo(OpenCSG::DepthComplexityAlgorithm alg) { m_depth_algo = alg; }
+    void set_depth_algo(int alg)
+    {
+        if (alg < OpenCSG::DepthComplexityAlgorithmUnused)
+            m_depth_algo = OpenCSG::DepthComplexityAlgorithm(alg);
+    }
     
     int  get_optimization() const { return int(m_optim); }
-    void set_optimization(OpenCSG::Optimization o) { m_optim = o; }
+    void set_optimization(int o)
+    {
+        if (o < OpenCSG::Optimization::OptimizationUnused)
+            m_optim = OpenCSG::Optimization(o);
+    }
     
     void enable_csg(bool en = true) { m_enable = en; }
     bool is_enabled() const { return m_enable; }
@@ -382,7 +394,9 @@ public:
     
     ~Display() override;
     
-    Camera * camera() { return m_camera.get(); }
+    shptr<const Camera> get_camera() const { return m_camera; }
+    shptr<Camera> get_camera() { return m_camera; }
+    void set_camera(shptr<Camera> cam) { m_camera = cam; }
     
     virtual void swap_buffers() = 0;
     virtual void set_active(long width, long height);
@@ -456,8 +470,8 @@ class Controller : public std::enable_shared_from_this<Controller>,
     template<class F, class...Args>
     void call_cameras(F &&f, Args&&... args) {
         for (wkptr<Display> &l : m_displays)
-            if (auto disp = l.lock()) if (disp->camera())
-                (disp->camera()->*f)(std::forward<Args>(args)...);
+            if (auto disp = l.lock()) if (auto cam = disp->get_camera())
+                (cam.get()->*f)(std::forward<Args>(args)...);
     }
     
 public:
@@ -476,6 +490,8 @@ public:
         m_displays.emplace_back(disp);
         cleanup(m_displays);
     }
+    
+    void remove_displays() { m_displays = {}; }
     
     void on_scene_updated(const Scene &scene) override;
     
