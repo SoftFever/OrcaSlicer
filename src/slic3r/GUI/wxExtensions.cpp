@@ -433,17 +433,15 @@ static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
 #else
     const std::string folder = "white/";
 #endif
-    std::string bmp_name = Slic3r::GUI::wxGetApp().dark_mode() ? folder + bmp_name_in : bmp_name_in;
-    boost::replace_last(bmp_name, ".png", "");
-    FILE* fp = NULL;
-    fp = boost::nowide::fopen(Slic3r::var(bmp_name + ".svg").c_str(), "rb");
-    if (!fp)
-    {
-        bmp_name = bmp_name_in;
-        boost::replace_last(bmp_name, ".png", "");
-        if (fp) fclose(fp);
-    }
-
+    std::string bmp_name;
+    if (Slic3r::GUI::wxGetApp().dark_mode()) {
+     	bmp_name = folder + bmp_name_in;
+	    boost::replace_last(bmp_name, ".png", "");
+	}
+	if (bmp_name.empty()) {
+		bmp_name = bmp_name_in;
+		boost::replace_last(bmp_name, ".png", "");
+	}
     return bmp_name;
 }
 
