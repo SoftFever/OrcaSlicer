@@ -443,13 +443,13 @@ int copy_file(const std::string &from, const std::string &to, const bool with_ch
 {
 	std::string to_temp = to + ".tmp";
 	int ret_val = copy_file_inner(from,to_temp);
-	if(ret_val == 0 && with_check)
+    if(ret_val == 0)
 	{
-		ret_val = check_copy(from, to_temp);
-		if (ret_val == 0)
-		{
+        if (with_check)
+            ret_val = check_copy(from, to_temp);
+
+        if (ret_val == 0)
 			rename_file(to_temp, to);
-		}
 	}
 	return ret_val;
 }
