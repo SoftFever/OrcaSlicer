@@ -13,6 +13,7 @@
 #include <wx/numformatter.h>
 #include <wx/colordlg.h>
 
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/nowide/cstdio.hpp>
 
@@ -437,6 +438,8 @@ static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
     if (Slic3r::GUI::wxGetApp().dark_mode()) {
      	bmp_name = folder + bmp_name_in;
 	    boost::replace_last(bmp_name, ".png", "");
+        if (! boost::filesystem::exists(Slic3r::var(bmp_name + ".svg")))
+            bmp_name.clear();
 	}
 	if (bmp_name.empty()) {
 		bmp_name = bmp_name_in;
