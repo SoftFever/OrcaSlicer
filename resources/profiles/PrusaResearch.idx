@@ -1,4 +1,5 @@
 min_slic3r_version = 2.2.0-alpha0
+1.1.1-alpha2 Bumped up config version, so our in house customer will get updated profiles.
 1.1.0 Filament aliases, Creality profiles and other goodies for PrusaSlicer 2.2.0-alpha0
 min_slic3r_version = 2.1.1-beta0
 1.0.6 Added Prusa MINI profiles
