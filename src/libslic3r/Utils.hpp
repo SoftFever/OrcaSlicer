@@ -66,9 +66,12 @@ extern std::error_code rename_file(const std::string &from, const std::string &t
 
 // Copy a file, adjust the access attributes, so that the target is writable.
 int copy_file_inner(const std::string &from, const std::string &to);
+// Copy file to a temp file first, then rename it to the final file name.
+// If with_check is true, then the content of the copied file is compared to the content
+// of the source file before renaming.
 extern int copy_file(const std::string &from, const std::string &to, const bool with_check = false);
 
-// Compares two files, returns 0 if identical.
+// Compares two files, returns 0 if identical, -1 if different.
 extern int check_copy(const std::string& origin, const std::string& copy);
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.

@@ -448,31 +448,45 @@ int copy_file(const std::string &from, const std::string &to, const bool with_ch
         if (with_check)
             ret_val = check_copy(from, to_temp);
 
-        if (ret_val == 0)
-			rename_file(to_temp, to);
+        if (ret_val == 0 && rename_file(to_temp, to))
+        	ret_val = -1;
 	}
 	return ret_val;
 }
 
 int check_copy(const std::string &origin, const std::string &copy)
 {
-	std::ifstream f1(origin, std::ifstream::binary | std::ifstream::ate);
-	std::ifstream f2(copy, std::ifstream::binary | std::ifstream::ate);
+	std::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	std::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 
-	if (f1.fail() || f2.fail()) {
-		return -1; 
-	}
+	if (f1.fail() || f2.fail())
+		return -1;
 
-	if (f1.tellg() != f2.tellg()) {
-		return -1; 
-	}
+	std::streampos fsize = f1.tellg();
+	if (fsize != f2.tellg())
+		return -1;
 
 	f1.seekg(0, std::ifstream::beg);
 	f2.seekg(0, std::ifstream::beg);
-	bool ident = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-		std::istreambuf_iterator<char>(),
-		std::istreambuf_iterator<char>(f2.rdbuf()));
-	return(ident ? 0 : -1);
+
+	// Compare by reading 8 MiB buffers one at a time.
+	size_t 			  buffer_size = 8 * 1024 * 1024;
+	std::vector<char> buffer_origin(buffer_size, 0);
+	std::vector<char> buffer_copy(buffer_size, 0);
+	do {
+		f1.read(buffer_origin.data(), buffer_size);
+        f2.read(buffer_copy.data(), buffer_size);
+		std::streampos origin_cnt = f1.gcount();
+		std::streampos copy_cnt   = f2.gcount();
+		if (origin_cnt != copy_cnt ||
+			(origin_cnt > 0 && std::memcmp(buffer_origin.data(), buffer_copy.data(), origin_cnt) != 0))
+			// Files are different.
+			return -1;
+		fsize -= origin_cnt;
+    } while (f1.good() && f2.good());
+
+    // All data has been read and compared equal.
+    return (f1.eof() && f2.eof() && fsize == 0) ? 0 : -1;
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
