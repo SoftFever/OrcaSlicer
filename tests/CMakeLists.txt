@@ -11,7 +11,7 @@ add_library(Catch2::Catch2 ALIAS Catch2)
 if (APPLE)
 	# OSX builds targeting OSX 10.9 do not support new std::uncought_exception()
 	# see https://github.com/catchorg/Catch2/issues/1218
-	target_compile_definitions(Catch2 PUBLIC -DCATCH_CONFIG_NO_CPP17_UNCAUGHT_EXCEPTIONS)
+	target_compile_definitions(Catch2 INTERFACE -DCATCH_CONFIG_NO_CPP17_UNCAUGHT_EXCEPTIONS)
 endif()
 include(Catch)
 
