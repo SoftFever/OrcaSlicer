@@ -394,13 +394,27 @@ target_include_directories(cereal INTERFACE include)
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
-add_custom_target(pot
+add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --debug
         -f "${L10N_DIR}/list.txt"
         -o "${L10N_DIR}/PrusaSlicer.pot"
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
+add_custom_target(gettext_po_to_mo
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generate localization po files (binary) from mo files (texts)"
+)
+file(GLOB L10N_PO_FILES "${L10N_DIR}/*/PrusaSlicer*.po")
+foreach(po_file ${L10N_PO_FILES})
+    GET_FILENAME_COMPONENT(po_dir "${po_file}" DIRECTORY)
+    SET(mo_file "${po_dir}/PrusaSlicer.mo")
+    add_custom_command(
+        TARGET gettext_po_to_mo PRE_BUILD
+        COMMAND msgfmt ARGS -o ${mo_file} ${po_file}
+        DEPENDS ${po_file}
+    )
+endforeach()
 
 find_package(NLopt 1.4 REQUIRED)
 

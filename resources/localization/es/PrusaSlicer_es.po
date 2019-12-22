@@ -6865,7 +6865,7 @@ msgstr "Textura"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:200
 msgid "The %1% infill pattern is not supposed to work at 100%% density."
-msgstr "Se supone que el patrón de relleno %1% no funciona a una densidad del 100%."
+msgstr "Se supone que el patrón de relleno %1% no funciona a una densidad del 100%%."
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:530
 #, possible-c-format

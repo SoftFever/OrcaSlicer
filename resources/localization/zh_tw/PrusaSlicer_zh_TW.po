@@ -3292,7 +3292,7 @@ msgstr "這個 "
 #: src/slic3r/GUI/Tab.cpp:1309
 #, no-c-format
 msgid ""
-" infill pattern is not supposed to work at 100% density.\n"
+" infill pattern is not supposed to work at 100%% density.\n"
 "\n"
 "Shall I switch to rectilinear fill pattern?"
 msgstr ""
