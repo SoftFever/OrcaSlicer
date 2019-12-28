@@ -152,6 +152,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Duet.hpp
     Utils/FlashAir.cpp
     Utils/FlashAir.hpp
+    Utils/AstroBox.cpp
+    Utils/AstroBox.hpp
     Utils/PrintHost.cpp
     Utils/PrintHost.hpp
     Utils/Bonjour.cpp
