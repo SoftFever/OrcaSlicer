@@ -13,9 +13,8 @@
 #include <wx/numformatter.h>
 #include <wx/colordlg.h>
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/nowide/cstdio.hpp>
 
 #include "BitmapCache.hpp"
 #include "GUI.hpp"
@@ -427,6 +426,7 @@ static float get_svg_scale_factor(wxWindow *win)
 }
 
 // in the Dark mode of any platform, we should draw icons in respect to OS background
+/*
 static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
 {
 #ifdef __WXMSW__
@@ -447,7 +447,7 @@ static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
 	}
     return bmp_name;
 }
-
+*/
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
     const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
@@ -474,13 +474,13 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
 
     scale_base = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
 
-//    std::string bmp_name = bmp_name_in;
-//    boost::replace_last(bmp_name, ".png", "");
+    std::string bmp_name = bmp_name_in;
+    boost::replace_last(bmp_name, ".png", "");
 
-    std::string bmp_name = icon_name_respected_to_mode(bmp_name_in);
+//    std::string bmp_name = icon_name_respected_to_mode(bmp_name_in);
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale, Slic3r::GUI::wxGetApp().dark_mode());
     if (bmp == nullptr) {
         bmp = cache.load_png(bmp_name, width, height, grayscale);
     }
