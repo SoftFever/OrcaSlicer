@@ -1605,7 +1605,27 @@ void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool i
     load_pages();
 }
 
-bool ConfigWizard::priv::check_material_config(Technology technology)
+bool ConfigWizard::priv::on_bnt_finish()
+{
+    /* When Filaments or Sla Materials pages are activated, 
+     * materials for this pages are automaticaly updated and presets are reloaded.
+     * 
+     * But, if _Finish_ button was clicked without activation of those pages 
+     * (for example, just some printers were added/deleted), 
+     * than last changes wouldn't be updated for filaments/materials.
+     * SO, do that before close of Wizard
+     */
+    update_materials(T_ANY);
+    if (any_fff_selected)
+        page_filaments->reload_presets();
+    if (any_sla_selected)
+        page_sla_materials->reload_presets();
+
+    // check, that there is selected at least one filament/material
+    return check_materials_in_config(T_ANY);
+}
+
+bool ConfigWizard::priv::check_materials_in_config(Technology technology)
 {
     const auto exist_preset = [this](const std::string& section, const Materials& materials)
     {
@@ -1899,16 +1919,15 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         // check, that there is selected at least one filament/material
         ConfigWizardPage* active_page = this->p->index->active_page();
         if ( (active_page == p->page_filaments || active_page == p->page_sla_materials)
-            && !p->check_material_config(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
+            && !p->check_materials_in_config(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
             return;
         this->p->index->go_next();
     });
 
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {
-        if (!p->check_material_config(T_ANY))
-            return;
-        this->EndModal(wxID_OK);
+        if (p->on_bnt_finish())
+            this->EndModal(wxID_OK);
     });
 
     p->btn_sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {

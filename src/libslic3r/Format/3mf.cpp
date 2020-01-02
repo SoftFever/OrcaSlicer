@@ -87,6 +87,7 @@ const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
+const char* INSTANCESCOUNT_ATTR = "instances_count";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -1613,6 +1614,9 @@ namespace Slic3r {
             return false;
         }
 
+        // Added because of github #3435, currently not used by PrusaSlicer
+        int instances_count_id = get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
+
         m_objects_metadata.insert(IdToMetadataMap::value_type(object_id, ObjectMetadata()));
         m_curr_config.object_id = object_id;
         return true;
@@ -2495,7 +2499,8 @@ namespace Slic3r {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr)
             {
-                stream << " <" << OBJECT_TAG << " id=\"" << obj_metadata.first << "\">\n";
+                // Output of instances count added because of github #3435, currently not used by PrusaSlicer
+                stream << " <" << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
