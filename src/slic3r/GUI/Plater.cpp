@@ -4098,7 +4098,11 @@ bool Plater::priv::can_reload_from_disk() const
         const GLVolume* v = selection.get_volume(idx);
         int v_idx = v->volume_idx();
         if (v_idx >= 0)
-            selected_volumes.push_back({ v->object_idx(), v_idx });
+        {
+            int o_idx = v->object_idx();
+            if ((0 <= o_idx) && (o_idx < (int)model.objects.size()))
+                selected_volumes.push_back({ o_idx, v_idx });
+        }
     }
     std::sort(selected_volumes.begin(), selected_volumes.end());
     selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
