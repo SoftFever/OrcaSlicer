@@ -503,7 +503,7 @@ void RemovableDriveManager::check_and_notify()
 		}
 	}
 }
-void RemovableDriveManager::add_callback(std::function<void()> callback)
+void RemovableDriveManager::add_remove_callback(std::function<void()> callback)
 {
 	m_callbacks.push_back(callback);
 }
@@ -586,5 +586,9 @@ bool RemovableDriveManager::get_did_eject()
 void RemovableDriveManager::set_did_eject(const bool b)
 {
 	m_did_eject = b;
+}
+size_t RemovableDriveManager::get_drives_count()
+{
+	return m_current_drives.size();
 }
 }}//namespace Slicer::Gui

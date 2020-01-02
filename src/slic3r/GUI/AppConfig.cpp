@@ -78,6 +78,9 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
+	if (get("remember_output_path_removable").empty())
+		set("remember_output_path_removable", "1");
+
     if (get("use_custom_toolbar_size").empty())
         set("use_custom_toolbar_size", "0");
 
@@ -388,7 +391,7 @@ void AppConfig::update_skein_dir(const std::string &dir)
 {
     this->set("recent", "skein_directory", dir);
 }
-
+/*
 std::string AppConfig::get_last_output_dir(const std::string &alt) const
 {
 	
@@ -406,6 +409,26 @@ void AppConfig::update_last_output_dir(const std::string &dir)
 {
     this->set("", "last_output_path", dir);
 }
+*/
+std::string AppConfig::get_last_output_dir(const std::string& alt, const bool removable) const
+{
+	std::string s1 = (removable ? "last_output_path_removable" : "last_output_path");
+	std::string s2 = (removable ? "remember_output_path_removable" : "remember_output_path");
+	const auto it = m_storage.find("");
+	if (it != m_storage.end()) {
+		const auto it2 = it->second.find(s1);
+		const auto it3 = it->second.find(s2);
+		if (it2 != it->second.end() && it3 != it->second.end() && !it2->second.empty() && it3->second == "1")
+			return it2->second;
+	}
+	return alt;
+}
+
+void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)
+{
+	this->set("", (removable ? "last_output_path_removable" : "last_output_path"), dir);
+}
+
 
 void AppConfig::reset_selections()
 {

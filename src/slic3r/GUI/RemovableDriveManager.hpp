@@ -45,7 +45,7 @@ public:
 	std::vector<DriveData> get_all_drives();
 	bool is_path_on_removable_drive(const std::string &path);
 	// callback will notify only if device with last save path was removed
-	void add_callback(std::function<void()> callback);
+	void add_remove_callback(std::function<void()> callback);
 	// erases all callbacks added by add_callback()
 	void erase_callbacks(); 
 	// marks one of the eveices in vector as last used
@@ -59,6 +59,7 @@ public:
 	bool get_did_eject();
 	void set_did_eject(const bool b);
 	std::string get_drive_name(const std::string& path);
+	size_t get_drives_count();
 private:
     RemovableDriveManager();
 	void search_for_drives();
