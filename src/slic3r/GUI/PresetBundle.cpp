@@ -288,6 +288,11 @@ std::string PresetBundle::load_system_presets()
 		// No config bundle loaded, reset.
 		this->reset(false);
 	}
+    this->prints 	   .update_map_system_profile_renamed();
+    this->sla_prints   .update_map_system_profile_renamed();
+    this->filaments    .update_map_system_profile_renamed();
+    this->sla_materials.update_map_system_profile_renamed();
+    this->printers     .update_map_system_profile_renamed();
     return errors_cummulative;
 }
 
@@ -1132,7 +1137,6 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         PresetCollection         *presets = nullptr;
         std::vector<std::string> *loaded  = nullptr;
         std::string               preset_name;
-        std::string               alias_name;
         if (boost::starts_with(section.first, "print:")) {
             presets = &this->prints;
             loaded  = &loaded_prints;
@@ -1141,12 +1145,6 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             presets = &this->filaments;
             loaded  = &loaded_filaments;
             preset_name = section.first.substr(9);
-
-            for (const auto& item : section.second)
-                if (boost::starts_with(item.first, "alias")) {
-                    alias_name = item.second.data();
-                    break;
-                }
         } else if (boost::starts_with(section.first, "sla_print:")) {
             presets = &this->sla_prints;
             loaded  = &loaded_sla_prints;
@@ -1155,9 +1153,6 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             presets = &this->sla_materials;
             loaded  = &loaded_sla_materials;
             preset_name = section.first.substr(13);
-
-            int end_pos = preset_name.find_first_of("0.");
-            alias_name = preset_name.substr(0, end_pos-1);
         } else if (boost::starts_with(section.first, "printer:")) {
             presets = &this->printers;
             loaded  = &loaded_printers;
@@ -1213,19 +1208,32 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             // Load the print, filament or printer preset.
             const DynamicPrintConfig *default_config = nullptr;
             DynamicPrintConfig        config;
+            std::string 			  alias_name;
+            std::vector<std::string>  renamed_from;
+            auto parse_config_section = [&section, &alias_name, &renamed_from, &path](DynamicPrintConfig &config) {
+                for (auto &kvp : section.second) {
+                	if (kvp.first == "alias")
+                		alias_name = kvp.second.data();
+                	else if (kvp.first == "renamed_from") {
+                		if (! unescape_strings_cstyle(kvp.second.data(), renamed_from)) {
+			                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The preset \"" << 
+			                    section.first << "\" contains invalid \"renamed_from\" key, which is being ignored.";
+                   		}
+                	}
+                    config.set_deserialize(kvp.first, kvp.second.data());
+                }
+            };
             if (presets == &this->printers) {
                 // Select the default config based on the printer_technology field extracted from kvp.
                 DynamicPrintConfig config_src;
-                for (auto &kvp : section.second)
-                    config_src.set_deserialize(kvp.first, kvp.second.data());
+                parse_config_section(config_src);
                 default_config = &presets->default_preset_for(config_src).config;
                 config = *default_config;
                 config.apply(config_src);
             } else {
                 default_config = &presets->default_preset().config;
                 config = *default_config;
-                for (auto &kvp : section.second)
-                    config.set_deserialize(kvp.first, kvp.second.data());
+                parse_config_section(config);
             }
             Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
@@ -1304,12 +1312,22 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                 loaded.vendor = vendor_profile;
             }
 
-            // next step of an preset name aliasing
-            int end_pos = preset_name.find_first_of("@");
-            if (end_pos != std::string::npos)
-                alias_name = preset_name.substr(0, end_pos - 1);
-
-            loaded.alias = alias_name.empty() ? preset_name : alias_name;
+            // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.
+            if (alias_name.empty()) {
+	            int end_pos = preset_name.find_first_of("@");
+	            if (end_pos != std::string::npos) {
+	                alias_name = preset_name.substr(0, end_pos);
+	                if (renamed_from.empty())
+	                	// Add the preset name with the '@' character removed into the "renamed_from" list.
+	                	renamed_from.emplace_back(alias_name + preset_name.substr(end_pos + 1));
+                    boost::trim_right(alias_name);
+	            }
+	        }
+	        if (alias_name.empty())
+	        	loaded.alias = preset_name;
+	        else 
+	         	loaded.alias = std::move(alias_name);
+	        loaded.renamed_from = std::move(renamed_from);
 
             ++ presets_loaded;
         }
