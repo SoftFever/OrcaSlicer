@@ -560,9 +560,11 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
 		while (filament_configs.size() < num_extruders)
             filament_configs.emplace_back(&this->filaments.first_visible().config);
         for (const DynamicPrintConfig *cfg : filament_configs) {
-            compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(*const_cast<DynamicPrintConfig*>(cfg)));
-            compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(*const_cast<DynamicPrintConfig*>(cfg)));
-            inherits                     .emplace_back(Preset::inherits(*const_cast<DynamicPrintConfig*>(cfg)));
+            // The compatible_prints/printers_condition() returns a reference to configuration key, which may not yet exist.
+            DynamicPrintConfig &cfg_rw = *const_cast<DynamicPrintConfig*>(cfg);
+            compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(cfg_rw));
+            compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(cfg_rw));
+            inherits                     .emplace_back(Preset::inherits(cfg_rw));
         }
         // Option values to set a ConfigOptionVector from.
         std::vector<const ConfigOption*> filament_opts(num_extruders, nullptr);

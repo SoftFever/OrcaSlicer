@@ -683,7 +683,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     config->set_deserialize(opt_key, m_value[1]);
             } else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "layer_height_profile") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
-                char *p = const_cast<char*>(m_value[1].c_str());
+                char *p = m_value[1].data();
                 for (;;) {
                     char *end = strchr(p, ';');
                     if (end != nullptr)
@@ -698,7 +698,7 @@ void AMFParserContext::endElement(const char * /* name */)
                 // Parse object's layer height profile, a semicolon separated list of floats.
                 unsigned char coord_idx = 0;
                 Eigen::Matrix<float, 5, 1, Eigen::DontAlign> point(Eigen::Matrix<float, 5, 1, Eigen::DontAlign>::Zero());
-                char *p = const_cast<char*>(m_value[1].c_str());
+                char *p = m_value[1].data();
                 for (;;) {
                     char *end = strchr(p, ';');
                     if (end != nullptr)
@@ -718,7 +718,7 @@ void AMFParserContext::endElement(const char * /* name */)
             else if (m_path.size() == 5 && m_path[1] == NODE_TYPE_OBJECT && m_path[3] == NODE_TYPE_RANGE && 
                      m_object && strcmp(opt_key, "layer_height_range") == 0) {
                 // Parse object's layer_height_range, a semicolon separated doubles.
-                char* p = const_cast<char*>(m_value[1].c_str());
+                char* p = m_value[1].data();
                 char* end = strchr(p, ';');
                 *end = 0;
 
@@ -1010,7 +1010,7 @@ bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool c
             return false;
 
         std::string zip_mask(2, '\0');
-        file.read(const_cast<char*>(zip_mask.data()), 2);
+        file.read(zip_mask.data(), 2);
         file.close();
 
         return (zip_mask == "PK") ? load_amf_archive(path, config, model, check_version) : load_amf_file(path, config, model);

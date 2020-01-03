@@ -535,7 +535,7 @@ std::string encode_path(const char *src)
     // Convert a wide string to a local code page.
     int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
     std::string str_dst(size_needed, 0);
-    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), const_cast<char*>(str_dst.data()), size_needed, nullptr, nullptr);
+    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), str_dst.data(), size_needed, nullptr, nullptr);
     return str_dst;
 #else /* WIN32 */
     return src;
@@ -552,7 +552,7 @@ std::string decode_path(const char *src)
     // Convert the string encoded using the local code page to a wide string.
     int size_needed = ::MultiByteToWideChar(0, 0, src, len, nullptr, 0);
     std::wstring wstr_dst(size_needed, 0);
-    ::MultiByteToWideChar(0, 0, src, len, const_cast<wchar_t*>(wstr_dst.data()), size_needed);
+    ::MultiByteToWideChar(0, 0, src, len, wstr_dst.data(), size_needed);
     // Convert a wide string to utf8.
     return boost::nowide::narrow(wstr_dst.c_str());
 #else /* WIN32 */

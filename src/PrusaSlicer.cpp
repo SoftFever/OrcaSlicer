@@ -691,7 +691,7 @@ extern "C" {
         for (size_t i = 0; i < argc; ++ i)
             argv_narrow.emplace_back(boost::nowide::narrow(argv[i]));
         for (size_t i = 0; i < argc; ++ i)
-            argv_ptrs[i] = const_cast<char*>(argv_narrow[i].data());
+            argv_ptrs[i] = argv_narrow[i].data();
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }

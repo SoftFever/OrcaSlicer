@@ -325,7 +325,7 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 			{
 				if(pw->pw_name == username)
 				{
-					std::string name = basename(const_cast<char*>(path.c_str()));
+					std::string name = basename(path.data());
 		       		m_current_drives.push_back(DriveData(name,path));
 				}
 			}

@@ -149,7 +149,7 @@ private:
 	Semver(semver_t ver) : ver(ver) {}
 
 	static semver_t semver_zero() { return { 0, 0, 0, nullptr, nullptr }; }
-	static char * strdup(const std::string &str) { return ::semver_strdup(const_cast<char*>(str.c_str())); }
+	static char * strdup(const std::string &str) { return ::semver_strdup(str.data()); }
 };
 
 
