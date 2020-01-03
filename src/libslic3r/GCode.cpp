@@ -122,21 +122,21 @@ Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectP
                      const Layer* layer1 = object->layers()[i * 2];
                      const Layer* layer2 = object->layers()[i * 2 + 1];
                      Polygons polys;
-                     polys.reserve(layer1->slices.size() + layer2->slices.size());
-                    for (const ExPolygon &expoly : layer1->slices)
+                     polys.reserve(layer1->lslices.size() + layer2->lslices.size());
+                     for (const ExPolygon &expoly : layer1->lslices)
                         //FIXME no holes?
                         polys.emplace_back(expoly.contour);
-                    for (const ExPolygon &expoly : layer2->slices)
+                     for (const ExPolygon &expoly : layer2->lslices)
                         //FIXME no holes?
                         polys.emplace_back(expoly.contour);
                      polygons_per_layer[i] = union_(polys);
-                }
-            });
+                 }
+             });
          if (object->layers().size() & 1) {
             const Layer *layer = object->layers().back();
             Polygons polys;
-            polys.reserve(layer->slices.size());
-            for (const ExPolygon &expoly : layer->slices)
+            polys.reserve(layer->lslices.size());
+            for (const ExPolygon &expoly : layer->lslices)
                 //FIXME no holes?
                 polys.emplace_back(expoly.contour);
              polygons_per_layer.back() = union_(polys);
@@ -2006,8 +2006,8 @@ void GCode::process_layer(
             // - for each island, we extrude perimeters first, unless user set the infill_first
             //   option
             // (Still, we have to keep track of regions because we need to apply their config)
-            size_t n_slices = layer.slices.size();
-            const std::vector<BoundingBox> &layer_surface_bboxes = layer.slices_bboxes;
+            size_t n_slices = layer.lslices.size();
+            const std::vector<BoundingBox> &layer_surface_bboxes = layer.lslices_bboxes;
             // Traverse the slices in an increasing order of bounding box size, so that the islands inside another islands are tested first,
             // so we can just test a point inside ExPolygon::contour and we may skip testing the holes.
             std::vector<size_t> slices_test_order;
@@ -2023,7 +2023,7 @@ void GCode::process_layer(
                 const BoundingBox &bbox = layer_surface_bboxes[i];
                 return point(0) >= bbox.min(0) && point(0) < bbox.max(0) &&
                        point(1) >= bbox.min(1) && point(1) < bbox.max(1) &&
-                       layer.slices[i].contour.contains(point);
+                       layer.lslices[i].contour.contains(point);
             };
 
             for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
@@ -2155,7 +2155,7 @@ void GCode::process_layer(
                 m_config.apply(instance_to_print.print_object.config(), true);
                 m_layer = layers[instance_to_print.layer_id].layer();
                 if (m_config.avoid_crossing_perimeters)
-                    m_avoid_crossing_perimeters.init_layer_mp(union_ex(m_layer->slices, true));
+                    m_avoid_crossing_perimeters.init_layer_mp(union_ex(m_layer->lslices, true));
 
                 if (this->config().gcode_label_objects)
                     gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
@@ -2476,7 +2476,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             // Create the distance field for a layer below.
             const coord_t distance_field_resolution = coord_t(scale_(1.) + 0.5);
             *lower_layer_edge_grid = make_unique<EdgeGrid::Grid>();
-            (*lower_layer_edge_grid)->create(m_layer->lower_layer->slices, distance_field_resolution);
+            (*lower_layer_edge_grid)->create(m_layer->lower_layer->lslices, distance_field_resolution);
             (*lower_layer_edge_grid)->calculate_sdf();
             #if 0
             {

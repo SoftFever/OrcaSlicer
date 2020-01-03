@@ -182,7 +182,7 @@ private:
 
     void _slice(const std::vector<coordf_t> &layer_height_profile);
     std::string _fix_slicing_errors();
-    void _simplify_slices(double distance);
+    void simplify_slices(double distance);
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
