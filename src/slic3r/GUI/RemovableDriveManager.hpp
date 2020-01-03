@@ -46,8 +46,12 @@ public:
 	bool is_path_on_removable_drive(const std::string &path);
 	// callback will notify only if device with last save path was removed
 	void add_remove_callback(std::function<void()> callback);
-	// erases all callbacks added by add_callback()
+	// erases all remove callbacks added by add_remove_callback()
 	void erase_callbacks(); 
+	//drive_count_changed callback is called on every added or removed device
+	void set_drive_count_changed_callback(std::function<void(const bool)> callback);
+	//thi serves to set correct value for drive_count_changed callback
+	void set_plater_ready_to_slice(bool b);
 	// marks one of the eveices in vector as last used
 	void set_last_save_path(const std::string &path);
 	void verify_last_save_path();
@@ -71,6 +75,7 @@ private:
 
 	std::vector<DriveData> m_current_drives;
 	std::vector<std::function<void()>> m_callbacks;
+	std::function<void(const bool)> m_drive_count_changed_callback;
 	size_t m_drives_count;
 	long m_last_update;
 	std::string m_last_save_path;
@@ -78,6 +83,7 @@ private:
 	std::string m_last_save_name;
 	bool m_is_writing;//on device
 	bool m_did_eject;
+	bool m_plater_ready_to_slice;
 #if _WIN32
 	//registers for notifications by creating invisible window
 	void register_window();

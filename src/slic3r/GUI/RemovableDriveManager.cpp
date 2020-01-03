@@ -414,7 +414,8 @@ RemovableDriveManager::RemovableDriveManager():
 	m_last_save_name(""),
 	m_last_save_path_verified(false),
 	m_is_writing(false),
-	m_did_eject(false)
+	m_did_eject(false),
+	m_plater_ready_to_slice(true)
 #if __APPLE__
 	, m_rdmmm(new RDMMMWrapper())
 #endif
@@ -495,6 +496,10 @@ std::vector<DriveData> RemovableDriveManager::get_all_drives()
 }
 void RemovableDriveManager::check_and_notify()
 {
+	if(m_drive_count_changed_callback)
+	{
+		m_drive_count_changed_callback(m_plater_ready_to_slice);
+	}
 	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
 	{
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
@@ -507,9 +512,17 @@ void RemovableDriveManager::add_remove_callback(std::function<void()> callback)
 {
 	m_callbacks.push_back(callback);
 }
-void  RemovableDriveManager::erase_callbacks()
+void RemovableDriveManager::erase_callbacks()
 {
 	m_callbacks.clear();
+}
+void RemovableDriveManager::set_drive_count_changed_callback(std::function<void(const bool)> callback)
+{
+	m_drive_count_changed_callback = callback;
+}
+void RemovableDriveManager::set_plater_ready_to_slice(bool b)
+{
+	m_plater_ready_to_slice = b;
 }
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {

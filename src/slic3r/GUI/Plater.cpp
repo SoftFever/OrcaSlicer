@@ -2199,6 +2199,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Initialize the Undo / Redo stack with a first snapshot.
     this->take_snapshot(_(L("New Project")));
+
+	//void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
+	RemovableDriveManager::get_instance().set_drive_count_changed_callback(std::bind(&Plater::priv::show_action_buttons, this, std::placeholders::_1));
 }
 
 Plater::priv::~priv()
@@ -4159,6 +4162,7 @@ void Plater::priv::update_object_menu()
 
 void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 {
+	RemovableDriveManager::get_instance().set_plater_ready_to_slice(is_ready_to_slice);
     wxWindowUpdateLocker noUpdater(sidebar);
     const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
     const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
