@@ -619,15 +619,12 @@ bool Mouse3DController::connect_device()
         hid_get_product_string(m_device, product.data(), 1024);
         m_device_str += "/" + boost::nowide::narrow(product.data());
 
-        BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
-
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-        std::cout << std::endl << "Connected device:" << std::endl;
-        std::cout << "Manufacturer/product: " << m_device_str << std::endl;
-        std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
-        std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
-        std::cout << "Path................: '" << path << "'" << std::endl;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        BOOST_LOG_TRIVIAL(info) << "Connected 3DConnexion device:";
+        BOOST_LOG_TRIVIAL(info) << "Manufacturer/product: " << m_device_str;
+        BOOST_LOG_TRIVIAL(info) << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")";
+        BOOST_LOG_TRIVIAL(info) << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")";
+        if (!path.empty())
+            BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
 
         // get device parameters from the config, if present
         double translation_speed = 1.0;
