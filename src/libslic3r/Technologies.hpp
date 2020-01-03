@@ -59,4 +59,13 @@
 // Enable not applying volume transformation during 3mf and amf loading, but keeping it as a ModelVolume member
 #define ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE (1 && ENABLE_2_2_0_ALPHA1)
 
+
+//==================
+// 2.2.0.beta1 techs
+//==================
+#define ENABLE_2_2_0_BETA1 1
+
+// Enable using Y axis of 3Dconnexion devices as zoom
+#define ENABLE_3DCONNEXION_Y_AS_ZOOM (1 && ENABLE_2_2_0_BETA1)
+
 #endif // _technologies_h_

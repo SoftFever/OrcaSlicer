@@ -33,6 +33,9 @@ class Mouse3DController
         static const float DefaultRotationScale;
         static const float MaxRotationDeadzone;
         static const float DefaultRotationDeadzone;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        static const double DefaultZoomScale;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
     private:
         template <typename Number>
@@ -64,6 +67,9 @@ class Mouse3DController
 
         CustomParameters<double> m_translation_params;
         CustomParameters<float> m_rotation_params;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        CustomParameters<float> m_zoom_params;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
         // When the 3Dconnexion driver is running the system gets, by default, mouse wheel events when rotations around the X axis are detected.
         // We want to filter these out because we are getting the data directly from the device, bypassing the driver, and those mouse wheel events interfere
@@ -98,6 +104,11 @@ class Mouse3DController
 
         float get_rotation_scale() const { return m_rotation_params.scale; }
         void set_rotation_scale(float scale) { m_rotation_params.scale = scale; }
+
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        double get_zoom_scale() const { return m_zoom_params.scale; }
+        void set_zoom_scale(double scale) { m_zoom_params.scale = scale; }
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
         double get_translation_deadzone() const { return m_translation_params.deadzone; }
         void set_translation_deadzone(double deadzone) { m_translation_params.deadzone = deadzone; }
