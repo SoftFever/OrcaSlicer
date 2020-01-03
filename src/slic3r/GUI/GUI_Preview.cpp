@@ -341,11 +341,6 @@ void Preview::set_number_extruders(unsigned int number_extruders)
     }
 }
 
-void Preview::set_canvas_as_dirty()
-{
-    m_canvas->set_as_dirty();
-}
-
 void Preview::set_enabled(bool enabled)
 {
     m_enabled = enabled;

@@ -240,6 +240,8 @@ public:
     GLCanvas3D* canvas3D();
     BoundingBoxf bed_shape_bb() const;
 
+    void set_current_canvas_as_dirty();
+
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
 

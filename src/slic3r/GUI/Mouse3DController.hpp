@@ -72,7 +72,7 @@ class Mouse3DController
         // Mouse3DController::collect_input() through the call to the append_rotation() method
         // GLCanvas3D::on_mouse_wheel() through the call to the process_mouse_wheel() method
         // GLCanvas3D::on_idle() through the call to the apply() method
-        unsigned int m_mouse_wheel_counter;
+        std::atomic<unsigned int> m_mouse_wheel_counter;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         size_t m_translation_queue_max_size;
@@ -128,7 +128,6 @@ class Mouse3DController
 
     bool m_initialized;
     mutable State m_state;
-    std::mutex m_mutex;
     std::thread m_thread;
     hid_device* m_device;
     std::string m_device_str;
@@ -151,7 +150,7 @@ public:
     bool is_device_connected() const { return m_device != nullptr; }
     bool is_running() const { return m_running; }
 
-    bool process_mouse_wheel() { std::lock_guard<std::mutex> lock(m_mutex); return m_state.process_mouse_wheel(); }
+    bool process_mouse_wheel() { return m_state.process_mouse_wheel(); }
 
     bool apply(Camera& camera);
 

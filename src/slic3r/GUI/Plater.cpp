@@ -1855,6 +1855,8 @@ struct Plater::priv
     bool is_preview_loaded() const { return preview->is_loaded(); }
     bool is_view3D_shown() const { return current_panel == view3D; }
 
+    void set_current_canvas_as_dirty();
+
 #if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     bool init_view_toolbar();
 #endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
@@ -3472,7 +3474,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         // keeps current gcode preview, if any
         preview->reload_print(true);
 
-        preview->set_canvas_as_dirty();
+        preview->set_as_dirty();
         view_toolbar.select_item("Preview");
     }
 
@@ -3983,6 +3985,14 @@ bool Plater::priv::complit_init_part_menu()
     obj_list->append_menu_item_change_type(&part_menu);
 
     return true;
+}
+
+void Plater::priv::set_current_canvas_as_dirty()
+{
+    if (current_panel == view3D)
+        view3D->set_as_dirty();
+    else if (current_panel == preview)
+        preview->set_as_dirty();
 }
 
 #if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
@@ -5366,6 +5376,11 @@ GLCanvas3D* Plater::canvas3D()
 BoundingBoxf Plater::bed_shape_bb() const
 {
     return p->bed_shape_bb();
+}
+
+void Plater::set_current_canvas_as_dirty()
+{
+    p->set_current_canvas_as_dirty();
 }
 
 PrinterTechnology Plater::printer_technology() const

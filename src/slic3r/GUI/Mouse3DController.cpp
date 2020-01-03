@@ -112,7 +112,7 @@ void Mouse3DController::State::append_button(unsigned int id)
 
 bool Mouse3DController::State::process_mouse_wheel()
 {
-    if (m_mouse_wheel_counter == 0)
+    if (m_mouse_wheel_counter.load() == 0)
         return false;
     else if (!m_rotation.queue.empty())
     {
@@ -120,7 +120,7 @@ bool Mouse3DController::State::process_mouse_wheel()
         return true;
     }
 
-    m_mouse_wheel_counter = 0;
+    m_mouse_wheel_counter.store(0);
     return true;
 }
 
@@ -228,8 +228,6 @@ bool Mouse3DController::apply(Camera& camera)
 {
     if (!m_initialized)
         return false;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
 
     // check if the user unplugged the device
     if (!m_running && is_device_connected())
@@ -393,7 +391,7 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
 
 bool Mouse3DController::connect_device()
 {
-    static const long long DETECTION_TIME_MS = 2000; // seconds
+    static const long long DETECTION_TIME_MS = 2000; // two seconds
 
     if (is_device_connected())
         return false;
@@ -694,7 +692,6 @@ void Mouse3DController::run()
         collect_input();
     }
 }
-
 void Mouse3DController::collect_input()
 {
     DataPacket packet = { 0 };
@@ -708,8 +705,6 @@ void Mouse3DController::collect_input()
 
     if (!wxGetApp().IsActive())
         return;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
 
     bool updated = false;
 
@@ -726,8 +721,11 @@ void Mouse3DController::collect_input()
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     if (updated)
+    {
+        wxGetApp().plater()->set_current_canvas_as_dirty();
         // ask for an idle event to update 3D scene
         wxWakeUpIdle();
+    }
 }
 
 bool Mouse3DController::handle_packet(const DataPacket& packet)
