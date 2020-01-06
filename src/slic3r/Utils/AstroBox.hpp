@@ -1,5 +1,5 @@
-#ifndef slic3r_OctoPrint_hpp_
-#define slic3r_OctoPrint_hpp_
+#ifndef slic3r_AstroBox_hpp_
+#define slic3r_AstroBox_hpp_
 
 #include <string>
 #include <wx/string.h>
@@ -7,19 +7,18 @@
 
 #include "PrintHost.hpp"
 
-
 namespace Slic3r {
 
 class DynamicPrintConfig;
 class Http;
 
-class OctoPrint : public PrintHost
+class AstroBox : public PrintHost
 {
 public:
-    OctoPrint(DynamicPrintConfig *config);
-    ~OctoPrint() override = default;
+    AstroBox(DynamicPrintConfig *config);
+    ~AstroBox() override = default;
 
-    const char* get_name() const;
+    const char* get_name() const override;
 
     bool test(wxString &curl_msg) const override;
     wxString get_test_ok_msg () const override;
@@ -31,7 +30,7 @@ public:
     std::string get_host() const override { return host; }
 
 protected:
-    virtual bool validate_version_text(const boost::optional<std::string> &version_text) const;
+    bool validate_version_text(const boost::optional<std::string> &version_text) const;
 
 private:
     std::string host;
@@ -40,22 +39,6 @@ private:
 
     void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
-};
-
-class SL1Host: public OctoPrint
-{
-public:
-    SL1Host(DynamicPrintConfig *config) : OctoPrint(config) {}
-    ~SL1Host() override = default;
-
-    const char* get_name() const override;
-
-    wxString get_test_ok_msg() const override;
-    wxString get_test_failed_msg(wxString &msg) const override;
-    bool can_start_print() const override { return false; }
-
-protected:
-    bool validate_version_text(const boost::optional<std::string> &version_text) const override;
 };
 
 }

@@ -362,12 +362,11 @@ protected:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
-    /* Extensions for colorprint - now it's not a just color_print_heights, 
-     * there can be some custom gcode.
-     * Updated before the export and erased during the process,
-     * so no toolchange occurs twice.
-     * */
-    std::vector<Model::CustomGCode> m_custom_gcode_per_print_z;
+    // Extensions for colorprint - now it's not a just color_print_heights,
+    // there can be some custom gcode.
+    // Updated before the export and erased during the process,
+    // so no toolchange occurs twice.
+    std::vector<Model::CustomGCode> 	m_custom_gcode_per_print_z;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;
