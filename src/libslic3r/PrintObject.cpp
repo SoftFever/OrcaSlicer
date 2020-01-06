@@ -117,7 +117,7 @@ void PrintObject::slice()
         BOOST_LOG_TRIVIAL(info) << warning;
     // Simplify slices if required.
     if (m_print->config().resolution)
-        this->_simplify_slices(scale_(this->print()->config().resolution));
+        this->simplify_slices(scale_(this->print()->config().resolution));
     // Update bounding boxes
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -125,10 +125,10 @@ void PrintObject::slice()
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
                 Layer &layer = *m_layers[layer_idx];
-                layer.slices_bboxes.clear();
-                layer.slices_bboxes.reserve(layer.slices.size());
-                for (const ExPolygon &expoly : layer.slices)
-                	layer.slices_bboxes.emplace_back(get_extents(expoly));
+                layer.lslices_bboxes.clear();
+                layer.lslices_bboxes.reserve(layer.lslices.size());
+                for (const ExPolygon &expoly : layer.lslices)
+                	layer.lslices_bboxes.emplace_back(get_extents(expoly));
             }
         });
     if (m_layers.empty())
@@ -242,13 +242,6 @@ void PrintObject::make_perimeters()
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
 
-    /*
-        simplify slices (both layer and region slices),
-        we only need the max resolution for perimeters
-    ### This makes this method not-idempotent, so we keep it disabled for now.
-    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
-    */
-    
     this->set_done(posPerimeters);
 }
 
@@ -692,7 +685,7 @@ void PrintObject::detect_surfaces_type()
                     if (upper_layer) {
                         Polygons upper_slices = interface_shells ? 
                             to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
-                            to_polygons(upper_layer->slices);
+                            to_polygons(upper_layer->lslices);
                         surfaces_append(top,
                             //FIXME implement offset2_ex working over ExPolygons, that should be a bit more efficient than calling offset_ex twice.
                             offset_ex(offset_ex(diff_ex(layerm_slices_surfaces, upper_slices, true), -offset), offset),
@@ -721,7 +714,7 @@ void PrintObject::detect_surfaces_type()
                         surfaces_append(
                             bottom,
                             offset2_ex(
-                                diff(layerm_slices_surfaces, to_polygons(lower_layer->slices), true), 
+                                diff(layerm_slices_surfaces, to_polygons(lower_layer->lslices), true), 
                                 -offset, offset),
                             surface_type_bottom_other);
                         // if user requested internal shells, we need to identify surfaces
@@ -733,7 +726,7 @@ void PrintObject::detect_surfaces_type()
                                 bottom,
                                 offset2_ex(
                                     diff(
-                                        intersection(layerm_slices_surfaces, to_polygons(lower_layer->slices)), // supported
+                                        intersection(layerm_slices_surfaces, to_polygons(lower_layer->lslices)), // supported
                                         to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
                                         true), 
                                     -offset, offset),
@@ -879,7 +872,7 @@ void PrintObject::process_external_surfaces()
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
 		                }
-		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->slices), voids);
+		                surfaces_covered[layer_idx] = diff(to_polygons(this->m_layers[layer_idx]->lslices), voids);
 	            	}
 	        }
 	    );
@@ -985,8 +978,8 @@ void PrintObject::discover_vertical_shells()
                     cache.bottom_surfaces = union_(cache.bottom_surfaces, false);
                     // For a multi-material print, simulate perimeter / infill split as if only a single extruder has been used for the whole print.
                     if (perimeter_offset > 0.) {
-                        // The layer.slices are forced to merge by expanding them first.
-                        polygons_append(cache.holes, offset(offset_ex(layer.slices, 0.3f * perimeter_min_spacing), - perimeter_offset - 0.3f * perimeter_min_spacing));
+                        // The layer.lslices are forced to merge by expanding them first.
+                        polygons_append(cache.holes, offset(offset_ex(layer.lslices, 0.3f * perimeter_min_spacing), - perimeter_offset - 0.3f * perimeter_min_spacing));
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                         {
                             Slic3r::SVG svg(debug_out_path("discover_vertical_shells-extra-holes-%d.svg", debug_idx), get_extents(layer.slices));
@@ -1762,78 +1755,101 @@ end:
     ;
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - make_slices in parallel - begin";
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_layers.size()),
-		[this, upscaled, clipped](const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
-                m_print->throw_if_canceled();
-                Layer *layer = m_layers[layer_id];
-                // Apply size compensation and perform clipping of multi-part objects.
-                float delta = float(scale_(m_config.xy_size_compensation.value));
-                //FIXME only apply the compensation if no raft is enabled.
-                float elephant_foot_compensation = 0.f;
-                if (layer_id == 0 && m_config.raft_layers == 0)
-                	// Only enable Elephant foot compensation if printing directly on the print bed.
-                    elephant_foot_compensation = float(scale_(m_config.elefant_foot_compensation.value));
-                if (layer->m_regions.size() == 1) {
-                    // Optimized version for a single region layer.
-                    if (layer_id == 0) {
-                        if (delta > elephant_foot_compensation) {
-                            delta -= elephant_foot_compensation;
-                            elephant_foot_compensation = 0.f;
-                        } else if (delta > 0)
-                            elephant_foot_compensation -= delta;
-                    }
-                    if (delta != 0.f || elephant_foot_compensation > 0.f) {
-                        // Single region, growing or shrinking.
-                        LayerRegion *layerm = layer->m_regions.front();
-                        // Apply the XY compensation.
-                        ExPolygons expolygons = (delta == 0.f) ?
-                            to_expolygons(std::move(layerm->slices.surfaces)) :
-                            offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), delta);
-                        // Apply the elephant foot compensation.
-                        if (elephant_foot_compensation > 0)
-							expolygons = union_ex(Slic3r::elephant_foot_compensation(expolygons, layerm->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
-                        layerm->slices.set(std::move(expolygons), stInternal);
-                    }
-                } else {
-                    bool upscale   = ! upscaled && delta > 0.f;
-                    bool clip      = ! clipped && m_config.clip_multipart_objects.value;
-                    if (upscale || clip) {
-                        // Multiple regions, growing or just clipping one region by the other.
-                        // When clipping the regions, priority is given to the first regions.
-                        Polygons processed;
-            			for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
-                            LayerRegion *layerm = layer->m_regions[region_id];
-            				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
-            				if (upscale)
-            					slices = offset_ex(std::move(slices), delta);
-                            if (region_id > 0 && clip)
-                                // Trim by the slices of already processed regions.
-                                slices = diff_ex(to_polygons(std::move(slices)), processed);
-                            if (clip && (region_id + 1 < layer->m_regions.size()))
-                                // Collect the already processed regions to trim the to be processed regions.
-                                polygons_append(processed, slices);
-                            layerm->slices.set(std::move(slices), stInternal);
-                        }
-                    }
-                    if (delta < 0.f || elephant_foot_compensation > 0.f) {
-                        // Apply the negative XY compensation.
-                        Polygons trimming;
-                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
-                        if (elephant_foot_compensation > 0.f) {
-							trimming = to_polygons(Slic3r::elephant_foot_compensation(offset_ex(layer->merged(eps), std::min(delta, 0.f) - eps),
-								layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elephant_foot_compensation)));
-                        } else
-	                        trimming = offset(layer->merged(float(SCALED_EPSILON)), delta - float(SCALED_EPSILON));
-                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
-                            layer->m_regions[region_id]->trim_surfaces(trimming);
-                    }
-                }
-                // Merge all regions' slices to get islands, chain them by a shortest path.
-                layer->make_slices();
-            }
-        });
+    {
+        // Compensation value, scaled.
+        const float xy_compensation_scaled 	 			= float(scale_(m_config.xy_size_compensation.value));
+        const float elephant_foot_compensation_scaled 	= (m_config.raft_layers == 0) ? 
+        	// Only enable Elephant foot compensation if printing directly on the print bed.
+            float(scale_(m_config.elefant_foot_compensation.value)) :
+        	0.f;
+        // Uncompensated slices for the first layer in case the Elephant foot compensation is applied.
+	    ExPolygons  lslices_1st_layer;
+	    tbb::parallel_for(
+	        tbb::blocked_range<size_t>(0, m_layers.size()),
+			[this, upscaled, clipped, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer]
+				(const tbb::blocked_range<size_t>& range) {
+	            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+	                m_print->throw_if_canceled();
+	                Layer *layer = m_layers[layer_id];
+	                // Apply size compensation and perform clipping of multi-part objects.
+	                float elfoot = (layer_id == 0) ? elephant_foot_compensation_scaled : 0.f;
+	                if (layer->m_regions.size() == 1) {
+	                	assert(! upscaled);
+	                	assert(! clipped);
+	                    // Optimized version for a single region layer.
+	                    // Single region, growing or shrinking.
+	                    LayerRegion *layerm = layer->m_regions.front();
+	                    if (elfoot > 0) {
+		                    // Apply the elephant foot compensation and store the 1st layer slices without the Elephant foot compensation applied.
+		                    lslices_1st_layer = to_expolygons(std::move(layerm->slices.surfaces));
+		                    float delta = xy_compensation_scaled;
+	                        if (delta > elfoot) {
+	                            delta -= elfoot;
+	                            elfoot = 0.f;
+	                        } else if (delta > 0)
+	                            elfoot -= delta;
+							layerm->slices.set(
+								union_ex(
+									Slic3r::elephant_foot_compensation(
+										(delta == 0.f) ? lslices_1st_layer : offset_ex(lslices_1st_layer, delta), 
+	                            		layerm->flow(frExternalPerimeter), unscale<double>(elfoot))),
+								stInternal);
+							if (xy_compensation_scaled != 0.f)
+								lslices_1st_layer = offset_ex(std::move(lslices_1st_layer), xy_compensation_scaled);
+	                    } else if (xy_compensation_scaled != 0.f) {
+	                        // Apply the XY compensation.
+	                        layerm->slices.set(
+                                offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), xy_compensation_scaled),
+	                            stInternal);
+	                    }
+	                } else {
+	                    bool upscale   = ! upscaled && xy_compensation_scaled > 0.f;
+	                    bool clip      = ! clipped && m_config.clip_multipart_objects.value;
+	                    if (upscale || clip) {
+	                        // Multiple regions, growing or just clipping one region by the other.
+	                        // When clipping the regions, priority is given to the first regions.
+	                        Polygons processed;
+	            			for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id) {
+	                            LayerRegion *layerm = layer->m_regions[region_id];
+	            				ExPolygons slices = to_expolygons(std::move(layerm->slices.surfaces));
+	            				if (upscale)
+	            					slices = offset_ex(std::move(slices), xy_compensation_scaled);
+	                            if (region_id > 0 && clip)
+	                                // Trim by the slices of already processed regions.
+	                                slices = diff_ex(to_polygons(std::move(slices)), processed);
+	                            if (clip && (region_id + 1 < layer->m_regions.size()))
+	                                // Collect the already processed regions to trim the to be processed regions.
+	                                polygons_append(processed, slices);
+	                            layerm->slices.set(std::move(slices), stInternal);
+	                        }
+	                    }
+	                    if (xy_compensation_scaled < 0.f || elfoot > 0.f) {
+	                        // Apply the negative XY compensation.
+	                        Polygons trimming;
+	                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
+	                        if (elfoot > 0.f) {
+	                        	lslices_1st_layer = offset_ex(layer->merged(eps), std::min(xy_compensation_scaled, 0.f) - eps);
+								trimming = to_polygons(Slic3r::elephant_foot_compensation(lslices_1st_layer,
+									layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elfoot)));
+	                        } else
+		                        trimming = offset(layer->merged(float(SCALED_EPSILON)), xy_compensation_scaled - float(SCALED_EPSILON));
+	                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
+	                            layer->m_regions[region_id]->trim_surfaces(trimming);
+	                    }
+	                }
+	                // Merge all regions' slices to get islands, chain them by a shortest path.
+	                layer->make_slices();
+	            }
+	        });
+	    if (elephant_foot_compensation_scaled > 0.f) {
+	    	// The Elephant foot has been compensated, therefore the 1st layer's lslices are shrank with the Elephant foot compensation value.
+	    	// Store the uncompensated value there.
+	    	assert(! m_layers.empty());
+	    	assert(m_layers.front()->id() == 0);
+			m_layers.front()->lslices = std::move(lslices_1st_layer);
+		}
+	}
+
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - make_slices in parallel - end";
 }
@@ -2131,7 +2147,7 @@ std::string PrintObject::_fix_slicing_errors()
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
 
     // remove empty layers from bottom
-    while (! m_layers.empty() && m_layers.front()->slices.empty()) {
+    while (! m_layers.empty() && (m_layers.front()->lslices.empty() || m_layers.front()->empty())) {
         delete m_layers.front();
         m_layers.erase(m_layers.begin());
         m_layers.front()->lower_layer = nullptr;
@@ -2147,7 +2163,7 @@ std::string PrintObject::_fix_slicing_errors()
 // Simplify the sliced model, if "resolution" configuration parameter > 0.
 // The simplification is problematic, because it simplifies the slices independent from each other,
 // which makes the simplified discretization visible on the object surface.
-void PrintObject::_simplify_slices(double distance)
+void PrintObject::simplify_slices(double distance)
 {
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - begin";
     tbb::parallel_for(
@@ -2160,9 +2176,9 @@ void PrintObject::_simplify_slices(double distance)
                     layer->m_regions[region_idx]->slices.simplify(distance);
 				{
 					ExPolygons simplified;
-					for (const ExPolygon& expoly : layer->slices)
+					for (const ExPolygon &expoly : layer->lslices)
 						expoly.simplify(distance, &simplified);
-					layer->slices = std::move(simplified);
+					layer->lslices = std::move(simplified);
 				}
             }
         });
@@ -2194,7 +2210,7 @@ void PrintObject::clip_fill_surfaces()
         // Detect things that we need to support.
         // Cummulative slices.
         Polygons slices;
-        polygons_append(slices, layer->slices);
+        polygons_append(slices, layer->lslices);
         // Cummulative fill surfaces.
         Polygons fill_surfaces;
         // Solid surfaces to be supported.

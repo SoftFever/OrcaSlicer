@@ -1658,7 +1658,7 @@ void Print::_make_skirt()
         for (const Layer *layer : object->m_layers) {
             if (layer->print_z > skirt_height_z)
                 break;
-            for (const ExPolygon &expoly : layer->slices)
+            for (const ExPolygon &expoly : layer->lslices)
                 // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
                 append(object_points, expoly.contour.points);
         }
@@ -1787,7 +1787,7 @@ void Print::_make_brim()
     Polygons    islands;
     for (PrintObject *object : m_objects) {
         Polygons object_islands;
-        for (ExPolygon &expoly : object->m_layers.front()->slices)
+        for (ExPolygon &expoly : object->m_layers.front()->lslices)
             object_islands.push_back(expoly.contour);
         if (! object->support_layers().empty())
             object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));

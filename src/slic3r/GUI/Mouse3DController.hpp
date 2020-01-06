@@ -33,6 +33,9 @@ class Mouse3DController
         static const float DefaultRotationScale;
         static const float MaxRotationDeadzone;
         static const float DefaultRotationDeadzone;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        static const double DefaultZoomScale;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
     private:
         template <typename Number>
@@ -64,6 +67,9 @@ class Mouse3DController
 
         CustomParameters<double> m_translation_params;
         CustomParameters<float> m_rotation_params;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        CustomParameters<float> m_zoom_params;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
         // When the 3Dconnexion driver is running the system gets, by default, mouse wheel events when rotations around the X axis are detected.
         // We want to filter these out because we are getting the data directly from the device, bypassing the driver, and those mouse wheel events interfere
@@ -72,7 +78,7 @@ class Mouse3DController
         // Mouse3DController::collect_input() through the call to the append_rotation() method
         // GLCanvas3D::on_mouse_wheel() through the call to the process_mouse_wheel() method
         // GLCanvas3D::on_idle() through the call to the apply() method
-        unsigned int m_mouse_wheel_counter;
+        std::atomic<unsigned int> m_mouse_wheel_counter;
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         size_t m_translation_queue_max_size;
@@ -98,6 +104,11 @@ class Mouse3DController
 
         float get_rotation_scale() const { return m_rotation_params.scale; }
         void set_rotation_scale(float scale) { m_rotation_params.scale = scale; }
+
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        double get_zoom_scale() const { return m_zoom_params.scale; }
+        void set_zoom_scale(double scale) { m_zoom_params.scale = scale; }
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
         double get_translation_deadzone() const { return m_translation_params.deadzone; }
         void set_translation_deadzone(double deadzone) { m_translation_params.deadzone = deadzone; }
@@ -128,7 +139,6 @@ class Mouse3DController
 
     bool m_initialized;
     mutable State m_state;
-    std::mutex m_mutex;
     std::thread m_thread;
     hid_device* m_device;
     std::string m_device_str;
@@ -151,7 +161,7 @@ public:
     bool is_device_connected() const { return m_device != nullptr; }
     bool is_running() const { return m_running; }
 
-    bool process_mouse_wheel() { std::lock_guard<std::mutex> lock(m_mutex); return m_state.process_mouse_wheel(); }
+    bool process_mouse_wheel() { return m_state.process_mouse_wheel(); }
 
     bool apply(Camera& camera);
 

@@ -2931,6 +2931,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, coordf_t la
         layer_height <= get_max_layer_height(extruder_idx)) 
     {
         config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+        changed_object(obj_idx);
         return true;
     }
 
@@ -2952,6 +2953,7 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
 
     ranges.erase(range);
     ranges[new_range] = config;
+    changed_object(obj_idx);
 
     wxDataViewItem root_item = m_objects_model->GetLayerRootItem(m_objects_model->GetItemById(obj_idx));
     // To avoid update selection after deleting of a selected item (under GTK)

@@ -116,7 +116,6 @@ public:
     void set_as_dirty();
 
     void set_number_extruders(unsigned int number_extruders);
-    void set_canvas_as_dirty();
     void set_enabled(bool enabled);
     void bed_shape_changed();
     void select_view(const std::string& direction);

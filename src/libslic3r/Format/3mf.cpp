@@ -88,6 +88,7 @@ const char* V3_ATTR = "v3";
 const char* OBJECTID_ATTR = "objectid";
 const char* TRANSFORM_ATTR = "transform";
 const char* PRINTABLE_ATTR = "printable";
+const char* INSTANCESCOUNT_ATTR = "instances_count";
 
 const char* KEY_ATTR = "key";
 const char* VALUE_ATTR = "value";
@@ -729,8 +730,8 @@ namespace Slic3r {
                 return false;
         }
 
-        // fixes the min z of the model if negative
-        model.adjust_min_z();
+//        // fixes the min z of the model if negative
+//        model.adjust_min_z();
 
         return true;
     }
@@ -1712,6 +1713,9 @@ namespace Slic3r {
             return false;
         }
 
+        // Added because of github #3435, currently not used by PrusaSlicer
+        int instances_count_id = get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
+
         m_objects_metadata.insert(IdToMetadataMap::value_type(object_id, ObjectMetadata()));
         m_curr_config.object_id = object_id;
         return true;
@@ -1812,7 +1816,9 @@ namespace Slic3r {
                     break;
                 }
             }
+#if !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             Transform3d inv_matrix = volume_matrix_to_object.inverse();
+#endif // !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
 
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
@@ -1832,11 +1838,15 @@ namespace Slic3r {
                 for (unsigned int v = 0; v < 3; ++v)
                 {
                     unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+                    facet.vertex[v] = Vec3f(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
+#else
                     Vec3f vertex(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
                     facet.vertex[v] = has_transform ?
                         // revert the vertices to the original mesh reference system
                         (inv_matrix * vertex.cast<double>()).cast<float>() :
                         vertex;
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                 }
             }
 
@@ -1844,9 +1854,15 @@ namespace Slic3r {
 			triangle_mesh.repair();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+            // stores the volume matrix taken from the metadata, if present
+            if (has_transform)
+                volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
+#else
             // apply the volume matrix taken from the metadata, if present
             if (has_transform)
                 volume->set_transformation(Slic3r::Geometry::Transformation(volume_matrix_to_object));
+#endif //ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             volume->calculate_convex_hull();
 
             // apply the remaining volume's metadata
@@ -2635,7 +2651,8 @@ namespace Slic3r {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr)
             {
-                stream << " <" << OBJECT_TAG << " id=\"" << obj_metadata.first << "\">\n";
+                // Output of instances count added because of github #3435, currently not used by PrusaSlicer
+                stream << " <" << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
@@ -2673,7 +2690,11 @@ namespace Slic3r {
 
                             // stores volume's local matrix
                             stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+                            Transform3d matrix = volume->get_matrix() * volume->source.transform.get_matrix();
+#else
                             const Transform3d& matrix = volume->get_matrix();
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                             for (int r = 0; r < 4; ++r)
                             {
                                 for (int c = 0; c < 4; ++c)

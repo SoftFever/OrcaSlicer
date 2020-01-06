@@ -13,6 +13,7 @@
 #include <wx/numformatter.h>
 #include <wx/colordlg.h>
 
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/nowide/cstdio.hpp>
 
@@ -433,17 +434,17 @@ static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
 #else
     const std::string folder = "white/";
 #endif
-    std::string bmp_name = Slic3r::GUI::wxGetApp().dark_mode() ? folder + bmp_name_in : bmp_name_in;
-    boost::replace_last(bmp_name, ".png", "");
-    FILE* fp = NULL;
-    fp = boost::nowide::fopen(Slic3r::var(bmp_name + ".svg").c_str(), "rb");
-    if (!fp)
-    {
-        bmp_name = bmp_name_in;
-        boost::replace_last(bmp_name, ".png", "");
-        if (fp) fclose(fp);
-    }
-
+    std::string bmp_name;
+    if (Slic3r::GUI::wxGetApp().dark_mode()) {
+     	bmp_name = folder + bmp_name_in;
+	    boost::replace_last(bmp_name, ".png", "");
+        if (! boost::filesystem::exists(Slic3r::var(bmp_name + ".svg")))
+            bmp_name.clear();
+	}
+	if (bmp_name.empty()) {
+		bmp_name = bmp_name_in;
+		boost::replace_last(bmp_name, ".png", "");
+	}
     return bmp_name;
 }
 
@@ -3960,8 +3961,10 @@ ScalableButton::ScalableButton( wxWindow *          parent,
                                 const ScalableBitmap&  bitmap,
                                 const wxString&     label /*= wxEmptyString*/, 
                                 long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
+    m_parent(parent),
     m_current_icon_name(bitmap.name()),
-    m_parent(parent)
+    m_px_cnt(bitmap.px_cnt()),
+    m_is_horizontal(bitmap.is_horizontal())
 {
     Create(parent, id, label, wxDefaultPosition, wxDefaultSize, style);
 #ifdef __WXMSW__
@@ -3984,11 +3987,17 @@ void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
     m_disabled_icon_name = bmp.name();
 }
 
+int ScalableButton::GetBitmapHeight()
+{
+    const float scale_factor = get_svg_scale_factor(m_parent);
+    return int((float)GetBitmap().GetHeight() / scale_factor);
+}
+
 void ScalableButton::msw_rescale()
 {
-    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name));
+    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name, m_px_cnt, m_is_horizontal));
     if (!m_disabled_icon_name.empty())
-        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name));
+        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name, m_px_cnt, m_is_horizontal));
 
     if (m_width > 0 || m_height>0)
     {

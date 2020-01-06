@@ -585,24 +585,36 @@ void AMFParserContext::endElement(const char * /* name */)
         stl_allocate(&stl);
 
         bool has_transform = ! m_volume_transform.isApprox(Transform3d::Identity(), 1e-10);
+#if !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         Transform3d inv_matrix = m_volume_transform.inverse();
+#endif // !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
             for (unsigned int v = 0; v < 3; ++v)
             {
                 unsigned int tri_id = m_volume_facets[i++] * 3;
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+                facet.vertex[v] = Vec3f(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
+#else
                 Vec3f vertex(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
                 facet.vertex[v] = has_transform ?
                     // revert the vertices to the original mesh reference system
                     (inv_matrix * vertex.cast<double>()).cast<float>() :
                     vertex;
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             }
         }        
         stl_get_size(&stl);
         mesh.repair();
 		m_volume->set_mesh(std::move(mesh));
-		if (has_transform)
-			m_volume->set_transformation(m_volume_transform);
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+        // stores the volume matrix taken from the metadata, if present
+        if (has_transform)
+            m_volume->source.transform = Slic3r::Geometry::Transformation(m_volume_transform);
+#else
+        if (has_transform)
+            m_volume->set_transformation(m_volume_transform);
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART))
         {
             m_volume->source.object_idx = (int)m_model.objects.size() - 1;
@@ -671,7 +683,7 @@ void AMFParserContext::endElement(const char * /* name */)
                     config->set_deserialize(opt_key, m_value[1]);
             } else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "layer_height_profile") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
-                char *p = const_cast<char*>(m_value[1].c_str());
+                char *p = m_value[1].data();
                 for (;;) {
                     char *end = strchr(p, ';');
                     if (end != nullptr)
@@ -686,7 +698,7 @@ void AMFParserContext::endElement(const char * /* name */)
                 // Parse object's layer height profile, a semicolon separated list of floats.
                 unsigned char coord_idx = 0;
                 Eigen::Matrix<float, 5, 1, Eigen::DontAlign> point(Eigen::Matrix<float, 5, 1, Eigen::DontAlign>::Zero());
-                char *p = const_cast<char*>(m_value[1].c_str());
+                char *p = m_value[1].data();
                 for (;;) {
                     char *end = strchr(p, ';');
                     if (end != nullptr)
@@ -706,7 +718,7 @@ void AMFParserContext::endElement(const char * /* name */)
             else if (m_path.size() == 5 && m_path[1] == NODE_TYPE_OBJECT && m_path[3] == NODE_TYPE_RANGE && 
                      m_object && strcmp(opt_key, "layer_height_range") == 0) {
                 // Parse object's layer_height_range, a semicolon separated doubles.
-                char* p = const_cast<char*>(m_value[1].c_str());
+                char* p = m_value[1].data();
                 char* end = strchr(p, ';');
                 *end = 0;
 
@@ -998,7 +1010,7 @@ bool load_amf(const char* path, DynamicPrintConfig* config, Model* model, bool c
             return false;
 
         std::string zip_mask(2, '\0');
-        file.read(const_cast<char*>(zip_mask.data()), 2);
+        file.read(zip_mask.data(), 2);
         file.close();
 
         return (zip_mask == "PK") ? load_amf_archive(path, config, model, check_version) : load_amf_file(path, config, model);
@@ -1147,8 +1159,12 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
             stream << "        <metadata type=\"slic3r.matrix\">";
+#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+            const Transform3d& matrix = volume->get_matrix() * volume->source.transform.get_matrix();
+#else
             const Transform3d& matrix = volume->get_matrix();
-			stream << std::setprecision(std::numeric_limits<double>::max_digits10);
+#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
+            stream << std::setprecision(std::numeric_limits<double>::max_digits10);
             for (int r = 0; r < 4; ++r)
             {
                 for (int c = 0; c < 4; ++c)
@@ -1248,7 +1264,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             pt::write_xml(oss, tree);
             out = oss.str();
 
-            int del_header_pos = out.find("<custom_gcodes_per_height");
+            size_t del_header_pos = out.find("<custom_gcodes_per_height");
             if (del_header_pos != std::string::npos)
                 out.erase(out.begin(), out.begin() + del_header_pos);
 

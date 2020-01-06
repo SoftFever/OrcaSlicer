@@ -57,13 +57,19 @@ const double Mouse3DController::State::DefaultTranslationScale = 2.5;
 const double Mouse3DController::State::MaxTranslationDeadzone = 0.2;
 const double Mouse3DController::State::DefaultTranslationDeadzone = 0.5 * Mouse3DController::State::MaxTranslationDeadzone;
 const float Mouse3DController::State::DefaultRotationScale = 1.0f;
-const float Mouse3DController::State::MaxRotationDeadzone = (float)Mouse3DController::State::MaxTranslationDeadzone;
+const float Mouse3DController::State::MaxRotationDeadzone = 0.2f;
 const float Mouse3DController::State::DefaultRotationDeadzone = 0.5f * Mouse3DController::State::MaxRotationDeadzone;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+const double Mouse3DController::State::DefaultZoomScale = 0.1;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
 Mouse3DController::State::State()
     : m_buttons_enabled(false)
     , m_translation_params(DefaultTranslationScale, DefaultTranslationDeadzone)
     , m_rotation_params(DefaultRotationScale, DefaultRotationDeadzone)
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+    , m_zoom_params(DefaultZoomScale, 0.0)
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     , m_mouse_wheel_counter(0)
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     , m_translation_queue_max_size(0)
@@ -112,7 +118,7 @@ void Mouse3DController::State::append_button(unsigned int id)
 
 bool Mouse3DController::State::process_mouse_wheel()
 {
-    if (m_mouse_wheel_counter == 0)
+    if (m_mouse_wheel_counter.load() == 0)
         return false;
     else if (!m_rotation.queue.empty())
     {
@@ -120,7 +126,7 @@ bool Mouse3DController::State::process_mouse_wheel()
         return true;
     }
 
-    m_mouse_wheel_counter = 0;
+    m_mouse_wheel_counter.store(0);
     return true;
 }
 
@@ -149,7 +155,13 @@ bool Mouse3DController::State::apply(Camera& camera)
     if (has_translation())
     {
         const Vec3d& translation = m_translation.queue.front();
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
+        if (translation(1) != 0.0)
+            camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
+#else
         camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(1) * camera.get_dir_forward() + translation(2) * camera.get_dir_up()));
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         m_translation.queue.pop();
         ret = true;
     }
@@ -228,8 +240,6 @@ bool Mouse3DController::apply(Camera& camera)
 {
     if (!m_initialized)
         return false;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
 
     // check if the user unplugged the device
     if (!m_running && is_device_connected())
@@ -311,12 +321,18 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             ImGui::PopStyleColor();
 
             float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.5f, 2.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.2f, 5.0f, "%.1f"))
                 m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
 
             float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.5f, 2.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.2f, 5.0f, "%.1f"))
                 m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
+
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+            float zoom_scale = m_state.get_zoom_scale() / State::DefaultZoomScale;
+            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.2f, 5.0f, "%.1f"))
+                m_state.set_zoom_scale(State::DefaultZoomScale * zoom_scale);
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
             ImGui::Separator();
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -324,7 +340,11 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             ImGui::PopStyleColor();
 
             float translation_deadzone = (float)m_state.get_translation_deadzone();
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+            if (imgui.slider_float(_(L("Translation")) + "/" + _(L("Zoom")), &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
+#else
             if (imgui.slider_float(_(L("Translation")) + "##2", &translation_deadzone, 0.0f, (float)State::MaxTranslationDeadzone, "%.2f"))
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
                 m_state.set_translation_deadzone((double)translation_deadzone);
 
             float rotation_deadzone = m_state.get_rotation_deadzone();
@@ -393,7 +413,7 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
 
 bool Mouse3DController::connect_device()
 {
-    static const long long DETECTION_TIME_MS = 2000; // seconds
+    static const long long DETECTION_TIME_MS = 2000; // two seconds
 
     if (is_device_connected())
         return false;
@@ -619,30 +639,36 @@ bool Mouse3DController::connect_device()
         hid_get_product_string(m_device, product.data(), 1024);
         m_device_str += "/" + boost::nowide::narrow(product.data());
 
-        BOOST_LOG_TRIVIAL(info) << "Connected device: " << m_device_str;
-
-#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-        std::cout << std::endl << "Connected device:" << std::endl;
-        std::cout << "Manufacturer/product: " << m_device_str << std::endl;
-        std::cout << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")" << std::endl;
-        std::cout << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")" << std::endl;
-        std::cout << "Path................: '" << path << "'" << std::endl;
-#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        BOOST_LOG_TRIVIAL(info) << "Connected 3DConnexion device:";
+        BOOST_LOG_TRIVIAL(info) << "Manufacturer/product: " << m_device_str;
+        BOOST_LOG_TRIVIAL(info) << "Manufacturer id.....: " << vendor_id << " (" << std::hex << vendor_id << std::dec << ")";
+        BOOST_LOG_TRIVIAL(info) << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")";
+        if (!path.empty())
+            BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
 
         // get device parameters from the config, if present
         double translation_speed = 1.0;
         float rotation_speed = 1.0;
         double translation_deadzone = State::DefaultTranslationDeadzone;
         float rotation_deadzone = State::DefaultRotationDeadzone;
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        double zoom_speed = 1.0;
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
         wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
         wxGetApp().app_config->get_mouse_device_rotation_speed(m_device_str, rotation_speed);
         wxGetApp().app_config->get_mouse_device_rotation_deadzone(m_device_str, rotation_deadzone);
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale * std::max(0.5, std::min(2.0, translation_speed)));
-        m_state.set_translation_deadzone(std::max(0.0, std::min(State::MaxTranslationDeadzone, translation_deadzone)));
-        m_state.set_rotation_scale(State::DefaultRotationScale * std::max(0.5f, std::min(2.0f, rotation_speed)));
-        m_state.set_rotation_deadzone(std::max(0.0f, std::min(State::MaxRotationDeadzone, rotation_deadzone)));
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.2, 5.0));
+        m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.2f, 5.0f));
+        m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.2, 5.0));
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
     else
@@ -668,8 +694,13 @@ void Mouse3DController::disconnect_device()
         m_thread.join();
 
     // Store current device parameters into the config
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+    wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_translation_deadzone(),
+        m_state.get_rotation_scale() / State::DefaultRotationScale, m_state.get_rotation_deadzone(), m_state.get_zoom_scale() / State::DefaultZoomScale);
+#else
     wxGetApp().app_config->set_mouse_device(m_device_str, m_state.get_translation_scale() / State::DefaultTranslationScale, m_state.get_translation_deadzone(),
         m_state.get_rotation_scale() / State::DefaultRotationScale, m_state.get_rotation_deadzone());
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     wxGetApp().app_config->save();
 
     // Close the 3Dconnexion device
@@ -697,7 +728,6 @@ void Mouse3DController::run()
         collect_input();
     }
 }
-
 void Mouse3DController::collect_input()
 {
     DataPacket packet = { 0 };
@@ -711,8 +741,6 @@ void Mouse3DController::collect_input()
 
     if (!wxGetApp().IsActive())
         return;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
 
     bool updated = false;
 
@@ -729,8 +757,11 @@ void Mouse3DController::collect_input()
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
     if (updated)
+    {
+        wxGetApp().plater()->set_current_canvas_as_dirty();
         // ask for an idle event to update 3D scene
         wxWakeUpIdle();
+    }
 }
 
 bool Mouse3DController::handle_packet(const DataPacket& packet)

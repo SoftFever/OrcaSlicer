@@ -417,27 +417,76 @@ std::error_code rename_file(const std::string &from, const std::string &to)
 #endif
 }
 
-int copy_file(const std::string &from, const std::string &to)
+int copy_file_inner(const std::string& from, const std::string& to)
 {
-    const boost::filesystem::path source(from);
-    const boost::filesystem::path target(to);
-    static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
+	const boost::filesystem::path source(from);
+	const boost::filesystem::path target(to);
+	static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
 
-    // Make sure the file has correct permission both before and after we copy over it.
-    // NOTE: error_code variants are used here to supress expception throwing.
-    // Error code of permission() calls is ignored on purpose - if they fail,
-    // the copy_file() function will fail appropriately and we don't want the permission()
-    // calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
-    // or when the target file doesn't exist.
-    boost::system::error_code ec;
-    boost::filesystem::permissions(target, perms, ec);
-    boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
-    if (ec) {
-        return -1;
-    }
-    boost::filesystem::permissions(target, perms, ec);
+	// Make sure the file has correct permission both before and after we copy over it.
+	// NOTE: error_code variants are used here to supress expception throwing.
+	// Error code of permission() calls is ignored on purpose - if they fail,
+	// the copy_file() function will fail appropriately and we don't want the permission()
+	// calls to cause needless failures on permissionless filesystems (ie. FATs on SD cards etc.)
+	// or when the target file doesn't exist.
+	boost::system::error_code ec;
+	boost::filesystem::permissions(target, perms, ec);
+	boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists, ec);
+	if (ec) {
+		return -1;
+	}
+	boost::filesystem::permissions(target, perms, ec);
+	return 0;
+}
 
-    return 0;
+int copy_file(const std::string &from, const std::string &to, const bool with_check)
+{
+	std::string to_temp = to + ".tmp";
+	int ret_val = copy_file_inner(from,to_temp);
+    if(ret_val == 0)
+	{
+        if (with_check)
+            ret_val = check_copy(from, to_temp);
+
+        if (ret_val == 0 && rename_file(to_temp, to))
+        	ret_val = -1;
+	}
+	return ret_val;
+}
+
+int check_copy(const std::string &origin, const std::string &copy)
+{
+	std::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+	std::ifstream f2(copy, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
+
+	if (f1.fail() || f2.fail())
+		return -1;
+
+	std::streampos fsize = f1.tellg();
+	if (fsize != f2.tellg())
+		return -1;
+
+	f1.seekg(0, std::ifstream::beg);
+	f2.seekg(0, std::ifstream::beg);
+
+	// Compare by reading 8 MiB buffers one at a time.
+	size_t 			  buffer_size = 8 * 1024 * 1024;
+	std::vector<char> buffer_origin(buffer_size, 0);
+	std::vector<char> buffer_copy(buffer_size, 0);
+	do {
+		f1.read(buffer_origin.data(), buffer_size);
+        f2.read(buffer_copy.data(), buffer_size);
+		std::streampos origin_cnt = f1.gcount();
+		std::streampos copy_cnt   = f2.gcount();
+		if (origin_cnt != copy_cnt ||
+			(origin_cnt > 0 && std::memcmp(buffer_origin.data(), buffer_copy.data(), origin_cnt) != 0))
+			// Files are different.
+			return -1;
+		fsize -= origin_cnt;
+    } while (f1.good() && f2.good());
+
+    // All data has been read and compared equal.
+    return (f1.eof() && f2.eof() && fsize == 0) ? 0 : -1;
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
@@ -486,7 +535,7 @@ std::string encode_path(const char *src)
     // Convert a wide string to a local code page.
     int size_needed = ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), nullptr, 0, nullptr, nullptr);
     std::string str_dst(size_needed, 0);
-    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), const_cast<char*>(str_dst.data()), size_needed, nullptr, nullptr);
+    ::WideCharToMultiByte(0, 0, wstr_src.data(), (int)wstr_src.size(), str_dst.data(), size_needed, nullptr, nullptr);
     return str_dst;
 #else /* WIN32 */
     return src;
@@ -503,7 +552,7 @@ std::string decode_path(const char *src)
     // Convert the string encoded using the local code page to a wide string.
     int size_needed = ::MultiByteToWideChar(0, 0, src, len, nullptr, 0);
     std::wstring wstr_dst(size_needed, 0);
-    ::MultiByteToWideChar(0, 0, src, len, const_cast<wchar_t*>(wstr_dst.data()), size_needed);
+    ::MultiByteToWideChar(0, 0, src, len, wstr_dst.data(), size_needed);
     // Convert a wide string to utf8.
     return boost::nowide::narrow(wstr_dst.c_str());
 #else /* WIN32 */

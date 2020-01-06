@@ -338,7 +338,7 @@ void Camera::debug_render() const
     float fov = (float)get_fov();
     float gui_scale = (float)get_gui_scale();
 
-    ImGui::InputText("Type", const_cast<char*>(type.data()), type.length(), ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputText("Type", type.data(), type.length(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
     ImGui::InputFloat3("Position", position.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
     ImGui::InputFloat3("Target", target.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);

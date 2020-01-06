@@ -61,7 +61,7 @@
     Ref<LayerRegion> add_region(PrintRegion* print_region);
 
     ExPolygonCollection* slices()
-        %code%{ RETVAL = new ExPolygonCollection(THIS->slices); %};
+        %code%{ RETVAL = new ExPolygonCollection(THIS->lslices); %};
 
     int ptr()
         %code%{ RETVAL = (int)(intptr_t)THIS; %};
@@ -110,7 +110,7 @@
     Ref<LayerRegion> add_region(PrintRegion* print_region);
 
     ExPolygonCollection* slices()
-        %code%{ RETVAL = new ExPolygonCollection(THIS->slices); %};
+        %code%{ RETVAL = new ExPolygonCollection(THIS->lslices); %};
     
     void export_region_slices_to_svg(const char *path);
     void export_region_fill_surfaces_to_svg(const char *path);

@@ -142,7 +142,7 @@ bool GLShader::load_from_file(const char* fragment_shader_filename, const char* 
     int file_length = (int)vs.tellg();
     vs.seekg(0, vs.beg);
     std::string vertex_shader(file_length, '\0');
-    vs.read(const_cast<char*>(vertex_shader.data()), file_length);
+    vs.read(vertex_shader.data(), file_length);
     if (!vs.good())
         return false;
 
@@ -156,7 +156,7 @@ bool GLShader::load_from_file(const char* fragment_shader_filename, const char* 
     file_length = (int)fs.tellg();
     fs.seekg(0, fs.beg);
     std::string fragment_shader(file_length, '\0');
-    fs.read(const_cast<char*>(fragment_shader.data()), file_length);
+    fs.read(fragment_shader.data(), file_length);
     if (!fs.good())
         return false;
 

@@ -1,4 +1,4 @@
-#include "OctoPrint.hpp"
+#include "AstroBox.hpp"
 
 #include <algorithm>
 #include <sstream>
@@ -22,15 +22,15 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
-OctoPrint::OctoPrint(DynamicPrintConfig *config) :
+AstroBox::AstroBox(DynamicPrintConfig *config) :
     host(config->opt_string("print_host")),
     apikey(config->opt_string("printhost_apikey")),
     cafile(config->opt_string("printhost_cafile"))
 {}
 
-const char* OctoPrint::get_name() const { return "OctoPrint"; }
+const char* AstroBox::get_name() const { return "AstroBox"; }
 
-bool OctoPrint::test(wxString &msg) const
+bool AstroBox::test(wxString &msg) const
 {
     // Since the request is performed synchronously here,
     // it is ok to refer to `msg` from within the closure
@@ -65,7 +65,7 @@ bool OctoPrint::test(wxString &msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (! res) {
-                    msg = wxString::Format(_(L("Mismatched type of print host: %s")), text ? *text : "OctoPrint");
+                    msg = wxString::Format(_(L("Mismatched type of print host: %s")), text ? *text : "AstroBox");
                 }
             }
             catch (const std::exception &) {
@@ -78,18 +78,18 @@ bool OctoPrint::test(wxString &msg) const
     return res;
 }
 
-wxString OctoPrint::get_test_ok_msg () const
+wxString AstroBox::get_test_ok_msg () const
 {
-    return _(L("Connection to OctoPrint works correctly."));
+    return _(L("Connection to AstroBox works correctly."));
 }
 
-wxString OctoPrint::get_test_failed_msg (wxString &msg) const
+wxString AstroBox::get_test_failed_msg (wxString &msg) const
 {
     return wxString::Format("%s: %s\n\n%s",
-        _(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
+        _(L("Could not connect to AstroBox")), msg, _(L("Note: AstroBox version at least 1.1.0 is required.")));
 }
 
-bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
+bool AstroBox::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
     const char *name = get_name();
 
@@ -131,7 +131,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
             prorgess_fn(std::move(progress), cancel);
             if (cancel) {
                 // Upload was canceled
-                BOOST_LOG_TRIVIAL(info) << "Octoprint: Upload canceled";
+                BOOST_LOG_TRIVIAL(info) << "AstroBox: Upload canceled";
                 res = false;
             }
         })
@@ -140,12 +140,12 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     return res;
 }
 
-bool OctoPrint::validate_version_text(const boost::optional<std::string> &version_text) const
+bool AstroBox::validate_version_text(const boost::optional<std::string> &version_text) const
 {
-    return version_text ? boost::starts_with(*version_text, "OctoPrint") : true;
+    return version_text ? boost::starts_with(*version_text, "AstroBox") : true;
 }
 
-void OctoPrint::set_auth(Http &http) const
+void AstroBox::set_auth(Http &http) const
 {
     http.header("X-Api-Key", apikey);
 
@@ -154,7 +154,7 @@ void OctoPrint::set_auth(Http &http) const
     }
 }
 
-std::string OctoPrint::make_url(const std::string &path) const
+std::string AstroBox::make_url(const std::string &path) const
 {
     if (host.find("http://") == 0 || host.find("https://") == 0) {
         if (host.back() == '/') {
@@ -165,25 +165,6 @@ std::string OctoPrint::make_url(const std::string &path) const
     } else {
         return (boost::format("http://%1%/%2%") % host % path).str();
     }
-}
-
-
-// SL1Host
-const char* SL1Host::get_name() const { return "SL1Host"; }
-
-wxString SL1Host::get_test_ok_msg () const
-{
-    return _(L("Connection to Prusa SL1 works correctly."));
-}
-
-wxString SL1Host::get_test_failed_msg (wxString &msg) const
-{
-    return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
-}
-
-bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
-{
-    return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
 }
 
 }

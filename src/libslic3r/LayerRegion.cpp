@@ -72,7 +72,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     
     if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
-        g.lower_slices = &this->layer()->lower_layer->slices;
+        g.lower_slices = &this->layer()->lower_layer->lslices;
     
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
@@ -139,7 +139,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         	// Remove voids from fill_boundaries, that are not supported by the layer below.
             if (lower_layer_covered == nullptr) {
             	lower_layer_covered = &lower_layer_covered_tmp;
-            	lower_layer_covered_tmp = to_polygons(lower_layer->slices);
+            	lower_layer_covered_tmp = to_polygons(lower_layer->lslices);
             }
             if (! lower_layer_covered->empty())
             	voids = diff(voids, *lower_layer_covered);
@@ -260,7 +260,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // of very thin (but still working) anchors, the grown expolygon would go beyond them
                 BridgeDetector bd(
                     initial,
-                    lower_layer->slices,
+                    lower_layer->lslices,
                     this->flow(frInfill, true).scaled_width()
                 );
                 #ifdef SLIC3R_DEBUG

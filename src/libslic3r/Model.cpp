@@ -66,7 +66,7 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.objects.clear();
 
     // copy custom code per height
-    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
+    this->custom_gcode_per_print_z = std::move(rhs.custom_gcode_per_print_z);
     return *this;
 }
 
@@ -1953,25 +1953,23 @@ extern bool model_has_advanced_features(const Model &model)
 
 extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config)
 {
-    if (!config->has("colorprint_heights"))
+	auto *colorprint_heights = config->option<ConfigOptionFloats>("colorprint_heights");
+    if (colorprint_heights == nullptr)
         return;
 
-    const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
-
-    const auto& colorprint_values = config->option<ConfigOptionFloats>("colorprint_heights")->values;
-    
-    if (!colorprint_values.empty())
-    {
+	if (custom_gcode_per_print_z.empty() && ! colorprint_heights->values.empty()) {
+		// Convert the old colorprint_heighs only if there is no equivalent data in a new format.
+	    const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+	    const auto& colorprint_values = colorprint_heights->values;
         custom_gcode_per_print_z.clear();
         custom_gcode_per_print_z.reserve(colorprint_values.size());
         int i = 0;
         for (auto val : colorprint_values)
             custom_gcode_per_print_z.emplace_back(Model::CustomGCode{ val, ColorChangeCode, 1, colors[(++i)%7] });
-    }
+	}
 
-    /* There is one and only place this configuration option is used now.
-     * It wouldn't be used in the future, so erase it.
-     * */
+	// The "colorprint_heights" config value has been deprecated. At this point of time it has been converted
+	// to a new format and therefore it shall be erased.
     config->erase("colorprint_heights");
 }
 

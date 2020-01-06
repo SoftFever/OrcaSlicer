@@ -205,7 +205,7 @@ size_t Index::load(const boost::filesystem::path &path)
 #endif
     	++ idx_line;
     	// Skip the initial white spaces.
-    	char *key = left_trim(const_cast<char*>(line.data()));
+    	char *key = left_trim(line.data());
 		if (*key == '#')
 			// Skip a comment line.
 			continue;
