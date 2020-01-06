@@ -755,21 +755,15 @@ public:
     // Extensions for color print
     struct CustomGCode
     {
-        bool operator<(const CustomGCode& other) const { return other.print_z > this->print_z; }
-        bool operator==(const CustomGCode& other) const
+        bool operator<(const CustomGCode& rhs) const { return this->print_z < rhs.print_z; }
+        bool operator==(const CustomGCode& rhs) const
         {
-            return (other.print_z   == this->print_z    ) && 
-                   (other.gcode     == this->gcode      ) && 
-                   (other.extruder  == this->extruder   ) && 
-                   (other.color     == this->color      );
+            return (rhs.print_z   == this->print_z    ) && 
+                   (rhs.gcode     == this->gcode      ) && 
+                   (rhs.extruder  == this->extruder   ) && 
+                   (rhs.color     == this->color      );
         }
-        bool operator!=(const CustomGCode& other) const
-        {
-            return (other.print_z   != this->print_z    ) || 
-                   (other.gcode     != this->gcode      ) || 
-                   (other.extruder  != this->extruder   ) || 
-                   (other.color     != this->color      );
-        }
+        bool operator!=(const CustomGCode& rhs) const { return ! (*this == rhs); }
         
         double      print_z;
         std::string gcode;
@@ -880,9 +874,9 @@ extern bool model_volume_list_changed(const ModelObject &model_object_old, const
 extern bool model_has_multi_part_objects(const Model &model);
 // If the model has advanced features, then it cannot be processed in simple mode.
 extern bool model_has_advanced_features(const Model &model);
-/* If loaded configuration has a "colorprint_heights" option (if it was imported from older Slicer), 
- * then model.custom_gcode_per_print_z should be updated considering this option
- * */
+// If loaded configuration has a "colorprint_heights" option (if it was imported from older Slicer), 
+// and if model.custom_gcode_per_print_z is empty (there is no color print data available in a new format
+// then model.custom_gcode_per_print_z should be updated considering this option.
 extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config);
 
 #ifndef NDEBUG
