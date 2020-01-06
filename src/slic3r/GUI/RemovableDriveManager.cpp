@@ -18,7 +18,6 @@ GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <glob.h>
-#include <libgen.h>
 #include <pwd.h>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -240,10 +239,8 @@ void RemovableDriveManager::search_for_drives()
     //search /media/* folder
 	search_path("/media/*", "/media");
 
-/*
 	//search /Volumes/* folder (OSX)
-	search_path("/Volumes/*", "/Volumes");
-*/
+	//search_path("/Volumes/*", "/Volumes");
     std::string path(std::getenv("USER"));
 	std::string pp(path);
 	//std::cout << "user: "<< path << "\n";
