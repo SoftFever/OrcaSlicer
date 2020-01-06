@@ -21,6 +21,7 @@ GUID WceusbshGUID = { 0x25dbce51, 0x6c8f, 0x4a72,
 #include <libgen.h>
 #include <pwd.h>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/convenience.hpp>
 #endif
 
 namespace Slic3r {
@@ -321,14 +322,8 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 			uid_t uid = buf.st_uid;
 			std::string username(std::getenv("USER"));
 			struct passwd *pw = getpwuid(uid);
-			if(pw != 0)
-			{
-				if(pw->pw_name == username)
-				{
-					std::string name = basename(path.data());
-		       		m_current_drives.push_back(DriveData(name,path));
-				}
-			}
+			if (pw != 0 && pw->pw_name == username)
+	       		m_current_drives.push_back(DriveData(boost::filesystem::basename(boost::filesystem::path(path)), path));
 		}
 		
 	}
