@@ -94,6 +94,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -137,6 +138,7 @@ void GLGizmoSlaSupports::on_render() const
     }
     // Show/hide the original object
     m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+    m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 

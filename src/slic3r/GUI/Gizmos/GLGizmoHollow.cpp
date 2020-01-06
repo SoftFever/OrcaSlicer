@@ -84,6 +84,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -127,6 +128,7 @@ void GLGizmoHollow::on_render() const
     }
     // Show/hide the original object
     m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+    m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
@@ -628,7 +630,7 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 
         // create a new GLVolume that only has the cavity inside
         Geometry::Transformation volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
-        volume_trafo.set_offset(volume_trafo.get_offset() + Vec3d(0., 0., m_z_shift));
+        volume_trafo.set_offset(volume_trafo.get_offset());
         m_c->m_volume_with_cavity.reset(new GLVolume(GLVolume::MODEL_COLOR[2]));
         m_c->m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_c->m_cavity_mesh.get());
         m_c->m_volume_with_cavity->finalize_geometry(true);
