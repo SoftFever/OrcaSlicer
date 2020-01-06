@@ -2,7 +2,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
-#include "libslic3r/Format/stl.hpp"
+#include "libslic3r/Format/STL.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
