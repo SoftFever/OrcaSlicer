@@ -3435,7 +3435,8 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("loglevel", coInt);
     def->label = L("Logging level");
-    def->tooltip = L("Messages with severity lower or eqal to the loglevel will be printed out. 0:trace, 1:debug, 2:info, 3:warning, 4:error, 5:fatal");
+    def->tooltip = L("Sets logging sensitivity. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n"
+                     "For example. loglevel=2 logs fatal, error and warning level messages.");
     def->min = 0;
 
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && defined(SLIC3R_GUI)
