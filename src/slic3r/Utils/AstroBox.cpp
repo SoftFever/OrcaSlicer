@@ -28,8 +28,6 @@ AstroBox::AstroBox(DynamicPrintConfig *config) :
     cafile(config->opt_string("printhost_cafile"))
 {}
 
-AstroBox::~AstroBox() {}
-
 const char* AstroBox::get_name() const { return "AstroBox"; }
 
 bool AstroBox::test(wxString &msg) const
@@ -142,21 +140,6 @@ bool AstroBox::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
     return res;
 }
 
-bool AstroBox::has_auto_discovery() const
-{
-    return true;
-}
-
-bool AstroBox::can_test() const
-{
-    return true;
-}
-
-bool AstroBox::can_start_print() const
-{
-    return true;
-}
-
 bool AstroBox::validate_version_text(const boost::optional<std::string> &version_text) const
 {
     return version_text ? boost::starts_with(*version_text, "AstroBox") : true;
@@ -183,33 +166,5 @@ std::string AstroBox::make_url(const std::string &path) const
         return (boost::format("http://%1%/%2%") % host % path).str();
     }
 }
-
-
-// SL1Host
-
-SL1Host::~SL1Host() {}
-
-const char* SL1Host::get_name() const { return "SL1Host"; }
-
-wxString SL1Host::get_test_ok_msg () const
-{
-    return _(L("Connection to Prusa SL1 works correctly."));
-}
-
-wxString SL1Host::get_test_failed_msg (wxString &msg) const
-{
-    return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
-}
-
-bool SL1Host::can_start_print() const
-{
-    return false;
-}
-
-bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
-{
-    return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
-}
-
 
 }

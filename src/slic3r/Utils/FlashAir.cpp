@@ -30,8 +30,6 @@ FlashAir::FlashAir(DynamicPrintConfig *config) :
 	host(config->opt_string("print_host"))
 {}
 
-FlashAir::~FlashAir() {}
-
 const char* FlashAir::get_name() const { return "FlashAir"; }
 
 bool FlashAir::test(wxString &msg) const
@@ -148,21 +146,6 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 		.perform_sync();
 
 	return res;
-}
-
-bool FlashAir::has_auto_discovery() const
-{
-	return false;
-}
-
-bool FlashAir::can_test() const
-{
-	return true;
-}
-
-bool FlashAir::can_start_print() const
-{
-	return false;
 }
 
 std::string FlashAir::timestamp_str() const

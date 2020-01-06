@@ -32,8 +32,6 @@ Duet::Duet(DynamicPrintConfig *config) :
 	password(config->opt_string("printhost_apikey"))
 {}
 
-Duet::~Duet() {}
-
 const char* Duet::get_name() const { return "Duet"; }
 
 bool Duet::test(wxString &msg) const
@@ -109,21 +107,6 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 	disconnect();
 
 	return res;
-}
-
-bool Duet::has_auto_discovery() const
-{
-	return false;
-}
-
-bool Duet::can_test() const
-{
-	return true;
-}
-
-bool Duet::can_start_print() const
-{
-	return true;
 }
 
 bool Duet::connect(wxString &msg) const

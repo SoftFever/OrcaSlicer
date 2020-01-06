@@ -28,8 +28,6 @@ OctoPrint::OctoPrint(DynamicPrintConfig *config) :
     cafile(config->opt_string("printhost_cafile"))
 {}
 
-OctoPrint::~OctoPrint() {}
-
 const char* OctoPrint::get_name() const { return "OctoPrint"; }
 
 bool OctoPrint::test(wxString &msg) const
@@ -142,21 +140,6 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     return res;
 }
 
-bool OctoPrint::has_auto_discovery() const
-{
-    return true;
-}
-
-bool OctoPrint::can_test() const
-{
-    return true;
-}
-
-bool OctoPrint::can_start_print() const
-{
-    return true;
-}
-
 bool OctoPrint::validate_version_text(const boost::optional<std::string> &version_text) const
 {
     return version_text ? boost::starts_with(*version_text, "OctoPrint") : true;
@@ -186,9 +169,6 @@ std::string OctoPrint::make_url(const std::string &path) const
 
 
 // SL1Host
-
-SL1Host::~SL1Host() {}
-
 const char* SL1Host::get_name() const { return "SL1Host"; }
 
 wxString SL1Host::get_test_ok_msg () const
@@ -201,15 +181,9 @@ wxString SL1Host::get_test_failed_msg (wxString &msg) const
     return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
 }
 
-bool SL1Host::can_start_print() const
-{
-    return false;
-}
-
 bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
 {
     return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
 }
-
 
 }
