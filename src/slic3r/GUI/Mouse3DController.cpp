@@ -321,16 +321,16 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             ImGui::PopStyleColor();
 
             float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
 
             float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
 
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
             float zoom_scale = m_state.get_zoom_scale() / State::DefaultZoomScale;
-            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_zoom_scale(State::DefaultZoomScale * zoom_scale);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
@@ -662,12 +662,12 @@ bool Mouse3DController::connect_device()
         wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.2, 5.0));
+        m_state.set_translation_scale(State::DefaultTranslationScale* std::clamp(translation_speed, 0.1, 10.0));
         m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
-        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.2f, 5.0f));
+        m_state.set_rotation_scale(State::DefaultRotationScale* std::clamp(rotation_speed, 0.1f, 10.0f));
         m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.2, 5.0));
+        m_state.set_zoom_scale(State::DefaultZoomScale* std::clamp(zoom_speed, 0.1, 10.0));
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
