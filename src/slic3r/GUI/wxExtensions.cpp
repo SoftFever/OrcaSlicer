@@ -13,7 +13,6 @@
 #include <wx/numformatter.h>
 #include <wx/colordlg.h>
 
-//#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 #include "BitmapCache.hpp"
@@ -425,29 +424,6 @@ static float get_svg_scale_factor(wxWindow *win)
 #endif
 }
 
-// in the Dark mode of any platform, we should draw icons in respect to OS background
-/*
-static std::string icon_name_respected_to_mode(const std::string& bmp_name_in)
-{
-#ifdef __WXMSW__
-    const std::string folder = "white\\";
-#else
-    const std::string folder = "white/";
-#endif
-    std::string bmp_name;
-    if (Slic3r::GUI::wxGetApp().dark_mode()) {
-     	bmp_name = folder + bmp_name_in;
-	    boost::replace_last(bmp_name, ".png", "");
-        if (! boost::filesystem::exists(Slic3r::var(bmp_name + ".svg")))
-            bmp_name.clear();
-	}
-	if (bmp_name.empty()) {
-		bmp_name = bmp_name_in;
-		boost::replace_last(bmp_name, ".png", "");
-	}
-    return bmp_name;
-}
-*/
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
     const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)

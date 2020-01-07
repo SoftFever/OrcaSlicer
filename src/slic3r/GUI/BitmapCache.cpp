@@ -229,6 +229,12 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
     float scale /* = 1.0f */, const bool grayscale/* = false*/, const bool dark_mode/* = false*/)
 {
+    std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
+                                           "-h" + std::to_string(target_height) : 
+                                           "-w" + std::to_string(target_width))
+                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "")
+                                         + (grayscale ? "-gs" : "");
+
     /* For the Dark mode of any platform, we should draw icons in respect to OS background
      * Note: All standard(regular) icons are collected in "icons" folder,
      *       SVG-icons, which have "Dark mode" variant, are collected in "icons/white" folder
@@ -241,19 +247,26 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 #else
         folder = "white/";
 #endif
+        auto it = m_map.find(folder + bitmap_key);
+        if (it != m_map.end())
+            return it->second;
+        else {
+            it = m_map.find(bitmap_key);
+            if (it != m_map.end())
+                return it->second;
+        }
+
         if (!boost::filesystem::exists(Slic3r::var(folder + bitmap_name + ".svg")))
             folder.clear();
+        else
+            bitmap_key = folder + bitmap_key;
     }
-
-    std::string bitmap_key = folder + bitmap_name + ( target_height !=0 ? 
-                                           "-h" + std::to_string(target_height) : 
-                                           "-w" + std::to_string(target_width))
-                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "")
-                                         + (grayscale ? "-gs" : "");
-
-    auto it = m_map.find(bitmap_key);
-    if (it != m_map.end())
-        return it->second;
+    else 
+    {
+        auto it = m_map.find(bitmap_key);
+        if (it != m_map.end())
+            return it->second;
+    }
 
     NSVGimage *image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
     if (image == nullptr)
