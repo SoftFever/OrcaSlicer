@@ -85,13 +85,14 @@ bool GLGizmosManager::init()
 
     m_common_gizmos_data.reset(new CommonGizmosData());
 
+    // Order of gizmos in the vector must match order in EType!
     m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "move.svg", 0));
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "scale.svg", 1));
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "rotate.svg", 2));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
-    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5, m_common_gizmos_data.get()));
-    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 6, m_common_gizmos_data.get()));
+    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5, m_common_gizmos_data.get()));
+    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6, m_common_gizmos_data.get()));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
@@ -524,10 +525,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             case Scale:
             {
                 // Apply new temporary scale factors
-				TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
-				if (evt.AltDown())
-					transformation_type.set_independent();
-				selection.scale(get_scale(), transformation_type);
+                TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
+                if (evt.AltDown())
+                    transformation_type.set_independent();
+                selection.scale(get_scale(), transformation_type);
                 if (evt.ControlDown())
                     selection.translate(get_scale_offset(), true);
                 wxGetApp().obj_manipul()->set_dirty();
@@ -706,7 +707,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         {
             if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ManualEditing))
                 processed = true;
-                
+
             break;
         }
         case 'F':

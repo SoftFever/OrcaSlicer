@@ -54,13 +54,14 @@ public:
 
     enum EType : unsigned char
     {
+        // Order must match index in m_gizmos!
         Move,
         Scale,
         Rotate,
         Flatten,
         Cut,
-        SlaSupports,
         Hollow,
+        SlaSupports,
         Undefined
     };
 
