@@ -61,6 +61,9 @@ public:
         PrinterTechnology           technology;
         std::string                 family;
         std::vector<PrinterVariant> variants;
+        // Vendor & Printer Model specific print bed model & texture.
+        std::string 			 	bed_model;
+        std::string 				bed_texture;
 
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
