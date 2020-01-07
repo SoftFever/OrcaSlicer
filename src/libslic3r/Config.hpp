@@ -289,13 +289,13 @@ public:
             throw std::runtime_error("ConfigOptionVector::set_at(): Assigning an incompatible type");
     }
 
-    T& get_at(size_t i)
+    const T& get_at(size_t i) const
     {
         assert(! this->values.empty());
         return (i < this->values.size()) ? this->values[i] : this->values.front();
     }
 
-    const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
+    T& get_at(size_t i) { return const_cast<T&>(std::as_const(*this).get_at(i)); }
 
     // Resize this vector by duplicating the /*last*/first value.
     // If the current vector is empty, the default value is used instead.

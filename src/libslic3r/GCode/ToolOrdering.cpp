@@ -394,7 +394,21 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
     }
 }
 
-
+const LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z) const
+{
+    auto it_layer_tools = std::lower_bound(m_layer_tools.begin(), m_layer_tools.end(), LayerTools(print_z - EPSILON));
+    assert(it_layer_tools != m_layer_tools.end());
+    coordf_t dist_min = std::abs(it_layer_tools->print_z - print_z);
+    for (++ it_layer_tools; it_layer_tools != m_layer_tools.end(); ++ it_layer_tools) {
+        coordf_t d = std::abs(it_layer_tools->print_z - print_z);
+        if (d >= dist_min)
+            break;
+        dist_min = d;
+    }
+    -- it_layer_tools;
+    assert(dist_min < EPSILON);
+    return *it_layer_tools;
+}
 
 // This function is called from Print::mark_wiping_extrusions and sets extruder this entity should be printed with (-1 .. as usual)
 void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies)

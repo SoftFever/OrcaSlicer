@@ -5,6 +5,8 @@
 
 #include "../libslic3r.h"
 
+#include <utility>
+
 namespace Slic3r {
 
 class Print;
@@ -123,25 +125,9 @@ public:
     // For a multi-material print, the printing extruders are ordered in the order they shall be primed.
     const std::vector<unsigned int>& all_extruders() const { return m_all_printing_extruders; }
 
-    template<class Self> static auto tools_for_layer(Self& self, coordf_t print_z) -> decltype (*self.m_layer_tools.begin())
-    {
-        auto it_layer_tools = std::lower_bound(self.m_layer_tools.begin(), self.m_layer_tools.end(), LayerTools(print_z - EPSILON));
-        assert(it_layer_tools != self.m_layer_tools.end());
-        coordf_t dist_min = std::abs(it_layer_tools->print_z - print_z);
-        for (++ it_layer_tools; it_layer_tools != self.m_layer_tools.end(); ++it_layer_tools) {
-            coordf_t d = std::abs(it_layer_tools->print_z - print_z);
-            if (d >= dist_min)
-                break;
-            dist_min = d;
-        }
-        -- it_layer_tools;
-        assert(dist_min < EPSILON);
-        return *it_layer_tools;
-    }
-
     // Find LayerTools with the closest print_z.
-    LayerTools&			tools_for_layer(coordf_t print_z) { return tools_for_layer(*this, print_z); }
-    const LayerTools&	tools_for_layer(coordf_t print_z) const { return tools_for_layer(*this, print_z); }
+    const LayerTools&	tools_for_layer(coordf_t print_z) const;
+    LayerTools&			tools_for_layer(coordf_t print_z) { return const_cast<LayerTools&>(std::as_const(*this).tools_for_layer(print_z)); }
 
     const LayerTools&   front()       const { return m_layer_tools.front(); }
     const LayerTools&   back()        const { return m_layer_tools.back(); }
