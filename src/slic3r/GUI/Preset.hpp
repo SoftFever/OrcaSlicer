@@ -383,7 +383,8 @@ public:
         size_t n = this->m_presets.size();
         size_t i_compatible = n;
         for (; i < n; ++ i)
-            if (m_presets[i].is_compatible) {
+            // Since we use the filament selection from Wizard, it's needed to control the preset visibility too 
+            if (m_presets[i].is_compatible && m_presets[i].is_visible) {
                 if (prefered_condition(m_presets[i].name))
                     return i;
                 if (i_compatible == n)
