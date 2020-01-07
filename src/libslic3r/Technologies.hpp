@@ -68,4 +68,8 @@
 // Enable using Y axis of 3Dconnexion devices as zoom
 #define ENABLE_3DCONNEXION_Y_AS_ZOOM (1 && ENABLE_2_2_0_BETA1)
 
+// Enable a modified version of the toolbar textures where all the icons are separated by 1 pixel
+#define ENABLE_MODIFIED_TOOLBAR_TEXTURES (1 && ENABLE_2_2_0_BETA1)
+
+
 #endif // _technologies_h_
