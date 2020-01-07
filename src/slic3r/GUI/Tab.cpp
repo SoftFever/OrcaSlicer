@@ -3444,15 +3444,15 @@ void TabSLAMaterial::build()
         DynamicPrintConfig new_conf = *m_config;
 
         if (opt_key == "bottle_volume") {
-            double new_bottle_weight =  boost::any_cast<double>(value)/(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_weight =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() / 1000);
             new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
         }
         if (opt_key == "bottle_weight") {
-            double new_bottle_volume =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_volume =  boost::any_cast<double>(value)/(new_conf.option("material_density")->getFloat() * 1000);
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
         if (opt_key == "material_density") {
-            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() * boost::any_cast<double>(value) * 1000;
+            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() / boost::any_cast<double>(value) * 1000;
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
 
