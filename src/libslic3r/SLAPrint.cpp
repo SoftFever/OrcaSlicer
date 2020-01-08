@@ -1165,30 +1165,29 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     return m_transformed_rmesh.get();
 }
 
-template<class It, class Trafo, class V = typename std::iterator_traits<It>::value_type>
-std::vector<V> transform_pts(It from, It to, Trafo &&tr)
-{
-    auto ret = reserve_vector<V>(to - from);
-    for(auto it = from; it != to; ++it) {
-        V v = *it;
-        v.pos = tr * it->pos;
-        ret.emplace_back(std::move(v));
-    }
-    return ret;
-}
-
 sla::SupportPoints SLAPrintObject::transformed_support_points() const
 {
     assert(m_model_object != nullptr);
-    auto& spts = m_model_object->sla_support_points;
-    return transform_pts(spts.begin(), spts.end(), trafo().cast<float>());
+    auto spts = m_model_object->sla_support_points;
+    auto tr = trafo().cast<float>();
+    for (sla::SupportPoint& suppt : spts) {
+        suppt.pos = tr * suppt.pos;
+    }
+    
+    return spts;
 }
 
 sla::DrainHoles SLAPrintObject::transformed_drainhole_points() const
 {
     assert(m_model_object != nullptr);
-    auto& spts = m_model_object->sla_drain_holes;
-    return transform_pts(spts.begin(), spts.end(), trafo().cast<float>());
+    auto pts = m_model_object->sla_drain_holes;
+    auto tr = trafo().cast<float>();
+    for (sla::DrainHole &hl : pts) {
+        hl.pos = tr * hl.pos;
+        hl.normal = tr * hl.normal;
+    }
+    
+    return pts;
 }
 
 DynamicConfig SLAPrintStatistics::config() const
