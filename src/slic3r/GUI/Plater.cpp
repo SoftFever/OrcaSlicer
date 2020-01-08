@@ -1192,9 +1192,9 @@ void Sidebar::update_sliced_info_sizer()
             {
                 double material_cost = cfg->option("bottle_cost")->getFloat() / 
                                        cfg->option("bottle_volume")->getFloat();
-                str_total_cost = wxString::Format("%.2f", material_cost*(ps.objects_used_material + ps.support_used_material) / 1000);                
+                str_total_cost = wxString::Format("%.3f", material_cost*(ps.objects_used_material + ps.support_used_material) / 1000);                
             }
-            p->sliced_info->SetTextAndShow(siCost, str_total_cost);
+            p->sliced_info->SetTextAndShow(siCost, str_total_cost, "Cost");
 
             wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
             p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _(L("Estimated printing time")) + " :");
