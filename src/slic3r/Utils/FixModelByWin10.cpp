@@ -363,10 +363,17 @@ void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 				ModelObject *model_object = model.add_object();
 				model_object->add_volume(*volumes[ivolume]);
 				model_object->add_instance();
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false)) {
+					boost::filesystem::remove(path_src);
+					throw std::runtime_error(L("Export of a temporary 3mf file failed"));
+				}
+#else
 				if (! Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr)) {
 					boost::filesystem::remove(path_src);
 					throw std::runtime_error(L("Export of a temporary 3mf file failed"));
 				}
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 				model.clear_objects();
 				model.clear_materials();
 				boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();

@@ -641,10 +641,18 @@ bool CLI::export_models(IO::ExportFormat format)
         const std::string path = this->output_filepath(model, format);
         bool success = false;
         switch (format) {
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+            case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr, false); break;
+#else
             case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr); break;
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
             case IO::OBJ: success = Slic3r::store_obj(path.c_str(), &model);          break;
             case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+            case IO::TMF: success = Slic3r::store_3mf(path.c_str(), &model, nullptr, false); break;
+#else
             case IO::TMF: success = Slic3r::store_3mf(path.c_str(), &model, nullptr); break;
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
             default: assert(false); break;
         }
         if (success)
