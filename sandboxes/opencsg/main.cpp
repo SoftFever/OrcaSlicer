@@ -107,12 +107,12 @@ public:
             const wxSize ClientSize = GetClientSize();
             
             m_display->set_screen_size(ClientSize.x, ClientSize.y);
-            m_display->repaint();
         });
         
         Bind(wxEVT_SIZE, [this](wxSizeEvent &) {            
             const wxSize ClientSize = GetClientSize();
             m_display->set_screen_size(ClientSize.x, ClientSize.y);
+            m_display->repaint();
         });
     }
     
