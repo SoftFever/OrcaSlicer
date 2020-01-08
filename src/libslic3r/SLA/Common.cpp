@@ -333,20 +333,23 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
         bool entry;
     };
     std::vector<HoleHit> hole_isects;
+    hole_isects.reserve(m_holes.size());
+    
+    auto sf = s.cast<float>();
+    auto dirf = dir.cast<float>();
 
     // Collect hits on all holes, preserve information about entry/exit
     for (const sla::DrainHole& hole : m_holes) {
         std::array<std::pair<float, Vec3d>, 2> isects;
-        if (hole.get_intersections(s.cast<float>(),
-                                   dir.cast<float>(), isects)) {
-            hole_isects.emplace_back(isects[0].first, isects[0].second, true);
-            hole_isects.emplace_back(isects[1].first, isects[1].second, false);
+        if (hole.get_intersections(sf, dirf, isects)) {
+            if (isects[0].first > 0.f) hole_isects.emplace_back(isects[0].first, isects[0].second, true);
+            if (isects[1].first > 0.f) hole_isects.emplace_back(isects[1].first, isects[1].second, false);
         }
     }
-    // Remove hole hits behind the source
-    for (int i=0; i<int(hole_isects.size()); ++i)
-        if (hole_isects[i].t < 0.f)
-            hole_isects.erase(hole_isects.begin() + (i--));
+//    // Remove hole hits behind the source
+//    for (int i=0; i<int(hole_isects.size()); ++i)
+//        if (hole_isects[i].t < 0.f)
+//            hole_isects.erase(hole_isects.begin() + (i--));
 
     // Holes can intersect each other, sort the hits by t
     std::sort(hole_isects.begin(), hole_isects.end(),

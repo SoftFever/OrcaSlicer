@@ -68,7 +68,7 @@ public:
         inline const Vec3d& source() const { return m_source; }
         inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline bool is_valid() const { return m_mesh != nullptr; }
-        inline bool is_hit() const { return m_t != infty(); }
+        inline bool is_hit() const { return !std::isinf(m_t); }
 
         // Hit_result can decay into a double as the hit distance.
         inline operator double() const { return distance(); }
