@@ -692,7 +692,11 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
 
     m_slider->EnableTickManipulation(color_print_enable);
-    m_slider->SetManipulationState(wxGetApp().extruders_edited_cnt());
+
+    // Detect and set manipulation mode for double slider
+    m_slider->SetManipulationState( wxGetApp().extruders_edited_cnt() == 1               ? DoubleSlider::msSingleExtruder :
+                                    wxGetApp().plater()->is_one_extruder_printed_model() ? DoubleSlider::msMultiAsSingle :
+                                                                                           DoubleSlider::msMultiExtruder);
 }
 
 void Preview::reset_double_slider()

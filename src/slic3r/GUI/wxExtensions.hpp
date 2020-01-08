@@ -823,7 +823,10 @@ public:
 
     enum ManipulationState {
         msSingleExtruder,   // single extruder printer preset is selected
-        msMultiExtruder     // multiple extruder printer preset is selected, and "Whole print" is selected 
+        msMultiAsSingle,    // multiple extruder printer preset is selected, but 
+                            // this mode works just for Single extruder print 
+                            // (For all print from objects settings is used just one extruder) 
+        msMultiExtruder     // multiple extruder printer preset is selected
     };
     void SetManipulationState(ManipulationState state) {
         m_state = state;
@@ -976,31 +979,11 @@ private:
 public:
     struct ExtrudersSequence
     {
-        bool            is_mm_intervals;
-        double          interval_by_mm;
-        int             interval_by_layers;
-        std::vector<size_t>  extruders;
+        bool            is_mm_intervals     = true;
+        double          interval_by_mm      = 3.0;
+        int             interval_by_layers  = 10;
+        std::vector<size_t>  extruders      = { 0 };
 
-        ExtrudersSequence() :
-            is_mm_intervals(true),
-            interval_by_mm(3.0),
-            interval_by_layers(10),
-            extruders({ 0 }) {}
-
-        ExtrudersSequence(const ExtrudersSequence& other) :
-            is_mm_intervals(other.is_mm_intervals),
-            interval_by_mm(other.interval_by_mm),
-            interval_by_layers(other.interval_by_layers),
-            extruders(other.extruders) {}
-
-        ExtrudersSequence& operator=(const ExtrudersSequence& other) {
-            this->is_mm_intervals   = other.is_mm_intervals;
-            this->interval_by_mm    = other.interval_by_mm;
-            this->interval_by_layers= other.interval_by_layers;
-            this->extruders         = other.extruders;
-
-            return *this;
-        }
         bool operator==(const ExtrudersSequence& other) const
         {
             return  (other.is_mm_intervals      == this->is_mm_intervals    ) &&

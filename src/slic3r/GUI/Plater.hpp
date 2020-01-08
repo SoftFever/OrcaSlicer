@@ -234,6 +234,7 @@ public:
     void set_project_filename(const wxString& filename);
 
     bool is_export_gcode_scheduled() const;
+    bool is_one_extruder_printed_model();
 
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
