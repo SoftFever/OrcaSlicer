@@ -19,7 +19,7 @@ namespace Slic3r {
 // Returns true in case that extruder a comes before b (b does not have to be present). False otherwise.
 bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
 {
-    if (a==b)
+    if (a == b)
         return false;
 
     for (auto extruder : extruders) {
@@ -415,17 +415,15 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsi
 {
     something_overridden = true;
 
-    auto entity_map_it = (entity_map.insert(std::make_pair(entity, std::vector<int>()))).first; // (add and) return iterator
-    auto& copies_vector = entity_map_it->second;
-    if (copies_vector.size() < num_of_copies)
-        copies_vector.resize(num_of_copies, -1);
+    auto entity_map_it = (entity_map.emplace(entity, ExtruderPerCopy())).first; // (add and) return iterator
+    ExtruderPerCopy& copies_vector = entity_map_it->second;
+    copies_vector.resize(num_of_copies, -1);
 
     if (copies_vector[copy_id] != -1)
         std::cout << "ERROR: Entity extruder overriden multiple times!!!\n";    // A debugging message - this must never happen.
 
     copies_vector[copy_id] = extruder;
 }
-
 
 // Finds first non-soluble extruder on the layer
 int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const
@@ -622,31 +620,23 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
     }
 }
 
-
-
-
-
-
-
-// Following function is called from process_layer and returns pointer to vector with information about which extruders should be used for given copy of this entity.
-// It first makes sure the pointer is valid (creates the vector if it does not exist) and contains a record for each copy
-// It also modifies the vector in place and changes all -1 to correct_extruder_id (at the time the overrides were created, correct extruders were not known,
-// so -1 was used as "print as usual".
-// The resulting vector has to keep track of which extrusions are the ones that were overridden and which were not. In the extruder is used as overridden,
-// its number is saved as it is (zero-based index). Usual extrusions are saved as -number-1 (unfortunately there is no negative zero).
-const std::vector<int>* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies)
+// Following function is called from GCode::process_layer and returns pointer to vector with information about which extruders should be used for given copy of this entity.
+// If this extrusion does not have any override, nullptr is returned.
+// Otherwise it modifies the vector in place and changes all -1 to correct_extruder_id (at the time the overrides were created, correct extruders were not known,
+// so -1 was used as "print as usual").
+// The resulting vector therefore keeps track of which extrusions are the ones that were overridden and which were not. If the extruder used is overridden,
+// its number is saved as is (zero-based index). Regular extrusions are saved as -number-1 (unfortunately there is no negative zero).
+const WipingExtrusions::ExtruderPerCopy* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies)
 {
+	ExtruderPerCopy *overrides = nullptr;
     auto entity_map_it = entity_map.find(entity);
-    if (entity_map_it == entity_map.end())
-        entity_map_it = (entity_map.insert(std::make_pair(entity, std::vector<int>()))).first;
-
-    // Now the entity_map_it should be valid, let's make sure the vector is long enough:
-    entity_map_it->second.resize(num_of_copies, -1);
-
-    // Each -1 now means "print as usual" - we will replace it with actual extruder id (shifted it so we don't lose that information):
-    std::replace(entity_map_it->second.begin(), entity_map_it->second.end(), -1, -correct_extruder_id-1);
-
-    return &(entity_map_it->second);
+    if (entity_map_it != entity_map.end()) {
+        overrides = &entity_map_it->second;
+    	overrides->resize(num_of_copies, -1);
+	    // Each -1 now means "print as usual" - we will replace it with actual extruder id (shifted it so we don't lose that information):
+	    std::replace(overrides->begin(), overrides->end(), -1, -correct_extruder_id-1);
+	}
+    return overrides;
 }
 
 

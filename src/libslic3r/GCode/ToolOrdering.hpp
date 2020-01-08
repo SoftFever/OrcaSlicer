@@ -7,6 +7,8 @@
 
 #include <utility>
 
+#include <boost/container/small_vector.hpp>
+
 namespace Slic3r {
 
 class Print;
@@ -25,8 +27,19 @@ public:
         return something_overridden;
     }
 
+    // When allocating extruder overrides of an object's ExtrusionEntity, overrides for maximum 3 copies are allocated in place.
+    typedef boost::container::small_vector<int32_t, 3> ExtruderPerCopy;
+
+    class ExtruderOverrides
+    {
+    public:
+    	ExtruderOverrides(const ExtruderPerCopy *overrides, const int correct_extruder_id) : m_overrides(overrides) {}
+    private:
+    	const ExtruderPerCopy *m_overrides;
+    };
+
     // This is called from GCode::process_layer - see implementation for further comments:
-    const std::vector<int>* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
+    const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
@@ -50,7 +63,7 @@ private:
         return (entity_map.find(entity) == entity_map.end() ? false : entity_map.at(entity).at(copy_id) != -1);
     }
 
-    std::map<const ExtrusionEntity*, std::vector<int>> entity_map;  // to keep track of who prints what
+    std::map<const ExtrusionEntity*, ExtruderPerCopy> entity_map;  // to keep track of who prints what
     bool something_overridden = false;
     const LayerTools* m_layer_tools;    // so we know which LayerTools object this belongs to
 };
@@ -74,6 +87,7 @@ public:
     bool operator==(const LayerTools &rhs) const { return print_z == rhs.print_z; }
 
     bool is_extruder_order(unsigned int a, unsigned int b) const;
+    bool has_extruder(unsigned int extruder) const { return std::find(this->extruders.begin(), this->extruders.end(), extruder) != this->extruders.end(); }
 
     coordf_t 					print_z;
     bool 						has_object;

@@ -2026,58 +2026,69 @@ void GCode::process_layer(
                        layer.lslices[i].contour.contains(point);
             };
 
-            for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
-                const LayerRegion *layerm = (region_id < layer.regions().size()) ? layer.regions()[region_id] : nullptr;
+            for (size_t region_id = 0; region_id < layer.regions().size(); ++ region_id) {
+                const LayerRegion *layerm = layer.regions()[region_id];
                 if (layerm == nullptr)
                     continue;
                 const PrintRegion &region = *print.regions()[region_id];
 
-
                 // Now we must process perimeters and infills and create islands of extrusions in by_region std::map.
                 // It is also necessary to save which extrusions are part of MM wiping and which are not.
                 // The process is almost the same for perimeters and infills - we will do it in a cycle that repeats twice:
-                for (std::string entity_type("infills") ; entity_type != "done" ; entity_type = entity_type=="infills" ? "perimeters" : "done") {
-
-                    const ExtrusionEntitiesPtr& source_entities = entity_type=="infills" ? layerm->fills.entities : layerm->perimeters.entities;
-
-                    for (const ExtrusionEntity *ee : source_entities) {
-                        // fill represents infill extrusions of a single island.
-                        const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                        if (fill->entities.empty()) // This shouldn't happen but first_point() would fail.
+                std::vector<unsigned int> printing_extruders;
+                for (const ObjectByExtruder::Island::Region::Type entity_type : { ObjectByExtruder::Island::Region::INFILL, ObjectByExtruder::Island::Region::PERIMETERS }) {
+                    for (const ExtrusionEntity *ee : (entity_type == ObjectByExtruder::Island::Region::INFILL) ? layerm->fills.entities : layerm->perimeters.entities) {
+                        // extrusions represents infill or perimeter extrusions of a single island.
+                        assert(dynamic_cast<const ExtrusionEntityCollection*>(ee) != nullptr);
+                        const auto *extrusions = static_cast<const ExtrusionEntityCollection*>(ee);
+                        if (extrusions->entities.empty()) // This shouldn't happen but first_point() would fail.
                             continue;
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
-                        int correct_extruder_id = Print::get_extruder(*fill, region);
+                        int correct_extruder_id = Print::get_extruder(*extrusions, region);
 
                         // Let's recover vector of extruder overrides:
-                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->copies().size());
+                        const WipingExtrusions::ExtruderPerCopy *entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->copies().size());
+                        printing_extruders.clear();
+                        if (entity_overrides == nullptr) {
+                        	printing_extruders.emplace_back(correct_extruder_id);
+                        } else {
+                        	printing_extruders.reserve(entity_overrides->size() + 1);
+                        	for (int extruder : *entity_overrides)
+                        		printing_extruders.emplace_back(extruder >= 0 ? 
+                        			// at least one copy is overridden to use this extruder
+                        			extruder : 
+                        			// at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
+                        			static_cast<unsigned int>(- extruder - 1));
+                        }
+                        if (! layer_tools.has_extruder(correct_extruder_id)) {
+							// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
+                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
+                        	printing_extruders.emplace_back(layer_tools.extruders.back());
+                        }
+                        Slic3r::sort_remove_duplicates(printing_extruders);
+                        if (printing_extruders.size() == 1 && printing_extruders.front() == correct_extruder_id)
+                        	entity_overrides = nullptr;
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
-                        for (unsigned int extruder : layer_tools.extruders)
+                        for (unsigned int extruder : printing_extruders)
                         {
-                            // Init by_extruder item only if we actually use the extruder:
-                            if (std::find(entity_overrides->begin(), entity_overrides->end(), extruder) != entity_overrides->end() ||      // at least one copy is overridden to use this extruder
-                                std::find(entity_overrides->begin(), entity_overrides->end(), -extruder-1) != entity_overrides->end() ||   // at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
-                                (std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder_id) == layer_tools.extruders.end() && extruder == layer_tools.extruders.back())) // this entity is not overridden, but its extruder is not in layer_tools - we'll print it
-                                                                                                                                            //by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
-                            {
-                                std::vector<ObjectByExtruder::Island> &islands = object_islands_by_extruder(
-                                    by_extruder,
-                                    extruder,
-                                    &layer_to_print - layers.data(),
-                                    layers.size(), n_slices+1);
-                                for (size_t i = 0; i <= n_slices; ++ i) {
-									bool   last = i == n_slices;
-                                	size_t island_idx = last ? n_slices : slices_test_order[i];
-                                    if (// fill->first_point does not fit inside any slice
-										last ||
-                                        // fill->first_point fits inside ith slice
-                                        point_inside_surface(island_idx, fill->first_point())) {
-                                        if (islands[island_idx].by_region.empty())
-                                            islands[island_idx].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
-                                        islands[island_idx].by_region[region_id].append(entity_type, fill, entity_overrides, layer_to_print.object()->copies().size());
-                                        break;
-                                    }
+                            std::vector<ObjectByExtruder::Island> &islands = object_islands_by_extruder(
+                                by_extruder,
+                                extruder,
+                                &layer_to_print - layers.data(),
+                                layers.size(), n_slices+1);
+                            for (size_t i = 0; i <= n_slices; ++ i) {
+								bool   last = i == n_slices;
+                            	size_t island_idx = last ? n_slices : slices_test_order[i];
+                                if (// extrusions->first_point does not fit inside any slice
+									last ||
+                                    // extrusions->first_point fits inside ith slice
+                                    point_inside_surface(island_idx, extrusions->first_point())) {
+                                    if (islands[island_idx].by_region.empty())
+                                        islands[island_idx].by_region.assign(print.regions().size(), ObjectByExtruder::Island::Region());
+                                    islands[island_idx].by_region[region_id].append(entity_type, extrusions, entity_overrides);
+                                    break;
                                 }
                             }
                         }
@@ -2147,6 +2158,7 @@ void GCode::process_layer(
 
         // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
         bool is_anything_overridden = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden();
+		std::vector<ObjectByExtruder::Island::Region> by_region_per_copy_cache;
         for (int print_wipe_extrusions = is_anything_overridden; print_wipe_extrusions>=0; --print_wipe_extrusions) {
             if (is_anything_overridden && print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
@@ -2174,8 +2186,8 @@ void GCode::process_layer(
                     m_layer = layers[instance_to_print.layer_id].layer();
                 }
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
-                    const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(instance_to_print.instance_id, extruder_id, print_wipe_extrusions) : island.by_region;
-
+                    const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, instance_to_print.instance_id, extruder_id, print_wipe_extrusions) : island.by_region;
+                	//FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     if (print.config().infill_first) {
                         gcode += this->extrude_infill(print, by_region_specific);
                         gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
@@ -3260,59 +3272,97 @@ Point GCode::gcode_to_point(const Vec2d &point) const
 
 // Goes through by_region std::vector and returns reference to a subvector of entities, that are to be printed
 // during infill/perimeter wiping, or normally (depends on wiping_entities parameter)
-// Returns a reference to member to avoid copying.
-const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(unsigned int copy, int extruder, bool wiping_entities)
+// Fills in by_region_per_copy_cache and returns its reference.
+const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(std::vector<Region> &by_region_per_copy_cache, unsigned int copy, int extruder, bool wiping_entities) const
 {
+    bool has_overrides = false;
+    for (const auto& reg : by_region)
+    	if (! reg.infills_overrides.empty() || ! reg.perimeters_overrides.empty()) {
+    		has_overrides = true;
+    		break;
+    	}
+    if (! has_overrides)
+    	// Simple case. No need to copy the regions.
+    	return this->by_region;
+
+    // Complex case. Some of the extrusions of some object instances are to be printed first - those are the wiping extrusions.
+    // Some of the extrusions of some object instances are printed later - those are the clean print extrusions.
+    // Filter out the extrusions based on the infill_overrides / perimeter_overrides:
+
+	// Data is cleared, but the memory is not.
     by_region_per_copy_cache.clear();
 
     for (const auto& reg : by_region) {
-        by_region_per_copy_cache.push_back(ObjectByExtruder::Island::Region()); // creates a region in the newly created Island
+        by_region_per_copy_cache.emplace_back(); // creates a region in the newly created Island
 
         // Now we are going to iterate through perimeters and infills and pick ones that are supposed to be printed
         // References are used so that we don't have to repeat the same code
         for (int iter = 0; iter < 2; ++iter) {
-            const ExtrusionEntitiesPtr&         entities     = (iter ? reg.infills.entities : reg.perimeters.entities);
-            ExtrusionEntityCollection&          target_eec   = (iter ? by_region_per_copy_cache.back().infills : by_region_per_copy_cache.back().perimeters);
-            const std::vector<const ExtruderPerCopy*>& overrides   = (iter ? reg.infills_overrides : reg.perimeters_overrides);
+            const ExtrusionEntitiesPtr&         							entities    = (iter ? reg.infills.entities : reg.perimeters.entities);
+            ExtrusionEntityCollection&          							target_eec  = (iter ? by_region_per_copy_cache.back().infills : by_region_per_copy_cache.back().perimeters);
+            const std::vector<const WipingExtrusions::ExtruderPerCopy*>& 	overrides   = (iter ? reg.infills_overrides : reg.perimeters_overrides);
 
             // Now the most important thing - which extrusion should we print.
             // See function ToolOrdering::get_extruder_overrides for details about the negative numbers hack.
-            int this_extruder_mark = wiping_entities ? extruder : -extruder-1;
-
-            for (unsigned int i=0;i<entities.size();++i)
-                if (overrides[i]->at(copy) == this_extruder_mark)   // this copy should be printed with this extruder
-                    target_eec.append((*entities[i]));
+            if (wiping_entities) {
+            	// Apply overrides for this region.
+	            for (unsigned int i = 0; i < overrides.size(); ++ i) {
+            		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
+            		// This copy (aka object instance) should be printed with this extruder, which overrides the default one.
+	                if (this_override != nullptr && (*this_override)[copy] == extruder)
+	                	// Clone the ExtrusionEntity. This is quite expensive.
+	                    target_eec.append((*entities[i]));
+            	}
+	        } else {
+	        	// Apply normal extrusions (non-overrides) for this region.
+				unsigned int i = 0;
+	            for (; i < overrides.size(); ++ i) {
+            		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
+            		// This copy (aka object instance) should be printed with this extruder, which shall be equal to the default one.
+            		if (this_override == nullptr || (*this_override)[copy] == -extruder-1)
+	                	// Clone the ExtrusionEntity. This is quite expensive.
+	                    target_eec.append((*entities[i]));
+	            }
+	            for (; i < overrides.size(); ++ i)
+                	// Clone the ExtrusionEntity. This is quite expensive.
+                    target_eec.append(*entities[i]);
+		    }
         }
     }
     return by_region_per_copy_cache;
 }
 
-
-
 // This function takes the eec and appends its entities to either perimeters or infills of this Region (depending on the first parameter)
 // It also saves pointer to ExtruderPerCopy struct (for each entity), that holds information about which extruders should be used for which copy.
-void GCode::ObjectByExtruder::Island::Region::append(const std::string& type, const ExtrusionEntityCollection* eec, const ExtruderPerCopy* copies_extruder, size_t object_copies_num)
+void GCode::ObjectByExtruder::Island::Region::append(const Type type, const ExtrusionEntityCollection* eec, const WipingExtrusions::ExtruderPerCopy* copies_extruder)
 {
     // We are going to manipulate either perimeters or infills, exactly in the same way. Let's create pointers to the proper structure to not repeat ourselves:
-    ExtrusionEntityCollection* perimeters_or_infills = &infills;
-    std::vector<const ExtruderPerCopy*>* perimeters_or_infills_overrides = &infills_overrides;
+    ExtrusionEntityCollection* 								perimeters_or_infills;
+    std::vector<const WipingExtrusions::ExtruderPerCopy*>* 	perimeters_or_infills_overrides;
 
-    if (type == "perimeters") {
-        perimeters_or_infills = &perimeters;
-        perimeters_or_infills_overrides    = &perimeters_overrides;
+    switch (type) {
+    case PERIMETERS:
+        perimeters_or_infills 			= &perimeters;
+        perimeters_or_infills_overrides = &perimeters_overrides;
+        break;
+    case INFILL:
+    	perimeters_or_infills 			= &infills;
+    	perimeters_or_infills_overrides = &infills_overrides;
+        break;
+    default:
+    	throw std::invalid_argument("Unknown parameter!");
     }
-    else
-        if (type != "infills") {
-            throw std::invalid_argument("Unknown parameter!");
-            return;
-        }
-
 
     // First we append the entities, there are eec->entities.size() of them:
+    size_t old_size = perimeters_or_infills->entities.size();
     perimeters_or_infills->append(eec->entities);
 
-    for (unsigned int i=0;i<eec->entities.size();++i)
-        perimeters_or_infills_overrides->push_back(copies_extruder);
+    if (copies_extruder != nullptr) {
+    	perimeters_or_infills_overrides->reserve(old_size + eec->entities.size());
+    	perimeters_or_infills_overrides->resize(old_size, nullptr);
+	    for (unsigned int i = 0; i < eec->entities.size(); ++ i)
+	        perimeters_or_infills_overrides->emplace_back(copies_extruder);
+	}
 }
 
 }   // namespace Slic3r
