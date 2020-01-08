@@ -1184,7 +1184,7 @@ sla::DrainHoles SLAPrintObject::transformed_drainhole_points() const
     auto tr = trafo().cast<float>();
     for (sla::DrainHole &hl : pts) {
         hl.pos = tr * hl.pos;
-        hl.normal = tr * hl.normal;
+        hl.normal = tr * hl.normal - tr.translation();
     }
     
     return pts;
