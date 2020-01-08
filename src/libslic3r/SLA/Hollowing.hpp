@@ -17,6 +17,7 @@ struct HollowingConfig
     double min_thickness    = 2.;
     double quality          = 0.5;
     double closing_distance = 0.5;
+    bool enabled = true;
 };
 
 struct DrainHole
@@ -56,6 +57,12 @@ using DrainHoles = std::vector<DrainHole>;
 std::unique_ptr<TriangleMesh> generate_interior(const TriangleMesh &mesh,
                                                 const HollowingConfig &  = {},
                                                 const JobController &ctl = {});
+
+void cut_drainholes(std::vector<ExPolygons> & obj_slices,
+                    const std::vector<float> &slicegrid,
+                    float                     closing_radius,
+                    const sla::DrainHoles &   holes,
+                    std::function<void(void)> thr);
 
 }
 }

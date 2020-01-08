@@ -79,7 +79,6 @@ SLAPrint::Steps::Steps(SLAPrint *print)
 
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 {
-    
     if (!po.m_config.hollowing_enable.getBool()) {
         BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";
         po.m_hollowing_data.reset();
@@ -100,42 +99,6 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     
     if (po.m_hollowing_data->interior.empty())
         BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
-}
-
-static void cut_drainholes(std::vector<ExPolygons> & obj_slices,
-                           const std::vector<float> &slicegrid,
-                           float                     closing_radius,
-                           const sla::DrainHoles &   holes,
-                           std::function<void(void)> thr)
-{
-    TriangleMesh mesh;
-    for (const sla::DrainHole &holept : holes) {
-        auto r = double(holept.radius);
-        auto h = double(holept.height);
-        sla::Contour3D hole = sla::cylinder(r, h);
-        Eigen::Quaterniond q;
-        q.setFromTwoVectors(Vec3d{0., 0., 1.}, holept.normal.cast<double>());
-        for(auto& p : hole.points) p = q * p + holept.pos.cast<double>();
-        mesh.merge(sla::to_triangle_mesh(hole));
-    }
-    
-    if (mesh.empty()) return;
-    
-    mesh.require_shared_vertices();
-    
-    TriangleMeshSlicer slicer(&mesh);
-    
-    std::vector<ExPolygons> hole_slices;
-    slicer.slice(slicegrid, closing_radius, &hole_slices, thr);
-    
-    if (obj_slices.size() != hole_slices.size())
-        BOOST_LOG_TRIVIAL(warning)
-            << "Sliced object and drain-holes layer count does not match!";
-
-    size_t until = std::min(obj_slices.size(), hole_slices.size());
-    
-    for (size_t i = 0; i < until; ++i)
-        obj_slices[i] = diff_ex(obj_slices[i], hole_slices[i]);
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from
