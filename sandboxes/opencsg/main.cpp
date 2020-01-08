@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Engine.hpp"
+#include "ShaderCSGDisplay.hpp"
 
 #include <GL/glew.h>
 
@@ -30,46 +31,62 @@
 
 using namespace Slic3r::GL;
 
+class Renderer {
+protected:
+    wxGLCanvas *m_canvas;
+    shptr<wxGLContext> m_context;
+public:
+    
+    Renderer(wxGLCanvas *c): m_canvas{c} {
+        auto ctx = new wxGLContext(m_canvas);
+        if (!ctx || !ctx->IsOK()) {
+            wxMessageBox("Could not create OpenGL context.", "Error",
+                         wxOK | wxICON_ERROR);
+            return;
+        }
+        
+        m_context.reset(ctx);
+    }
+    
+    wxGLContext * context() { return m_context.get(); }
+    const wxGLContext * context() const { return m_context.get(); }
+};
+
+// Tell the CSGDisplay how to swap buffers and set the gl context.
+class OCSGRenderer: public Renderer, public Slic3r::GL::CSGDisplay {
+public:
+    
+    OCSGRenderer(wxGLCanvas *c): Renderer{c} {}
+    
+    void set_active(long w, long h) override
+    {
+        m_canvas->SetCurrent(*m_context);
+        Slic3r::GL::Display::set_active(w, h);
+    }
+    
+    void swap_buffers() override { m_canvas->SwapBuffers(); }
+};
+
+// Tell the CSGDisplay how to swap buffers and set the gl context.
+class ShaderCSGRenderer : public Renderer, public Slic3r::GL::ShaderCSGDisplay {
+public:
+    
+    ShaderCSGRenderer(wxGLCanvas *c): Renderer{c} {}
+    
+    void set_active(long w, long h) override
+    {
+        m_canvas->SetCurrent(*m_context);
+        Slic3r::GL::Display::set_active(w, h);
+    }
+    
+    void swap_buffers() override { m_canvas->SwapBuffers(); }
+};
+
 // The opengl rendering facility. Here we implement the rendering objects.
 class Canvas: public wxGLCanvas
-{
-    
-    // Tell the CSGDisplay how to swap buffers and set the gl context.
-    class OCSGRenderer: public Slic3r::GL::CSGDisplay {
-        Canvas *m_canvas;
-        shptr<wxGLContext> m_context;
-    public:
-        
-        OCSGRenderer(Canvas *c): m_canvas{c} {
-            auto ctx = new wxGLContext(m_canvas);
-            if (!ctx || !ctx->IsOK()) {
-                wxMessageBox("Could not create OpenGL context.", "Error",
-                             wxOK | wxICON_ERROR);
-                return;
-            }
-            
-            m_context.reset(ctx);
-        }
-        
-        void set_active(long w, long h) override
-        {
-            m_canvas->SetCurrent(*m_context);
-            Slic3r::GL::Display::set_active(w, h);
-        }
-        
-        wxGLContext * context() { return m_context.get(); }
-        const wxGLContext * context() const { return m_context.get(); }
-        
-        void swap_buffers() override { m_canvas->SwapBuffers(); }
-        
-        ~OCSGRenderer() override { m_scene_cache.clear(); }
-    };
-    
-    // Create the OCSGDisplay for rendering with OpenCSG algorithms
-    shptr<OCSGRenderer> m_ocsgdisplay = std::make_shared<OCSGRenderer>(this);
-    
+{    
     // One display is active at a time, the OCSGRenderer by default.
-    shptr<Slic3r::GL::Display> m_display = m_ocsgdisplay;
+    shptr<Slic3r::GL::Display> m_display;
     
 public:
     
@@ -90,13 +107,18 @@ public:
             const wxSize ClientSize = GetClientSize();
             
             m_display->set_screen_size(ClientSize.x, ClientSize.y);
+            m_display->repaint();
+        });
+        
+        Bind(wxEVT_SIZE, [this](wxSizeEvent &) {            
+            const wxSize ClientSize = GetClientSize();
+            m_display->set_screen_size(ClientSize.x, ClientSize.y);
         });
     }
     
     shptr<Slic3r::GL::Display> get_display() const { return m_display; }
+
     void set_display(shptr<Slic3r::GL::Display> d) { m_display = d; }
-    
-    shptr<Slic3r::GL::CSGDisplay> get_ocsg_display() const { return m_ocsgdisplay; }
 };
 
 // Enumerate possible mouse events, we will record them.
@@ -183,20 +205,27 @@ public:
             case MV:     MouseInput::move_to(evt.a, evt.b); break;
             }
             
-            wxSafeYield();
+            wxTheApp->Yield();
+            if (!m_playing)
+                break;
         }
         m_playing = false;
     }
+    
+    void stop() { m_playing = false; }
+    bool is_playing() const { return m_playing; }
 };
 
 // The top level frame of the application.
 class MyFrame: public wxFrame
 {
     // Instantiate the 3D engine.
-    shptr<Scene>      m_scene;    // Model
-    shptr<Canvas>     m_canvas;   // View
-    shptr<Controller> m_ctl;      // Controller
-    
+    shptr<Scene>             m_scene;             // Model
+    shptr<Canvas>            m_canvas;            // Views store
+    shptr<OCSGRenderer>      m_ocsgdisplay;       // View
+    shptr<ShaderCSGRenderer> m_shadercsg_display; // Another view
+    shptr<Controller>        m_ctl;               // Controller
+
     // Add a status bar with progress indication.
     shptr<Slic3r::GUI::ProgressStatusBar> m_stbar;
     
@@ -236,12 +265,30 @@ class MyFrame: public wxFrame
     // To keep track of the running average of measured fps values.
     double m_fps_avg = 0.;
     
-public:
-    MyFrame(const wxString &               title,
-            const wxPoint &                pos,
-            const wxSize &                 size,
-            const Slic3r::GL::CSGSettings &settings);
+    // We need the record button across methods
+    wxToggleButton *m_record_btn;
+    wxComboBox *    m_alg_select;
+    wxComboBox *    m_depth_select;
+    wxComboBox *    m_optimization_select;
+    wxSpinCtrl *    m_convexity_spin;
+    wxToggleButton *m_csg_toggle;
+    wxToggleButton *m_ms_toggle;
+    wxStaticText   *m_fpstext;
     
+    CSGSettings     m_csg_settings;
+    
+    void read_csg_settings(const wxCmdLineParser &parser);
+    
+    void set_renderer_algorithm(const wxString &alg);
+    
+    void activate_canvas_display();
+    
+public:
+    MyFrame(const wxString &       title,
+            const wxPoint &        pos,
+            const wxSize &         size,
+            const wxCmdLineParser &parser);
+
     // Grab a 3mf and load (hollow it out) within the UI job.
     void load_model(const std::string &fname) {
         m_ui_job = std::make_unique<SLAJob>(this, fname);
@@ -258,11 +305,15 @@ public:
             std::getline(stream, model_name);
             load_model(model_name);
             
+            while (!m_ui_job->is_finalized())
+                wxTheApp->Yield();;
+            
             int w, h;
             stream >> w >> h;
             SetSize(w, h);
             
             m_mouse.load(stream);
+            if (m_record_btn) m_record_btn->Disable();
             m_mouse.play();
         }
     }
@@ -278,13 +329,19 @@ public:
 
 // Possible OpenCSG configuration values. Will be used on the command line and
 // on the UI widgets.
-static const std::vector<wxString> CSG_ALGS  = {"Auto", "Goldfeather", "SCS"};
+static const std::vector<wxString> CSG_ALGS  = {"Auto", "Goldfeather", "SCS", "EnricoShader"};
 static const std::vector<wxString> CSG_DEPTH = {"Off", "OcclusionQuery", "On"};
 static const std::vector<wxString> CSG_OPT   = { "Default", "ForceOn", "On", "Off" };
 
+inline long get_idx(const wxString &a, const std::vector<wxString> &v)
+{
+    auto it = std::find(v.begin(), v.end(), a.ToStdString());
+    return it - v.begin();
+};
+
 class App : public wxApp {
     MyFrame *m_frame = nullptr;
-    
+    wxString m_fname;
 public:
     bool OnInit() override {
         
@@ -299,60 +356,127 @@ public:
         
         parser.Parse();
         
-        wxString fname;
-        bool is_play = parser.Found("play", &fname);
+        bool is_play = parser.Found("play", &m_fname);
         
-        wxString alg;
-        parser.Found("algorithm", &alg);
-        
-        wxString depth;
-        parser.Found("depth", &depth);
-        
-        wxString opt;
-        parser.Found("optimization", &opt);
-        
-        long convexity = 1;
-        parser.Found("convexity", &convexity);
-        
-        bool csg_off = parser.Found("disable-csg");
-        
-        auto get_idx = [](const wxString &a, const std::vector<wxString> &v) {
-            auto it = std::find(v.begin(), v.end(), a.ToStdString());
-            return it - v.begin();
-        };
-        
-        Slic3r::GL::CSGSettings settings;
-        
-        if (auto a = get_idx(alg, CSG_ALGS) < OpenCSG::AlgorithmUnused) 
-            settings.set_algo(OpenCSG::Algorithm(a));
-        
-        if (auto a = get_idx(depth, CSG_DEPTH) < OpenCSG::DepthComplexityAlgorithmUnused) 
-            settings.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(a));
-        
-        if (auto a = get_idx(opt, CSG_OPT) < OpenCSG::OptimizationUnused) 
-            settings.set_optimization(OpenCSG::Optimization(a));
-        
-        settings.set_convexity(unsigned(convexity));
-        settings.enable_csg(!csg_off);
-        
-        m_frame = new MyFrame("PrusaSlicer OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768), settings);
-        
+        m_frame = new MyFrame("PrusaSlicer OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768), parser);
+
         if (is_play) {
+            Bind(wxEVT_IDLE, &App::Play, this);
             m_frame->Show( true );
-            m_frame->play_back_mouse(fname.ToStdString());
-            m_frame->Close( true );
-            std::cout << m_frame->get_fps_average() << std::endl;
-            
         } else m_frame->Show( true );
         
         return true;
+    }
+    
+    void Play(wxIdleEvent &) {
+        Unbind(wxEVT_IDLE, &App::Play, this);
+        m_frame->play_back_mouse(m_fname.ToStdString());
+        m_frame->Destroy();
     }
 };
 
 wxIMPLEMENT_APP(App);
 
+void MyFrame::read_csg_settings(const wxCmdLineParser &parser)
+{
+    wxString alg;
+    parser.Found("algorithm", &alg);
+    
+    wxString depth;
+    parser.Found("depth", &depth);
+    
+    wxString opt;
+    parser.Found("optimization", &opt);
+    
+    long convexity = 1;
+    parser.Found("convexity", &convexity);
+    
+    bool csg_off = parser.Found("disable-csg");
+    
+    if (auto a = get_idx(alg, CSG_ALGS) < OpenCSG::AlgorithmUnused) 
+            m_csg_settings.set_algo(OpenCSG::Algorithm(a));
+    
+    if (auto a = get_idx(depth, CSG_DEPTH) < OpenCSG::DepthComplexityAlgorithmUnused) 
+            m_csg_settings.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(a));
+    
+    if (auto a = get_idx(opt, CSG_OPT) < OpenCSG::OptimizationUnused) 
+            m_csg_settings.set_optimization(OpenCSG::Optimization(a));
+    
+    m_csg_settings.set_convexity(unsigned(convexity));
+    m_csg_settings.enable_csg(!csg_off);
+    
+    if (m_ocsgdisplay) m_ocsgdisplay->apply_csgsettings(m_csg_settings);
+}
+
+void MyFrame::set_renderer_algorithm(const wxString &alg)
+{
+    long alg_idx = get_idx("EnricoShader", CSG_ALGS);
+    if (alg_idx < 0 || alg_idx >= CSG_ALGS.size()) return;
+    
+    // If there is a valid display in place, save its camera.
+    auto cam = m_canvas->get_display() ?
+                   m_canvas->get_display()->get_camera() : nullptr;
+
+    if (alg == "EnricoShader") {
+        m_alg_select->SetSelection(int(alg_idx));
+        m_depth_select->Disable();
+        m_optimization_select->Disable();
+        m_csg_toggle->Disable();
+        
+        m_ocsgdisplay.reset();
+        canvas()->set_display(nullptr);
+        m_shadercsg_display = std::make_shared<ShaderCSGRenderer>(canvas());
+        canvas()->set_display(m_shadercsg_display);
+    } else {
+        if (m_csg_settings.get_algo() > 0) m_depth_select->Enable(true);
+        m_alg_select->SetSelection(m_csg_settings.get_algo());
+        m_depth_select->SetSelection(m_csg_settings.get_depth_algo());
+        m_optimization_select->SetSelection(m_csg_settings.get_optimization());
+        m_convexity_spin->SetValue(int(m_csg_settings.get_convexity()));
+        m_csg_toggle->SetValue(m_csg_settings.is_enabled());
+        m_optimization_select->Enable();
+        m_csg_toggle->Enable();
+        
+        m_shadercsg_display.reset();
+        canvas()->set_display(nullptr);
+        m_ocsgdisplay = std::make_shared<OCSGRenderer>(canvas());
+        m_ocsgdisplay->apply_csgsettings(m_csg_settings);
+        canvas()->set_display(m_ocsgdisplay);
+    }
+    
+    if (cam)
+        m_canvas->get_display()->set_camera(cam);
+    
+    m_ctl->remove_displays();
+    m_ctl->add_display(m_canvas->get_display());
+    m_canvas->get_display()->get_fps_counter().add_listener([this](double fps) {
+        m_fpstext->SetLabel(wxString::Format("fps: %.2f", fps));
+        m_fps_avg = 0.9 * m_fps_avg + 0.1 * fps;
+    });
+    
+    if (IsShown()) {
+        activate_canvas_display();
+        m_canvas->get_display()->on_scene_updated(*m_scene);
+    }
+}
+
+void MyFrame::activate_canvas_display()
+{
+    const wxSize ClientSize = m_canvas->GetClientSize();
+    m_canvas->get_display()->set_active(ClientSize.x, ClientSize.y);
+    enable_multisampling(m_ms_toggle->GetValue());
+    
+    // Do the repaint continuously
+    m_canvas->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
+        m_canvas->get_display()->repaint();
+        evt.RequestMore();
+    });
+    
+    bind_canvas_events(m_mouse);
+}
+
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
-                 const Slic3r::GL::CSGSettings &settings):
+                 const wxCmdLineParser &parser):
     wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
     wxMenu *menuFile = new wxMenu;
@@ -377,7 +501,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
      // glReadPixels would not return the alpha channel on NVIDIA if
      // not requested when the GL context is created.
      WX_GL_MIN_ALPHA, 8, WX_GL_DEPTH_SIZE, 8, WX_GL_STENCIL_SIZE, 8,
-     /*WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4,*/ 0};
+     WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0};
     
     m_scene = std::make_shared<Scene>();
     m_ctl = std::make_shared<Controller>();
@@ -387,9 +511,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
                                         wxDefaultPosition, wxDefaultSize,
                                         wxWANTS_CHARS | wxFULL_REPAINT_ON_RESIZE);
     
-    m_canvas->get_ocsg_display()->apply_csgsettings(settings);
-    
-    m_ctl->add_display(m_canvas->get_display());
+    read_csg_settings(parser);
 
     wxPanel *control_panel = new wxPanel(this);
 
@@ -402,12 +524,12 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
                                wxSL_VERTICAL);
     slider_sizer->Add(slider, 1, wxEXPAND);
     
-    auto ms_toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
-    console_sizer->Add(ms_toggle, 0, wxALL | wxEXPAND, 5);
+    m_ms_toggle = new wxToggleButton(control_panel, wxID_ANY, "Multisampling");
+    console_sizer->Add(m_ms_toggle, 0, wxALL | wxEXPAND, 5);
     
-    auto csg_toggle = new wxToggleButton(control_panel, wxID_ANY, "CSG");
-    csg_toggle->SetValue(true);
-    console_sizer->Add(csg_toggle, 0, wxALL | wxEXPAND, 5);
+    m_csg_toggle = new wxToggleButton(control_panel, wxID_ANY, "CSG");
+    m_csg_toggle->SetValue(true);
+    console_sizer->Add(m_csg_toggle, 0, wxALL | wxEXPAND, 5);
     
     auto add_combobox = [control_panel, console_sizer]
             (const wxString &label, const std::vector<wxString> &list)
@@ -441,22 +563,17 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
         return widget;
     };
     
-    auto convexity_spin = add_spinctl("Convexity", CSGSettings::DEFAULT_CONVEXITY, 0, 100);
+    m_convexity_spin = add_spinctl("Convexity", CSGSettings::DEFAULT_CONVEXITY, 0, 100);
     
-    auto alg_select = add_combobox("Algorithm", CSG_ALGS);
-    auto depth_select = add_combobox("Depth Complexity", CSG_DEPTH);
-    auto optimization_select = add_combobox("Optimization", CSG_OPT);
-    depth_select->Disable();
+    m_alg_select = add_combobox("Algorithm", CSG_ALGS);
+    m_depth_select = add_combobox("Depth Complexity", CSG_DEPTH);
+    m_optimization_select = add_combobox("Optimization", CSG_OPT);
     
-    auto fpstext = new wxStaticText(control_panel, wxID_ANY, "");
-    console_sizer->Add(fpstext, 0, wxALL, 5);
-    m_canvas->get_ocsg_display()->get_fps_counter().add_listener([this, fpstext](double fps) {
-        fpstext->SetLabel(wxString::Format("fps: %.2f", fps) );
-        m_fps_avg = 0.9 * m_fps_avg + 0.1 * fps;
-    });
+    m_fpstext = new wxStaticText(control_panel, wxID_ANY, "");
+    console_sizer->Add(m_fpstext, 0, wxALL, 5);
     
-    auto record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
-    console_sizer->Add(record_btn, 0, wxALL | wxEXPAND, 5);
+    m_record_btn = new wxToggleButton(control_panel, wxID_ANY, "Record");
+    console_sizer->Add(m_record_btn, 0, wxALL | wxEXPAND, 5);
     
     controlsizer->Add(slider_sizer, 0, wxEXPAND);
     controlsizer->Add(console_sizer, 1, wxEXPAND);
@@ -468,17 +585,16 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     sizer->Add(control_panel, 0, wxEXPAND);
     SetSizer(sizer);
     
-    if (settings.get_algo() > 0) depth_select->Enable(true);
-    alg_select->SetSelection(settings.get_algo());
-    depth_select->SetSelection(settings.get_depth_algo());
-    optimization_select->SetSelection(settings.get_optimization());
-    convexity_spin->SetValue(int(settings.get_convexity()));
-    csg_toggle->SetValue(settings.is_enabled());
+    wxString alg;
+    if (!parser.Found("algorithm", &alg)) alg = "Auto";
     
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &){
-        RemoveChild(m_canvas.get());
+    set_renderer_algorithm(alg);
+    
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt){
+        if (m_canvas) RemoveChild(m_canvas.get());
         m_canvas.reset();
-        Destroy();
+        if (!m_mouse.is_playing()) evt.Skip();
+        else m_mouse.stop();
     });    
     
     Bind(wxEVT_MENU, [this](wxCommandEvent &) {
@@ -490,70 +606,60 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
     
     Bind(wxEVT_MENU, [this](wxCommandEvent &) { Close(true); }, wxID_EXIT);
     
-    Bind(wxEVT_SHOW, [this, ms_toggle](wxShowEvent &) {
-        const wxSize ClientSize = GetClientSize();
-        m_canvas->get_display()->set_active(ClientSize.x, ClientSize.y);
-        enable_multisampling(ms_toggle->GetValue());
+    Bind(wxEVT_SHOW, [this](wxShowEvent &) {
+        activate_canvas_display();
     });
     
     Bind(wxEVT_SLIDER, [this, slider](wxCommandEvent &) {
         m_ctl->move_clip_plane(double(slider->GetValue()));
     });
     
-    ms_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, ms_toggle](wxCommandEvent &){
-        enable_multisampling(ms_toggle->GetValue());
+    m_ms_toggle->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &){
+        enable_multisampling(m_ms_toggle->GetValue());
         m_canvas->get_display()->repaint();
     });
     
-    csg_toggle->Bind(wxEVT_TOGGLEBUTTON, [this, csg_toggle](wxCommandEvent &){
-        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
-        stt.enable_csg(csg_toggle->GetValue());
-        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
+    m_csg_toggle->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &){
+        CSGSettings stt = m_ocsgdisplay->get_csgsettings();
+        stt.enable_csg(m_csg_toggle->GetValue());
+        m_ocsgdisplay->apply_csgsettings(stt);
     });
     
-    alg_select->Bind(wxEVT_COMBOBOX,
-                     [this, alg_select, depth_select](wxCommandEvent &)
-    {
-        int sel = alg_select->GetSelection();
-        depth_select->Enable(sel > 0);
-        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
-        stt.set_algo(OpenCSG::Algorithm(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
+    m_alg_select->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) {
+        wxString alg = m_alg_select->GetValue();
+        int sel = m_alg_select->GetSelection();
+        m_csg_settings.set_algo(sel);
+        set_renderer_algorithm(alg);
     });
     
-    depth_select->Bind(wxEVT_COMBOBOX, [this, depth_select](wxCommandEvent &) {
-        int sel = depth_select->GetSelection();
-        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
-        stt.set_depth_algo(OpenCSG::DepthComplexityAlgorithm(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
+    m_depth_select->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) {
+        int sel = m_depth_select->GetSelection();
+        m_csg_settings.set_depth_algo(sel);
+        if (m_ocsgdisplay) m_ocsgdisplay->apply_csgsettings(m_csg_settings);
     });
     
-    optimization_select->Bind(wxEVT_COMBOBOX,
-                              [this, optimization_select](wxCommandEvent &) {
-        int sel = optimization_select->GetSelection();
-        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
-        stt.set_optimization(OpenCSG::Optimization(sel));
-        m_canvas->get_ocsg_display()->apply_csgsettings(stt);
+    m_optimization_select->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) {
+        int sel = m_optimization_select->GetSelection();
+        m_csg_settings.set_optimization(sel);
+        if (m_ocsgdisplay) m_ocsgdisplay->apply_csgsettings(m_csg_settings);
     });
     
-    convexity_spin->Bind(wxEVT_SPINCTRL, [this, convexity_spin](wxSpinEvent &) {
-        CSGSettings stt = m_canvas->get_ocsg_display()->get_csgsettings();
-        int c = convexity_spin->GetValue();
-        
+    m_convexity_spin->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent &) {
+        int c = m_convexity_spin->GetValue();
         if (c > 0) {
-            stt.set_convexity(unsigned(c));
-            m_canvas->get_ocsg_display()->apply_csgsettings(stt);
+            m_csg_settings.set_convexity(unsigned(c));
+            if (m_ocsgdisplay) m_ocsgdisplay->apply_csgsettings(m_csg_settings);
         }
     });
     
-    record_btn->Bind(wxEVT_TOGGLEBUTTON, [this, record_btn](wxCommandEvent &) {
+    m_record_btn->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &) {
         if (!m_ui_job) {
             m_stbar->set_status_text("No project loaded!");
             return;
         }
         
-        if (record_btn->GetValue()) {
-            if (auto c = m_canvas->get_display()->camera()) reset(*c);
+        if (m_record_btn->GetValue()) {
+            if (auto c = m_canvas->get_display()->get_camera()) reset(*c);
             m_ctl->on_scene_updated(*m_scene);
             m_mouse.record(true);
         } else {
@@ -575,14 +681,6 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size,
             }
         }
     });
-    
-    // Do the repaint continuously
-    m_canvas->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
-        if (m_canvas->IsShown()) m_canvas->get_display()->repaint();
-        evt.RequestMore();
-    });
-    
-    bind_canvas_events(m_mouse);
 }
 
 void MyFrame::bind_canvas_events(MouseInput &ms)

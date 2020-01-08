@@ -1,5 +1,5 @@
 #ifndef SLIC3R_OCSG_EXMP_ENGINE_HPP
-#define SLIC3R_OCSG_EXMP_ENGINE_HPP_HPP
+#define SLIC3R_OCSG_EXMP_ENGINE_HPP
 
 #include <vector>
 #include <memory>
@@ -25,7 +25,7 @@ template<class T> using wkptr = std::weak_ptr<T>;
 template<class T, class A = std::allocator<T>> using vector = std::vector<T, A>;
 
 // remove empty weak pointers from a vector
-template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
+template<class L> inline void cleanup(vector<std::weak_ptr<L>> &listeners) {
     auto it = std::remove_if(listeners.begin(), listeners.end(),
                              [](auto &l) { return !l.lock(); });
     listeners.erase(it, listeners.end());
@@ -34,7 +34,7 @@ template<class L> void cleanup(vector<std::weak_ptr<L>> &listeners) {
 // Call a class method on each element of a vector of objects (weak pointers)
 // of the same type.
 template<class F, class L, class...Args>
-void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
+inline void call(F &&f, vector<std::weak_ptr<L>> &listeners, Args&&... args) {
     for (auto &l : listeners)
         if (auto p = l.lock()) ((p.get())->*f)(std::forward<Args>(args)...);
 }
@@ -171,19 +171,30 @@ public:
 // Try to enable or disable multisampling.
 bool enable_multisampling(bool e = true);
 
-// A primitive that can be used with OpenCSG rendering algorithms.
-// Does a similar job to GLVolume.
-class Primitive : public OpenCSG::Primitive
+template<class It,
+         class Trafo,
+         class GetPt,
+         class V = typename std::iterator_traits<It>::value_type>
+inline std::vector<V> transform_pts(
+    It from, It to, Trafo &&tr, GetPt &&point)
 {
+    vector<V> ret;
+    ret.reserve(to - from);
+    for(auto it = from; it != to; ++it) {
+        V v = *it;
+        v.pos = tr * point(*it);
+        ret.emplace_back(std::move(v));
+    }
+    return ret;
+}
+
+class Volume {
     IndexedVertexArray m_geom;
     Geometry::Transformation m_trafo;
+    
 public:
     
-    using OpenCSG::Primitive::Primitive;
-    
-    Primitive() : OpenCSG::Primitive(OpenCSG::Intersection, 1) {}
-    
-    void render() override;
+    void render();
     
     void translation(const Vec3d &offset) { m_trafo.set_offset(offset); }
     void rotation(const Vec3d &rot) { m_trafo.set_rotation(rot); }
@@ -195,6 +206,18 @@ public:
         m_geom.load_mesh(mesh);
         m_geom.finalize_geometry();
     }
+};
+
+// A primitive that can be used with OpenCSG rendering algorithms.
+// Does a similar job to GLVolume.
+class Primitive : public Volume, public OpenCSG::Primitive
+{
+public:
+    using OpenCSG::Primitive::Primitive;
+    
+    Primitive() : OpenCSG::Primitive(OpenCSG::Intersection, 1) {}
+    
+    void render() override { Volume::render(); }
 };
 
 // A simple representation of a camera in a 3D scene
@@ -286,13 +309,25 @@ private:
     
 public:
     int get_algo() const { return int(m_csgalg); }
-    void set_algo(OpenCSG::Algorithm alg) { m_csgalg = alg; }
+    void set_algo(int alg)
+    {
+        if (alg < OpenCSG::Algorithm::AlgorithmUnused)
+            m_csgalg = OpenCSG::Algorithm(alg);
+    }
     
     int get_depth_algo() const { return int(m_depth_algo); }
-    void set_depth_algo(OpenCSG::DepthComplexityAlgorithm alg) { m_depth_algo = alg; }
+    void set_depth_algo(int alg)
+    {
+        if (alg < OpenCSG::DepthComplexityAlgorithmUnused)
+            m_depth_algo = OpenCSG::DepthComplexityAlgorithm(alg);
+    }
     
     int  get_optimization() const { return int(m_optim); }
-    void set_optimization(OpenCSG::Optimization o) { m_optim = o; }
+    void set_optimization(int o)
+    {
+        if (o < OpenCSG::Optimization::OptimizationUnused)
+            m_optim = OpenCSG::Optimization(o);
+    }
     
     void enable_csg(bool en = true) { m_enable = en; }
     bool is_enabled() const { return m_enable; }
@@ -359,7 +394,9 @@ public:
     
     ~Display() override;
     
-    Camera * camera() { return m_camera.get(); }
+    shptr<const Camera> get_camera() const { return m_camera; }
+    shptr<Camera> get_camera() { return m_camera; }
+    void set_camera(shptr<Camera> cam) { m_camera = cam; }
     
     virtual void swap_buffers() = 0;
     virtual void set_active(long width, long height);
@@ -433,8 +470,8 @@ class Controller : public std::enable_shared_from_this<Controller>,
     template<class F, class...Args>
     void call_cameras(F &&f, Args&&... args) {
         for (wkptr<Display> &l : m_displays)
-            if (auto disp = l.lock()) if (disp->camera())
-                (disp->camera()->*f)(std::forward<Args>(args)...);
+            if (auto disp = l.lock()) if (auto cam = disp->get_camera())
+                (cam.get()->*f)(std::forward<Args>(args)...);
     }
     
 public:
@@ -453,6 +490,8 @@ public:
         m_displays.emplace_back(disp);
         cleanup(m_displays);
     }
+    
+    void remove_displays() { m_displays = {}; }
     
     void on_scene_updated(const Scene &scene) override;
     

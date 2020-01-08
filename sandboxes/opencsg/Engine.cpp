@@ -1,7 +1,6 @@
 #include "Engine.hpp"
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/SLAPrint.hpp>
-#include <libslic3r/MTUtils.hpp>
 
 #include <GL/glew.h>
 
@@ -64,22 +63,6 @@ void CSGDisplay::render_scene()
     for (auto& p : m_scene_cache.primitives_free) p->render();
     
     glFlush();
-}
-
-template<class It,
-         class Trafo,
-         class GetPt,
-         class V = typename std::iterator_traits<It>::value_type>
-std::vector<V> transform_pts(
-    It from, It to, Trafo &&tr, GetPt &&point)
-{
-    auto ret = reserve_vector<V>(to - from);
-    for(auto it = from; it != to; ++it) {
-        V v = *it;
-        v.pos = tr * point(*it);
-        ret.emplace_back(std::move(v));
-    }
-    return ret;
 }
 
 void Scene::set_print(uqptr<SLAPrint> &&print)
@@ -287,7 +270,7 @@ void IndexedVertexArray::shrink_to_fit() {
     this->quad_indices.shrink_to_fit();
 }
 
-void Primitive::render()
+void Volume::render()
 {
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(m_trafo.get_matrix().data()));

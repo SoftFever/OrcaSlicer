@@ -62,7 +62,6 @@ protected:
     // Launched when the job is finished. It refreshes the 3Dscene by def.
     virtual void finalize() { m_finalized = true; }
     
-    bool is_finalized() const { return m_finalized; }
     
 public:
     Job(std::shared_ptr<ProgressIndicator> pri) : m_progress(pri)
@@ -88,6 +87,8 @@ public:
             }
         });
     }
+    
+    bool is_finalized() const { return m_finalized; }
     
     Job(const Job &) = delete;
     Job(Job &&)      = delete;
