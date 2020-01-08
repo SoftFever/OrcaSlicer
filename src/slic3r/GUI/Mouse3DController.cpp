@@ -631,13 +631,16 @@ bool Mouse3DController::connect_device()
 
     if (m_device != nullptr)
     {
-        std::vector<wchar_t> manufacturer(1024, 0);
-        hid_get_manufacturer_string(m_device, manufacturer.data(), 1024);
-        m_device_str = boost::nowide::narrow(manufacturer.data());
+        wchar_t buffer[1024];
+        hid_get_manufacturer_string(m_device, buffer, 1024);
+        m_device_str = boost::nowide::narrow(buffer);
+        // #3479 seems to show that sometimes an extra whitespace is added, so we remove it
+        boost::algorithm::trim(m_device_str);
 
-        std::vector<wchar_t> product(1024, 0);
-        hid_get_product_string(m_device, product.data(), 1024);
-        m_device_str += "/" + boost::nowide::narrow(product.data());
+        hid_get_product_string(m_device, buffer, 1024);
+        m_device_str += "/" + boost::nowide::narrow(buffer);
+        // #3479 seems to show that sometimes an extra whitespace is added, so we remove it
+        boost::algorithm::trim(m_device_str);
 
         BOOST_LOG_TRIVIAL(info) << "Connected 3DConnexion device:";
         BOOST_LOG_TRIVIAL(info) << "Manufacturer/product: " << m_device_str;
