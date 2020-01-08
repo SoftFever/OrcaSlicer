@@ -2071,7 +2071,7 @@ void GCode::process_layer(
 	                        }
 	                        Slic3r::sort_remove_duplicates(printing_extruders);
 	                    } else
-	                    	printing_extruders = { correct_extruder_id };
+	                    	printing_extruders = { (unsigned int)correct_extruder_id };
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : printing_extruders)
