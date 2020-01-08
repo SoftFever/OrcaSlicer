@@ -1947,6 +1947,7 @@ void GCode::process_layer(
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
+    bool is_anything_overridden = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden();
     for (const LayerToPrint &layer_to_print : layers) {
         if (layer_to_print.support_layer != nullptr) {
             const SupportLayer &support_layer = *layer_to_print.support_layer;
@@ -2048,27 +2049,29 @@ void GCode::process_layer(
                         int correct_extruder_id = Print::get_extruder(*extrusions, region);
 
                         // Let's recover vector of extruder overrides:
-                        const WipingExtrusions::ExtruderPerCopy *entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->copies().size());
-                        printing_extruders.clear();
-                        if (entity_overrides == nullptr) {
-                        	printing_extruders.emplace_back(correct_extruder_id);
-                        } else {
-                        	printing_extruders.reserve(entity_overrides->size() + 1);
-                        	for (int extruder : *entity_overrides)
-                        		printing_extruders.emplace_back(extruder >= 0 ? 
-                        			// at least one copy is overridden to use this extruder
-                        			extruder : 
-                        			// at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
-                        			static_cast<unsigned int>(- extruder - 1));
-                        }
-                        if (! layer_tools.has_extruder(correct_extruder_id)) {
-							// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
-                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
-                        	printing_extruders.emplace_back(layer_tools.extruders.back());
-                        }
-                        Slic3r::sort_remove_duplicates(printing_extruders);
-                        if (printing_extruders.size() == 1 && printing_extruders.front() == correct_extruder_id)
-                        	entity_overrides = nullptr;
+                        const WipingExtrusions::ExtruderPerCopy *entity_overrides = nullptr;
+                        if (is_anything_overridden) {
+	                        printing_extruders.clear();
+	                        if (! layer_tools.has_extruder(correct_extruder_id)) {
+								// this entity is not overridden, but its extruder is not in layer_tools - we'll print it
+	                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
+	                            correct_extruder_id = layer_tools.extruders.back();
+	                        }
+                        	entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->copies().size());
+	                        if (entity_overrides == nullptr) {
+	                        	printing_extruders.emplace_back(correct_extruder_id);
+	                        } else {
+	                        	printing_extruders.reserve(entity_overrides->size());
+	                        	for (int extruder : *entity_overrides)
+	                        		printing_extruders.emplace_back(extruder >= 0 ? 
+	                        			// at least one copy is overridden to use this extruder
+	                        			extruder : 
+	                        			// at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
+	                        			static_cast<unsigned int>(- extruder - 1));
+	                        }
+	                        Slic3r::sort_remove_duplicates(printing_extruders);
+	                    } else
+	                    	printing_extruders = { correct_extruder_id };
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : printing_extruders)
@@ -2157,7 +2160,6 @@ void GCode::process_layer(
 		std::vector<InstanceToPrint> instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
 
         // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
-        bool is_anything_overridden = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden();
 		std::vector<ObjectByExtruder::Island::Region> by_region_per_copy_cache;
         for (int print_wipe_extrusions = is_anything_overridden; print_wipe_extrusions>=0; --print_wipe_extrusions) {
             if (is_anything_overridden && print_wipe_extrusions == 0)
