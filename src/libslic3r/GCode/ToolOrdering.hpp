@@ -73,7 +73,7 @@ private:
 class LayerTools
 {
 public:
-    LayerTools(const coordf_t z, const PrintConfig* print_config_ptr = nullptr) :
+    LayerTools(const coordf_t z) :
         print_z(z),
         has_object(false),
         has_support(false),

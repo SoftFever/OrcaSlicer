@@ -111,7 +111,7 @@ void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
         coordf_t zmax = zs[i] + EPSILON;
         for (; j < zs.size() && zs[j] <= zmax; ++ j) ;
         // Assign an average print_z to the set of layers with nearly equal print_z.
-        m_layer_tools.emplace_back(LayerTools(0.5 * (zs[i] + zs[j-1]), m_print_config_ptr));
+        m_layer_tools.emplace_back(LayerTools(0.5 * (zs[i] + zs[j-1])));
         i = j;
     }
 }
