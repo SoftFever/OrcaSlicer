@@ -48,11 +48,10 @@ TEST_CASE("Raycaster with loaded drillholes", "[sla_raycast]")
         REQUIRE(hit.distance() == Approx(radius));
     }
     
-    // Shouldn't this hit the inside wall through the hole?
     SECTION("Fire from outside, hit the back side of the hole cylinder.") {
         s.y() = -1.;
         auto hit = emesh.query_ray_hit(s, {0, 1., 0.});
-        REQUIRE(hit.distance() == Approx(hole_length + 1.f));
+        REQUIRE(hit.distance() == Approx(boxbb.size().y() - hcfg.min_thickness + 1.));
     }
     
     SECTION("Check for support tree correctness") {

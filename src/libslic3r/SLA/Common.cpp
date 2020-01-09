@@ -297,7 +297,14 @@ EigenMesh3D::query_ray_hits(const Vec3d &s, const Vec3d &dir) const
     // The sort is necessary, the hits are not always sorted.
     std::sort(hits.begin(), hits.end(),
               [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
-    
+
+    // Remove duplicates. They sometimes appear, for example when the ray is cast
+    // along an axis of a cube due to floating-point approximations in igl (?)
+    hits.erase(std::unique(hits.begin(), hits.end(),
+                           [](const igl::Hit& a, const igl::Hit& b)
+                              { return a.t == b.t; }),
+               hits.end());
+
     //  Convert the igl::Hit into hit_result
     outs.reserve(hits.size());
     for (const igl::Hit& hit : hits) {
@@ -342,14 +349,11 @@ EigenMesh3D::hit_result EigenMesh3D::filter_hits(
     for (const sla::DrainHole& hole : m_holes) {
         std::array<std::pair<float, Vec3d>, 2> isects;
         if (hole.get_intersections(sf, dirf, isects)) {
+            // Ignore hole hits behind the source
             if (isects[0].first > 0.f) hole_isects.emplace_back(isects[0].first, isects[0].second, true);
             if (isects[1].first > 0.f) hole_isects.emplace_back(isects[1].first, isects[1].second, false);
         }
     }
-//    // Remove hole hits behind the source
-//    for (int i=0; i<int(hole_isects.size()); ++i)
-//        if (hole_isects[i].t < 0.f)
-//            hole_isects.erase(hole_isects.begin() + (i--));
 
     // Holes can intersect each other, sort the hits by t
     std::sort(hole_isects.begin(), hole_isects.end(),
