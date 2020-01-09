@@ -91,30 +91,7 @@ class Canvas: public wxGLCanvas
 public:
     
     template<class...Args>
-    Canvas(Args &&...args): wxGLCanvas(std::forward<Args>(args)...)
-    {
-        Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
-            // This is required even though dc is not used otherwise.
-            wxPaintDC dc(this);
-
-            // Set the OpenGL viewport according to the client size of this
-            // canvas. This is done here rather than in a wxSizeEvent handler
-            // because our OpenGL rendering context (and thus viewport
-            // setting) is used with multiple canvases: If we updated the
-            // viewport in the wxSizeEvent handler, changing the size of one
-            // canvas causes a viewport setting that is wrong when next
-            // another canvas is repainted.
-            const wxSize ClientSize = GetClientSize();
-            
-            m_display->set_screen_size(ClientSize.x, ClientSize.y);
-        });
-        
-        Bind(wxEVT_SIZE, [this](wxSizeEvent &) {            
-            const wxSize ClientSize = GetClientSize();
-            m_display->set_screen_size(ClientSize.x, ClientSize.y);
-            m_display->repaint();
-        });
-    }
+    Canvas(Args &&...args): wxGLCanvas(std::forward<Args>(args)...) {}
     
     shptr<Slic3r::GL::Display> get_display() const { return m_display; }
 
@@ -465,6 +442,20 @@ void MyFrame::activate_canvas_display()
     const wxSize ClientSize = m_canvas->GetClientSize();
     m_canvas->get_display()->set_active(ClientSize.x, ClientSize.y);
     enable_multisampling(m_ms_toggle->GetValue());
+    
+    m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
+        // This is required even though dc is not used otherwise.
+        wxPaintDC dc(this);
+        const wxSize csize = GetClientSize();
+        m_canvas->get_display()->set_screen_size(csize.x, csize.y);
+        m_canvas->get_display()->repaint();
+    });
+    
+    m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent &) {            
+        const wxSize csize = GetClientSize();
+        m_canvas->get_display()->set_screen_size(csize.x, csize.y);
+        m_canvas->get_display()->repaint();
+    });
     
     // Do the repaint continuously
     m_canvas->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
