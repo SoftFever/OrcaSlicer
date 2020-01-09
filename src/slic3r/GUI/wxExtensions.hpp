@@ -821,20 +821,15 @@ public:
         EnableTickManipulation(false);
     }
 
-    enum ManipulationState {
-        msSingleExtruder,   // single extruder printer preset is selected
-        msMultiAsSingle,    // multiple extruder printer preset is selected, but 
+    enum ManipulationMode {
+        mmSingleExtruder,   // single extruder printer preset is selected
+        mmMultiAsSingle,    // multiple extruder printer preset is selected, but 
                             // this mode works just for Single extruder print 
                             // (For all print from objects settings is used just one extruder) 
-        msMultiExtruder     // multiple extruder printer preset is selected
+        mmMultiExtruder     // multiple extruder printer preset is selected
     };
-    void SetManipulationState(ManipulationState state) {
-        m_state = state;
-    }
-    void SetManipulationState(int extruders_cnt) {
-        m_state = extruders_cnt ==1 ? msSingleExtruder : msMultiExtruder;
-    }
-    ManipulationState GetManipulationState() const { return m_state; }
+    void SetManipulationMode(ManipulationMode mode) { m_mode = mode; }
+    ManipulationMode GetManipulationMode() const    { return m_mode; }
 
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
@@ -860,6 +855,17 @@ public:
     void change_extruder(int extruder);
     void edit_extruder_sequence();
 
+    struct TICK_CODE
+    {
+        bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
+        bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
+
+        int         tick = 0;
+        std::string gcode = Slic3r::ColorChangeCode;
+        int         extruder = 0;
+        std::string color;
+    };
+
 protected:
 
     void    render();
@@ -881,7 +887,6 @@ protected:
     void    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
-    wxString get_tooltip(IconFocus icon_focus);
     void    move_current_thumb(const bool condition);
     void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
@@ -897,6 +902,10 @@ protected:
     wxSize      get_size();
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
+    wxString    get_tooltip(IconFocus icon_focus);
+    bool        get_color_for_tick( wxColour& color, 
+                                    std::set<TICK_CODE>::const_iterator tick_it, 
+                                    const std::vector<std::string>& colors) const;
 
 private:
     bool        is_osx { false };
@@ -929,7 +938,7 @@ private:
     bool        m_show_edit_menu = false;
     bool        m_edit_extruder_sequence = false;
     bool        m_suppress_add_code = false;
-    ManipulationState m_state = msSingleExtruder;
+    ManipulationMode m_mode = mmSingleExtruder;
     std::string m_custom_gcode = "";
     std::string m_pause_print_msg;
 
@@ -960,21 +969,8 @@ private:
 
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
-    std::set<int>       m_ticks;
     std::vector<double> m_values;
-
-    struct TICK_CODE
-    {
-        bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
-        bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
-
-        int         tick = 0;
-        std::string gcode = Slic3r::ColorChangeCode;
-        int         extruder = 0;
-        std::string color;
-    };
-
-    std::set<TICK_CODE> m_ticks_;
+    std::set<TICK_CODE> m_ticks;
 
 public:
     struct ExtrudersSequence
