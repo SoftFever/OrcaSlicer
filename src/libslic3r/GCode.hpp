@@ -252,8 +252,11 @@ protected:
         struct Island
         {
             struct Region {
-                ExtrusionEntityCollection perimeters;
-                ExtrusionEntityCollection infills;
+            	// Non-owned references to LayerRegion::perimeters::entities
+            	// std::vector<const ExtrusionEntity*> would be better here, but there is no way in C++ to convert from std::vector<T*> std::vector<const T*> without copying.
+                ExtrusionEntitiesPtr perimeters;
+            	// Non-owned references to LayerRegion::fills::entities
+                ExtrusionEntitiesPtr infills;
 
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> infills_overrides;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> perimeters_overrides;

@@ -2797,7 +2797,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions()[&region - &by_region.front()]->config());
-        for (ExtrusionEntity *ee : region.perimeters.entities)
+        for (const ExtrusionEntity *ee : region.perimeters)
             gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
     }
     return gcode;
@@ -2809,7 +2809,9 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions()[&region - &by_region.front()]->config());
-        for (ExtrusionEntity *fill : region.infills.chained_path_from(m_last_pos).entities) {
+//        for (ExtrusionEntity *fill : ExtrusionEntityCollection::chained_path_from(region.infills, m_last_pos).entities) {
+        // Don't sort the infills, they contain gap fill, which shall be extruded after normal fills.
+        for (const ExtrusionEntity *fill : region.infills) {
             auto *eec = dynamic_cast<ExtrusionEntityCollection*>(fill);
             if (eec) {
 				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
@@ -3300,8 +3302,8 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
         // Now we are going to iterate through perimeters and infills and pick ones that are supposed to be printed
         // References are used so that we don't have to repeat the same code
         for (int iter = 0; iter < 2; ++iter) {
-            const ExtrusionEntitiesPtr&         							entities    = (iter ? reg.infills.entities : reg.perimeters.entities);
-            ExtrusionEntityCollection&          							target_eec  = (iter ? by_region_per_copy_cache.back().infills : by_region_per_copy_cache.back().perimeters);
+            const ExtrusionEntitiesPtr&										entities    = (iter ? reg.infills : reg.perimeters);
+            ExtrusionEntitiesPtr&   										target_eec  = (iter ? by_region_per_copy_cache.back().infills : by_region_per_copy_cache.back().perimeters);
             const std::vector<const WipingExtrusions::ExtruderPerCopy*>& 	overrides   = (iter ? reg.infills_overrides : reg.perimeters_overrides);
 
             // Now the most important thing - which extrusion should we print.
@@ -3312,8 +3314,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
             		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
             		// This copy (aka object instance) should be printed with this extruder, which overrides the default one.
 	                if (this_override != nullptr && (*this_override)[copy] == extruder)
-	                	// Clone the ExtrusionEntity. This is quite expensive.
-	                    target_eec.append((*entities[i]));
+	                    target_eec.emplace_back(entities[i]);
             	}
 	        } else {
 	        	// Apply normal extrusions (non-overrides) for this region.
@@ -3322,12 +3323,10 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
             		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
             		// This copy (aka object instance) should be printed with this extruder, which shall be equal to the default one.
             		if (this_override == nullptr || (*this_override)[copy] == -extruder-1)
-	                	// Clone the ExtrusionEntity. This is quite expensive.
-	                    target_eec.append((*entities[i]));
+	                    target_eec.emplace_back(entities[i]);
 	            }
 	            for (; i < overrides.size(); ++ i)
-                	// Clone the ExtrusionEntity. This is quite expensive.
-                    target_eec.append(*entities[i]);
+                    target_eec.emplace_back(entities[i]);
 		    }
         }
     }
@@ -3339,7 +3338,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
 void GCode::ObjectByExtruder::Island::Region::append(const Type type, const ExtrusionEntityCollection* eec, const WipingExtrusions::ExtruderPerCopy* copies_extruder)
 {
     // We are going to manipulate either perimeters or infills, exactly in the same way. Let's create pointers to the proper structure to not repeat ourselves:
-    ExtrusionEntityCollection* 								perimeters_or_infills;
+    ExtrusionEntitiesPtr*									perimeters_or_infills;
     std::vector<const WipingExtrusions::ExtruderPerCopy*>* 	perimeters_or_infills_overrides;
 
     switch (type) {
@@ -3356,8 +3355,10 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
     }
 
     // First we append the entities, there are eec->entities.size() of them:
-    size_t old_size = perimeters_or_infills->entities.size();
-    perimeters_or_infills->append(eec->entities);
+    size_t old_size = perimeters_or_infills->size();
+    perimeters_or_infills->reserve(perimeters_or_infills->size() + eec->entities.size());
+    for (auto* ee : eec->entities)
+        perimeters_or_infills->emplace_back(ee);
 
     if (copies_extruder != nullptr) {
     	perimeters_or_infills_overrides->reserve(old_size + eec->entities.size());

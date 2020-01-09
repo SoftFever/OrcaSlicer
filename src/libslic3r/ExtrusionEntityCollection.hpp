@@ -65,7 +65,9 @@ public:
     }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
-    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const;
+    static ExtrusionEntityCollection chained_path_from(const ExtrusionEntitiesPtr &extrusion_entities, const Point &start_near, ExtrusionRole role = erMixed);
+    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const 
+    	{ return (this->no_sort || role == erMixed) ? *this : chained_path_from(this->entities, start_near, role); }
     void reverse();
     const Point& first_point() const { return this->entities.front()->first_point(); }
     const Point& last_point() const { return this->entities.back()->last_point(); }

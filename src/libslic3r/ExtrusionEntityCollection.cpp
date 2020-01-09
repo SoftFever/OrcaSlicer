@@ -74,31 +74,23 @@ void ExtrusionEntityCollection::remove(size_t i)
     this->entities.erase(this->entities.begin() + i);
 }
 
-ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(const Point &start_near, ExtrusionRole role) const
+ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(const ExtrusionEntitiesPtr& extrusion_entities, const Point &start_near, ExtrusionRole role)
 {
 	ExtrusionEntityCollection out;
-	if (this->no_sort) {
-		out = *this;
-	} else {
-		if (role == erMixed)
-			out = *this;
-		else {
-		    for (const ExtrusionEntity *ee : this->entities) {
-		        if (role != erMixed) {
-		            // The caller wants only paths with a specific extrusion role.
-		            auto role2 = ee->role();
-		            if (role != role2) {
-		                // This extrusion entity does not match the role asked.
-		                assert(role2 != erMixed);
-		                continue;
-		            }
-		        }
-		        out.entities.emplace_back(ee->clone());
+	for (const ExtrusionEntity *ee : extrusion_entities) {
+		if (role != erMixed) {
+		    // The caller wants only paths with a specific extrusion role.
+		    auto role2 = ee->role();
+		    if (role != role2) {
+		        // This extrusion entity does not match the role asked.
+		        assert(role2 != erMixed);
+		        continue;
 		    }
 		}
-		chain_and_reorder_extrusion_entities(out.entities, &start_near);
+		out.entities.emplace_back(ee->clone());
 	}
-	return out;
+	chain_and_reorder_extrusion_entities(out.entities, &start_near);
+    return out;
 }
 
 void ExtrusionEntityCollection::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
