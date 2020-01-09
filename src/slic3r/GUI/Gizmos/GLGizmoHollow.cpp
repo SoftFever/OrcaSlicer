@@ -123,6 +123,9 @@ void GLGizmoHollow::on_render() const
         GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
         glcheck();
         m_c->m_volume_with_cavity->set_render_color();
+        const Geometry::Transformation& volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
+        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
+        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
@@ -629,13 +632,9 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         }
 
         // create a new GLVolume that only has the cavity inside
-        Geometry::Transformation volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
-        volume_trafo.set_offset(volume_trafo.get_offset());
         m_c->m_volume_with_cavity.reset(new GLVolume(GLVolume::MODEL_COLOR[2]));
         m_c->m_volume_with_cavity->indexed_vertex_array.load_mesh(*m_c->m_cavity_mesh.get());
         m_c->m_volume_with_cavity->finalize_geometry(true);
-        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
-        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->force_transparent = false;
 
         // Reset raycaster so it works with the new mesh:

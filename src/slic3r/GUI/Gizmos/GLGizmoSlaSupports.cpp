@@ -133,6 +133,9 @@ void GLGizmoSlaSupports::on_render() const
         GLint print_box_worldmatrix_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_world_matrix") : -1;
         glcheck();
         m_c->m_volume_with_cavity->set_render_color();
+        const Geometry::Transformation& volume_trafo = m_c->m_model_object->volumes.front()->get_transformation();
+        m_c->m_volume_with_cavity->set_volume_transformation(volume_trafo);
+        m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
