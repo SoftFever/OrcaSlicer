@@ -37,24 +37,28 @@ TEST_CASE("Raycaster with loaded drillholes", "[sla_raycast]")
     emesh.load_holes(holes);
     
     Vec3d s = center.cast<double>();
-    SECTION("Fire from center, should hit the interior wall") {
-        auto hit = emesh.query_ray_hit(s, {0, 1., 0.});
-        REQUIRE(hit.distance() == Approx(boxbb.size().x() / 2 - hcfg.min_thickness));
-    }
+    // Fire from center, should hit the interior wall
+    auto hit = emesh.query_ray_hit(s, {0, 1., 0.});
+    REQUIRE(hit.distance() == Approx(boxbb.size().x() / 2 - hcfg.min_thickness));
     
-    SECTION("Fire upward from hole center, hit distance equals the radius") {
-        s.y() = hcfg.min_thickness / 2;
-        auto hit = emesh.query_ray_hit(s, {0, 0., 1.});
-        REQUIRE(hit.distance() == Approx(radius));
-    }
+    // Fire upward from hole center, hit distance equals the radius (hits the
+    // side of the hole cut.
+    s.y() = hcfg.min_thickness / 2;
+    hit = emesh.query_ray_hit(s, {0, 0., 1.});
+    REQUIRE(hit.distance() == Approx(radius));
+
+    // Fire from outside, hit the back side of the cube interior
+    s.y() = -1.;
+    hit = emesh.query_ray_hit(s, {0, 1., 0.});
+    REQUIRE(hit.distance() == Approx(boxbb.max.y() - hcfg.min_thickness - s.y()));
     
-    SECTION("Fire from outside, hit the back side of the hole cylinder.") {
-        s.y() = -1.;
-        auto hit = emesh.query_ray_hit(s, {0, 1., 0.});
-        REQUIRE(hit.distance() == Approx(boxbb.size().y() - hcfg.min_thickness + 1.));
-    }
-    
-    SECTION("Check for support tree correctness") {
-        test_support_model_collision("20mm_cube.obj", {}, hcfg, holes);
-    }
+    // Fire downwards from above the hole cylinder. Has to go through the cyl.
+    // as it was not there.
+    s = center.cast<double>();
+    s.z() = boxbb.max.z() - hcfg.min_thickness - 1.;
+    hit = emesh.query_ray_hit(s, {0, 0., -1.});
+    REQUIRE(hit.distance() == Approx(s.z() - boxbb.min.z() - hcfg.min_thickness));
+
+    // Check for support tree correctness
+    test_support_model_collision("20mm_cube.obj", {}, hcfg, holes);
 }
