@@ -877,13 +877,10 @@ bool can_export_to_obj(const GLVolume& volume)
     if (!volume.is_active || !volume.is_extrusion_path)
         return false;
 
-    if (volume.indexed_vertex_array.triangle_indices.empty() && (std::min(volume.indexed_vertex_array.triangle_indices_size, volume.tverts_range.second - volume.tverts_range.first) == 0))
-        return false;
+    bool has_triangles = !volume.indexed_vertex_array.triangle_indices.empty() || (std::min(volume.indexed_vertex_array.triangle_indices_size, volume.tverts_range.second - volume.tverts_range.first) > 0);
+    bool has_quads = !volume.indexed_vertex_array.quad_indices.empty() || (std::min(volume.indexed_vertex_array.quad_indices_size, volume.qverts_range.second - volume.qverts_range.first) > 0);
 
-    if (volume.indexed_vertex_array.quad_indices.empty() && (std::min(volume.indexed_vertex_array.quad_indices_size, volume.qverts_range.second - volume.qverts_range.first) == 0))
-        return false;
-
-    return true;
+    return has_triangles || has_quads;
 }
 
 bool GLVolumeCollection::has_toolpaths_to_export() const
