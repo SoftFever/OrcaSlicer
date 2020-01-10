@@ -20,6 +20,21 @@ inline Vec2d to_vec2(const Vec3d& v3) {
     return {v3(X), v3(Y)};
 }
 
+inline std::pair<double, double> dir_to_spheric(const Vec3d &n, double norm = 1.)
+{
+    double z       = n.z();
+    double r       = norm;
+    double polar   = std::acos(z / r);
+    double azimuth = std::atan2(n(1), n(0));
+    return {polar, azimuth};
+}
+
+inline Vec3d spheric_to_dir(double polar, double azimuth)
+{
+    return {std::cos(azimuth) * std::sin(polar),
+            std::sin(azimuth) * std::sin(polar), std::cos(polar)};
+}
+
 // This function returns the position of the centroid in the input 'clust'
 // vector of point indices.
 template<class DistFn>
@@ -228,6 +243,9 @@ class SupportTreeBuildsteps {
 
     // This is a proxy function for pillar creation which will mind the gap
     // between the pad and the model bottom in zero elevation mode.
+    // jp is the starting junction point which needs to be routed down.
+    // sourcedir is the allowed direction of an optional bridge between the
+    // jp junction and the final pillar.
     void create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,

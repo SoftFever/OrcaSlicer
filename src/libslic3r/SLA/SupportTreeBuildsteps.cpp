@@ -561,8 +561,8 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                                                  long         head_id)
 {
     // People were killed for this number (seriously)
-    static const double SQR2 = std::sqrt(2.0);
     static const Vec3d  DOWN = {0.0, 0.0, -1.0};
+    const double SLOPE = 1. / std::cos(m_cfg.bridge_slope);
     
     double gndlvl       = m_builder.ground_level;
     Vec3d  endp         = {jp(X), jp(Y), gndlvl};
@@ -573,38 +573,47 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
     bool   can_add_base = true;
     bool   normal_mode  = true;
     
+    // If in zero elevation mode and the pillar is too close to the model body,
+    // the support pillar can not be placed in the gap between the model and
+    // the pad, and the pillar bases must not touch the model body either.
+    // To solve this, a corrector bridge is inserted between the starting point
+    // (jp) and the new pillar.
     if (m_cfg.object_elevation_mm < EPSILON
         && (dist = std::sqrt(m_mesh.squared_distance(endp))) < min_dist) {
         // Get the distance from the mesh. This can be later optimized
         // to get the distance in 2D plane because we are dealing with
         // the ground level only.
-        
-        normal_mode     = false;
-        double mind     = min_dist - dist;
-        double azimuth  = std::atan2(sourcedir(Y), sourcedir(X));
-        double sinpolar = std::sin(PI - m_cfg.bridge_slope);
-        double cospolar = std::cos(PI - m_cfg.bridge_slope);
-        double cosazm   = std::cos(azimuth);
-        double sinazm   = std::sin(azimuth);
-        
-        auto dir = Vec3d(cosazm * sinpolar, sinazm * sinpolar, cospolar)
-                       .normalized();
+
+        normal_mode = false;
+
+        // The min distance needed to move away from the model in XY plane.
+        double mind = min_dist - dist;
+
+        // get a suitable direction for the corrector bridge. It is the
+        // original sourcedir's azimuth but the polar angle is saturated to the
+        // configured bridge slope.
+        auto [polar, azimuth] = dir_to_spheric(sourcedir);
+        polar = PI - m_cfg.bridge_slope;
+        auto dir = spheric_to_dir(polar, azimuth).normalized();
         
         using namespace libnest2d::opt;
         StopCriteria scr;
         scr.stop_score = min_dist;
         SubplexOptimizer solver(scr);
         
+        // Search for a distance along the corrector bridge to move the endpoint
+        // sufficiently away form the model body. The first few optimization
+        // cycles should succeed here.
         auto result = solver.optimize_max(
             [this, dir, jp, gndlvl](double mv) {
-                Vec3d endpt = jp + SQR2 * mv * dir;
+                Vec3d endpt = jp + mv * dir;
                 endpt(Z)    = gndlvl;
                 return std::sqrt(m_mesh.squared_distance(endpt));
             },
-            initvals(mind), bound(0.0, 2 * min_dist));
+            initvals(SLOPE * mind), bound(0.0, 2 * SLOPE * min_dist));
         
-        mind           = std::get<0>(result.optimum);
-        endp         = jp + SQR2 * mind * dir;
+        mind         = std::get<0>(result.optimum);
+        endp         = jp + SLOPE * mind * dir;
         Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
         can_add_base = result.score > min_dist;
         
@@ -623,7 +632,7 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         else {
             // If the new endpoint is below ground, do not make a pillar
             if (endp(Z) < gndlvl)
-                endp = endp - SQR2 * (gndlvl - endp(Z)) * dir; // back off
+                endp = endp - SLOPE * (gndlvl - endp(Z)) * dir; // back off
             else {
                 
                 auto hit = bridge_mesh_intersect(endp, DOWN, radius);
@@ -708,10 +717,7 @@ void SupportTreeBuildsteps::filter()
         // (Quaternion::FromTwoVectors) and apply the rotation to the
         // arrow head.
         
-        double z       = n(2);
-        double r       = 1.0; // for normalized vector
-        double polar   = std::acos(z / r);
-        double azimuth = std::atan2(n(1), n(0));
+        auto [polar, azimuth] = dir_to_spheric(n);
         
         // skip if the tilt is not sane
         if(polar >= PI - m_cfg.normal_cutoff_angle) {
@@ -729,9 +735,7 @@ void SupportTreeBuildsteps::filter()
             double pin_r = double(m_support_pts[fidx].head_front_radius);
             
             // Reassemble the now corrected normal
-            auto nn = Vec3d(std::cos(azimuth) * std::sin(polar),
-                            std::sin(azimuth) * std::sin(polar),
-                            std::cos(polar)).normalized();
+            auto nn = spheric_to_dir(polar, azimuth).normalized();
             
             // check available distance
             EigenMesh3D::hit_result t
@@ -757,9 +761,7 @@ void SupportTreeBuildsteps::filter()
                 auto oresult = solver.optimize_max(
                     [this, pin_r, w, hp](double plr, double azm)
                     {
-                        auto dir = Vec3d(std::cos(azm) * std::sin(plr),
-                                         std::sin(azm) * std::sin(plr),
-                                         std::cos(plr)).normalized();
+                        auto dir = spheric_to_dir(plr, azm).normalized();
                         
                         double score = pinhead_mesh_intersect(
                             hp, dir, pin_r, m_cfg.head_back_radius_mm, w);
@@ -767,17 +769,14 @@ void SupportTreeBuildsteps::filter()
                         return score;
                     },
                     initvals(polar, azimuth), // start with what we have
-                    bound(3 * PI / 4,
-                          PI),     // Must not exceed the tilt limit
+                    bound(3 * PI / 4, PI),    // Must not exceed the tilt limit
                     bound(-PI, PI) // azimuth can be a full search
                     );
                 
                 if(oresult.score > w) {
                     polar = std::get<0>(oresult.optimum);
                     azimuth = std::get<1>(oresult.optimum);
-                    nn = Vec3d(std::cos(azimuth) * std::sin(polar),
-                               std::sin(azimuth) * std::sin(polar),
-                               std::cos(polar)).normalized();
+                    nn = spheric_to_dir(polar, azimuth).normalized();
                     t = EigenMesh3D::hit_result(oresult.score);
                 }
             }
