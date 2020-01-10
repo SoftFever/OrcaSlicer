@@ -701,7 +701,7 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     ScalableButton *btn_send_gcode;
     ScalableButton *btn_remove_device;
-	ScalableButton* btn_export_gcode_removable; //exports to NON-removable drives (but appears only if removable drive is connected)
+	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -867,7 +867,7 @@ Sidebar::Sidebar(Plater *parent)
 
     init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _(L("Send to printer")));
     init_scalable_btn(&p->btn_remove_device, "cross"       , _(L("Remove device")));
-	init_scalable_btn(&p->btn_export_gcode_removable, "export_gcode", _(L("Export to hard drive")));
+	init_scalable_btn(&p->btn_export_gcode_removable, "export_gcode", _(L("Export to SD card/ USB thumb drive")));
 
     // regular buttons "Slice now" and "Export G-code" 
 
@@ -888,8 +888,9 @@ Sidebar::Sidebar(Plater *parent)
     auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
     complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
     complect_btns_sizer->Add(p->btn_send_gcode);
-    complect_btns_sizer->Add(p->btn_remove_device);
 	complect_btns_sizer->Add(p->btn_export_gcode_removable);
+    complect_btns_sizer->Add(p->btn_remove_device);
+	
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
     btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
@@ -900,7 +901,7 @@ Sidebar::Sidebar(Plater *parent)
     SetSizer(sizer);
 
     // Events
-    p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
+    p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(false); });
     p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
     {
         const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
@@ -912,7 +913,7 @@ Sidebar::Sidebar(Plater *parent)
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
     p->btn_remove_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
-	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(false); });
+	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
 }
 
 Sidebar::~Sidebar() {}
@@ -4175,8 +4176,8 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
 		if (sidebar->show_reslice(false) |
 			sidebar->show_export(true) |
 			sidebar->show_send(send_gcode_shown) |
-			sidebar->show_disconnect(disconnect_shown) |
-			sidebar->show_export_removable(export_removable_shown))
+			sidebar->show_export_removable(export_removable_shown) |
+				 sidebar->show_disconnect(disconnect_shown))
             sidebar->Layout();
     }
     else
@@ -4184,8 +4185,8 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
         if (sidebar->show_reslice(is_ready_to_slice) |
             sidebar->show_export(!is_ready_to_slice) |
             sidebar->show_send(send_gcode_shown && !is_ready_to_slice) |
-            sidebar->show_disconnect(disconnect_shown && !is_ready_to_slice) | 
-			sidebar->show_export_removable(export_removable_shown && !is_ready_to_slice))
+			sidebar->show_export_removable(export_removable_shown && !is_ready_to_slice) |
+            sidebar->show_disconnect(disconnect_shown && !is_ready_to_slice))
             sidebar->Layout();
     }
 }
