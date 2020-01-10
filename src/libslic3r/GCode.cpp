@@ -2848,9 +2848,9 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region) {
         m_config.apply(print.regions()[&region - &by_region.front()]->config());
-//        for (ExtrusionEntity *fill : ExtrusionEntityCollection::chained_path_from(region.infills, m_last_pos).entities) {
-        // Don't sort the infills, they contain gap fill, which shall be extruded after normal fills.
-        for (const ExtrusionEntity *fill : region.infills) {
+		ExtrusionEntitiesPtr extrusions { region.infills };
+		chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+        for (const ExtrusionEntity *fill : extrusions) {
             auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
             if (eec) {
 				for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)

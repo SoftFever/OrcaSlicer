@@ -6,6 +6,26 @@
 
 namespace Slic3r {
 
+void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role)
+{
+	if (role != erMixed) {
+		auto first  = extrusion_entities.begin();
+		auto last   = extrusion_entities.end();
+		auto result = first;
+		while (first != last) {
+		    // The caller wants only paths with a specific extrusion role.
+		    auto role2 = (*first)->role();
+		    if (role != role2) {
+		        // This extrusion entity does not match the role asked.
+		        assert(role2 != erMixed);
+		        *result = *first;
+	  			++ result;
+		    }
+			++ first;
+		}
+	}
+}
+
 ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths)
     : no_sort(false)
 {
@@ -76,19 +96,12 @@ void ExtrusionEntityCollection::remove(size_t i)
 
 ExtrusionEntityCollection ExtrusionEntityCollection::chained_path_from(const ExtrusionEntitiesPtr& extrusion_entities, const Point &start_near, ExtrusionRole role)
 {
-	ExtrusionEntityCollection out;
-	for (const ExtrusionEntity *ee : extrusion_entities) {
-		if (role != erMixed) {
-		    // The caller wants only paths with a specific extrusion role.
-		    auto role2 = ee->role();
-		    if (role != role2) {
-		        // This extrusion entity does not match the role asked.
-		        assert(role2 != erMixed);
-		        continue;
-		    }
-		}
-		out.entities.emplace_back(ee->clone());
-	}
+	// Return a filtered copy of the collection.
+    ExtrusionEntityCollection out;
+    out.entities = filter_by_extrusion_role(extrusion_entities, role);
+	// Clone the extrusion entities.
+	for (auto &ptr : out.entities)
+		ptr = ptr->clone();
 	chain_and_reorder_extrusion_entities(out.entities, &start_near);
     return out;
 }
