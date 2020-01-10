@@ -831,6 +831,14 @@ public:
     void SetManipulationMode(ManipulationMode mode) { m_mode = mode; }
     ManipulationMode GetManipulationMode() const    { return m_mode; }
 
+    void SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
+    {
+        m_mode = !is_one_extruder_printed_model ? mmMultiExtruder :
+                 only_extruder < 0              ? mmSingleExtruder :
+                                                  mmMultiAsSingle;
+        m_only_extruder = only_extruder;
+    }
+
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
     bool is_lower_at_min() const { return m_lower_value == m_min_value; }
@@ -848,7 +856,6 @@ public:
     void OnKeyUp(wxKeyEvent &event);
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
-    int  get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
     void add_code(std::string code, int selected_extruder = -1);
     void edit_tick();
@@ -906,6 +913,12 @@ protected:
     bool        get_color_for_tick( wxColour& color, 
                                     std::set<TICK_CODE>::const_iterator tick_it, 
                                     const std::vector<std::string>& colors) const;
+    int         get_extruder_for_tick(int tick);
+    std::set<int>   get_used_extruders_for_tick(int tick);
+
+
+    void        append_change_extruder_menu_item(wxMenu*);
+    void        append_add_color_change_menu_item(wxMenu*);
 
 private:
     bool        is_osx { false };
@@ -926,7 +939,7 @@ private:
     ScalableBitmap    m_bmp_one_layer_unlock_off;
     ScalableBitmap    m_bmp_revert;
     ScalableBitmap    m_bmp_cog;
-    SelectedSlider  m_selection;
+    SelectedSlider    m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
     bool        m_is_one_layer = false;
@@ -941,6 +954,7 @@ private:
     ManipulationMode m_mode = mmSingleExtruder;
     std::string m_custom_gcode = "";
     std::string m_pause_print_msg;
+    int         m_only_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;

@@ -692,11 +692,60 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
 
     m_slider->EnableTickManipulation(color_print_enable);
-
     // Detect and set manipulation mode for double slider
-    m_slider->SetManipulationMode( wxGetApp().extruders_edited_cnt() == 1               ? DoubleSlider::mmSingleExtruder :
-                                   wxGetApp().plater()->is_one_extruder_printed_model() ? DoubleSlider::mmMultiAsSingle :
-                                                                                          DoubleSlider::mmMultiExtruder);
+    update_double_slider_mode();
+}
+
+void Preview::update_double_slider_mode()
+{
+    //    true  -> single-extruder printer profile OR 
+    //             multi-extruder printer profile , but whole model is printed by only one extruder
+    //    false -> multi-extruder printer profile , and model is printed by several extruders
+    bool    one_extruder_printed_model = true;
+
+    // extruder used for whole model for multi-extruder printer profile
+    int     only_extruder = -1; 
+
+    if (wxGetApp().extruders_edited_cnt() > 1)
+    {
+        const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
+
+        // check if whole model uses just only one extruder
+        if (!objects.empty())
+        {
+            const int extruder = objects[0]->config.has("extruder") ?
+                                 objects[0]->config.option("extruder")->getInt() : 0;
+
+            auto is_one_extruder_printed_model = [objects, extruder]()
+            {
+                for (ModelObject* object : objects)
+                {
+                    if (object->config.has("extruder") &&
+                        object->config.option("extruder")->getInt() != extruder)
+                        return false;
+
+                    if (object->volumes.size() > 1)
+                        for (ModelVolume* volume : object->volumes)
+                            if (volume->config.has("extruder") &&
+                                volume->config.option("extruder")->getInt() != extruder)
+                                return false;
+
+                    for (const auto& range : object->layer_config_ranges)
+                        if (range.second.has("extruder") &&
+                            range.second.option("extruder")->getInt() != extruder)
+                            return false;
+                }
+                return true;
+            };
+
+            if (is_one_extruder_printed_model())
+                only_extruder = extruder;
+            else
+                one_extruder_printed_model = false;
+        }
+    }
+
+    m_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
 }
 
 void Preview::reset_double_slider()

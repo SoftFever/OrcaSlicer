@@ -5358,38 +5358,6 @@ bool Plater::is_export_gcode_scheduled() const
     return p->background_process.is_export_scheduled();
 }
 
-bool Plater::is_one_extruder_printed_model()
-{
-    if (wxGetApp().extruders_edited_cnt() == 1)
-        return true;    
-
-    // check if model use just one extruder
-    const ModelObjectPtrs& objects = p->model.objects;
-    if (!objects.empty())
-    {
-        const size_t extruder = objects[0]->config.has("extruder") ? 
-                                objects[0]->config.option("extruder")->getInt() : 0;
-        for (ModelObject* object : objects)
-        {
-            if (object->config.has("extruder") &&
-                object->config.option("extruder")->getInt() != extruder)
-                return false;
-
-            for (ModelVolume* volume : object->volumes)
-                if (volume->config.has("extruder") &&
-                    volume->config.option("extruder")->getInt() != extruder)
-                    return false;
-
-            for (const auto& range : object->layer_config_ranges)
-                if (range.second.has("extruder") &&
-                    range.second.option("extruder")->getInt() != extruder)
-                return false;
-        }
-    }
-
-    return true;
-}
-
 int Plater::get_selected_object_idx()
 {
     return p->get_selected_object_idx();

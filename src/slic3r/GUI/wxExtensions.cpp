@@ -2883,7 +2883,9 @@ bool DoubleSlider::get_color_for_tick(wxColour& color, std::set<TICK_CODE>::cons
         return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
     };
 
-    auto get_color_idx_for_color_change = [get_m600_color_idx](const std::set<TICK_CODE>& ticks, std::set<TICK_CODE>::const_iterator it)
+    const int extruder = std::max<int>(1, m_only_extruder);
+
+    auto get_color_idx_for_color_change = [get_m600_color_idx, extruder](const std::set<TICK_CODE>& ticks, std::set<TICK_CODE>::const_iterator it)
     {
         auto it_n = it;
         bool is_tool_change = false;
@@ -2896,7 +2898,7 @@ bool DoubleSlider::get_color_for_tick(wxColour& color, std::set<TICK_CODE>::cons
                 break;
             }
         }
-        if (!is_tool_change && it->extruder == 0) // use correct extruder number instead of 0
+        if (!is_tool_change && it->extruder == extruder) // use correct extruder number instead of 0
             return get_m600_color_idx(ticks, it);
 
         return -1;
@@ -2943,9 +2945,9 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
 
     const std::vector<std::string>& colors = Slic3r::GUI::wxGetApp().plater()->get_colors_for_color_print();
 
-    const wxColour bg_clr = GetParent()->GetBackgroundColour();
-
-    wxColour clr = m_ticks.empty() || m_mode == mmMultiExtruder ? bg_clr : wxColour(colors[0]);
+    wxColour clr = m_ticks.empty() || m_mode == mmMultiExtruder     ? 
+                   GetParent()->GetBackgroundColour()               : 
+                   wxColour(colors[m_mode==mmMultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0]);
     draw_band(dc, clr, main_band);
 
     if (m_ticks.empty() || m_mode == mmMultiExtruder)
@@ -2972,7 +2974,7 @@ void DoubleSlider::draw_colored_band(wxDC& dc)
             ++tick_it;
             continue;
         }
-            
+
         draw_band(dc, clr, main_band);
         ++tick_it;
     }
@@ -3268,6 +3270,62 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     }
 }
 
+void DoubleSlider::append_change_extruder_menu_item(wxMenu* menu)
+{
+    const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
+    if (extruders_cnt > 1)
+    {
+        const int initial_extruder = std::max<int>(1 , get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value));
+
+        wxMenu* change_extruder_menu = new wxMenu();
+
+        for (int i = 1; i <= extruders_cnt; i++)
+        {
+            const wxString item_name = wxString::Format(_(L("Extruder %d")), i);
+
+            if (m_mode == mmMultiAsSingle)
+                append_menu_radio_item(change_extruder_menu, wxID_ANY, item_name, "",
+                    [this, i](wxCommandEvent&) { change_extruder(i); }, menu)->Check(i == initial_extruder);
+        }
+
+        const wxString change_extruder_menu_name = m_mode == mmMultiAsSingle ? _(L("Change extruder")) : _(L("Change extruder (N/A)"));
+
+        wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
+        change_extruder_menu_item->SetBitmap(create_scaled_bitmap(this, "change_extruder"));
+
+        Slic3r::GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, change_extruder_menu_item](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, [this]() {return m_mode == mmMultiAsSingle; }, change_extruder_menu_item, this); },
+            change_extruder_menu_item->GetId());
+    }
+}
+
+void DoubleSlider::append_add_color_change_menu_item(wxMenu* menu)
+{
+    const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
+    if (extruders_cnt > 1)
+    {
+        std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
+
+        wxMenu* add_color_change_menu = new wxMenu();
+
+        for (int i = 1; i <= extruders_cnt; i++)
+        {
+            const bool is_used_extruder = used_extruders_for_tick.empty() ? true : // #ys_FIXME till used_extruders_for_tick doesn't filled correct for mmMultiExtruder
+                                          used_extruders_for_tick.find(i) != used_extruders_for_tick.end();
+            const wxString item_name = wxString::Format(_(L("Extruder %d")), i) +
+                                       (is_used_extruder ? "" : " (" + _(L("N/A")) + ")");
+
+            append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
+                [this, i](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode, i); }, "", menu,
+                [is_used_extruder]() { return is_used_extruder; }, Slic3r::GUI::wxGetApp().plater());
+        }
+
+        const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
+        wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
+        add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_m"));
+    }
+}
+
 void DoubleSlider::OnLeftUp(wxMouseEvent& event)
 {
     if (!HasCapture())
@@ -3281,46 +3339,14 @@ void DoubleSlider::OnLeftUp(wxMouseEvent& event)
             add_code(Slic3r::ColorChangeCode);
         else
         {
-            const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
-            if (extruders_cnt > 1)
-            {            
-                wxMenu menu;
-                wxMenu* sub_menu = new wxMenu();
-                wxString sub_menu_name = _(L("Change extruder"));
-                std::string menu_icon_name = "change_extruder";
+            wxMenu menu;
 
-                if (m_mode == mmMultiAsSingle)
-                {
-                    int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
-                    if (initial_extruder == 0)
-                        initial_extruder = 1;
+            if (m_mode == mmMultiAsSingle)
+                append_change_extruder_menu_item(&menu);
+            else
+                append_add_color_change_menu_item(&menu);
 
-                    for (int i = /*0*/1; i <= extruders_cnt; i++) {
-                        const wxString item_name = i == 0 ? _(L("Default")) : wxString::Format(_(L("Extruder %d")), i);
-
-                        append_menu_radio_item(sub_menu, wxID_ANY, item_name, "",
-                            [this, i](wxCommandEvent&) { change_extruder(i); }, &menu)->Check(i == initial_extruder);
-                    }
-                }
-                else
-                {
-                    for (int i = 1; i <= extruders_cnt; i++) {
-                        const wxString item_name = wxString::Format(_(L("Extruder %d")), i);
-
-                        append_menu_item(sub_menu, wxID_ANY, item_name, "",
-                            [this, i](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode, i); }, "", &menu,
-                            [this]() {return true; }, this);
-                    }
-
-                    sub_menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
-                    menu_icon_name = "colorchange_add_m";
-                }
-
-                wxMenuItem* sub_menu_item = menu.AppendSubMenu(sub_menu, sub_menu_name, "");
-                sub_menu_item->SetBitmap(create_scaled_bitmap(this, menu_icon_name));
-
-                Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
-            }
+            Slic3r::GUI::wxGetApp().plater()->PopupMenu(&menu);
         }
         
         m_show_context_menu = false;
@@ -3525,8 +3551,9 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
 
 int DoubleSlider::get_extruder_for_tick(int tick)
 {
+    int default_initial_extruder = m_mode == mmMultiAsSingle ? m_only_extruder : 0;
     if (m_ticks.empty())
-        return 0;
+        return default_initial_extruder;
     
     auto it = m_ticks.lower_bound(TICK_CODE{tick});
     while (it != m_ticks.begin()) {
@@ -3535,7 +3562,40 @@ int DoubleSlider::get_extruder_for_tick(int tick)
             return it->extruder;
     }
 
-    return 0;
+    return default_initial_extruder;
+}
+
+std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
+{
+    if (m_mode == mmMultiExtruder)
+        return {}; // #ys_FIXME: correct fill used_extruders_for_tick for mmMultiExtruder
+
+    const int default_initial_extruder = m_mode == mmMultiAsSingle ? std::max(m_only_extruder, 1) : 1;
+    if (m_ticks.empty())
+        return {default_initial_extruder};
+
+    std::set<int> used_extruders;
+    
+    auto it = m_ticks.lower_bound(TICK_CODE{tick});
+    while (it != m_ticks.begin()) {
+        --it;
+        if(it->gcode == Slic3r::ExtruderChangeCode)
+        {
+            used_extruders.emplace(it->extruder);
+            break;
+        }
+    }
+    if (it == m_ticks.begin())
+        used_extruders.emplace(default_initial_extruder);
+    ++it;
+
+    while (it != m_ticks.end()) {
+        if(it->gcode == Slic3r::ExtruderChangeCode)
+            used_extruders.emplace(it->extruder);
+        ++it;
+    }
+
+    return used_extruders;
 }
 
 void DoubleSlider::OnRightUp(wxMouseEvent& event)
@@ -3554,42 +3614,8 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
                 [](){return true;}, this);
         else
         {
-            const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
-            if (extruders_cnt > 1)
-            {
-                int initial_extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
-                if (initial_extruder == 0)
-                    initial_extruder = 1;
-
-                wxMenu* change_extruder_menu = new wxMenu();
-                wxMenu* add_color_change_menu = new wxMenu();
-
-                for (int i = 1; i <= extruders_cnt; i++) {
-                    const wxString item_name = wxString::Format(_(L("Extruder %d")), i);
-
-                    if (m_mode == mmMultiAsSingle)
-                    append_menu_radio_item(change_extruder_menu, wxID_ANY, item_name, "",
-                        [this, i](wxCommandEvent&) { change_extruder(i); }, &menu)->Check(i == initial_extruder);
-
-                    append_menu_item(add_color_change_menu, wxID_ANY, item_name, "",
-                        [this, i](wxCommandEvent&) { add_code(Slic3r::ColorChangeCode, i); }, "", &menu,
-                        [](){return true;}, this);
-                }
-
-                const wxString change_extruder_menu_name = m_mode == mmMultiAsSingle ? _(L("Change extruder")) : _(L("Change extruder (N/A)"));
-
-                wxMenuItem* change_extruder_menu_item = menu.AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
-                change_extruder_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "change_extruder"));
-
-                ManipulationMode mode = m_mode;
-                Slic3r::GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, mode, change_extruder_menu_item](wxUpdateUIEvent& evt) {
-                    enable_menu_item(evt, [this](){return m_mode == mmMultiAsSingle;}, change_extruder_menu_item, this); },
-                    change_extruder_menu_item->GetId());
-
-                const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
-                wxMenuItem* add_color_change_menu_item = menu.AppendSubMenu(add_color_change_menu, menu_name, "");
-                add_color_change_menu_item->SetBitmap(create_scaled_bitmap(nullptr, "colorchange_add_m"));
-            }
+            append_change_extruder_menu_item(&menu);
+            append_add_color_change_menu_item(&menu);
         }
 
         append_menu_item(&menu, wxID_ANY, _(L("Add pause print")) + " (M601)", "",
