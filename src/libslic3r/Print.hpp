@@ -15,6 +15,8 @@
 #include "GCode/ThumbnailData.hpp"
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
+#include "libslic3r.h"
+
 namespace Slic3r {
 
 class Print;
@@ -116,8 +118,21 @@ public:
     size_t total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
     size_t layer_count() const { return m_layers.size(); }
     void clear_layers();
-    Layer* get_layer(int idx) { return m_layers[idx]; }
-    const Layer* get_layer(int idx) const { return m_layers[idx]; }
+    const Layer* 	get_layer(int idx) const { return m_layers[idx]; }
+    Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
+    // Get a layer exactly at print_z.
+    const Layer*	get_layer_at_printz(coordf_t print_z) const {
+    	auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [print_z](const Layer *layer) { return layer->print_z < print_z; });
+		return (it == m_layers.end() || (*it)->print_z != print_z) ? nullptr : *it;
+	}
+    Layer*			get_layer_at_printz(coordf_t print_z) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z)); }
+    // Get a layer approximately at print_z.
+    const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const {
+        coordf_t limit = print_z + epsilon;
+    	auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
+		return (it == m_layers.end() || (*it)->print_z < print_z - epsilon) ? nullptr : *it;
+	}
+    Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_printz(print_z, epsilon)); }
 
     // print_z: top of the layer; slice_z: center of the layer.
     Layer* add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
@@ -345,6 +360,7 @@ public:
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
+    //FIXME returning const vector to non-const PrintObject*, caller could modify PrintObjects!
     const PrintObjectPtrs&      objects() const { return m_objects; }
     PrintObject*                get_object(size_t idx) { return m_objects[idx]; }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }

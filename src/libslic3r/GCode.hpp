@@ -197,7 +197,7 @@ public:
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
 
-protected:
+private:
 #if ENABLE_THUMBNAIL_GENERATOR
     void            _do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb);
 #else
@@ -274,7 +274,7 @@ protected:
             std::vector<Region> by_region;                                    // all extrusions for this island, grouped by regions
 
             // Fills in by_region_per_copy_cache and returns its reference.
-            const std::vector<Region>& by_region_per_copy(std::vector<Region> &by_region_per_copy_cache, unsigned int copy, int extruder, bool wiping_entities = false) const;
+            const std::vector<Region>& by_region_per_copy(std::vector<Region> &by_region_per_copy_cache, unsigned int copy, unsigned int extruder, bool wiping_entities = false) const;
         };
         std::vector<Island>         islands;
     };

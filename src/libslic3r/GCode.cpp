@@ -792,6 +792,297 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
+// free functions called by GCode::_do_export()
+namespace DoExport {
+	static void init_time_estimators(const PrintConfig &config, GCodeTimeEstimator &normal_time_estimator, GCodeTimeEstimator &silent_time_estimator, bool &silent_time_estimator_enabled)
+	{
+	    // resets time estimators
+	    normal_time_estimator.reset();
+	    normal_time_estimator.set_dialect(config.gcode_flavor);
+	    normal_time_estimator.set_extrusion_axis(config.get_extrusion_axis()[0]);
+	    silent_time_estimator_enabled = (config.gcode_flavor == gcfMarlin) && config.silent_mode;
+
+	    // Until we have a UI support for the other firmwares than the Marlin, use the hardcoded default values
+	    // and let the user to enter the G-code limits into the start G-code.
+	    // If the following block is enabled for other firmwares than the Marlin, then the function
+	    // this->print_machine_envelope(file, print);
+	    // shall be adjusted as well to produce a G-code block compatible with the particular firmware flavor.
+	    if (config.gcode_flavor.value == gcfMarlin) {
+	        normal_time_estimator.set_max_acceleration((float)config.machine_max_acceleration_extruding.values[0]);
+	        normal_time_estimator.set_retract_acceleration((float)config.machine_max_acceleration_retracting.values[0]);
+	        normal_time_estimator.set_minimum_feedrate((float)config.machine_min_extruding_rate.values[0]);
+	        normal_time_estimator.set_minimum_travel_feedrate((float)config.machine_min_travel_rate.values[0]);
+	        normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)config.machine_max_acceleration_x.values[0]);
+	        normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)config.machine_max_acceleration_y.values[0]);
+	        normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)config.machine_max_acceleration_z.values[0]);
+	        normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)config.machine_max_acceleration_e.values[0]);
+	        normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)config.machine_max_feedrate_x.values[0]);
+	        normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)config.machine_max_feedrate_y.values[0]);
+	        normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)config.machine_max_feedrate_z.values[0]);
+	        normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)config.machine_max_feedrate_e.values[0]);
+	        normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)config.machine_max_jerk_x.values[0]);
+	        normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)config.machine_max_jerk_y.values[0]);
+	        normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)config.machine_max_jerk_z.values[0]);
+	        normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)config.machine_max_jerk_e.values[0]);
+
+	        if (silent_time_estimator_enabled)
+	        {
+	            silent_time_estimator.reset();
+	            silent_time_estimator.set_dialect(config.gcode_flavor);
+	            silent_time_estimator.set_extrusion_axis(config.get_extrusion_axis()[0]);
+	            /* "Stealth mode" values can be just a copy of "normal mode" values
+	            * (when they aren't input for a printer preset).
+	            * Thus, use back value from values, instead of second one, which could be absent
+	            */
+	            silent_time_estimator.set_max_acceleration((float)config.machine_max_acceleration_extruding.values.back());
+	            silent_time_estimator.set_retract_acceleration((float)config.machine_max_acceleration_retracting.values.back());
+	            silent_time_estimator.set_minimum_feedrate((float)config.machine_min_extruding_rate.values.back());
+	            silent_time_estimator.set_minimum_travel_feedrate((float)config.machine_min_travel_rate.values.back());
+	            silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)config.machine_max_acceleration_x.values.back());
+	            silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)config.machine_max_acceleration_y.values.back());
+	            silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)config.machine_max_acceleration_z.values.back());
+	            silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)config.machine_max_acceleration_e.values.back());
+	            silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)config.machine_max_feedrate_x.values.back());
+	            silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)config.machine_max_feedrate_y.values.back());
+	            silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)config.machine_max_feedrate_z.values.back());
+	            silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)config.machine_max_feedrate_e.values.back());
+	            silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)config.machine_max_jerk_x.values.back());
+	            silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)config.machine_max_jerk_y.values.back());
+	            silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)config.machine_max_jerk_z.values.back());
+	            silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)config.machine_max_jerk_e.values.back());
+	            if (config.single_extruder_multi_material) {
+	                // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
+	                // are considered to be active for the single extruder multi-material printers only.
+	                silent_time_estimator.set_filament_load_times(config.filament_load_time.values);
+	                silent_time_estimator.set_filament_unload_times(config.filament_unload_time.values);
+	            }
+	        }
+	    }
+	    // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
+	    if (config.single_extruder_multi_material) {
+	        // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
+	        // are considered to be active for the single extruder multi-material printers only.
+	        normal_time_estimator.set_filament_load_times(config.filament_load_time.values);
+	        normal_time_estimator.set_filament_unload_times(config.filament_unload_time.values);
+	    }
+	}
+
+	static void init_gcode_analyzer(const PrintConfig &config, GCodeAnalyzer &analyzer)
+	{
+	    // resets analyzer
+	    analyzer.reset();
+
+	    // send extruder offset data to analyzer
+	    GCodeAnalyzer::ExtruderOffsetsMap extruder_offsets;
+	    unsigned int num_extruders = static_cast<unsigned int>(config.nozzle_diameter.values.size());
+	    for (unsigned int extruder_id = 0; extruder_id < num_extruders; ++ extruder_id)
+	    {
+	        Vec2d offset = config.extruder_offset.get_at(extruder_id);
+	        if (!offset.isApprox(Vec2d::Zero()))
+	            extruder_offsets[extruder_id] = offset;
+	    }
+	    analyzer.set_extruder_offsets(extruder_offsets);
+
+	    // tell analyzer about the extrusion axis
+	    analyzer.set_extrusion_axis(config.get_extrusion_axis()[0]);
+
+	    // send extruders count to analyzer to allow it to detect invalid extruder idxs
+	    analyzer.set_extruders_count(num_extruders);
+
+	    // tell analyzer about the gcode flavor
+	    analyzer.set_gcode_flavor(config.gcode_flavor);
+	}
+
+	static double autospeed_volumetric_limit(const Print &print)
+	{
+	    // get the minimum cross-section used in the print
+	    std::vector<double> mm3_per_mm;
+	    for (auto object : print.objects()) {
+	        for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
+	            const PrintRegion* region = print.regions()[region_id];
+	            for (auto layer : object->layers()) {
+	                const LayerRegion* layerm = layer->regions()[region_id];
+	                if (region->config().get_abs_value("perimeter_speed") == 0 ||
+	                    region->config().get_abs_value("small_perimeter_speed") == 0 ||
+	                    region->config().get_abs_value("external_perimeter_speed") == 0 ||
+	                    region->config().get_abs_value("bridge_speed") == 0)
+	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
+	                if (region->config().get_abs_value("infill_speed") == 0 ||
+	                    region->config().get_abs_value("solid_infill_speed") == 0 ||
+	                    region->config().get_abs_value("top_solid_infill_speed") == 0 ||
+	                    region->config().get_abs_value("bridge_speed") == 0)
+	                    mm3_per_mm.push_back(layerm->fills.min_mm3_per_mm());
+	            }
+	        }
+	        if (object->config().get_abs_value("support_material_speed") == 0 ||
+	            object->config().get_abs_value("support_material_interface_speed") == 0)
+	            for (auto layer : object->support_layers())
+	                mm3_per_mm.push_back(layer->support_fills.min_mm3_per_mm());
+	    }
+	    // filter out 0-width segments
+	    mm3_per_mm.erase(std::remove_if(mm3_per_mm.begin(), mm3_per_mm.end(), [](double v) { return v < 0.000001; }), mm3_per_mm.end());
+	    double volumetric_speed = 0.;
+	    if (! mm3_per_mm.empty()) {
+	        // In order to honor max_print_speed we need to find a target volumetric
+	        // speed that we can use throughout the print. So we define this target 
+	        // volumetric speed as the volumetric speed produced by printing the 
+	        // smallest cross-section at the maximum speed: any larger cross-section
+	        // will need slower feedrates.
+	        volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config().max_print_speed.value;
+	        // limit such volumetric speed with max_volumetric_speed if set
+	        if (print.config().max_volumetric_speed.value > 0)
+	            volumetric_speed = std::min(volumetric_speed, print.config().max_volumetric_speed.value);
+	    }
+	    return volumetric_speed;
+	}
+
+	static void init_ooze_prevention(const Print &print, OozePrevention &ooze_prevention)
+	{
+	    // Calculate wiping points if needed
+	    if (print.config().ooze_prevention.value && ! print.config().single_extruder_multi_material) {
+	        Points skirt_points;
+	        for (const ExtrusionEntity *ee : print.skirt().entities)
+	            for (const ExtrusionPath &path : dynamic_cast<const ExtrusionLoop*>(ee)->paths)
+	                append(skirt_points, path.polyline.points);
+	        if (! skirt_points.empty()) {
+	            Polygon outer_skirt = Slic3r::Geometry::convex_hull(skirt_points);
+	            Polygons skirts;
+	            for (unsigned int extruder_id : print.extruders()) {
+	                const Vec2d &extruder_offset = print.config().extruder_offset.get_at(extruder_id);
+	                Polygon s(outer_skirt);
+	                s.translate(Point::new_scale(-extruder_offset(0), -extruder_offset(1)));
+	                skirts.emplace_back(std::move(s));
+	            }
+	            ooze_prevention.enable = true;
+	            ooze_prevention.standby_points = offset(Slic3r::Geometry::convex_hull(skirts), scale_(3.f)).front().equally_spaced_points(scale_(10.));
+	#if 0
+	                require "Slic3r/SVG.pm";
+	                Slic3r::SVG::output(
+	                    "ooze_prevention.svg",
+	                    red_polygons    => \@skirts,
+	                    polygons        => [$outer_skirt],
+	                    points          => $gcodegen->ooze_prevention->standby_points,
+	                );
+	#endif
+	        }
+	    }
+	}
+
+	#if ENABLE_THUMBNAIL_GENERATOR
+	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
+	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, const std::vector<Vec2d> &sizes, WriteToOutput &output, ThrowIfCanceledCallback throw_if_canceled)
+	{
+	    // Write thumbnails using base64 encoding
+	    if (thumbnail_cb != nullptr)
+	    {
+	        const size_t max_row_length = 78;
+	        ThumbnailsList thumbnails;
+	        thumbnail_cb(thumbnails, sizes, true, true, true, true);
+	        for (const ThumbnailData& data : thumbnails)
+	        {
+	            if (data.is_valid())
+	            {
+	                size_t png_size = 0;
+	                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+	                if (png_data != nullptr)
+	                {
+	                    std::string encoded;
+	                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
+	                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
+
+	                    output((boost::format("\n;\n; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
+
+	                    unsigned int row_count = 0;
+	                    while (encoded.size() > max_row_length)
+	                    {
+	                        output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
+	                        encoded = encoded.substr(max_row_length);
+	                        ++row_count;
+	                    }
+
+	                    if (encoded.size() > 0)
+	                    	output((boost::format("; %s\n") % encoded).str().c_str());
+
+	                    output("; thumbnail end\n;\n");
+
+	                    mz_free(png_data);
+	                }
+	            }
+	            throw_if_canceled();
+	        }
+	    }
+	}
+	#endif // ENABLE_THUMBNAIL_GENERATOR
+
+	// Fill in print_statistics and return formatted string containing filament statistics to be inserted into G-code comment section.
+	static std::string update_print_stats_and_format_filament_stats(
+	    const GCodeTimeEstimator    &normal_time_estimator,
+	    const GCodeTimeEstimator    &silent_time_estimator,
+	    const bool                   silent_time_estimator_enabled,
+	    const bool                   has_wipe_tower,
+	    const WipeTowerData         &wipe_tower_data,
+	    const std::vector<Extruder> &extruders,
+		PrintStatistics 		    &print_statistics)
+	{
+		std::string filament_stats_string_out;
+
+	    print_statistics.clear();
+	    print_statistics.estimated_normal_print_time = normal_time_estimator.get_time_dhms();
+	    print_statistics.estimated_silent_print_time = silent_time_estimator_enabled ? silent_time_estimator.get_time_dhms() : "N/A";
+	    print_statistics.estimated_normal_color_print_times = normal_time_estimator.get_color_times_dhms(true);
+	    if (silent_time_estimator_enabled)
+	        print_statistics.estimated_silent_color_print_times = silent_time_estimator.get_color_times_dhms(true);
+	    print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
+	    if (! extruders.empty()) {
+	        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
+	        for (const Extruder &extruder : extruders) {
+	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
+	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
+	            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
+	            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
+	            auto append = [&extruder, &extruders](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
+	                while (dst.second < extruder.id()) {
+	                    // Fill in the non-printing extruders with zeros.
+	                    dst.first += (dst.second > 0) ? ", 0" : "0";
+	                    ++ dst.second;
+	                }
+	                if (dst.second > 0)
+	                    dst.first += ", ";
+	                char buf[64];
+					sprintf(buf, tmpl, value);
+	                dst.first += buf;
+	                ++ dst.second;
+	            };
+	            print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
+	            append(out_filament_used_mm,  "%.1lf", used_filament);
+	            append(out_filament_used_cm3, "%.1lf", extruded_volume * 0.001);
+	            if (filament_weight > 0.) {
+	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
+	                append(out_filament_used_g, "%.1lf", filament_weight);
+	                if (filament_cost > 0.) {
+	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
+	                    append(out_filament_cost, "%.1lf", filament_cost);
+	                }
+	            }
+	            print_statistics.total_used_filament += used_filament;
+	            print_statistics.total_extruded_volume += extruded_volume;
+	            print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
+	            print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
+	        }
+	        filament_stats_string_out += out_filament_used_mm.first;
+			filament_stats_string_out += out_filament_used_cm3.first;
+			if (out_filament_used_g.second)
+				filament_stats_string_out += out_filament_used_g.first;
+			if (out_filament_cost.second)
+				filament_stats_string_out += out_filament_cost.first;
+	    }
+	    return filament_stats_string_out;
+	}
+}
+
 #if ENABLE_THUMBNAIL_GENERATOR
 void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
@@ -800,99 +1091,10 @@ void GCode::_do_export(Print& print, FILE* file)
 {
     PROFILE_FUNC();
 
-    // resets time estimators
-    m_normal_time_estimator.reset();
-    m_normal_time_estimator.set_dialect(print.config().gcode_flavor);
-    m_normal_time_estimator.set_extrusion_axis(print.config().get_extrusion_axis()[0]);
-    m_silent_time_estimator_enabled = (print.config().gcode_flavor == gcfMarlin) && print.config().silent_mode;
-
-    // Until we have a UI support for the other firmwares than the Marlin, use the hardcoded default values
-    // and let the user to enter the G-code limits into the start G-code.
-    // If the following block is enabled for other firmwares than the Marlin, then the function
-    // this->print_machine_envelope(file, print);
-    // shall be adjusted as well to produce a G-code block compatible with the particular firmware flavor.
-    if (print.config().gcode_flavor.value == gcfMarlin) {
-        m_normal_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values[0]);
-        m_normal_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[0]);
-        m_normal_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[0]);
-        m_normal_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[0]);
-
-        if (m_silent_time_estimator_enabled)
-        {
-            m_silent_time_estimator.reset();
-            m_silent_time_estimator.set_dialect(print.config().gcode_flavor);
-            m_silent_time_estimator.set_extrusion_axis(print.config().get_extrusion_axis()[0]);
-            /* "Stealth mode" values can be just a copy of "normal mode" values
-            * (when they aren't input for a printer preset).
-            * Thus, use back value from values, instead of second one, which could be absent
-            */
-            m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values.back());
-            m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values.back());
-            m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values.back());
-            m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values.back());
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values.back());
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values.back());
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values.back());
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values.back());
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values.back());
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values.back());
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values.back());
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values.back());
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values.back());
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values.back());
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values.back());
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values.back());
-            if (print.config().single_extruder_multi_material) {
-                // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
-                // are considered to be active for the single extruder multi-material printers only.
-                m_silent_time_estimator.set_filament_load_times(print.config().filament_load_time.values);
-                m_silent_time_estimator.set_filament_unload_times(print.config().filament_unload_time.values);
-            }
-        }
-    }
-    // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
-    if (print.config().single_extruder_multi_material) {
-        // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
-        // are considered to be active for the single extruder multi-material printers only.
-        m_normal_time_estimator.set_filament_load_times(print.config().filament_load_time.values);
-        m_normal_time_estimator.set_filament_unload_times(print.config().filament_unload_time.values);
-    }
-
-    // resets analyzer
-    m_analyzer.reset();
-
-    // send extruder offset data to analyzer
-    GCodeAnalyzer::ExtruderOffsetsMap extruder_offsets;
-    for (unsigned int extruder_id : print.extruders())
-    {
-        Vec2d offset = print.config().extruder_offset.get_at(extruder_id);
-        if (!offset.isApprox(Vec2d::Zero()))
-            extruder_offsets[extruder_id] = offset;
-    }
-    m_analyzer.set_extruder_offsets(extruder_offsets);
-
-    // tell analyzer about the extrusion axis
-    m_analyzer.set_extrusion_axis(print.config().get_extrusion_axis()[0]);
-
-    // send extruders count to analyzer to allow it to detect invalid extruder idxs
-    const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(print.config().option("extruder_colour"));
-    const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(print.config().option("filament_colour"));
-    m_analyzer.set_extruders_count(std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size()));
-
-    // tell analyzer about the gcode flavor
-    m_analyzer.set_gcode_flavor(print.config().gcode_flavor);
+    DoExport::init_time_estimators(print.config(), 
+    	// modifies the following:
+    	m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled);
+    DoExport::init_gcode_analyzer(print.config(), m_analyzer);
 
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
@@ -914,8 +1116,7 @@ void GCode::_do_export(Print& print, FILE* file)
             std::sort(zs.begin(), zs.end());
             m_layer_count += (unsigned int)(object->copies().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
         }
-    }
-    else {
+    } else {
         // Print all objects with the same print_z together.
         std::vector<coordf_t> zs;
         for (auto object : print.objects()) {
@@ -938,47 +1139,7 @@ void GCode::_do_export(Print& print, FILE* file)
     Model* model = print.get_object(0)->model_object()->get_model();
     m_custom_gcode_per_print_z = model->custom_gcode_per_print_z;
 
-    // Initialize autospeed.
-    {
-        // get the minimum cross-section used in the print
-        std::vector<double> mm3_per_mm;
-        for (auto object : print.objects()) {
-            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++region_id) {
-                const PrintRegion* region = print.regions()[region_id];
-                for (auto layer : object->layers()) {
-                    const LayerRegion* layerm = layer->regions()[region_id];
-                    if (region->config().get_abs_value("perimeter_speed") == 0 ||
-                        region->config().get_abs_value("small_perimeter_speed") == 0 ||
-                        region->config().get_abs_value("external_perimeter_speed") == 0 ||
-                        region->config().get_abs_value("bridge_speed") == 0)
-                        mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
-                    if (region->config().get_abs_value("infill_speed") == 0 ||
-                        region->config().get_abs_value("solid_infill_speed") == 0 ||
-                        region->config().get_abs_value("top_solid_infill_speed") == 0 ||
-                        region->config().get_abs_value("bridge_speed") == 0)
-                        mm3_per_mm.push_back(layerm->fills.min_mm3_per_mm());
-                }
-            }
-            if (object->config().get_abs_value("support_material_speed") == 0 ||
-                object->config().get_abs_value("support_material_interface_speed") == 0)
-                for (auto layer : object->support_layers())
-                    mm3_per_mm.push_back(layer->support_fills.min_mm3_per_mm());
-        }
-        print.throw_if_canceled();
-        // filter out 0-width segments
-        mm3_per_mm.erase(std::remove_if(mm3_per_mm.begin(), mm3_per_mm.end(), [](double v) { return v < 0.000001; }), mm3_per_mm.end());
-        if (!mm3_per_mm.empty()) {
-            // In order to honor max_print_speed we need to find a target volumetric
-            // speed that we can use throughout the print. So we define this target 
-            // volumetric speed as the volumetric speed produced by printing the 
-            // smallest cross-section at the maximum speed: any larger cross-section
-            // will need slower feedrates.
-            m_volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config().max_print_speed.value;
-            // limit such volumetric speed with max_volumetric_speed if set
-            if (print.config().max_volumetric_speed.value > 0)
-                m_volumetric_speed = std::min(m_volumetric_speed, print.config().max_volumetric_speed.value);
-        }
-    }
+    m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
@@ -996,47 +1157,9 @@ void GCode::_do_export(Print& print, FILE* file)
     // Write information on the generator.
     _write_format(file, "; %s\n\n", Slic3r::header_slic3r_generated().c_str());
 
-#if ENABLE_THUMBNAIL_GENERATOR
-    // Write thumbnails using base64 encoding
-    if (thumbnail_cb != nullptr)
-    {
-        const size_t max_row_length = 78;
-        ThumbnailsList thumbnails;
-        thumbnail_cb(thumbnails, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true);
-        for (const ThumbnailData& data : thumbnails)
-        {
-            if (data.is_valid())
-            {
-                size_t png_size = 0;
-                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
-                if (png_data != nullptr)
-                {
-                    std::string encoded;
-                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
-                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
-
-                    _write_format(file, "\n;\n; thumbnail begin %dx%d %d\n", data.width, data.height, encoded.size());
-
-                    unsigned int row_count = 0;
-                    while (encoded.size() > max_row_length)
-                    {
-                        _write_format(file, "; %s\n", encoded.substr(0, max_row_length).c_str());
-                        encoded = encoded.substr(max_row_length);
-                        ++row_count;
-                    }
-
-                    if (encoded.size() > 0)
-                        _write_format(file, "; %s\n", encoded.c_str());
-
-                    _write(file, "; thumbnail end\n;\n");
-
-                    mz_free(png_data);
-                }
-            }
-            print.throw_if_canceled();
-        }
-    }
-#endif // ENABLE_THUMBNAIL_GENERATOR
+    DoExport::export_thumbnails_to_file(thumbnail_cb, print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, 
+        [this, file](const char* sz) { this->_write(file, sz); }, 
+        [&print]() { print.throw_if_canceled(); });
 
     // Write notes (content of the Print Settings tab -> Notes)
     {
@@ -1078,9 +1201,6 @@ void GCode::_do_export(Print& print, FILE* file)
         if (m_silent_time_estimator_enabled)
             _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
     }
-
-	// Hold total number of print toolchanges. Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
-    int total_toolchanges = std::max(0, print.wipe_tower_data().number_of_toolchanges);
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
@@ -1187,7 +1307,8 @@ void GCode::_do_export(Print& print, FILE* file)
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
-    m_placeholder_parser.set("total_toolchanges", total_toolchanges);
+    m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+
     std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config().start_gcode.value, initial_extruder_id);
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
@@ -1195,12 +1316,8 @@ void GCode::_do_export(Print& print, FILE* file)
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, false);
 
     if (m_enable_analyzer)
-    {
         // adds tag for analyzer
-        char buf[32];
-        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
-        _writeln(file, buf);
-    }
+        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 
     // Write the custom start G-code
     _writeln(file, start_gcode);
@@ -1228,35 +1345,8 @@ void GCode::_do_export(Print& print, FILE* file)
     }
 
     // Calculate wiping points if needed
-    if (print.config().ooze_prevention.value && ! print.config().single_extruder_multi_material) {
-        Points skirt_points;
-        for (const ExtrusionEntity *ee : print.skirt().entities)
-            for (const ExtrusionPath &path : dynamic_cast<const ExtrusionLoop*>(ee)->paths)
-                append(skirt_points, path.polyline.points);
-        if (! skirt_points.empty()) {
-            Polygon outer_skirt = Slic3r::Geometry::convex_hull(skirt_points);
-            Polygons skirts;
-            for (unsigned int extruder_id : print.extruders()) {
-                const Vec2d &extruder_offset = print.config().extruder_offset.get_at(extruder_id);
-                Polygon s(outer_skirt);
-                s.translate(Point::new_scale(-extruder_offset(0), -extruder_offset(1)));
-                skirts.emplace_back(std::move(s));
-            }
-            m_ooze_prevention.enable = true;
-            m_ooze_prevention.standby_points =
-                offset(Slic3r::Geometry::convex_hull(skirts), scale_(3.f)).front().equally_spaced_points(scale_(10.));
-#if 0
-                require "Slic3r/SVG.pm";
-                Slic3r::SVG::output(
-                    "ooze_prevention.svg",
-                    red_polygons    => \@skirts,
-                    polygons        => [$outer_skirt],
-                    points          => $gcodegen->ooze_prevention->standby_points,
-                );
-#endif
-        }
-        print.throw_if_canceled();
-    }
+    DoExport::init_ooze_prevention(print, m_ooze_prevention);
+    print.throw_if_canceled();
     
     if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming)) {
         // Set initial extruder only after custom start G-code.
@@ -1387,12 +1477,8 @@ void GCode::_do_export(Print& print, FILE* file)
     _write(file, m_writer.set_fan(false));
 
     if (m_enable_analyzer)
-    {
         // adds tag for analyzer
-        char buf[32];
-        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
-        _writeln(file, buf);
-    }
+        _write_format(file, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erCustom);
 
     // Process filament-specific gcode in extruder order.
     {
@@ -1432,60 +1518,13 @@ void GCode::_do_export(Print& print, FILE* file)
         m_silent_time_estimator.calculate_time(false);
 
     // Get filament stats.
-    print.m_print_statistics.clear();
-    print.m_print_statistics.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
-    print.m_print_statistics.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
-    print.m_print_statistics.estimated_normal_color_print_times = m_normal_time_estimator.get_color_times_dhms(true);
-    if (m_silent_time_estimator_enabled)
-        print.m_print_statistics.estimated_silent_color_print_times = m_silent_time_estimator.get_color_times_dhms(true);
-    print.m_print_statistics.total_toolchanges = total_toolchanges;
-    std::vector<Extruder> extruders = m_writer.extruders();
-    if (! extruders.empty()) {
-        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
-        std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
-        std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
-        std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
-        for (const Extruder &extruder : extruders) {
-            double used_filament   = extruder.used_filament() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] : 0.f);
-            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
-            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
-            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
-            auto append = [&extruder, &extruders](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
-                while (dst.second < extruder.id()) {
-                    // Fill in the non-printing extruders with zeros.
-                    dst.first += (dst.second > 0) ? ", 0" : "0";
-                    ++ dst.second;
-                }
-                if (dst.second > 0)
-                    dst.first += ", ";
-                char buf[64];
-				sprintf(buf, tmpl, value);
-                dst.first += buf;
-                ++ dst.second;
-            };
-            print.m_print_statistics.filament_stats.insert(std::pair<size_t, float>{extruder.id(), (float)used_filament});
-            append(out_filament_used_mm,  "%.1lf", used_filament);
-            append(out_filament_used_cm3, "%.1lf", extruded_volume * 0.001);
-            if (filament_weight > 0.) {
-                print.m_print_statistics.total_weight = print.m_print_statistics.total_weight + filament_weight;
-                append(out_filament_used_g, "%.1lf", filament_weight);
-                if (filament_cost > 0.) {
-                    print.m_print_statistics.total_cost = print.m_print_statistics.total_cost + filament_cost;
-                    append(out_filament_cost, "%.1lf", filament_cost);
-                }
-            }
-            print.m_print_statistics.total_used_filament += used_filament;
-            print.m_print_statistics.total_extruded_volume += extruded_volume;
-            print.m_print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
-            print.m_print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
-        }
-        _writeln(file, out_filament_used_mm.first);
-		_writeln(file, out_filament_used_cm3.first);
-		if (out_filament_used_g.second)
-			_writeln(file, out_filament_used_g.first);
-		if (out_filament_cost.second)
-			_writeln(file, out_filament_cost.first);
-    }
+    _write(file, DoExport::update_print_stats_and_format_filament_stats(
+    	// Const inputs
+        m_normal_time_estimator, m_silent_time_estimator, m_silent_time_estimator_enabled, 
+        has_wipe_tower, print.wipe_tower_data(), 
+        m_writer.extruders(),
+        // Modifies
+        print.m_print_statistics));
     _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     if (print.m_print_statistics.total_toolchanges > 0)
@@ -2015,7 +2054,7 @@ void GCode::process_layer(
             slices_test_order.reserve(n_slices);
             for (size_t i = 0; i < n_slices; ++ i)
             	slices_test_order.emplace_back(i);
-            std::sort(slices_test_order.begin(), slices_test_order.end(), [&layer_surface_bboxes](int i, int j) {
+            std::sort(slices_test_order.begin(), slices_test_order.end(), [&layer_surface_bboxes](size_t i, size_t j) {
             	const Vec2d s1 = layer_surface_bboxes[i].size().cast<double>();
             	const Vec2d s2 = layer_surface_bboxes[j].size().cast<double>();
             	return s1.x() * s1.y() < s2.x() * s2.y();
@@ -2188,7 +2227,7 @@ void GCode::process_layer(
                     m_layer = layers[instance_to_print.layer_id].layer();
                 }
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
-                    const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, instance_to_print.instance_id, extruder_id, print_wipe_extrusions) : island.by_region;
+                    const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                 	//FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     if (print.config().infill_first) {
                         gcode += this->extrude_infill(print, by_region_specific);
@@ -3277,7 +3316,7 @@ Point GCode::gcode_to_point(const Vec2d &point) const
 // Goes through by_region std::vector and returns reference to a subvector of entities, that are to be printed
 // during infill/perimeter wiping, or normally (depends on wiping_entities parameter)
 // Fills in by_region_per_copy_cache and returns its reference.
-const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(std::vector<Region> &by_region_per_copy_cache, unsigned int copy, int extruder, bool wiping_entities) const
+const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(std::vector<Region> &by_region_per_copy_cache, unsigned int copy, unsigned int extruder, bool wiping_entities) const
 {
     bool has_overrides = false;
     for (const auto& reg : by_region)
@@ -3313,7 +3352,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
 	            for (unsigned int i = 0; i < overrides.size(); ++ i) {
             		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
             		// This copy (aka object instance) should be printed with this extruder, which overrides the default one.
-	                if (this_override != nullptr && (*this_override)[copy] == extruder)
+	                if (this_override != nullptr && (*this_override)[copy] == int(extruder))
 	                    target_eec.emplace_back(entities[i]);
             	}
 	        } else {
@@ -3322,7 +3361,7 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
 	            for (; i < overrides.size(); ++ i) {
             		const WipingExtrusions::ExtruderPerCopy *this_override = overrides[i];
             		// This copy (aka object instance) should be printed with this extruder, which shall be equal to the default one.
-            		if (this_override == nullptr || (*this_override)[copy] == -extruder-1)
+            		if (this_override == nullptr || (*this_override)[copy] == -int(extruder)-1)
 	                    target_eec.emplace_back(entities[i]);
 	            }
 	            for (; i < overrides.size(); ++ i)

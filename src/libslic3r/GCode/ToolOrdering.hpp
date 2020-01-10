@@ -48,6 +48,11 @@ public:
     void ensure_perimeters_infills_order(const Print& print);
 
     bool is_overriddable(const ExtrusionEntityCollection& ee, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const;
+    bool is_overriddable_and_mark(const ExtrusionEntityCollection& ee, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) {
+    	bool out = this->is_overriddable(ee, print_config, object, region);
+    	this->something_overridable |= out;
+    	return out;
+    }
 
     void set_layer_tools_ptr(const LayerTools* lt) { m_layer_tools = lt; }
 
@@ -60,10 +65,12 @@ private:
 
     // Returns true in case that entity is not printed with its usual extruder for a given copy:
     bool is_entity_overridden(const ExtrusionEntity* entity, size_t copy_id) const {
-        return (entity_map.find(entity) == entity_map.end() ? false : entity_map.at(entity).at(copy_id) != -1);
+        auto it = entity_map.find(entity);
+        return it == entity_map.end() ? false : it->second[copy_id] != -1;
     }
 
     std::map<const ExtrusionEntity*, ExtruderPerCopy> entity_map;  // to keep track of who prints what
+    bool something_overridable = false;
     bool something_overridden = false;
     const LayerTools* m_layer_tools;    // so we know which LayerTools object this belongs to
 };
