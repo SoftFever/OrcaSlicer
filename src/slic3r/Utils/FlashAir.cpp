@@ -79,7 +79,6 @@ bool FlashAir::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
 	const auto upload_filename = upload_data.upload_path.filename();
 	const auto upload_parent_path = upload_data.upload_path.parent_path();
-    //const auto upload_set_dir = upload_da
 	wxString test_msg;
 	if (! test(test_msg)) {
 		error_fn(std::move(test_msg));
