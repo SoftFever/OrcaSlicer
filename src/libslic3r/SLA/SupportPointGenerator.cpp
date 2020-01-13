@@ -49,18 +49,64 @@ float SupportPointGenerator::distance_limit(float angle) const
     return 1./(2.4*get_required_density(angle));
 }*/
 
-SupportPointGenerator::SupportPointGenerator(const sla::EigenMesh3D &       emesh,
-                                 const std::vector<ExPolygons> &slices,
-                                 const std::vector<float> &     heights,
-                                 const Config &                 config,
-                                 std::function<void(void)> throw_on_cancel,
-                                 std::function<void(int)>  statusfn)
+class SupportPointGenerator::RandomGen {
+    std::mt19937 m_;
+public:
+    
+    using result_type = long;
+    
+    RandomGen() 
+    {
+        std::random_device rd;
+        m_.seed(rd());
+    }
+    
+    explicit RandomGen(long seedval) { seed(seedval); }
+    
+    void seed(long s) { m_.seed(std::mt19937::result_type(s)); }
+    long operator() () { return long(m_()); }
+    long min() const { return m_.min(); }
+    long max() const { return m_.max(); }
+};
+
+SupportPointGenerator::SupportPointGenerator(
+        const sla::EigenMesh3D &emesh,
+        const std::vector<ExPolygons> &slices,
+        const std::vector<float> &     heights,
+        const Config &                 config,
+        std::function<void(void)> throw_on_cancel,
+        std::function<void(int)>  statusfn)
+    : SupportPointGenerator(emesh, config, throw_on_cancel, statusfn)
+{
+    execute(slices, heights);
+}
+
+SupportPointGenerator::SupportPointGenerator(
+        const EigenMesh3D &emesh,
+        const SupportPointGenerator::Config &config,
+        std::function<void ()> throw_on_cancel, 
+        std::function<void (int)> statusfn)
     : m_config(config)
     , m_emesh(emesh)
     , m_throw_on_cancel(throw_on_cancel)
     , m_statusfn(statusfn)
 {
-    process(slices, heights);
+}
+
+void SupportPointGenerator::execute(const std::vector<ExPolygons> &slices,
+                                    const std::vector<float> &     heights)
+{
+    RandomGen rng;
+    process(slices, heights, rng);
+    project_onto_mesh(m_output);
+}
+
+void SupportPointGenerator::execute(const std::vector<ExPolygons> &slices,
+                                    const std::vector<float> &     heights,
+                                    long seed)
+{
+    RandomGen rng(seed);
+    process(slices, heights, rng);
     project_onto_mesh(m_output);
 }
 
@@ -184,7 +230,7 @@ static std::vector<SupportPointGenerator::MyLayer> make_layers(
     return layers;
 }
 
-void SupportPointGenerator::process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights)
+void SupportPointGenerator::process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights, RandomGen &rng)
 {
 #ifdef SLA_SUPPORTPOINTGEN_DEBUG
     std::vector<std::pair<ExPolygon, coord_t>> islands;
@@ -239,15 +285,15 @@ void SupportPointGenerator::process(const std::vector<ExPolygons>& slices, const
 
             //float force_deficit = s.support_force_deficit(m_config.tear_pressure());
             if (s.islands_below.empty()) { // completely new island - needs support no doubt
-                uniformly_cover({ *s.polygon }, s, point_grid, true);
+                uniformly_cover({ *s.polygon }, s, point_grid, rng, true);
             } else if (! s.dangling_areas.empty()) {
                 // Let's see if there's anything that overlaps enough to need supports:
                 // What we now have in polygons needs support, regardless of what the forces are, so we can add them.
                 //FIXME is it an island point or not? Vojtech thinks it is.
-                uniformly_cover(s.dangling_areas, s, point_grid);
+                uniformly_cover(s.dangling_areas, s, point_grid, rng);
             } else if (! s.overhangs_slopes.empty()) {
                 //FIXME add the support force deficit as a parameter, only cover until the defficiency is covered.
-                uniformly_cover(s.overhangs_slopes, s, point_grid);
+                uniformly_cover(s.overhangs_slopes, s, point_grid, rng);
             }
         }
 
@@ -266,7 +312,7 @@ void SupportPointGenerator::process(const std::vector<ExPolygons>& slices, const
     }
 }
 
-std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_mm2, std::mt19937 &rng)
+std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_mm2, SupportPointGenerator::RandomGen &rng)
 {
     // Triangulate the polygon with holes into triplets of 3D points.
     std::vector<Vec2f> triangles = Slic3r::triangulate_expolygon_2f(expoly);
@@ -306,7 +352,7 @@ std::vector<Vec2f> sample_expolygon(const ExPolygon &expoly, float samples_per_m
     return out;
 }
 
-std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygon &expoly, float samples_per_mm2, float samples_per_mm_boundary, std::mt19937 &rng)
+std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygon &expoly, float samples_per_mm2, float samples_per_mm_boundary, SupportPointGenerator::RandomGen &rng)
 {
     std::vector<Vec2f> out = sample_expolygon(expoly, samples_per_mm2, rng);
     double             point_stepping_scaled = scale_(1.f) / samples_per_mm_boundary;
@@ -319,7 +365,7 @@ std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygon &expoly, float
     return out;
 }
 
-std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygons &expolys, float samples_per_mm2, float samples_per_mm_boundary, std::mt19937 &rng)
+std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygons &expolys, float samples_per_mm2, float samples_per_mm_boundary, SupportPointGenerator::RandomGen &rng)
 {
     std::vector<Vec2f> out;
     for (const ExPolygon &expoly : expolys)
@@ -442,7 +488,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     return out;
 }
 
-void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island, bool just_one)
+void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, RandomGen &rng, bool is_new_island, bool just_one)
 {
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
@@ -463,8 +509,7 @@ void SupportPointGenerator::uniformly_cover(const ExPolygons& islands, Structure
     float min_spacing			= poisson_radius;
 
     //FIXME share the random generator. The random generator may be not so cheap to initialize, also we don't want the random generator to be restarted for each polygon.
-    std::random_device  rd;
-    std::mt19937        rng(rd());
+    
     std::vector<Vec2f>  raw_samples = sample_expolygon_with_boundary(islands, samples_per_mm2, 5.f / poisson_radius, rng);
     std::vector<Vec2f>  poisson_samples;
     for (size_t iter = 0; iter < 4; ++ iter) {

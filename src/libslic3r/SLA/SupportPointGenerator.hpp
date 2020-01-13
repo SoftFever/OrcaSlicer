@@ -29,6 +29,8 @@ public:
     SupportPointGenerator(const EigenMesh3D& emesh, const std::vector<ExPolygons>& slices,
                     const std::vector<float>& heights, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
     
+    SupportPointGenerator(const EigenMesh3D& emesh, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
+    
     const std::vector<SupportPoint>& output() { return m_output; }
     
     struct MyLayer;
@@ -184,13 +186,21 @@ public:
         }
     };
     
+    void execute(const std::vector<ExPolygons> &slices,
+                 const std::vector<float> &     heights);
+    
+    void execute(const std::vector<ExPolygons> &slices,
+                 const std::vector<float> &     heights, long seed);
+    
+    class RandomGen;
+    
 private:
     std::vector<SupportPoint> m_output;
     
     SupportPointGenerator::Config m_config;
     
-    void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
-    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island = false, bool just_one = false);
+    void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights, RandomGen&);
+    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, RandomGen&, bool is_new_island = false, bool just_one = false);
     void project_onto_mesh(std::vector<SupportPoint>& points) const;
 
 #ifdef SLA_SUPPORTPOINTGEN_DEBUG
