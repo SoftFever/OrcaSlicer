@@ -768,7 +768,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
 #if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 PageReloadFromDisk::PageReloadFromDisk(ConfigWizard* parent)
     : ConfigWizardPage(parent, _(L("Reload from disk")), _(L("Reload from disk")))
-    , full_pathnames(true)
+    , full_pathnames(false)
 {
     auto* box_pathnames = new wxCheckBox(this, wxID_ANY, _(L("Export full pathnames of models and parts sources into 3mf and amf files")));
     box_pathnames->SetValue(wxGetApp().app_config->get("export_sources_full_pathnames") == "1");
