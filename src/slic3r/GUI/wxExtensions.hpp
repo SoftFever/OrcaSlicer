@@ -898,6 +898,8 @@ protected:
     void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
 
+private:
+
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     int     is_point_near_tick(const wxPoint& pt);
 
@@ -910,9 +912,9 @@ protected:
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
     wxString    get_tooltip(IconFocus icon_focus);
-    bool        get_color_for_tick( wxColour& color, 
-                                    std::set<TICK_CODE>::const_iterator tick_it, 
-                                    const std::vector<std::string>& colors) const;
+
+    std::string get_color_for_tool_change_tick(std::set<TICK_CODE>::const_iterator it) const;
+    std::string get_color_for_color_change_tick(std::set<TICK_CODE>::const_iterator it) const;
     int         get_extruder_for_tick(int tick);
     std::set<int>   get_used_extruders_for_tick(int tick);
 
@@ -920,7 +922,6 @@ protected:
     void        append_change_extruder_menu_item(wxMenu*);
     void        append_add_color_change_menu_item(wxMenu*);
 
-private:
     bool        is_osx { false };
     wxFont      m_font;
     int         m_min_value;
