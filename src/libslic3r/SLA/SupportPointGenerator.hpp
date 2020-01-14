@@ -79,7 +79,7 @@ public:
         ExPolygons                              overhangs;
         // Overhangs, where the surface must slope.
         ExPolygons                              overhangs_slopes;
-        float                                   overhangs_area;
+        float                                   overhangs_area = 0.f;
         
         bool overlaps(const Structure &rhs) const { 
             return this->bbox.overlap(rhs.bbox) && (this->polygon->overlaps(*rhs.polygon) || rhs.polygon->overlaps(*this->polygon)); 
