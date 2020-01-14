@@ -89,7 +89,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     }
 
     // Collect extruders reuqired to print the layers.
-    this->collect_extruders(object, nullptr);
+    this->collect_extruders(object, std::vector<std::pair<double, unsigned int>>());
 
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
@@ -128,10 +128,9 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 
 	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
 	// Do it only if all the objects were configured to be printed with a single extruder.
-	const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches = (print.object_extruders().size() == 1) ? 
-		&custom_tool_changes(print.model(), (unsigned int)print.config().nozzle_diameter.size()) : nullptr;
-	if (per_layer_extruder_switches != nullptr && per_layer_extruder_switches->empty())
-		per_layer_extruder_switches = nullptr;
+	std::vector<std::pair<double, unsigned int>> per_layer_extruder_switches;
+	if (print.object_extruders().size() == 1)
+		per_layer_extruder_switches = custom_tool_changes(print.model(), (unsigned int)print.config().nozzle_diameter.size());
 
     // Collect extruders reuqired to print the layers.
     for (auto object : print.objects())
@@ -166,7 +165,7 @@ void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
 }
 
 // Collect extruders reuqired to print layers.
-void ToolOrdering::collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches)
+void ToolOrdering::collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches)
 {
     // Collect the support extruders.
     for (auto support_layer : object.support_layers()) {
@@ -186,8 +185,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
 
     // Extruder overrides are ordered by print_z.
     std::vector<std::pair<double, unsigned int>>::const_iterator it_per_layer_extruder_override;
-    if (per_layer_extruder_switches != nullptr)
-    	it_per_layer_extruder_override = per_layer_extruder_switches->begin();
+	it_per_layer_extruder_override = per_layer_extruder_switches.begin();
     unsigned int extruder_override = 0;
 
     // Collect the object extruders.
@@ -195,9 +193,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
 
         // Override extruder with the next 
-        if (per_layer_extruder_switches != nullptr)
-        	for (; it_per_layer_extruder_override != per_layer_extruder_switches->end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
-        		extruder_override = (int)it_per_layer_extruder_override->second;
+    	for (; it_per_layer_extruder_override != per_layer_extruder_switches.end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
+    		extruder_override = (int)it_per_layer_extruder_override->second;
 
         // Store the current extruder override (set to zero if no overriden), so that layer_tools.wiping_extrusions().is_overridable_and_mark() will use it.
         layer_tools.extruder_override = extruder_override;
