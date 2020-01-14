@@ -68,19 +68,31 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
         return;
     }
 
-    if (m_c->m_model_object != model_object || m_c->m_model_object_id != model_object->id()) {
+    bool something_changed = false;
+
+    if (m_c->m_model_object != model_object
+     || m_c->m_model_object_id != model_object->id()
+     || m_c->m_active_instance != selection.get_instance_idx()) {
         m_c->m_model_object = model_object;
         m_c->m_print_object_idx = -1;
+        m_c->m_active_instance = selection.get_instance_idx();
+        something_changed = true;
     }
-
-    m_c->m_active_instance = selection.get_instance_idx();
 
     if (model_object && selection.is_from_single_instance())
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
-        //FIXME calling ModelObject::instance_bounding_box() is expensive!
-        m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
+        if (something_changed) {
+            m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
+            if (m_state == On) {
+                m_parent.toggle_model_objects_visibility(false);
+                m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+                m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
+            }
+            else
+                m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+        }
 
         if (is_mesh_update_necessary()) {
             update_mesh();
@@ -90,14 +102,6 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
         // If we triggered autogeneration before, check backend and fetch results if they are there
         if (m_c->m_model_object->sla_points_status == sla::PointsStatus::Generating)
             get_data_from_backend();
-
-        if (m_state == On) {
-            m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
-        }
-        else
-            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
     }
 }
 
@@ -350,41 +354,42 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     }
 
     // Now render the drain holes:
-//    render_color[0] = 0.7f;
-//    render_color[1] = 0.7f;
-//    render_color[2] = 0.7f;
-//    render_color[3] = 0.7f;
-//    glsafe(::glColor4fv(render_color));
-//    for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
-//        // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-//        glsafe(::glPushMatrix());
-//        glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
-//        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+    if (! m_c->m_cavity_mesh) {
+        render_color[0] = 0.7f;
+        render_color[1] = 0.7f;
+        render_color[2] = 0.7f;
+        render_color[3] = 0.7f;
+        glsafe(::glColor4fv(render_color));
+        for (const sla::DrainHole& drain_hole : m_c->m_model_object->sla_drain_holes) {
+            // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
+            glsafe(::glPushMatrix());
+            glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
+            glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
-//        if (vol->is_left_handed())
-//            glFrontFace(GL_CW);
+            if (vol->is_left_handed())
+                glFrontFace(GL_CW);
 
-//        // Matrices set, we can render the point mark now.
+            // Matrices set, we can render the point mark now.
 
-//        Eigen::Quaterniond q;
-//        q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
-//        Eigen::AngleAxisd aa(q);
-//        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
-//        glsafe(::glPushMatrix());
-//        glsafe(::glTranslated(0., 0., -drain_hole.height));
-//        ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
-//        glsafe(::glTranslated(0., 0., drain_hole.height));
-//        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-//        glsafe(::glTranslated(0., 0., -drain_hole.height));
-//        glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
-//        ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
-//        glsafe(::glPopMatrix());
+            Eigen::Quaterniond q;
+            q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
+            Eigen::AngleAxisd aa(q);
+            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
+            glsafe(::glPushMatrix());
+            glsafe(::glTranslated(0., 0., -drain_hole.height));
+            ::gluCylinder(m_quadric, drain_hole.radius, drain_hole.radius, drain_hole.height, 24, 1);
+            glsafe(::glTranslated(0., 0., drain_hole.height));
+            ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+            glsafe(::glTranslated(0., 0., -drain_hole.height));
+            glsafe(::glRotatef(180.f, 1.f, 0.f, 0.f));
+            ::gluDisk(m_quadric, 0.0, drain_hole.radius, 24, 1);
+            glsafe(::glPopMatrix());
 
-//        if (vol->is_left_handed())
-//            glFrontFace(GL_CCW);
-//        glsafe(::glPopMatrix());
-
-//    }
+            if (vol->is_left_handed())
+                glFrontFace(GL_CCW);
+            glsafe(::glPopMatrix());
+        }
+    }
 
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
@@ -454,10 +459,15 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
     if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
         // Check whether the hit is in a hole
         bool in_hole = false;
-        for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
-            if (hole.is_inside(hit)) {
-                in_hole = true;
-                break;
+        // In case the hollowed and drilled mesh is available, we can allow
+        // placing points in holes, because they should never end up
+        // on surface that's been drilled away.
+        if (! m_c->m_cavity_mesh) {
+            for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
+                if (hole.is_inside(hit)) {
+                    in_hole = true;
+                    break;
+                }
             }
         }
         if (! in_hole) {

@@ -21,10 +21,6 @@ enum class SLAGizmoEventType : unsigned char;
 class GLGizmoHollow : public GLGizmoBase
 {
 private:
-    //ModelObject* m_model_object = nullptr;
-    //ObjectID m_model_object_id = 0;
-    //int m_active_instance = -1;
-    //float m_active_instance_bb_radius; // to cache the bb
     mutable double m_z_shift = 0.;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
@@ -32,13 +28,6 @@ private:
 
     GLUquadricObj* m_quadric;
 
-    //std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    //std::unique_ptr<TriangleMesh> m_cavity_mesh;
-    //std::unique_ptr<GLVolume> m_volume_with_cavity;
-    //const TriangleMesh* m_mesh;
-    //mutable int m_old_timestamp = -1;
-    //mutable int m_print_object_idx = -1;
-    //mutable int m_print_objects_count = -1;
 
 public:
     GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd);
@@ -69,7 +58,7 @@ private:
     bool unsaved_changes() const;
 
     bool  m_show_supports = true;
-    float m_new_hole_radius;        // Size of a new hole.
+    float m_new_hole_radius = 4.f;        // Size of a new hole.
     float m_new_hole_height = 5.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected
 
@@ -77,7 +66,7 @@ private:
 
     // Stashes to keep data for undo redo. Is taken after the editing
     // is done, the data are updated continuously.
-    float m_offset_stash = 2.0f;
+    float m_offset_stash = 3.0f;
     float m_quality_stash = 0.5f;
     float m_closing_d_stash = 2.f;
     Vec3f m_hole_before_drag = Vec3f::Zero();
@@ -100,10 +89,7 @@ private:
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    //mutable std::unique_ptr<MeshClipper> m_object_clipper;
-    //mutable std::unique_ptr<MeshClipper> m_supports_clipper;
-
-    std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
+    std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> get_config_options(const std::vector<std::string>& keys) const;
     bool is_mesh_point_clipped(const Vec3d& point) const;
 
     // Methods that do the model_object and editing cache synchronization,

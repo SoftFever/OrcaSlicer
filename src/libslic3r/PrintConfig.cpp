@@ -2887,8 +2887,9 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Minimum wall thickness of a hollowed model.");
     def->sidetext = L("mm");
     def->min = 1;
+    def->max = 10;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(4));
+    def->set_default_value(new ConfigOptionFloat(3.));
     
     def = this->add("hollowing_quality", coFloat);
     def->label = L("Hollowing accuracy");
@@ -2904,6 +2905,7 @@ void PrintConfigDef::init_sla_params()
     def->category = L("Hollowing");
     def->tooltip  = L("");
     def->min = 0;
+    def->max = 10;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(2.0));
 }

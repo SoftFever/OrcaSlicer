@@ -443,7 +443,13 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             std::pair<Vec3f, Vec3f> pos_and_normal;
             if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add drainage hole")));
-                m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second,
+
+                Vec3d scaling = m_c->m_model_object->instances[m_c->m_active_instance]->get_scaling_factor();
+                Vec3f normal_transformed(pos_and_normal.second(0)/scaling(0),
+                                         pos_and_normal.second(1)/scaling(1),
+                                         pos_and_normal.second(2)/scaling(2));
+
+                m_c->m_model_object->sla_drain_holes.emplace_back(pos_and_normal.first + HoleStickOutLength * pos_and_normal.second/* normal_transformed.normalized()*/,
                                                              -pos_and_normal.second, m_new_hole_radius, m_new_hole_height+HoleStickOutLength);
                 m_selected.push_back(false);
                 assert(m_selected.size() == m_c->m_model_object->sla_drain_holes.size());
@@ -580,10 +586,10 @@ std::pair<const TriangleMesh *, sla::HollowingConfig> GLGizmoHollow::get_hollowi
 {
     // FIXME this function is probably obsolete, caller could
     // get the data from model config himself
-    std::vector<const ConfigOption*> opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
-    double offset = static_cast<const ConfigOptionFloat*>(opts[0])->value;
-    double quality = static_cast<const ConfigOptionFloat*>(opts[1])->value;
-    double closing_d = static_cast<const ConfigOptionFloat*>(opts[2])->value;
+    auto opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
+    double offset = static_cast<const ConfigOptionFloat*>(opts[0].first)->value;
+    double quality = static_cast<const ConfigOptionFloat*>(opts[1].first)->value;
+    double closing_d = static_cast<const ConfigOptionFloat*>(opts[2].first)->value;
     return std::make_pair(m_c->m_mesh, sla::HollowingConfig{offset, quality, closing_d});
 }
 
@@ -611,16 +617,19 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         if (! m_c->m_model_object->sla_drain_holes.empty()) {
             TriangleMesh holes_mesh;
             for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
-                TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/8);
+                TriangleMesh hole_mesh = make_cylinder(hole.radius, hole.height, 2*M_PI/32);
+
+                Vec3d scaling = m_c->m_model_object->instances[m_c->m_active_instance]->get_scaling_factor();
+                Vec3d normal_transformed = Vec3d(hole.normal(0)/scaling(0), hole.normal(1)/scaling(1), hole.normal(2)/scaling(2));
+                normal_transformed.normalize();
 
                 // Rotate the cylinder appropriately
-                Eigen::Quaternionf q;
-                Transform3f m = Transform3f::Identity();
-                m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3f::UnitZ(), hole.normal).toRotationMatrix();
-                hole_mesh.transform(m.cast<double>());
+                Eigen::Quaterniond q;
+                Transform3d m = Transform3d::Identity();
+                m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3d::UnitZ(), normal_transformed).toRotationMatrix();
+                hole_mesh.transform(m);
 
                 // If the instance is scaled, undo the scaling of the hole
-                Vec3d scaling = m_c->m_model_object->instances[m_c->m_active_instance]->get_scaling_factor();
                 hole_mesh.scale(Vec3d(1/scaling(0), 1/scaling(1), 1/scaling(2)));
 
                 // Translate the hole into position and merge with the others
@@ -647,9 +656,9 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
     }
 }
 
-std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
+std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
 {
-    std::vector<const ConfigOption*> out;
+    std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> out;
 
     if (!m_c->m_model_object)
         return out;
@@ -660,14 +669,14 @@ std::vector<const ConfigOption*> GLGizmoHollow::get_config_options(const std::ve
 
     for (const std::string& key : keys) {
         if (object_cfg.has(key))
-            out.push_back(object_cfg.option(key));
+            out.emplace_back(object_cfg.option(key), &object_cfg.def()->options.at(key)); // at() needed for const map
         else
             if (print_cfg.has(key))
-                out.push_back(print_cfg.option(key));
+                out.emplace_back(print_cfg.option(key), &print_cfg.def()->options.at(key));
             else { // we must get it from defaults
                 if (default_cfg == nullptr)
                     default_cfg.reset(DynamicPrintConfig::new_from_defaults_keys(keys));
-                out.push_back(default_cfg->option(key));
+                out.emplace_back(default_cfg->option(key), &default_cfg->def()->options.at(key));
             }
     }
 
@@ -714,8 +723,8 @@ RENDER_AGAIN:
     window_width = std::max(std::max(window_width, /*buttons_width_approx*/0.f), 0.f);
 
     {
-        std::vector<const ConfigOption*> opts = get_config_options({"hollowing_enable"});
-        m_enable_hollowing = static_cast<const ConfigOptionBool*>(opts[0])->value;
+        auto opts = get_config_options({"hollowing_enable"});
+        m_enable_hollowing = static_cast<const ConfigOptionBool*>(opts[0].first)->value;
         if (m_imgui->checkbox(m_desc["enable"], m_enable_hollowing)) {
             m_c->m_model_object->config.opt<ConfigOptionBool>("hollowing_enable", true)->value = m_enable_hollowing;
             wxGetApp().obj_list()->update_and_show_object_settings_item();
@@ -727,29 +736,57 @@ RENDER_AGAIN:
     if (m_imgui->button(m_desc["preview"]))
         hollow_mesh();
 
-    std::vector<const ConfigOption*> opts = get_config_options({"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"});
-    float offset = static_cast<const ConfigOptionFloat*>(opts[0])->value;
-    float quality = static_cast<const ConfigOptionFloat*>(opts[1])->value;
-    float closing_d = static_cast<const ConfigOptionFloat*>(opts[2])->value;
+    std::vector<std::string> opts_keys = {"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"};
+    auto opts = get_config_options(opts_keys);
+    auto* offset_cfg = static_cast<const ConfigOptionFloat*>(opts[0].first);
+    float offset = offset_cfg->value;
+    double offset_min = opts[0].second->min;
+    double offset_max = opts[0].second->max;
+
+    auto* quality_cfg = static_cast<const ConfigOptionFloat*>(opts[1].first);
+    float quality = quality_cfg->value;
+    double quality_min = opts[1].second->min;
+    double quality_max = opts[1].second->max;
+
+    auto* closing_d_cfg = static_cast<const ConfigOptionFloat*>(opts[2].first);
+    float closing_d = closing_d_cfg->value;
+    double closing_d_min = opts[2].second->min;
+    double closing_d_max = opts[2].second->max;
+
 
     m_imgui->text(m_desc.at("offset"));
     ImGui::SameLine(settings_sliders_left);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
-    ImGui::SliderFloat("   ", &offset, 0.f, 5.f, "%.1f");
+    ImGui::SliderFloat("   ", &offset, offset_min, offset_max, "%.1f");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(_(opts[0].second->tooltip).ToUTF8());
+        ImGui::EndTooltip();
+    }
     bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
     bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
     bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
 
     m_imgui->text(m_desc.at("quality"));
     ImGui::SameLine(settings_sliders_left);
-    ImGui::SliderFloat("    ", &quality, 0.f, 1.f, "%.1f");
+    ImGui::SliderFloat("    ", &quality, quality_min, quality_max, "%.1f");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(_(opts[1].second->tooltip).ToUTF8());
+        ImGui::EndTooltip();
+    }
     slider_clicked |= ImGui::IsItemClicked();
     slider_edited |= ImGui::IsItemEdited();
     slider_released |= ImGui::IsItemDeactivatedAfterEdit();
 
     m_imgui->text(m_desc.at("closing_distance"));
     ImGui::SameLine(settings_sliders_left);
-    ImGui::SliderFloat("      ", &closing_d, 0.f, 10.f, "%.1f");
+    ImGui::SliderFloat("      ", &closing_d, closing_d_min, closing_d_max, "%.1f");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(_(opts[2].second->tooltip).ToUTF8());
+        ImGui::EndTooltip();
+    }
     slider_clicked |= ImGui::IsItemClicked();
     slider_edited |= ImGui::IsItemEdited();
     slider_released |= ImGui::IsItemDeactivatedAfterEdit();
@@ -955,8 +992,8 @@ void GLGizmoHollow::on_set_state()
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
 
         // Set default head diameter from config.
-        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-        m_new_hole_radius = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
+        //const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+        //m_new_hole_radius = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
