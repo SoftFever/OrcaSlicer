@@ -1082,6 +1082,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_parent.toggle_model_objects_visibility(true);
             m_normal_cache.clear();
             m_clipping_plane_distance = 0.f;
+            update_clipping_plane();
             // Release clippers and the AABB raycaster.
             m_its = nullptr;
             m_c->m_object_clipper.reset();

@@ -963,10 +963,6 @@ std::string GLGizmoHollow::on_get_name() const
 }
 
 
-//const TriangleMesh* GLGizmoHollow::mesh() const {
-//    return (! m_c->m_mesh ? nullptr : (m_c->m_cavity_mesh ? m_c->m_cavity_mesh.get() : m_c->m_mesh));
-//}
-
 
 void GLGizmoHollow::on_set_state()
 {
@@ -1004,6 +1000,7 @@ void GLGizmoHollow::on_set_state()
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
         m_parent.toggle_model_objects_visibility(true);
         m_clipping_plane_distance = 0.f;
+        update_clipping_plane();
         // Release clippers and the AABB raycaster.
         m_c->m_object_clipper.reset();
         m_c->m_supports_clipper.reset();
