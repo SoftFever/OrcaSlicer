@@ -7,6 +7,14 @@
 namespace Slic3r {
 namespace sla {
 
+static const Vec3d DOWN = {0.0, 0.0, -1.0};
+
+using libnest2d::opt::initvals;
+using libnest2d::opt::bound;
+using libnest2d::opt::StopCriteria;
+using libnest2d::opt::GeneticOptimizer;
+using libnest2d::opt::SubplexOptimizer;
+
 SupportTreeBuildsteps::SupportTreeBuildsteps(SupportTreeBuilder &   builder,
                                              const SupportableMesh &sm)
     : m_cfg(sm.cfg)
@@ -560,8 +568,6 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                                                  double       radius,
                                                  long         head_id)
 {
-    // People were killed for this number (seriously)
-    static const Vec3d  DOWN = {0.0, 0.0, -1.0};
     const double SLOPE = 1. / std::cos(m_cfg.bridge_slope);
     
     double gndlvl       = m_builder.ground_level;
@@ -587,7 +593,8 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         normal_mode = false;
 
         // The min distance needed to move away from the model in XY plane.
-        double mind = min_dist - dist;
+        double current_d = min_dist - dist;
+        double current_bride_d = SLOPE * current_d;
 
         // get a suitable direction for the corrector bridge. It is the
         // original sourcedir's azimuth but the polar angle is saturated to the
@@ -596,7 +603,6 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         polar = PI - m_cfg.bridge_slope;
         auto dir = spheric_to_dir(polar, azimuth).normalized();
         
-        using namespace libnest2d::opt;
         StopCriteria scr;
         scr.stop_score = min_dist;
         SubplexOptimizer solver(scr);
@@ -610,10 +616,10 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
                 endpt(Z)    = gndlvl;
                 return std::sqrt(m_mesh.squared_distance(endpt));
             },
-            initvals(SLOPE * mind), bound(0.0, 2 * SLOPE * min_dist));
+            initvals(current_bride_d), 
+            bound(0.0, m_cfg.max_bridge_length_mm - current_bride_d));
         
-        mind         = std::get<0>(result.optimum);
-        endp         = jp + SLOPE * mind * dir;
+        endp         = jp + std::get<0>(result.optimum) * dir;
         Vec3d pgnd   = {endp(X), endp(Y), gndlvl};
         can_add_base = result.score > min_dist;
         
@@ -693,11 +699,6 @@ void SupportTreeBuildsteps::filter()
     // support creation. The angle may be inappropriate or there may
     // not be enough space for the pinhead. Filtering is applied for
     // these reasons.
-    
-    using libnest2d::opt::bound;
-    using libnest2d::opt::initvals;
-    using libnest2d::opt::GeneticOptimizer;
-    using libnest2d::opt::StopCriteria;
     
     ccr::SpinningMutex mutex;
     auto addfn = [&mutex](PtIndices &container, unsigned val) {
@@ -836,16 +837,17 @@ void SupportTreeBuildsteps::classify()
         m_thr();
         
         auto& head = m_builder.head(i);
-        Vec3d n(0, 0, -1);
         double r = head.r_back_mm;
         Vec3d headjp = head.junction_point();
         
         // collision check
-        auto hit = bridge_mesh_intersect(headjp, n, r);
+        auto hit = bridge_mesh_intersect(headjp, DOWN, r);
         
         if(std::isinf(hit.distance())) ground_head_indices.emplace_back(i);
         else if(m_cfg.ground_facing_only)  head.invalidate();
-        else m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
+        else m_iheads_onmodel.emplace_back(i);
+        
+        m_head_to_ground_scans[i] = hit;
     }
     
     // We want to search for clusters of points that are far enough
@@ -892,13 +894,14 @@ void SupportTreeBuildsteps::routing_to_ground()
         // get the current cluster centroid
         auto &      thr    = m_thr;
         const auto &points = m_points;
-        long        lcid   = cluster_centroid(
+
+        long lcid = cluster_centroid(
             cl, [&points](size_t idx) { return points.row(long(idx)); },
             [thr](const Vec3d &p1, const Vec3d &p2) {
                 thr();
                 return distance(Vec2d(p1(X), p1(Y)), Vec2d(p2(X), p2(Y)));
             });
-        
+
         assert(lcid >= 0);
         unsigned hid = cl[size_t(lcid)]; // Head ID
         
@@ -943,192 +946,138 @@ void SupportTreeBuildsteps::routing_to_ground()
     }
 }
 
+bool SupportTreeBuildsteps::connect_to_ground(Head &head, const Vec3d &dir)
+{
+    auto hjp = head.junction_point();
+    double r = head.r_back_mm;
+    double t = bridge_mesh_intersect(hjp, dir, head.r_back_mm);
+    double d = 0, tdown = 0;
+    t = std::min(t, m_cfg.max_bridge_length_mm);
+
+    while (d < t && !std::isinf(tdown = bridge_mesh_intersect(hjp + d * dir, DOWN, r)))
+        d += r;
+    
+    if(!std::isinf(tdown)) return false;
+    
+    Vec3d endp = hjp + d * dir;
+    m_builder.add_bridge(head.id, endp);
+    m_builder.add_junction(endp, head.r_back_mm);
+    
+    this->create_ground_pillar(endp, dir, head.r_back_mm);
+    
+    return true;
+}
+
+bool SupportTreeBuildsteps::connect_to_ground(Head &head)
+{
+    if (connect_to_ground(head, head.dir)) return true;
+    
+    // Optimize bridge direction:
+    // Straight path failed so we will try to search for a suitable
+    // direction out of the cavity.
+    auto [polar, azimuth] = dir_to_spheric(head.dir);
+    
+    StopCriteria stc;
+    stc.max_iterations = m_cfg.optimizer_max_iterations;
+    stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
+    stc.stop_score = 1e6;
+    GeneticOptimizer solver(stc);
+    solver.seed(0); // we want deterministic behavior
+    
+    double r_back = head.r_back_mm;
+    Vec3d hjp = head.junction_point();    
+    auto oresult = solver.optimize_max(
+        [this, hjp, r_back](double plr, double azm) {
+            Vec3d n = spheric_to_dir(plr, azm).normalized();
+            return bridge_mesh_intersect(hjp, n, r_back);
+        },
+        initvals(polar, azimuth),  // let's start with what we have
+        bound(3*PI/4, PI),  // Must not exceed the slope limit
+        bound(-PI, PI)      // azimuth can be a full range search
+        );
+    
+    Vec3d bridgedir = spheric_to_dir(oresult.optimum).normalized();
+    return connect_to_ground(head, bridgedir);
+}
+
+bool SupportTreeBuildsteps::connect_to_model_body(Head &head)
+{
+    if (head.id <= ID_UNSET) return false;
+    
+    auto it = m_head_to_ground_scans.find(unsigned(head.id));
+    if (it == m_head_to_ground_scans.end()) return false;
+    
+    auto &hit = it->second;
+    Vec3d hjp = head.junction_point();
+    double zangle = std::asin(hit.direction()(Z));
+    zangle = std::max(zangle, PI/4);
+    double h = std::sin(zangle) * head.fullwidth();
+
+    // The width of the tail head that we would like to have...
+    h = std::min(hit.distance() - head.r_back_mm, h);
+    
+    if(h <= 0.) return false;
+    
+    Vec3d endp{hjp(X), hjp(Y), hjp(Z) - hit.distance() + h};
+    auto center_hit = m_mesh.query_ray_hit(hjp, DOWN);
+
+    double hitdiff = center_hit.distance() - hit.distance();
+    Vec3d hitp = std::abs(hitdiff) < 2*head.r_back_mm?
+                     center_hit.position() : hit.position();
+
+    head.transform();
+
+    long pillar_id = m_builder.add_pillar(head.id, endp, head.r_back_mm);
+    Pillar &pill = m_builder.pillar(pillar_id);
+
+    Vec3d taildir = endp - hitp;
+    double dist = distance(endp, hitp) + m_cfg.head_penetration_mm;
+    double w = dist - 2 * head.r_pin_mm - head.r_back_mm;
+
+    if (w < 0.) {
+        BOOST_LOG_TRIVIAL(error) << "Pinhead width is negative!";
+        w = 0.;
+    }
+
+    Head tailhead(head.r_back_mm, head.r_pin_mm, w,
+                  m_cfg.head_penetration_mm, taildir, hitp);
+
+    tailhead.transform();
+    pill.base = tailhead.mesh;
+    
+    m_pillar_index.guarded_insert(pill.endpoint(), pill.id);
+    
+    return true;
+}
+
 void SupportTreeBuildsteps::routing_to_model()
 {   
     // We need to check if there is an easy way out to the bed surface.
     // If it can be routed there with a bridge shorter than
     // min_bridge_distance.
-    
-    // First we want to index the available pillars. The best is to connect
-    // these points to the available pillars
-    
-    auto routedown = [this](Head& head, const Vec3d& dir, double dist)
-    {
-        head.transform();
-        Vec3d endp = head.junction_point() + dist * dir;
-        m_builder.add_bridge(head.id, endp);
-        m_builder.add_junction(endp, head.r_back_mm);
-        
-        this->create_ground_pillar(endp, dir, head.r_back_mm);
-    };
-    
-    std::vector<unsigned> modelpillars;
-    ccr::SpinningMutex mutex;
 
-    auto onmodelfn =
-    [this, routedown, &modelpillars, &mutex]
-        (const std::pair<unsigned, EigenMesh3D::hit_result> &el, size_t)
-    {        
+    ccr::enumerate(m_iheads_onmodel.begin(), m_iheads_onmodel.end(),
+                   [this] (const unsigned idx, size_t) {
         m_thr();
-        unsigned idx = el.first;
-        EigenMesh3D::hit_result hit = el.second;
         
         auto& head = m_builder.head(idx);
-        Vec3d hjp = head.junction_point();
         
-        // /////////////////////////////////////////////////////////////////
         // Search nearby pillar
-        // /////////////////////////////////////////////////////////////////
-        
         if(search_pillar_and_connect(head)) { head.transform(); return; }
-        
-        // /////////////////////////////////////////////////////////////////
-        // Try straight path
-        // /////////////////////////////////////////////////////////////////
         
         // Cannot connect to nearby pillar. We will try to search for
         // a route to the ground.
+        if(connect_to_ground(head)) { head.transform(); return; }
         
-        double t = bridge_mesh_intersect(hjp, head.dir, head.r_back_mm);
-        double d = 0, tdown = 0;
-        Vec3d dirdown(0.0, 0.0, -1.0);
-        
-        t = std::min(t, m_cfg.max_bridge_length_mm);
-        
-        while(d < t && !std::isinf(tdown = bridge_mesh_intersect(
-                                        hjp + d*head.dir,
-                                        dirdown, head.r_back_mm))) {
-            d += head.r_back_mm;
-        }
-        
-        if(std::isinf(tdown)) { // we heave found a route to the ground
-            routedown(head, head.dir, d); return;
-        }
-        
-        // /////////////////////////////////////////////////////////////////
-        // Optimize bridge direction
-        // /////////////////////////////////////////////////////////////////
-        
-        // Straight path failed so we will try to search for a suitable
-        // direction out of the cavity.
-        
-        // Get the spherical representation of the normal. its easier to
-        // work with.
-        double z = head.dir(Z);
-        double r = 1.0;     // for normalized vector
-        double polar = std::acos(z / r);
-        double azimuth = std::atan2(head.dir(Y), head.dir(X));
-        
-        using libnest2d::opt::bound;
-        using libnest2d::opt::initvals;
-        using libnest2d::opt::GeneticOptimizer;
-        using libnest2d::opt::StopCriteria;
-        
-        StopCriteria stc;
-        stc.max_iterations = m_cfg.optimizer_max_iterations;
-        stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
-        stc.stop_score = 1e6;
-        GeneticOptimizer solver(stc);
-        solver.seed(0); // we want deterministic behavior
-        
-        double r_back = head.r_back_mm;
-        
-        auto oresult = solver.optimize_max(
-            [this, hjp, r_back](double plr, double azm)
-            {
-                Vec3d n = Vec3d(std::cos(azm) * std::sin(plr),
-                                std::sin(azm) * std::sin(plr),
-                                std::cos(plr)).normalized();
-                return bridge_mesh_intersect(hjp, n, r_back);
-            },
-            initvals(polar, azimuth),  // let's start with what we have
-            bound(3*PI/4, PI),  // Must not exceed the slope limit
-            bound(-PI, PI)      // azimuth can be a full range search
-            );
-        
-        d = 0; t = oresult.score;
-        
-        polar = std::get<0>(oresult.optimum);
-        azimuth = std::get<1>(oresult.optimum);
-        Vec3d bridgedir = Vec3d(std::cos(azimuth) * std::sin(polar),
-                                std::sin(azimuth) * std::sin(polar),
-                                std::cos(polar)).normalized();
-        
-        t = std::min(t, m_cfg.max_bridge_length_mm);
-        
-        while(d < t && !std::isinf(tdown = bridge_mesh_intersect(
-                                        hjp + d*bridgedir,
-                                        dirdown,
-                                        head.r_back_mm))) {
-            d += head.r_back_mm;
-        }
-        
-        if(std::isinf(tdown)) { // we heave found a route to the ground
-            routedown(head, bridgedir, d); return;
-        }
-        
-        // /////////////////////////////////////////////////////////////////
-        // Route to model body
-        // /////////////////////////////////////////////////////////////////
-        
-        double zangle = std::asin(hit.direction()(Z));
-        zangle = std::max(zangle, PI/4);
-        double h = std::sin(zangle) * head.fullwidth();
-        
-        // The width of the tail head that we would like to have...
-        h = std::min(hit.distance() - head.r_back_mm, h);
-        
-        if(h > 0) {
-            Vec3d endp{hjp(X), hjp(Y), hjp(Z) - hit.distance() + h};
-            auto center_hit = m_mesh.query_ray_hit(hjp, dirdown);
-            
-            double hitdiff = center_hit.distance() - hit.distance();
-            Vec3d hitp = std::abs(hitdiff) < 2*head.r_back_mm?
-                             center_hit.position() : hit.position();
-            
-            head.transform();
-
-            long pillar_id = m_builder.add_pillar(head.id, endp, head.r_back_mm);
-            Pillar &pill = m_builder.pillar(pillar_id);
-
-            Vec3d taildir = endp - hitp;
-            double dist = distance(endp, hitp) + m_cfg.head_penetration_mm;
-            double w = dist - 2 * head.r_pin_mm - head.r_back_mm;
-            
-            if (w < 0.) {
-                BOOST_LOG_TRIVIAL(error) << "Pinhead width is negative!";
-                w = 0.;
-            }
-                
-            Head tailhead(head.r_back_mm,
-                          head.r_pin_mm,
-                          w,
-                          m_cfg.head_penetration_mm,
-                          taildir,
-                          hitp);
-            
-            tailhead.transform();
-            pill.base = tailhead.mesh;
-            
-            // Experimental: add the pillar to the index for cascading
-            std::lock_guard<ccr::SpinningMutex> lk(mutex);
-            modelpillars.emplace_back(unsigned(pill.id));
-            return;
-        }
+        // No route to the ground, so connect to the model body as a last resort
+        if (connect_to_model_body(head)) { return; }
         
         // We have failed to route this head.
         BOOST_LOG_TRIVIAL(warning)
-            << "Failed to route model facing support point."
-            << " ID: " << idx;
+            << "Failed to route model facing support point. ID: " << idx;
+        
         head.invalidate();
-    };
-
-    ccr::enumerate(m_iheads_onmodel.begin(), m_iheads_onmodel.end(), onmodelfn);
-    
-    for(auto pillid : modelpillars) {
-        auto& pillar = m_builder.pillar(pillid);
-        m_pillar_index.insert(pillar.endpoint(), pillid);
-    }
+    });
 }
 
 void SupportTreeBuildsteps::interconnect_pillars()
@@ -1279,7 +1228,8 @@ void SupportTreeBuildsteps::interconnect_pillars()
                 spts[n] = s;
                 
                 // Check the path vertically down
-                auto hr = bridge_mesh_intersect(s, {0, 0, -1}, pillar().r);
+                Vec3d check_from = s + Vec3d{0., 0., pillar().r};
+                auto hr = bridge_mesh_intersect(check_from, DOWN, pillar().r);
                 Vec3d gndsp{s(X), s(Y), gnd};
                 
                 // If the path is clear, check for pillar base collisions
@@ -1359,12 +1309,11 @@ void SupportTreeBuildsteps::routing_headless()
         Vec3d n = m_support_nmls.row(i);   // mesh outward normal
         Vec3d sp = sph - n * HWIDTH_MM;     // stick head start point
         
-        Vec3d dir = {0, 0, -1};
         Vec3d sj = sp + R * n;              // stick start point
         
         // This is only for checking
-        double idist = bridge_mesh_intersect(sph, dir, R, true);
-        double realdist = ray_mesh_intersect(sj, dir);
+        double idist = bridge_mesh_intersect(sph, DOWN, R, true);
+        double realdist = ray_mesh_intersect(sj, DOWN);
         double dist = realdist;
         
         if (std::isinf(dist)) dist = sph(Z) - m_builder.ground_level;
@@ -1377,7 +1326,7 @@ void SupportTreeBuildsteps::routing_headless()
         }
         
         bool use_endball = !std::isinf(realdist);
-        Vec3d ej = sj + (dist + HWIDTH_MM) * dir;
+        Vec3d ej = sj + (dist + HWIDTH_MM) * DOWN ;
         m_builder.add_compact_bridge(sp, ej, n, R, use_endball);
     }
 }
