@@ -1800,14 +1800,13 @@ namespace Skirt {
 	    const std::vector<GCode::LayerToPrint> 	&layers,
 	    const LayerTools                		&layer_tools,
         std::vector<unsigned int>                extruder_ids,
-        // Heights at which the skirt has already been extruded.
-        std::vector<coordf_t>   				&skirt_done)
+        // Heights (print_z) at which the skirt has already been extruded.
+        std::vector<coordf_t>  			    	&skirt_done)
     {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
-        assert(skirt_done.empty());
-        if (print.has_skirt() && ! print.skirt().entities.empty()) {
+        if (skirt_done.empty() && print.has_skirt() && ! print.skirt().entities.empty()) {
             // Prime all the printing extruders over the skirt lines.
             // Reorder the extruders, so that the last used extruder is at the front.
             unsigned int first_extruder_id = layer_tools.extruders.front();
@@ -1835,7 +1834,7 @@ namespace Skirt {
                         (i == 0) ? 0 : extruder_loops[i - 1],
                         ((i == 0) ? 0 : extruder_loops[i - 1]) + extruder_loops[i]);
             }
-            skirt_done.emplace_back(layer_tools.print_z - (skirt_done.empty() ? 0. : skirt_done.back()));
+            skirt_done.emplace_back(layer_tools.print_z);
 
         }
         return skirt_loops_per_extruder_out;
@@ -1845,8 +1844,8 @@ namespace Skirt {
         const Print 							&print,
 	    const std::vector<GCode::LayerToPrint> 	&layers,
 	    const LayerTools                		&layer_tools,
-        // Heights at which the skirt has already been extruded.
-        std::vector<coordf_t>					&skirt_done)
+        // Heights (print_z) at which the skirt has already been extruded.
+        std::vector<coordf_t>			    	&skirt_done)
     {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
@@ -1855,16 +1854,15 @@ namespace Skirt {
             // Not enough skirt layers printed yet.
             //FIXME infinite or high skirt does not make sense for sequential print!
             (skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
-            // This print_z has not been extruded yet
+            // This print_z has not been extruded yet (sequential print)
             skirt_done.back() < layer_tools.print_z - EPSILON &&
             // and this layer is an object layer, or it is a raft layer.
-            //FIXME one uses the number of raft layers from the 1st object!
             (layer_tools.has_object || layers.front().support_layer->id() < (size_t)layers.front().support_layer->object()->config().raft_layers.value)) {
             // Extrude all skirts with the current extruder.
             unsigned int first_extruder_id = layer_tools.extruders.front();
             skirt_loops_per_extruder_out[first_extruder_id] = std::pair<size_t, size_t>(0, print.config().skirts.value);
             assert(!skirt_done.empty());
-            skirt_done.emplace_back(layer_tools.print_z - skirt_done.back());
+            skirt_done.emplace_back(layer_tools.print_z);
         }
         return skirt_loops_per_extruder_out;
     }
@@ -1974,15 +1972,15 @@ void GCode::process_layer(
     // Map from extruder ID to <begin, end> index of skirt loops to be extruded with that extruder.
     std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder;
 
-    if (single_object_instance_idx == size_t(-1) && object_layer != nullptr) {
-    	// Normal (non-sequential) print.
-    	gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config().nozzle_diameter.size() == 1);
-        // Extrude skirt at the print_z of the raft layers and normal object layers
-        // not at the print_z of the interlaced support material layers.
-        skirt_loops_per_extruder = first_layer ?
-        	Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_writer.extruder_ids(), m_skirt_done) :
-        	Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, m_skirt_done);
+    if (single_object_instance_idx == size_t(-1)) {
+        // Normal (non-sequential) print.
+        gcode += ProcessLayer::emit_custom_gcode_per_print_z(layer_tools.custom_gcode, first_extruder_id, print.config().nozzle_diameter.size() == 1);
     }
+    // Extrude skirt at the print_z of the raft layers and normal object layers
+    // not at the print_z of the interlaced support material layers.
+    skirt_loops_per_extruder = first_layer ?
+        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_writer.extruder_ids(), m_skirt_done) :
+        Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, m_skirt_done);
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
@@ -2157,7 +2155,7 @@ void GCode::process_layer(
             this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp = true;
             Flow layer_skirt_flow(print.skirt_flow());
-            layer_skirt_flow.height = (float)(m_skirt_done.back() - ((m_skirt_done.size() == 1) ? 0. : m_skirt_done[m_skirt_done.size() - 2]));
+            layer_skirt_flow.height = float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2]));
             double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
             for (size_t i = loops.first; i < loops.second; ++i) {
                 // Adjust flow according to this layer's layer height.
