@@ -482,7 +482,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		const Model::CustomGCode &custom_gcode = *custom_gcode_it;
 		// print_z of the layer below the current layer.
 		coordf_t print_z_below = 0.;
-		if (auto it_lt_below = it_lt; -- it_lt_below != m_layer_tools.rend())
+		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())
 			print_z_below = it_lt_below->print_z;
 		if (custom_gcode.print_z > print_z_below - EPSILON) {
 			// The custom G-code applies to the current layer.
@@ -490,7 +490,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 				// If it is color change, it will actually be useful as the exturder above will print.
         		lt.custom_gcode = &custom_gcode;
 			// Consume that custom G-code event.
-			-- custom_gcode_it;
+			++ custom_gcode_it;
 		}
 	}
 }
