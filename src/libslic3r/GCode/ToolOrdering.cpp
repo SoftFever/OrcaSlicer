@@ -571,7 +571,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
     if (! this->something_overridable || volume_to_wipe <= 0. || print.config().filament_soluble.get_at(old_extruder) || print.config().filament_soluble.get_at(new_extruder))
-        return 0.f; // Soluble filament cannot be wiped in a random infill, neither the filament after it
+        return std::max(0.f, volume_to_wipe); // Soluble filament cannot be wiped in a random infill, neither the filament after it
 
     // we will sort objects so that dedicated for wiping are at the beginning:
     PrintObjectPtrs object_list = print.objects();
