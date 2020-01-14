@@ -23,8 +23,9 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
         print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
-void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
+void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
+    std::sort(extruder_ids.begin(), extruder_ids.end());
     m_extruders.clear();
     m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)

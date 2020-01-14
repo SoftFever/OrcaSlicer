@@ -33,7 +33,7 @@ public:
     std::string          extrusion_axis() const { return m_extrusion_axis; }
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
-    void                 set_extruders(const std::vector<unsigned int> &extruder_ids);
+    void                 set_extruders(std::vector<unsigned int> extruder_ids);
     const std::vector<Extruder>& extruders() const { return m_extruders; }
     std::vector<unsigned int> extruder_ids() const { 
         std::vector<unsigned int> out; 

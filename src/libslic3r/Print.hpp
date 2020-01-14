@@ -52,7 +52,7 @@ public:
     // Average diameter of nozzles participating on extruding this region.
     coordf_t                    bridging_height_avg(const PrintConfig &print_config) const;
 
-    // Collect extruder indices used to print this region's object.
+    // Collect 0-based extruder indices used to print this region's object.
 	void                        collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const;
 	static void                 collect_object_printing_extruders(const PrintConfig &print_config, const PrintRegionConfig &region_config, std::vector<unsigned int> &object_extruders);
 
