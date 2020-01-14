@@ -62,18 +62,21 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
         return;
     }
 
-    if (m_c->m_model_object != model_object || m_c->m_model_object_id != model_object->id()) {
+    bool something_changed = false;
+
+    if (m_c->m_model_object != model_object
+     || m_c->m_model_object_id != model_object->id()
+     || m_c->m_active_instance != selection.get_instance_idx()) {
         m_c->m_model_object = model_object;
         m_c->m_print_object_idx = -1;
+        m_c->m_active_instance = selection.get_instance_idx();
+        something_changed = true;
     }
 
-    m_c->m_active_instance = selection.get_instance_idx();
-
-    if (model_object && selection.is_from_single_instance())
+    if (model_object && something_changed && selection.is_from_single_instance())
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
-        //FIXME calling ModelObject::instance_bounding_box() is expensive!
         m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
 
         if (is_mesh_update_necessary()) {
