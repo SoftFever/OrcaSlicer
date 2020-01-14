@@ -374,9 +374,6 @@ private:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
-    // Iterator to Model::custom_gcode_per_print_z, which is being increased by process_layer.
-    // The Model::custom_gcode_per_print_z may contain color changes, extruder switches, pauses and custom G-codes.
-    std::vector<Model::CustomGCode>::const_iterator m_custom_gcode_per_print_z_it;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;

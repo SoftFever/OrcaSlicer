@@ -1912,8 +1912,8 @@ const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt, double first_l
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
     if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
 
-        float width = m_config.wipe_tower_width;
-        float brim_spacing = nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4);
+        float width = float(m_config.wipe_tower_width);
+        float brim_spacing = float(nozzle_diameter * 1.25f - first_layer_height * (1. - M_PI_4));
 
         const_cast<Print*>(this)->m_wipe_tower_data.depth = (900.f/width) * float(extruders_cnt - 1);
         const_cast<Print*>(this)->m_wipe_tower_data.brim_width = 4.5f * brim_spacing;
@@ -1938,8 +1938,7 @@ void Print::_make_wipe_tower()
         wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders, wiping_matrix.begin()+(i+1)*number_of_extruders));
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true, 
-    	(this->object_extruders().size() == 1) ? &custom_tool_changes(this->model(), (unsigned int)m_config.nozzle_diameter.size()) : nullptr);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
 
     if (! m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.

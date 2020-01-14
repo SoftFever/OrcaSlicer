@@ -15,6 +15,8 @@
 
 #include <libslic3r.h>
 
+#include "../GCodeWriter.hpp"
+
 namespace Slic3r {
 
 
@@ -99,7 +101,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
 // For the use case when all objects are printed at once.
 // (print.config().complete_objects is false).
-ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material, const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches)
+ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
     m_print_config_ptr = &print.config();
 
@@ -124,9 +126,16 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
         this->initialize_layers(zs);
     }
 
+	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
+	// Do it only if all the objects were configured to be printed with a single extruder.
+	const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches = (print.object_extruders().size() == 1) ? 
+		&custom_tool_changes(print.model(), (unsigned int)print.config().nozzle_diameter.size()) : nullptr;
+	if (per_layer_extruder_switches != nullptr && per_layer_extruder_switches->empty())
+		per_layer_extruder_switches = nullptr;
+
     // Collect extruders reuqired to print the layers.
     for (auto object : print.objects())
-        this->collect_extruders(*object, (per_layer_extruder_switches != nullptr && ! per_layer_extruder_switches->empty()) ? per_layer_extruder_switches : nullptr);
+        this->collect_extruders(*object, per_layer_extruder_switches);
 
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
@@ -134,6 +143,11 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
 
     this->collect_extruder_statistics(prime_multi_material);
+
+    // Assign custom G-code actions from Model::custom_gcode_per_print_z to their respecive layers,
+    // ignoring the extruder switches, which were processed above, and ignoring color changes for extruders,
+    // that do not print above their respective print_z.
+    this->assign_custom_gcodes(print);
 }
 
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
@@ -442,6 +456,46 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
         m_all_printing_extruders.emplace_back(m_first_printing_extruder);
         m_first_printing_extruder = m_all_printing_extruders.front();
     }
+}
+
+// Assign a pointer to a custom G-code to the respective ToolOrdering::LayerTools.
+// Ignore color changes, which are performed on a layer and for such an extruder, that the extruder will not be printing above that layer.
+// If multiple events are planned over a span of a single layer, use the last one.
+void ToolOrdering::assign_custom_gcodes(const Print &print)
+{
+	const std::vector<Model::CustomGCode>	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+	if (custom_gcode_per_print_z.empty())
+		return;
+
+	unsigned int 							 num_extruders = *std::max_element(m_all_printing_extruders.begin(), m_all_printing_extruders.end()) + 1;
+	std::vector<unsigned char> 				 extruder_printing_above(num_extruders, false);
+	auto 									 custom_gcode_it = custom_gcode_per_print_z.rbegin();
+	// From the last layer to the first one:
+	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
+		LayerTools &lt = *it_lt;
+		// Add the extruders of the current layer to the set of extruders printing at and above this print_z.
+		for (unsigned int i : lt.extruders)
+			extruder_printing_above[i] = true;
+		// Skip all custom G-codes above this layer and skip all extruder switches.
+		for (; custom_gcode_it != custom_gcode_per_print_z.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->gcode == ExtruderChangeCode); ++ custom_gcode_it);
+		if (custom_gcode_it == custom_gcode_per_print_z.rend())
+			// Custom G-codes were processed.
+			break;
+		// Some custom G-code is configured for this layer or a layer below.
+		const Model::CustomGCode &custom_gcode = *custom_gcode_it;
+		// print_z of the layer below the current layer.
+		coordf_t print_z_below = 0.;
+		if (auto it_lt_below = it_lt; -- it_lt_below != m_layer_tools.rend())
+			print_z_below = it_lt_below->print_z;
+		if (custom_gcode.print_z > print_z_below - EPSILON) {
+			// The custom G-code applies to the current layer.
+			if (custom_gcode.gcode != ColorChangeCode || extruder_printing_above[unsigned(custom_gcode.extruder - 1)])
+				// If it is color change, it will actually be useful as the exturder above will print.
+        		lt.custom_gcode = &custom_gcode;
+			// Consume that custom G-code event.
+			-- custom_gcode_it;
+		}
+	}
 }
 
 const LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z) const
