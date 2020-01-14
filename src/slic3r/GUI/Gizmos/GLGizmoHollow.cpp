@@ -822,14 +822,16 @@ RENDER_AGAIN:
    // m_imgui->text(" "); // vertical gap
     ImGui::Separator();
 
-    float diameter_upper_cap = 20.f; //static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
+    float diameter_upper_cap = 5.f;
     if (m_new_hole_radius > diameter_upper_cap)
         m_new_hole_radius = diameter_upper_cap;
     m_imgui->text(m_desc.at("hole_diameter"));
     ImGui::SameLine(diameter_slider_left);
     ImGui::PushItemWidth(window_width - diameter_slider_left);
 
-    ImGui::SliderFloat("", &m_new_hole_radius, 0.1f, diameter_upper_cap, "%.1f");
+    float diam = 2.f * m_new_hole_radius;
+    ImGui::SliderFloat("", &diam, 1.f, diameter_upper_cap, "%.1f");
+    m_new_hole_radius = diam / 2.f;
     bool clicked = ImGui::IsItemClicked();
     bool edited = ImGui::IsItemEdited();
     bool deactivated = ImGui::IsItemDeactivatedAfterEdit();

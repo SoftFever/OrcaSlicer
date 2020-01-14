@@ -58,7 +58,7 @@ private:
     bool unsaved_changes() const;
 
     bool  m_show_supports = true;
-    float m_new_hole_radius = 4.f;        // Size of a new hole.
+    float m_new_hole_radius = 2.f;        // Size of a new hole.
     float m_new_hole_height = 5.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected
 
