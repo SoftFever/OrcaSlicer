@@ -1729,7 +1729,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 namespace ProcessLayer
 {
 
-    std::string emit_custom_gcode_per_print_z(
+    static std::string emit_custom_gcode_per_print_z(
     	const Model::CustomGCode 								*custom_gcode,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
@@ -1795,11 +1795,20 @@ namespace ProcessLayer
 } // namespace ProcessLayer
 
 namespace Skirt {
-    std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
+	static void skirt_loops_per_extruder_all_printing(const Print &print, const LayerTools &layer_tools, std::map<unsigned int, std::pair<size_t, size_t>> &skirt_loops_per_extruder_out)
+	{
+        // Prime all extruders printing over the 1st layer over the skirt lines.
+        size_t n_loops = print.skirt().entities.size();
+        size_t n_tools = layer_tools.extruders.size();
+        size_t lines_per_extruder = (n_loops + n_tools - 1) / n_tools;
+        for (size_t i = 0; i < n_loops; i += lines_per_extruder)
+            skirt_loops_per_extruder_out[layer_tools.extruders[i / lines_per_extruder]] = std::pair<size_t, size_t>(i, std::min(i + lines_per_extruder, n_loops));
+	}
+
+    static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
         const Print             				&print,
-	    const std::vector<GCode::LayerToPrint> 	&layers,
+	    const std::vector<GCode::LayerToPrint> 	& /*layers */,
 	    const LayerTools                		&layer_tools,
-        std::vector<unsigned int>                extruder_ids,
         // Heights (print_z) at which the skirt has already been extruded.
         std::vector<coordf_t>  			    	&skirt_done)
     {
@@ -1807,40 +1816,13 @@ namespace Skirt {
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
         if (skirt_done.empty() && print.has_skirt() && ! print.skirt().entities.empty()) {
-            // Prime all the printing extruders over the skirt lines.
-            // Reorder the extruders, so that the last used extruder is at the front.
-            unsigned int first_extruder_id = layer_tools.extruders.front();
-            for (size_t i = 1; i < extruder_ids.size(); ++ i)
-                if (extruder_ids[i] == first_extruder_id) {
-                    // Move the last extruder to the front.
-                    memmove(extruder_ids.data() + 1, extruder_ids.data(), i * sizeof(unsigned int));
-                    extruder_ids.front() = first_extruder_id;
-                    break;
-                }
-            size_t n_loops = print.skirt().entities.size();
-            if (n_loops <= extruder_ids.size()) {
-                for (size_t i = 0; i < n_loops; ++i)
-                    skirt_loops_per_extruder_out[extruder_ids[i]] = std::pair<size_t, size_t>(i, i + 1);
-            } else {
-                // Assign skirt loops to the extruders.
-                std::vector<unsigned int> extruder_loops(extruder_ids.size(), 1);
-                n_loops -= extruder_loops.size();
-                while (n_loops > 0) {
-                    for (size_t i = 0; i < extruder_ids.size() && n_loops > 0; ++i, --n_loops)
-                        ++extruder_loops[i];
-                }
-                for (size_t i = 0; i < extruder_ids.size(); ++i)
-                    skirt_loops_per_extruder_out[extruder_ids[i]] = std::make_pair<size_t, size_t>(
-                        (i == 0) ? 0 : extruder_loops[i - 1],
-                        ((i == 0) ? 0 : extruder_loops[i - 1]) + extruder_loops[i]);
-            }
+        	skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
             skirt_done.emplace_back(layer_tools.print_z);
-
         }
         return skirt_loops_per_extruder_out;
     }
 
-    std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_other_layers(
+    static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_other_layers(
         const Print 							&print,
 	    const std::vector<GCode::LayerToPrint> 	&layers,
 	    const LayerTools                		&layer_tools,
@@ -1858,9 +1840,14 @@ namespace Skirt {
             skirt_done.back() < layer_tools.print_z - EPSILON &&
             // and this layer is an object layer, or it is a raft layer.
             (layer_tools.has_object || layers.front().support_layer->id() < (size_t)layers.front().support_layer->object()->config().raft_layers.value)) {
-            // Extrude all skirts with the current extruder.
-            unsigned int first_extruder_id = layer_tools.extruders.front();
-            skirt_loops_per_extruder_out[first_extruder_id] = std::pair<size_t, size_t>(0, print.config().skirts.value);
+#if 0
+            // Prime just the first printing extruder. This is original Slic3r's implementation.
+            skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirts.value);
+#else
+            // Prime all extruders planned for this layer, see 
+            // https://github.com/prusa3d/PrusaSlicer/issues/469#issuecomment-322450619
+            skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
+#endif
             assert(!skirt_done.empty());
             skirt_done.emplace_back(layer_tools.print_z);
         }
@@ -1979,7 +1966,7 @@ void GCode::process_layer(
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
     skirt_loops_per_extruder = first_layer ?
-        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_writer.extruder_ids(), m_skirt_done) :
+        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_skirt_done) :
         Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, m_skirt_done);
 
     // Group extrusions by an extruder, then by an object, an island and a region.
