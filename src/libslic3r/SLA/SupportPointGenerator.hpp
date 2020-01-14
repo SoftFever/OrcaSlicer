@@ -31,7 +31,8 @@ public:
     
     SupportPointGenerator(const EigenMesh3D& emesh, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
     
-    const std::vector<SupportPoint>& output() { return m_output; }
+    const std::vector<SupportPoint>& output() const { return m_output; }
+    std::vector<SupportPoint>& output() { return m_output; }
     
     struct MyLayer;
     
