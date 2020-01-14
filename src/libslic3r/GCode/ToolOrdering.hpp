@@ -61,7 +61,7 @@ private:
     int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
 
     // This function is called from mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
-    void set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies);
+    void set_extruder_override(const ExtrusionEntity* entity, size_t copy_id, int extruder, size_t num_of_copies);
 
     // Returns true in case that entity is not printed with its usual extruder for a given copy:
     bool is_entity_overridden(const ExtrusionEntity* entity, size_t copy_id) const {
@@ -84,6 +84,7 @@ public:
         print_z(z),
         has_object(false),
         has_support(false),
+        extruder_override(0),
         has_wipe_tower(false),
         wipe_tower_partitions(0),
         wipe_tower_layer_height(0.) {}
@@ -96,11 +97,21 @@ public:
     bool is_extruder_order(unsigned int a, unsigned int b) const;
     bool has_extruder(unsigned int extruder) const { return std::find(this->extruders.begin(), this->extruders.end(), extruder) != this->extruders.end(); }
 
+    // Return a zero based extruder from the region, or extruder_override if overriden.
+    unsigned int perimeter_extruder(const PrintRegion &region) const;
+    unsigned int infill_extruder(const PrintRegion &region) const;
+    unsigned int solid_infill_extruder(const PrintRegion &region) const;
+	// Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
+	unsigned int extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
+
     coordf_t 					print_z;
     bool 						has_object;
     bool						has_support;
     // Zero based extruder IDs, ordered to minimize tool switches.
     std::vector<unsigned int> 	extruders;
+    // If per layer extruder switches are inserted by the G-code preview slider, this value contains the new (1 based) extruder, with which the whole object layer is being printed with.
+    // If not overriden, it is set to 0.
+    unsigned int 				extruder_override;
     // Will there be anything extruded on this layer for the wipe tower?
     // Due to the support layers possibly interleaving the object layers,
     // wipe tower will be disabled for some support only layers.
@@ -129,11 +140,11 @@ public:
 
     // For the use case when each object is printed separately
     // (print.config.complete_objects is true).
-    ToolOrdering(const PrintObject &object, unsigned int first_extruder = (unsigned int)-1, bool prime_multi_material = false);
+    ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material = false);
 
     // For the use case when all objects are printed at once.
     // (print.config.complete_objects is false).
-    ToolOrdering(const Print &print, unsigned int first_extruder = (unsigned int)-1, bool prime_multi_material = false);
+    ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material = false, const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches = nullptr);
 
     void 				clear() { m_layer_tools.clear(); }
 
@@ -160,7 +171,7 @@ public:
 
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);
-    void 				collect_extruders(const PrintObject &object);
+    void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> *per_layer_extruder_switches);
     void				reorder_extruders(unsigned int last_extruder_id);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
     void 				collect_extruder_statistics(bool prime_multi_material);

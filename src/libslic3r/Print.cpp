@@ -638,48 +638,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 m_ranges.emplace_back(t_layer_height_range(m_ranges.back().first.second, DBL_MAX), nullptr);
         }
 
-        // Convert input config ranges into continuous non-overlapping sorted vector of intervals and their configs,
-        // considering custom_tool_change values
-        void assign(const t_layer_config_ranges &in, const std::vector<std::pair<double, DynamicPrintConfig>> &custom_tool_changes) {
-            m_ranges.clear();
-            m_ranges.reserve(in.size());
-            // Input ranges are sorted lexicographically. First range trims the other ranges.
-            coordf_t last_z = 0;
-            for (const std::pair<const t_layer_height_range, DynamicPrintConfig> &range : in)
-				if (range.first.second > last_z) {
-                    coordf_t min_z = std::max(range.first.first, 0.);
-                    if (min_z > last_z + EPSILON) {
-                        m_ranges.emplace_back(t_layer_height_range(last_z, min_z), nullptr);
-                        last_z = min_z;
-                    }
-                    if (range.first.second > last_z + EPSILON) {
-						const DynamicPrintConfig* cfg = &range.second;
-                        m_ranges.emplace_back(t_layer_height_range(last_z, range.first.second), cfg);
-                        last_z = range.first.second;
-                    }
-                }
-
-            // add ranges for extruder changes from custom_tool_changes
-            for (size_t i = 0; i < custom_tool_changes.size(); i++) {
-                const DynamicPrintConfig* cfg = &custom_tool_changes[i].second;
-                coordf_t cur_Z = custom_tool_changes[i].first;
-                coordf_t next_Z = i == custom_tool_changes.size()-1 ? DBL_MAX : custom_tool_changes[i+1].first;
-                if (cur_Z > last_z + EPSILON) {
-                    if (i==0)
-                        m_ranges.emplace_back(t_layer_height_range(last_z, cur_Z), nullptr);
-                    m_ranges.emplace_back(t_layer_height_range(cur_Z, next_Z), cfg);
-                }
-                else if (next_Z > last_z + EPSILON)
-                    m_ranges.emplace_back(t_layer_height_range(last_z, next_Z), cfg);
-            }
-
-            if (m_ranges.empty())
-                m_ranges.emplace_back(t_layer_height_range(0, DBL_MAX), nullptr);
-            else if (m_ranges.back().second == nullptr)
-                m_ranges.back().first.second = DBL_MAX;
-            else if (m_ranges.back().first.second != DBL_MAX)
-                m_ranges.emplace_back(t_layer_height_range(m_ranges.back().first.second, DBL_MAX), nullptr);
-        }
         const DynamicPrintConfig* config(const t_layer_height_range &range) const {
             auto it = std::lower_bound(m_ranges.begin(), m_ranges.end(), std::make_pair< t_layer_height_range, const DynamicPrintConfig*>(t_layer_height_range(range.first - EPSILON, range.second - EPSILON), nullptr));
             // #ys_FIXME_COLOR
@@ -733,17 +691,15 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
+        if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
+	        // If custom gcode per layer height was changed, we should stop background processing.
+            update_apply_status(this->invalidate_steps({ psWipeTower, psGCodeExport }));
+            m_model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
+        }
         if (model_object_list_equal(m_model, model)) {
             // The object list did not change.
 			for (const ModelObject *model_object : m_model.objects)
 				model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
-
-            // But if custom gcode per layer height was changed
-            if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
-                // we should stop background processing
-                update_apply_status(this->invalidate_step(psGCodeExport));
-                m_model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
-            }
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
             update_apply_status(this->invalidate_step(psGCodeExport));
@@ -835,9 +791,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     for (PrintObject *print_object : m_objects)
         print_object_status.emplace(PrintObjectStatus(print_object));
 
-    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes = 
-        m_model.get_custom_tool_changes(m_default_object_config.layer_height, num_extruders);
-
     // 3) Synchronize ModelObjects & PrintObjects.
     for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
         ModelObject &model_object = *m_model.objects[idx_model_object];
@@ -845,9 +798,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         assert(it_status != model_object_status.end());
         assert(it_status->status != ModelObjectStatus::Deleted);
 		const ModelObject& model_object_new = *model.objects[idx_model_object];
-        // ys_FIXME_COLOR
-		// const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges);
-        const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges, custom_tool_changes);
+		const_cast<ModelObjectStatus&>(*it_status).layer_ranges.assign(model_object_new.layer_config_ranges);
         if (it_status->status == ModelObjectStatus::New)
             // PrintObject instances will be added in the next loop.
             continue;
@@ -1015,8 +966,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         PrintRegionConfig  this_region_config;
         bool               this_region_config_set = false;
         for (PrintObject *print_object : m_objects) {
-            if(m_force_update_print_regions && !custom_tool_changes.empty())
-                goto print_object_end;
             const LayerRanges *layer_ranges;
             {
                 auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
@@ -1989,7 +1938,9 @@ void Print::_make_wipe_tower()
         wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders, wiping_matrix.begin()+(i+1)*number_of_extruders));
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true, 
+    	(this->object_extruders().size() == 1) ? &custom_tool_changes(this->model(), (unsigned int)m_config.nozzle_diameter.size()) : nullptr);
+
     if (! m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
         return;
@@ -2105,13 +2056,6 @@ void Print::_make_wipe_tower()
 
     m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
-}
-
-// Returns extruder this eec should be printed with, according to PrintRegion config
-int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region)
-{
-    return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config().solid_infill_extruder : region.config().infill_extruder) - 1) :
-                                    std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters

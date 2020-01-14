@@ -838,9 +838,6 @@ public:
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
-    // from custom_gcode_per_print_z get just tool_change codes
-    std::vector<std::pair<double, DynamicPrintConfig>> get_custom_tool_changes(double default_layer_height, size_t num_extruders) const;
-
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
 	void assign_new_unique_ids_recursive();
@@ -856,6 +853,10 @@ private:
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
 #undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE
+
+// Return pairs of <print_z, 1-based extruder ID> sorted by increasing print_z from custom_gcode_per_print_z.
+// print_z corresponds to the first layer printed with the new extruder.
+extern std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Model &model, size_t num_extruders);
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
 // ordered in the same order. In that case it is not necessary to kill the background processing.

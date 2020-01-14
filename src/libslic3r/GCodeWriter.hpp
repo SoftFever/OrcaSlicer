@@ -74,7 +74,8 @@ public:
     Vec3d       get_position() const { return m_pos; }
 
 private:
-    std::vector<Extruder>    m_extruders;
+	// Extruders are sorted by their ID, so that binary search is possible.
+    std::vector<Extruder> m_extruders;
     std::string     m_extrusion_axis;
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;

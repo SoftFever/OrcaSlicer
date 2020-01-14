@@ -1133,11 +1133,9 @@ void GCode::_do_export(Print& print, FILE* file)
 
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
-    this->set_extruders(print.extruders());
 
-    // Initialize custom gcode
-    Model* model = print.get_object(0)->model_object()->get_model();
-    m_custom_gcode_per_print_z = model->custom_gcode_per_print_z;
+    // Initialize custom gcode iterator.
+    m_custom_gcode_per_print_z_it = print.model().custom_gcode_per_print_z.cbegin();
 
     m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
@@ -1221,18 +1219,27 @@ void GCode::_do_export(Print& print, FILE* file)
             if ((initial_extruder_id = tool_ordering.first_extruder()) != (unsigned int)-1)
                 break;
         }
+        // We don't allow switching of extruders per layer by Model::custom_gcode_per_print_z in sequential mode.
+        // Use the extruder IDs collected from Regions.
+    	this->set_extruders(print.extruders());
     } else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
 		tool_ordering = print.wipe_tower_data().tool_ordering.empty() ?
-            ToolOrdering(print, initial_extruder_id) :
+            ToolOrdering(print, initial_extruder_id, false,
+            	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
+            	// Do it only if all the objects were configured to be printed with a single extruder.
+            	(print.object_extruders().size() == 1) ? &custom_tool_changes(print.model(), (unsigned int)m_config.nozzle_diameter.size()) : nullptr) :
             print.wipe_tower_data().tool_ordering;
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
-        initial_extruder_id = (has_wipe_tower && ! print.config().single_extruder_multi_material_priming) ? 
+        initial_extruder_id = (has_wipe_tower && ! print.config().single_extruder_multi_material_priming) ?
             // The priming towers will be skipped.
             tool_ordering.all_extruders().back() :
-            // Don't skip the priming towers. 
+            // Don't skip the priming towers.
             tool_ordering.first_extruder();
+        // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
+        // Therefore initialize the printing extruders from there.
+    	this->set_extruders(tool_ordering.all_extruders());
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -1247,7 +1254,7 @@ void GCode::_do_export(Print& print, FILE* file)
 // #ys_FIXME_no_exported_codes
     /*
     /* To avoid change filament for non-used extruder for Multi-material,
-     * check model->custom_gcode_per_print_z using tool_ordering values
+     * check print.model().custom_gcode_per_print_z using tool_ordering values
      * /
     if (!m_custom_gcode_per_print_z. empty())
     {
@@ -1283,7 +1290,7 @@ void GCode::_do_export(Print& print, FILE* file)
         }
 
         if (delete_executed)
-            model->custom_gcode_per_print_z = m_custom_gcode_per_print_z;
+            print.model().custom_gcode_per_print_z = m_custom_gcode_per_print_z;
     }
 */
 
@@ -1768,6 +1775,174 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 	return out;
 }
 
+namespace ProcessLayer
+{
+
+    std::string emit_custom_gcode_per_print_z(
+        // Last processed CustomGCode.
+		std::vector<Model::CustomGCode>::const_iterator 		&custom_gcode_per_print_z_it,
+		const std::vector<Model::CustomGCode>::const_iterator    custom_gcode_per_print_z_end,
+        // This layer's print_z.
+        coordf_t                                                 current_print_z,
+        // ID of the first extruder printing this layer.
+        unsigned int                                             first_extruder_id,
+		size_t 											         num_extruders)
+	{
+	    // Let's issue a filament change command if requested at this layer.
+	    // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
+	    // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
+	    bool has_colorchange = false;
+
+	    std::string custom_code;
+	    std::string pause_print_msg;
+	    int m600_before_extruder = -1;
+	    while (custom_gcode_per_print_z_it != custom_gcode_per_print_z_end) {
+	    	auto it_next = custom_gcode_per_print_z_it;
+	    	if ((++ it_next)->print_z >= current_print_z + EPSILON)
+	    		break;
+	    	custom_gcode_per_print_z_it = it_next;
+	    }
+	    if (custom_gcode_per_print_z_it != custom_gcode_per_print_z_end && custom_gcode_per_print_z_it->print_z < current_print_z + EPSILON) {
+	        custom_code = custom_gcode_per_print_z_it->gcode;
+
+	        if (custom_code == ColorChangeCode && custom_gcode_per_print_z_it->extruder > 0)
+	            m600_before_extruder = custom_gcode_per_print_z_it->extruder - 1;
+	        if (custom_code == PausePrintCode)
+	            pause_print_msg = custom_gcode_per_print_z_it->color;
+
+	        // This color change is consumed, don't use it again.
+	        ++ custom_gcode_per_print_z_it;
+	        has_colorchange = true;
+	    }
+
+	    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
+
+	    // don't save "tool_change"(ExtruderChangeCode) code to GCode
+	    std::string gcode;
+	    if (has_colorchange && custom_code != ExtruderChangeCode) {
+	        const bool single_material_print = num_extruders == 1;
+	        
+	        if (custom_code == ColorChangeCode) // color change
+	        {
+	            // add tag for analyzer
+	            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_before_extruder) + "\n";
+	            // add tag for time estimator
+	            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
+
+	            if (!single_material_print && m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
+	                // && !MMU1
+	                ) {
+	                //! FIXME_in_fw show message during print pause
+	                gcode += "M601\n"; // pause print
+	                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
+	            }
+	            else 
+	                gcode += custom_code + "\n";
+	        } 
+	        else
+	        {
+	            if (custom_code == PausePrintCode) // Pause print
+	            {
+	                // add tag for analyzer
+	                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
+	                //! FIXME_in_fw show message during print pause
+	                if (!pause_print_msg.empty())
+	                    gcode += "M117 " + pause_print_msg + "\n";
+	                // add tag for time estimator
+	                //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
+	            }
+	            else // custom Gcode
+	            {
+	                // add tag for analyzer
+	                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
+	                // add tag for time estimator
+	                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
+	            }
+	            gcode += custom_code + "\n";
+	        }
+	    }
+
+	    return gcode;
+	}
+} // namespace ProcessLayer
+
+namespace Skirt {
+    std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
+        const Print             				&print,
+	    const std::vector<GCode::LayerToPrint> 	&layers,
+	    const LayerTools                		&layer_tools,
+        std::vector<unsigned int>                extruder_ids,
+        // Heights at which the skirt has already been extruded.
+        std::vector<coordf_t>   				&skirt_done)
+    {
+        // Extrude skirt at the print_z of the raft layers and normal object layers
+        // not at the print_z of the interlaced support material layers.
+        std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        assert(skirt_done.empty());
+        if (print.has_skirt() && ! print.skirt().entities.empty()) {
+            // Prime all the printing extruders over the skirt lines.
+            // Reorder the extruders, so that the last used extruder is at the front.
+            unsigned int first_extruder_id = layer_tools.extruders.front();
+            for (size_t i = 1; i < extruder_ids.size(); ++ i)
+                if (extruder_ids[i] == first_extruder_id) {
+                    // Move the last extruder to the front.
+                    memmove(extruder_ids.data() + 1, extruder_ids.data(), i * sizeof(unsigned int));
+                    extruder_ids.front() = first_extruder_id;
+                    break;
+                }
+            size_t n_loops = print.skirt().entities.size();
+            if (n_loops <= extruder_ids.size()) {
+                for (size_t i = 0; i < n_loops; ++i)
+                    skirt_loops_per_extruder_out[extruder_ids[i]] = std::pair<size_t, size_t>(i, i + 1);
+            } else {
+                // Assign skirt loops to the extruders.
+                std::vector<unsigned int> extruder_loops(extruder_ids.size(), 1);
+                n_loops -= extruder_loops.size();
+                while (n_loops > 0) {
+                    for (size_t i = 0; i < extruder_ids.size() && n_loops > 0; ++i, --n_loops)
+                        ++extruder_loops[i];
+                }
+                for (size_t i = 0; i < extruder_ids.size(); ++i)
+                    skirt_loops_per_extruder_out[extruder_ids[i]] = std::make_pair<size_t, size_t>(
+                        (i == 0) ? 0 : extruder_loops[i - 1],
+                        ((i == 0) ? 0 : extruder_loops[i - 1]) + extruder_loops[i]);
+            }
+            skirt_done.emplace_back(layer_tools.print_z - (skirt_done.empty() ? 0. : skirt_done.back()));
+
+        }
+        return skirt_loops_per_extruder_out;
+    }
+
+    std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_other_layers(
+        const Print 							&print,
+	    const std::vector<GCode::LayerToPrint> 	&layers,
+	    const LayerTools                		&layer_tools,
+        // Heights at which the skirt has already been extruded.
+        std::vector<coordf_t>					&skirt_done)
+    {
+        // Extrude skirt at the print_z of the raft layers and normal object layers
+        // not at the print_z of the interlaced support material layers.
+        std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        if (print.has_skirt() && ! print.skirt().entities.empty() &&
+            // Not enough skirt layers printed yet.
+            //FIXME infinite or high skirt does not make sense for sequential print!
+            (skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
+            // This print_z has not been extruded yet
+            skirt_done.back() < layer_tools.print_z - EPSILON &&
+            // and this layer is an object layer, or it is a raft layer.
+            //FIXME one uses the number of raft layers from the 1st object!
+            (layer_tools.has_object || layers.front().support_layer->id() < (size_t)layers.front().support_layer->object()->config().raft_layers.value)) {
+            // Extrude all skirts with the current extruder.
+            unsigned int first_extruder_id = layer_tools.extruders.front();
+            skirt_loops_per_extruder_out[first_extruder_id] = std::pair<size_t, size_t>(0, print.config().skirts.value);
+            assert(!skirt_done.empty());
+            skirt_done.emplace_back(layer_tools.print_z - skirt_done.back());
+        }
+        return skirt_loops_per_extruder_out;
+    }
+
+} // namespace Skirt
+
 // In sequential mode, process_layer is called once per each object and its copy, 
 // therefore layers will contain a single entry and single_object_instance_idx will point to the copy of the object.
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
@@ -1804,7 +1979,7 @@ void GCode::process_layer(
         if (l.support_layer != nullptr && support_layer == nullptr)
             support_layer = l.support_layer;
     }
-    const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;    
+    const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;
     coordf_t             print_z       = layer.print_z;
     bool                 first_layer   = layer.id() == 0;
     unsigned int         first_extruder_id = layer_tools.extruders.front();
@@ -1868,120 +2043,21 @@ void GCode::process_layer(
         m_second_layer_things_done = true;
     }
 
-    // Let's issue a filament change command if requested at this layer.
-    // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
-    // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
-    bool colorprint_change = false;
-
-    std::string custom_code = "";
-    std::string pause_print_msg = "";
-    int m600_before_extruder = -1;
-    while (!m_custom_gcode_per_print_z.empty() && m_custom_gcode_per_print_z.front().print_z - EPSILON < layer.print_z) {
-        custom_code = m_custom_gcode_per_print_z.front().gcode;
-
-        if (custom_code == ColorChangeCode && m_custom_gcode_per_print_z.front().extruder > 0)
-            m600_before_extruder = m_custom_gcode_per_print_z.front().extruder - 1;
-        if (custom_code == PausePrintCode)
-            pause_print_msg = m_custom_gcode_per_print_z.front().color;
-
-        m_custom_gcode_per_print_z.erase(m_custom_gcode_per_print_z.begin());
-        colorprint_change = true;
-    }
-
-    // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
-
-    // don't save "tool_change"(ExtruderChangeCode) code to GCode
-    if (colorprint_change && custom_code != ExtruderChangeCode) {
-        const bool single_material_print = print.config().nozzle_diameter.size() == 1;
-        
-        if (custom_code == ColorChangeCode) // color change
-        {
-            // add tag for analyzer
-            gcode += "; " + GCodeAnalyzer::Color_Change_Tag + ",T" + std::to_string(m600_before_extruder) + "\n";
-            // add tag for time estimator
-            gcode += "; " + GCodeTimeEstimator::Color_Change_Tag + "\n";
-
-            if (!single_material_print && m600_before_extruder >= 0 && first_extruder_id != m600_before_extruder
-                // && !MMU1
-                ) {
-                //! FIXME_in_fw show message during print pause
-                gcode += "M601\n"; // pause print
-                gcode += "M117 Change filament for Extruder " + std::to_string(m600_before_extruder) + "\n";
-            }
-            else 
-                gcode += custom_code + "\n";
-        } 
-        else
-        {
-            if (custom_code == PausePrintCode) // Pause print
-            {
-                // add tag for analyzer
-                gcode += "; " + GCodeAnalyzer::Pause_Print_Tag + "\n";
-                //! FIXME_in_fw show message during print pause
-                if (!pause_print_msg.empty())
-                    gcode += "M117 " + pause_print_msg + "\n";
-                // add tag for time estimator
-                //gcode += "; " + GCodeTimeEstimator::Pause_Print_Tag + "\n";
-            }
-            else // custom Gcode
-            {
-                // add tag for analyzer
-                gcode += "; " + GCodeAnalyzer::Custom_Code_Tag + "\n";
-                // add tag for time estimator
-                //gcode += "; " + GCodeTimeEstimator::Custom_Code_Tag + "\n";
-            }
-            gcode += custom_code + "\n";
-        }
-    }
-
-
-    // Extrude skirt at the print_z of the raft layers and normal object layers
-    // not at the print_z of the interlaced support material layers.
-    bool extrude_skirt = 
-		! print.skirt().entities.empty() &&
-        // Not enough skirt layers printed yet.
-        (m_skirt_done.size() < (size_t)print.config().skirt_height.value || print.has_infinite_skirt()) &&
-        // This print_z has not been extruded yet
-		(m_skirt_done.empty() ? 0. : m_skirt_done.back()) < print_z - EPSILON &&
-        // and this layer is the 1st layer, or it is an object layer, or it is a raft layer.
-        (first_layer || object_layer != nullptr || support_layer->id() < (size_t)m_config.raft_layers.value);
+    // Map from extruder ID to <begin, end> index of skirt loops to be extruded with that extruder.
     std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder;
-    coordf_t                                          skirt_height = 0.;
-    if (extrude_skirt) {
-        // Fill in skirt_loops_per_extruder.
-		skirt_height = print_z - (m_skirt_done.empty() ? 0. : m_skirt_done.back());
-        m_skirt_done.push_back(print_z);
-        if (first_layer) {
-            // Prime the extruders over the skirt lines.
-            std::vector<unsigned int> extruder_ids = m_writer.extruder_ids();
-            // Reorder the extruders, so that the last used extruder is at the front.
-            for (size_t i = 1; i < extruder_ids.size(); ++ i)
-                if (extruder_ids[i] == first_extruder_id) {
-                    // Move the last extruder to the front.
-                    memmove(extruder_ids.data() + 1, extruder_ids.data(), i * sizeof(unsigned int));
-                    extruder_ids.front() = first_extruder_id;
-                    break;
-                }
-            size_t n_loops = print.skirt().entities.size();
-			if (n_loops <= extruder_ids.size()) {
-				for (size_t i = 0; i < n_loops; ++i)
-                    skirt_loops_per_extruder[extruder_ids[i]] = std::pair<size_t, size_t>(i, i + 1);
-            } else {
-                // Assign skirt loops to the extruders.
-                std::vector<unsigned int> extruder_loops(extruder_ids.size(), 1);
-                n_loops -= extruder_loops.size();
-                while (n_loops > 0) {
-                    for (size_t i = 0; i < extruder_ids.size() && n_loops > 0; ++ i, -- n_loops)
-                        ++ extruder_loops[i];
-                }
-                for (size_t i = 0; i < extruder_ids.size(); ++ i)
-                    skirt_loops_per_extruder[extruder_ids[i]] = std::make_pair<size_t, size_t>(
-                        (i == 0) ? 0 : extruder_loops[i - 1], 
-                        ((i == 0) ? 0 : extruder_loops[i - 1]) + extruder_loops[i]);
-            }
-        } else
-            // Extrude all skirts with the current extruder.
-            skirt_loops_per_extruder[first_extruder_id] = std::pair<size_t, size_t>(0, print.config().skirts.value);
+
+    if (single_object_instance_idx == size_t(-1) && object_layer != nullptr) {
+    	// Normal (non-sequential) print.
+    	gcode += ProcessLayer::emit_custom_gcode_per_print_z(
+    		// input / output
+    		m_custom_gcode_per_print_z_it,
+    		// inputs
+    		print.model().custom_gcode_per_print_z.cend(), layer.print_z, first_extruder_id, print.config().nozzle_diameter.size());
+        // Extrude skirt at the print_z of the raft layers and normal object layers
+        // not at the print_z of the interlaced support material layers.
+        skirt_loops_per_extruder = first_layer ?
+        	Skirt::make_skirt_loops_per_extruder_1st_layer(print, layers, layer_tools, m_writer.extruder_ids(), m_skirt_done) :
+        	Skirt::make_skirt_loops_per_extruder_other_layers(print, layers, layer_tools, m_skirt_done);
     }
 
     // Group extrusions by an extruder, then by an object, an island and a region.
@@ -2085,7 +2161,7 @@ void GCode::process_layer(
                             continue;
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
-                        int correct_extruder_id = Print::get_extruder(*extrusions, region);
+                        int correct_extruder_id = layer_tools.extruder(*extrusions, region);
 
                         // Let's recover vector of extruder overrides:
                         const WipingExtrusions::ExtruderPerCopy *entity_overrides = nullptr;
@@ -2152,30 +2228,27 @@ void GCode::process_layer(
         if (m_enable_analyzer && layer_tools.has_wipe_tower && m_wipe_tower)
             m_last_analyzer_extrusion_role = erWipeTower;
 
-        if (extrude_skirt) {
-            auto loops_it = skirt_loops_per_extruder.find(extruder_id);
-            if (loops_it != skirt_loops_per_extruder.end()) {
-                const std::pair<size_t, size_t> loops = loops_it->second;
-                this->set_origin(0.,0.);
-                m_avoid_crossing_perimeters.use_external_mp = true;
-                Flow skirt_flow = print.skirt_flow();
-                for (size_t i = loops.first; i < loops.second; ++ i) {
-                    // Adjust flow according to this layer's layer height.
-                    ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(print.skirt().entities[i]);
-                    Flow layer_skirt_flow(skirt_flow);
-                    layer_skirt_flow.height = (float)skirt_height;
-                    double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
-                    for (ExtrusionPath &path : loop.paths) {
-                        path.height     = (float)layer.height;
-                        path.mm3_per_mm = mm3_per_mm;
-                    }
-                    gcode += this->extrude_loop(loop, "skirt", m_config.support_material_speed.value);
+        if (auto loops_it = skirt_loops_per_extruder.find(extruder_id); loops_it != skirt_loops_per_extruder.end()) {
+            const std::pair<size_t, size_t> loops = loops_it->second;
+            this->set_origin(0., 0.);
+            m_avoid_crossing_perimeters.use_external_mp = true;
+            Flow layer_skirt_flow(print.skirt_flow());
+            layer_skirt_flow.height = (float)(m_skirt_done.back() - ((m_skirt_done.size() == 1) ? 0. : m_skirt_done[m_skirt_done.size() - 2]));
+            double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
+            for (size_t i = loops.first; i < loops.second; ++i) {
+                // Adjust flow according to this layer's layer height.
+                ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(print.skirt().entities[i]);
+                for (ExtrusionPath &path : loop.paths) {
+                    path.height = layer_skirt_flow.height;
+                    path.mm3_per_mm = mm3_per_mm;
                 }
-                m_avoid_crossing_perimeters.use_external_mp = false;
-                // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
-                if (first_layer && loops.first == 0)
-                    m_avoid_crossing_perimeters.disable_once = true;
+                //FIXME using the support_material_speed of the 1st object printed.
+                gcode += this->extrude_loop(loop, "skirt", m_config.support_material_speed.value);
             }
+            m_avoid_crossing_perimeters.use_external_mp = false;
+            // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
+            if (first_layer && loops.first == 0)
+                m_avoid_crossing_perimeters.disable_once = true;
         }
 
         // Extrude brim with the extruder of the 1st region.

@@ -197,23 +197,25 @@ public:
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
 
+    // Object and support extrusions of the same PrintObject at the same print_z.
+    // public, so that it could be accessed by free helper functions from GCode.cpp
+    struct LayerToPrint
+    {
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr) {}
+        const Layer* 		object_layer;
+        const SupportLayer* support_layer;
+        const Layer* 		layer()   const { return (object_layer != nullptr) ? object_layer : support_layer; }
+        const PrintObject* 	object()  const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
+        coordf_t            print_z() const { return (object_layer != nullptr && support_layer != nullptr) ? 0.5 * (object_layer->print_z + support_layer->print_z) : this->layer()->print_z; }
+    };
+
 private:
 #if ENABLE_THUMBNAIL_GENERATOR
-    void            _do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb);
+    void            _do_export(Print &print, FILE *file, ThumbnailsGeneratorCallback thumbnail_cb);
 #else
     void            _do_export(Print &print, FILE *file);
 #endif //ENABLE_THUMBNAIL_GENERATOR
 
-    // Object and support extrusions of the same PrintObject at the same print_z.
-    struct LayerToPrint
-    {
-        LayerToPrint() : object_layer(nullptr), support_layer(nullptr) {}
-        const Layer          *object_layer;
-        const SupportLayer   *support_layer;
-        const Layer*          layer() const { return (object_layer != nullptr) ? object_layer : support_layer; }
-        const PrintObject*    object() const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
-        coordf_t              print_z() const { return (object_layer != nullptr && support_layer != nullptr) ? 0.5 * (object_layer->print_z + support_layer->print_z) : this->layer()->print_z; }
-    };
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
     void            process_layer(
@@ -372,11 +374,9 @@ private:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
-    // Extensions for colorprint - now it's not a just color_print_heights,
-    // there can be some custom gcode.
-    // Updated before the export and erased during the process,
-    // so no toolchange occurs twice.
-    std::vector<Model::CustomGCode> 	m_custom_gcode_per_print_z;
+    // Iterator to Model::custom_gcode_per_print_z, which is being increased by process_layer.
+    // The Model::custom_gcode_per_print_z may contain color changes, extruder switches, pauses and custom G-codes.
+    std::vector<Model::CustomGCode>::const_iterator m_custom_gcode_per_print_z_it;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;
