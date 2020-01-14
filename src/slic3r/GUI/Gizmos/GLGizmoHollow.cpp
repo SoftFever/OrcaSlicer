@@ -1079,7 +1079,7 @@ void GLGizmoHollow::select_point(int i)
 
         if (i == AllPoints) {
             m_new_hole_radius = m_c->m_model_object->sla_drain_holes[0].radius;
-            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height;
+            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height - HoleStickOutLength;
         }
     }
     else {
@@ -1088,7 +1088,7 @@ void GLGizmoHollow::select_point(int i)
         m_selected[i] = true;
         m_selection_empty = false;
         m_new_hole_radius = m_c->m_model_object->sla_drain_holes[i].radius;
-        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height;
+        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height - HoleStickOutLength;
     }
 }
 
