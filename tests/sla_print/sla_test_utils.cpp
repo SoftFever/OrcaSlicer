@@ -13,11 +13,6 @@ void test_support_model_collision(const std::string          &obj_filename,
     // the supports will not touch the model body.
     supportcfg.head_penetration_mm = -0.15;
     
-    // TODO: currently, the tailheads penetrating into the model body do not
-    // respect the penetration parameter properly. No issues were reported so
-    // far but we should definitely fix this.
-    supportcfg.ground_facing_only = true;
-    
     test_supports(obj_filename, supportcfg, hollowingcfg, drainholes, byproducts);
     
     // Slice the support mesh given the slice grid of the model.
