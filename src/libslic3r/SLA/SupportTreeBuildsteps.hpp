@@ -20,6 +20,32 @@ inline Vec2d to_vec2(const Vec3d& v3) {
     return {v3(X), v3(Y)};
 }
 
+inline std::pair<double, double> dir_to_spheric(const Vec3d &n, double norm = 1.)
+{
+    double z       = n.z();
+    double r       = norm;
+    double polar   = std::acos(z / r);
+    double azimuth = std::atan2(n(1), n(0));
+    return {polar, azimuth};
+}
+
+inline Vec3d spheric_to_dir(double polar, double azimuth)
+{
+    return {std::cos(azimuth) * std::sin(polar),
+            std::sin(azimuth) * std::sin(polar), std::cos(polar)};
+}
+
+inline Vec3d spheric_to_dir(const std::tuple<double, double> &v)
+{
+    auto [plr, azm] = v;
+    return spheric_to_dir(plr, azm);
+}
+
+inline Vec3d spheric_to_dir(const std::pair<double, double> &v)
+{
+    return spheric_to_dir(v.first, v.second);
+}
+
 // This function returns the position of the centroid in the input 'clust'
 // vector of point indices.
 template<class DistFn>
@@ -151,10 +177,10 @@ class SupportTreeBuildsteps {
     using PtIndices = std::vector<unsigned>;
 
     PtIndices m_iheads;            // support points with pinhead
+    PtIndices m_iheads_onmodel;
     PtIndices m_iheadless;         // headless support points
-
-    // supp. pts. connecting to model: point index and the ray hit data
-    std::vector<std::pair<unsigned, EigenMesh3D::hit_result>> m_iheads_onmodel;
+    
+    std::map<unsigned, EigenMesh3D::hit_result> m_head_to_ground_scans;
 
     // normals for support points from model faces.
     PointSet  m_support_nmls;
@@ -223,15 +249,29 @@ class SupportTreeBuildsteps {
 
     // For connecting a head to a nearby pillar.
     bool connect_to_nearpillar(const Head& head, long nearpillar_id);
-
+    
+    // Find route for a head to the ground. Inserts additional bridge from the
+    // head to the pillar if cannot create pillar directly.
+    // The optional dir parameter is the direction of the bridge which is the
+    // direction of the pinhead if omitted.
+    bool connect_to_ground(Head& head, const Vec3d &dir);
+    inline bool connect_to_ground(Head& head);
+    
+    bool connect_to_model_body(Head &head);
+    
     bool search_pillar_and_connect(const Head& head);
-
+    
     // This is a proxy function for pillar creation which will mind the gap
     // between the pad and the model bottom in zero elevation mode.
+    // jp is the starting junction point which needs to be routed down.
+    // sourcedir is the allowed direction of an optional bridge between the
+    // jp junction and the final pillar.
     void create_ground_pillar(const Vec3d &jp,
                               const Vec3d &sourcedir,
                               double       radius,
                               long         head_id = ID_UNSET);
+    
+    
 public:
     SupportTreeBuildsteps(SupportTreeBuilder & builder, const SupportableMesh &sm);
 

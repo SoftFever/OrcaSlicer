@@ -13,11 +13,6 @@ void test_support_model_collision(const std::string          &obj_filename,
     // the supports will not touch the model body.
     supportcfg.head_penetration_mm = -0.15;
     
-    // TODO: currently, the tailheads penetrating into the model body do not
-    // respect the penetration parameter properly. No issues were reported so
-    // far but we should definitely fix this.
-    supportcfg.ground_facing_only = true;
-    
     test_supports(obj_filename, supportcfg, hollowingcfg, drainholes, byproducts);
     
     // Slice the support mesh given the slice grid of the model.
@@ -115,8 +110,10 @@ void test_supports(const std::string          &obj_filename,
     // Create the support point generator
     sla::SupportPointGenerator::Config autogencfg;
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
-    sla::SupportPointGenerator point_gen{emesh, out.model_slices, out.slicegrid, 
-                autogencfg, [] {}, [](int) {}};
+    sla::SupportPointGenerator point_gen{emesh, autogencfg, [] {}, [](int) {}};
+    
+    long seed = 0; // Make the test repeatable
+    point_gen.execute(out.model_slices, out.slicegrid, seed);
     
     // Get the calculated support points.
     std::vector<sla::SupportPoint> support_points = point_gen.output();
