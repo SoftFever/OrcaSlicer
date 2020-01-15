@@ -387,8 +387,8 @@ void MyFrame::read_csg_settings(const wxCmdLineParser &parser)
 
 void MyFrame::set_renderer_algorithm(const wxString &alg)
 {
-    long alg_idx = get_idx("EnricoShader", CSG_ALGS);
-    if (alg_idx < 0 || alg_idx >= CSG_ALGS.size()) return;
+    long alg_idx = get_idx(alg, CSG_ALGS);
+    if (alg_idx < 0 || alg_idx >= long(CSG_ALGS.size())) return;
     
     // If there is a valid display in place, save its camera.
     auto cam = m_canvas->get_display() ?
