@@ -5,6 +5,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Print.hpp"
 
 #include <wx/sizer.h>
 #include <wx/bmpcbox.h>
@@ -3487,7 +3488,25 @@ int DoubleSlider::get_extruder_for_tick(int tick)
 std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
 {
     if (m_mode == mmMultiExtruder)
-        return {}; // #ys_FIXME: correct fill used_extruders_for_tick for mmMultiExtruder
+    {
+        // #ys_FIXME: get tool ordering from _correct_ place
+        const Slic3r::ToolOrdering& tool_ordering = Slic3r::GUI::wxGetApp().plater()->fff_print().get_tool_ordering();
+
+        if (tool_ordering.empty())
+            return {};
+
+        std::set<int> used_extruders;
+
+        auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), Slic3r::LayerTools(m_values[tick]));
+        for (; it_layer_tools != tool_ordering.end(); it_layer_tools++)
+        {
+            const std::vector<unsigned>& extruders = it_layer_tools->extruders;
+            for (const auto& extruder : extruders)
+                used_extruders.emplace(extruder+1);
+        }
+
+        return used_extruders;
+    }
 
     const int default_initial_extruder = m_mode == mmMultiAsSingle ? std::max(m_only_extruder, 1) : 1;
     if (m_ticks.empty())

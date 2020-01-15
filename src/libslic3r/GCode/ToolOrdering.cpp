@@ -486,7 +486,8 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			print_z_below = it_lt_below->print_z;
 		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
 			// The custom G-code applies to the current layer.
-			if (custom_gcode.gcode != ColorChangeCode || extruder_printing_above[unsigned(custom_gcode.extruder - 1)])
+			if ( custom_gcode.gcode != ColorChangeCode || 
+                (custom_gcode.extruder <= num_extruders && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]))
 				// If it is color change, it will actually be useful as the exturder above will print.
         		lt.custom_gcode = &custom_gcode;
 			// Consume that custom G-code event.
