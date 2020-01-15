@@ -27,8 +27,19 @@ class GCodePreviewData;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
-    psSkirt, psBrim, psWipeTower, psGCodeExport, psCount,
+    psSkirt, 
+    psBrim,
+    // Synonym for the last step before the Wipe Tower / Tool Ordering, for the G-code preview slider to understand that 
+    // all the extrusions are there for the layer slider to add color changes etc.
+    psExtrusionPaths = psBrim,
+    psWipeTower,
+    // psToolOrdering is a synonym to psWipeTower, as the Wipe Tower calculates and modifies the ToolOrdering,
+    // while if printing without the Wipe Tower, the ToolOrdering is calculated as well.
+    psToolOrdering = psWipeTower,
+    psGCodeExport,
+    psCount,
 };
+
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
     posInfill, posSupportMaterial, posCount,
@@ -231,6 +242,7 @@ private:
 
 struct WipeTowerData
 {
+	WipeTowerData(ToolOrdering &tool_ordering) : tool_ordering(tool_ordering) { clear(); }
     // Following section will be consumed by the GCodeGenerator.
     // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
     // Cache it here, so it does not need to be recalculated during the G-code generation.
@@ -247,7 +259,6 @@ struct WipeTowerData
     float                                                 brim_width;
 
     void clear() {
-        tool_ordering.clear();
         priming.reset(nullptr);
         tool_changes.clear();
         final_purge.reset(nullptr);
@@ -377,6 +388,7 @@ public:
     // Wipe tower support.
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t extruders_cnt = 0, double first_layer_height = 0., double nozzle_diameter = 0.) const;
+    const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
@@ -420,7 +432,8 @@ private:
     ExtrusionEntityCollection               m_brim;
 
     // Following section will be consumed by the GCodeGenerator.
-    WipeTowerData                           m_wipe_tower_data;
+    ToolOrdering 							m_tool_ordering;
+    WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
