@@ -1,6 +1,8 @@
 #ifndef SLA_SUPPORTPOINTGENERATOR_HPP
 #define SLA_SUPPORTPOINTGENERATOR_HPP
 
+#include <random>
+
 #include <libslic3r/SLA/Common.hpp>
 #include <libslic3r/SLA/SupportPoint.hpp>
 #include <libslic3r/SLA/EigenMesh3D.hpp>
@@ -190,18 +192,14 @@ public:
     void execute(const std::vector<ExPolygons> &slices,
                  const std::vector<float> &     heights);
     
-    void execute(const std::vector<ExPolygons> &slices,
-                 const std::vector<float> &     heights, long seed);
-    
-    class RandomGen;
-    
+    void seed(std::mt19937::result_type s) { m_rng.seed(s); }
 private:
     std::vector<SupportPoint> m_output;
     
     SupportPointGenerator::Config m_config;
     
-    void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights, RandomGen&);
-    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, RandomGen&, bool is_new_island = false, bool just_one = false);
+    void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
+    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island = false, bool just_one = false);
     void project_onto_mesh(std::vector<SupportPoint>& points) const;
 
 #ifdef SLA_SUPPORTPOINTGEN_DEBUG
@@ -212,6 +210,8 @@ private:
     const EigenMesh3D& m_emesh;
     std::function<void(void)> m_throw_on_cancel;
     std::function<void(int)>  m_statusfn;
+    
+    std::mt19937 m_rng;
 };
 
 void remove_bottom_points(std::vector<SupportPoint> &pts, double gnd_lvl, double tolerance);

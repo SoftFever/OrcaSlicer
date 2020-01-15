@@ -112,8 +112,8 @@ void test_supports(const std::string          &obj_filename,
     autogencfg.head_diameter = float(2 * supportcfg.head_front_radius_mm);
     sla::SupportPointGenerator point_gen{emesh, autogencfg, [] {}, [](int) {}};
     
-    long seed = 0; // Make the test repeatable
-    point_gen.execute(out.model_slices, out.slicegrid, seed);
+    point_gen.seed(0); // Make the test repeatable
+    point_gen.execute(out.model_slices, out.slicegrid);
     
     // Get the calculated support points.
     std::vector<sla::SupportPoint> support_points = point_gen.output();
