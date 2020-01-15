@@ -19,7 +19,7 @@ class ExPolygon
 public:
     ExPolygon() {}
 	ExPolygon(const ExPolygon &other) : contour(other.contour), holes(other.holes) {}
-    ExPolygon(ExPolygon &&other) : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
+    ExPolygon(ExPolygon &&other) noexcept : contour(std::move(other.contour)), holes(std::move(other.holes)) {}
 	explicit ExPolygon(const Polygon &contour) : contour(contour) {}
 	explicit ExPolygon(Polygon &&contour) : contour(std::move(contour)) {}
 	explicit ExPolygon(const Points &contour) : contour(contour) {}
@@ -32,7 +32,7 @@ public:
 	ExPolygon(std::initializer_list<Point> contour, std::initializer_list<Point> hole) : contour(contour), holes({ hole }) {}
 
     ExPolygon& operator=(const ExPolygon &other) { contour = other.contour; holes = other.holes; return *this; }
-    ExPolygon& operator=(ExPolygon &&other) { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
+    ExPolygon& operator=(ExPolygon &&other) noexcept { contour = std::move(other.contour); holes = std::move(other.holes); return *this; }
 
     Polygon contour;
     Polygons holes;

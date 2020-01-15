@@ -886,7 +886,7 @@ void GLGizmosManager::do_render_overlay() const
 #else
     float du = (float)(tex_width - 1) / (3.0f * (float)tex_width); // 3 is the number of possible states if the icons
 #endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
-    float dv = (float)(tex_height - 1) / (float)(selectable_idxs.size() * tex_height);
+    float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
 
     // tiles in the texture are spaced by 1 pixel
     float u_offset = 1.0f / (float)tex_width;

@@ -303,8 +303,8 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         unsigned int            extruder_id = extruders[i].id();
         adj.extruder_id               = extruder_id;
         adj.cooling_slow_down_enabled = config.cooling.get_at(extruder_id);
-        adj.slowdown_below_layer_time = config.slowdown_below_layer_time.get_at(extruder_id);
-        adj.min_print_speed           = config.min_print_speed.get_at(extruder_id);
+        adj.slowdown_below_layer_time = float(config.slowdown_below_layer_time.get_at(extruder_id));
+        adj.min_print_speed           = float(config.min_print_speed.get_at(extruder_id));
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
 

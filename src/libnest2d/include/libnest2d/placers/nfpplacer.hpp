@@ -1116,12 +1116,8 @@ private:
         for(Item& item : items_) item.translate(d);
     }
 
-    void setInitialPosition(Item& item) {
-        auto sh = item.rawShape();
-        sl::translate(sh, item.translation());
-        sl::rotate(sh, item.rotation());
-        
-        Box bb = sl::boundingBox(sh);
+    void setInitialPosition(Item& item) {        
+        Box bb = item.boundingBox();
         
         Vertex ci, cb;
         auto bbin = sl::boundingBox(bin_);

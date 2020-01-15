@@ -1876,12 +1876,24 @@ namespace Slic3r {
         typedef std::vector<BuildItem> BuildItemsList;
         typedef std::map<int, ObjectData> IdToObjectDataMap;
 
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+        bool m_fullpath_sources{ true };
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+
     public:
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data = nullptr);
+#else
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources);
+#endif // ENABLE_THUMBNAIL_GENERATOR
+#else
 #if ENABLE_THUMBNAIL_GENERATOR
         bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data = nullptr);
 #else
         bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
     private:
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1906,6 +1918,22 @@ namespace Slic3r {
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model);
     };
 
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+#if ENABLE_THUMBNAIL_GENERATOR
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
+    {
+        clear_errors();
+        m_fullpath_sources = fullpath_sources;
+        return _save_model_to_file(filename, model, config, thumbnail_data);
+    }
+#else
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, bool fullpath_sources)
+    {
+        clear_errors();
+        return _save_model_to_file(filename, model, config);
+    }
+#endif // ENABLE_THUMBNAIL_GENERATOR
+#else
 #if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
     {
@@ -1919,6 +1947,7 @@ namespace Slic3r {
         return _save_model_to_file(filename, model, config);
     }
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
 #if ENABLE_THUMBNAIL_GENERATOR
     bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
@@ -2557,7 +2586,12 @@ namespace Slic3r {
                             // stores volume's source data
                             if (!volume->source.input_file.empty())
                             {
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+                                std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << input_file << "\"/>\n";
+#else
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_FILE_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->source.input_file) << "\"/>\n";
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_VOLUME_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.volume_idx << "\"/>\n";
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << SOURCE_OFFSET_X_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(0) << "\"/>\n";
@@ -2646,21 +2680,37 @@ bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model, bool c
         return res;
     }
 
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+#if ENABLE_THUMBNAIL_GENERATOR
+bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data)
+#else
+bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, bool fullpath_sources)
+#endif // ENABLE_THUMBNAIL_GENERATOR
+#else
 #if ENABLE_THUMBNAIL_GENERATOR
     bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
 #else
     bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config)
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
     {
         if ((path == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Exporter exporter;
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+#if ENABLE_THUMBNAIL_GENERATOR
+        bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources, thumbnail_data);
+#else
+        bool res = exporter.save_model_to_file(path, *model, config, fullpath_sources);
+#endif // ENABLE_THUMBNAIL_GENERATOR
+#else
 #if ENABLE_THUMBNAIL_GENERATOR
         bool res = exporter.save_model_to_file(path, *model, config, thumbnail_data);
 #else
         bool res = exporter.save_model_to_file(path, *model, config);
 #endif // ENABLE_THUMBNAIL_GENERATOR
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
         if (!res)
             exporter.log_errors();

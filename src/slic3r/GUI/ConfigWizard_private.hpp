@@ -149,6 +149,7 @@ struct PrinterPicker: wxPanel
     void select_all(bool select, bool alternates = false);
     void select_one(size_t i, bool select);
     bool any_selected() const;
+    std::set<std::string> get_selected_models() const ;
 
     int get_width() const { return width; }
     const std::vector<int>& get_button_indexes() { return m_button_indexes; }
@@ -215,6 +216,9 @@ struct PagePrinters: ConfigWizardPage
     void select_all(bool select, bool alternates = false);
     int get_width() const;
     bool any_selected() const;
+    std::set<std::string> get_selected_models();
+
+    std::string get_vendor_id() const { return printer_pickers.empty() ? "" : printer_pickers[0]->vendor_id; }
 
     virtual void set_run_reason(ConfigWizard::RunReason run_reason) override;
 };
@@ -300,6 +304,17 @@ struct PageUpdate: ConfigWizardPage
 
     PageUpdate(ConfigWizard *parent);
 };
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+struct PageReloadFromDisk : ConfigWizardPage
+{
+    bool full_pathnames;
+
+    PageReloadFromDisk(ConfigWizard* parent);
+};
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 struct PageMode: ConfigWizardPage
 {
@@ -455,6 +470,11 @@ struct ConfigWizard::priv
     PageMaterials    *page_sla_materials = nullptr;
     PageCustom       *page_custom = nullptr;
     PageUpdate       *page_update = nullptr;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+    PageReloadFromDisk *page_reload_from_disk = nullptr;
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     PageMode         *page_mode = nullptr;
     PageVendors      *page_vendors = nullptr;
     Pages3rdparty     pages_3rdparty;
@@ -487,10 +507,17 @@ struct ConfigWizard::priv
 
     void on_custom_setup();
     void on_printer_pick(PagePrinters *page, const PrinterPickerEvent &evt);
+    void select_default_materials_for_printer_model(const std::vector<VendorProfile::PrinterModel> &models,
+                                                    Technology                                      technology,
+                                                    const std::string &                             model_id);
+    void select_default_materials_if_needed(VendorProfile*     vendor_profile,
+                                            Technology         technology,
+                                            const std::string &model_id);
+    void selected_default_materials(Technology technology);
     void on_3rdparty_install(const VendorProfile *vendor, bool install);
 
     bool on_bnt_finish();
-    bool check_materials_in_config(Technology technology);
+    bool check_materials_in_config(Technology technology, bool show_info_msg = true);
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
     // #ys_FIXME_alise
     void update_presets_in_config(const std::string& section, const std::string& alias_key, bool add);

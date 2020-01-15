@@ -61,6 +61,7 @@ public:
         PrinterTechnology           technology;
         std::string                 family;
         std::vector<PrinterVariant> variants;
+        std::vector<std::string>	default_materials;
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
@@ -562,6 +563,11 @@ public:
 
     const Preset*   find_by_model_id(const std::string &model_id) const;
 };
+
+namespace PresetUtils {
+	// PrinterModel of a system profile, from which this preset is derived, or null if it is not derived from a system profile.
+	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
+} // namespace PresetUtils
 
 } // namespace Slic3r
 

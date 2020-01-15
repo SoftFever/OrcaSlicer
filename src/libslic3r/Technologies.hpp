@@ -71,5 +71,8 @@
 // Enable a modified version of the toolbar textures where all the icons are separated by 1 pixel
 #define ENABLE_MODIFIED_TOOLBAR_TEXTURES (1 && ENABLE_2_2_0_BETA1)
 
+// Enable configurable paths export (fullpath or not) to 3mf and amf
+#define ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF (1 && ENABLE_2_2_0_BETA1)
+
 
 #endif // _technologies_h_

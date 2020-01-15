@@ -68,7 +68,7 @@ class Mouse3DController
         CustomParameters<double> m_translation_params;
         CustomParameters<float> m_rotation_params;
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        CustomParameters<float> m_zoom_params;
+        CustomParameters<double> m_zoom_params;
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
         // When the 3Dconnexion driver is running the system gets, by default, mouse wheel events when rotations around the X axis are detected.

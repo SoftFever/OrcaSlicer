@@ -48,9 +48,6 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
-    // Constructor for a key object, to be used by the stdlib search functions.
-    static Extruder key(unsigned int id) { return Extruder(id); }
-
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
