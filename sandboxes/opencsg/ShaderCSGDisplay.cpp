@@ -53,19 +53,6 @@ void ShaderCSGDisplay::on_scene_updated(const Scene &scene)
             
             mshinst.require_shared_vertices();
             add_mesh(mshinst);
-            
-            auto tr = Transform3f::Identity();
-            tr.translate(-center);
-            
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.pos;
-                          });
-            
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.normal;
-                          });
         }
         
         for (const sla::DrainHole &holept : holedata) {

@@ -420,19 +420,6 @@ void CSGDisplay::on_scene_updated(const Scene &scene)
             mshinst.require_shared_vertices();
             m_scene_cache.add_mesh(mshinst, OpenCSG::Intersection,
                                    m_csgsettings.get_convexity());
-
-            auto tr = Transform3f::Identity();
-            tr.translate(-center);
-            
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.pos;
-                          });
-            
-            transform_pts(holedata.begin(), holedata.end(), tr,
-                          [](const sla::DrainHole &dh) {
-                              return dh.normal;
-                          });
         }
         
         for (const sla::DrainHole &holept : holedata) {

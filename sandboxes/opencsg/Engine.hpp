@@ -171,23 +171,6 @@ public:
 // Try to enable or disable multisampling.
 bool enable_multisampling(bool e = true);
 
-template<class It,
-         class Trafo,
-         class GetPt,
-         class V = typename std::iterator_traits<It>::value_type>
-inline std::vector<V> transform_pts(
-    It from, It to, Trafo &&tr, GetPt &&point)
-{
-    vector<V> ret;
-    ret.reserve(to - from);
-    for(auto it = from; it != to; ++it) {
-        V v = *it;
-        v.pos = tr * point(*it);
-        ret.emplace_back(std::move(v));
-    }
-    return ret;
-}
-
 class Volume {
     IndexedVertexArray m_geom;
     Geometry::Transformation m_trafo;
