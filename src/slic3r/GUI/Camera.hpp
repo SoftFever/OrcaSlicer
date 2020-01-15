@@ -30,21 +30,29 @@ struct Camera
         Num_types
     };
 
+#if !ENABLE_6DOF_CAMERA
     float phi;
-    bool requires_zoom_to_bed;
     bool inverted_phi;
+#endif // !ENABLE_6DOF_CAMERA
+    bool requires_zoom_to_bed;
 
 private:
     EType m_type;
     Vec3d m_target;
+#if !ENABLE_6DOF_CAMERA
     float m_theta;
+#endif // !ENABLE_6DOF_CAMERA
     double m_zoom;
     // Distance between camera position and camera target measured along the camera Z axis
     mutable double m_distance;
     mutable double m_gui_scale;
 
     mutable std::array<int, 4> m_viewport;
+#if ENABLE_6DOF_CAMERA
+    Transform3d m_view_matrix;
+#else
     mutable Transform3d m_view_matrix;
+#endif // ENABLE_6DOF_CAMERA
     mutable Transform3d m_projection_matrix;
     mutable std::pair<double, double> m_frustrum_zs;
 
@@ -66,8 +74,10 @@ public:
     double get_distance() const { return m_distance; }
     double get_gui_scale() const { return m_gui_scale; }
 
+#if !ENABLE_6DOF_CAMERA
     float get_theta() const { return m_theta; }
     void set_theta(float theta, bool apply_limit);
+#endif // !ENABLE_6DOF_CAMERA
 
     double get_zoom() const { return m_zoom; }
     void update_zoom(double delta_zoom);
@@ -76,7 +86,11 @@ public:
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }
 
+#if ENABLE_6DOF_CAMERA
+    void select_view(const std::string& direction);
+#else
     bool select_view(const std::string& direction);
+#endif // ENABLE_6DOF_CAMERA
 
     const std::array<int, 4>& get_viewport() const { return m_viewport; }
     const Transform3d& get_view_matrix() const { return m_view_matrix; }
@@ -110,6 +124,21 @@ public:
     void debug_render() const;
 #endif // ENABLE_CAMERA_STATISTICS
 
+#if ENABLE_6DOF_CAMERA
+    // translate the camera in world space
+    void translate_world(const Vec3d& displacement);
+
+    // rotate the camera on a sphere having center == m_target and radius == m_distance
+    // using the given variations of spherical coordinates
+    void rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limit);
+
+    // rotate the camera around three axes parallel to the camera local axes and passing through m_target
+    void rotate_local_around_target(const Vec3d& rotation_rad);
+
+    // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
+    bool is_looking_downward() const;
+#endif // ENABLE_6DOF_CAMERA
+
 private:
     // returns tight values for nearZ and farZ plane around the given bounding box
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
@@ -121,6 +150,12 @@ private:
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const;
 #endif // ENABLE_THUMBNAIL_GENERATOR
     void set_distance(double distance) const;
+
+#if ENABLE_6DOF_CAMERA
+    Transform3d look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up) const;
+    void set_default_orientation();
+    Vec3d validate_target(const Vec3d& target) const;
+#endif // ENABLE_6DOF_CAMERA
 };
 
 } // GUI

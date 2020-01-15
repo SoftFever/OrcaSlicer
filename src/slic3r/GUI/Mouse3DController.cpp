@@ -168,12 +168,17 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_rotation())
     {
+#if ENABLE_6DOF_CAMERA
+        Vec3d rotation = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>();
+        camera.rotate_local_around_target(Vec3d(Geometry::deg2rad(rotation(0)), Geometry::deg2rad(-rotation(2)), Geometry::deg2rad(-rotation(1))));
+#else
         const Vec3f& rotation = m_rotation.queue.front();
         float theta = m_rotation_params.scale * rotation(0);
         float phi = m_rotation_params.scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+#endif // ENABLE_6DOF_CAMERA
         m_rotation.queue.pop();
         ret = true;
     }
@@ -877,9 +882,15 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
 {
     double deadzone = (double)m_state.get_rotation_deadzone();
+#if ENABLE_6DOF_CAMERA
+    Vec3f rotation((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
+        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
+        (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#else
     Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
         (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
         -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#endif // ENABLE_6DOF_CAMERA
 
     if (!rotation.isApprox(Vec3f::Zero()))
     {

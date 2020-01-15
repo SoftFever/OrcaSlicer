@@ -262,7 +262,11 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
+#if ENABLE_6DOF_CAMERA
+void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes) const
+#else
 void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool show_axes) const
+#endif // ENABLE_6DOF_CAMERA
 {
     m_scale_factor = scale_factor;
 
@@ -273,6 +277,15 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool sho
 
     switch (m_type)
     {
+#if ENABLE_6DOF_CAMERA
+    case MK2: { render_prusa(canvas, "mk2", bottom); break; }
+    case MK3: { render_prusa(canvas, "mk3", bottom); break; }
+    case SL1: { render_prusa(canvas, "sl1", bottom); break; }
+    case MINI: { render_prusa(canvas, "mini", bottom); break; }
+    case ENDER3: { render_prusa(canvas, "ender3", bottom); break; }
+    default:
+    case Custom: { render_custom(canvas, bottom); break; }
+#else
     case MK2: { render_prusa(canvas, "mk2", theta > 90.0f); break; }
     case MK3: { render_prusa(canvas, "mk3", theta > 90.0f); break; }
     case SL1: { render_prusa(canvas, "sl1", theta > 90.0f); break; }
@@ -280,6 +293,7 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool sho
     case ENDER3: { render_prusa(canvas, "ender3", theta > 90.0f); break; }
     default:
     case Custom: { render_custom(canvas, theta > 90.0f); break; }
+#endif // ENABLE_6DOF_CAMERA
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
