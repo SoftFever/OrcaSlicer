@@ -446,13 +446,13 @@ void MyFrame::activate_canvas_display()
     m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) {
         // This is required even though dc is not used otherwise.
         wxPaintDC dc(this);
-        const wxSize csize = GetClientSize();
+        const wxSize csize = m_canvas->GetClientSize();
         m_canvas->get_display()->set_screen_size(csize.x, csize.y);
         m_canvas->get_display()->repaint();
     });
     
-    m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent &) {            
-        const wxSize csize = GetClientSize();
+    m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent &) {
+        const wxSize csize = m_canvas->GetClientSize();
         m_canvas->get_display()->set_screen_size(csize.x, csize.y);
         m_canvas->get_display()->repaint();
     });
