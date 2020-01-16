@@ -478,7 +478,7 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
 
 // Compare just the layer ranges and their layer heights, not the associated configs.
 // Ignore the layer heights if check_layer_heights is false.
-bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_layer_config_ranges &lr2, bool check_layer_height)
+static bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_layer_config_ranges &lr2, bool check_layer_height)
 {
     if (lr1.size() != lr2.size())
         return false;
@@ -491,6 +491,37 @@ bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_layer_c
             return false;
     }
     return true;
+}
+
+// Returns true if va == vb when all CustomGCode items that are not ExtruderChangeCode are ignored.
+static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Model::CustomGCode> &va, const std::vector<Model::CustomGCode> &vb)
+{
+	auto it_a = va.begin();
+	auto it_b = vb.begin();
+	while (it_a != va.end() && it_b != vb.end()) {
+		if (it_a != va.end() && it_a->gcode != ExtruderChangeCode) {
+			// Skip any CustomGCode items, which are not tool changes.
+			++ it_a;
+			continue;
+		}
+		if (it_b != vb.end() && it_b->gcode != ExtruderChangeCode) {
+			// Skip any CustomGCode items, which are not tool changes.
+			++ it_b;
+			continue;
+		}
+		if (it_a == va.end() || it_b == vb.end())
+			// va or vb contains more Tool Changes than the other.
+			return true;
+		assert(it_a->gcode == ExtruderChangeCode);
+		assert(it_b->gcode == ExtruderChangeCode);
+		if (*it_a != *it_b)
+			// The two Tool Changes differ.
+			return true;
+		++ it_a;
+		++ it_b;
+	}
+	// There is no change in custom Tool Changes.
+	return false;
 }
 
 // Collect diffs of configuration values at various containers,
@@ -692,8 +723,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
         if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
-	        // If custom gcode per layer height was changed, we should stop background processing.
-            update_apply_status(this->invalidate_steps({ psWipeTower, psGCodeExport }));
+            update_apply_status(custom_per_printz_gcodes_tool_changes_differ(m_model.custom_gcode_per_print_z, model.custom_gcode_per_print_z) ?
+            	// The Tool Ordering and the Wipe Tower are no more valid.
+            	this->invalidate_steps({ psWipeTower, psGCodeExport }) :
+            	// There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
+            	this->invalidate_step(psGCodeExport));
             m_model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
         }
         if (model_object_list_equal(m_model, model)) {
@@ -1521,9 +1555,13 @@ void Print::process()
         obj->generate_support_material();
     if (this->set_started(psWipeTower)) {
         m_wipe_tower_data.clear();
+        m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
             //this->set_status(95, L("Generating wipe tower"));
             this->_make_wipe_tower();
+        } else if (! this->config().complete_objects.value) {
+        	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
+        	m_tool_ordering = ToolOrdering(*this, -1, false);
         }
         this->set_done(psWipeTower);
     }

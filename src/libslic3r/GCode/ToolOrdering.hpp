@@ -143,6 +143,12 @@ public:
 
     void 				clear() { m_layer_tools.clear(); }
 
+    // Only valid for non-sequential print:
+	// Assign a pointer to a custom G-code to the respective ToolOrdering::LayerTools.
+	// Ignore color changes, which are performed on a layer and for such an extruder, that the extruder will not be printing above that layer.
+	// If multiple events are planned over a span of a single layer, use the last one.
+	void 				assign_custom_gcodes(const Print &print);
+
     // Get the first extruder printing, including the extruder priming areas, returns -1 if there is no layer printed.
     unsigned int   		first_extruder() const { return m_first_printing_extruder; }
 
@@ -170,7 +176,6 @@ private:
     void				reorder_extruders(unsigned int last_extruder_id);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z);
     void 				collect_extruder_statistics(bool prime_multi_material);
-	void 				assign_custom_gcodes(const Print &print);
 
     std::vector<LayerTools>    m_layer_tools;
     // First printing extruder, including the multi-material priming sequence.
