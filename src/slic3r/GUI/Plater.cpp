@@ -2791,7 +2791,7 @@ void Plater::priv::reset()
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
 
-    model.custom_gcode_per_print_z.clear();
+    model.custom_gcode_per_print_z.gcodes.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -5349,9 +5349,9 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config() const
 std::vector<std::string> Plater::get_colors_for_color_print() const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
-    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.size());
+    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
-    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z)
+    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z.gcodes)
         if (code.gcode == ColorChangeCode)
             colors.emplace_back(code.color);
 

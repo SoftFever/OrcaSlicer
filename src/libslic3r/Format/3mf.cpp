@@ -1088,7 +1088,7 @@ namespace Slic3r {
                 return;
             pt::ptree code_tree = main_tree.front().second;
 
-            m_model->custom_gcode_per_print_z.clear();
+            m_model->custom_gcode_per_print_z.gcodes.clear();
 
             for (const auto& code : code_tree)
             {
@@ -1100,7 +1100,7 @@ namespace Slic3r {
                 int extruder        = tree.get<int>         ("<xmlattr>.extruder"   );
                 std::string color   = tree.get<std::string> ("<xmlattr>.color"      );
 
-                m_model->custom_gcode_per_print_z.push_back(Model::CustomGCode{print_z, gcode, extruder, color}) ;
+                m_model->custom_gcode_per_print_z.gcodes.push_back(Model::CustomGCode{print_z, gcode, extruder, color}) ;
             }
         }
     }
@@ -2631,12 +2631,12 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
 {
     std::string out = "";
 
-    if (!model.custom_gcode_per_print_z.empty())
+    if (!model.custom_gcode_per_print_z.gcodes.empty())
     {
         pt::ptree tree;
         pt::ptree& main_tree = tree.add("custom_gcodes_per_print_z", "");
 
-        for (const Model::CustomGCode& code : model.custom_gcode_per_print_z)
+        for (const Model::CustomGCode& code : model.custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
             // store minX and maxZ

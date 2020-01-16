@@ -653,7 +653,7 @@ void AMFParserContext::endElement(const char * /* name */)
         int extruder = atoi(m_value[2].c_str());
         const std::string& color = m_value[3];
 
-        m_model.custom_gcode_per_print_z.push_back(Model::CustomGCode{height, gcode, extruder, color});
+        m_model.custom_gcode_per_print_z.gcodes.push_back(Model::CustomGCode{height, gcode, extruder, color});
 
         for (std::string& val: m_value)
             val.clear();
@@ -1250,14 +1250,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         stream << "  </constellation>\n";
     }
 
-    if (!model->custom_gcode_per_print_z.empty())
+    if (!model->custom_gcode_per_print_z.gcodes.empty())
     {
         std::string out = "";
         pt::ptree tree;
 
         pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
 
-        for (const Model::CustomGCode& code : model->custom_gcode_per_print_z)
+        for (const Model::CustomGCode& code : model->custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
             // store minX and maxZ
