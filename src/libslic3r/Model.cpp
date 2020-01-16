@@ -126,7 +126,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (add_default_instances)
         model.add_default_instances();
 
-    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
 
     return model;
 }
@@ -163,7 +163,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (add_default_instances)
         model.add_default_instances();
 
-    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
 
     return model;
 }
@@ -1846,7 +1846,7 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Model &model, size_t num_extruders)
 {
     std::vector<std::pair<double, unsigned int>> custom_tool_changes;
-    for (const Model::CustomGCode &custom_gcode : model.custom_gcode_per_print_z)
+    for (const Model::CustomGCode &custom_gcode : model.custom_gcode_per_print_z.gcodes)
         if (custom_gcode.gcode == ExtruderChangeCode) {
             // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
             custom_tool_changes.emplace_back(custom_gcode.print_z, static_cast<unsigned int>(custom_gcode.extruder > num_extruders ? 1 : custom_gcode.extruder));

@@ -1011,7 +1011,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
                                                                 std::vector<float>& colors,
                                                                 std::vector<std::string>& cp_legend_items)
 {
-    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
     if (extruders_cnt == 1) 

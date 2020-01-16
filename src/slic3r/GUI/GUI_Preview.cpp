@@ -564,7 +564,7 @@ void Preview::update_view_type(bool slice_completed)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
 
-    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.empty() /*&&
+    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() /*&&
                              (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
                                 _(L("Color Print")) :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
@@ -595,7 +595,7 @@ void Preview::create_double_slider()
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
         Model& model = wxGetApp().plater()->model();
-        model.custom_gcode_per_print_z = m_slider->GetTicksValues();
+        model.custom_gcode_per_print_z.gcodes = m_slider->GetTicksValues();
         m_schedule_background_process();
 
         update_view_type(false);
@@ -664,7 +664,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
     check_slider_values(ticks_from_model, layers_z);
 
     m_slider->SetSliderValues(layers_z);
@@ -837,7 +837,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
 
         if (!gcode_preview_data_valid)
-            color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z;
+            color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
     {

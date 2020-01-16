@@ -772,7 +772,28 @@ public:
         std::string color;      // if gcode is equal to PausePrintCode, 
                                 // this field is used for save a short message shown on Printer display 
     };
-    std::vector<CustomGCode> custom_gcode_per_print_z;
+    
+    struct CustomGCodeInfo
+    {
+        enum MODE
+        {
+            SingleExtruder,   // single extruder printer preset is selected
+            MultiAsSingle,    // multiple extruder printer preset is selected, but 
+                              // this mode works just for Single extruder print 
+                              // (For all print from objects settings is used just one extruder) 
+            MultiExtruder     // multiple extruder printer preset is selected
+        } mode;
+        
+        std::vector<CustomGCode> gcodes;
+
+        bool operator==(const CustomGCodeInfo& rhs) const
+        {
+            return  (rhs.mode   == this->mode   ) &&
+                    (rhs.gcodes == this->gcodes );
+        }
+        bool operator!=(const CustomGCodeInfo& rhs) const { return !(*this == rhs); }
+    } 
+    custom_gcode_per_print_z;
     
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }
