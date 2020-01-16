@@ -87,7 +87,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -132,9 +132,6 @@ void GLGizmoHollow::on_render() const
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
-    // Show/hide the original object
-    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-    m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
 
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
@@ -649,6 +646,9 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_c->m_volume_with_cavity->finalize_geometry(true);
         m_c->m_volume_with_cavity->force_transparent = false;
 
+        m_parent.toggle_model_objects_visibility(false, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+
         // Reset raycaster so it works with the new mesh:
         m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
     }
@@ -908,8 +908,10 @@ RENDER_AGAIN:
         update_clipping_plane(true);
 
     // make sure supports are shown/hidden as appropriate
-    m_imgui->checkbox(m_desc["show_supports"], m_show_supports);
-    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+    if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
+        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+        force_refresh = true;
+    }
 
     m_imgui->end();
 
@@ -990,7 +992,8 @@ void GLGizmoHollow::on_set_state()
 
         m_parent.toggle_model_objects_visibility(false);
         if (m_c->m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
 
         // Set default head diameter from config.
         //const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
