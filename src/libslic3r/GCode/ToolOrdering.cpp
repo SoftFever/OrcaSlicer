@@ -146,11 +146,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
 
     this->collect_extruder_statistics(prime_multi_material);
-
-    // Assign custom G-code actions from Model::custom_gcode_per_print_z to their respecive layers,
-    // ignoring the extruder switches, which were processed above, and ignoring color changes for extruders,
-    // that do not print above their respective print_z.
-    this->assign_custom_gcodes(print);
 }
 
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
