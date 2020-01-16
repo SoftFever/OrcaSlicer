@@ -1222,9 +1222,8 @@ void GCode::_do_export(Print& print, FILE* file)
     } else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
-		tool_ordering = print.wipe_tower_data().tool_ordering.empty() ?
-            ToolOrdering(print, initial_extruder_id, false) :
-            print.wipe_tower_data().tool_ordering;
+		tool_ordering = print.tool_ordering();
+		tool_ordering.assign_custom_gcodes(print);
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
         initial_extruder_id = (has_wipe_tower && ! print.config().single_extruder_multi_material_priming) ?
             // The priming towers will be skipped.

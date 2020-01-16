@@ -460,6 +460,9 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 // If multiple events are planned over a span of a single layer, use the last one.
 void ToolOrdering::assign_custom_gcodes(const Print &print)
 {
+	// Only valid for non-sequential print.
+	assert(! print.config().complete_objects.value);
+
 	const std::vector<Model::CustomGCode>	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
 	if (custom_gcode_per_print_z.empty())
 		return;
