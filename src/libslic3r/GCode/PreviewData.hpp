@@ -5,43 +5,188 @@
 #include "../ExtrusionEntity.hpp"
 #include "../Point.hpp"
 
+#include <tuple>
+#include <array>
+#include <vector>
+#include <bitset>
+#include <cstddef>
+#include <algorithm>
+#include <string>
+
 namespace Slic3r {
+
+// Represents an RGBA color
+struct Color
+{
+    std::array<float,4> rgba;
+
+    Color(const float *argba)
+    {
+        memcpy(this->rgba.data(), argba, sizeof(float) * 4);
+    }
+    constexpr Color(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f) : rgba{r,g,b,a}
+    {
+        // Intentionally empty
+    }
+
+    std::vector<unsigned char> as_bytes() const;
+};
+Color operator + (const Color& c1, const Color& c2);
+Color operator * (float f, const Color& color);
+
+// Default colors for Ranges
+constexpr std::array<Color, 10> range_rainbow_colors{
+    Color{0.043f, 0.173f, 0.478f, 1.0f},
+    Color{0.075f, 0.349f, 0.522f, 1.0f},
+    Color{0.110f, 0.533f, 0.569f, 1.0f},
+    Color{0.016f, 0.839f, 0.059f, 1.0f},
+    Color{0.667f, 0.949f, 0.000f, 1.0f},
+    Color{0.988f, 0.975f, 0.012f, 1.0f},
+    Color{0.961f, 0.808f, 0.039f, 1.0f},
+    Color{0.890f, 0.533f, 0.125f, 1.0f},
+    Color{0.820f, 0.408f, 0.188f, 1.0f},
+    Color{0.761f, 0.322f, 0.235f, 1.0f}};
 
 class GCodePreviewData
 {
 public:
-    struct Color
+
+    // Color mapping to convert a float into a smooth rainbow of 10 colors.
+    class RangeBase
     {
-        float rgba[4];
+        public:
 
-        Color(const float *argba) { memcpy(this->rgba, argba, sizeof(float) * 4); }
-		Color(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f) { rgba[0] = r; rgba[1] = g; rgba[2] = b; rgba[3] = a; }
-
-        std::vector<unsigned char> as_bytes() const;
-
-        static const Color Dummy;
+        virtual void reset() = 0;
+        virtual bool empty() const = 0;
+        virtual float min() const = 0;
+        virtual float max() const = 0;
+        
+        // Gets the step size using min(), max() and colors
+        float step_size() const;
+        
+        // Gets the color at a value using colors, min(), and max()
+        Color get_color_at(float value) const;
     };
-    
-    // Color mapping from a <min, max> range into a smooth rainbow of 10 colors.
-    struct Range
+
+    // Color mapping converting a float in a range between a min and a max into a smooth rainbow of 10 colors.
+    class Range : public RangeBase
     {
-        static const unsigned int Colors_Count = 10;
-        static const Color Default_Colors[Colors_Count];
-
-        Color colors[Colors_Count];
-        float min;
-        float max;
-
+        public:
         Range();
 
-        void reset();
-        bool empty() const;
+        // RangeBase Overrides
+        void reset() override;
+        bool empty() const override;
+        float min() const override;
+        float max() const override;
+        
+        // Range-specific methods
         void update_from(float value);
-        void update_from(const Range& other);
-        void set_from(const Range& other);
-        float step_size() const;
+        void update_from(const RangeBase& other);
 
-        Color get_color_at(float value) const;
+        private:
+        float min_val;
+        float max_val;
+    };
+
+    // Like Range, but stores multiple ranges internally that are used depending on mode.
+    // Template param EnumRangeType must be an enum with values for each type of range that needs to be tracked in this MultiRange.
+    // The last enum value should be num_values. The numerical values of all enum values should range from 0 to num_values.
+    template <typename EnumRangeType>
+    class MultiRange : public RangeBase
+    {
+        public:
+
+        void reset() override
+        {
+            bounds = decltype(bounds){};
+        }
+
+        bool empty() const override
+        {
+            for (std::size_t i = 0; i < bounds.size(); ++i)
+            {
+                if (bounds[i].min != bounds[i].max)
+                    return false;
+            }
+            return true;
+        }
+
+        float min() const override
+        {
+            float min = FLT_MAX;
+            for (std::size_t i = 0; i < bounds.size(); ++i)
+            {
+                // Only use bounds[i] if the current mode includes it
+                if (mode.test(i))
+                {
+                    min = std::min(min, bounds[i].min);
+                }
+            }
+            return min;
+        }
+
+        float max() const override
+        {
+            float max = -FLT_MAX;
+            for (std::size_t i = 0; i < bounds.size(); ++i)
+            {
+                // Only use bounds[i] if the current mode includes it
+                if (mode.test(i))
+                {
+                    max = std::max(max, bounds[i].max);
+                }
+            }
+            return max;
+        }
+
+        void update_from(const float value, EnumRangeType range_type_value)
+        {
+            bounds[static_cast<std::size_t>(range_type_value)].update_from(value);
+        }
+
+        void update_from(const MultiRange& other)
+        {
+            for (std::size_t i = 0; i < bounds.size(); ++i)
+            {
+                bounds[i].update_from(other.bounds[i]);
+            }
+        }
+
+        void set_mode(const EnumRangeType range_type_value, const bool enable)
+        {
+            mode.set(static_cast<std::size_t>(range_type_value), enable);
+        }
+
+        private:
+
+        // Interval bounds
+        struct Bounds
+        {
+            float min{FLT_MAX};
+            float max{-FLT_MAX};
+            void update_from(const float value)
+            {
+                min = std::min(min, value);
+                max = std::max(max, value);
+            }
+            void update_from(const Bounds other_bounds)
+            {
+                min = std::min(min, other_bounds.min);
+                max = std::max(max, other_bounds.max);
+            }
+        };
+
+        std::array<Bounds, static_cast<std::size_t>(EnumRangeType::num_values)> bounds;
+        std::bitset<static_cast<std::size_t>(EnumRangeType::num_values)> mode;
+    };
+
+    // Enum distinguishing different kinds of feedrate data
+    enum class FeedrateKind
+    {
+        EXTRUSION = 0,  // values must go from 0 up to num_values
+        TRAVEL,
+        num_values  //must be last in the list of values
     };
 
     struct Ranges
@@ -51,7 +196,7 @@ public:
         // Color mapping by extrusion width.
         Range width;
         // Color mapping by feedrate.
-        Range feedrate;
+        MultiRange<FeedrateKind> feedrate;
         // Color mapping by fan speed.
         Range fan_speed;
         // Color mapping by volumetric extrusion rate.
@@ -244,9 +389,6 @@ public:
 
     static const std::vector<std::string>& ColorPrintColors();
 };
-
-GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2);
-GCodePreviewData::Color operator * (float f, const GCodePreviewData::Color& color);
 
 } // namespace Slic3r
 
