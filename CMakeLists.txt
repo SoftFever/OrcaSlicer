@@ -426,6 +426,7 @@ endif()
 find_package(OpenVDB 5.0 REQUIRED COMPONENTS openvdb)
 if(OpenVDB_FOUND)
     slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+    slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
 endif()
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})

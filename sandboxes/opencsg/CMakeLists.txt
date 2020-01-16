@@ -20,6 +20,7 @@ target_link_libraries(opencsg_example libslic3r)
 target_include_directories(opencsg_example PRIVATE ${wxWidgets_INCLUDE_DIRS})
 target_compile_definitions(opencsg_example PRIVATE ${wxWidgets_DEFINITIONS})
 
+slic3r_remap_configs(OpenCSG::opencsg RelWithDebInfo Release)
 target_link_libraries(opencsg_example ${wxWidgets_LIBRARIES} 
     OpenCSG::opencsg 
     GLEW::GLEW
