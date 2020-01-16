@@ -3652,66 +3652,60 @@ void DoubleSlider::add_code(std::string code, int selected_extruder/* = -1*/)
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     // if on this Z doesn't exist tick
     auto it = m_ticks.find(TICK_CODE{ tick });
-    if (it == m_ticks.end())
+    if (it != m_ticks.end())
+        return;
+
+    std::string color;
+    const int extruder = selected_extruder > 0 ? selected_extruder : std::max<int>(1, m_only_extruder);
+
+    if (code == Slic3r::ColorChangeCode)
     {
-        std::string color = "";
-        if (code == Slic3r::ColorChangeCode)
+        std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+        if (m_ticks.empty())
+            color = colors[extruder-1];
+        else
         {
-            std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
-            if (m_ticks.empty())
-                color = colors[selected_extruder > 0 ? selected_extruder - 1 : std::max<int>(1, m_only_extruder)-1];
-            else
-            {
-                auto before_tick_it = std::lower_bound(m_ticks.begin(), m_ticks.end(), TICK_CODE{ tick });
-                while (before_tick_it != m_ticks.begin()) {
-                    --before_tick_it;
-                    if (before_tick_it->gcode == Slic3r::ColorChangeCode && before_tick_it->extruder == selected_extruder) {
-                        color = before_tick_it->color;
-                        break;
-                    }
+            auto before_tick_it = std::lower_bound(m_ticks.begin(), m_ticks.end(), TICK_CODE{ tick });
+            while (before_tick_it != m_ticks.begin()) {
+                --before_tick_it;
+                if (before_tick_it->gcode == Slic3r::ColorChangeCode && before_tick_it->extruder == extruder) {
+                    color = before_tick_it->color;
+                    break;
                 }
-
-                if (color.empty())
-                    color = colors[selected_extruder > 0 ? selected_extruder - 1 : std::max<int>(1, m_only_extruder) - 1];
             }
 
-            color = get_new_color(color);
             if (color.empty())
-                return;
-        }
-        else if (code == Slic3r::PausePrintCode)
-        {
-            /* PausePrintCode doesn't need a color, so
-             * this field is used for save a short message shown on Printer display 
-             * */
-            color = get_pause_print_msg(m_pause_print_msg, m_values[tick]);
-            if (color.empty())
-                return;
-            m_pause_print_msg = color;
-        }
-        else if (code.empty())
-        {
-            code = get_custom_code(m_custom_gcode, m_values[tick]);
-            if (code.empty())
-                return;
-            m_custom_gcode = code;
+                color = colors[extruder-1];
         }
 
-        int extruder = 1;
-        if (m_mode != mmSingleExtruder) { 
-            if (code == Slic3r::ColorChangeCode && selected_extruder >= 0)
-                extruder = selected_extruder;
-            else
-                extruder = get_extruder_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
-        }
-
-        m_ticks.emplace(TICK_CODE{tick, code, extruder, color});
-
-        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
-        Refresh();
-        Update();
+        color = get_new_color(color);
+        if (color.empty())
+            return;
     }
+    else if (code == Slic3r::PausePrintCode)
+    {
+        /* PausePrintCode doesn't need a color, so
+         * this field is used for save a short message shown on Printer display 
+         * */
+        color = get_pause_print_msg(m_pause_print_msg, m_values[tick]);
+        if (color.empty())
+            return;
+        m_pause_print_msg = color;
+    }
+    else if (code.empty())
+    {
+        code = get_custom_code(m_custom_gcode, m_values[tick]);
+        if (code.empty())
+            return;
+        m_custom_gcode = code;
+    }
+
+    m_ticks.emplace(TICK_CODE{tick, code, extruder, color});
+
+    wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
+    Refresh();
+    Update();
 }
 
 void DoubleSlider::edit_tick()
