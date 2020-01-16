@@ -52,6 +52,7 @@ private:
 
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
+    void render_hollowed_mesh() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void hollow_mesh();

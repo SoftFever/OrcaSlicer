@@ -115,6 +115,23 @@ void GLGizmoHollow::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
+    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+
+    render_hollowed_mesh();
+
+    if (m_quadric != nullptr && selection.is_from_single_instance())
+        render_points(selection, false);
+
+    m_selection_rectangle.render(m_parent);
+    render_clipping_plane(selection);
+
+    glsafe(::glDisable(GL_BLEND));
+}
+
+
+
+void GLGizmoHollow::render_hollowed_mesh() const
+{
     if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
@@ -132,16 +149,6 @@ void GLGizmoHollow::on_render() const
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
-
-    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-
-    if (m_quadric != nullptr && selection.is_from_single_instance())
-        render_points(selection, false);
-
-    m_selection_rectangle.render(m_parent);
-    render_clipping_plane(selection);
-
-    glsafe(::glDisable(GL_BLEND));
 }
 
 
@@ -241,6 +248,7 @@ void GLGizmoHollow::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
+    render_hollowed_mesh();
 }
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking) const
