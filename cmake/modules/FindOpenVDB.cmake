@@ -242,6 +242,8 @@ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
     else()
       set(OpenVDB_${COMPONENT}_FOUND FALSE)
     endif()
+
+    set(OpenVDB_${COMPONENT}_LIBRARY ${OpenVDB_${COMPONENT}_LIBRARY_RELEASE})
   else ()
     string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE)
 
@@ -259,6 +261,7 @@ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
       set(OpenVDB_${COMPONENT}_FOUND FALSE)
     endif()
   endif ()
+
 endforeach()
 
 if(UNIX AND OPENVDB_USE_STATIC_LIBS)
@@ -522,18 +525,17 @@ foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
       IMPORTED_LINK_DEPENDENT_LIBRARIES "${_OPENVDB_HIDDEN_DEPENDENCIES}" # non visible deps
       INTERFACE_LINK_LIBRARIES "${_OPENVDB_VISIBLE_DEPENDENCIES}" # visible deps (headers)
       INTERFACE_COMPILE_FEATURES cxx_std_11
-   )
-
-  if (_is_multi)
-    set_target_properties(OpenVDB::${COMPONENT} PROPERTIES 
+      IMPORTED_LOCATION "${OpenVDB_${COMPONENT}_LIBRARY}"
       IMPORTED_LOCATION_RELEASE "${OpenVDB_${COMPONENT}_LIBRARY_RELEASE}"
       IMPORTED_LOCATION_DEBUG "${OpenVDB_${COMPONENT}_LIBRARY_DEBUG}"
-    )
-  else ()
-    set_target_properties(OpenVDB::${COMPONENT} PROPERTIES 
-      IMPORTED_LOCATION "${OpenVDB_${COMPONENT}_LIBRARY}"
-    )
-  endif ()
+   )
+
+  # if (_is_multi)
+  #   set_target_properties(OpenVDB::${COMPONENT} PROPERTIES 
+  #     IMPORTED_LOCATION_RELEASE "${OpenVDB_${COMPONENT}_LIBRARY_RELEASE}"
+  #     IMPORTED_LOCATION_DEBUG "${OpenVDB_${COMPONENT}_LIBRARY_DEBUG}"
+  #   )
+  # endif ()
 
    if (OPENVDB_USE_STATIC_LIBS)
     set_target_properties(OpenVDB::${COMPONENT} PROPERTIES
