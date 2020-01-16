@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <string>
 
+#include <float.h>
+
 namespace Slic3r {
 
 // Represents an RGBA color

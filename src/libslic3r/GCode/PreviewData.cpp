@@ -1,6 +1,5 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
-#include <float.h>
 #include <I18N.hpp>
 #include "Utils.hpp"
 
