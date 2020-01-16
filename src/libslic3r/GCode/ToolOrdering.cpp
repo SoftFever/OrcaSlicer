@@ -129,8 +129,12 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
 	// Do it only if all the objects were configured to be printed with a single extruder.
 	std::vector<std::pair<double, unsigned int>> per_layer_extruder_switches;
-	if (print.object_extruders().size() == 1)
-		per_layer_extruder_switches = custom_tool_changes(print.model(), (unsigned int)print.config().nozzle_diameter.size());
+	if (auto num_extruders = unsigned(print.config().nozzle_diameter.size());
+		num_extruders > 1 && print.object_extruders().size() == 1) {
+		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
+		// There may be custom per-layer tool changes available at the model.
+		per_layer_extruder_switches = custom_tool_changes(print.model(), num_extruders);
+	}
 
     // Collect extruders reuqired to print the layers.
     for (auto object : print.objects())
@@ -470,6 +474,8 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	unsigned int 							 num_extruders = *std::max_element(m_all_printing_extruders.begin(), m_all_printing_extruders.end()) + 1;
 	std::vector<unsigned char> 				 extruder_printing_above(num_extruders, false);
 	auto 									 custom_gcode_it = custom_gcode_per_print_z.rbegin();
+	// If printing on a single extruder machine, make the tool changes trigger color change (M600) events.
+	bool 									 tool_changes_as_color_changes = num_extruders == 1;
 	// From the last layer to the first one:
 	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
 		LayerTools &lt = *it_lt;
@@ -489,7 +495,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			print_z_below = it_lt_below->print_z;
 		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
 			// The custom G-code applies to the current layer.
-			if (custom_gcode.gcode != ColorChangeCode || extruder_printing_above[unsigned(custom_gcode.extruder - 1)])
+			if (tool_changes_as_color_changes || custom_gcode.gcode != ColorChangeCode || extruder_printing_above[unsigned(custom_gcode.extruder - 1)])
 				// If it is color change, it will actually be useful as the exturder above will print.
         		lt.custom_gcode = &custom_gcode;
 			// Consume that custom G-code event.
