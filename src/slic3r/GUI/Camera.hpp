@@ -80,6 +80,7 @@ public:
 #endif // !ENABLE_6DOF_CAMERA
 
     double get_zoom() const { return m_zoom; }
+    double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }
     void update_zoom(double delta_zoom);
     void set_zoom(double zoom);
 

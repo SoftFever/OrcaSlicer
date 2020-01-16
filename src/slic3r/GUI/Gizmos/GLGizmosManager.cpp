@@ -850,7 +850,7 @@ void GLGizmosManager::do_render_overlay() const
     float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float zoom = (float)m_parent.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)m_parent.get_camera().get_inv_zoom();
 
     float height = get_scaled_total_height();
     float width = get_scaled_total_width();

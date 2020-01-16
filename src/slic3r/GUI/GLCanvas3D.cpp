@@ -390,8 +390,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)canvas.get_camera().get_inv_zoom();
 
 #if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
@@ -407,8 +406,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)canvas.get_camera().get_inv_zoom();
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
 }
@@ -468,8 +466,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
 
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)canvas.get_camera().get_inv_zoom();
     float gap = 10.0f * inv_zoom;
 
     float bar_left = bar_rect.get_left();
@@ -964,8 +961,7 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = (float)canvas.get_camera().get_zoom();
-        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float inv_zoom = (float)canvas.get_camera().get_inv_zoom();
         float left = (-0.5f * (float)m_original_width) * inv_zoom;
         float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
         float right = left + (float)m_original_width * inv_zoom;
@@ -1327,8 +1323,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = (float)canvas.get_camera().get_zoom();
-        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float inv_zoom = (float)canvas.get_camera().get_inv_zoom();
         float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
         float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
         float right = left + (float)m_original_width * inv_zoom;
@@ -4973,8 +4968,7 @@ void GLCanvas3D::_render_main_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = (float)m_camera.get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)m_camera.get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
     float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width()) * inv_zoom;
@@ -5000,8 +4994,7 @@ void GLCanvas3D::_render_undoredo_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = (float)m_camera.get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)m_camera.get_inv_zoom();
 
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
     float left = (m_main_toolbar.get_width() - 0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width())) * inv_zoom;
@@ -5023,8 +5016,7 @@ void GLCanvas3D::_render_view_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = (float)m_camera.get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)m_camera.get_inv_zoom();
 
     // places the toolbar on the bottom-left corner of the 3d scene
     float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;

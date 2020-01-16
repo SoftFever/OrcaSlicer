@@ -69,8 +69,7 @@ namespace GUI {
             return;
 
         const Camera& camera = canvas.get_camera();
-        float zoom = (float)camera.get_zoom();
-        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float inv_zoom = (float)camera.get_inv_zoom();
 
         Size cnv_size = canvas.get_canvas_size();
         float cnv_half_width = 0.5f * (float)cnv_size.get_width();

@@ -156,7 +156,7 @@ bool Mouse3DController::State::apply(Camera& camera)
     {
         const Vec3d& translation = m_translation.queue.front();
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
+        camera.set_target(camera.get_target() + camera.get_inv_zoom() * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
         if (translation(1) != 0.0)
             camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
 #else
