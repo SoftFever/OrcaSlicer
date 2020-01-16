@@ -80,8 +80,8 @@ Color GCodePreviewData::RangeBase::get_color_at(float value) const
     constexpr std::size_t color_max_idx = range_rainbow_colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
-    const std::size_t color_low_idx = clamp(std::size_t{0}, color_max_idx, static_cast<std::size_t>(global_t));
-    const std::size_t color_high_idx = clamp(std::size_t{0}, color_max_idx, color_low_idx + 1);
+    const std::size_t color_low_idx = std::clamp(static_cast<std::size_t>(global_t), std::size_t{ 0 }, color_max_idx);
+    const std::size_t color_high_idx = std::clamp(color_low_idx + 1, std::size_t{ 0 }, color_max_idx);
     const Color color_low = range_rainbow_colors[color_low_idx];
     const Color color_high = range_rainbow_colors[color_high_idx];
 
@@ -302,7 +302,7 @@ void GCodePreviewData::set_extrusion_role_color(const std::string& role_name, fl
 
 void GCodePreviewData::set_extrusion_paths_colors(const std::vector<std::string>& colors)
 {
-    unsigned int size = (unsigned int)range_rainbow_colors.size();
+    unsigned int size = (unsigned int)colors.size();
 
     if (size % 2 != 0)
         return;
@@ -486,7 +486,7 @@ size_t GCodePreviewData::memory_used() const
         sizeof(shell) + sizeof(ranges);
 }
 
-const std::vector<std::string>& ColorPrintColors()
+const std::vector<std::string>& GCodePreviewData::ColorPrintColors()
 {
     static std::vector<std::string> color_print = {"#C0392B", "#E67E22", "#F1C40F", "#27AE60", "#1ABC9C", "#2980B9", "#9B59B6"};
     return color_print;
@@ -494,18 +494,18 @@ const std::vector<std::string>& ColorPrintColors()
 
 Color operator + (const Color& c1, const Color& c2)
 {
-    return Color(clamp(0.0f, 1.0f, c1.rgba[0] + c2.rgba[0]),
-        clamp(0.0f, 1.0f, c1.rgba[1] + c2.rgba[1]),
-        clamp(0.0f, 1.0f, c1.rgba[2] + c2.rgba[2]),
-        clamp(0.0f, 1.0f, c1.rgba[3] + c2.rgba[3]));
+    return Color(std::clamp(c1.rgba[0] + c2.rgba[0], 0.0f, 1.0f),
+        std::clamp(c1.rgba[1] + c2.rgba[1], 0.0f, 1.0f),
+        std::clamp(c1.rgba[2] + c2.rgba[2], 0.0f, 1.0f),
+        std::clamp(c1.rgba[3] + c2.rgba[3], 0.0f, 1.0f));
 }
 
 Color operator * (float f, const Color& color)
 {
-    return Color(clamp(0.0f, 1.0f, f * color.rgba[0]),
-        clamp(0.0f, 1.0f, f * color.rgba[1]),
-        clamp(0.0f, 1.0f, f * color.rgba[2]),
-        clamp(0.0f, 1.0f, f * color.rgba[3]));
+    return Color(std::clamp(f * color.rgba[0], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[1], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[2], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[3], 0.0f, 1.0f));
 }
 
 } // namespace Slic3r
