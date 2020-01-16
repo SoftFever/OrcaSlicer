@@ -130,7 +130,7 @@ public:
 
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
-    void rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limit);
+    void rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad);
 
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);

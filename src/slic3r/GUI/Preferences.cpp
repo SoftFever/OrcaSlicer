@@ -124,6 +124,15 @@ void PreferencesDialog::build()
     option = Option(def, "use_perspective_camera");
     m_optgroup->append_single_option_line(option);
 
+#if ENABLE_6DOF_CAMERA
+	def.label = L("Use free camera");
+	def.type = coBool;
+	def.tooltip = L("If enabled, use free camera. If not enabled, use constrained camera.");
+	def.set_default_value(new ConfigOptionBool(app_config->get("use_free_camera") == "1"));
+	option = Option(def, "use_free_camera");
+	m_optgroup->append_single_option_line(option);
+#endif // ENABLE_6DOF_CAMERA
+
 	def.label = L("Use custom size for toolbar icons");
 	def.type = coBool;
 	def.tooltip = L("If enabled, you can change size of toolbar icons manually.");

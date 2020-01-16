@@ -6,6 +6,11 @@
 #endif // !ENABLE_THUMBNAIL_GENERATOR
 #include "GUI_App.hpp"
 #include "AppConfig.hpp"
+#if ENABLE_CAMERA_STATISTICS
+#if ENABLE_6DOF_CAMERA
+#include "Mouse3DController.hpp"
+#endif // ENABLE_6DOF_CAMERA
+#endif // ENABLE_CAMERA_STATISTICS
 
 #include <GL/glew.h>
 
@@ -373,6 +378,12 @@ void Camera::debug_render() const
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
+#if ENABLE_6DOF_CAMERA
+    if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
+        type += "/free";
+    else
+        type += "/constrained";
+#endif // ENABLE_6DOF_CAMERA
     Vec3f position = get_position().cast<float>();
     Vec3f target = m_target.cast<float>();
     float distance = (float)get_distance();
@@ -420,7 +431,7 @@ void Camera::translate_world(const Vec3d& displacement)
     }
 }
 
-void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limit)
+void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad)
 {
     Vec3d target = m_target;
     translate_world(-target);

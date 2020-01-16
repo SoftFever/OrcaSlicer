@@ -3290,9 +3290,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
 #if ENABLE_6DOF_CAMERA
-                m_camera.rotate_on_sphere(Geometry::deg2rad((pos(0) - orig(0))* (double)TRACKBALLSIZE),
-                    Geometry::deg2rad((pos(1) - orig(1))* (double)TRACKBALLSIZE),
-                    wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+                double x = Geometry::deg2rad(pos(0) - orig(0)) * (double)TRACKBALLSIZE;
+                double y = Geometry::deg2rad(pos(1) - orig(1)) * (double)TRACKBALLSIZE;
+                if (wxGetApp().plater()->get_mouse3d_controller().is_running() || (wxGetApp().app_config->get("use_free_camera") == "1"))
+                    m_camera.rotate_local_around_target(Vec3d(y, x, 0.0));
+                else
+                    m_camera.rotate_on_sphere(x, y);
 #else
                 float sign = m_camera.inverted_phi ? -1.0f : 1.0f;
                 m_camera.phi += sign * ((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE;
