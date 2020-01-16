@@ -62,18 +62,21 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
         return;
     }
 
-    if (m_c->m_model_object != model_object || m_c->m_model_object_id != model_object->id()) {
+    bool something_changed = false;
+
+    if (m_c->m_model_object != model_object
+     || m_c->m_model_object_id != model_object->id()
+     || m_c->m_active_instance != selection.get_instance_idx()) {
         m_c->m_model_object = model_object;
         m_c->m_print_object_idx = -1;
+        m_c->m_active_instance = selection.get_instance_idx();
+        something_changed = true;
     }
 
-    m_c->m_active_instance = selection.get_instance_idx();
-
-    if (model_object && selection.is_from_single_instance())
+    if (model_object && something_changed && selection.is_from_single_instance())
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
-        //FIXME calling ModelObject::instance_bounding_box() is expensive!
         m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
 
         if (is_mesh_update_necessary()) {
@@ -84,7 +87,7 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-            m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
         }
         else
             m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -112,6 +115,23 @@ void GLGizmoHollow::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
+    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+
+    render_hollowed_mesh();
+
+    if (m_quadric != nullptr && selection.is_from_single_instance())
+        render_points(selection, false);
+
+    m_selection_rectangle.render(m_parent);
+    render_clipping_plane(selection);
+
+    glsafe(::glDisable(GL_BLEND));
+}
+
+
+
+void GLGizmoHollow::render_hollowed_mesh() const
+{
     if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
@@ -129,19 +149,6 @@ void GLGizmoHollow::on_render() const
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
-    // Show/hide the original object
-    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-    m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
-
-    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-
-    if (m_quadric != nullptr && selection.is_from_single_instance())
-        render_points(selection, false);
-
-    m_selection_rectangle.render(m_parent);
-    render_clipping_plane(selection);
-
-    glsafe(::glDisable(GL_BLEND));
 }
 
 
@@ -241,6 +248,7 @@ void GLGizmoHollow::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
+    render_hollowed_mesh();
 }
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking) const
@@ -646,6 +654,9 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_c->m_volume_with_cavity->finalize_geometry(true);
         m_c->m_volume_with_cavity->force_transparent = false;
 
+        m_parent.toggle_model_objects_visibility(false, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+
         // Reset raycaster so it works with the new mesh:
         m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
     }
@@ -819,14 +830,16 @@ RENDER_AGAIN:
    // m_imgui->text(" "); // vertical gap
     ImGui::Separator();
 
-    float diameter_upper_cap = 20.f; //static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
+    float diameter_upper_cap = 5.f;
     if (m_new_hole_radius > diameter_upper_cap)
         m_new_hole_radius = diameter_upper_cap;
     m_imgui->text(m_desc.at("hole_diameter"));
     ImGui::SameLine(diameter_slider_left);
     ImGui::PushItemWidth(window_width - diameter_slider_left);
 
-    ImGui::SliderFloat("", &m_new_hole_radius, 0.1f, diameter_upper_cap, "%.1f");
+    float diam = 2.f * m_new_hole_radius;
+    ImGui::SliderFloat("", &diam, 1.f, diameter_upper_cap, "%.1f");
+    m_new_hole_radius = diam / 2.f;
     bool clicked = ImGui::IsItemClicked();
     bool edited = ImGui::IsItemEdited();
     bool deactivated = ImGui::IsItemDeactivatedAfterEdit();
@@ -903,8 +916,10 @@ RENDER_AGAIN:
         update_clipping_plane(true);
 
     // make sure supports are shown/hidden as appropriate
-    m_imgui->checkbox(m_desc["show_supports"], m_show_supports);
-    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+    if (m_imgui->checkbox(m_desc["show_supports"], m_show_supports)) {
+        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+        force_refresh = true;
+    }
 
     m_imgui->end();
 
@@ -958,10 +973,6 @@ std::string GLGizmoHollow::on_get_name() const
 }
 
 
-//const TriangleMesh* GLGizmoHollow::mesh() const {
-//    return (! m_c->m_mesh ? nullptr : (m_c->m_cavity_mesh ? m_c->m_cavity_mesh.get() : m_c->m_mesh));
-//}
-
 
 void GLGizmoHollow::on_set_state()
 {
@@ -989,7 +1000,8 @@ void GLGizmoHollow::on_set_state()
 
         m_parent.toggle_model_objects_visibility(false);
         if (m_c->m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
 
         // Set default head diameter from config.
         //const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
@@ -999,6 +1011,7 @@ void GLGizmoHollow::on_set_state()
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
         m_parent.toggle_model_objects_visibility(true);
         m_clipping_plane_distance = 0.f;
+        update_clipping_plane();
         // Release clippers and the AABB raycaster.
         m_c->m_object_clipper.reset();
         m_c->m_supports_clipper.reset();
@@ -1077,7 +1090,7 @@ void GLGizmoHollow::select_point(int i)
 
         if (i == AllPoints) {
             m_new_hole_radius = m_c->m_model_object->sla_drain_holes[0].radius;
-            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height;
+            m_new_hole_height = m_c->m_model_object->sla_drain_holes[0].height - HoleStickOutLength;
         }
     }
     else {
@@ -1086,7 +1099,7 @@ void GLGizmoHollow::select_point(int i)
         m_selected[i] = true;
         m_selection_empty = false;
         m_new_hole_radius = m_c->m_model_object->sla_drain_holes[i].radius;
-        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height;
+        m_new_hole_height = m_c->m_model_object->sla_drain_holes[i].height - HoleStickOutLength;
     }
 }
 

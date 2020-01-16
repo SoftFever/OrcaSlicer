@@ -52,13 +52,14 @@ private:
 
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
+    void render_hollowed_mesh() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void hollow_mesh();
     bool unsaved_changes() const;
 
     bool  m_show_supports = true;
-    float m_new_hole_radius = 4.f;        // Size of a new hole.
+    float m_new_hole_radius = 2.f;        // Size of a new hole.
     float m_new_hole_height = 5.f;
     mutable std::vector<bool> m_selected; // which holes are currently selected
 

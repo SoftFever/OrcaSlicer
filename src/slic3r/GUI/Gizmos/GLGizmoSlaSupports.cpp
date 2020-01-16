@@ -88,7 +88,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
             if (m_state == On) {
                 m_parent.toggle_model_objects_visibility(false);
                 m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-                m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
+                m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
             }
             else
                 m_parent.toggle_model_objects_visibility(true, nullptr, -1);
@@ -126,6 +126,23 @@ void GLGizmoSlaSupports::on_render() const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
+    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+
+    render_hollowed_mesh();
+
+    if (m_quadric != nullptr && selection.is_from_single_instance())
+        render_points(selection, false);
+
+    m_selection_rectangle.render(m_parent);
+    render_clipping_plane(selection);
+
+    glsafe(::glDisable(GL_BLEND));
+}
+
+
+
+void GLGizmoSlaSupports::render_hollowed_mesh() const
+{
     if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
@@ -143,19 +160,6 @@ void GLGizmoSlaSupports::on_render() const
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
     }
-    // Show/hide the original object
-    m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-    m_parent.toggle_sla_auxiliaries_visibility(bool(m_c->m_cavity_mesh), m_c->m_model_object, m_c->m_active_instance);
-
-    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-
-    if (m_quadric != nullptr && selection.is_from_single_instance())
-        render_points(selection, false);
-
-    m_selection_rectangle.render(m_parent);
-    render_clipping_plane(selection);
-
-    glsafe(::glDisable(GL_BLEND));
 }
 
 
@@ -256,6 +260,7 @@ void GLGizmoSlaSupports::on_render_for_picking() const
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_points(selection, true);
+    render_hollowed_mesh();
 }
 
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
@@ -967,12 +972,6 @@ RENDER_AGAIN:
 
     m_imgui->end();
 
-    // Make sure that the supports are (not) visible as they should be. This
-    // is done on each refresh because the user can switch the editing mode
-    // before background process finishes.
-    force_refresh = m_parent.toggle_sla_auxiliaries_visibility(
-                ! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-
     if (remove_selected || remove_all) {
         force_refresh = false;
         m_parent.set_as_dirty();
@@ -1052,8 +1051,9 @@ void GLGizmoSlaSupports::on_set_state()
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object)
+        if (m_c->m_model_object && ! m_c->m_cavity_mesh)
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
 
         // Set default head diameter from config.
         const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
@@ -1082,6 +1082,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_parent.toggle_model_objects_visibility(true);
             m_normal_cache.clear();
             m_clipping_plane_distance = 0.f;
+            update_clipping_plane();
             // Release clippers and the AABB raycaster.
             m_its = nullptr;
             m_c->m_object_clipper.reset();
@@ -1304,6 +1305,9 @@ void GLGizmoSlaSupports::switch_to_editing_mode()
     for (const sla::SupportPoint& sp : m_normal_cache)
         m_editing_cache.emplace_back(sp);
     select_point(NoPoints);
+
+    m_parent.toggle_sla_auxiliaries_visibility(false, m_c->m_model_object, m_c->m_active_instance);
+    m_parent.set_as_dirty();
 }
 
 
@@ -1312,6 +1316,8 @@ void GLGizmoSlaSupports::disable_editing_mode()
     if (m_editing_mode) {
         m_editing_mode = false;
         wxGetApp().plater()->leave_gizmos_stack();
+        m_parent.toggle_sla_auxiliaries_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+        m_parent.set_as_dirty();
     }
 }
 
