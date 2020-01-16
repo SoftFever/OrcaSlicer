@@ -442,12 +442,19 @@ void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad)
 
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {
-    Vec3d target = m_target;
-    translate_world(-target);
+    rotate_local_around_pivot(rotation_rad, m_target);
+}
+
+void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& pivot)
+{
+    // we use a copy of the pivot because a reference to the current m_target may be passed in (see i.e. rotate_local_around_target())
+    // and m_target is modified by the translate_world() calls
+    Vec3d center = pivot;
+    translate_world(-center);
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(0), get_dir_right()));
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(1), get_dir_up()));
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(2), get_dir_forward()));
-    translate_world(target);
+    translate_world(center);
 }
 
 bool Camera::is_looking_downward() const

@@ -136,6 +136,9 @@ public:
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
 
+    // rotate the camera around three axes parallel to the camera local axes and passing through the given pivot point
+    void rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& pivot);
+
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const;
 #endif // ENABLE_6DOF_CAMERA
