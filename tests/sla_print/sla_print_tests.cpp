@@ -127,6 +127,7 @@ TEST_CASE("Support point generator should be deterministic if seeded",
     
     for (int i = 0; i < 20; ++i) {
         point_gen.output().clear();
+        point_gen.seed(0);
         point_gen.execute(slices, slicegrid);
         REQUIRE(point_gen.output().size() == ptnum);
         REQUIRE(checksum == get_chksum(point_gen.output()));
