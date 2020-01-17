@@ -1349,9 +1349,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
@@ -1520,10 +1517,6 @@ bool GLCanvas3D::init()
 
     if (m_selection.is_enabled() && !m_selection.init())
         return false;
-
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-    post_event(SimpleEvent(EVT_GLCANVAS_INIT));
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     m_initialized = true;
 
@@ -4233,10 +4226,8 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_undoredo_toolbar())
         return false;
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     if (!_init_view_toolbar())
         return false;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     return true;
 }
@@ -4495,12 +4486,10 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     return true;
 }
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 bool GLCanvas3D::_init_view_toolbar()
 {
     return wxGetApp().plater()->init_view_toolbar();
 }
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
 bool GLCanvas3D::_set_current()
 {
