@@ -107,7 +107,11 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
+#if ENABLE_6DOF_CAMERA
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes) const;
+#else
     void render(GLCanvas3D& canvas, float theta, float scale_factor, bool show_axes) const;
+#endif // ENABLE_6DOF_CAMERA
 
 private:
     void calc_bounding_boxes() const;

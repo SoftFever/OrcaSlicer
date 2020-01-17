@@ -154,7 +154,8 @@ bool Mouse3DController::State::apply(Camera& camera)
     {
         const Vec3d& translation = m_translation.queue.front();
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
+        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+        camera.set_target(camera.get_target() + zoom_factor * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
         if (translation(1) != 0.0)
             camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
 #else
@@ -166,12 +167,17 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_rotation())
     {
+#if ENABLE_6DOF_CAMERA
+        Vec3d rotation = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>();
+        camera.rotate_local_around_target(Vec3d(Geometry::deg2rad(rotation(0)), Geometry::deg2rad(-rotation(2)), Geometry::deg2rad(-rotation(1))));
+#else
         const Vec3f& rotation = m_rotation.queue.front();
         float theta = m_rotation_params.scale * rotation(0);
         float phi = m_rotation_params.scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+#endif // ENABLE_6DOF_CAMERA
         m_rotation.queue.pop();
         ret = true;
     }
@@ -628,12 +634,12 @@ bool Mouse3DController::connect_device()
             BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
 
         // get device parameters from the config, if present
-        double translation_speed = 1.0;
-        float rotation_speed = 1.0;
+        double translation_speed = 4.0;
+        float rotation_speed = 4.0;
         double translation_deadzone = State::DefaultTranslationDeadzone;
         float rotation_deadzone = State::DefaultRotationDeadzone;
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        double zoom_speed = 1.0;
+        double zoom_speed = 2.0;
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
         wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
@@ -643,12 +649,12 @@ bool Mouse3DController::connect_device()
         wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale* std::clamp(translation_speed, 0.1, 10.0));
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0));
         m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
-        m_state.set_rotation_scale(State::DefaultRotationScale* std::clamp(rotation_speed, 0.1f, 10.0f));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f));
         m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        m_state.set_zoom_scale(State::DefaultZoomScale* std::clamp(zoom_speed, 0.1, 10.0));
+        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0));
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -855,9 +861,15 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
 {
     double deadzone = (double)m_state.get_rotation_deadzone();
+#if ENABLE_6DOF_CAMERA
+    Vec3f rotation((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
+        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
+        (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#else
     Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
         (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
         -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#endif // ENABLE_6DOF_CAMERA
 
     if (!rotation.isApprox(Vec3f::Zero()))
     {

@@ -2004,7 +2004,11 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     const float max_y = box.max(1) + Margin;
 
     // view dependend order of rendering to keep correct transparency
+#if ENABLE_6DOF_CAMERA
+    bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
+#else
     bool camera_on_top = wxGetApp().plater()->get_camera().get_theta() <= 90.0f;
+#endif // ENABLE_6DOF_CAMERA
     float z1 = camera_on_top ? min_z : max_z;
     float z2 = camera_on_top ? max_z : min_z;
 
