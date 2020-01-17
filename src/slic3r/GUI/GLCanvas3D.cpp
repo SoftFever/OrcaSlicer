@@ -1799,11 +1799,7 @@ void GLCanvas3D::render()
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-#else
-    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     wxGetApp().imgui()->render();
 

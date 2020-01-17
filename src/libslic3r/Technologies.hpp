@@ -41,9 +41,6 @@
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
-// Enable closing 3Dconnextion imgui settings dialog by clicking on [X] and [Close] buttons
-#define ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG (1 && ENABLE_2_2_0_ALPHA1)
-
 // Enable not applying volume transformation during 3mf and amf loading, but keeping it as a ModelVolume member
 #define ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE (1 && ENABLE_2_2_0_ALPHA1)
 
