@@ -129,8 +129,12 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
 	// Do it only if all the objects were configured to be printed with a single extruder.
 	std::vector<std::pair<double, unsigned int>> per_layer_extruder_switches;
-	if (print.object_extruders().size() == 1)
-		per_layer_extruder_switches = custom_tool_changes(print.model(), (unsigned int)print.config().nozzle_diameter.size());
+	if (auto num_extruders = unsigned(print.config().nozzle_diameter.size());
+		num_extruders > 1 && print.object_extruders().size() == 1) {
+		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
+		// There may be custom per-layer tool changes available at the model.
+		per_layer_extruder_switches = custom_tool_changes(print.model(), num_extruders);
+	}
 
     // Collect extruders reuqired to print the layers.
     for (auto object : print.objects())
@@ -142,11 +146,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
 
     this->collect_extruder_statistics(prime_multi_material);
-
-    // Assign custom G-code actions from Model::custom_gcode_per_print_z to their respecive layers,
-    // ignoring the extruder switches, which were processed above, and ignoring color changes for extruders,
-    // that do not print above their respective print_z.
-    this->assign_custom_gcodes(print);
 }
 
 void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
@@ -463,13 +462,15 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	// Only valid for non-sequential print.
 	assert(! print.config().complete_objects.value);
 
-	const std::vector<Model::CustomGCode>	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
-	if (custom_gcode_per_print_z.empty())
+	const Model::CustomGCodeInfo	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
 	unsigned int 							 num_extruders = *std::max_element(m_all_printing_extruders.begin(), m_all_printing_extruders.end()) + 1;
 	std::vector<unsigned char> 				 extruder_printing_above(num_extruders, false);
-	auto 									 custom_gcode_it = custom_gcode_per_print_z.rbegin();
+	auto 									 custom_gcode_it = custom_gcode_per_print_z.gcodes.rbegin();
+	// If printing on a single extruder machine, make the tool changes trigger color change (M600) events.
+	bool 									 tool_changes_as_color_changes = num_extruders == 1;
 	// From the last layer to the first one:
 	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
 		LayerTools &lt = *it_lt;
@@ -477,8 +478,8 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		for (unsigned int i : lt.extruders)
 			extruder_printing_above[i] = true;
 		// Skip all custom G-codes above this layer and skip all extruder switches.
-		for (; custom_gcode_it != custom_gcode_per_print_z.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->gcode == ExtruderChangeCode); ++ custom_gcode_it);
-		if (custom_gcode_it == custom_gcode_per_print_z.rend())
+		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->gcode == ExtruderChangeCode); ++ custom_gcode_it);
+		if (custom_gcode_it == custom_gcode_per_print_z.gcodes.rend())
 			// Custom G-codes were processed.
 			break;
 		// Some custom G-code is configured for this layer or a layer below.
@@ -489,7 +490,8 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			print_z_below = it_lt_below->print_z;
 		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
 			// The custom G-code applies to the current layer.
-			if (custom_gcode.gcode != ColorChangeCode || extruder_printing_above[unsigned(custom_gcode.extruder - 1)])
+			if ( tool_changes_as_color_changes || custom_gcode.gcode != ColorChangeCode || 
+                (custom_gcode.extruder <= num_extruders && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]))
 				// If it is color change, it will actually be useful as the exturder above will print.
         		lt.custom_gcode = &custom_gcode;
 			// Consume that custom G-code event.

@@ -978,7 +978,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     float volumetric_rate = FLT_MAX;
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
-    GCodePreviewData::Range feedrate_range;
+    GCodePreviewData::MultiRange<GCodePreviewData::FeedrateKind> feedrate_range;
     GCodePreviewData::Range volumetric_rate_range;
     GCodePreviewData::Range fan_speed_range;
 
@@ -1013,7 +1013,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             volumetric_rate = move.data.feedrate * (float)move.data.mm3_per_mm;
             height_range.update_from(move.data.height);
             width_range.update_from(move.data.width);
-            feedrate_range.update_from(move.data.feedrate);
+            feedrate_range.update_from(move.data.feedrate, GCodePreviewData::FeedrateKind::EXTRUSION);
             volumetric_rate_range.update_from(volumetric_rate);
             fan_speed_range.update_from(move.data.fan_speed);
         }
@@ -1066,7 +1066,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
 
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
-    GCodePreviewData::Range feedrate_range;
+    GCodePreviewData::MultiRange<GCodePreviewData::FeedrateKind> feedrate_range;
 
     // to avoid to call the callback too often
     unsigned int cancel_callback_threshold = (unsigned int)std::max((int)travel_moves->second.size() / 25, 1);
@@ -1106,7 +1106,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
         extruder_id = move.data.extruder_id;
         height_range.update_from(move.data.height);
         width_range.update_from(move.data.width);
-        feedrate_range.update_from(move.data.feedrate);
+        feedrate_range.update_from(move.data.feedrate, GCodePreviewData::FeedrateKind::TRAVEL);
     }
 
     // store last polyline

@@ -1007,7 +1007,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
                                                                 std::vector<float>& colors,
                                                                 std::vector<std::string>& cp_legend_items)
 {
-    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
     if (extruders_cnt == 1) 
@@ -2434,7 +2434,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 
 	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
 
-	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba, VERTEX_BUFFER_RESERVE_SIZE);
+	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba.data(), VERTEX_BUFFER_RESERVE_SIZE);
 
 	GCodePreviewData::Retraction::PositionsList copy(retractions.positions);
 	std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2) { return p1.position(2) < p2.position(2); });
@@ -5889,7 +5889,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             return 0.0f;
         }
 
-        static GCodePreviewData::Color path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
+        static Color path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
         {
             switch (data.extrusion.view_type)
             {
@@ -5907,8 +5907,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
             {
-                GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
+                Color color;
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
                 return color;
             }
             case GCodePreviewData::Extrusion::ColorPrint:
@@ -5916,16 +5916,16 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 int color_cnt = (int)tool_colors.size() / 4;
                 int val = value > color_cnt ? color_cnt - 1 : value;
 
-                GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
+                Color color;
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
 
                 return color;
             }
             default:
-                return GCodePreviewData::Color::Dummy;
+                return Color{};
             }
 
-            return GCodePreviewData::Color::Dummy;
+            return Color{};
         }
     };
 
@@ -5968,7 +5968,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 		    	if (! values.empty()) {
 		        	m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, role, (unsigned int)m_volumes.volumes.size());
 					for (const float value : values)
-						roles_filters.back().emplace_back(value, m_volumes.new_toolpath_volume(Helper::path_color(preview_data, tool_colors, value).rgba, vertex_buffer_prealloc_size));
+						roles_filters.back().emplace_back(value, m_volumes.new_toolpath_volume(Helper::path_color(preview_data, tool_colors, value).rgba.data(), vertex_buffer_prealloc_size));
 				}
 			}
 		}
@@ -6051,7 +6051,7 @@ inline void travel_paths_internal(
 		by_type.reserve(values.size());
 		// creates a new volume for each feedrate
 		for (TYPE type : values)
-			by_type.emplace_back(type, volumes.new_nontoolpath_volume(func_color(type).rgba, VERTEX_BUFFER_RESERVE_SIZE));
+			by_type.emplace_back(type, volumes.new_nontoolpath_volume(func_color(type).rgba.data(), VERTEX_BUFFER_RESERVE_SIZE));
 	}
 
 	// populates volumes
@@ -6098,19 +6098,19 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
 	    case GCodePreviewData::Extrusion::Feedrate:
 			travel_paths_internal<float>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.feedrate; }, 
-				[&preview_data](const float feedrate) -> const GCodePreviewData::Color { return preview_data.get_feedrate_color(feedrate); },
+				[&preview_data](const float feedrate) -> const Color { return preview_data.get_feedrate_color(feedrate); },
 				m_volumes, m_initialized);
 	        break;
 	    case GCodePreviewData::Extrusion::Tool:
 	    	travel_paths_internal<unsigned int>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.extruder_id; }, 
-				[&tool_colors](const unsigned int extruder_id) -> const GCodePreviewData::Color { assert((extruder_id + 1) * 4 <= tool_colors.size()); return GCodePreviewData::Color(tool_colors.data() + extruder_id * 4); },
+				[&tool_colors](const unsigned int extruder_id) -> const Color { assert((extruder_id + 1) * 4 <= tool_colors.size()); return Color(tool_colors.data() + extruder_id * 4); },
 				m_volumes, m_initialized);
 	        break;
 	    default:
 	    	travel_paths_internal<unsigned int>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.type; }, 
-				[&preview_data](const unsigned int type) -> const GCodePreviewData::Color& { return preview_data.travel.type_colors[type]; },
+				[&preview_data](const unsigned int type) -> const Color& { return preview_data.travel.type_colors[type]; },
 				m_volumes, m_initialized);
 	        break;
 	    }

@@ -1,6 +1,5 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
-#include <float.h>
 #include <I18N.hpp>
 #include "Utils.hpp"
 
@@ -11,9 +10,7 @@
 
 namespace Slic3r {
 
-const GCodePreviewData::Color GCodePreviewData::Color::Dummy(0.0f, 0.0f, 0.0f, 0.0f);
-
-std::vector<unsigned char> GCodePreviewData::Color::as_bytes() const
+std::vector<unsigned char> Color::as_bytes() const
 {
     std::vector<unsigned char> ret;
     for (unsigned int i = 0; i < 4; ++i)
@@ -38,20 +35,6 @@ GCodePreviewData::Travel::Polyline::Polyline(EType type, EDirection direction, f
 {
 }
 
-const GCodePreviewData::Color GCodePreviewData::Range::Default_Colors[Colors_Count] =
-{
-    Color(0.043f, 0.173f, 0.478f, 1.0f),
-    Color(0.075f, 0.349f, 0.522f, 1.0f),
-    Color(0.110f, 0.533f, 0.569f, 1.0f),
-    Color(0.016f, 0.839f, 0.059f, 1.0f),
-    Color(0.667f, 0.949f, 0.000f, 1.0f),
-    Color(0.988f, 0.975f, 0.012f, 1.0f),
-    Color(0.961f, 0.808f, 0.039f, 1.0f),
-    Color(0.890f, 0.533f, 0.125f, 1.0f),
-    Color(0.820f, 0.408f, 0.188f, 1.0f),
-    Color(0.761f, 0.322f, 0.235f, 1.0f)
-};
-
 GCodePreviewData::Range::Range()
 {
     reset();
@@ -59,54 +42,52 @@ GCodePreviewData::Range::Range()
 
 void GCodePreviewData::Range::reset()
 {
-    min = FLT_MAX;
-    max = -FLT_MAX;
+    min_val = FLT_MAX;
+    max_val = -FLT_MAX;
 }
 
 bool GCodePreviewData::Range::empty() const
 {
-    return min == max;
+    return min_val >= max_val;
 }
 
 void GCodePreviewData::Range::update_from(float value)
 {
-    min = std::min(min, value);
-    max = std::max(max, value);
+    min_val = std::min(min_val, value);
+    max_val = std::max(max_val, value);
 }
 
-void GCodePreviewData::Range::update_from(const Range& other)
+void GCodePreviewData::Range::update_from(const RangeBase& other)
 {
-    min = std::min(min, other.min);
-    max = std::max(max, other.max);
+    min_val = std::min(min_val, other.min());
+    max_val = std::max(max_val, other.max());
 }
 
-void GCodePreviewData::Range::set_from(const Range& other)
+float GCodePreviewData::RangeBase::step_size() const
 {
-    min = other.min;
-    max = other.max;
+    return (max() - min()) / static_cast<float>(range_rainbow_colors.size() - 1);
 }
 
-float GCodePreviewData::Range::step_size() const
-{
-    return (max - min) / (float)(Colors_Count - 1);
-}
-
-GCodePreviewData::Color GCodePreviewData::Range::get_color_at(float value) const
+Color GCodePreviewData::RangeBase::get_color_at(float value) const
 {
     if (empty())
-        return Color::Dummy;
+        return Color{};
 
-    float global_t = (value - min) / step_size();
+    // Input value scaled to the color range
+    const float global_t = std::max(0.0f, value - min()) / step_size(); // lower limit of 0.0f
+    
+    constexpr std::size_t color_max_idx = range_rainbow_colors.size() - 1;
 
-    unsigned int low = (unsigned int)global_t;
-    unsigned int high = clamp((unsigned int)0, Colors_Count - 1, low + 1);
+    // Compute the two colors just below (low) and above (high) the input value
+    const std::size_t color_low_idx = std::clamp(static_cast<std::size_t>(global_t), std::size_t{ 0 }, color_max_idx);
+    const std::size_t color_high_idx = std::clamp(color_low_idx + 1, std::size_t{ 0 }, color_max_idx);
+    const Color color_low = range_rainbow_colors[color_low_idx];
+    const Color color_high = range_rainbow_colors[color_high_idx];
 
-    Color color_low = colors[low];
-    Color color_high = colors[high];
+    // Compute how far the value is between the low and high colors so that they can be interpolated
+    const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
 
-    float local_t = global_t - (float)low;
-
-    // interpolate in RGB space
+    // Interpolate between the low and high colors in RGB space to find exactly which color the input value should get
     Color ret;
     for (unsigned int i = 0; i < 4; ++i)
     {
@@ -115,13 +96,23 @@ GCodePreviewData::Color GCodePreviewData::Range::get_color_at(float value) const
     return ret;
 }
 
-GCodePreviewData::LegendItem::LegendItem(const std::string& text, const GCodePreviewData::Color& color)
+float GCodePreviewData::Range::min() const
+{
+    return min_val;
+}
+
+float GCodePreviewData::Range::max() const
+{
+    return max_val;
+}
+
+GCodePreviewData::LegendItem::LegendItem(const std::string& text, const Color& color)
     : text(text)
     , color(color)
 {
 }
 
-const GCodePreviewData::Color GCodePreviewData::Extrusion::Default_Extrusion_Role_Colors[erCount] =
+const Color GCodePreviewData::Extrusion::Default_Extrusion_Role_Colors[erCount] =
 {
     Color(0.0f, 0.0f, 0.0f, 1.0f),   // erNone
     Color(1.0f, 0.0f, 0.0f, 1.0f),   // erPerimeter
@@ -180,7 +171,7 @@ size_t GCodePreviewData::Extrusion::memory_used() const
 
 const float GCodePreviewData::Travel::Default_Width = 0.075f;
 const float GCodePreviewData::Travel::Default_Height = 0.075f;
-const GCodePreviewData::Color GCodePreviewData::Travel::Default_Type_Colors[Num_Types] =
+const Color GCodePreviewData::Travel::Default_Type_Colors[Num_Types] =
 {
     Color(0.0f, 0.0f, 0.75f, 1.0f), // Move
     Color(0.0f, 0.75f, 0.0f, 1.0f), // Extrude
@@ -206,7 +197,7 @@ size_t GCodePreviewData::Travel::memory_used() const
     return out;
 }
 
-const GCodePreviewData::Color GCodePreviewData::Retraction::Default_Color = GCodePreviewData::Color(1.0f, 1.0f, 1.0f, 1.0f);
+const Color GCodePreviewData::Retraction::Default_Color = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 GCodePreviewData::Retraction::Position::Position(const Vec3crd& position, float width, float height)
     : position(position)
@@ -238,17 +229,15 @@ GCodePreviewData::GCodePreviewData()
 
 void GCodePreviewData::set_default()
 {
-    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.fan_speed.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.volumetric_rate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-
     extrusion.set_default();
     travel.set_default();
     retraction.set_default();
     unretraction.set_default();
     shell.set_default();
+    
+    // Configure the color range for feedrate to match the default for travels and to enable extrusions since they are always visible
+    ranges.feedrate.set_mode(FeedrateKind::TRAVEL, travel.is_visible);
+    ranges.feedrate.set_mode(FeedrateKind::EXTRUSION, true);
 }
 
 void GCodePreviewData::reset()
@@ -268,32 +257,32 @@ bool GCodePreviewData::empty() const
     return extrusion.layers.empty() && travel.polylines.empty() && retraction.positions.empty() && unretraction.positions.empty();
 }
 
-GCodePreviewData::Color GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
+Color GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
 {
     return extrusion.role_colors[role];
 }
 
-GCodePreviewData::Color GCodePreviewData::get_height_color(float height) const
+Color GCodePreviewData::get_height_color(float height) const
 {
     return ranges.height.get_color_at(height);
 }
 
-GCodePreviewData::Color GCodePreviewData::get_width_color(float width) const
+Color GCodePreviewData::get_width_color(float width) const
 {
     return ranges.width.get_color_at(width);
 }
 
-GCodePreviewData::Color GCodePreviewData::get_feedrate_color(float feedrate) const
+Color GCodePreviewData::get_feedrate_color(float feedrate) const
 {
     return ranges.feedrate.get_color_at(feedrate);
 }
 
-GCodePreviewData::Color GCodePreviewData::get_fan_speed_color(float fan_speed) const
+Color GCodePreviewData::get_fan_speed_color(float fan_speed) const
 {
     return ranges.fan_speed.get_color_at(fan_speed);
 }
 
-GCodePreviewData::Color GCodePreviewData::get_volumetric_rate_color(float rate) const
+Color GCodePreviewData::get_volumetric_rate_color(float rate) const
 {
     return ranges.volumetric_rate.get_color_at(rate);
 }
@@ -384,16 +373,16 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
 {
     struct Helper
     {
-        static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
+        static void FillListFromRange(LegendItemsList& list, const RangeBase& range, unsigned int decimals, float scale_factor)
         {
-            list.reserve(Range::Colors_Count);
+            list.reserve(range_rainbow_colors.size());
 
             float step = range.step_size();
-            for (int i = Range::Colors_Count - 1; i >= 0; --i)
+            for (int i = static_cast<int>(range_rainbow_colors.size()) - 1; i >= 0; --i)
             {
                 char buf[1024];
-                sprintf(buf, "%.*f", decimals, scale_factor * (range.min + (float)i * step));
-                list.emplace_back(buf, range.colors[i]);
+                sprintf(buf, "%.*f", decimals, scale_factor * (range.min() + (float)i * step));
+                list.emplace_back(buf, range_rainbow_colors[i]);
             }
         }
     };
@@ -446,8 +435,8 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(tools_colors_count);
             for (unsigned int i = 0; i < tools_colors_count; ++i)
             {
-                GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
+                Color color;
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
                 items.emplace_back((boost::format(Slic3r::I18N::translate(L("Extruder %d"))) % (i + 1)).str(), color);
             }
 
@@ -460,7 +449,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             if (color_print_cnt == 1) // means "Default print color"
             {
                 Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data()), 4 * sizeof(float));
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data()), 4 * sizeof(float));
 
                 items.emplace_back(cp_items[0], color);
                 break;
@@ -472,7 +461,7 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             for (int i = 0 ; i < color_print_cnt; ++i)
             {
                 Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
                 
                 items.emplace_back(cp_items[i], color);
             }
@@ -502,20 +491,20 @@ const std::vector<std::string>& GCodePreviewData::ColorPrintColors()
     return color_print;
 }
 
-GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2)
+Color operator + (const Color& c1, const Color& c2)
 {
-    return GCodePreviewData::Color(clamp(0.0f, 1.0f, c1.rgba[0] + c2.rgba[0]),
-        clamp(0.0f, 1.0f, c1.rgba[1] + c2.rgba[1]),
-        clamp(0.0f, 1.0f, c1.rgba[2] + c2.rgba[2]),
-        clamp(0.0f, 1.0f, c1.rgba[3] + c2.rgba[3]));
+    return Color(std::clamp(c1.rgba[0] + c2.rgba[0], 0.0f, 1.0f),
+        std::clamp(c1.rgba[1] + c2.rgba[1], 0.0f, 1.0f),
+        std::clamp(c1.rgba[2] + c2.rgba[2], 0.0f, 1.0f),
+        std::clamp(c1.rgba[3] + c2.rgba[3], 0.0f, 1.0f));
 }
 
-GCodePreviewData::Color operator * (float f, const GCodePreviewData::Color& color)
+Color operator * (float f, const Color& color)
 {
-    return GCodePreviewData::Color(clamp(0.0f, 1.0f, f * color.rgba[0]),
-        clamp(0.0f, 1.0f, f * color.rgba[1]),
-        clamp(0.0f, 1.0f, f * color.rgba[2]),
-        clamp(0.0f, 1.0f, f * color.rgba[3]));
+    return Color(std::clamp(f * color.rgba[0], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[1], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[2], 0.0f, 1.0f),
+        std::clamp(f * color.rgba[3], 0.0f, 1.0f));
 }
 
 } // namespace Slic3r

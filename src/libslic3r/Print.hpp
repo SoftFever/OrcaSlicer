@@ -242,11 +242,10 @@ private:
 
 struct WipeTowerData
 {
-	WipeTowerData(ToolOrdering &tool_ordering) : tool_ordering(tool_ordering) { clear(); }
     // Following section will be consumed by the GCodeGenerator.
     // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
     // Cache it here, so it does not need to be recalculated during the G-code generation.
-    ToolOrdering                                          tool_ordering;
+    ToolOrdering                                         &tool_ordering;
     // Cache of tool changes per print layer.
     std::unique_ptr<std::vector<WipeTower::ToolChangeResult>> priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> tool_changes;
@@ -267,6 +266,14 @@ struct WipeTowerData
         depth = 0.f;
         brim_width = 0.f;
     }
+
+private:
+	// Only allow the WipeTowerData to be instantiated internally by Print, 
+	// as this WipeTowerData shares reference to Print::m_tool_ordering.
+	friend class Print;
+	WipeTowerData(ToolOrdering &tool_ordering) : tool_ordering(tool_ordering) { clear(); }
+	WipeTowerData(const WipeTowerData & /* rhs */) = delete;
+	WipeTowerData &operator=(const WipeTowerData & /* rhs */) = delete;
 };
 
 struct PrintStatistics
@@ -394,6 +401,7 @@ public:
 
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
+    const ToolOrdering& get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }   // #ys_FIXME just for testing
 
 protected:
     // methods for handling regions
