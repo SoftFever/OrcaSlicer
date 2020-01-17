@@ -132,9 +132,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_object_max_z(0.f)
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , m_adaptive_quality(0.5f)
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
     , strength(0.005f)
@@ -155,9 +153,6 @@ GLCanvas3D::LayersEditing::~LayersEditing()
 }
 
 const float GLCanvas3D::LayersEditing::THICKNESS_BAR_WIDTH = 70.0f;
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-const float GLCanvas3D::LayersEditing::THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
 {
@@ -224,7 +219,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (!m_enabled)
         return;
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
 
     const Size& cnv_size = canvas.get_canvas_size();
@@ -319,13 +313,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.end();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
-#else
-    const Rect& bar_rect = get_bar_rect_viewport(canvas);
-    const Rect& reset_rect = get_reset_rect_viewport(canvas);
-
-    _render_tooltip_texture(canvas, bar_rect, reset_rect);
-    _render_reset_texture(reset_rect);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     render_active_object_annotations(canvas, bar_rect);
     render_profile(bar_rect);
 }
@@ -352,37 +339,14 @@ bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, floa
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
 
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-bool GLCanvas3D::LayersEditing::reset_rect_contains(const GLCanvas3D& canvas, float x, float y)
-{
-    const Rect& rect = get_reset_rect_screen(canvas);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-
 Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     return Rect(w - thickness_bar_width(canvas), 0.0f, w, h);
-#else
-    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h - reset_button_height(canvas));
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (float)cnv_size.get_width();
-    float h = (float)cnv_size.get_height();
-
-    return Rect(w - thickness_bar_width(canvas), h - reset_button_height(canvas), w, h);
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
 {
@@ -393,26 +357,8 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-#else
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float half_w = 0.5f * (float)cnv_size.get_width();
-    float half_h = 0.5f * (float)cnv_size.get_height();
-
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::LayersEditing::is_initialized() const
 {
@@ -447,54 +393,6 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
     }
     return ret;
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
-{
-    // TODO: do this with ImGui
-
-    if (m_tooltip_texture.get_id() == 0)
-    {
-        std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
-            return;
-    }
-
-#if ENABLE_RETINA_GL
-    const float scale = canvas.get_canvas_size().get_scale_factor();
-#else
-    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
-#endif
-    const float width = (float)m_tooltip_texture.get_width() * scale;
-    const float height = (float)m_tooltip_texture.get_height() * scale;
-
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-    float gap = 10.0f * inv_zoom;
-
-    float bar_left = bar_rect.get_left();
-    float reset_bottom = reset_rect.get_bottom();
-
-    float l = bar_left - width * inv_zoom - gap;
-    float r = bar_left - gap;
-    float t = reset_bottom + height * inv_zoom + gap;
-    float b = reset_bottom + gap;
-
-    GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
-}
-
-void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) const
-{
-    if (m_reset_texture.get_id() == 0)
-    {
-        std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
-            return;
-    }
-
-    GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const
 {
@@ -644,7 +542,6 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor)
 {
     this->update_slicing_parameters();
@@ -662,7 +559,6 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, 
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
 {
@@ -724,19 +620,6 @@ float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 #endif
          * THICKNESS_BAR_WIDTH;
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
-{
-    return
-#if ENABLE_RETINA_GL
-        canvas.get_canvas_size().get_scale_factor()
-#else
-        canvas.get_wxglcanvas()->GetContentScaleFactor()
-#endif
-         * THICKNESS_RESET_BUTTON_HEIGHT;
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
@@ -1372,11 +1255,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
@@ -1674,7 +1555,6 @@ bool GLCanvas3D::is_layers_editing_allowed() const
     return m_layers_editing.is_allowed();
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::reset_layer_height_profile()
 {
     wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Reset")));
@@ -1698,7 +1578,6 @@ void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams&
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::is_reload_delayed() const
 {
@@ -3110,20 +2989,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos(0), pos(1)))
-        {
-            if (evt.LeftDown())
-            {
-                // A volume is selected and the mouse is inside the reset button. Reset the ModelObject's layer height profile.
-				m_layers_editing.reset_layer_height_profile(*this);
-                // Index 2 means no editing, just wait for mouse up event.
-                m_layers_editing.state = LayersEditing::Completed;
-
-                m_dirty = true;
-            }
-        }
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
             if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)

@@ -300,26 +300,14 @@ std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slici
         layer_height_profile.push_back(print_z);
         layer_height_profile.push_back(height);
         print_z += height;
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        layer_height_profile.push_back(print_z);
-        layer_height_profile.push_back(height);
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     double z_gap = slicing_params.object_print_z_height() - layer_height_profile[layer_height_profile.size() - 2];
     if (z_gap > 0.0)
     {
         layer_height_profile.push_back(slicing_params.object_print_z_height());
         layer_height_profile.push_back(clamp(slicing_params.min_layer_height, slicing_params.max_layer_height, z_gap));
     }
-#else
-    double last = std::max(slicing_params.first_object_layer_height, layer_height_profile[layer_height_profile.size() - 2]);
-    layer_height_profile.push_back(last);
-    layer_height_profile.push_back(slicing_params.first_object_layer_height);
-    layer_height_profile.push_back(slicing_params.object_print_z_height());
-    layer_height_profile.push_back(slicing_params.first_object_layer_height);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     return layer_height_profile;
 }
