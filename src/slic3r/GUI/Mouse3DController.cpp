@@ -156,7 +156,8 @@ bool Mouse3DController::State::apply(Camera& camera)
     {
         const Vec3d& translation = m_translation.queue.front();
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        camera.set_target(camera.get_target() + camera.get_inv_zoom() * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
+        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+        camera.set_target(camera.get_target() + zoom_factor * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
         if (translation(1) != 0.0)
             camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
 #else
@@ -655,12 +656,12 @@ bool Mouse3DController::connect_device()
             BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
 
         // get device parameters from the config, if present
-        double translation_speed = 1.0;
-        float rotation_speed = 1.0;
+        double translation_speed = 4.0;
+        float rotation_speed = 4.0;
         double translation_deadzone = State::DefaultTranslationDeadzone;
         float rotation_deadzone = State::DefaultRotationDeadzone;
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        double zoom_speed = 1.0;
+        double zoom_speed = 2.0;
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
         wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
@@ -670,12 +671,12 @@ bool Mouse3DController::connect_device()
         wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale* std::clamp(translation_speed, 0.1, 10.0));
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0));
         m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
-        m_state.set_rotation_scale(State::DefaultRotationScale* std::clamp(rotation_speed, 0.1f, 10.0f));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f));
         m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        m_state.set_zoom_scale(State::DefaultZoomScale* std::clamp(zoom_speed, 0.1, 10.0));
+        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0));
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT

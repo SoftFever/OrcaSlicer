@@ -140,7 +140,10 @@ public:
     void rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& pivot);
 
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
-    bool is_looking_downward() const;
+    bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
+
+    double max_zoom() const { return 100.0; }
+    double min_zoom() const;
 #endif // ENABLE_6DOF_CAMERA
 
 private:

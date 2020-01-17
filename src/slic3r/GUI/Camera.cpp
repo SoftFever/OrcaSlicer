@@ -143,13 +143,14 @@ void Camera::update_zoom(double delta_zoom)
 void Camera::set_zoom(double zoom)
 {
     // Don't allow to zoom too far outside the scene.
-    double zoom_min = calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
+    double zoom_min = min_zoom();
     if (zoom_min > 0.0)
-        zoom = std::max(zoom, zoom_min * 0.7);
+        zoom = std::max(zoom, zoom_min);
 
     // Don't allow to zoom too close to the scene.
-    m_zoom = std::min(zoom, 100.0);
+    m_zoom = std::min(zoom, max_zoom());
 }
+
 #if ENABLE_6DOF_CAMERA
 void Camera::select_view(const std::string& direction)
 {
@@ -457,9 +458,9 @@ void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& p
     translate_world(center);
 }
 
-bool Camera::is_looking_downward() const
+double Camera::min_zoom() const
 {
-    return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0;
+    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
 }
 #endif // ENABLE_6DOF_CAMERA
 
