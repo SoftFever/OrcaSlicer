@@ -189,8 +189,6 @@ void Bed3D::Axes::render_axis(double length) const
 
 Bed3D::Bed3D()
     : m_type(Custom)
-    , m_custom_texture("")
-    , m_custom_model("")
     , m_vbo_id(0)
     , m_scale_factor(1.0f)
 {
@@ -198,31 +196,31 @@ Bed3D::Bed3D()
 
 bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
-    EType new_type = detect_type(shape);
+    auto check_texture = [](const std::string& texture) {
+        return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture);
+    };
 
-    // check that the passed custom texture filename is valid
-    std::string cst_texture(custom_texture);
-    if (!cst_texture.empty())
-    {
-        if ((!boost::algorithm::iends_with(custom_texture, ".png") && !boost::algorithm::iends_with(custom_texture, ".svg")) || !boost::filesystem::exists(custom_texture))
-            cst_texture = "";
-    }
+    auto check_model = [](const std::string& model) {
+        return !model.empty() && boost::algorithm::iends_with(model, ".stl") && boost::filesystem::exists(model);
+    };
 
-    // check that the passed custom texture filename is valid
-    std::string cst_model(custom_model);
-    if (!cst_model.empty())
-    {
-        if (!boost::algorithm::iends_with(custom_model, ".stl") || !boost::filesystem::exists(custom_model))
-            cst_model = "";
-    }
+    auto [new_type, system_model, system_texture] = detect_type(shape);
 
-    if ((m_shape == shape) && (m_type == new_type) && (m_custom_texture == cst_texture) && (m_custom_model == cst_model))
+    std::string texture_filename = custom_texture.empty() ? system_texture : custom_texture;
+    if (!check_texture(texture_filename))
+        texture_filename.clear();
+
+    std::string model_filename = custom_model.empty() ? system_model : custom_model;
+    if (!check_model(model_filename))
+        model_filename.clear();
+
+    if ((m_shape == shape) && (m_type == new_type) && (m_texture_filename == texture_filename) && (m_model_filename == model_filename))
         // No change, no need to update the UI.
         return false;
 
     m_shape = shape;
-    m_custom_texture = cst_texture;
-    m_custom_model = cst_model;
+    m_texture_filename = texture_filename;
+    m_model_filename = model_filename;
     m_type = new_type;
 
     calc_bounding_boxes();
@@ -244,7 +242,7 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
     m_texture.reset();
     m_model.reset();
 
-    // Set the origin and size for painting of the coordinate system axes.
+    // Set the origin and size for rendering the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     m_axes.length = 0.1 * m_bounding_box.max_size() * Vec3d::Ones();
 
@@ -278,19 +276,11 @@ void Bed3D::render(GLCanvas3D& canvas, float theta, float scale_factor, bool sho
     switch (m_type)
     {
 #if ENABLE_6DOF_CAMERA
-    case MK2: { render_prusa(canvas, "mk2", bottom); break; }
-    case MK3: { render_prusa(canvas, "mk3", bottom); break; }
-    case SL1: { render_prusa(canvas, "sl1", bottom); break; }
-    case MINI: { render_prusa(canvas, "mini", bottom); break; }
-    case ENDER3: { render_prusa(canvas, "ender3", bottom); break; }
+    case System: { render_system(canvas, bottom); break; }
     default:
     case Custom: { render_custom(canvas, bottom); break; }
 #else
-    case MK2: { render_prusa(canvas, "mk2", theta > 90.0f); break; }
-    case MK3: { render_prusa(canvas, "mk3", theta > 90.0f); break; }
-    case SL1: { render_prusa(canvas, "sl1", theta > 90.0f); break; }
-    case MINI: { render_prusa(canvas, "mini", theta > 90.0f); break; }
-    case ENDER3: { render_prusa(canvas, "ender3", theta > 90.0f); break; }
+    case System: { render_system(canvas, theta > 90.0f); break; }
     default:
     case Custom: { render_custom(canvas, theta > 90.0f); break; }
 #endif // ENABLE_6DOF_CAMERA
@@ -373,10 +363,8 @@ static std::string system_print_bed_texture(const Preset &preset)
 	return out;
 }
 
-Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
+std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
 {
-    EType type = Custom;
-
     auto bundle = wxGetApp().preset_bundle;
     if (bundle != nullptr)
     {
@@ -385,39 +373,12 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
         {
             if (curr->config.has("bed_shape"))
             {
-                if (curr->vendor != nullptr)
+                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values)
                 {
-                    if ((curr->vendor->name == "Prusa Research") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-                    {
-                        if (boost::contains(curr->name, "SL1"))
-                        {
-                            type = SL1;
-                            break;
-                        }
-                        else if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
-                        {
-                            type = MK3;
-                            break;
-                        }
-                        else if (boost::contains(curr->name, "MK2"))
-                        {
-                            type = MK2;
-                            break;
-                        }
-                        else if (boost::contains(curr->name, "MINI"))
-                        {
-                            type = MINI;
-                            break;
-                        }
-                    }
-                    else if ((curr->vendor->name == "Creality") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-                    {
-                        if (boost::contains(curr->name, "ENDER-3"))
-                        {
-                            type = ENDER3;
-                            break;
-                        }
-                    }
+                    std::string model_filename = system_print_bed_model(*curr);
+                    std::string texture_filename = system_print_bed_texture(*curr);
+                    if (!model_filename.empty() && !texture_filename.empty())
+                        return std::make_tuple(System, model_filename, texture_filename);
                 }
             }
 
@@ -425,7 +386,7 @@ Bed3D::EType Bed3D::detect_type(const Pointfs& shape) const
         }
     }
 
-    return type;
+    return std::make_tuple(Custom, "", "");
 }
 
 void Bed3D::render_axes() const
@@ -434,35 +395,35 @@ void Bed3D::render_axes() const
         m_axes.render();
 }
 
-void Bed3D::render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const
+void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
 {
     if (!bottom)
-        render_model(m_custom_model.empty() ? resources_dir() + "/models/" + key + "_bed.stl" : m_custom_model);
+        render_model();
 
-    render_texture(m_custom_texture.empty() ? resources_dir() + "/icons/bed/" + key + ".svg" : m_custom_texture, bottom, canvas);
+    render_texture(bottom, canvas);
 }
 
-void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const
+void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
 {
-    if (filename.empty())
+    if (m_texture_filename.empty())
     {
         m_texture.reset();
         render_default(bottom);
         return;
     }
 
-    if ((m_texture.get_id() == 0) || (m_texture.get_source() != filename))
+    if ((m_texture.get_id() == 0) || (m_texture.get_source() != m_texture_filename))
     {
         m_texture.reset();
 
-        if (boost::algorithm::iends_with(filename, ".svg"))
+        if (boost::algorithm::iends_with(m_texture_filename, ".svg"))
         {
             // use higher resolution images if graphic card and opengl version allow
             GLint max_tex_size = GLCanvas3DManager::get_gl_info().get_max_tex_size();
-            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
+            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename))
             {
                 // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                if (!m_temp_texture.load_from_svg_file(filename, false, false, false, max_tex_size / 8))
+                if (!m_temp_texture.load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8))
                 {
                     render_default(bottom);
                     return;
@@ -471,18 +432,18 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
             }
 
             // starts generating the main texture, compression will run asynchronously
-            if (!m_texture.load_from_svg_file(filename, true, true, true, max_tex_size))
+            if (!m_texture.load_from_svg_file(m_texture_filename, true, true, true, max_tex_size))
             {
                 render_default(bottom);
                 return;
             }
         }
-        else if (boost::algorithm::iends_with(filename, ".png"))
+        else if (boost::algorithm::iends_with(m_texture_filename, ".png"))
         {
             // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != filename))
+            if ((m_temp_texture.get_id() == 0) || (m_temp_texture.get_source() != m_texture_filename))
             {
-                if (!m_temp_texture.load_from_file(filename, false, GLTexture::None, false))
+                if (!m_temp_texture.load_from_file(m_texture_filename, false, GLTexture::None, false))
                 {
                     render_default(bottom);
                     return;
@@ -491,7 +452,7 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
             }
 
             // starts generating the main texture, compression will run asynchronously
-            if (!m_texture.load_from_file(filename, true, GLTexture::MultiThreaded, true))
+            if (!m_texture.load_from_file(m_texture_filename, true, GLTexture::MultiThreaded, true))
             {
                 render_default(bottom);
                 return;
@@ -590,12 +551,12 @@ void Bed3D::render_texture(const std::string& filename, bool bottom, GLCanvas3D&
     }
 }
 
-void Bed3D::render_model(const std::string& filename) const
+void Bed3D::render_model() const
 {
-    if (filename.empty())
+    if (m_model_filename.empty())
         return;
 
-    if ((m_model.get_filename() != filename) && m_model.init_from_file(filename))
+    if ((m_model.get_filename() != m_model_filename) && m_model.init_from_file(m_model_filename))
     {
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
         Vec3d shift = m_bounding_box.center();
@@ -616,16 +577,16 @@ void Bed3D::render_model(const std::string& filename) const
 
 void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
 {
-    if (m_custom_texture.empty() && m_custom_model.empty())
+    if (m_texture_filename.empty() && m_model_filename.empty())
     {
         render_default(bottom);
         return;
     }
 
     if (!bottom)
-        render_model(m_custom_model);
+        render_model();
 
-    render_texture(m_custom_texture, bottom, canvas);
+    render_texture(bottom, canvas);
 }
 
 void Bed3D::render_default(bool bottom) const

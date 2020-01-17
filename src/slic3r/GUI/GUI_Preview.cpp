@@ -597,7 +597,7 @@ void Preview::create_double_slider()
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
         Model& model = wxGetApp().plater()->model();
-        model.custom_gcode_per_print_z.gcodes = m_slider->GetTicksValues();
+        model.custom_gcode_per_print_z = m_slider->GetTicksValues();
         m_schedule_background_process();
 
         update_view_type(false);
@@ -666,8 +666,11 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
-    check_slider_values(ticks_from_model, layers_z);
+    // Detect and set manipulation mode for double slider
+    update_double_slider_mode();
+
+    Model::CustomGCodeInfo &ticks_info_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    check_slider_values(ticks_info_from_model.gcodes, layers_z);
 
     m_slider->SetSliderValues(layers_z);
     assert(m_slider->GetMinValue() == 0);
@@ -689,13 +692,9 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->SetSelectionSpan(idx_low, idx_high);
 
-    m_slider->SetTicksValues(ticks_from_model);
+    m_slider->SetTicksValues(ticks_info_from_model);
 
-    bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
-
-    m_slider->EnableTickManipulation(color_print_enable);
-    // Detect and set manipulation mode for double slider
-    update_double_slider_mode();
+    m_slider->EnableTickManipulation(wxGetApp().plater()->printer_technology() == ptFFF);
 }
 
 void Preview::update_double_slider_mode()

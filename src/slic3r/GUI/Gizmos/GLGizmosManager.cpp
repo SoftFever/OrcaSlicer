@@ -881,11 +881,7 @@ void GLGizmosManager::do_render_overlay() const
     if ((icons_texture_id == 0) || (tex_width <= 1) || (tex_height <= 1))
         return;
 
-#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
     float du = (float)(tex_width - 1) / (4.0f * (float)tex_width); // 4 is the number of possible states if the icons
-#else
-    float du = (float)(tex_width - 1) / (3.0f * (float)tex_width); // 3 is the number of possible states if the icons
-#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
     float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
 
     // tiles in the texture are spaced by 1 pixel
@@ -908,11 +904,7 @@ void GLGizmosManager::do_render_overlay() const
         GLGizmoBase* gizmo = m_gizmos[idx].get();
 
         unsigned int sprite_id = gizmo->get_sprite_id();
-#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
         int icon_idx = (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3));
-#else
-        int icon_idx = m_current == idx ? 2 : (m_hover == idx ? 1 : 0);
-#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 
 #if ENABLE_MODIFIED_TOOLBAR_TEXTURES
         float v_top = v_offset + sprite_id * dv;
@@ -971,9 +963,7 @@ bool GLGizmosManager::generate_icons_texture() const
     states.push_back(std::make_pair(1, false)); // Activable
     states.push_back(std::make_pair(0, false)); // Hovered
     states.push_back(std::make_pair(0, true));  // Selected
-#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
     states.push_back(std::make_pair(2, false)); // Disabled
-#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 
     unsigned int sprite_size_px = (unsigned int)m_layout.scaled_icons_size();
 //    // force even size

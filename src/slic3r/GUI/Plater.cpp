@@ -1857,9 +1857,7 @@ struct Plater::priv
 
     void set_current_canvas_as_dirty();
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     bool init_view_toolbar();
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     void reset_all_gizmos();
     void update_ui_from_settings();
@@ -2006,9 +2004,6 @@ private:
     bool complit_init_object_menu();
     bool complit_init_sla_object_menu();
     bool complit_init_part_menu();
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-    void init_view_toolbar();
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     bool can_split() const;
     bool layers_height_allowed() const;
@@ -2142,11 +2137,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
     view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
@@ -2160,9 +2153,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-    view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&)
         {
             set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values,
@@ -3241,12 +3231,9 @@ void Plater::priv::reload_from_disk()
 
     // collects paths of files to load
     std::vector<fs::path> input_paths;
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     std::vector<fs::path> missing_input_paths;
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     for (const SelectedVolume& v : selected_volumes)
     {
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
 
@@ -3257,14 +3244,8 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-#else
-        const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
-        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
-            input_paths.push_back(volume->source.input_file);
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     }
 
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
 
@@ -3314,7 +3295,6 @@ void Plater::priv::reload_from_disk()
                 return;
         }
     }
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
 
     std::sort(input_paths.begin(), input_paths.end());
     input_paths.erase(std::unique(input_paths.begin(), input_paths.end()), input_paths.end());
@@ -3360,26 +3340,16 @@ void Plater::priv::reload_from_disk()
                     new_volume->config.apply(old_volume->config);
                     new_volume->set_type(old_volume->type());
                     new_volume->set_material_id(old_volume->material_id());
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                     new_volume->set_transformation(old_volume->get_transformation() * old_volume->source.transform);
-#else
-                    new_volume->set_transformation(old_volume->get_transformation());
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
                     new_volume->source.input_file = path;
                     std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                     old_model_object->ensure_on_bed();
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                 }
             }
         }
     }
-
-#if !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
-    model.adjust_min_z();
-#endif // !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
 
     // update 3D scene
     update();
@@ -3994,17 +3964,11 @@ void Plater::priv::set_current_canvas_as_dirty()
         preview->set_as_dirty();
 }
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 bool Plater::priv::init_view_toolbar()
-#else
-void Plater::priv::init_view_toolbar()
-#endif //!ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 {
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     if (view_toolbar.get_items_count() > 0)
         // already initialized
         return true;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -4014,11 +3978,7 @@ void Plater::priv::init_view_toolbar()
     background_data.bottom = 16;
 
     if (!view_toolbar.init(background_data))
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
         return false;
-#else
-        return;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Bottom);
@@ -4033,11 +3993,7 @@ void Plater::priv::init_view_toolbar()
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     if (!view_toolbar.add_item(item))
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
         return false;
-#else
-        return;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     item.name = "Preview";
     item.icon_filename = "preview.svg";
@@ -4045,18 +4001,12 @@ void Plater::priv::init_view_toolbar()
     item.sprite_id = 1;
     item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     if (!view_toolbar.add_item(item))
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
         return false;
-#else
-        return;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     view_toolbar.select_item("3D");
     view_toolbar.set_enabled(true);
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     return true;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 }
 
 bool Plater::priv::can_set_instance_to_object() const
@@ -4121,11 +4071,7 @@ bool Plater::priv::can_reload_from_disk() const
     for (const SelectedVolume& v : selected_volumes)
     {
         const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
         if (!volume->source.input_file.empty())
-#else
-        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
             paths.push_back(volume->source.input_file);
     }
     std::sort(paths.begin(), paths.end());
@@ -5515,12 +5461,10 @@ void Plater::msw_rescale()
     GetParent()->Layout();
 }
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 bool Plater::init_view_toolbar()
 {
     return p->init_view_toolbar();
 }
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
 const Camera& Plater::get_camera() const
 {

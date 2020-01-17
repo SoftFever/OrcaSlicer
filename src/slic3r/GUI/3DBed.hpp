@@ -5,6 +5,8 @@
 #include "3DScene.hpp"
 #include "GLShader.hpp"
 
+#include <tuple>
+
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
 
@@ -64,11 +66,7 @@ class Bed3D
 public:
     enum EType : unsigned char
     {
-        MK2,
-        MK3,
-        SL1,
-        MINI,
-        ENDER3,
+        System,
         Custom,
         Num_Types
     };
@@ -76,19 +74,19 @@ public:
 private:
     EType m_type;
     Pointfs m_shape;
-    std::string m_custom_texture;
-    std::string m_custom_model;
+    std::string m_texture_filename;
+    std::string m_model_filename;
     mutable BoundingBoxf3 m_bounding_box;
     mutable BoundingBoxf3 m_extended_bounding_box;
     Polygon m_polygon;
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
     mutable GLTexture m_texture;
+    mutable GLBed m_model;
     // temporary texture shown until the main texture has still no levels compressed
     mutable GLTexture m_temp_texture;
     mutable Shader m_shader;
     mutable unsigned int m_vbo_id;
-    mutable GLBed m_model;
     Axes m_axes;
 
     mutable float m_scale_factor;
@@ -99,7 +97,6 @@ public:
 
     EType get_type() const { return m_type; }
 
-    bool is_prusa() const { return (m_type == MK2) || (m_type == MK3) || (m_type == SL1); }
     bool is_custom() const { return m_type == Custom; }
 
     const Pointfs& get_shape() const { return m_shape; }
@@ -120,11 +117,11 @@ private:
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
-    EType detect_type(const Pointfs& shape) const;
+    std::tuple<EType, std::string, std::string> detect_type(const Pointfs& shape) const;
     void render_axes() const;
-    void render_prusa(GLCanvas3D& canvas, const std::string& key, bool bottom) const;
-    void render_texture(const std::string& filename, bool bottom, GLCanvas3D& canvas) const;
-    void render_model(const std::string& filename) const;
+    void render_system(GLCanvas3D& canvas, bool bottom) const;
+    void render_texture(bool bottom, GLCanvas3D& canvas) const;
+    void render_model() const;
     void render_custom(GLCanvas3D& canvas, bool bottom) const;
     void render_default(bool bottom) const;
     void reset();

@@ -399,13 +399,9 @@ public:
         int object_idx{ -1 };
         int volume_idx{ -1 };
         Vec3d mesh_offset{ Vec3d::Zero() };
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         Geometry::Transformation transform;
 
         template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset, transform); }
-#else
-        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset); }
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
     };
     Source              source;
 
@@ -767,8 +763,9 @@ public:
         
         double      print_z;
         std::string gcode;
-        int         extruder;   // 0    - "gcode" will be applied for whole print
-                                // else - "gcode" will be applied only for "extruder" print
+        int         extruder;   // Informative value for ColorChangeCode and ToolChangeCode
+                                // "gcode" == ColorChangeCode   => M600 will be applied for "extruder" extruder
+                                // "gcode" == ToolChangeCode    => for whole print tool will be switched to "extruder" extruder
         std::string color;      // if gcode is equal to PausePrintCode, 
                                 // this field is used for save a short message shown on Printer display 
     };

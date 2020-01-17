@@ -478,7 +478,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		for (unsigned int i : lt.extruders)
 			extruder_printing_above[i] = true;
 		// Skip all custom G-codes above this layer and skip all extruder switches.
-		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->gcode == ExtruderChangeCode); ++ custom_gcode_it);
+		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->gcode == ToolChangeCode); ++ custom_gcode_it);
 		if (custom_gcode_it == custom_gcode_per_print_z.gcodes.rend())
 			// Custom G-codes were processed.
 			break;

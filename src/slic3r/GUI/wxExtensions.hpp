@@ -782,6 +782,8 @@ public:
         const wxString& name = wxEmptyString);
     ~DoubleSlider() {}
 
+    using t_mode = Slic3r::Model::CustomGCodeInfo::MODE;
+
     /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
      * So, let use same value as a permissible error for layer height.
      */
@@ -805,37 +807,22 @@ public:
     // Set low and high slider position. If the span is non-empty, disable the "one layer" mode.
     void SetSelectionSpan(const int lower_val, const int higher_val);
     void SetMaxValue(const int max_value);
-    void SetKoefForLabels(const double koef) {
-        m_label_koef = koef;
-    }
-    void SetSliderValues(const std::vector<double>& values) {
-        m_values = values;
-    }
+    void SetKoefForLabels(const double koef)                { m_label_koef = koef; }
+    void SetSliderValues(const std::vector<double>& values) { m_values = values; }
     void ChangeOneLayerLock();
-    std::vector<Slic3r::Model::CustomGCode> GetTicksValues() const;
-    void SetTicksValues(const std::vector<Slic3r::Model::CustomGCode> &heights);
-    void EnableTickManipulation(bool enable = true) {
-        m_is_enabled_tick_manipulation = enable;
-    }
-    void DisableTickManipulation() {
-        EnableTickManipulation(false);
-    }
+    Slic3r::Model::CustomGCodeInfo  GetTicksValues() const;
+    void                            SetTicksValues(const Slic3r::Model::CustomGCodeInfo &custom_gcode_per_print_z);
+    void EnableTickManipulation(bool enable = true) { m_is_enabled_tick_manipulation = enable; }
+    void DisableTickManipulation()                  { EnableTickManipulation(false); }
 
-    enum ManipulationMode {
-        mmSingleExtruder,   // single extruder printer preset is selected
-        mmMultiAsSingle,    // multiple extruder printer preset is selected, but 
-                            // this mode works just for Single extruder print 
-                            // (For all print from objects settings is used just one extruder) 
-        mmMultiExtruder     // multiple extruder printer preset is selected
-    };
-    void SetManipulationMode(ManipulationMode mode) { m_mode = mode; }
-    ManipulationMode GetManipulationMode() const    { return m_mode; }
+    void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
+    t_mode  GetManipulationMode() const         { return m_mode; }
 
     void SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
     {
-        m_mode = !is_one_extruder_printed_model ? mmMultiExtruder :
-                 only_extruder < 0              ? mmSingleExtruder :
-                                                  mmMultiAsSingle;
+        m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
+                 only_extruder < 0              ? t_mode::SingleExtruder :
+                                                  t_mode::MultiAsSingle;
         m_only_extruder = only_extruder;
     }
 
@@ -918,7 +905,7 @@ private:
     int         get_extruder_for_tick(int tick);
     std::set<int>   get_used_extruders_for_tick(int tick);
 
-
+    void        post_ticks_changed_event(const std::string& gcode = "");
     void        append_change_extruder_menu_item(wxMenu*);
     void        append_add_color_change_menu_item(wxMenu*);
 
@@ -952,7 +939,7 @@ private:
     bool        m_show_edit_menu = false;
     bool        m_edit_extruder_sequence = false;
     bool        m_suppress_add_code = false;
-    ManipulationMode m_mode = mmSingleExtruder;
+    t_mode      m_mode = t_mode::SingleExtruder;
     std::string m_custom_gcode = "";
     std::string m_pause_print_msg;
     int         m_only_extruder = -1;
@@ -986,6 +973,7 @@ private:
     std::vector<wxPen*> m_segm_pens;
     std::vector<double> m_values;
     std::set<TICK_CODE> m_ticks;
+    t_mode              m_ticks_mode;
 
 public:
     struct ExtrudersSequence
