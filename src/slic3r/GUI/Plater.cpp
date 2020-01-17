@@ -3233,12 +3233,9 @@ void Plater::priv::reload_from_disk()
 
     // collects paths of files to load
     std::vector<fs::path> input_paths;
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     std::vector<fs::path> missing_input_paths;
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     for (const SelectedVolume& v : selected_volumes)
     {
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
         const ModelObject* object = model.objects[v.object_idx];
         const ModelVolume* volume = object->volumes[v.volume_idx];
 
@@ -3249,14 +3246,8 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
-#else
-        const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
-        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
-            input_paths.push_back(volume->source.input_file);
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     }
 
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
 
@@ -3306,7 +3297,6 @@ void Plater::priv::reload_from_disk()
                 return;
         }
     }
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
 
     std::sort(input_paths.begin(), input_paths.end());
     input_paths.erase(std::unique(input_paths.begin(), input_paths.end()), input_paths.end());
@@ -4093,11 +4083,7 @@ bool Plater::priv::can_reload_from_disk() const
     for (const SelectedVolume& v : selected_volumes)
     {
         const ModelVolume* volume = model.objects[v.object_idx]->volumes[v.volume_idx];
-#if ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
         if (!volume->source.input_file.empty())
-#else
-        if (!volume->source.input_file.empty() && boost::filesystem::exists(volume->source.input_file))
-#endif // ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION
             paths.push_back(volume->source.input_file);
     }
     std::sort(paths.begin(), paths.end());

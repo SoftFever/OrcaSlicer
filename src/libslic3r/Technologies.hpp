@@ -44,9 +44,6 @@
 // Enable adaptive layer height profile
 #define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
 
-// Enable selection for missing files in reload from disk command
-#define ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION (1 && ENABLE_2_2_0_ALPHA1)
-
 // Enable closing 3Dconnextion imgui settings dialog by clicking on [X] and [Close] buttons
 #define ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG (1 && ENABLE_2_2_0_ALPHA1)
 
