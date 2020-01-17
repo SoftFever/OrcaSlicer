@@ -493,18 +493,18 @@ static bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_
     return true;
 }
 
-// Returns true if va == vb when all CustomGCode items that are not ExtruderChangeCode are ignored.
+// Returns true if va == vb when all CustomGCode items that are not ToolChangeCode are ignored.
 static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Model::CustomGCode> &va, const std::vector<Model::CustomGCode> &vb)
 {
 	auto it_a = va.begin();
 	auto it_b = vb.begin();
 	while (it_a != va.end() && it_b != vb.end()) {
-		if (it_a != va.end() && it_a->gcode != ExtruderChangeCode) {
+		if (it_a != va.end() && it_a->gcode != ToolChangeCode) {
 			// Skip any CustomGCode items, which are not tool changes.
 			++ it_a;
 			continue;
 		}
-		if (it_b != vb.end() && it_b->gcode != ExtruderChangeCode) {
+		if (it_b != vb.end() && it_b->gcode != ToolChangeCode) {
 			// Skip any CustomGCode items, which are not tool changes.
 			++ it_b;
 			continue;
@@ -512,8 +512,8 @@ static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Model
 		if (it_a == va.end() || it_b == vb.end())
 			// va or vb contains more Tool Changes than the other.
 			return true;
-		assert(it_a->gcode == ExtruderChangeCode);
-		assert(it_b->gcode == ExtruderChangeCode);
+		assert(it_a->gcode == ToolChangeCode);
+		assert(it_b->gcode == ToolChangeCode);
 		if (*it_a != *it_b)
 			// The two Tool Changes differ.
 			return true;

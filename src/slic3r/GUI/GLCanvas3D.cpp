@@ -5263,11 +5263,11 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 const std::string& code = it->gcode;
                 // pause print or custom Gcode
                 if (code == PausePrintCode || 
-                    (code != ColorChangeCode && code != ExtruderChangeCode))
+                    (code != ColorChangeCode && code != ToolChangeCode))
                     return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
 
                 // change tool (extruder) 
-                if (code == ExtruderChangeCode)
+                if (code == ToolChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
                 // change color for current extruder
                 if (code == ColorChangeCode) {
@@ -5289,7 +5289,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                         return color_idx;
                 }
                 // change tool (extruder) 
-                if (it->gcode == ExtruderChangeCode)
+                if (it->gcode == ToolChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
@@ -5333,7 +5333,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             bool is_tool_change = false;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == ExtruderChangeCode) {
+                if (it_n->gcode == ToolChangeCode) {
                     is_tool_change = true;
                     if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
                         return get_m600_color_idx(it);

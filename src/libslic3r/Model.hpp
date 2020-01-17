@@ -763,8 +763,9 @@ public:
         
         double      print_z;
         std::string gcode;
-        int         extruder;   // 0    - "gcode" will be applied for whole print
-                                // else - "gcode" will be applied only for "extruder" print
+        int         extruder;   // Informative value for ColorChangeCode and ToolChangeCode
+                                // "gcode" == ColorChangeCode   => M600 will be applied for "extruder" extruder
+                                // "gcode" == ToolChangeCode    => for whole print tool will be switched to "extruder" extruder
         std::string color;      // if gcode is equal to PausePrintCode, 
                                 // this field is used for save a short message shown on Printer display 
     };

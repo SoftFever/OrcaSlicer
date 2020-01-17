@@ -1738,7 +1738,7 @@ namespace ProcessLayer
         
         if (custom_gcode != nullptr) {
 			// Extruder switches are processed by LayerTools, they should be filtered out.
-			assert(custom_gcode->gcode != ExtruderChangeCode);
+			assert(custom_gcode->gcode != ToolChangeCode);
 
             const std::string &custom_code = custom_gcode->gcode;
 		    std::string pause_print_msg;
