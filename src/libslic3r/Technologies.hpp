@@ -44,9 +44,6 @@
 // Enable adaptive layer height profile
 #define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
 
-// Enable grayed variant for gizmos icons in non activable state
-#define ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE (1 && ENABLE_2_2_0_ALPHA1)
-
 // Enable fix for view toolbar background not showing up on Mac with dark mode
 #define ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX (1 && ENABLE_2_2_0_ALPHA1)
 
