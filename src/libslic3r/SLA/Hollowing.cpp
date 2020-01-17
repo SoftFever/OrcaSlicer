@@ -223,7 +223,10 @@ bool DrainHole::get_intersections(const Vec3f& s, const Vec3f& dir,
         // they are on the cylinder and not past it:
         for (int i=-1; i<=1 && found !=2; i+=2) {
             Vec3f isect = closest + i*dist * projected_ray.direction();
-            float par = (isect-proj_origin).norm() / par_scale;
+            Vec3f to_isect = isect-proj_origin;
+            float par = to_isect.norm() / par_scale;
+            if (to_isect.normalized().dot(proj_dir.normalized()) < 0.f)
+                par *= -1.f;
             Vec3d hit_normal = (pos-isect).normalized().cast<double>();
             isect = ray.pointAt(par);
             // check that the intersection is between the base planes:
