@@ -585,36 +585,20 @@ void AMFParserContext::endElement(const char * /* name */)
         stl_allocate(&stl);
 
         bool has_transform = ! m_volume_transform.isApprox(Transform3d::Identity(), 1e-10);
-#if !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
-        Transform3d inv_matrix = m_volume_transform.inverse();
-#endif // !ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
             for (unsigned int v = 0; v < 3; ++v)
             {
                 unsigned int tri_id = m_volume_facets[i++] * 3;
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
                 facet.vertex[v] = Vec3f(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
-#else
-                Vec3f vertex(m_object_vertices[tri_id + 0], m_object_vertices[tri_id + 1], m_object_vertices[tri_id + 2]);
-                facet.vertex[v] = has_transform ?
-                    // revert the vertices to the original mesh reference system
-                    (inv_matrix * vertex.cast<double>()).cast<float>() :
-                    vertex;
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             }
         }        
         stl_get_size(&stl);
         mesh.repair();
 		m_volume->set_mesh(std::move(mesh));
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         // stores the volume matrix taken from the metadata, if present
         if (has_transform)
             m_volume->source.transform = Slic3r::Geometry::Transformation(m_volume_transform);
-#else
-        if (has_transform)
-            m_volume->set_transformation(m_volume_transform);
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         if (m_volume->source.input_file.empty() && (m_volume->type() == ModelVolumeType::MODEL_PART))
         {
             m_volume->source.object_idx = (int)m_model.objects.size() - 1;
@@ -653,7 +637,7 @@ void AMFParserContext::endElement(const char * /* name */)
         int extruder = atoi(m_value[2].c_str());
         const std::string& color = m_value[3];
 
-        m_model.custom_gcode_per_print_z.push_back(Model::CustomGCode{height, gcode, extruder, color});
+        m_model.custom_gcode_per_print_z.gcodes.push_back(Model::CustomGCode{height, gcode, extruder, color});
 
         for (std::string& val: m_value)
             val.clear();
@@ -1163,11 +1147,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
             stream << "        <metadata type=\"slic3r.matrix\">";
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             const Transform3d& matrix = volume->get_matrix() * volume->source.transform.get_matrix();
-#else
-            const Transform3d& matrix = volume->get_matrix();
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
             stream << std::setprecision(std::numeric_limits<double>::max_digits10);
             for (int r = 0; r < 4; ++r)
             {
@@ -1250,14 +1230,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         stream << "  </constellation>\n";
     }
 
-    if (!model->custom_gcode_per_print_z.empty())
+    if (!model->custom_gcode_per_print_z.gcodes.empty())
     {
         std::string out = "";
         pt::ptree tree;
 
         pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
 
-        for (const Model::CustomGCode& code : model->custom_gcode_per_print_z)
+        for (const Model::CustomGCode& code : model->custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
             // store minX and maxZ

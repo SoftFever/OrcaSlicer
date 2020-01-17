@@ -132,9 +132,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_object_max_z(0.f)
     , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , m_adaptive_quality(0.5f)
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     , state(Unknown)
     , band_width(2.0f)
     , strength(0.005f)
@@ -155,9 +153,6 @@ GLCanvas3D::LayersEditing::~LayersEditing()
 }
 
 const float GLCanvas3D::LayersEditing::THICKNESS_BAR_WIDTH = 70.0f;
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-const float GLCanvas3D::LayersEditing::THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
 {
@@ -224,7 +219,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     if (!m_enabled)
         return;
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
 
     const Size& cnv_size = canvas.get_canvas_size();
@@ -319,13 +313,6 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     imgui.end();
 
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
-#else
-    const Rect& bar_rect = get_bar_rect_viewport(canvas);
-    const Rect& reset_rect = get_reset_rect_viewport(canvas);
-
-    _render_tooltip_texture(canvas, bar_rect, reset_rect);
-    _render_reset_texture(reset_rect);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     render_active_object_annotations(canvas, bar_rect);
     render_profile(bar_rect);
 }
@@ -352,37 +339,14 @@ bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, floa
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
 
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-bool GLCanvas3D::LayersEditing::reset_rect_contains(const GLCanvas3D& canvas, float x, float y)
-{
-    const Rect& rect = get_reset_rect_screen(canvas);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-
 Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     return Rect(w - thickness_bar_width(canvas), 0.0f, w, h);
-#else
-    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h - reset_button_height(canvas));
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (float)cnv_size.get_width();
-    float h = (float)cnv_size.get_height();
-
-    return Rect(w - thickness_bar_width(canvas), h - reset_button_height(canvas), w, h);
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
 {
@@ -393,26 +357,8 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float zoom = (float)canvas.get_camera().get_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-#else
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float half_w = 0.5f * (float)cnv_size.get_width();
-    float half_h = 0.5f * (float)cnv_size.get_height();
-
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::LayersEditing::is_initialized() const
 {
@@ -447,54 +393,6 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
     }
     return ret;
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
-{
-    // TODO: do this with ImGui
-
-    if (m_tooltip_texture.get_id() == 0)
-    {
-        std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
-            return;
-    }
-
-#if ENABLE_RETINA_GL
-    const float scale = canvas.get_canvas_size().get_scale_factor();
-#else
-    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
-#endif
-    const float width = (float)m_tooltip_texture.get_width() * scale;
-    const float height = (float)m_tooltip_texture.get_height() * scale;
-
-    float zoom = (float)canvas.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-    float gap = 10.0f * inv_zoom;
-
-    float bar_left = bar_rect.get_left();
-    float reset_bottom = reset_rect.get_bottom();
-
-    float l = bar_left - width * inv_zoom - gap;
-    float r = bar_left - gap;
-    float t = reset_bottom + height * inv_zoom + gap;
-    float b = reset_bottom + gap;
-
-    GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
-}
-
-void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) const
-{
-    if (m_reset_texture.get_id() == 0)
-    {
-        std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename, false, GLTexture::SingleThreaded, false))
-            return;
-    }
-
-    GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const
 {
@@ -644,7 +542,6 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor)
 {
     this->update_slicing_parameters();
@@ -662,7 +559,6 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D& canvas, 
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
 {
@@ -724,19 +620,6 @@ float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 #endif
          * THICKNESS_BAR_WIDTH;
 }
-
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
-{
-    return
-#if ENABLE_RETINA_GL
-        canvas.get_canvas_size().get_scale_factor()
-#else
-        canvas.get_wxglcanvas()->GetContentScaleFactor()
-#endif
-         * THICKNESS_RESET_BUTTON_HEIGHT;
-}
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
@@ -1011,7 +894,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
                                                                 std::vector<float>& colors,
                                                                 std::vector<std::string>& cp_legend_items)
 {
-    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
     if (extruders_cnt == 1) 
@@ -1349,9 +1232,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
@@ -1375,11 +1255,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOVE_DOUBLE_SLIDER, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 #if ENABLE_THUMBNAIL_GENERATOR
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
@@ -1520,10 +1398,6 @@ bool GLCanvas3D::init()
 
     if (m_selection.is_enabled() && !m_selection.init())
         return false;
-
-#if !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
-    post_event(SimpleEvent(EVT_GLCANVAS_INIT));
-#endif // !ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     m_initialized = true;
 
@@ -1681,7 +1555,6 @@ bool GLCanvas3D::is_layers_editing_allowed() const
     return m_layers_editing.is_allowed();
 }
 
-#if ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 void GLCanvas3D::reset_layer_height_profile()
 {
     wxGetApp().plater()->take_snapshot(_(L("Variable layer height - Reset")));
@@ -1705,7 +1578,6 @@ void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams&
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
-#endif // ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
 
 bool GLCanvas3D::is_reload_delayed() const
 {
@@ -1927,11 +1799,7 @@ void GLCanvas3D::render()
     m_camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
-#else
-    wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     wxGetApp().imgui()->render();
 
@@ -2427,7 +2295,7 @@ static void load_gcode_retractions(const GCodePreviewData::Retraction& retractio
 
 	volume_index.first_volumes.emplace_back(extrusion_type, 0, (unsigned int)volumes.volumes.size());
 
-	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba, VERTEX_BUFFER_RESERVE_SIZE);
+	GLVolume *volume = volumes.new_nontoolpath_volume(retractions.color.rgba.data(), VERTEX_BUFFER_RESERVE_SIZE);
 
 	GCodePreviewData::Retraction::PositionsList copy(retractions.positions);
 	std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2) { return p1.position(2) < p2.position(2); });
@@ -3117,20 +2985,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
-#if !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
-        else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos(0), pos(1)))
-        {
-            if (evt.LeftDown())
-            {
-                // A volume is selected and the mouse is inside the reset button. Reset the ModelObject's layer height profile.
-				m_layers_editing.reset_layer_height_profile(*this);
-                // Index 2 means no editing, just wait for mouse up event.
-                m_layers_editing.state = LayersEditing::Completed;
-
-                m_dirty = true;
-            }
-        }
-#endif // !ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE
         else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
             if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
@@ -4233,10 +4087,8 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_undoredo_toolbar())
         return false;
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     if (!_init_view_toolbar())
         return false;
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     return true;
 }
@@ -4495,12 +4347,10 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     return true;
 }
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 bool GLCanvas3D::_init_view_toolbar()
 {
     return wxGetApp().plater()->init_view_toolbar();
 }
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
 bool GLCanvas3D::_set_current()
 {
@@ -5413,11 +5263,11 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 const std::string& code = it->gcode;
                 // pause print or custom Gcode
                 if (code == PausePrintCode || 
-                    (code != ColorChangeCode && code != ExtruderChangeCode))
+                    (code != ColorChangeCode && code != ToolChangeCode))
                     return number_tools()-1; // last color item is a gray color for pause print or custom G-code 
 
                 // change tool (extruder) 
-                if (code == ExtruderChangeCode)
+                if (code == ToolChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
                 // change color for current extruder
                 if (code == ColorChangeCode) {
@@ -5439,7 +5289,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                         return color_idx;
                 }
                 // change tool (extruder) 
-                if (it->gcode == ExtruderChangeCode)
+                if (it->gcode == ToolChangeCode)
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
@@ -5483,7 +5333,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             bool is_tool_change = false;
             while (it_n != color_print_values->begin()) {
                 --it_n;
-                if (it_n->gcode == ExtruderChangeCode) {
+                if (it_n->gcode == ToolChangeCode) {
                     is_tool_change = true;
                     if (it_n->extruder == it->extruder || (it_n->extruder == 0 && it->extruder == extruder))
                         return get_m600_color_idx(it);
@@ -5863,7 +5713,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             return 0.0f;
         }
 
-        static GCodePreviewData::Color path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
+        static Color path_color(const GCodePreviewData& data, const std::vector<float>& tool_colors, float value)
         {
             switch (data.extrusion.view_type)
             {
@@ -5881,8 +5731,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return data.get_volumetric_rate_color(value);
             case GCodePreviewData::Extrusion::Tool:
             {
-                GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
+                Color color;
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
                 return color;
             }
             case GCodePreviewData::Extrusion::ColorPrint:
@@ -5890,16 +5740,16 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 int color_cnt = (int)tool_colors.size() / 4;
                 int val = value > color_cnt ? color_cnt - 1 : value;
 
-                GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
+                Color color;
+                ::memcpy((void*)color.rgba.data(), (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
 
                 return color;
             }
             default:
-                return GCodePreviewData::Color::Dummy;
+                return Color{};
             }
 
-            return GCodePreviewData::Color::Dummy;
+            return Color{};
         }
     };
 
@@ -5942,7 +5792,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 		    	if (! values.empty()) {
 		        	m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, role, (unsigned int)m_volumes.volumes.size());
 					for (const float value : values)
-						roles_filters.back().emplace_back(value, m_volumes.new_toolpath_volume(Helper::path_color(preview_data, tool_colors, value).rgba, vertex_buffer_prealloc_size));
+						roles_filters.back().emplace_back(value, m_volumes.new_toolpath_volume(Helper::path_color(preview_data, tool_colors, value).rgba.data(), vertex_buffer_prealloc_size));
 				}
 			}
 		}
@@ -6025,7 +5875,7 @@ inline void travel_paths_internal(
 		by_type.reserve(values.size());
 		// creates a new volume for each feedrate
 		for (TYPE type : values)
-			by_type.emplace_back(type, volumes.new_nontoolpath_volume(func_color(type).rgba, VERTEX_BUFFER_RESERVE_SIZE));
+			by_type.emplace_back(type, volumes.new_nontoolpath_volume(func_color(type).rgba.data(), VERTEX_BUFFER_RESERVE_SIZE));
 	}
 
 	// populates volumes
@@ -6072,19 +5922,19 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
 	    case GCodePreviewData::Extrusion::Feedrate:
 			travel_paths_internal<float>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.feedrate; }, 
-				[&preview_data](const float feedrate) -> const GCodePreviewData::Color { return preview_data.get_feedrate_color(feedrate); },
+				[&preview_data](const float feedrate) -> const Color { return preview_data.get_feedrate_color(feedrate); },
 				m_volumes, m_initialized);
 	        break;
 	    case GCodePreviewData::Extrusion::Tool:
 	    	travel_paths_internal<unsigned int>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.extruder_id; }, 
-				[&tool_colors](const unsigned int extruder_id) -> const GCodePreviewData::Color { assert((extruder_id + 1) * 4 <= tool_colors.size()); return GCodePreviewData::Color(tool_colors.data() + extruder_id * 4); },
+				[&tool_colors](const unsigned int extruder_id) -> const Color { assert((extruder_id + 1) * 4 <= tool_colors.size()); return Color(tool_colors.data() + extruder_id * 4); },
 				m_volumes, m_initialized);
 	        break;
 	    default:
 	    	travel_paths_internal<unsigned int>(preview_data,
 				[](const GCodePreviewData::Travel::Polyline &polyline) { return polyline.type; }, 
-				[&preview_data](const unsigned int type) -> const GCodePreviewData::Color& { return preview_data.travel.type_colors[type]; },
+				[&preview_data](const unsigned int type) -> const Color& { return preview_data.travel.type_colors[type]; },
 				m_volumes, m_initialized);
 	        break;
 	    }

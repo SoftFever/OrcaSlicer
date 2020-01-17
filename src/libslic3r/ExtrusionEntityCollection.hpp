@@ -6,6 +6,21 @@
 
 namespace Slic3r {
 
+// Remove those items from extrusion_entities, that do not match role.
+// Do nothing if role is mixed.
+// Removed elements are NOT being deleted.
+void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role);
+
+// Return new vector of ExtrusionEntities* with only those items from input extrusion_entities, that match role.
+// Return all extrusion entities if role is mixed.
+// Returned extrusion entities are shared with the source vector, they are NOT cloned, they are considered to be owned by extrusion_entities.
+inline ExtrusionEntitiesPtr filter_by_extrusion_role(const ExtrusionEntitiesPtr &extrusion_entities, ExtrusionRole role)
+{
+	ExtrusionEntitiesPtr out { extrusion_entities }; 
+	filter_by_extrusion_role_in_place(out, role);
+	return out;
+}
+
 class ExtrusionEntityCollection : public ExtrusionEntity
 {
 public:
@@ -65,7 +80,9 @@ public:
     }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
-    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const;
+    static ExtrusionEntityCollection chained_path_from(const ExtrusionEntitiesPtr &extrusion_entities, const Point &start_near, ExtrusionRole role = erMixed);
+    ExtrusionEntityCollection chained_path_from(const Point &start_near, ExtrusionRole role = erMixed) const 
+    	{ return this->no_sort ? *this : chained_path_from(this->entities, start_near, role); }
     void reverse();
     const Point& first_point() const { return this->entities.front()->first_point(); }
     const Point& last_point() const { return this->entities.back()->last_point(); }
@@ -105,6 +122,6 @@ public:
     }
 };
 
-}
+} // namespace Slic3r
 
 #endif

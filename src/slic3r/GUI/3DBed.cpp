@@ -335,24 +335,10 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
         printf("Unable to create bed grid lines\n");
 }
 
-static const VendorProfile::PrinterModel* system_printer_model(const Preset &preset)
-{
-	const VendorProfile::PrinterModel *out = nullptr;
-	if (preset.vendor != nullptr) {
-		auto *printer_model = preset.config.opt<ConfigOptionString>("printer_model");
-		if (printer_model != nullptr && ! printer_model->value.empty()) {
-			auto it = std::find_if(preset.vendor->models.begin(), preset.vendor->models.end(), [printer_model](const VendorProfile::PrinterModel &pm) { return pm.id == printer_model->value; });
-			if (it != preset.vendor->models.end())
-				out = &(*it);
-		}
-	}
-	return out;
-}
-
 static std::string system_print_bed_model(const Preset &preset)
 {
 	std::string out;
-	const VendorProfile::PrinterModel *pm = system_printer_model(preset);
+	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
 	if (pm != nullptr && ! pm->bed_model.empty())
 		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
 	return out;
@@ -361,7 +347,7 @@ static std::string system_print_bed_model(const Preset &preset)
 static std::string system_print_bed_texture(const Preset &preset)
 {
 	std::string out;
-	const VendorProfile::PrinterModel *pm = system_printer_model(preset);
+	const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(preset);
 	if (pm != nullptr && ! pm->bed_texture.empty())
 		out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_texture;
 	return out;

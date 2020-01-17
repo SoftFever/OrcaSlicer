@@ -63,7 +63,7 @@ void AppConfig::set_defaults()
 
 #if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
     if (get("export_sources_full_pathnames").empty())
-        set("export_sources_full_pathnames", "1");
+        set("export_sources_full_pathnames", "0");
 #endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 
     // remove old 'use_legacy_opengl' parameter from this config, if present

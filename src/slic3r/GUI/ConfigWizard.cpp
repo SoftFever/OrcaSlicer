@@ -350,6 +350,21 @@ bool PrinterPicker::any_selected() const
     return false;
 }
 
+std::set<std::string> PrinterPicker::get_selected_models() const 
+{
+    std::set<std::string> ret_set;
+
+    for (const auto& cb : cboxes)
+        if (cb->GetValue())
+            ret_set.emplace(cb->model);
+
+    for (const auto& cb : cboxes_alt)
+        if (cb->GetValue())
+            ret_set.emplace(cb->model);
+
+    return ret_set;
+}
+
 void PrinterPicker::on_checkbox(const Checkbox *cbox, bool checked)
 {
     PrinterPickerEvent evt(EVT_PRINTER_PICK, GetId(), vendor_id, cbox->model, cbox->variant, checked);
@@ -498,6 +513,19 @@ bool PagePrinters::any_selected() const
     }
 
     return false;
+}
+
+std::set<std::string> PagePrinters::get_selected_models()
+{
+    std::set<std::string> ret_set;
+
+    for (const auto *picker : printer_pickers)
+    {
+        std::set<std::string> tmp_models = picker->get_selected_models();
+        ret_set.insert(tmp_models.begin(), tmp_models.end());
+    }
+
+    return ret_set;
 }
 
 void PagePrinters::set_run_reason(ConfigWizard::RunReason run_reason)
@@ -768,7 +796,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
 #if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
 PageReloadFromDisk::PageReloadFromDisk(ConfigWizard* parent)
     : ConfigWizardPage(parent, _(L("Reload from disk")), _(L("Reload from disk")))
-    , full_pathnames(true)
+    , full_pathnames(false)
 {
     auto* box_pathnames = new wxCheckBox(this, wxID_ANY, _(L("Export full pathnames of models and parts sources into 3mf and amf files")));
     box_pathnames->SetValue(wxGetApp().app_config->get("export_sources_full_pathnames") == "1");
@@ -1600,6 +1628,10 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPicker
                 preset.is_visible = evt.enable;
             }
         }
+
+        // if at list one printer is selected but there in no one selected material,
+        // select materials which is default for selected printer(s)
+        select_default_materials_if_needed(pair.second.vendor_profile, page->technology, evt.model_id);
     }
 
     if (page->technology & T_FFF) {
@@ -1607,6 +1639,57 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPicker
     } else if (page->technology & T_SLA) {
         page_sla_materials->clear();
     }
+}
+
+void ConfigWizard::priv::select_default_materials_for_printer_model(const std::vector<VendorProfile::PrinterModel>& models, Technology technology, const std::string& model_id)
+{
+    PageMaterials* page_materials = technology & T_FFF ? page_filaments : page_sla_materials;
+
+    auto it = std::find_if(models.begin(), models.end(), [model_id](VendorProfile::PrinterModel model) {return model_id == model.id; });
+    if (it != models.end())
+        for (const std::string& material : it->default_materials)
+            appconfig_new.set(page_materials->materials->appconfig_section(), material, "1");
+}
+
+void ConfigWizard::priv::select_default_materials_if_needed(VendorProfile* vendor_profile, Technology technology, const std::string& model_id)
+{
+    if ((technology & T_FFF && !any_fff_selected) ||
+        (technology & T_SLA && !any_sla_selected) ||
+        check_materials_in_config(technology, false))
+        return;
+
+    select_default_materials_for_printer_model(vendor_profile->models, technology, model_id);
+}
+
+void ConfigWizard::priv::selected_default_materials(Technology technology)
+{
+    auto select_default_materials_for_printer_page = [this](PagePrinters * page_printers, Technology technology)
+    {
+        std::set<std::string>   selected_models = page_printers->get_selected_models();
+        const std::string       vendor_id       = page_printers->get_vendor_id();
+
+        for (auto& pair : bundles)
+        {
+            if (pair.first != vendor_id)
+                continue;
+
+            for (const std::string& model_id : selected_models)
+                select_default_materials_for_printer_model(pair.second.vendor_profile->models, technology, model_id);
+        }
+    };
+
+    PagePrinters* page_printers = technology & T_FFF ? page_fff : page_msla;
+    select_default_materials_for_printer_page(page_printers, technology);
+
+    for (const auto& printer : pages_3rdparty) 
+    {
+        page_printers = technology & T_FFF ? printer.second.first : printer.second.second;
+        if (page_printers)
+            select_default_materials_for_printer_page(page_printers, technology);
+    }
+
+    update_materials(technology);
+    (technology& T_FFF ? page_filaments : page_sla_materials)->reload_presets();
 }
 
 void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool install)
@@ -1645,7 +1728,7 @@ bool ConfigWizard::priv::on_bnt_finish()
     return check_materials_in_config(T_ANY);
 }
 
-bool ConfigWizard::priv::check_materials_in_config(Technology technology)
+bool ConfigWizard::priv::check_materials_in_config(Technology technology, bool show_info_msg)
 {
     const auto exist_preset = [this](const std::string& section, const Materials& materials)
     {
@@ -1660,15 +1743,32 @@ bool ConfigWizard::priv::check_materials_in_config(Technology technology)
         return false;
     };
 
+    const auto ask_and_selected_default_materials = [this](wxString message, Technology technology)
+    {
+        wxMessageDialog msg(q, message, _(L("Notice")), wxYES_NO);
+        if (msg.ShowModal() == wxID_YES)
+            selected_default_materials(technology);
+    };
+
     if (any_fff_selected && technology & T_FFF && !exist_preset(AppConfig::SECTION_FILAMENTS, filaments))
     {
-        show_info(q, _(L("You have to select at least one filament for selected printers")), "");
+        if (show_info_msg)
+        {
+            wxString message = _(L("You have to select at least one filament for selected printers")) + "\n\n\t" +
+                               _(L("Do you want to automatic select default filaments?"));
+            ask_and_selected_default_materials(message, T_FFF);
+        }
         return false;
     }
 
     if (any_sla_selected && technology & T_SLA && !exist_preset(AppConfig::SECTION_MATERIALS, sla_materials))
     {
-        show_info(q, _(L("You have to select at least one material for selected printers")), "");
+        if (show_info_msg)
+        {
+            wxString message = _(L("You have to select at least one material for selected printers")) + "\n\n\t" +
+                               _(L("Do you want to automatic select default materials?"));
+            ask_and_selected_default_materials(message, T_SLA);
+        }
         return false;
     }
 

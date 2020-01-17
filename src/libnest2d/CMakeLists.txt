@@ -24,7 +24,7 @@ set(LIBNEST2D_SRCFILES
     src/libnest2d.cpp
     )
 
-add_library(libnest2d ${LIBNEST2D_SRCFILES})
+add_library(libnest2d STATIC ${LIBNEST2D_SRCFILES})
 
 target_include_directories(libnest2d PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(libnest2d PUBLIC clipper NLopt::nlopt TBB::tbb Boost::boost)

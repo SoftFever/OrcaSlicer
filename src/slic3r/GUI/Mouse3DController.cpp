@@ -5,9 +5,7 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "AppConfig.hpp"
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 #include "GLCanvas3D.hpp"
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
 #include <wx/glcanvas.h>
 
@@ -200,9 +198,7 @@ Mouse3DController::Mouse3DController()
     , m_device_str("")
     , m_running(false)
     , m_show_settings_dialog(false)
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     , m_settings_dialog_closed_by_user(false)
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
     m_last_time = std::chrono::high_resolution_clock::now();
 }
@@ -247,9 +243,7 @@ bool Mouse3DController::apply(Camera& camera)
         disconnect_device();
         // hides the settings dialog if the user un-plug the device
         m_show_settings_dialog = false;
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
         m_settings_dialog_closed_by_user = false;
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     }
 
     // check if the user plugged the device
@@ -259,16 +253,11 @@ bool Mouse3DController::apply(Camera& camera)
     return is_device_connected() ? m_state.apply(camera) : false;
 }
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
-#else
-void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
     if (!m_running || !m_show_settings_dialog)
         return;
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     // when the user clicks on [X] or [Close] button we need to trigger
     // an extra frame to let the dialog disappear
     if (m_settings_dialog_closed_by_user)
@@ -280,16 +269,10 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     }
 
     Size cnv_size = canvas.get_canvas_size();
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
-#else
-    imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     static ImVec2 last_win_size(0.0f, 0.0f);
     bool shown = true;
     if (imgui.begin(_(L("3Dconnexion settings")), &shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
@@ -304,9 +287,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
                 last_win_size = win_size;
                 canvas.request_extra_frame();
             }
-#else
-    imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
             const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -389,7 +369,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             Vec3f target = wxGetApp().plater()->get_camera().get_target().cast<float>();
             ImGui::InputFloat3("Target", target.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
             ImGui::Separator();
             if (imgui.button(_(L("Close"))))
@@ -406,7 +385,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             canvas.set_as_dirty();
         }
     }
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     imgui.end();
 }

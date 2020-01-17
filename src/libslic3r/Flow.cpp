@@ -107,9 +107,9 @@ double Flow::mm3_per_mm() const
 {
     float res = this->bridge ?
         // Area of a circle with dmr of this->width.
-        (this->width * this->width) * 0.25 * PI :
+        float((this->width * this->width) * 0.25 * PI) :
         // Rectangle with semicircles at the ends. ~ h (w - 0.215 h)
-        this->height * (this->width - this->height * (1. - 0.25 * PI));
+        float(this->height * (this->width - this->height * (1. - 0.25 * PI)));
     //assert(res > 0.);
 	if (res <= 0.)
 		throw std::runtime_error("Flow::mm3_per_mm() produced negative flow. Did you set some extrusion width too small?");
