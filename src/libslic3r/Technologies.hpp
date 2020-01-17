@@ -41,9 +41,6 @@
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
-// Enable not applying volume transformation during 3mf and amf loading, but keeping it as a ModelVolume member
-#define ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE (1 && ENABLE_2_2_0_ALPHA1)
-
 
 //==================
 // 2.2.0.beta1 techs

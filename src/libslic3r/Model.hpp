@@ -399,13 +399,9 @@ public:
         int object_idx{ -1 };
         int volume_idx{ -1 };
         Vec3d mesh_offset{ Vec3d::Zero() };
-#if ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
         Geometry::Transformation transform;
 
         template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset, transform); }
-#else
-        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset); }
-#endif // ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE
     };
     Source              source;
 
