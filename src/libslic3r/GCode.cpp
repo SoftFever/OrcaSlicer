@@ -196,7 +196,7 @@ std::string OozePrevention::pre_toolchange(GCode &gcodegen)
     if (gcodegen.config().standby_temperature_delta.value != 0) {
         // we assume that heating is always slower than cooling, so no need to block
         gcode += gcodegen.writer().set_temperature
-            (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false);
+            (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false, gcodegen.writer().extruder()->id());
     }
     
     return gcode;
@@ -205,7 +205,7 @@ std::string OozePrevention::pre_toolchange(GCode &gcodegen)
 std::string OozePrevention::post_toolchange(GCode &gcodegen)
 {
     return (gcodegen.config().standby_temperature_delta.value != 0) ?
-        gcodegen.writer().set_temperature(this->_get_temp(gcodegen), true) :
+        gcodegen.writer().set_temperature(this->_get_temp(gcodegen), true, gcodegen.writer().extruder()->id()) :
         std::string();
 }
 
