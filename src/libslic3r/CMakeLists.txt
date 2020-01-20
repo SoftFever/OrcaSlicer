@@ -262,10 +262,8 @@ target_link_libraries(libslic3r
     ${CMAKE_DL_LIBS}
     )
 
-
-find_library(CXX_ATOMIC_LIBRARY atomic)
-if (CXX_ATOMIC_LIBRARY)
-    target_link_libraries(libslic3r ${CXX_ATOMIC_LIBRARY})
+if (NOT MSVC)
+    target_link_libraries(libslic3r atomic) # no cmake magic for this...
 endif()
 
 if (TARGET OpenVDB::openvdb)
