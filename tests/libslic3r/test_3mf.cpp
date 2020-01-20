@@ -26,7 +26,7 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
     GIVEN("world vertices coordinates before save") {
         // load a model from stl file
         Model src_model;
-        std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/prusa.stl";
+        std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
         load_stl(src_file.c_str(), &src_model);
         src_model.add_default_instances();
 
