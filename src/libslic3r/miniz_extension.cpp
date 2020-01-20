@@ -26,8 +26,20 @@ bool open_zip(mz_zip_archive *zip, const char *fname, bool isread)
         return false;
     }
 
-    return isread ? mz_zip_reader_init_cfile(zip, f, 0, 0)
-                  : mz_zip_writer_init_cfile(zip, f, 0);
+    bool res = false;
+    if (isread)
+    {
+        res = mz_zip_reader_init_cfile(zip, f, 0, 0);
+        if (!res)
+            // if we get here it means we tried to open a non-zip file
+            // we need to close the file here because the call to mz_zip_get_cfile() made into close_zip() returns a null pointer
+            // see: https://github.com/prusa3d/PrusaSlicer/issues/3536
+            fclose(f);
+    }
+    else
+        res = mz_zip_writer_init_cfile(zip, f, 0);
+
+    return res;
 }
 
 bool close_zip(mz_zip_archive *zip, bool isread)
