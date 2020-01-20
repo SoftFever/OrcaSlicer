@@ -70,19 +70,15 @@ float GCodePreviewData::RangeBase::step_size() const
 
 Color GCodePreviewData::RangeBase::get_color_at(float value) const
 {
-    if (empty())
-        return Color{};
-
     // Input value scaled to the color range
-    const float global_t = std::max(0.0f, value - min()) / step_size(); // lower limit of 0.0f
-    
+    float step = step_size();
+    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min()) / step_size() : 0.0f; // lower limit of 0.0f
+
     constexpr std::size_t color_max_idx = range_rainbow_colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
     const std::size_t color_low_idx = std::clamp(static_cast<std::size_t>(global_t), std::size_t{ 0 }, color_max_idx);
     const std::size_t color_high_idx = std::clamp(color_low_idx + 1, std::size_t{ 0 }, color_max_idx);
-    const Color color_low = range_rainbow_colors[color_low_idx];
-    const Color color_high = range_rainbow_colors[color_high_idx];
 
     // Compute how far the value is between the low and high colors so that they can be interpolated
     const float local_t = std::min(global_t - static_cast<float>(color_low_idx), 1.0f); // upper limit of 1.0f
@@ -91,7 +87,7 @@ Color GCodePreviewData::RangeBase::get_color_at(float value) const
     Color ret;
     for (unsigned int i = 0; i < 4; ++i)
     {
-        ret.rgba[i] = lerp(color_low.rgba[i], color_high.rgba[i], local_t);
+        ret.rgba[i] = lerp(range_rainbow_colors[color_low_idx].rgba[i], range_rainbow_colors[color_high_idx].rgba[i], local_t);
     }
     return ret;
 }
@@ -378,11 +374,20 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             list.reserve(range_rainbow_colors.size());
 
             float step = range.step_size();
-            for (int i = static_cast<int>(range_rainbow_colors.size()) - 1; i >= 0; --i)
+            if (step == 0.0f)
             {
                 char buf[1024];
-                sprintf(buf, "%.*f", decimals, scale_factor * (range.min() + (float)i * step));
-                list.emplace_back(buf, range_rainbow_colors[i]);
+                sprintf(buf, "%.*f", decimals, scale_factor * range.min());
+                list.emplace_back(buf, range_rainbow_colors[0]);
+            }
+            else
+            {
+                for (int i = static_cast<int>(range_rainbow_colors.size()) - 1; i >= 0; --i)
+                {
+                    char buf[1024];
+                    sprintf(buf, "%.*f", decimals, scale_factor * (range.min() + (float)i * step));
+                    list.emplace_back(buf, range_rainbow_colors[i]);
+                }
             }
         }
     };
