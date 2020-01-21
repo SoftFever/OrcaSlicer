@@ -905,7 +905,7 @@ void Tab::update_wiping_button_visibility() {
 }
 
 
-// Call a callback to update the selection of presets on the platter:
+// Call a callback to update the selection of presets on the plater:
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
@@ -2755,7 +2755,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         PrinterTechnology  printer_technology = m_preset_bundle->printers.get_edited_preset().printer_technology();
         PresetCollection  &dependent = (printer_technology == ptFFF) ? m_preset_bundle->filaments : m_preset_bundle->sla_materials;
         bool 			   old_preset_dirty = dependent.current_is_dirty();
-        bool 			   new_preset_compatible = dependent.get_edited_preset().is_compatible_with_print(*m_presets->find_preset(preset_name, true));
+        bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(), m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)));
         if (! canceled)
             canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name);
         if (! canceled) {
@@ -2773,6 +2773,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
         // With the introduction of the SLA printer types, we need to support switching between
         // the FFF and SLA printers.
         const Preset 		&new_printer_preset     = *m_presets->find_preset(preset_name, true);
+		const PresetWithVendorProfile new_printer_preset_with_vendor_profile = m_presets->get_preset_with_vendor_profile(new_printer_preset);
         PrinterTechnology    old_printer_technology = m_presets->get_edited_preset().printer_technology();
         PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
         if (new_printer_technology == ptSLA && old_printer_technology == ptFFF && !may_switch_to_SLA_preset())
@@ -2793,7 +2794,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
             };
             for (PresetUpdate &pu : updates) {
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
-                pu.new_preset_compatible = (new_printer_technology == pu.technology) && pu.presets->get_edited_preset().is_compatible_with_printer(new_printer_preset);
+                pu.new_preset_compatible = (new_printer_technology == pu.technology) && is_compatible_with_printer(pu.presets->get_edited_preset_with_vendor_profile(), new_printer_preset_with_vendor_profile);
                 if (!canceled)
                     canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name);
             }
@@ -2824,7 +2825,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
     if (canceled) {
         update_tab_ui();
         // Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
-        // if this action was initiated from the platter.
+        // if this action was initiated from the plater.
         on_presets_changed();
     } else {
         if (current_dirty)
@@ -2929,7 +2930,13 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #ifdef __linux__
     std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 #else
-//	wxWindowUpdateLocker noUpdates(this);
+    /* On Windows we use DoubleBuffering during rendering,
+     * so on Window is no needed to call a Freeze/Thaw functions.
+     * But under OSX (builds compiled with MacOSX10.14.sdk) wxStaticBitmap rendering is broken without Freeze/Thaw call.
+     */
+#ifdef __WXOSX__
+	wxWindowUpdateLocker noUpdates(this);
+#endif
 #endif
 
     if (m_pages.empty())
@@ -3046,7 +3053,7 @@ void Tab::save_preset(std::string name /*= ""*/)
     m_preset_bundle->update_compatible(false);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
-    // Update the selection boxes at the platter.
+    // Update the selection boxes at the plater.
     on_presets_changed();
     // If current profile is saved, "delete preset" button have to be enabled
     m_btn_delete_preset->Enable(true);
@@ -3437,27 +3444,25 @@ void TabSLAMaterial::build()
         DynamicPrintConfig new_conf = *m_config;
 
         if (opt_key == "bottle_volume") {
-            double new_bottle_weight =  boost::any_cast<double>(value)/(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_weight =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() / 1000);
             new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
         }
         if (opt_key == "bottle_weight") {
-            double new_bottle_volume =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_volume =  boost::any_cast<double>(value)/new_conf.option("material_density")->getFloat() * 1000;
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
         if (opt_key == "material_density") {
-            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() * boost::any_cast<double>(value) * 1000;
+            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() / boost::any_cast<double>(value) * 1000;
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
 
         load_config(new_conf);
 
         update_dirty();
-        on_value_change(opt_key, value);
 
-        if (opt_key == "bottle_volume" || opt_key == "bottle_cost") {
-            wxGetApp().sidebar().update_sliced_info_sizer();
-            wxGetApp().sidebar().Layout();
-        }
+        // Change of any from those options influences for an update of "Sliced Info"
+        wxGetApp().sidebar().update_sliced_info_sizer();
+        wxGetApp().sidebar().Layout();
     };
 
     optgroup = page->new_optgroup(_(L("Layers")));

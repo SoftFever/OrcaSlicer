@@ -114,6 +114,7 @@ public:
 	bool operator&(const Semver &b) const { return ::semver_satisfies_patch(ver, b.ver) != 0; }
 	bool operator^(const Semver &b) const { return ::semver_satisfies_caret(ver, b.ver) != 0; }
 	bool in_range(const Semver &low, const Semver &high) const { return low <= *this && *this <= high; }
+	bool valid()                    const { return *this != zero() && *this != inf() && *this != invalid(); }
 
 	// Conversion
 	std::string to_string() const {
@@ -148,7 +149,7 @@ private:
 	Semver(semver_t ver) : ver(ver) {}
 
 	static semver_t semver_zero() { return { 0, 0, 0, nullptr, nullptr }; }
-	static char * strdup(const std::string &str) { return ::semver_strdup(const_cast<char*>(str.c_str())); }
+	static char * strdup(const std::string &str) { return ::semver_strdup(str.data()); }
 };
 
 

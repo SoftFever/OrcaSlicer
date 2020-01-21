@@ -61,6 +61,11 @@ void AppConfig::set_defaults()
     if (get("preset_update").empty())
         set("preset_update", "1");
 
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+    if (get("export_sources_full_pathnames").empty())
+        set("export_sources_full_pathnames", "0");
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+
     // remove old 'use_legacy_opengl' parameter from this config, if present
     if (!get("use_legacy_opengl").empty())
         erase("", "use_legacy_opengl");
@@ -73,6 +78,9 @@ void AppConfig::set_defaults()
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
 
+	if (get("remember_output_path_removable").empty())
+		set("remember_output_path_removable", "1");
+
     if (get("use_custom_toolbar_size").empty())
         set("use_custom_toolbar_size", "0");
 
@@ -81,6 +89,11 @@ void AppConfig::set_defaults()
 
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
+
+#if ENABLE_6DOF_CAMERA
+    if (get("use_free_camera").empty())
+        set("use_free_camera", "0");
+#endif // ENABLE_6DOF_CAMERA
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
@@ -271,7 +284,11 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed)
+#else
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone)
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -283,6 +300,9 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["translation_deadzone"] = std::to_string(translation_deadzone);
     it->second["rotation_speed"] = std::to_string(rotation_speed);
     it->second["rotation_deadzone"] = std::to_string(rotation_deadzone);
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+    it->second["zoom_speed"] = std::to_string(zoom_speed);
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 }
 
 bool AppConfig::get_mouse_device_translation_speed(const std::string& name, double& speed)
@@ -345,6 +365,23 @@ bool AppConfig::get_mouse_device_rotation_deadzone(const std::string& name, floa
     return true;
 }
 
+#if ENABLE_3DCONNEXION_Y_AS_ZOOM
+bool AppConfig::get_mouse_device_zoom_speed(const std::string& name, double& speed)
+{
+    std::string key = std::string("mouse_device:") + name;
+    auto it = m_storage.find(key);
+    if (it == m_storage.end())
+        return false;
+
+    auto it_val = it->second.find("zoom_speed");
+    if (it_val == it->second.end())
+        return false;
+
+    speed = (float)::atof(it_val->second.c_str());
+    return true;
+}
+#endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
+
 void AppConfig::update_config_dir(const std::string &dir)
 {
     this->set("recent", "config_directory", dir);
@@ -354,9 +391,10 @@ void AppConfig::update_skein_dir(const std::string &dir)
 {
     this->set("recent", "skein_directory", dir);
 }
-
+/*
 std::string AppConfig::get_last_output_dir(const std::string &alt) const
 {
+	
     const auto it = m_storage.find("");
     if (it != m_storage.end()) {
         const auto it2 = it->second.find("last_output_path");
@@ -371,6 +409,26 @@ void AppConfig::update_last_output_dir(const std::string &dir)
 {
     this->set("", "last_output_path", dir);
 }
+*/
+std::string AppConfig::get_last_output_dir(const std::string& alt, const bool removable) const
+{
+	std::string s1 = (removable ? "last_output_path_removable" : "last_output_path");
+	std::string s2 = (removable ? "remember_output_path_removable" : "remember_output_path");
+	const auto it = m_storage.find("");
+	if (it != m_storage.end()) {
+		const auto it2 = it->second.find(s1);
+		const auto it3 = it->second.find(s2);
+		if (it2 != it->second.end() && it3 != it->second.end() && !it2->second.empty() && it3->second == "1")
+			return it2->second;
+	}
+	return alt;
+}
+
+void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)
+{
+	this->set("", (removable ? "last_output_path_removable" : "last_output_path"), dir);
+}
+
 
 void AppConfig::reset_selections()
 {

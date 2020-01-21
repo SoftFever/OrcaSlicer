@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_definitions(-D_BSD_SOURCE -D_DEFAULT_SOURCE)   # To enable various useful macros and functions on Unices
 remove_definitions(-D_UNICODE -DUNICODE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

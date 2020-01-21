@@ -342,6 +342,8 @@ namespace Slic3r {
         void increment_g1_line_id();
         void reset_g1_line_id();
 
+        void set_extrusion_axis(char axis) { m_parser.set_extrusion_axis(axis); }
+
         void set_extruder_id(unsigned int id);
         unsigned int get_extruder_id() const;
         void reset_extruder_id();

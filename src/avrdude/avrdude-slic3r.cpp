@@ -93,11 +93,11 @@ void AvrDude::priv::unset_handlers()
 
 
 int AvrDude::priv::run_one(const std::vector<std::string> &args) {
-	std::vector<char*> c_args { const_cast<char*>(PACKAGE) };
+	std::vector<const char*> c_args { PACKAGE };
 	std::string command_line { PACKAGE };
 
 	for (const auto &arg : args) {
-		c_args.push_back(const_cast<char*>(arg.data()));
+		c_args.push_back(arg.c_str());
 		command_line.push_back(' ');
 		command_line.append(arg);
 	}
@@ -107,7 +107,7 @@ int AvrDude::priv::run_one(const std::vector<std::string> &args) {
 
 	message_fn(command_line.c_str(), (unsigned)command_line.size());
 
-	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data());
+	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), const_cast<char**>(c_args.data()));
 
 	return res;
 }

@@ -420,7 +420,7 @@ bool loadvector(FILE *pFile, std::vector<std::string> &v)
 		if (::fread(&len, sizeof(len), 1, pFile) != 1)
 			return false;
 		std::string s(" ", len);
-		if (::fread(const_cast<char*>(s.c_str()), 1, len, pFile) != len)
+		if (::fread(s.data(), 1, len, pFile) != len)
 			return false;
 		v.push_back(std::move(s));
 	}
@@ -442,7 +442,7 @@ bool loadvectornameidx(FILE *pFile, std::vector<T> &v)
 		if (::fread(&len, sizeof(len), 1, pFile) != 1)
 			return false;
 		v[i].name.assign(" ", len);
-		if (::fread(const_cast<char*>(v[i].name.c_str()), 1, len, pFile) != len)
+		if (::fread(v[i].name.data(), 1, len, pFile) != len)
 			return false;
 	}
 	return true;

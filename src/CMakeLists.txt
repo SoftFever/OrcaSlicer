@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.8)
 project(PrusaSlicer-native)
 
 add_subdirectory(build-utils)
@@ -83,7 +84,7 @@ endif (MINGW)
 
 if (NOT WIN32)
     # Binary name on unix like systems (OSX, Linux)
-    set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+   set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
 endif ()
 
 target_link_libraries(PrusaSlicer libslic3r cereal)
@@ -133,13 +134,13 @@ target_link_libraries(PrusaSlicer libslic3r_gui ${wxWidgets_LIBRARIES})
     if (MSVC)
         # Generate debug symbols even in release mode.
         target_link_options(PrusaSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
-        target_link_libraries(PrusaSlicer user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
+        target_link_libraries(PrusaSlicer user32.lib Setupapi.lib)
     elseif (MINGW)
-        target_link_libraries(PrusaSlicer opengl32 ws2_32 uxtheme setupapi)
+        target_link_libraries(PrusaSlicer ws2_32 uxtheme setupapi)
     elseif (APPLE)
         target_link_libraries(PrusaSlicer "-framework OpenGL")
     else ()
-        target_link_libraries(PrusaSlicer -ldl -lGL -lGLU)
+        target_link_libraries(PrusaSlicer -ldl)
     endif ()
 endif ()
 
@@ -195,6 +196,11 @@ if (WIN32)
             VERBATIM
         )
     endif ()
+    
+    # This has to be a separate target due to the windows command line lenght limits
+    add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
+    prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
+    
 elseif (XCODE)
     # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
     add_custom_command(TARGET PrusaSlicer POST_BUILD

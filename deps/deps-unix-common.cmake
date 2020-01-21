@@ -7,7 +7,10 @@ else ()
     set(TBB_MINGW_WORKAROUND "")
 endif ()
 
-find_package(ZLIB REQUIRED)
+find_package(ZLIB QUIET)
+if (NOT ZLIB_FOUND)
+    include(ZLIB/ZLIB.cmake)
+endif ()
 
 ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
@@ -51,7 +54,6 @@ ExternalProject_Add(dep_nlopt
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
 )
-find_package(Git REQUIRED)
 
 ExternalProject_Add(dep_qhull
     EXCLUDE_FROM_ALL 1

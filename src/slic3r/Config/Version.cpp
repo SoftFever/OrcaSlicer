@@ -205,7 +205,7 @@ size_t Index::load(const boost::filesystem::path &path)
 #endif
     	++ idx_line;
     	// Skip the initial white spaces.
-    	char *key = left_trim(const_cast<char*>(line.data()));
+    	char *key = left_trim(line.data());
 		if (*key == '#')
 			// Skip a comment line.
 			continue;
@@ -286,14 +286,19 @@ Index::const_iterator Index::find(const Semver &ver) const
 	return (it == m_configs.end() || it->config_version == ver) ? it : m_configs.end();
 }
 
-Index::const_iterator Index::recommended() const
+Index::const_iterator Index::recommended(const Semver &slic3r_version) const
 {
 	const_iterator highest = this->end();
 	for (const_iterator it = this->begin(); it != this->end(); ++ it)
-		if (it->is_current_slic3r_supported() &&
+		if (it->is_slic3r_supported(slic3r_version) &&
 			(highest == this->end() || highest->config_version < it->config_version))
 			highest = it;
 	return highest;
+}
+
+Index::const_iterator Index::recommended() const
+{
+	return this->recommended(Slic3r::SEMVER);
 }
 
 std::vector<Index> Index::load_db()

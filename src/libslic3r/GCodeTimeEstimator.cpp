@@ -1261,7 +1261,9 @@ namespace Slic3r {
 
         if (line.has_e())
         {
-            set_axis_origin(E, get_axis_position(E) - line.e() * lengthsScaleFactor);
+            // extruder coordinate can grow to the point where its float representation does not allow for proper addition with small increments,
+            // we set the value taken from the G92 line as the new current position for it
+            set_axis_position(E, line.e() * lengthsScaleFactor);
             anyFound = true;
         }
         else

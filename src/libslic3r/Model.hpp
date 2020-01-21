@@ -236,7 +236,7 @@ public:
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-    // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D platter.
+    // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D plater.
     TriangleMesh raw_mesh() const;
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     TriangleMesh full_raw_mesh() const;
@@ -399,8 +399,9 @@ public:
         int object_idx{ -1 };
         int volume_idx{ -1 };
         Vec3d mesh_offset{ Vec3d::Zero() };
+        Geometry::Transformation transform;
 
-        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset); }
+        template<class Archive> void serialize(Archive& ar) { ar(input_file, object_idx, volume_idx, mesh_offset, transform); }
     };
     Source              source;
 
@@ -466,6 +467,7 @@ public:
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
     void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
+    void set_transformation(const Transform3d &trafo) { m_transformation.set_from_transform(trafo); }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -749,33 +751,46 @@ public:
     // Extensions for color print
     struct CustomGCode
     {
-        CustomGCode(double height, const std::string& code, int extruder, const std::string& color) :
-            height(height), gcode(code), extruder(extruder), color(color) {}
-
-        bool operator<(const CustomGCode& other) const { return other.height > this->height; }
-        bool operator==(const CustomGCode& other) const
+        bool operator<(const CustomGCode& rhs) const { return this->print_z < rhs.print_z; }
+        bool operator==(const CustomGCode& rhs) const
         {
-            return (other.height    == this->height)     && 
-                   (other.gcode     == this->gcode)      && 
-                   (other.extruder  == this->extruder   )&& 
-                   (other.color     == this->color   );
+            return (rhs.print_z   == this->print_z    ) && 
+                   (rhs.gcode     == this->gcode      ) && 
+                   (rhs.extruder  == this->extruder   ) && 
+                   (rhs.color     == this->color      );
         }
-        bool operator!=(const CustomGCode& other) const
-        {
-            return (other.height    != this->height)     || 
-                   (other.gcode     != this->gcode)      || 
-                   (other.extruder  != this->extruder   )|| 
-                   (other.color     != this->color   );
-        }
+        bool operator!=(const CustomGCode& rhs) const { return ! (*this == rhs); }
         
-        double      height;
+        double      print_z;
         std::string gcode;
-        int         extruder;   // 0    - "gcode" will be applied for whole print
-                                // else - "gcode" will be applied only for "extruder" print
+        int         extruder;   // Informative value for ColorChangeCode and ToolChangeCode
+                                // "gcode" == ColorChangeCode   => M600 will be applied for "extruder" extruder
+                                // "gcode" == ToolChangeCode    => for whole print tool will be switched to "extruder" extruder
         std::string color;      // if gcode is equal to PausePrintCode, 
                                 // this field is used for save a short message shown on Printer display 
     };
-    std::vector<CustomGCode> custom_gcode_per_height;
+    
+    struct CustomGCodeInfo
+    {
+        enum MODE
+        {
+            SingleExtruder,   // single extruder printer preset is selected
+            MultiAsSingle,    // multiple extruder printer preset is selected, but 
+                              // this mode works just for Single extruder print 
+                              // (For all print from objects settings is used just one extruder) 
+            MultiExtruder     // multiple extruder printer preset is selected
+        } mode;
+        
+        std::vector<CustomGCode> gcodes;
+
+        bool operator==(const CustomGCodeInfo& rhs) const
+        {
+            return  (rhs.mode   == this->mode   ) &&
+                    (rhs.gcodes == this->gcodes );
+        }
+        bool operator!=(const CustomGCodeInfo& rhs) const { return !(*this == rhs); }
+    } 
+    custom_gcode_per_print_z;
     
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }
@@ -841,9 +856,6 @@ public:
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
 
-    // from custom_gcode_per_height get just tool_change codes
-    std::vector<std::pair<double, DynamicPrintConfig>> get_custom_tool_changes(double default_layer_height, size_t num_extruders) const;
-
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
 	void assign_new_unique_ids_recursive();
@@ -859,6 +871,10 @@ private:
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
 #undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE
+
+// Return pairs of <print_z, 1-based extruder ID> sorted by increasing print_z from custom_gcode_per_print_z.
+// print_z corresponds to the first layer printed with the new extruder.
+extern std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Model &model, size_t num_extruders);
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
 // ordered in the same order. In that case it is not necessary to kill the background processing.
@@ -877,6 +893,10 @@ extern bool model_volume_list_changed(const ModelObject &model_object_old, const
 extern bool model_has_multi_part_objects(const Model &model);
 // If the model has advanced features, then it cannot be processed in simple mode.
 extern bool model_has_advanced_features(const Model &model);
+// If loaded configuration has a "colorprint_heights" option (if it was imported from older Slicer), 
+// and if model.custom_gcode_per_print_z is empty (there is no color print data available in a new format
+// then model.custom_gcode_per_print_z should be updated considering this option.
+extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config);
 
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.

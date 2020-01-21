@@ -17,6 +17,7 @@
 #include <set>
 #include <functional>
 #include "libslic3r/Model.hpp"
+#include "libslic3r/GCodeWriter.hpp"
 
 namespace Slic3r {
     enum class ModelVolumeType : int;
@@ -729,6 +730,9 @@ public:
     wxBitmap&           bmp()       { return m_bmp; }
     const std::string&  name() const{ return m_icon_name; }
 
+    int                 px_cnt()const           {return m_px_cnt;}
+    bool                is_horizontal()const    {return m_is_horizontal;}
+
 private:
     wxWindow*       m_parent{ nullptr };
     wxBitmap        m_bmp = wxBitmap();
@@ -778,6 +782,8 @@ public:
         const wxString& name = wxEmptyString);
     ~DoubleSlider() {}
 
+    using t_mode = Slic3r::Model::CustomGCodeInfo::MODE;
+
     /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
      * So, let use same value as a permissible error for layer height.
      */
@@ -801,33 +807,24 @@ public:
     // Set low and high slider position. If the span is non-empty, disable the "one layer" mode.
     void SetSelectionSpan(const int lower_val, const int higher_val);
     void SetMaxValue(const int max_value);
-    void SetKoefForLabels(const double koef) {
-        m_label_koef = koef;
-    }
-    void SetSliderValues(const std::vector<double>& values) {
-        m_values = values;
-    }
+    void SetKoefForLabels(const double koef)                { m_label_koef = koef; }
+    void SetSliderValues(const std::vector<double>& values) { m_values = values; }
     void ChangeOneLayerLock();
-    std::vector<Slic3r::Model::CustomGCode> GetTicksValues() const;
-    void SetTicksValues(const std::vector<Slic3r::Model::CustomGCode> &heights);
-    void EnableTickManipulation(bool enable = true) {
-        m_is_enabled_tick_manipulation = enable;
-    }
-    void DisableTickManipulation() {
-        EnableTickManipulation(false);
-    }
+    Slic3r::Model::CustomGCodeInfo  GetTicksValues() const;
+    void                            SetTicksValues(const Slic3r::Model::CustomGCodeInfo &custom_gcode_per_print_z);
+    void EnableTickManipulation(bool enable = true) { m_is_enabled_tick_manipulation = enable; }
+    void DisableTickManipulation()                  { EnableTickManipulation(false); }
 
-    enum ManipulationState {
-        msSingleExtruder,   // single extruder printer preset is selected
-        msMultiExtruder     // multiple extruder printer preset is selected, and "Whole print" is selected 
-    };
-    void SetManipulationState(ManipulationState state) {
-        m_state = state;
+    void    SetManipulationMode(t_mode mode)    { m_mode = mode; }
+    t_mode  GetManipulationMode() const         { return m_mode; }
+
+    void SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
+    {
+        m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
+                 only_extruder < 0              ? t_mode::SingleExtruder :
+                                                  t_mode::MultiAsSingle;
+        m_only_extruder = only_extruder;
     }
-    void SetManipulationState(int extruders_cnt) {
-        m_state = extruders_cnt ==1 ? msSingleExtruder : msMultiExtruder;
-    }
-    ManipulationState GetManipulationState() const { return m_state; }
 
     bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
     bool is_one_layer() const { return m_is_one_layer; }
@@ -846,12 +843,26 @@ public:
     void OnKeyUp(wxKeyEvent &event);
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
-    int  get_extruder_for_tick(int tick);
     void OnRightUp(wxMouseEvent& event);
-    void add_code(std::string code, int selected_extruder = -1);
+
+    void add_code_as_tick(std::string code, int selected_extruder = -1);
+    // add default action for tick, when press "+"
+    void add_current_tick(bool call_from_keyboard = false);
+    // delete current tick, when press "-"
+    void delete_current_tick();
     void edit_tick();
-    void change_extruder(int extruder);
     void edit_extruder_sequence();
+
+    struct TICK_CODE
+    {
+        bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
+        bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
+
+        int         tick = 0;
+        std::string gcode = Slic3r::ColorChangeCode;
+        int         extruder = 0;
+        std::string color;
+    };
 
 protected:
 
@@ -874,10 +885,10 @@ protected:
     void    detect_selected_slider(const wxPoint& pt);
     void    correct_lower_value();
     void    correct_higher_value();
-    wxString get_tooltip(IconFocus icon_focus);
     void    move_current_thumb(const bool condition);
-    void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
+
+private:
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     int     is_point_near_tick(const wxPoint& pt);
@@ -890,8 +901,18 @@ protected:
     wxSize      get_size();
     void        get_size(int *w, int *h);
     double      get_double_value(const SelectedSlider& selection);
+    wxString    get_tooltip(IconFocus icon_focus);
 
-private:
+    std::string get_color_for_tool_change_tick(std::set<TICK_CODE>::const_iterator it) const;
+    std::string get_color_for_color_change_tick(std::set<TICK_CODE>::const_iterator it) const;
+    int         get_extruder_for_tick(int tick);
+    std::set<int>   get_used_extruders_for_tick(int tick);
+
+    void        post_ticks_changed_event(const std::string& gcode = "");
+    bool        check_ticks_changed_event(const std::string& gcode);
+    void        append_change_extruder_menu_item(wxMenu*);
+    void        append_add_color_change_menu_item(wxMenu*);
+
     bool        is_osx { false };
     wxFont      m_font;
     int         m_min_value;
@@ -910,7 +931,7 @@ private:
     ScalableBitmap    m_bmp_one_layer_unlock_off;
     ScalableBitmap    m_bmp_revert;
     ScalableBitmap    m_bmp_cog;
-    SelectedSlider  m_selection;
+    SelectedSlider    m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
     bool        m_is_one_layer = false;
@@ -920,11 +941,12 @@ private:
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
     bool        m_show_edit_menu = false;
-    bool        m_edit_extruder_sequence = false;
-    bool        m_suppress_add_code = false;
-    ManipulationState m_state = msSingleExtruder;
-    std::string m_custom_gcode = "";
-    std::string m_pause_print_msg;
+    bool        m_force_edit_extruder_sequence = false;
+    bool        m_force_mode_apply = true;
+    bool        m_force_add_tick    = false;
+    bool        m_force_delete_tick = false;
+    t_mode      m_mode = t_mode::SingleExtruder;
+    int         m_only_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
@@ -953,62 +975,44 @@ private:
 
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
-    std::set<int>       m_ticks;
     std::vector<double> m_values;
 
-    struct TICK_CODE
+    struct TICK_CODE_INFO
     {
-        TICK_CODE(int tick):tick(tick), gcode(Slic3r::ColorChangeCode), extruder(0), color("") {}
-        TICK_CODE(int tick, const std::string& code) : 
-                            tick(tick), gcode(code), extruder(0) {}
-        TICK_CODE(int tick, int extruder) :
-                            tick(tick), gcode(Slic3r::ColorChangeCode), extruder(extruder) {}
-        TICK_CODE(int tick, const std::string& code, int extruder, const std::string& color) : 
-                            tick(tick), gcode(code), extruder(extruder), color(color) {}
+        std::set<TICK_CODE> ticks;
+        t_mode              mode = t_mode::SingleExtruder;
 
-        bool operator<(const TICK_CODE& other) const { return other.tick > this->tick; }
-        bool operator>(const TICK_CODE& other) const { return other.tick < this->tick; }
-        TICK_CODE operator=(const TICK_CODE& other) const {
-            TICK_CODE ret_val(other.tick, other.gcode, other.extruder, other.color);
-            return ret_val;
-        }
+        bool empty() const                                      { return ticks.empty(); }
+        void set_pause_print_msg(const std::string& message)    { pause_print_msg = message; }
 
-        int         tick;
-        std::string gcode;
-        int         extruder;
-        std::string color;
-    };
+        bool add_tick   (const int tick, std::string &code, int extruder, double print_z);
+        bool edit_tick  (std::set<TICK_CODE>::iterator it, double print_z);
+        void switch_code(const std::string& code_from, const std::string& code_to);
+        void erase_all_ticks_with_code  (const std::string& gcode);
+        bool has_tick_with_code         (const std::string& gcode);
 
-    std::set<TICK_CODE> m_ticks_;
+        void suppress_plus (bool suppress)   { m_suppress_plus     = suppress;}
+        void suppress_minus(bool suppress)   { m_suppress_minus    = suppress;}
+        bool suppressed_plus ()              { return m_suppress_plus ; }
+        bool suppressed_minus()              { return m_suppress_minus; }
+
+    private:
+
+        std::string custom_gcode    = "";
+        std::string pause_print_msg = "";
+        bool        m_suppress_plus     = false;
+        bool        m_suppress_minus    = false;
+    } 
+    m_ticks;
 
 public:
     struct ExtrudersSequence
     {
-        bool            is_mm_intervals;
-        double          interval_by_mm;
-        int             interval_by_layers;
-        std::vector<size_t>  extruders;
+        bool            is_mm_intervals     = true;
+        double          interval_by_mm      = 3.0;
+        int             interval_by_layers  = 10;
+        std::vector<size_t>  extruders      = { 0 };
 
-        ExtrudersSequence() :
-            is_mm_intervals(true),
-            interval_by_mm(3.0),
-            interval_by_layers(10),
-            extruders({ 0 }) {}
-
-        ExtrudersSequence(const ExtrudersSequence& other) :
-            is_mm_intervals(other.is_mm_intervals),
-            interval_by_mm(other.interval_by_mm),
-            interval_by_layers(other.interval_by_layers),
-            extruders(other.extruders) {}
-
-        ExtrudersSequence& operator=(const ExtrudersSequence& other) {
-            this->is_mm_intervals   = other.is_mm_intervals;
-            this->interval_by_mm    = other.interval_by_mm;
-            this->interval_by_layers= other.interval_by_layers;
-            this->extruders         = other.extruders;
-
-            return *this;
-        }
         bool operator==(const ExtrudersSequence& other) const
         {
             return  (other.is_mm_intervals      == this->is_mm_intervals    ) &&
@@ -1107,6 +1111,7 @@ public:
 
     void SetBitmap_(const ScalableBitmap& bmp);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
+    int  GetBitmapHeight();
 
     void    msw_rescale();
 
@@ -1116,6 +1121,10 @@ private:
     std::string     m_disabled_icon_name = "";
     int             m_width {-1}; // should be multiplied to em_unit
     int             m_height{-1}; // should be multiplied to em_unit
+
+    // bitmap dimensions 
+    int             m_px_cnt{ 16 };
+    bool            m_is_horizontal{ false };
 };
 
 

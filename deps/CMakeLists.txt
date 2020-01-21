@@ -45,6 +45,49 @@ option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3
 message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
+find_package(Git REQUIRED)
+
+get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+function(prusaslicer_add_cmake_project projectname)
+    cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
+
+    set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
+    if (_is_multi OR MSVC)
+        set(_configs_line "")
+    endif ()
+
+    set(_gen "")
+    set(_build_j "-j${NPROC}")
+    if (MSVC)
+        set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}" CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}")
+        set(_build_j "/m")
+    endif ()
+
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}/usr/local
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+    )
+
+endfunction(prusaslicer_add_cmake_project)
+
+
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         message(STATUS "\nDetected 64-bit compiler => building 64-bit deps bundle\n")
@@ -83,6 +126,13 @@ else()
     include("deps-linux.cmake")
 endif()
 
+include(GLEW/GLEW.cmake)
+include(OpenCSG/OpenCSG.cmake)
+
+include(GMP/GMP.cmake)
+include(MPFR/MPFR.cmake)
+include(CGAL/CGAL.cmake)
+
 if (MSVC)
 
     add_custom_target(deps ALL
@@ -95,8 +145,10 @@ if (MSVC)
         dep_cereal
         dep_nlopt
         # dep_qhull # Experimental
-        dep_zlib    # on Windows we still need zlib
+        dep_ZLIB    # on Windows we still need zlib
         dep_openvdb
+        dep_OpenCSG
+        dep_CGAL
     )
 
 else()
@@ -112,6 +164,8 @@ else()
         dep_nlopt
         dep_qhull
         dep_openvdb
+        dep_OpenCSG
+        dep_CGAL
         # dep_libigl # Not working, static build has different Eigen
     )
 

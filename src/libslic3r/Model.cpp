@@ -18,6 +18,8 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include "GCodeWriter.hpp"
+#include "GCode/PreviewData.hpp"
 
 namespace Slic3r {
 
@@ -43,7 +45,7 @@ Model& Model::assign_copy(const Model &rhs)
     }
 
     // copy custom code per height
-    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
+    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
     return *this;
 }
 
@@ -64,7 +66,7 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.objects.clear();
 
     // copy custom code per height
-    this->custom_gcode_per_height = rhs.custom_gcode_per_height;
+    this->custom_gcode_per_print_z = std::move(rhs.custom_gcode_per_print_z);
     return *this;
 }
 
@@ -124,6 +126,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (add_default_instances)
         model.add_default_instances();
 
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
+
     return model;
 }
 
@@ -158,6 +162,8 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     if (add_default_instances)
         model.add_default_instances();
+
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
 
     return model;
 }
@@ -592,22 +598,6 @@ std::string Model::propose_export_file_name_and_path(const std::string &new_exte
     return boost::filesystem::path(this->propose_export_file_name_and_path()).replace_extension(new_extension).string();
 }
 
-std::vector<std::pair<double, DynamicPrintConfig>> Model::get_custom_tool_changes(double default_layer_height, size_t num_extruders) const
-{
-    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes;
-    if (!custom_gcode_per_height.empty()) {
-        for (const CustomGCode& custom_gcode : custom_gcode_per_height)
-            if (custom_gcode.gcode == ExtruderChangeCode) {
-                DynamicPrintConfig config;
-                // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
-                config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder > num_extruders ? 0 : custom_gcode.extruder));
-                // For correct extruders(tools) changing, we should decrease custom_gcode.height value by one default layer height
-                custom_tool_changes.push_back({ custom_gcode.height - default_layer_height, config });
-            }
-    }
-    return custom_tool_changes;
-}
-
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -853,7 +843,7 @@ TriangleMesh ModelObject::mesh() const
 }
 
 // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D platter
+// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D plater
 // and to display the object statistics at ModelObject::print_info().
 TriangleMesh ModelObject::raw_mesh() const
 {
@@ -1297,6 +1287,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         }
 
         new_vol->set_offset(Vec3d::Zero());
+        // reset the source to disable reload from disk
+        new_vol->source = ModelVolume::Source();
         new_objects->emplace_back(new_object);
         delete mesh;
     }
@@ -1352,6 +1344,8 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
         model_volume->set_mirror(Vec3d(1., 1., 1.));
         // Move the reference point of the volume to compensate for the change of the instance trafo.
         model_volume->set_offset(volume_offset_correction * volume_trafo.get_offset());
+        // reset the source to disable reload from disk
+        model_volume->source = ModelVolume::Source();
     }
 
     this->invalidate_bounding_box();
@@ -1663,6 +1657,8 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->calculate_convex_hull();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
+            // reset the source to disable reload from disk
+            this->source = ModelVolume::Source();
         }
         else
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(*mesh)));
@@ -1845,6 +1841,19 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     return ret;
 }
 
+// Return pairs of <print_z, 1-based extruder ID> sorted by increasing print_z from custom_gcode_per_print_z.
+// print_z corresponds to the first layer printed with the new extruder.
+std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Model &model, size_t num_extruders)
+{
+    std::vector<std::pair<double, unsigned int>> custom_tool_changes;
+    for (const Model::CustomGCode &custom_gcode : model.custom_gcode_per_print_z.gcodes)
+        if (custom_gcode.gcode == ToolChangeCode) {
+            // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
+            custom_tool_changes.emplace_back(custom_gcode.print_z, static_cast<unsigned int>(custom_gcode.extruder > num_extruders ? 1 : custom_gcode.extruder));
+        }
+    return custom_tool_changes;
+}
+
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs
 // ordered in the same order. In that case it is not necessary to kill the background processing.
 bool model_object_list_equal(const Model &model_old, const Model &model_new)
@@ -1931,6 +1940,28 @@ extern bool model_has_advanced_features(const Model &model)
             	return true;
     }
     return false;
+}
+
+extern void update_custom_gcode_per_print_z_from_config(std::vector<Model::CustomGCode>& custom_gcode_per_print_z, DynamicPrintConfig* config)
+{
+	auto *colorprint_heights = config->option<ConfigOptionFloats>("colorprint_heights");
+    if (colorprint_heights == nullptr)
+        return;
+
+	if (custom_gcode_per_print_z.empty() && ! colorprint_heights->values.empty()) {
+		// Convert the old colorprint_heighs only if there is no equivalent data in a new format.
+	    const std::vector<std::string>& colors = GCodePreviewData::ColorPrintColors();
+	    const auto& colorprint_values = colorprint_heights->values;
+        custom_gcode_per_print_z.clear();
+        custom_gcode_per_print_z.reserve(colorprint_values.size());
+        int i = 0;
+        for (auto val : colorprint_values)
+            custom_gcode_per_print_z.emplace_back(Model::CustomGCode{ val, ColorChangeCode, 1, colors[(++i)%7] });
+	}
+
+	// The "colorprint_heights" config value has been deprecated. At this point of time it has been converted
+	// to a new format and therefore it shall be erased.
+    config->erase("colorprint_heights");
 }
 
 #ifndef NDEBUG

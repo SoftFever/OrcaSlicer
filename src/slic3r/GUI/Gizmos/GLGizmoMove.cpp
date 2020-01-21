@@ -48,6 +48,11 @@ std::string GLGizmoMove3D::on_get_name() const
     return (_(L("Move")) + " [M]").ToUTF8().data();
 }
 
+bool GLGizmoMove3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_empty();
+}
+
 void GLGizmoMove3D::on_start_dragging()
 {
     if (m_hover_id != -1)
@@ -165,25 +170,6 @@ void GLGizmoMove3D::on_render_for_picking() const
     render_grabber_extension(Y, box, true);
     render_grabber_extension(Z, box, true);
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    const Selection& selection = m_parent.get_selection();
-    bool show_position = selection.is_single_full_instance();
-    const Vec3d& position = selection.get_bounding_box().center();
-
-    Vec3d displacement = show_position ? position : m_displacement;
-    wxString label = show_position ? _(L("Position (mm)")) : _(L("Displacement (mm)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
-
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {

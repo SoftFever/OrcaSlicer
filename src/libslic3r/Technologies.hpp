@@ -26,8 +26,6 @@
 
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0_ALPHA1)
-// Disable imgui dialog for move, rotate and scale gizmos
-#define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
@@ -43,7 +41,26 @@
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
-// Enable adaptive layer height profile
-#define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
+
+//==================
+// 2.2.0.beta1 techs
+//==================
+#define ENABLE_2_2_0_BETA1 1
+
+// Enable using Y axis of 3Dconnexion devices as zoom
+#define ENABLE_3DCONNEXION_Y_AS_ZOOM (1 && ENABLE_2_2_0_BETA1)
+
+// Enable a modified version of the toolbar textures where all the icons are separated by 1 pixel
+#define ENABLE_MODIFIED_TOOLBAR_TEXTURES (1 && ENABLE_2_2_0_BETA1)
+
+// Enable configurable paths export (fullpath or not) to 3mf and amf
+#define ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF (1 && ENABLE_2_2_0_BETA1)
+
+// Enable 6 degrees of freedom camera
+#define ENABLE_6DOF_CAMERA (1 && ENABLE_2_2_0_BETA1)
+
+// Enhance reload from disk to be able to work with 3mf/amf files saved with PrusaSlicer 2.1.0 and earlier
+#define ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK (1 && ENABLE_2_2_0_BETA1)
+
 
 #endif // _technologies_h_

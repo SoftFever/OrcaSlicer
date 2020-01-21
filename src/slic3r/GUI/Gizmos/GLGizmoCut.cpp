@@ -136,20 +136,38 @@ void GLGizmoCut::on_render_for_picking() const
 
 void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 {
-    const float approx_height = m_imgui->scaled(11.0f);
-    y = std::min(y, bottom_limit - approx_height);
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    static float last_y = 0.0f;
+    static float last_h = 0.0f;
 
-    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    // adjust window position to avoid overlap the view toolbar
+    float win_h = ImGui::GetWindowHeight();
+    y = std::min(y, bottom_limit - win_h);
+    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    if ((last_h != win_h) || (last_y != y))
+    {
+        // ask canvas for another frame to render the window in the correct position
+        m_parent.request_extra_frame();
+        if (last_h != win_h)
+            last_h = win_h;
+        if (last_y != y)
+            last_y = y;
+    }
 
-    ImGui::PushItemWidth(m_imgui->scaled(5.0f));
-    ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text("Z");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(m_imgui->get_style_scaling() * 150.0f);
+    ImGui::InputDouble("", &m_cut_z, 0.0f, 0.0f, "%.2f");
+
+    ImGui::Separator();
 
     m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);
     m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
     m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
+
+    ImGui::Separator();
 
     m_imgui->disabled_begin(!m_keep_upper && !m_keep_lower);
     const bool cut_clicked = m_imgui->button(_(L("Perform cut")));

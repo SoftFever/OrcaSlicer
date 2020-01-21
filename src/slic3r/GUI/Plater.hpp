@@ -119,6 +119,8 @@ public:
     bool                    show_reslice(bool show) const;
 	bool                    show_export(bool show) const;
 	bool                    show_send(bool show) const;
+    bool                    show_disconnect(bool show)const;
+	bool                    show_export_removable(bool show) const;
     bool                    is_multifilament();
     void                    update_mode();
 
@@ -185,7 +187,7 @@ public:
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
-    void export_gcode();
+    void export_gcode(bool prefer_removable = true);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
@@ -201,6 +203,8 @@ public:
     void suppress_background_process(const bool stop_background_process) ;
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
+	void eject_drive();
+	void drive_ejected_callback();
 
     void take_snapshot(const std::string &snapshot_name);
     void take_snapshot(const wxString &snapshot_name);
@@ -235,7 +239,12 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+    GLCanvas3D* get_current_canvas3D();
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     BoundingBoxf bed_shape_bb() const;
+
+    void set_current_canvas_as_dirty();
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
@@ -257,9 +266,13 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     void msw_rescale();
+
+    bool init_view_toolbar();
 
     const Camera& get_camera() const;
     const Mouse3DController& get_mouse3d_controller() const;

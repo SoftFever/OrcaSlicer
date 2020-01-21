@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-09 16:39+0200\n"
-"PO-Revision-Date: 2019-11-18 16:39-0300\n"
+"PO-Revision-Date: 2019-12-21 19:55-0300\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1432,7 +1432,7 @@ msgid ""
 "You will lose content of the plater."
 msgstr ""
 "Alterar a linguagem fará com que o aplicativo reinicie.\n"
-"Você irá perder conteúdo no prato."
+"Você irá perder conteúdo na bandeja."
 
 #: src/slic3r/GUI/GUI_App.cpp:877
 msgid "Do you want to proceed?"
@@ -2302,7 +2302,7 @@ msgstr "(Re)fatiar"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:116
 msgid "Select Plater Tab"
-msgstr "Selecione a guia de prato"
+msgstr "Selecione a guia de bandeja"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:118
 msgid "Select Print Settings Tab"
@@ -2466,7 +2466,7 @@ msgstr "Desmarcar Gizmo/limpar seleção"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:166
 msgid "Plater Shortcuts"
-msgstr "Atalhos do prato"
+msgstr "Atalhos da bandeja"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:181
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:193
@@ -2546,7 +2546,7 @@ msgstr "baseado no Slic3r"
 
 #: src/slic3r/GUI/MainFrame.cpp:189
 msgid "Plater"
-msgstr "Prato"
+msgstr "Bandeja"
 
 #: src/slic3r/GUI/MainFrame.cpp:400
 msgid "&New Project"
@@ -2635,7 +2635,7 @@ msgstr "Exportar &G-code"
 
 #: src/slic3r/GUI/MainFrame.cpp:469
 msgid "Export current plate as G-code"
-msgstr "Exporte o prato atual como o G-code"
+msgstr "Exporte a bandeja atual como o G-code"
 
 #: src/slic3r/GUI/MainFrame.cpp:473 src/slic3r/GUI/MainFrame.cpp:720
 msgid "S&end G-code"
@@ -2643,31 +2643,31 @@ msgstr "E&nviar G-code"
 
 #: src/slic3r/GUI/MainFrame.cpp:473
 msgid "Send to print current plate as G-code"
-msgstr "Enviar para imprimir prato atual como G-code"
+msgstr "Enviar para imprimir a bandeja atual como G-code"
 
 #: src/slic3r/GUI/MainFrame.cpp:478
 msgid "Export plate as &STL"
-msgstr "Exportar prato como &STL"
+msgstr "Exportar bandeja como &STL"
 
 #: src/slic3r/GUI/MainFrame.cpp:478
 msgid "Export current plate as STL"
-msgstr "Exporte o prato atual como STL"
+msgstr "Exporte a bandeja atual como STL"
 
 #: src/slic3r/GUI/MainFrame.cpp:481
 msgid "Export plate as STL &including supports"
-msgstr "Exportar prato como STL &incluindo suportes"
+msgstr "Exportar bandeja como STL &incluindo suportes"
 
 #: src/slic3r/GUI/MainFrame.cpp:481
 msgid "Export current plate as STL including supports"
-msgstr "Exporte o prato atual como o STL que inclui suportes"
+msgstr "Exporte a bandeja atual como o STL que inclui suportes"
 
 #: src/slic3r/GUI/MainFrame.cpp:484
 msgid "Export plate as &AMF"
-msgstr "Exportar prato como &AMF"
+msgstr "Exportar bandeja como &AMF"
 
 #: src/slic3r/GUI/MainFrame.cpp:484
 msgid "Export current plate as AMF"
-msgstr "Exporte o prato atual como o AMF"
+msgstr "Exporte a bandeja atual como o AMF"
 
 #: src/slic3r/GUI/MainFrame.cpp:488
 msgid "Export &toolpaths as OBJ"
@@ -2804,11 +2804,11 @@ msgstr "Colar área de transferência"
 
 #: src/slic3r/GUI/MainFrame.cpp:590
 msgid "&Plater Tab"
-msgstr "&Prato"
+msgstr "&Bandeja"
 
 #: src/slic3r/GUI/MainFrame.cpp:590
 msgid "Show the plater"
-msgstr "Mostrar o prato"
+msgstr "Mostrar a bandeja"
 
 #: src/slic3r/GUI/MainFrame.cpp:597
 msgid "P&rint Settings Tab"
@@ -6198,7 +6198,7 @@ msgstr "Distância entre cópias"
 
 #: src/libslic3r/PrintConfig.cpp:352
 msgid "Distance used for the auto-arrange feature of the plater."
-msgstr "Distância usada para o recurso de organizar automaticamente o prato."
+msgstr "Distância usada para o recurso de organizar automaticamente a bandeja."
 
 #: src/libslic3r/PrintConfig.cpp:359
 msgid "Elephant foot compensation"
@@ -6395,8 +6395,8 @@ msgid ""
 msgstr ""
 "Defina isso para o raio de folga em torno de sua extrusora. Se a extrusora "
 "não estiver centralizada, escolha o maior valor para a segurança. Essa "
-"config. é usada para verificar colisões e exibir a visualização gráfica no "
-"prato."
+"config. é usada para verificar colisões e exibir a visualização gráfica na "
+"bandeja."
 
 #: src/libslic3r/PrintConfig.cpp:505
 msgid "Extruder Color"

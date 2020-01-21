@@ -56,6 +56,8 @@ public:
 
     bool begin(const std::string &name, int flags = 0);
     bool begin(const wxString &name, int flags = 0);
+    bool begin(const std::string& name, bool* close, int flags = 0);
+    bool begin(const wxString& name, bool* close, int flags = 0);
     void end();
 
     bool button(const wxString &label);

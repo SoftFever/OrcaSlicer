@@ -1,6 +1,7 @@
 #include "BitmapCache.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include <boost/filesystem.hpp>
 
 #if ! defined(WIN32) && ! defined(__APPLE__)
 #define BROKEN_ALPHA
@@ -15,7 +16,7 @@
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-#include "GUI_App.hpp"
+//#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -226,7 +227,7 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
 }
 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
-    float scale /* = 1.0f */, const bool grayscale/* = false*/)
+    float scale /* = 1.0f */, const bool grayscale/* = false*/, const bool dark_mode/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
@@ -234,15 +235,44 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
                                          + (scale != 1.0f ? "-s" + std::to_string(scale) : "")
                                          + (grayscale ? "-gs" : "");
 
-    target_height != 0 ? target_height *= scale : target_width *= scale;
+    /* For the Dark mode of any platform, we should draw icons in respect to OS background
+     * Note: All standard(regular) icons are collected in "icons" folder,
+     *       SVG-icons, which have "Dark mode" variant, are collected in "icons/white" folder
+     */
+    std::string folder;
+    if (dark_mode)
+    {
+#ifdef __WXMSW__
+        folder = "white\\";
+#else
+        folder = "white/";
+#endif
+        auto it = m_map.find(folder + bitmap_key);
+        if (it != m_map.end())
+            return it->second;
+        else {
+            it = m_map.find(bitmap_key);
+            if (it != m_map.end())
+                return it->second;
+        }
 
-    auto it = m_map.find(bitmap_key);
-    if (it != m_map.end())
-        return it->second;
+        if (!boost::filesystem::exists(Slic3r::var(folder + bitmap_name + ".svg")))
+            folder.clear();
+        else
+            bitmap_key = folder + bitmap_key;
+    }
+    else 
+    {
+        auto it = m_map.find(bitmap_key);
+        if (it != m_map.end())
+            return it->second;
+    }
 
-    NSVGimage *image = ::nsvgParseFromFile(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f);
+    NSVGimage *image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
     if (image == nullptr)
         return nullptr;
+
+    target_height != 0 ? target_height *= scale : target_width *= scale;
 
     float svg_scale = target_height != 0 ? 
                   (float)target_height / image->height  : target_width != 0 ?

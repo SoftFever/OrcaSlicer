@@ -49,7 +49,8 @@ std::string GLGizmoScale3D::on_get_name() const
 
 bool GLGizmoScale3D::on_is_activable() const
 {
-    return !m_parent.get_selection().is_wipe_tower();
+    const Selection& selection = m_parent.get_selection();
+    return !selection.is_empty() && !selection.is_wipe_tower();
 }
 
 void GLGizmoScale3D::on_start_dragging()
@@ -283,21 +284,6 @@ void GLGizmoScale3D::on_render_for_picking() const
     glsafe(::glDisable(GL_DEPTH_TEST));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    const Selection& selection = m_parent.get_selection();
-    bool single_instance = selection.is_single_full_instance();
-    wxString label = _(L("Scale (%)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {

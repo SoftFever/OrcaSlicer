@@ -108,26 +108,11 @@ GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, const GCodeAnalyzer::
 {
 }
 
-GCodeAnalyzer::GCodeAnalyzer()
-{
-    reset();
-}
-
-void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap& extruder_offsets)
-{
-    m_extruder_offsets = extruder_offsets;
-}
-
 void GCodeAnalyzer::set_extruders_count(unsigned int count)
 {
     m_extruders_count = count;
     for (unsigned int i=0; i<m_extruders_count; i++)
         m_extruder_color[i] = i;
-}
-
-void GCodeAnalyzer::set_gcode_flavor(const GCodeFlavor& flavor)
-{
-    m_gcode_flavor = flavor;
 }
 
 void GCodeAnalyzer::reset()
@@ -326,24 +311,22 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
 {
     auto axis_absolute_position = [this](GCodeAnalyzer::EAxis axis, const GCodeReader::GCodeLine& lineG1) -> float
     {
-        float current_absolute_position = _get_axis_position(axis);
-        float current_origin = _get_axis_origin(axis);
-        float lengthsScaleFactor = (_get_units() == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
-
         bool is_relative = (_get_global_positioning_type() == Relative);
         if (axis == E)
             is_relative |= (_get_e_local_positioning_type() == Relative);
 
         if (lineG1.has(Slic3r::Axis(axis)))
         {
+            float lengthsScaleFactor = (_get_units() == GCodeAnalyzer::Inches) ? INCHES_TO_MM : 1.0f;
             float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-            return is_relative ? current_absolute_position + ret : ret + current_origin;
+            return is_relative ? _get_axis_position(axis) + ret : _get_axis_origin(axis) + ret;
         }
         else
-            return current_absolute_position;
+            return _get_axis_position(axis);
     };
 
     // updates axes positions from line
+
     float new_pos[Num_Axis];
     for (unsigned char a = X; a < Num_Axis; ++a)
     {
@@ -367,7 +350,7 @@ void GCodeAnalyzer::_processG1(const GCodeReader::GCodeLine& line)
     if (delta_pos[E] < 0.0f)
     {
         if ((delta_pos[X] != 0.0f) || (delta_pos[Y] != 0.0f) || (delta_pos[Z] != 0.0f))
-            type = GCodeMove::Move;
+        type = GCodeMove::Move;
         else
             type = GCodeMove::Retract;
     }
@@ -455,7 +438,9 @@ void GCodeAnalyzer::_processG92(const GCodeReader::GCodeLine& line)
 
     if (line.has_e())
     {
-        _set_axis_origin(E, _get_axis_position(E) - line.e() * lengthsScaleFactor);
+        // extruder coordinate can grow to the point where its float representation does not allow for proper addition with small increments,
+        // we set the value taken from the G92 line as the new current position for it
+        _set_axis_position(E, line.e() * lengthsScaleFactor);
         anyFound = true;
     }
 
@@ -971,7 +956,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
 				GCodePreviewData::Extrusion::Path &path = paths.back();
                 path.polyline = polyline;
 				path.extrusion_role = data.extrusion_role;
-				path.mm3_per_mm = data.mm3_per_mm;
+				path.mm3_per_mm = float(data.mm3_per_mm);
 				path.width = data.width;
 				path.height = data.height;
                 path.feedrate = data.feedrate;
@@ -993,7 +978,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     float volumetric_rate = FLT_MAX;
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
-    GCodePreviewData::Range feedrate_range;
+    GCodePreviewData::MultiRange<GCodePreviewData::FeedrateKind> feedrate_range;
     GCodePreviewData::Range volumetric_rate_range;
     GCodePreviewData::Range fan_speed_range;
 
@@ -1028,7 +1013,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             volumetric_rate = move.data.feedrate * (float)move.data.mm3_per_mm;
             height_range.update_from(move.data.height);
             width_range.update_from(move.data.width);
-            feedrate_range.update_from(move.data.feedrate);
+            feedrate_range.update_from(move.data.feedrate, GCodePreviewData::FeedrateKind::EXTRUSION);
             volumetric_rate_range.update_from(volumetric_rate);
             fan_speed_range.update_from(move.data.fan_speed);
         }
@@ -1081,7 +1066,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
 
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
-    GCodePreviewData::Range feedrate_range;
+    GCodePreviewData::MultiRange<GCodePreviewData::FeedrateKind> feedrate_range;
 
     // to avoid to call the callback too often
     unsigned int cancel_callback_threshold = (unsigned int)std::max((int)travel_moves->second.size() / 25, 1);
@@ -1121,7 +1106,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
         extruder_id = move.data.extruder_id;
         height_range.update_from(move.data.height);
         width_range.update_from(move.data.width);
-        feedrate_range.update_from(move.data.feedrate);
+        feedrate_range.update_from(move.data.feedrate, GCodePreviewData::FeedrateKind::TRAVEL);
     }
 
     // store last polyline

@@ -449,6 +449,11 @@ std::string GLGizmoRotate3D::on_get_name() const
     return (_(L("Rotate")) + " [R]").ToUTF8().data();
 }
 
+bool GLGizmoRotate3D::on_is_activable() const
+{
+    return !m_parent.get_selection().is_empty();
+}
+
 void GLGizmoRotate3D::on_start_dragging()
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
@@ -474,22 +479,6 @@ void GLGizmoRotate3D::on_render() const
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_gizmos[Z].render();
 }
-
-#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
-{
-    Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
-    wxString label = _(L("Rotation (deg)"));
-
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
-    m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
-    m_imgui->end();
-}
-#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
-
-
 
 } // namespace GUI
 } // namespace Slic3r

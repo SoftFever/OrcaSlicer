@@ -143,7 +143,9 @@ public:
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 
 private:
+#if !ENABLE_MODIFIED_TOOLBAR_TEXTURES
     GLTexture::Quad_UVs get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
+#endif // !ENABLE_MODIFIED_TOOLBAR_TEXTURES
     void set_visible(bool visible) { m_data.visible = visible; }
 
     friend class GLToolbar;
@@ -293,6 +295,7 @@ public:
 
     bool is_any_item_pressed() const;
 
+    unsigned int get_items_count() const { return (unsigned int)m_items.size(); }
     int get_item_id(const std::string& name) const;
 
     void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }

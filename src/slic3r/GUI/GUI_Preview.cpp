@@ -341,11 +341,6 @@ void Preview::set_number_extruders(unsigned int number_extruders)
     }
 }
 
-void Preview::set_canvas_as_dirty()
-{
-    m_canvas->set_as_dirty();
-}
-
 void Preview::set_enabled(bool enabled)
 {
     m_enabled = enabled;
@@ -538,7 +533,9 @@ void Preview::on_combochecklist_features(wxCommandEvent& evt)
 void Preview::on_checkbox_travel(wxCommandEvent& evt)
 {
     m_gcode_preview_data->travel.is_visible = m_checkbox_travel->IsChecked();
-    refresh_print();
+    m_gcode_preview_data->ranges.feedrate.set_mode(GCodePreviewData::FeedrateKind::TRAVEL, m_gcode_preview_data->travel.is_visible);
+    // Rather than refresh, reload print so that speed color ranges get recomputed (affected by travel visibility)
+    reload_print();
 }
 
 void Preview::on_checkbox_retractions(wxCommandEvent& evt)
@@ -569,7 +566,7 @@ void Preview::update_view_type(bool slice_completed)
 {
     const DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
 
-    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_height.empty() /*&&
+    const wxString& choice = !wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes.empty() /*&&
                              (wxGetApp().extruders_edited_cnt()==1 || !slice_completed) */? 
                                 _(L("Color Print")) :
                                 config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1 ?
@@ -600,7 +597,7 @@ void Preview::create_double_slider()
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
         Model& model = wxGetApp().plater()->model();
-        model.custom_gcode_per_height = m_slider->GetTicksValues();
+        model.custom_gcode_per_print_z = m_slider->GetTicksValues();
         m_schedule_background_process();
 
         update_view_type(false);
@@ -646,7 +643,7 @@ void Preview::check_slider_values(std::vector<Model::CustomGCode>& ticks_from_mo
     ticks_from_model.erase(std::remove_if(ticks_from_model.begin(), ticks_from_model.end(),
                      [layers_z](Model::CustomGCode val)
         {
-            auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val.height - DoubleSlider::epsilon());
+            auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val.print_z - DoubleSlider::epsilon());
             return it == layers_z.end();
         }),
         ticks_from_model.end());
@@ -669,8 +666,11 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
-    std::vector<Model::CustomGCode> &ticks_from_model = wxGetApp().plater()->model().custom_gcode_per_height;
-    check_slider_values(ticks_from_model, layers_z);
+    // Detect and set manipulation mode for double slider
+    update_double_slider_mode();
+
+    Model::CustomGCodeInfo &ticks_info_from_model = wxGetApp().plater()->model().custom_gcode_per_print_z;
+    check_slider_values(ticks_info_from_model.gcodes, layers_z);
 
     m_slider->SetSliderValues(layers_z);
     assert(m_slider->GetMinValue() == 0);
@@ -692,12 +692,61 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool kee
     }
     m_slider->SetSelectionSpan(idx_low, idx_high);
 
-    m_slider->SetTicksValues(ticks_from_model);
+    m_slider->SetTicksValues(ticks_info_from_model);
 
-    bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
+    m_slider->EnableTickManipulation(wxGetApp().plater()->printer_technology() == ptFFF);
+}
 
-    m_slider->EnableTickManipulation(color_print_enable);
-    m_slider->SetManipulationState(wxGetApp().extruders_edited_cnt());
+void Preview::update_double_slider_mode()
+{
+    //    true  -> single-extruder printer profile OR 
+    //             multi-extruder printer profile , but whole model is printed by only one extruder
+    //    false -> multi-extruder printer profile , and model is printed by several extruders
+    bool    one_extruder_printed_model = true;
+
+    // extruder used for whole model for multi-extruder printer profile
+    int     only_extruder = -1; 
+
+    if (wxGetApp().extruders_edited_cnt() > 1)
+    {
+        const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
+
+        // check if whole model uses just only one extruder
+        if (!objects.empty())
+        {
+            const int extruder = objects[0]->config.has("extruder") ?
+                                 objects[0]->config.option("extruder")->getInt() : 0;
+
+            auto is_one_extruder_printed_model = [objects, extruder]()
+            {
+                for (ModelObject* object : objects)
+                {
+                    if (object->config.has("extruder") &&
+                        object->config.option("extruder")->getInt() != extruder)
+                        return false;
+
+                    if (object->volumes.size() > 1)
+                        for (ModelVolume* volume : object->volumes)
+                            if (volume->config.has("extruder") &&
+                                volume->config.option("extruder")->getInt() != extruder)
+                                return false;
+
+                    for (const auto& range : object->layer_config_ranges)
+                        if (range.second.has("extruder") &&
+                            range.second.option("extruder")->getInt() != extruder)
+                            return false;
+                }
+                return true;
+            };
+
+            if (is_one_extruder_printed_model())
+                only_extruder = extruder;
+            else
+                one_extruder_printed_model = false;
+        }
+    }
+
+    m_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
 }
 
 void Preview::reset_double_slider()
@@ -789,7 +838,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
         colors.push_back("#808080"); // gray color for pause print or custom G-code 
 
         if (!gcode_preview_data_valid)
-            color_print_values = wxGetApp().plater()->model().custom_gcode_per_height;
+            color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
     {

@@ -20,10 +20,6 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     , m_enabled(false)
     , m_icons_texture_dirty(true)
     , m_current(Undefined)
-    , m_overlay_icons_size(Default_Icons_Size)
-    , m_overlay_scale(1.0f)
-    , m_overlay_border(5.0f)
-    , m_overlay_gap_y(5.0f)
     , m_tooltip("")
     , m_serializing(false)
 {
@@ -53,19 +49,18 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
         return Undefined;
 
     float cnv_h = (float)m_parent.get_canvas_size().get_height();
-    float height = get_total_overlay_height();
-    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
-    float scaled_border = m_overlay_border * m_overlay_scale;
-    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
-    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
-    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+    float height = get_scaled_total_height();
+    float icons_size = m_layout.scaled_icons_size();
+    float border = m_layout.scaled_border();
+    float stride_y = m_layout.scaled_stride_y();
+    float top_y = 0.5f * (cnv_h - height) + border;
 
     // is mouse horizontally in the area?
-    if ((scaled_border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size))) {
+    if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
         // which icon is it on?
-        size_t from_top = (size_t)((float)mouse_pos(1) - top_y)/scaled_stride_y;
+        size_t from_top = (size_t)((float)mouse_pos(1) - top_y) / stride_y;
         // is it really on the icon or already past the border?
-        if ((float)mouse_pos(1) <= top_y + from_top*scaled_stride_y + scaled_icons_size) {
+        if ((float)mouse_pos(1) <= top_y + from_top * stride_y + icons_size) {
             std::vector<size_t> selectable = get_selectable_idxs();
             if (from_top < selectable.size())
                 return selectable[from_top];
@@ -110,18 +105,18 @@ bool GLGizmosManager::init()
 
 void GLGizmosManager::set_overlay_icon_size(float size)
 {
-    if (m_overlay_icons_size != size)
+    if (m_layout.icons_size != size)
     {
-        m_overlay_icons_size = size;
+        m_layout.icons_size = size;
         m_icons_texture_dirty = true;
     }
 }
 
 void GLGizmosManager::set_overlay_scale(float scale)
 {
-    if (m_overlay_scale != scale)
+    if (m_layout.scale != scale)
     {
-        m_overlay_scale = scale;
+        m_layout.scale = scale;
         m_icons_texture_dirty = true;
     }
 }
@@ -560,7 +555,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             update_data();
 
             wxGetApp().obj_manipul()->set_dirty();
-            // Let the platter know that the dragging finished, so a delayed refresh
+            // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             // updates camera target constraints
@@ -843,97 +838,111 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
 
 void GLGizmosManager::do_render_overlay() const
 {
+#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
+    std::vector<size_t> selectable_idxs = get_selectable_idxs();
+    if (selectable_idxs.empty())
+        return;
+#else
     if (m_gizmos.empty())
         return;
+#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
     float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float cnv_h = (float)m_parent.get_canvas_size().get_height();
     float zoom = (float)m_parent.get_camera().get_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float inv_zoom = (float)m_parent.get_camera().get_inv_zoom();
 
-    float height = get_total_overlay_height();
-    float width = get_total_overlay_width();
-    float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
+    float height = get_scaled_total_height();
+    float width = get_scaled_total_width();
+    float zoomed_border = m_layout.scaled_border() * inv_zoom;
 
-    float top_x = (-0.5f * cnv_w) * inv_zoom;
-    float top_y = (0.5f * height) * inv_zoom;
+    float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
+    float zoomed_top_y = (0.5f * height) * inv_zoom;
 
-    float left = top_x;
-    float top = top_y;
-    float right = left + width * inv_zoom;
-    float bottom = top - height * inv_zoom;
+    float zoomed_left = zoomed_top_x;
+    float zoomed_top = zoomed_top_y;
+    float zoomed_right = zoomed_left + width * inv_zoom;
+    float zoomed_bottom = zoomed_top - height * inv_zoom;
 
-    render_background(left, top, right, bottom, scaled_border);
+    render_background(zoomed_left, zoomed_top, zoomed_right, zoomed_bottom, zoomed_border);
 
-    top_x += scaled_border;
-    top_y -= scaled_border;
-    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale * inv_zoom;
+    zoomed_top_x += zoomed_border;
+    zoomed_top_y -= zoomed_border;
 
-    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale * inv_zoom;
-    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float icons_size = m_layout.scaled_icons_size();
+    float zoomed_icons_size = icons_size * inv_zoom;
+    float zoomed_stride_y = m_layout.scaled_stride_y() * inv_zoom;
+
     unsigned int icons_texture_id = m_icons_texture.get_id();
     int tex_width = m_icons_texture.get_width();
     int tex_height = m_icons_texture.get_height();
-    float inv_tex_width = (tex_width != 0) ? 1.0f / tex_width : 0.0f;
-    float inv_tex_height = (tex_height != 0) ? 1.0f / tex_height : 0.0f;
 
+#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
+    if ((icons_texture_id == 0) || (tex_width <= 1) || (tex_height <= 1))
+        return;
+
+    float du = (float)(tex_width - 1) / (4.0f * (float)tex_width); // 4 is the number of possible states if the icons
+    float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
+
+    // tiles in the texture are spaced by 1 pixel
+    float u_offset = 1.0f / (float)tex_width;
+    float v_offset = 1.0f / (float)tex_height;
+#else
     if ((icons_texture_id == 0) || (tex_width <= 0) || (tex_height <= 0))
         return;
 
+    float inv_tex_width = (tex_width != 0) ? 1.0f / tex_width : 0.0f;
+    float inv_tex_height = (tex_height != 0) ? 1.0f / tex_height : 0.0f;
+#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
+
+#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
+    for (size_t idx : selectable_idxs)
+#else
     for (size_t idx : get_selectable_idxs())
+#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
 
         unsigned int sprite_id = gizmo->get_sprite_id();
-        int icon_idx = m_current == idx ? 2 : (m_hover == idx ? 1 : 0);
+        int icon_idx = (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3));
 
-        float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
-        float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
+#if ENABLE_MODIFIED_TOOLBAR_TEXTURES
+        float v_top = v_offset + sprite_id * dv;
+        float u_left = u_offset + icon_idx * du;
+        float v_bottom = v_top + dv - v_offset;
+        float u_right = u_left + du - u_offset;
+#else
+        float u_icon_size = icons_size * inv_tex_width;
+        float v_icon_size = icons_size * inv_tex_height;
+
         float v_top = sprite_id * v_icon_size;
         float u_left = icon_idx * u_icon_size;
         float v_bottom = v_top + v_icon_size;
         float u_right = u_left + u_icon_size;
+#endif // ENABLE_MODIFIED_TOOLBAR_TEXTURES
 
-        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
+        GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (idx == m_current) {
             float toolbar_top = cnv_h - m_parent.get_view_toolbar_height();
-            gizmo->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top);
+            gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
         }
-        top_y -= scaled_stride_y;
+        zoomed_top_y -= zoomed_stride_y;
     }
 }
 
-float GLGizmosManager::get_total_overlay_height() const
+float GLGizmosManager::get_scaled_total_height() const
 {
-    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
-    float scaled_border = m_overlay_border * m_overlay_scale;
-    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
-    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
-    float height = 2.0f * scaled_border;
-
-    /*for (size_t idx=0; idx<m_gizmos.size(); ++idx)
-    {
-        if ((m_gizmos[idx] == nullptr) || !m_gizmos[idx]->is_selectable())
-            continue;
-
-        height += scaled_stride_y;
-    }*/
-    height += get_selectable_idxs().size() * scaled_stride_y;
-
-    return height - scaled_gap_y;
+    return m_layout.scale * (2.0f * m_layout.border + (float)get_selectable_idxs().size() * m_layout.stride_y() - m_layout.gap_y);
 }
 
-float GLGizmosManager::get_total_overlay_width() const
+float GLGizmosManager::get_scaled_total_width() const
 {
-    return (2.0f * m_overlay_border + m_overlay_icons_size) * m_overlay_scale;
+    return 2.0f * m_layout.scaled_border() + m_layout.scaled_icons_size();
 }
 
 GLGizmoBase* GLGizmosManager::get_current() const
 {
-    if (m_current==Undefined || m_gizmos.empty())
-        return nullptr;
-    else
-        return m_gizmos[m_current].get();
+    return ((m_current == Undefined) || m_gizmos.empty()) ? nullptr : m_gizmos[m_current].get();
 }
 
 bool GLGizmosManager::generate_icons_texture() const
@@ -951,11 +960,17 @@ bool GLGizmosManager::generate_icons_texture() const
     }
 
     std::vector<std::pair<int, bool>> states;
-    states.push_back(std::make_pair(1, false));
-    states.push_back(std::make_pair(0, false));
-    states.push_back(std::make_pair(0, true));
+    states.push_back(std::make_pair(1, false)); // Activable
+    states.push_back(std::make_pair(0, false)); // Hovered
+    states.push_back(std::make_pair(0, true));  // Selected
+    states.push_back(std::make_pair(2, false)); // Disabled
 
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale), true);
+    unsigned int sprite_size_px = (unsigned int)m_layout.scaled_icons_size();
+//    // force even size
+//    if (sprite_size_px % 2 != 0)
+//        sprite_size_px += 1;
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, sprite_size_px, false);
     if (res)
         m_icons_texture_dirty = false;
 

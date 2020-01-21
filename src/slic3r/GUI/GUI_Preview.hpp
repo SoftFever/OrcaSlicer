@@ -116,7 +116,6 @@ public:
     void set_as_dirty();
 
     void set_number_extruders(unsigned int number_extruders);
-    void set_canvas_as_dirty();
     void set_enabled(bool enabled);
     void bed_shape_changed();
     void select_view(const std::string& direction);
@@ -158,8 +157,9 @@ private:
     void create_double_slider();
     void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
                              const std::vector<double> &layers_z);
-    void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void reset_double_slider();
+    void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
+    void update_double_slider_mode();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
 
