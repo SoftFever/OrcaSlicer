@@ -21,7 +21,7 @@ else ()
     ExternalProject_Add(dep_MPFR
         URL http://ftp.vim.org/ftp/gnu/mpfr/mpfr-3.1.6.tar.bz2 https://www.mpfr.org/mpfr-3.1.6/mpfr-3.1.6.tar.bz2  # mirrors are allowed
         BUILD_IN_SOURCE ON
-        CONFIGURE_COMMAND ./configure --prefix=${DESTDIR}/usr/local --with-gmp=${DESTDIR}/usr/local --with-pic
+        CONFIGURE_COMMAND ./configure --prefix=${DESTDIR}/usr/local --enable-shared=no --enable-static=yes --with-gmp=${DESTDIR}/usr/local --with-pic
         BUILD_COMMAND make -j
         INSTALL_COMMAND make install
         DEPENDS dep_GMP
