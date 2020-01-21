@@ -84,7 +84,7 @@ endif (MINGW)
 
 if (NOT WIN32)
     # Binary name on unix like systems (OSX, Linux)
-    set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+   set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
 endif ()
 
 target_link_libraries(PrusaSlicer libslic3r cereal)
