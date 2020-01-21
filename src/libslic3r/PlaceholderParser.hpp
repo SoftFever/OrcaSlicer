@@ -41,7 +41,7 @@ public:
 
     // Fill in the template using a macro processing language.
     // Throws std::runtime_error on syntax or runtime error.
-    std::string process(const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr) const;
+    std::string process(const std::string &templ, unsigned int current_extruder_id = 0, const DynamicConfig *config_override = nullptr) const;
     
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
     // Throws std::runtime_error on syntax or runtime error.

@@ -332,6 +332,21 @@ namespace client
             return expr();
         }
 
+        expr unary_integer(const Iterator start_pos) const
+        { 
+            switch (this->type) {
+            case TYPE_INT :
+                return expr<Iterator>(this->i(), start_pos, this->it_range.end());
+            case TYPE_DOUBLE:
+                return expr<Iterator>((int)(this->d()), start_pos, this->it_range.end()); 
+            default:
+                this->throw_exception("Cannot convert to integer.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
+        }
+
         expr unary_not(const Iterator start_pos) const
         { 
             switch (this->type) {
@@ -411,6 +426,22 @@ namespace client
                 this->type = TYPE_DOUBLE;
             } else
                 this->data.i /= rhs.i();
+            this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
+            return *this;
+        }
+
+        expr &operator%=(const expr &rhs)
+        {
+            this->throw_if_not_numeric("Cannot divide a non-numeric type.");
+            rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
+            if ((this->type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+                rhs.throw_exception("Division by zero");
+            if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
+                double d = std::fmod(this->as_d(), rhs.as_d());
+                this->data.d = d;
+                this->type = TYPE_DOUBLE;
+            } else
+                this->data.i %= rhs.i();
             this->it_range = boost::iterator_range<Iterator>(this->it_range.begin(), rhs.it_range.end());
             return *this;
         }
@@ -1087,6 +1118,7 @@ namespace client
                 unary_expression(_r1)                       [_val  = _1]
                 >> *(   (lit('*') > unary_expression(_r1) ) [_val *= _1]
                     |   (lit('/') > unary_expression(_r1) ) [_val /= _1]
+                    |   (lit('%') > unary_expression(_r1) ) [_val %= _1]
                     );
             multiplicative_expression.name("multiplicative_expression");
 
@@ -1107,6 +1139,8 @@ namespace client
                         { out = value.unary_minus(out.it_range.begin()); }
                 static void not_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_not(out.it_range.begin()); }
+                static void to_int(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.unary_integer(out.it_range.begin()); }
             };
             unary_expression = iter_pos[px::bind(&FactorActions::set_start_pos, _1, _val)] >> (
                     scalar_variable_reference(_r1)                  [ _val = _1 ]
@@ -1118,6 +1152,8 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
+                                                                    //FIXME this is likley not correct
+                |   (kw["int"] > '(' > unary_expression(_r1) /* > ')' */   )  [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]

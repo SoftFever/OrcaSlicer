@@ -102,8 +102,10 @@ public:
 	void 				update_config_dir(const std::string &dir);
 	void 				update_skein_dir(const std::string &dir);
 
-	std::string 		get_last_output_dir(const std::string &alt) const;
-	void                update_last_output_dir(const std::string &dir);
+	//std::string 		get_last_output_dir(const std::string &alt) const;
+	//void                update_last_output_dir(const std::string &dir);
+	std::string 		get_last_output_dir(const std::string& alt, const bool removable = false) const;
+	void                update_last_output_dir(const std::string &dir, const bool removable = false);
 
 	// reset the current print / filament / printer selections, so that 
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select

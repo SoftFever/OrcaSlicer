@@ -100,8 +100,23 @@ void BackgroundSlicingProcess::process_fff()
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
-		    if (copy_file(m_temp_output_path, export_path, GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path)) != 0)
+			GUI::RemovableDriveManager::get_instance().update();
+			bool with_check = GUI::RemovableDriveManager::get_instance().is_path_on_removable_drive(export_path);
+			int copy_ret_val = copy_file(m_temp_output_path, export_path, with_check);
+			if (with_check && copy_ret_val == -2)
+			{
+				std::string err_msg = "Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at " + export_path + ".tmp.";
+				throw std::runtime_error(_utf8(L(err_msg)));
+			}
+			else if (copy_ret_val == -3)
+			{
+				std::string err_msg = "Renaming of the G-code after copying to the selected destination folder has failed. Current path is " + export_path + ".tmp. Please try exporting again.";
+				throw std::runtime_error(_utf8(L(err_msg)));
+			}
+			else if ( copy_ret_val != 0)
+			{
 	    		throw std::runtime_error(_utf8(L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?")));
+			}
 	    	m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());

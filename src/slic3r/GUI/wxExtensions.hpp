@@ -844,9 +844,13 @@ public:
     void OnChar(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
     void OnRightUp(wxMouseEvent& event);
-    void add_code(std::string code, int selected_extruder = -1);
+
+    void add_code_as_tick(std::string code, int selected_extruder = -1);
+    // add default action for tick, when press "+"
+    void add_current_tick(bool call_from_keyboard = false);
+    // delete current tick, when press "-"
+    void delete_current_tick();
     void edit_tick();
-    void change_extruder(int extruder);
     void edit_extruder_sequence();
 
     struct TICK_CODE
@@ -882,7 +886,6 @@ protected:
     void    correct_lower_value();
     void    correct_higher_value();
     void    move_current_thumb(const bool condition);
-    void    action_tick(const TicksAction action);
     void    enter_window(wxMouseEvent& event, const bool enter);
 
 private:
@@ -906,6 +909,7 @@ private:
     std::set<int>   get_used_extruders_for_tick(int tick);
 
     void        post_ticks_changed_event(const std::string& gcode = "");
+    bool        check_ticks_changed_event(const std::string& gcode);
     void        append_change_extruder_menu_item(wxMenu*);
     void        append_add_color_change_menu_item(wxMenu*);
 
@@ -937,11 +941,11 @@ private:
     bool        m_is_enabled_tick_manipulation = true;
     bool        m_show_context_menu = false;
     bool        m_show_edit_menu = false;
-    bool        m_edit_extruder_sequence = false;
-    bool        m_suppress_add_code = false;
+    bool        m_force_edit_extruder_sequence = false;
+    bool        m_force_mode_apply = true;
+    bool        m_force_add_tick    = false;
+    bool        m_force_delete_tick = false;
     t_mode      m_mode = t_mode::SingleExtruder;
-    std::string m_custom_gcode = "";
-    std::string m_pause_print_msg;
     int         m_only_extruder = -1;
 
     wxRect      m_rect_lower_thumb;
@@ -972,8 +976,34 @@ private:
     std::vector<wxPen*> m_line_pens;
     std::vector<wxPen*> m_segm_pens;
     std::vector<double> m_values;
-    std::set<TICK_CODE> m_ticks;
-    t_mode              m_ticks_mode;
+
+    struct TICK_CODE_INFO
+    {
+        std::set<TICK_CODE> ticks;
+        t_mode              mode = t_mode::SingleExtruder;
+
+        bool empty() const                                      { return ticks.empty(); }
+        void set_pause_print_msg(const std::string& message)    { pause_print_msg = message; }
+
+        bool add_tick   (const int tick, std::string &code, int extruder, double print_z);
+        bool edit_tick  (std::set<TICK_CODE>::iterator it, double print_z);
+        void switch_code(const std::string& code_from, const std::string& code_to);
+        void erase_all_ticks_with_code  (const std::string& gcode);
+        bool has_tick_with_code         (const std::string& gcode);
+
+        void suppress_plus (bool suppress)   { m_suppress_plus     = suppress;}
+        void suppress_minus(bool suppress)   { m_suppress_minus    = suppress;}
+        bool suppressed_plus ()              { return m_suppress_plus ; }
+        bool suppressed_minus()              { return m_suppress_minus; }
+
+    private:
+
+        std::string custom_gcode    = "";
+        std::string pause_print_msg = "";
+        bool        m_suppress_plus     = false;
+        bool        m_suppress_minus    = false;
+    } 
+    m_ticks;
 
 public:
     struct ExtrudersSequence

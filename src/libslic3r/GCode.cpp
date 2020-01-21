@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
+#include <string_view>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/find.hpp>
@@ -33,6 +34,8 @@
 #include <Shiny/Shiny.h>
 
 #include "miniz_extension.hpp"
+
+using namespace std::literals::string_view_literals;
 
 #if 0
 // Enable debugging and asserts, even in the release build.
@@ -2268,8 +2271,20 @@ void GCode::apply_print_config(const PrintConfig &print_config)
 void GCode::append_full_config(const Print &print, std::string &str)
 {
 	const DynamicPrintConfig &cfg = print.full_print_config();
+    // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
+	static constexpr auto banned_keys = { 
+		"compatible_printers"sv,
+		"compatible_prints"sv,
+		"print_host"sv,
+		"printhost_apikey"sv,
+		"printhost_cafile"sv
+	};
+    assert(std::is_sorted(banned_keys.begin(), banned_keys.end()));
+	auto is_banned = [](const std::string &key) {
+		return std::binary_search(banned_keys.begin(), banned_keys.end(), key);
+	};
     for (const std::string &key : cfg.keys())
-        if (key != "compatible_prints" && key != "compatible_printers" && ! cfg.option(key)->is_nil())
+        if (! is_banned(key) && ! cfg.option(key)->is_nil())
             str += "; " + key + " = " + cfg.opt_serialize(key) + "\n";
 }
 
