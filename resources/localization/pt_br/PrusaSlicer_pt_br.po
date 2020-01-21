@@ -2655,7 +2655,7 @@ msgstr "Exporte a bandeja atual como STL"
 
 #: src/slic3r/GUI/MainFrame.cpp:481
 msgid "Export plate as STL &including supports"
-msgstr "Exportar bandeja como STL incluindo suportes"
+msgstr "Exportar bandeja como STL &incluindo suportes"
 
 #: src/slic3r/GUI/MainFrame.cpp:481
 msgid "Export current plate as STL including supports"
