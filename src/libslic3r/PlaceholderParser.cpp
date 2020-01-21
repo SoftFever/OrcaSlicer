@@ -1152,7 +1152,8 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
-                |   (kw["int"] > '(' > unary_expression(_r1)     )  [ px::bind(&FactorActions::to_int,  _1,     _val) ]
+                                                                    //FIXME this is likley not correct
+                |   (kw["int"] > '(' > unary_expression(_r1) /* > ')' */   )  [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
