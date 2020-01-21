@@ -4914,7 +4914,7 @@ msgid "Cannot overwrite an external profile."
 msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:3038
-msgid "Preset with name \"%1%\" already exist."
+msgid "Preset with name \"%1%\" already exists."
 msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp:3039
