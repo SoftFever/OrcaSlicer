@@ -241,35 +241,10 @@ void RemovableDriveManager::search_for_drives()
     //search /media/* folder
 	search_path("/media/*", "/media");
 
-	//search /Volumes/* folder (OSX)
 	//search_path("/Volumes/*", "/Volumes");
     std::string path(std::getenv("USER"));
 	std::string pp(path);
-	//std::cout << "user: "<< path << "\n";
-	//if program is run with sudo, we have to search for all users 
-	// but do we want that?
-	/*
-	if(path == "root"){ 
-		while (true) {
-	        passwd* entry = getpwent();
-	        if (!entry) {
-	            break;
-	        }
-	        path = entry->pw_name;
-	        pp = path;
-	        //search /media/USERNAME/* folder
-			pp = "/media/"+pp;
-			path = "/media/" + path + "/*";
-			search_path(path, pp);
 
-			//search /run/media/USERNAME/* folder
-			path = "/run" + path;
-			pp = "/run"+pp;
-			search_path(path, pp);
-	    }
-	    endpwent();
-	}else
-	*/
 	{
 		//search /media/USERNAME/* folder
 		pp = "/media/"+pp;
@@ -312,7 +287,6 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 	{
 		//free space
 		boost::filesystem::space_info si = boost::filesystem::space(path);
-		//std::cout << "Free space: " << fs_si.free << "Available space: " << fs_si.available << " " << path << '\n';
 		if(si.available != 0)
 		{
 			//user id
@@ -355,7 +329,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             		i++;
             	}
             }
-            std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
+            //std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
 // there is no usable command in c++ so terminal command is used instead
 // but neither triggers "succesful safe removal messege"
             std::string command = "";
@@ -388,7 +362,7 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	if (m_current_drives.empty())
 		return false;
 	std::size_t found = path.find_last_of("/");
-	std::string new_path = path.substr(0,found);
+	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
 		if(compare_filesystem_id(new_path, (*it).path))
@@ -399,7 +373,7 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
 {
 	std::size_t found = path.find_last_of("/");
-	std::string new_path = path.substr(0, found);
+	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
 	//check if same filesystem
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
@@ -508,7 +482,6 @@ void RemovableDriveManager::check_and_notify()
 	{
 		m_drive_count_changed_callback(m_plater_ready_to_slice);
 	}
-	std::cout << m_callbacks.size() << m_last_save_path_verified << !is_drive_mounted(m_last_save_path) << std::endl;
 	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() /*&& m_last_save_path_verified */&& !is_drive_mounted(m_last_save_path))
 	{
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
@@ -575,16 +548,15 @@ std::string RemovableDriveManager::get_drive_name(const std::string& path)
 }
 bool RemovableDriveManager::is_last_drive_removed()
 {
-	//std::cout<<"is last: "<<m_last_save_path;
-	//m_drives_count = m_current_drives.size();
 	if(!m_last_save_path_verified)
 	{
-		//std::cout<<"\n";
 		return true;
 	}
 	bool r = !is_drive_mounted(m_last_save_path);
-	if (r) reset_last_save_path();
-	//std::cout<<" "<< r <<"\n";
+	if (r) 
+	{
+		reset_last_save_path();
+	}
 	return r;
 }
 bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
