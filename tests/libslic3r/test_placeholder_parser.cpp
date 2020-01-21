@@ -28,8 +28,8 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     SECTION("math: 2*3/6") { REQUIRE(parser.process("{2*3/6}") == "1"); }
     SECTION("math: 2*3/12") { REQUIRE(parser.process("{2*3/12}") == "0"); }
     SECTION("math: 2.*3/12") { REQUIRE(std::stod(parser.process("{2.*3/12}")) == Approx(0.5)); }
-//    SECTION("math: 10 % 2.5") { REQUIRE(parser.process("{10%2.5}") == "0"); }
-//    SECTION("math: 11 / 2.5") { REQUIRE(parser.process("{11/2.5-1}") == "1"); }
+    SECTION("math: 10 % 2.5") { REQUIRE(std::stod(parser.process("{10%2.5}")) == Approx(0.)); }
+    SECTION("math: 11 % 2.5") { REQUIRE(std::stod(parser.process("{11%2.5}")) == Approx(1.)); }
     SECTION("math: 2*(3-12)") { REQUIRE(parser.process("{2*(3-12)}") == "-18"); }
     SECTION("math: 2*foo*(3-12)") { REQUIRE(parser.process("{2*foo*(3-12)}") == "0"); }
     SECTION("math: 2*bar*(3-12)") { REQUIRE(parser.process("{2*bar*(3-12)}") == "-36"); }
@@ -38,7 +38,8 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     SECTION("math: max(12, 14)") { REQUIRE(parser.process("{max(12, 14)}") == "14"); }
     SECTION("math: min(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{min(13.4, -1238.1)}")) == Approx(-1238.1)); }
     SECTION("math: max(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{max(13.4, -1238.1)}")) == Approx(13.4)); }
-//    SECTION("math: int(13.4)") { REQUIRE(parser.process("{int(13.4)}") == "13"); }
+    SECTION("math: int(13.4)") { REQUIRE(parser.process("{int(13.4)}") == "13"); }
+    SECTION("math: int(-13.4)") { REQUIRE(parser.process("{int(-13.4)}") == "-13"); }
 
     // Test the boolean expression parser.
     auto boolean_expression = [&parser](const std::string& templ) { return parser.evaluate_boolean_expression(templ, parser.config()); };
