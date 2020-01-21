@@ -64,6 +64,8 @@ public:
 	void set_did_eject(const bool b);
 	std::string get_drive_name(const std::string& path);
 	size_t get_drives_count();
+	std::string get_ejected_path();
+	std::string get_ejected_name();
 private:
     RemovableDriveManager();
 	void search_for_drives();
@@ -84,6 +86,8 @@ private:
 	bool m_is_writing;//on device
 	bool m_did_eject;
 	bool m_plater_ready_to_slice;
+	std::string m_ejected_path;
+	std::string m_ejected_name;
 #if _WIN32
 	//registers for notifications by creating invisible window
 	void register_window();

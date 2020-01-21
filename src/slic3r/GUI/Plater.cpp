@@ -5060,8 +5060,8 @@ void Plater::send_gcode()
 void Plater::eject_drive()
 {
 	RemovableDriveManager::get_instance().update(0, true);
-	//RemovableDriveManager::get_instance().erase_callbacks();
-	//RemovableDriveManager::get_instance().add_callback(std::bind(&Plater::drive_ejected_callback, this));
+	RemovableDriveManager::get_instance().erase_callbacks();
+	RemovableDriveManager::get_instance().add_remove_callback(std::bind(&Plater::drive_ejected_callback, this));
 	RemovableDriveManager::get_instance().eject_drive(RemovableDriveManager::get_instance().get_last_save_path());
 		
 }
@@ -5070,7 +5070,7 @@ void Plater::drive_ejected_callback()
 	if (RemovableDriveManager::get_instance().get_did_eject())
 	{
         RemovableDriveManager::get_instance().set_did_eject(false);
-		wxString message = "Unmounting successful. The device " + RemovableDriveManager::get_instance().get_last_save_name() + "(" + RemovableDriveManager::get_instance().get_last_save_path() + ")" + " can now be safely removed from the computer.";
+		wxString message = "Unmounting successful. The device " + RemovableDriveManager::get_instance().get_ejected_name() + "(" + RemovableDriveManager::get_instance().get_ejected_path() + ")" + " can now be safely removed from the computer.";
 		wxMessageBox(message);
 	}
 	p->show_action_buttons(false);

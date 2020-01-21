@@ -109,6 +109,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 			CloseHandle(handle);
 			m_did_eject = true;
 			m_current_drives.erase(it);
+			m_ejected_path = m_last_save_path;
+			m_ejected_name = m_last_save_name;
 			break;
 		}
 	}
@@ -373,7 +375,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 
 			m_did_eject = true;
             m_current_drives.erase(it);
-            		
+			m_ejected_path = m_last_save_path;
+			m_ejected_name = m_last_save_name;
             break;
 		}
 
@@ -415,7 +418,9 @@ RemovableDriveManager::RemovableDriveManager():
 	m_last_save_path_verified(false),
 	m_is_writing(false),
 	m_did_eject(false),
-	m_plater_ready_to_slice(true)
+	m_plater_ready_to_slice(true),
+	m_ejected_path(""),
+	m_ejected_name("")
 #if __APPLE__
 	, m_rdmmm(new RDMMMWrapper())
 #endif
@@ -452,7 +457,10 @@ bool RemovableDriveManager::update(const long time,const bool check)
 	search_for_drives();
 	if (m_drives_count != m_current_drives.size())
 	{
-		if (check)check_and_notify();
+		if (check)
+		{
+			check_and_notify();
+		}
 		m_drives_count = m_current_drives.size();
 	}
 	return !m_current_drives.empty();
@@ -500,7 +508,8 @@ void RemovableDriveManager::check_and_notify()
 	{
 		m_drive_count_changed_callback(m_plater_ready_to_slice);
 	}
-	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
+	std::cout << m_callbacks.size() << m_last_save_path_verified << !is_drive_mounted(m_last_save_path) << std::endl;
+	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() /*&& m_last_save_path_verified */&& !is_drive_mounted(m_last_save_path))
 	{
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 		{
@@ -526,8 +535,17 @@ void RemovableDriveManager::set_plater_ready_to_slice(bool b)
 }
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
-	m_last_save_path_verified = false;
-	m_last_save_path = path;
+	if(m_last_save_path_verified)// if old path is on drive 
+	{
+		if(get_drive_from_path(path) != "") //and new is too, rewrite the path
+		{
+			m_last_save_path_verified = false;
+			m_last_save_path = path;
+		}//else do nothing
+	}else
+	{
+		m_last_save_path = path;
+	}
 }
 void RemovableDriveManager::verify_last_save_path()
 {
@@ -603,5 +621,13 @@ void RemovableDriveManager::set_did_eject(const bool b)
 size_t RemovableDriveManager::get_drives_count()
 {
 	return m_current_drives.size();
+}
+std::string RemovableDriveManager::get_ejected_path()
+{
+	return m_ejected_path;
+}
+std::string RemovableDriveManager::get_ejected_name()
+{
+	return m_ejected_name;
 }
 }}//namespace Slicer::Gui
