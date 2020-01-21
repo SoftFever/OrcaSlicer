@@ -173,6 +173,7 @@ if (APPLE)
             Utils/MacDarkMode.mm
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
+            GUI/Mouse3DHandlerMac.mm
         )
     #DK
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
