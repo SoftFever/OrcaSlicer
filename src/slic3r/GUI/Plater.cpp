@@ -26,6 +26,9 @@
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
 #include <wx/debug.h>
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+#include <wx/busyinfo.h>
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -1856,6 +1859,9 @@ struct Plater::priv
     bool is_view3D_shown() const { return current_panel == view3D; }
 
     void set_current_canvas_as_dirty();
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+    GLCanvas3D* get_current_canvas3D();
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     bool init_view_toolbar();
 
@@ -1984,7 +1990,9 @@ struct Plater::priv
     bool can_fix_through_netfabb() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 #if ENABLE_THUMBNAIL_GENERATOR
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, bool printable_only, bool parts_only, bool show_bed, bool transparent_background);
@@ -3244,6 +3252,10 @@ void Plater::priv::reload_from_disk()
             else
                 missing_input_paths.push_back(volume->source.input_file);
         }
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+        else if (!volume->name.empty())
+            missing_input_paths.push_back(volume->name);
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     }
 
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
@@ -3255,10 +3267,9 @@ void Plater::priv::reload_from_disk()
         fs::path search = missing_input_paths.back();
         wxString title = _(L("Please select the file to reload"));
 #if defined(__APPLE__)
-        title += " (" + from_u8(search.filename().string()) + "):";
-#else
-        title += ":";
+        title += " (" + from_u8(search.filename().string()) + ")";
 #endif // __APPLE__
+        title += ":";
         wxFileDialog dialog(q, title, "", from_u8(search.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dialog.ShowModal() != wxID_OK)
             return;
@@ -3299,10 +3310,20 @@ void Plater::priv::reload_from_disk()
     std::sort(input_paths.begin(), input_paths.end());
     input_paths.erase(std::unique(input_paths.begin(), input_paths.end()), input_paths.end());
 
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+    std::vector<wxString> fail_list;
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+
     // load one file at a time
     for (size_t i = 0; i < input_paths.size(); ++i)
     {
         const auto& path = input_paths[i].string();
+
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+        wxBusyCursor wait;
+        wxBusyInfo info(_(L("Reload from: ")) + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+
         Model new_model;
         try
         {
@@ -3320,18 +3341,70 @@ void Plater::priv::reload_from_disk()
         }
 
         // update the selected volumes whose source is the current file
-        for (const SelectedVolume& old_v : selected_volumes)
+        for (const SelectedVolume& sel_v : selected_volumes)
         {
-            ModelObject* old_model_object = model.objects[old_v.object_idx];
-            ModelVolume* old_volume = old_model_object->volumes[old_v.volume_idx];
+            ModelObject* old_model_object = model.objects[sel_v.object_idx];
+            ModelVolume* old_volume = old_model_object->volumes[sel_v.volume_idx];
+
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+            bool has_source = !old_volume->source.input_file.empty() && boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
+            bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
+            if (has_source || has_name)
+#else
             int new_volume_idx = old_volume->source.volume_idx;
             int new_object_idx = old_volume->source.object_idx;
 
             if (boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(),
                 fs::path(path).filename().string()))
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
             {
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+                int new_volume_idx = -1;
+                int new_object_idx = -1;
+                if (has_source)
+                {
+                    // take idxs from source
+                    new_volume_idx = old_volume->source.volume_idx;
+                    new_object_idx = old_volume->source.object_idx;
+                }
+                else
+                {
+                    // take idxs from the 1st matching volume
+                    for (size_t o = 0; o < new_model.objects.size(); ++o)
+                    {
+                        ModelObject* obj = new_model.objects[o];
+                        bool found = false;
+                        for (size_t v = 0; v < obj->volumes.size(); ++v)
+                        {
+                            if (obj->volumes[v]->name == old_volume->name)
+                            {
+                                new_volume_idx = (int)v;
+                                new_object_idx = (int)o;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                            break;
+                    }
+                }
+
+                if ((new_object_idx < 0) && ((int)new_model.objects.size() <= new_object_idx))
+                {
+                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    continue;
+                }
+#else
                 assert(new_object_idx < (int)new_model.objects.size());
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 ModelObject* new_model_object = new_model.objects[new_object_idx];
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+                if ((new_volume_idx < 0) && ((int)new_model.objects.size() <= new_volume_idx))
+                {
+                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    continue;
+                }
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                 if (new_volume_idx < (int)new_model_object->volumes.size())
                 {
                     old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
@@ -3342,14 +3415,29 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation() * old_volume->source.transform);
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
                     new_volume->source.input_file = path;
-                    std::swap(old_model_object->volumes[old_v.volume_idx], old_model_object->volumes.back());
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+                    std::swap(old_model_object->volumes[sel_v.volume_idx], old_model_object->volumes.back());
                     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                     old_model_object->ensure_on_bed();
                 }
             }
         }
     }
+
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+    if (!fail_list.empty())
+    {
+        wxString message = _(L("Unable to reload:")) + "\n";
+        for (const wxString& s : fail_list)
+        {
+            message += s + "\n";
+        }
+        wxMessageDialog dlg(q, message, _(L("Error during reload")), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        dlg.ShowModal();
+    }
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     // update 3D scene
     update();
@@ -3831,8 +3919,13 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
+            [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu);
+#else
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected volumes from disk")),
             [this](wxCommandEvent&) { q->reload_from_disk(); }, "", menu, [this]() { return can_reload_from_disk(); }, q);
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
@@ -3860,8 +3953,13 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         wxMenuItem* menu_item_printable = sidebar->obj_list()->append_menu_item_printable(menu, q);
         menu->AppendSeparator();
 
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+        append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
+            [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr);
+#else
         append_menu_item(menu, wxID_ANY, _(L("Reload from disk")), _(L("Reload the selected object from disk")),
             [this](wxCommandEvent&) { reload_from_disk(); }, "", nullptr, [this]() { return can_reload_from_disk(); }, q);
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(false, true); }, "", nullptr, 
@@ -3964,6 +4062,13 @@ void Plater::priv::set_current_canvas_as_dirty()
         preview->set_as_dirty();
 }
 
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+GLCanvas3D* Plater::priv::get_current_canvas3D()
+{
+    return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
+}
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+
 bool Plater::priv::init_view_toolbar()
 {
     if (view_toolbar.get_items_count() > 0)
@@ -4034,6 +4139,7 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 bool Plater::priv::can_reload_from_disk() const
 {
     // struct to hold selected ModelVolumes by their indices
@@ -4079,6 +4185,7 @@ bool Plater::priv::can_reload_from_disk() const
 
     return !paths.empty();
 }
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
 void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model)
 {
@@ -5334,6 +5441,13 @@ GLCanvas3D* Plater::canvas3D()
     return p->view3D->get_canvas3d();
 }
 
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+GLCanvas3D* Plater::get_current_canvas3D()
+{
+    return p->get_current_canvas3D();
+}
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+
 BoundingBoxf Plater::bed_shape_bb() const
 {
     return p->bed_shape_bb();
@@ -5526,7 +5640,9 @@ bool Plater::can_copy_to_clipboard() const
 
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
 void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }

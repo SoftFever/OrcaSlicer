@@ -238,6 +238,9 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
+#if ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
+    GLCanvas3D* get_current_canvas3D();
+#endif // ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     BoundingBoxf bed_shape_bb() const;
 
     void set_current_canvas_as_dirty();
@@ -262,7 +265,9 @@ public:
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
     bool can_redo() const;
+#if !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
     bool can_reload_from_disk() const;
+#endif // !ENABLE_BACKWARD_COMPATIBLE_RELOAD_FROM_DISK
 
     void msw_rescale();
 
