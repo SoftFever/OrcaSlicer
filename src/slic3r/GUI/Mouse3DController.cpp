@@ -758,9 +758,9 @@ void Mouse3DController::handle_input_axis(const DataPacketAxis& packet)
     }
     //rotation
     deadzone = m_state.get_rotation_deadzone();
-    Vec3f rotation(std::abs(packet[3]) > deadzone ? -(float)packet[3] : 0.0,
-                   std::abs(packet[4]) > deadzone ?  (float)packet[4] : 0.0,
-                   std::abs(packet[5]) > deadzone ? -(float)packet[5] : 0.0);
+    Vec3f rotation(std::abs(packet[3]) > deadzone ? (float)packet[3] : 0.0,
+                   std::abs(packet[4]) > deadzone ? (float)packet[4] : 0.0,
+                   std::abs(packet[5]) > deadzone ? (float)packet[5] : 0.0);
     if (!rotation.isApprox(Vec3f::Zero()))
     {
         m_state.append_rotation(rotation);
