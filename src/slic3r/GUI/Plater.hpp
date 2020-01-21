@@ -267,9 +267,7 @@ public:
 
     void msw_rescale();
 
-#if ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
     bool init_view_toolbar();
-#endif // ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX
 
     const Camera& get_camera() const;
     const Mouse3DController& get_mouse3d_controller() const;

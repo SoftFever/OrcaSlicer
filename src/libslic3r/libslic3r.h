@@ -158,6 +158,53 @@ inline std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+// Variant of std::lower_bound() with compare predicate, but without the key.
+// This variant is very useful in case that the T type is large or it does not even have a public constructor.
+template<class ForwardIt, class LowerThanKeyPredicate>
+ForwardIt lower_bound_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_thank_key)
+{
+    ForwardIt it;
+    typename std::iterator_traits<ForwardIt>::difference_type count, step;
+    count = std::distance(first, last);
+ 
+    while (count > 0) {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        if (lower_thank_key(*it)) {
+            first = ++it;
+            count -= step + 1;
+        }
+        else
+            count = step;
+    }
+    return first;
+}
+
+// from https://en.cppreference.com/w/cpp/algorithm/lower_bound
+template<class ForwardIt, class T, class Compare=std::less<>>
+ForwardIt binary_find(ForwardIt first, ForwardIt last, const T& value, Compare comp={})
+{
+    // Note: BOTH type T and the type after ForwardIt is dereferenced 
+    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare. 
+    // This is stricter than lower_bound requirement (see above)
+ 
+    first = std::lower_bound(first, last, value, comp);
+    return first != last && !comp(value, *first) ? first : last;
+}
+
+// from https://en.cppreference.com/w/cpp/algorithm/lower_bound
+template<class ForwardIt, class LowerThanKeyPredicate, class EqualToKeyPredicate>
+ForwardIt binary_find_by_predicate(ForwardIt first, ForwardIt last, LowerThanKeyPredicate lower_thank_key, EqualToKeyPredicate equal_to_key)
+{
+    // Note: BOTH type T and the type after ForwardIt is dereferenced 
+    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare. 
+    // This is stricter than lower_bound requirement (see above)
+ 
+    first = lower_bound_by_predicate(first, last, lower_thank_key);
+    return first != last && equal_to_key(*first) ? first : last;
+}
+
 template<typename T>
 static inline T sqr(T x)
 {

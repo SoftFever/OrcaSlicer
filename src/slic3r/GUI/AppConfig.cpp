@@ -61,6 +61,11 @@ void AppConfig::set_defaults()
     if (get("preset_update").empty())
         set("preset_update", "1");
 
+#if ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+    if (get("export_sources_full_pathnames").empty())
+        set("export_sources_full_pathnames", "0");
+#endif // ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF
+
     // remove old 'use_legacy_opengl' parameter from this config, if present
     if (!get("use_legacy_opengl").empty())
         erase("", "use_legacy_opengl");
@@ -81,6 +86,11 @@ void AppConfig::set_defaults()
 
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
+
+#if ENABLE_6DOF_CAMERA
+    if (get("use_free_camera").empty())
+        set("use_free_camera", "0");
+#endif // ENABLE_6DOF_CAMERA
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

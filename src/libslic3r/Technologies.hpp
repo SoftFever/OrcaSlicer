@@ -41,24 +41,6 @@
 #define ENABLE_THUMBNAIL_GENERATOR (1 && ENABLE_2_2_0_ALPHA1)
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG (0 && ENABLE_THUMBNAIL_GENERATOR)
 
-// Enable adaptive layer height profile
-#define ENABLE_ADAPTIVE_LAYER_HEIGHT_PROFILE (1 && ENABLE_2_2_0_ALPHA1)
-
-// Enable grayed variant for gizmos icons in non activable state
-#define ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE (1 && ENABLE_2_2_0_ALPHA1)
-
-// Enable fix for view toolbar background not showing up on Mac with dark mode
-#define ENABLE_VIEW_TOOLBAR_BACKGROUND_FIX (1 && ENABLE_2_2_0_ALPHA1)
-
-// Enable selection for missing files in reload from disk command
-#define ENABLE_RELOAD_FROM_DISK_MISSING_SELECTION (1 && ENABLE_2_2_0_ALPHA1)
-
-// Enable closing 3Dconnextion imgui settings dialog by clicking on [X] and [Close] buttons
-#define ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG (1 && ENABLE_2_2_0_ALPHA1)
-
-// Enable not applying volume transformation during 3mf and amf loading, but keeping it as a ModelVolume member
-#define ENABLE_KEEP_LOADED_VOLUME_TRANSFORM_AS_STAND_ALONE (1 && ENABLE_2_2_0_ALPHA1)
-
 
 //==================
 // 2.2.0.beta1 techs
@@ -67,5 +49,14 @@
 
 // Enable using Y axis of 3Dconnexion devices as zoom
 #define ENABLE_3DCONNEXION_Y_AS_ZOOM (1 && ENABLE_2_2_0_BETA1)
+
+// Enable a modified version of the toolbar textures where all the icons are separated by 1 pixel
+#define ENABLE_MODIFIED_TOOLBAR_TEXTURES (1 && ENABLE_2_2_0_BETA1)
+
+// Enable configurable paths export (fullpath or not) to 3mf and amf
+#define ENABLE_CONFIGURABLE_PATHS_EXPORT_TO_3MF_AND_AMF (1 && ENABLE_2_2_0_BETA1)
+
+// Enable 6 degrees of freedom camera
+#define ENABLE_6DOF_CAMERA (1 && ENABLE_2_2_0_BETA1)
 
 #endif // _technologies_h_

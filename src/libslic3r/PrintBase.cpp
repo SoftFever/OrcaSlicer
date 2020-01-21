@@ -37,7 +37,7 @@ void PrintBase::update_object_placeholders(DynamicConfig &config, const std::str
 	    }
     }
     
-    config.set_key_value("year", new ConfigOptionStrings(v_scale));
+    config.set_key_value("scale", new ConfigOptionStrings(v_scale));
     if (! input_file.empty()) {
         // get basename with and without suffix
         const std::string input_filename = boost::filesystem::path(input_file).filename().string();

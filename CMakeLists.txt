@@ -72,6 +72,9 @@ if (MSVC)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
     add_compile_options(-bigobj -Zm520 /Zi)
+    # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
+    #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
+    add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
 endif ()
 
 if (MINGW)

@@ -53,11 +53,11 @@ public:
     void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 #endif // ENABLE_THUMBNAIL_GENERATOR
 
-	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the slicing is finished
+	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_slicing_completed_event(int event_id) { m_event_slicing_completed_id = event_id; }
-	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the G-code export is finished.
+	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the G-code export is finished.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
 
@@ -132,11 +132,6 @@ public:
     // This "finished" flag does not account for the final export of the output file (.gcode or zipped PNGs),
     // and it does not account for the OctoPrint scheduling.
     bool    finished() const { return m_print->finished(); }
-
-    void    set_force_update_print_regions(bool force_update_print_regions) {
-        if (m_fff_print)
-	        m_fff_print->set_force_update_print_regions(force_update_print_regions);
-	}
     
 private:
 	void 	thread_proc();
@@ -191,9 +186,9 @@ private:
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
     void                prepare_upload();
 
-	// wxWidgets command ID to be sent to the platter to inform that the slicing is finished, and the G-code export will continue.
+	// wxWidgets command ID to be sent to the plater to inform that the slicing is finished, and the G-code export will continue.
 	int 						m_event_slicing_completed_id 	= 0;
-	// wxWidgets command ID to be sent to the platter to inform that the task finished.
+	// wxWidgets command ID to be sent to the plater to inform that the task finished.
 	int 						m_event_finished_id  			= 0;
 };
 

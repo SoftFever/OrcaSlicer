@@ -61,6 +61,10 @@ public:
         PrinterTechnology           technology;
         std::string                 family;
         std::vector<PrinterVariant> variants;
+        std::vector<std::string>	default_materials;
+        // Vendor & Printer Model specific print bed model & texture.
+        std::string 			 	bed_model;
+        std::string 				bed_texture;
 
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -380,7 +384,8 @@ public:
         size_t n = this->m_presets.size();
         size_t i_compatible = n;
         for (; i < n; ++ i)
-            if (m_presets[i].is_compatible) {
+            // Since we use the filament selection from Wizard, it's needed to control the preset visibility too 
+            if (m_presets[i].is_compatible && m_presets[i].is_visible) {
                 if (prefered_condition(m_presets[i].name))
                     return i;
                 if (i_compatible == n)
@@ -437,7 +442,7 @@ public:
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    void            update_platter_ui(GUI::PresetComboBox *ui);
+    void            update_plater_ui(GUI::PresetComboBox *ui);
 
     // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
     // Return true if the dirty flag changed.
@@ -526,7 +531,7 @@ private:
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;
-    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Platter.
+    // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Plater.
     // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
     const wxBitmap         *m_bitmap_compatible   = nullptr;
     const wxBitmap         *m_bitmap_incompatible = nullptr;
@@ -558,6 +563,11 @@ public:
 
     const Preset*   find_by_model_id(const std::string &model_id) const;
 };
+
+namespace PresetUtils {
+	// PrinterModel of a system profile, from which this preset is derived, or null if it is not derived from a system profile.
+	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
+} // namespace PresetUtils
 
 } // namespace Slic3r
 

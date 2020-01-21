@@ -48,12 +48,10 @@ std::string GLGizmoMove3D::on_get_name() const
     return (_(L("Move")) + " [M]").ToUTF8().data();
 }
 
-#if ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 bool GLGizmoMove3D::on_is_activable() const
 {
     return !m_parent.get_selection().is_empty();
 }
-#endif // ENABLE_GIZMO_ICONS_NON_ACTIVABLE_STATE
 
 void GLGizmoMove3D::on_start_dragging()
 {

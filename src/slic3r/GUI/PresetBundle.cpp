@@ -877,7 +877,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
 
-        update_custom_gcode_per_print_z_from_config(GUI::wxGetApp().plater()->model().custom_gcode_per_print_z, &this->project_config);
+        update_custom_gcode_per_print_z_from_config(GUI::wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes, &this->project_config);
 
         break;
     }
@@ -1572,7 +1572,7 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->load_compatible_bitmaps(window);
 }
 
-void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
+void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
 {
     if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA ||
         this->filament_presets.size() <= idx_extruder )

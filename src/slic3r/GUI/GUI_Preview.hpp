@@ -157,8 +157,9 @@ private:
     void create_double_slider();
     void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
                              const std::vector<double> &layers_z);
-    void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void reset_double_slider();
+    void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
+    void update_double_slider_mode();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
 

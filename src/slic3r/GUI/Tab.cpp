@@ -905,7 +905,7 @@ void Tab::update_wiping_button_visibility() {
 }
 
 
-// Call a callback to update the selection of presets on the platter:
+// Call a callback to update the selection of presets on the plater:
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
@@ -2825,7 +2825,7 @@ void Tab::select_preset(std::string preset_name, bool delete_current)
     if (canceled) {
         update_tab_ui();
         // Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
-        // if this action was initiated from the platter.
+        // if this action was initiated from the plater.
         on_presets_changed();
     } else {
         if (current_dirty)
@@ -3053,7 +3053,7 @@ void Tab::save_preset(std::string name /*= ""*/)
     m_preset_bundle->update_compatible(false);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
-    // Update the selection boxes at the platter.
+    // Update the selection boxes at the plater.
     on_presets_changed();
     // If current profile is saved, "delete preset" button have to be enabled
     m_btn_delete_preset->Enable(true);
@@ -3444,27 +3444,25 @@ void TabSLAMaterial::build()
         DynamicPrintConfig new_conf = *m_config;
 
         if (opt_key == "bottle_volume") {
-            double new_bottle_weight =  boost::any_cast<double>(value)/(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_weight =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() / 1000);
             new_conf.set_key_value("bottle_weight", new ConfigOptionFloat(new_bottle_weight));
         }
         if (opt_key == "bottle_weight") {
-            double new_bottle_volume =  boost::any_cast<double>(value)*(new_conf.option("material_density")->getFloat() * 1000);
+            double new_bottle_volume =  boost::any_cast<double>(value)/new_conf.option("material_density")->getFloat() * 1000;
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
         if (opt_key == "material_density") {
-            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() * boost::any_cast<double>(value) * 1000;
+            double new_bottle_volume = new_conf.option("bottle_weight")->getFloat() / boost::any_cast<double>(value) * 1000;
             new_conf.set_key_value("bottle_volume", new ConfigOptionFloat(new_bottle_volume));
         }
 
         load_config(new_conf);
 
         update_dirty();
-        on_value_change(opt_key, value);
 
-        if (opt_key == "bottle_volume" || opt_key == "bottle_cost") {
-            wxGetApp().sidebar().update_sliced_info_sizer();
-            wxGetApp().sidebar().Layout();
-        }
+        // Change of any from those options influences for an update of "Sliced Info"
+        wxGetApp().sidebar().update_sliced_info_sizer();
+        wxGetApp().sidebar().Layout();
     };
 
     optgroup = page->new_optgroup(_(L("Layers")));

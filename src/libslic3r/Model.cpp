@@ -126,7 +126,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (add_default_instances)
         model.add_default_instances();
 
-    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
 
     return model;
 }
@@ -163,7 +163,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (add_default_instances)
         model.add_default_instances();
 
-    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z.gcodes, config);
 
     return model;
 }
@@ -598,21 +598,6 @@ std::string Model::propose_export_file_name_and_path(const std::string &new_exte
     return boost::filesystem::path(this->propose_export_file_name_and_path()).replace_extension(new_extension).string();
 }
 
-std::vector<std::pair<double, DynamicPrintConfig>> Model::get_custom_tool_changes(double default_layer_height, size_t num_extruders) const
-{
-    std::vector<std::pair<double, DynamicPrintConfig>> custom_tool_changes;
-    for (const CustomGCode& custom_gcode : custom_gcode_per_print_z)
-        if (custom_gcode.gcode == ExtruderChangeCode) {
-            DynamicPrintConfig config;
-            // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
-            config.set_key_value("extruder", new ConfigOptionInt(custom_gcode.extruder > num_extruders ? 0 : custom_gcode.extruder));
-            // For correct extruders(tools) changing, we should decrease custom_gcode.height value by one default layer height
-            custom_tool_changes.push_back({ custom_gcode.print_z - default_layer_height, config });
-        }
-
-    return custom_tool_changes;
-}
-
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -860,7 +845,7 @@ TriangleMesh ModelObject::mesh() const
 }
 
 // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D platter
+// Currently used by ModelObject::mesh(), to calculate the 2D envelope for 2D plater
 // and to display the object statistics at ModelObject::print_info().
 TriangleMesh ModelObject::raw_mesh() const
 {
@@ -1861,6 +1846,19 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     ret.rotation     = get_rotation(Z);
 
     return ret;
+}
+
+// Return pairs of <print_z, 1-based extruder ID> sorted by increasing print_z from custom_gcode_per_print_z.
+// print_z corresponds to the first layer printed with the new extruder.
+std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Model &model, size_t num_extruders)
+{
+    std::vector<std::pair<double, unsigned int>> custom_tool_changes;
+    for (const Model::CustomGCode &custom_gcode : model.custom_gcode_per_print_z.gcodes)
+        if (custom_gcode.gcode == ToolChangeCode) {
+            // If extruder count in PrinterSettings was changed, use default (0) extruder for extruders, more than num_extruders
+            custom_tool_changes.emplace_back(custom_gcode.print_z, static_cast<unsigned int>(custom_gcode.extruder > num_extruders ? 1 : custom_gcode.extruder));
+        }
+    return custom_tool_changes;
 }
 
 // Test whether the two models contain the same number of ModelObjects with the same set of IDs

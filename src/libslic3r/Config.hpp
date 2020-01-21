@@ -289,13 +289,13 @@ public:
             throw std::runtime_error("ConfigOptionVector::set_at(): Assigning an incompatible type");
     }
 
-    T& get_at(size_t i)
+    const T& get_at(size_t i) const
     {
         assert(! this->values.empty());
         return (i < this->values.size()) ? this->values[i] : this->values.front();
     }
 
-    const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
+    T& get_at(size_t i) { return const_cast<T&>(std::as_const(*this).get_at(i)); }
 
     // Resize this vector by duplicating the /*last*/first value.
     // If the current vector is empty, the default value is used instead.
@@ -500,7 +500,7 @@ public:
         		if (NULLABLE)
         			this->values.push_back(nil_value());
         		else
-        			std::runtime_error("Deserializing nil into a non-nullable object");
+        			throw std::runtime_error("Deserializing nil into a non-nullable object");
         	} else {
 	            std::istringstream iss(item_str);
 	            double value;
@@ -525,9 +525,9 @@ protected:
         		if (NULLABLE)
         			ss << "nil";
         		else
-        			std::runtime_error("Serializing NaN");
+                    throw std::runtime_error("Serializing NaN");
         	} else
-        		std::runtime_error("Serializing invalid number");		
+                throw std::runtime_error("Serializing invalid number");
 	}
     static bool vectors_equal(const std::vector<double> &v1, const std::vector<double> &v2) {
     	if (NULLABLE) {
@@ -646,7 +646,7 @@ public:
         		if (NULLABLE)
         			this->values.push_back(nil_value());
         		else
-        			std::runtime_error("Deserializing nil into a non-nullable object");
+                    throw std::runtime_error("Deserializing nil into a non-nullable object");
         	} else {
 	            std::istringstream iss(item_str);
 	            int value;
@@ -663,7 +663,7 @@ private:
         		if (NULLABLE)
         			ss << "nil";
         		else
-        			std::runtime_error("Serializing NaN");
+                    throw std::runtime_error("Serializing NaN");
         	} else
         		ss << v;
 	}
@@ -1126,7 +1126,7 @@ public:
         		if (NULLABLE)
         			this->values.push_back(nil_value());
         		else
-        			std::runtime_error("Deserializing nil into a non-nullable object");
+                    throw std::runtime_error("Deserializing nil into a non-nullable object");
         	} else
         		this->values.push_back(item_str.compare("1") == 0);	
         }
@@ -1139,7 +1139,7 @@ protected:
         		if (NULLABLE)
         			ss << "nil";
         		else
-        			std::runtime_error("Serializing NaN");
+                    throw std::runtime_error("Serializing NaN");
         	} else
         		ss << (v ? "1" : "0");
 	}
@@ -1638,7 +1638,7 @@ class DynamicConfig : public virtual ConfigBase
 public:
     DynamicConfig() {}
     DynamicConfig(const DynamicConfig &rhs) { *this = rhs; }
-    DynamicConfig(DynamicConfig &&rhs) : options(std::move(rhs.options)) { rhs.options.clear(); }
+    DynamicConfig(DynamicConfig &&rhs) noexcept : options(std::move(rhs.options)) { rhs.options.clear(); }
 	explicit DynamicConfig(const ConfigBase &rhs, const t_config_option_keys &keys);
 	explicit DynamicConfig(const ConfigBase& rhs) : DynamicConfig(rhs, rhs.keys()) {}
 	virtual ~DynamicConfig() override { clear(); }
@@ -1656,7 +1656,7 @@ public:
 
     // Move a content of one DynamicConfig to another DynamicConfig.
     // If rhs.def() is not null, then it has to be equal to this->def(). 
-    DynamicConfig& operator=(DynamicConfig &&rhs) 
+    DynamicConfig& operator=(DynamicConfig &&rhs) noexcept
     {
         assert(this->def() == nullptr || this->def() == rhs.def());
         this->clear();

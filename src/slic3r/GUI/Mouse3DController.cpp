@@ -5,9 +5,7 @@
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
 #include "AppConfig.hpp"
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 #include "GLCanvas3D.hpp"
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
 #include <wx/glcanvas.h>
 
@@ -156,7 +154,8 @@ bool Mouse3DController::State::apply(Camera& camera)
     {
         const Vec3d& translation = m_translation.queue.front();
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        camera.set_target(camera.get_target() + m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
+        double zoom_factor = camera.min_zoom() / camera.get_zoom();
+        camera.set_target(camera.get_target() + zoom_factor * m_translation_params.scale * (translation(0) * camera.get_dir_right() + translation(2) * camera.get_dir_up()));
         if (translation(1) != 0.0)
             camera.update_zoom(m_zoom_params.scale * translation(1) / std::abs(translation(1)));
 #else
@@ -168,12 +167,17 @@ bool Mouse3DController::State::apply(Camera& camera)
 
     if (has_rotation())
     {
+#if ENABLE_6DOF_CAMERA
+        Vec3d rotation = (m_rotation_params.scale * m_rotation.queue.front()).cast<double>();
+        camera.rotate_local_around_target(Vec3d(Geometry::deg2rad(rotation(0)), Geometry::deg2rad(-rotation(2)), Geometry::deg2rad(-rotation(1))));
+#else
         const Vec3f& rotation = m_rotation.queue.front();
         float theta = m_rotation_params.scale * rotation(0);
         float phi = m_rotation_params.scale * rotation(2);
         float sign = camera.inverted_phi ? -1.0f : 1.0f;
         camera.phi += sign * phi;
         camera.set_theta(camera.get_theta() + theta, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
+#endif // ENABLE_6DOF_CAMERA
         m_rotation.queue.pop();
         ret = true;
     }
@@ -200,9 +204,7 @@ Mouse3DController::Mouse3DController()
     , m_device_str("")
     , m_running(false)
     , m_show_settings_dialog(false)
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     , m_settings_dialog_closed_by_user(false)
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
     m_last_time = std::chrono::high_resolution_clock::now();
 }
@@ -247,9 +249,7 @@ bool Mouse3DController::apply(Camera& camera)
         disconnect_device();
         // hides the settings dialog if the user un-plug the device
         m_show_settings_dialog = false;
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
         m_settings_dialog_closed_by_user = false;
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     }
 
     // check if the user plugged the device
@@ -259,16 +259,11 @@ bool Mouse3DController::apply(Camera& camera)
     return is_device_connected() ? m_state.apply(camera) : false;
 }
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
-#else
-void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsigned int canvas_height) const
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 {
     if (!m_running || !m_show_settings_dialog)
         return;
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     // when the user clicks on [X] or [Close] button we need to trigger
     // an extra frame to let the dialog disappear
     if (m_settings_dialog_closed_by_user)
@@ -280,16 +275,10 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
     }
 
     Size cnv_size = canvas.get_canvas_size();
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
-#else
-    imgui.set_next_window_pos(0.5f * (float)canvas_width, 0.5f * (float)canvas_height, ImGuiCond_Always, 0.5f, 0.5f);
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
     static ImVec2 last_win_size(0.0f, 0.0f);
     bool shown = true;
     if (imgui.begin(_(L("3Dconnexion settings")), &shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
@@ -304,9 +293,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
                 last_win_size = win_size;
                 canvas.request_extra_frame();
             }
-#else
-    imgui.begin(_(L("3Dconnexion settings")), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
             const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -321,16 +307,16 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             ImGui::PopStyleColor();
 
             float translation_scale = (float)m_state.get_translation_scale() / State::DefaultTranslationScale;
-            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Translation")) + "##1", &translation_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_translation_scale(State::DefaultTranslationScale * (double)translation_scale);
 
             float rotation_scale = m_state.get_rotation_scale() / State::DefaultRotationScale;
-            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Rotation")) + "##1", &rotation_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_rotation_scale(State::DefaultRotationScale * rotation_scale);
 
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
             float zoom_scale = m_state.get_zoom_scale() / State::DefaultZoomScale;
-            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.2f, 5.0f, "%.1f"))
+            if (imgui.slider_float(_(L("Zoom")), &zoom_scale, 0.1f, 10.0f, "%.1f"))
                 m_state.set_zoom_scale(State::DefaultZoomScale * zoom_scale);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
 
@@ -389,7 +375,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             Vec3f target = wxGetApp().plater()->get_camera().get_target().cast<float>();
             ImGui::InputFloat3("Target", target.data(), "%.3f", ImGuiInputTextFlags_ReadOnly);
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
-#if ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
             ImGui::Separator();
             if (imgui.button(_(L("Close"))))
@@ -406,7 +391,6 @@ void Mouse3DController::render_settings_dialog(unsigned int canvas_width, unsign
             canvas.set_as_dirty();
         }
     }
-#endif // ENABLE_3DCONNEXION_DEVICES_CLOSE_SETTING_DIALOG
 
     imgui.end();
 }
@@ -631,13 +615,16 @@ bool Mouse3DController::connect_device()
 
     if (m_device != nullptr)
     {
-        std::vector<wchar_t> manufacturer(1024, 0);
-        hid_get_manufacturer_string(m_device, manufacturer.data(), 1024);
-        m_device_str = boost::nowide::narrow(manufacturer.data());
+        wchar_t buffer[1024];
+        hid_get_manufacturer_string(m_device, buffer, 1024);
+        m_device_str = boost::nowide::narrow(buffer);
+        // #3479 seems to show that sometimes an extra whitespace is added, so we remove it
+        boost::algorithm::trim(m_device_str);
 
-        std::vector<wchar_t> product(1024, 0);
-        hid_get_product_string(m_device, product.data(), 1024);
-        m_device_str += "/" + boost::nowide::narrow(product.data());
+        hid_get_product_string(m_device, buffer, 1024);
+        m_device_str += "/" + boost::nowide::narrow(buffer);
+        // #3479 seems to show that sometimes an extra whitespace is added, so we remove it
+        boost::algorithm::trim(m_device_str);
 
         BOOST_LOG_TRIVIAL(info) << "Connected 3DConnexion device:";
         BOOST_LOG_TRIVIAL(info) << "Manufacturer/product: " << m_device_str;
@@ -647,12 +634,12 @@ bool Mouse3DController::connect_device()
             BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
 
         // get device parameters from the config, if present
-        double translation_speed = 1.0;
-        float rotation_speed = 1.0;
+        double translation_speed = 4.0;
+        float rotation_speed = 4.0;
         double translation_deadzone = State::DefaultTranslationDeadzone;
         float rotation_deadzone = State::DefaultRotationDeadzone;
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        double zoom_speed = 1.0;
+        double zoom_speed = 2.0;
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         wxGetApp().app_config->get_mouse_device_translation_speed(m_device_str, translation_speed);
         wxGetApp().app_config->get_mouse_device_translation_deadzone(m_device_str, translation_deadzone);
@@ -662,12 +649,12 @@ bool Mouse3DController::connect_device()
         wxGetApp().app_config->get_mouse_device_zoom_speed(m_device_str, zoom_speed);
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
         // clamp to valid values
-        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.2, 5.0));
+        m_state.set_translation_scale(State::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0));
         m_state.set_translation_deadzone(std::clamp(translation_deadzone, 0.0, State::MaxTranslationDeadzone));
-        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.2f, 5.0f));
+        m_state.set_rotation_scale(State::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f));
         m_state.set_rotation_deadzone(std::clamp(rotation_deadzone, 0.0f, State::MaxRotationDeadzone));
 #if ENABLE_3DCONNEXION_Y_AS_ZOOM
-        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.2, 5.0));
+        m_state.set_zoom_scale(State::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0));
 #endif // ENABLE_3DCONNEXION_Y_AS_ZOOM
     }
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
@@ -874,9 +861,15 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
 bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
 {
     double deadzone = (double)m_state.get_rotation_deadzone();
+#if ENABLE_6DOF_CAMERA
+    Vec3f rotation((float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
+        (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
+        (float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#else
     Vec3f rotation(-(float)convert_input(packet[first_byte + 0], packet[first_byte + 1], deadzone),
         (float)convert_input(packet[first_byte + 2], packet[first_byte + 3], deadzone),
         -(float)convert_input(packet[first_byte + 4], packet[first_byte + 5], deadzone));
+#endif // ENABLE_6DOF_CAMERA
 
     if (!rotation.isApprox(Vec3f::Zero()))
     {
