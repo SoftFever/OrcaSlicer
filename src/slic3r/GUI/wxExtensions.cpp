@@ -3212,7 +3212,7 @@ void DoubleSlider::OnMotion(wxMouseEvent& event)
     }
 }
 
-void DoubleSlider::append_change_extruder_menu_item(wxMenu* menu)
+void DoubleSlider::append_change_extruder_menu_item(wxMenu* menu, bool switch_current_code/* = false*/)
 {
     const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
     if (extruders_cnt > 1)
@@ -3233,7 +3233,9 @@ void DoubleSlider::append_change_extruder_menu_item(wxMenu* menu)
                     [is_active_extruder]() { return !is_active_extruder; }, Slic3r::GUI::wxGetApp().plater());
         }
 
-        const wxString change_extruder_menu_name = m_mode == t_mode::MultiAsSingle ? _(L("Change extruder")) : _(L("Change extruder (N/A)"));
+        const wxString change_extruder_menu_name = m_mode == t_mode::MultiAsSingle ? 
+                                                   (switch_current_code ? _(L("Switch code to Change extruder")) : _(L("Change extruder")) ) : 
+                                                   _(L("Change extruder (N/A)"));
 
         wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
         change_extruder_menu_item->SetBitmap(create_scaled_bitmap(this, "change_extruder"));
@@ -3244,7 +3246,7 @@ void DoubleSlider::append_change_extruder_menu_item(wxMenu* menu)
     }
 }
 
-void DoubleSlider::append_add_color_change_menu_item(wxMenu* menu)
+void DoubleSlider::append_add_color_change_menu_item(wxMenu* menu, bool switch_current_code/* = false*/)
 {
     const int extruders_cnt = Slic3r::GUI::wxGetApp().extruders_edited_cnt();
     if (extruders_cnt > 1)
@@ -3265,7 +3267,9 @@ void DoubleSlider::append_add_color_change_menu_item(wxMenu* menu)
                 [is_used_extruder]() { return is_used_extruder; }, Slic3r::GUI::wxGetApp().plater());
         }
 
-        const wxString menu_name = from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
+        const wxString menu_name = switch_current_code ? 
+                                   from_u8((boost::format(_utf8(L("Switch code to Color change (%1%) for:"))) % Slic3r::ColorChangeCode).str()) : 
+                                   from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % Slic3r::ColorChangeCode).str());
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
         add_color_change_menu_item->SetBitmap(create_scaled_bitmap(this, "colorchange_add_m"));
     }
@@ -3427,20 +3431,13 @@ void DoubleSlider::OnRightDown(wxMouseEvent& event)
     if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation)
     {
         const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
-        // if on this Z doesn't exist tick
-        auto it = m_ticks.ticks.find(TICK_CODE{ tick });
-        if (it == m_ticks.ticks.end())
-        {
+        if (m_ticks.ticks.find(TICK_CODE{ tick }) == m_ticks.ticks.end())   // if on this Z doesn't exist tick
             // show context menu on OnRightUp()
             m_show_context_menu = true;
-            return;
-        }
-        if (it->gcode != Slic3r::ToolChangeCode)
-        {
+        else
             // show "Edit" and "Delete" menu on OnRightUp()
             m_show_edit_menu = true;
-            return;
-        }
+        return;
     }
 
     detect_selected_slider(event.GetLogicalPosition(dc));
@@ -3489,7 +3486,7 @@ std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
         std::set<int> used_extruders;
 
         auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), Slic3r::LayerTools(m_values[tick]));
-        for (; it_layer_tools != tool_ordering.end(); it_layer_tools++)
+        for (; it_layer_tools != tool_ordering.end(); ++it_layer_tools)
         {
             const std::vector<unsigned>& extruders = it_layer_tools->extruders;
             for (const auto& extruder : extruders)
@@ -3508,7 +3505,10 @@ std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
 
     auto it_start = ticks.lower_bound(TICK_CODE{tick});
     auto it = it_start;
-    if (it == ticks.begin() && it->gcode == Slic3r::ToolChangeCode) {
+    if (it == ticks.begin() && it->gcode == Slic3r::ToolChangeCode &&
+        tick != it->tick )  // In case of switch of ToolChange to ColorChange, when tick exists,
+                            // we shouldn't change color for extruder, which will be deleted
+    {
         used_extruders.emplace(it->extruder);
         if (tick < it->tick)
             used_extruders.emplace(default_initial_extruder);
@@ -3516,8 +3516,7 @@ std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
 
     while (it != ticks.begin()) {
         --it;
-        if(it->gcode == Slic3r::ToolChangeCode)
-        {
+        if (it->gcode == Slic3r::ToolChangeCode && tick != it->tick) {
             used_extruders.emplace(it->extruder);
             break;
         }
@@ -3526,12 +3525,9 @@ std::set<int> DoubleSlider::get_used_extruders_for_tick(int tick)
     if (it == ticks.begin() && used_extruders.empty())
         used_extruders.emplace(default_initial_extruder);
 
-    it = it_start;
-    while (it != ticks.end()) {
-        if(it->gcode == Slic3r::ToolChangeCode)
+    for (it = it_start; it != ticks.end(); ++it)
+        if (it->gcode == Slic3r::ToolChangeCode && tick != it->tick)
             used_extruders.emplace(it->extruder);
-        ++it;
-    }
 
     return used_extruders;
 }
@@ -3574,13 +3570,20 @@ void DoubleSlider::OnRightUp(wxMouseEvent& event)
         std::set<TICK_CODE>::iterator it = m_ticks.ticks.find(TICK_CODE{ m_selection == ssLower ? m_lower_value : m_higher_value });
         const bool is_color_change = it->gcode == Slic3r::ColorChangeCode;
 
-        append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Edit color")) :
-                                          it->gcode == Slic3r::PausePrintCode ? _(L("Edit pause print message")) :
-                                          _(L("Edit custom G-code")), "",
-            [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
+        if (it->gcode == Slic3r::ToolChangeCode)
+            append_add_color_change_menu_item(&menu, true);
+        else
+            append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Edit color")) :
+                                              it->gcode == Slic3r::PausePrintCode  ? _(L("Edit pause print message")) :
+                                              _(L("Edit custom G-code")), "",
+                [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
+
+        if (it->gcode == Slic3r::ColorChangeCode && m_mode == t_mode::MultiAsSingle)
+            append_change_extruder_menu_item(&menu, true);
 
         append_menu_item(&menu, wxID_ANY, it->gcode == Slic3r::ColorChangeCode ? _(L("Delete color change")) : 
-                                          it->gcode == Slic3r::PausePrintCode ? _(L("Delete pause print")) :
+                                          it->gcode == Slic3r::ToolChangeCode  ? _(L("Delete tool change")) :
+                                          it->gcode == Slic3r::PausePrintCode  ? _(L("Delete pause print")) :
                                           _(L("Delete custom G-code")), "",
             [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu);
 
@@ -3645,13 +3648,23 @@ void DoubleSlider::add_code_as_tick(std::string code, int selected_extruder/* = 
         return;
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
-    if (m_ticks.ticks.find(TICK_CODE{ tick }) != m_ticks.ticks.end() ||     // if on this Z doesn't exist tick
-        !check_ticks_changed_event(code))
+    if ( !check_ticks_changed_event(code) )
         return;
 
     const int extruder = selected_extruder > 0 ? selected_extruder : std::max<int>(1, m_only_extruder);
-
-    if (!m_ticks.add_tick(tick, code, extruder, m_values[tick]))
+    const auto it = m_ticks.ticks.find(TICK_CODE{ tick });
+    
+    if ( it == m_ticks.ticks.end() ) {
+        // try to add tick
+        if (!m_ticks.add_tick(tick, code, extruder, m_values[tick]))
+            return;
+    }
+    else if (code == Slic3r::ToolChangeCode || code == Slic3r::ColorChangeCode) {
+        // try to switch tick code to ToolChangeCode or ColorChangeCode accordingly
+        if (!m_ticks.switch_code_for_tick(it, code, extruder))
+            return;
+    }
+    else
         return;
 
     post_ticks_changed_event(code);
@@ -3679,7 +3692,10 @@ void DoubleSlider::add_current_tick(bool call_from_keyboard /*= false*/)
         else
             append_add_color_change_menu_item(&menu);
 
-        wxPoint pos = wxDefaultPosition;
+        wxPoint pos = wxDefaultPosition; 
+        /* Menu position will be calculated from mouse click position, but...
+         * if function is called from keyboard (pressing "+"), we should to calculate it
+         * */
         if (call_from_keyboard)
         {
             int width, height;
@@ -3701,17 +3717,15 @@ void DoubleSlider::delete_current_tick()
 {
     if (m_selection == ssUndef)
         return;
+
     auto it = m_ticks.ticks.find(TICK_CODE{ m_selection == ssLower ? m_lower_value : m_higher_value });
+    if (it == m_ticks.ticks.end() ||
+        !check_ticks_changed_event(it->gcode))
+        return;
 
-    if (it != m_ticks.ticks.end())
-    {
-        if (!check_ticks_changed_event(it->gcode))
-            return;
-
-        const std::string code = it->gcode;
-        m_ticks.ticks.erase(it);
-        post_ticks_changed_event(code);
-    }
+    const std::string code = it->gcode;
+    m_ticks.ticks.erase(it);
+    post_ticks_changed_event(code);
 }
 
 void DoubleSlider::edit_tick()
@@ -3719,7 +3733,7 @@ void DoubleSlider::edit_tick()
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
     const std::set<TICK_CODE>::iterator it = m_ticks.ticks.find(TICK_CODE{ tick });
 
-    if (it == m_ticks.ticks.end() ||            // if on this Z exists tick
+    if (it == m_ticks.ticks.end() ||
         !check_ticks_changed_event(it->gcode))
         return;
 
@@ -3842,6 +3856,31 @@ bool DoubleSlider::check_ticks_changed_event(const std::string& gcode)
     return true;
 }
 
+
+std::string DoubleSlider::TICK_CODE_INFO::get_color_for_tick(TICK_CODE tick, const std::string& code, const int extruder)
+{
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::string color = colors[extruder - 1];
+
+    if (code == Slic3r::ColorChangeCode)
+    {
+        if (!ticks.empty())
+        {
+            auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick );
+            while (before_tick_it != ticks.begin()) {
+                --before_tick_it;
+                if (before_tick_it->gcode == Slic3r::ColorChangeCode && before_tick_it->extruder == extruder) {
+                    color = before_tick_it->color;
+                    break;
+                }
+            }
+        }
+
+        color = get_new_color(color);
+    }
+    return color;
+}
+
 bool DoubleSlider::TICK_CODE_INFO::add_tick(const int tick, std::string& code, const int extruder, double print_z)
 {
     std::string color;
@@ -3864,28 +3903,10 @@ bool DoubleSlider::TICK_CODE_INFO::add_tick(const int tick, std::string& code, c
     }
     else
     {
-        std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();        
-        color = colors[extruder - 1];
-
-        if (code == Slic3r::ColorChangeCode)
-        {
-            if (!ticks.empty())
-            {
-                auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), TICK_CODE{ tick });
-                while (before_tick_it != ticks.begin()) {
-                    --before_tick_it;
-                    if (before_tick_it->gcode == Slic3r::ColorChangeCode && before_tick_it->extruder == extruder) {
-                        color = before_tick_it->color;
-                        break;
-                    }
-                }
-            }
-
-            color = get_new_color(color);
-            if (color.empty())
-                return false;
-        }
-    }     
+        color = get_color_for_tick(TICK_CODE{ tick }, code, extruder);
+        if (color.empty())
+            return false;
+    }
 
     ticks.emplace(TICK_CODE{ tick, code, extruder, color });
     return true;
@@ -3935,6 +3956,23 @@ void DoubleSlider::TICK_CODE_INFO::switch_code(const std::string& code_from, con
         }
         else
             ++it;
+}
+
+bool DoubleSlider::TICK_CODE_INFO::switch_code_for_tick(std::set<TICK_CODE>::iterator it, const std::string& code_to, const int extruder)
+{
+    const std::string color = get_color_for_tick(*it, code_to, extruder);
+    if (color.empty())
+        return false;
+
+    TICK_CODE changed_tick  = *it;
+    changed_tick.gcode      = code_to;
+    changed_tick.extruder   = extruder;
+    changed_tick.color      = color;
+
+    ticks.erase(it);
+    ticks.emplace(changed_tick);
+
+    return true;
 }
 
 void DoubleSlider::TICK_CODE_INFO::erase_all_ticks_with_code(const std::string& gcode)
