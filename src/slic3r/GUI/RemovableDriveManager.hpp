@@ -35,14 +35,14 @@ public:
 	void init();
 	//update() searches for removable devices, returns false if empty. /time = 0 is forced update, time expects wxGetLocalTime()
 	bool update(const long time = 0,const bool check = false);  
-	bool is_drive_mounted(const std::string &path);
+	bool is_drive_mounted(const std::string &path) const;
 	void eject_drive(const std::string &path);
 	//returns path to last drive which was used, if none was used, returns device that was enumerated last
-	std::string get_last_save_path();
-	std::string get_last_save_name();
+	std::string get_last_save_path() const;
+	std::string get_last_save_name() const;
 	//returns path to last drive which was used, if none was used, returns empty string
 	std::string get_drive_path();
-	std::vector<DriveData> get_all_drives();
+	std::vector<DriveData> get_all_drives() const;
 	bool is_path_on_removable_drive(const std::string &path);
 	// callback will notify only if device with last save path was removed
 	void add_remove_callback(std::function<void()> callback);
@@ -59,13 +59,13 @@ public:
 	// param as update()
 	bool is_last_drive_removed_with_update(const long time = 0);
 	void set_is_writing(const bool b);
-	bool get_is_writing();
-	bool get_did_eject();
+	bool get_is_writing() const;
+	bool get_did_eject() const;
 	void set_did_eject(const bool b);
-	std::string get_drive_name(const std::string& path);
-	size_t get_drives_count();
-	std::string get_ejected_path();
-	std::string get_ejected_name();
+	std::string get_drive_name(const std::string& path) const;
+	size_t get_drives_count() const;
+	std::string get_ejected_path() const;
+	std::string get_ejected_name() const;
 private:
     RemovableDriveManager();
 	void search_for_drives();
