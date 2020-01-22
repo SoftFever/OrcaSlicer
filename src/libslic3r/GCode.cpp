@@ -8,6 +8,7 @@
 #include "GCode/WipeTower.hpp"
 #include "ShortestPath.hpp"
 #include "Utils.hpp"
+#include "libslic3r.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -1086,6 +1087,52 @@ namespace DoExport {
 	}
 }
 
+// Sort the PrintObjects by their increasing Z, likely useful for avoiding colisions on Deltas during sequential prints.
+static inline std::vector<const PrintObject*> sort_objects_by_z(const Print &print)
+{
+    std::vector<const PrintObject*> objects(print.objects().begin(), print.objects().end());
+	std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size(2) < po2->size(2); });
+	return objects;
+}
+
+// Produce a vector of PrintObjects in the order of their respective ModelObjects in print.model().
+static inline std::vector<const PrintObject*> sort_objects_by_model_order(const Print &print)
+{
+	const Model &model = print.model();
+    // Pair ModelObjects with PrintObjects, remember the order of ModelObjects in the model above.
+	struct ModelObjectOrder {
+		const ModelObject  *model_object;
+		const PrintObject  *print_object;
+		size_t 				order;
+	};
+    // Initialize model_object_order with ModelObjects and their order.
+	std::vector<ModelObjectOrder> model_object_order;
+	model_object_order.reserve(model.objects.size());
+    {
+	    size_t order = 0;
+	    for (const ModelObject *model_object : model.objects)
+            model_object_order.emplace_back(ModelObjectOrder{ model_object, nullptr, order ++ });
+    }
+    // Sort by pointer to ModelObject.
+	std::sort(model_object_order.begin(), model_object_order.end(), [](const ModelObjectOrder &lhs, const ModelObjectOrder &rhs) { return lhs.model_object < rhs.model_object; });
+    // Assign PrintObject pointer to ModelObject.
+	for (const PrintObject *print_object : print.objects()) {
+		auto it = Slic3r::lower_bound_by_predicate(model_object_order.begin(), model_object_order.end(), [print_object](const ModelObjectOrder &model_object_order) { return model_object_order.model_object < print_object->model_object(); });
+        // The non-printable objects (objects outside of the print volume or suppressed objects) will have no partner in the print.objects() list.
+		if (it != model_object_order.end() && it->model_object == print_object->model_object())
+			it->print_object = print_object;
+	}
+    // Sort back to the initial order.
+	std::sort(model_object_order.begin(), model_object_order.end(), [](const ModelObjectOrder &lhs, const ModelObjectOrder &rhs) { return lhs.order < rhs.order; });
+    // Produce the output vector of PrintObjects, sorted by the order of ModelObjects in Model.
+    std::vector<const PrintObject*> objects;
+    objects.reserve(model_object_order.size());
+	for (ModelObjectOrder &order : model_object_order)
+        if (order.print_object != nullptr)
+		    objects.emplace_back(order.print_object);
+	return objects;
+}
+
 #if ENABLE_THUMBNAIL_GENERATOR
 void GCode::_do_export(Print& print, FILE* file, ThumbnailsGeneratorCallback thumbnail_cb)
 #else
@@ -1318,8 +1365,8 @@ void GCode::_do_export(Print& print, FILE* file)
     if (print.config().complete_objects.value) {
         // Print objects from the smallest to the tallest to avoid collisions
         // when moving onto next object starting point.
-        std::vector<PrintObject*> objects(print.objects());
-        std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size(2) < po2->size(2); });       
+        std::vector<const PrintObject*> objects = sort_objects_by_model_order(print);
+//        std::vector<const PrintObject*> objects = sort_objects_by_z(print);
         size_t finished_objects = 0;
         for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
             const PrintObject &object = *objects[object_id];
