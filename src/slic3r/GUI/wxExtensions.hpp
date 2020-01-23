@@ -910,8 +910,8 @@ private:
 
     void        post_ticks_changed_event(const std::string& gcode = "");
     bool        check_ticks_changed_event(const std::string& gcode);
-    void        append_change_extruder_menu_item(wxMenu*);
-    void        append_add_color_change_menu_item(wxMenu*);
+    void        append_change_extruder_menu_item (wxMenu*, bool switch_current_code = false);
+    void        append_add_color_change_menu_item(wxMenu*, bool switch_current_code = false);
 
     bool        is_osx { false };
     wxFont      m_font;
@@ -988,6 +988,7 @@ private:
         bool add_tick   (const int tick, std::string &code, int extruder, double print_z);
         bool edit_tick  (std::set<TICK_CODE>::iterator it, double print_z);
         void switch_code(const std::string& code_from, const std::string& code_to);
+        bool switch_code_for_tick       (std::set<TICK_CODE>::iterator it, const std::string& code_to, const int extruder);
         void erase_all_ticks_with_code  (const std::string& gcode);
         bool has_tick_with_code         (const std::string& gcode);
 
@@ -1002,6 +1003,8 @@ private:
         std::string pause_print_msg = "";
         bool        m_suppress_plus     = false;
         bool        m_suppress_minus    = false;
+
+        std::string get_color_for_tick(TICK_CODE tick, const std::string& code, const int extruder);
     } 
     m_ticks;
 
