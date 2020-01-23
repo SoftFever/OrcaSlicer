@@ -145,6 +145,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Job.hpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
+    GUI/DoubleSlider.cpp
+    GUI/DoubleSlider.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -176,8 +178,8 @@ if (APPLE)
             Utils/MacDarkMode.mm
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
+            GUI/Mouse3DHandlerMac.mm
         )
-    #DK
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 
 endif ()
@@ -187,7 +189,7 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL OpenGL::GLU hidapi)
-#DK
+
 if(APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()

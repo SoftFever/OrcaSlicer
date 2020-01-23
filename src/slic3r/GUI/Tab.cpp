@@ -3033,9 +3033,9 @@ void Tab::save_preset(std::string name /*= ""*/)
             show_error(this, _(L("Cannot overwrite an external profile.")));
             return;
         }
-        if (existing/* && name != preset.name*/)
+        if (existing && name != preset.name)
         {
-            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exist."))) % name).str());
+            wxString msg_text = GUI::from_u8((boost::format(_utf8(L("Preset with name \"%1%\" already exists."))) % name).str());
             msg_text += "\n" + _(L("Replace?"));
             wxMessageDialog dialog(nullptr, msg_text, _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 

@@ -119,6 +119,8 @@ add_library(libslic3r STATIC
     Line.hpp
     Model.cpp
     Model.hpp
+    CustomGCode.cpp
+    CustomGCode.hpp
     Arrange.hpp
     Arrange.cpp
     MotionPlanner.cpp

@@ -226,7 +226,7 @@ private:
         const std::vector<LayerToPrint> &layers,
         const LayerTools  				&layer_tools,
 		// Pairs of PrintObject index and its instance index.
-		const std::vector<std::pair<size_t, size_t>> *ordering,
+		const std::vector<const PrintInstance*> *ordering,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1));
@@ -300,7 +300,7 @@ private:
 		// Object and Support layers for the current print_z, collected for a single object, or for possibly multiple objects with multiple instances.
 		const std::vector<LayerToPrint> 				&layers,
 		// Ordering must be defined for normal (non-sequential print).
-		const std::vector<std::pair<size_t, size_t>> 	*ordering,
+		const std::vector<const PrintInstance*>     	*ordering,
 		// For sequential print, the instance of the object to be printing has to be defined.
 		const size_t                     				 single_object_instance_idx);
 

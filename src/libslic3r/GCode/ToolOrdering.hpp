@@ -114,7 +114,7 @@ public:
     size_t                      wipe_tower_partitions = 0;
     coordf_t 					wipe_tower_layer_height = 0.;
     // Custom G-code (color change, extruder switch, pause) to be performed before this layer starts to print.
-    const Model::CustomGCode   *custom_gcode = nullptr;
+    const CustomGCode::Item    *custom_gcode = nullptr;
 
     WipingExtrusions& wiping_extrusions() {
         m_wiping_extrusions.set_layer_tools_ptr(this);

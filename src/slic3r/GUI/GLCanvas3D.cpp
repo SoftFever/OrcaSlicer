@@ -60,6 +60,7 @@
 #include <float.h>
 #include <algorithm>
 #include <cmath>
+#include "DoubleSlider.hpp"
 #if ENABLE_RENDER_STATISTICS
 #include <chrono>
 #endif // ENABLE_RENDER_STATISTICS
@@ -892,7 +893,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
                                                                 std::vector<float>& colors,
                                                                 std::vector<std::string>& cp_legend_items)
 {
-    std::vector<Model::CustomGCode> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+    std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
 
     const int extruders_cnt = wxGetApp().extruders_edited_cnt();
     if (extruders_cnt == 1) 
@@ -910,7 +911,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         {
             if (custom_code.gcode != ColorChangeCode)
                 continue;
-            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - DoubleSlider::epsilon());
+            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
 
             if (lower_b == print_zs.end())
                 continue;
@@ -2410,7 +2411,7 @@ void GLCanvas3D::load_sla_preview()
     }
 }
 
-void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
+void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
@@ -5245,13 +5246,13 @@ void GLCanvas3D::_load_print_toolpaths()
     volume->indexed_vertex_array.finalize_geometry(m_initialized);
 }
 
-void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<Model::CustomGCode>& color_print_values)
+void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
 {
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
     struct Ctxt
     {
-        const Points                *shifted_copies;
+        const PrintInstances        *shifted_copies;
         std::vector<const Layer*>    layers;
         bool                         has_perimeters;
         bool                         has_infill;
@@ -5259,7 +5260,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         const std::vector<float>*    tool_colors;
         bool                         is_single_material_print;
         int                          extruders_cnt;
-        const std::vector<Model::CustomGCode>*   color_print_values;
+        const std::vector<CustomGCode::Item>*   color_print_values;
 
         static const float*          color_perimeters() { static float color[4] = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
         static const float*          color_infill() { static float color[4] = { 1.0f, 0.5f, 0.5f, 1.f }; return color; } // redish
@@ -5274,7 +5275,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const size_t                 color_print_color_idx_by_layer_idx(const size_t layer_idx) const {
-            const Model::CustomGCode value{layers[layer_idx]->print_z + EPSILON, "", 0, ""};
+            const CustomGCode::Item value{layers[layer_idx]->print_z + EPSILON, "", 0, ""};
             auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             return (it - color_print_values->begin()) % number_tools();
         }
@@ -5284,7 +5285,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             const coordf_t print_z = layers[layer_idx]->print_z;
 
             auto it = std::find_if(color_print_values->begin(), color_print_values->end(),
-                [print_z](const Model::CustomGCode& code)
+                [print_z](const CustomGCode::Item& code)
                 { return fabs(code.print_z - print_z) < EPSILON; });
             if (it != color_print_values->end())
             {
@@ -5305,7 +5306,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 }
             }
 
-            const Model::CustomGCode value{print_z + EPSILON, "", 0, ""};
+            const CustomGCode::Item value{print_z + EPSILON, "", 0, ""};
             it = std::lower_bound(color_print_values->begin(), color_print_values->end(), value);
             while (it != color_print_values->begin())
             {
@@ -5325,7 +5326,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         }
 
     private:
-        int get_m600_color_idx(std::vector<Model::CustomGCode>::const_iterator it) const 
+        int get_m600_color_idx(std::vector<CustomGCode::Item>::const_iterator it) const
         {
             int shift = 0;
             while (it != color_print_values->begin()) {
@@ -5336,7 +5337,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             return extruders_cnt + shift;
         }
 
-        int get_color_idx_for_tool_change(std::vector<Model::CustomGCode>::const_iterator it, const int extruder) const 
+        int get_color_idx_for_tool_change(std::vector<CustomGCode::Item>::const_iterator it, const int extruder) const
         {
             const int current_extruder = it->extruder == 0 ? extruder : it->extruder;
             if (number_tools() == extruders_cnt + 1) // there is no one "M600"
@@ -5352,7 +5353,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
         }
 
-        int get_color_idx_for_color_change(std::vector<Model::CustomGCode>::const_iterator it, const int extruder) const 
+        int get_color_idx_for_color_change(std::vector<CustomGCode::Item>::const_iterator it, const int extruder) const
         {
             if (extruders_cnt == 1)
                 return get_m600_color_idx(it);
@@ -5384,7 +5385,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.is_single_material_print = this->fff_print()->extruders().size()==1;
     ctxt.extruders_cnt = wxGetApp().extruders_edited_cnt();
 
-    ctxt.shifted_copies = &print_object.copies();
+    ctxt.shifted_copies = &print_object.instances();
 
     // order layers by print_z
     {
@@ -5473,7 +5474,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     vol->offsets.push_back(vol->indexed_vertex_array.quad_indices.size());
                     vol->offsets.push_back(vol->indexed_vertex_array.triangle_indices.size());
                 }
-            for (const Point &copy : *ctxt.shifted_copies) {
+            for (const PrintInstance &instance : *ctxt.shifted_copies) {
+                const Point &copy = instance.shift;
                 for (const LayerRegion *layerm : layer->regions()) {
                     if (is_selected_separate_extruder)
                     {

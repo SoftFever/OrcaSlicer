@@ -27,7 +27,9 @@ namespace Slic3r {
 namespace GUI { 
 
 #if _WIN32
+/* currently not used, left for possible future use
 INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+*/
 void RemovableDriveManager::search_for_drives()
 {
 	m_current_drives.clear();
@@ -44,7 +46,7 @@ void RemovableDriveManager::search_for_drives()
 			if (drive_type ==  DRIVE_REMOVABLE)
 			{
 				// get name of drive
-				std::wstring wpath = boost::nowide::widen(path);//std::wstring(path.begin(), path.end());
+				std::wstring wpath = boost::nowide::widen(path);
 				std::wstring volume_name;
 				volume_name.resize(1024);
 				std::wstring file_system_name;
@@ -54,12 +56,6 @@ void RemovableDriveManager::search_for_drives()
 				if(error != 0)
 				{
 					volume_name.erase(std::find(volume_name.begin(), volume_name.end(), '\0'), volume_name.end());
-					/*
-					if (volume_name == L"")
-					{
-						volume_name = L"REMOVABLE DRIVE";
-					}
-					*/
 					if (file_system_name != L"")
 					{
 						ULARGE_INTEGER free_space;
@@ -109,6 +105,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 			CloseHandle(handle);
 			m_did_eject = true;
 			m_current_drives.erase(it);
+			m_ejected_path = m_last_save_path;
+			m_ejected_name = m_last_save_name;
 			break;
 		}
 	}
@@ -145,6 +143,7 @@ void RemovableDriveManager::register_window()
 {
 	//creates new unvisible window that is recieving callbacks from system
 	// structure to register 
+	/* currently not used, left for possible future use
 	WNDCLASSEX wndClass;
 	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -180,13 +179,15 @@ void RemovableDriveManager::register_window()
 	}
 	//ShowWindow(hWnd, SW_SHOWNORMAL);
 	UpdateWindow(hWnd);
+	*/
 }
-
+/* currently not used, left for possible future use
 INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	// here we need to catch messeges about device removal
 	// problem is that when ejecting usb (how is it implemented above) there is no messege dispached. Only after physical removal of the device.
 	//uncomment register_window() in init() to register and comment update() in GUI_App.cpp (only for windows!) to stop recieving periodical updates 
+	
 	LRESULT lRet = 1;
 	static HDEVNOTIFY hDeviceNotify;
 
@@ -219,8 +220,9 @@ INT_PTR WINAPI WinProcCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		break;
 	}
 	return lRet;
+	
 }
-
+*/
 #else
 void RemovableDriveManager::search_for_drives()
 {
@@ -239,35 +241,10 @@ void RemovableDriveManager::search_for_drives()
     //search /media/* folder
 	search_path("/media/*", "/media");
 
-	//search /Volumes/* folder (OSX)
 	//search_path("/Volumes/*", "/Volumes");
     std::string path(std::getenv("USER"));
 	std::string pp(path);
-	//std::cout << "user: "<< path << "\n";
-	//if program is run with sudo, we have to search for all users 
-	// but do we want that?
-	/*
-	if(path == "root"){ 
-		while (true) {
-	        passwd* entry = getpwent();
-	        if (!entry) {
-	            break;
-	        }
-	        path = entry->pw_name;
-	        pp = path;
-	        //search /media/USERNAME/* folder
-			pp = "/media/"+pp;
-			path = "/media/" + path + "/*";
-			search_path(path, pp);
 
-			//search /run/media/USERNAME/* folder
-			path = "/run" + path;
-			pp = "/run"+pp;
-			search_path(path, pp);
-	    }
-	    endpwent();
-	}else
-	*/
 	{
 		//search /media/USERNAME/* folder
 		pp = "/media/"+pp;
@@ -310,7 +287,6 @@ void RemovableDriveManager::inspect_file(const std::string &path, const std::str
 	{
 		//free space
 		boost::filesystem::space_info si = boost::filesystem::space(path);
-		//std::cout << "Free space: " << fs_si.free << "Available space: " << fs_si.available << " " << path << '\n';
 		if(si.available != 0)
 		{
 			//user id
@@ -353,7 +329,7 @@ void RemovableDriveManager::eject_drive(const std::string &path)
             		i++;
             	}
             }
-            std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
+            //std::cout<<"Ejecting "<<(*it).name<<" from "<< correct_path<<"\n";
 // there is no usable command in c++ so terminal command is used instead
 // but neither triggers "succesful safe removal messege"
             std::string command = "";
@@ -373,7 +349,8 @@ void RemovableDriveManager::eject_drive(const std::string &path)
 
 			m_did_eject = true;
             m_current_drives.erase(it);
-            		
+			m_ejected_path = m_last_save_path;
+			m_ejected_name = m_last_save_name;
             break;
 		}
 
@@ -385,7 +362,7 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	if (m_current_drives.empty())
 		return false;
 	std::size_t found = path.find_last_of("/");
-	std::string new_path = path.substr(0,found);
+	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
 		if(compare_filesystem_id(new_path, (*it).path))
@@ -393,10 +370,10 @@ bool RemovableDriveManager::is_path_on_removable_drive(const std::string &path)
 	}
 	return false;
 }
-std::string RemovableDriveManager::get_drive_from_path(const std::string& path)
+std::string RemovableDriveManager::get_drive_from_path(const std::string& path) 
 {
 	std::size_t found = path.find_last_of("/");
-	std::string new_path = path.substr(0, found);
+	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
 	//check if same filesystem
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
@@ -414,7 +391,10 @@ RemovableDriveManager::RemovableDriveManager():
 	m_last_save_name(""),
 	m_last_save_path_verified(false),
 	m_is_writing(false),
-	m_did_eject(false)
+	m_did_eject(false),
+	m_plater_ready_to_slice(true),
+	m_ejected_path(""),
+	m_ejected_name("")
 #if __APPLE__
 	, m_rdmmm(new RDMMMWrapper())
 #endif
@@ -451,13 +431,16 @@ bool RemovableDriveManager::update(const long time,const bool check)
 	search_for_drives();
 	if (m_drives_count != m_current_drives.size())
 	{
-		if (check)check_and_notify();
+		if (check)
+		{
+			check_and_notify();
+		}
 		m_drives_count = m_current_drives.size();
 	}
 	return !m_current_drives.empty();
 }
 
-bool  RemovableDriveManager::is_drive_mounted(const std::string &path)
+bool  RemovableDriveManager::is_drive_mounted(const std::string &path) const
 {
 	for (auto it = m_current_drives.begin(); it != m_current_drives.end(); ++it)
 	{
@@ -468,7 +451,7 @@ bool  RemovableDriveManager::is_drive_mounted(const std::string &path)
 	}
 	return false;
 }
-std::string RemovableDriveManager::get_drive_path()
+std::string RemovableDriveManager::get_drive_path() 
 {
 	if (m_current_drives.size() == 0)
 	{
@@ -479,23 +462,27 @@ std::string RemovableDriveManager::get_drive_path()
 		return m_last_save_path;
 	return m_current_drives.back().path;
 }
-std::string RemovableDriveManager::get_last_save_path()
+std::string RemovableDriveManager::get_last_save_path() const
 {
 	if (!m_last_save_path_verified)
 		return "";
 	return m_last_save_path;
 }
-std::string RemovableDriveManager::get_last_save_name()
+std::string RemovableDriveManager::get_last_save_name() const
 {
 	return m_last_save_name;
 }
-std::vector<DriveData> RemovableDriveManager::get_all_drives()
+std::vector<DriveData> RemovableDriveManager::get_all_drives() const
 {
 	return m_current_drives;
 }
 void RemovableDriveManager::check_and_notify()
 {
-	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && m_last_save_path_verified && !is_drive_mounted(m_last_save_path))
+	if(m_drive_count_changed_callback)
+	{
+		m_drive_count_changed_callback(m_plater_ready_to_slice);
+	}
+	if(m_callbacks.size() != 0 && m_drives_count > m_current_drives.size() && !is_drive_mounted(m_last_save_path))
 	{
 		for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
 		{
@@ -503,18 +490,35 @@ void RemovableDriveManager::check_and_notify()
 		}
 	}
 }
-void RemovableDriveManager::add_callback(std::function<void()> callback)
+void RemovableDriveManager::add_remove_callback(std::function<void()> callback)
 {
 	m_callbacks.push_back(callback);
 }
-void  RemovableDriveManager::erase_callbacks()
+void RemovableDriveManager::erase_callbacks()
 {
 	m_callbacks.clear();
 }
+void RemovableDriveManager::set_drive_count_changed_callback(std::function<void(const bool)> callback)
+{
+	m_drive_count_changed_callback = callback;
+}
+void RemovableDriveManager::set_plater_ready_to_slice(bool b)
+{
+	m_plater_ready_to_slice = b;
+}
 void RemovableDriveManager::set_last_save_path(const std::string& path)
 {
-	m_last_save_path_verified = false;
-	m_last_save_path = path;
+	if(m_last_save_path_verified)// if old path is on drive 
+	{
+		if(get_drive_from_path(path) != "") //and new is too, rewrite the path
+		{
+			m_last_save_path_verified = false;
+			m_last_save_path = path;
+		}//else do nothing
+	}else
+	{
+		m_last_save_path = path;
+	}
 }
 void RemovableDriveManager::verify_last_save_path()
 {
@@ -529,7 +533,7 @@ void RemovableDriveManager::verify_last_save_path()
 		reset_last_save_path();
 	}
 }
-std::string RemovableDriveManager::get_drive_name(const std::string& path)
+std::string RemovableDriveManager::get_drive_name(const std::string& path) const
 {
 	if (m_current_drives.size() == 0)
 		return "";
@@ -542,18 +546,17 @@ std::string RemovableDriveManager::get_drive_name(const std::string& path)
 	}
 	return "";
 }
-bool RemovableDriveManager::is_last_drive_removed()
+bool RemovableDriveManager::is_last_drive_removed() 
 {
-	//std::cout<<"is last: "<<m_last_save_path;
-	//m_drives_count = m_current_drives.size();
 	if(!m_last_save_path_verified)
 	{
-		//std::cout<<"\n";
 		return true;
 	}
 	bool r = !is_drive_mounted(m_last_save_path);
-	if (r) reset_last_save_path();
-	//std::cout<<" "<< r <<"\n";
+	if (r) 
+	{
+		reset_last_save_path();
+	}
 	return r;
 }
 bool RemovableDriveManager::is_last_drive_removed_with_update(const long time)
@@ -575,16 +578,28 @@ void RemovableDriveManager::set_is_writing(const bool b)
 		m_did_eject = false;
 	}
 }
-bool RemovableDriveManager::get_is_writing()
+bool RemovableDriveManager::get_is_writing() const
 {
 	return m_is_writing;
 }
-bool RemovableDriveManager::get_did_eject()
+bool RemovableDriveManager::get_did_eject() const
 {
 	return m_did_eject;
 }
-void RemovableDriveManager::set_did_eject(const bool b)
+void RemovableDriveManager::set_did_eject(const bool b) 
 {
 	m_did_eject = b;
+}
+size_t RemovableDriveManager::get_drives_count() const   
+{
+	return m_current_drives.size();
+}
+std::string RemovableDriveManager::get_ejected_path() const
+{
+	return m_ejected_path;
+}
+std::string RemovableDriveManager::get_ejected_name() const
+{
+	return m_ejected_name;
 }
 }}//namespace Slicer::Gui

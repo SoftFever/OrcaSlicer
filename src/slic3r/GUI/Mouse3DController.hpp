@@ -14,9 +14,15 @@
 #include <vector>
 #include <chrono>
 
+
+
 namespace Slic3r {
 namespace GUI {
 
+#if __APPLE__
+    class Mouse3DHandlerMac;
+#endif//__APPLE__
+    
 struct Camera;
 class GLCanvas3D;
 
@@ -141,6 +147,7 @@ class Mouse3DController
     hid_device* m_device;
     std::string m_device_str;
     bool m_running;
+    bool m_mac_mouse_connected;
     mutable bool m_show_settings_dialog;
     // set to true when ther user closes the dialog by clicking on [X] or [Close] buttons
     mutable bool m_settings_dialog_closed_by_user;
@@ -152,9 +159,11 @@ public:
     void init();
     void shutdown();
 
-    bool is_device_connected() const { return m_device != nullptr; }
-    bool is_running() const { return m_running; }
+    bool is_device_connected() const { return m_device != nullptr || m_mac_mouse_connected; }
+    bool is_running() const { return m_running || m_mac_mouse_connected; }
 
+    void set_mac_mouse_connected(bool b){m_mac_mouse_connected = b;};
+    
     bool process_mouse_wheel() { return m_state.process_mouse_wheel(); }
 
     bool apply(Camera& camera);
@@ -163,26 +172,43 @@ public:
     void show_settings_dialog(bool show) { m_show_settings_dialog = show && is_running(); }
     void render_settings_dialog(GLCanvas3D& canvas) const;
 
+    typedef std::array<double, 6> DataPacketAxis;
+    void handle_input_axis(const DataPacketAxis& packet);
 private:
     bool connect_device();
     void disconnect_device();
     void start();
     void stop() { m_running = false; }
 
+    typedef std::array<unsigned char, 13> DataPacketRaw;
     // secondary thread methods
     void run();
     void collect_input();
+    void handle_input(const DataPacketRaw& packet, const int packet_lenght);
+    bool handle_packet(const DataPacketRaw& packet);
+    bool handle_wireless_packet(const DataPacketRaw& packet);
+    bool handle_packet_translation(const DataPacketRaw& packet);
+    bool handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte);
+    bool handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size);
 
-    typedef std::array<unsigned char, 13> DataPacket;
-    bool handle_packet(const DataPacket& packet);
-    bool handle_wireless_packet(const DataPacket& packet);
-    bool handle_packet_translation(const DataPacket& packet);
-    bool handle_packet_rotation(const DataPacket& packet, unsigned int first_byte);
-    bool handle_packet_button(const DataPacket& packet, unsigned int packet_size);
+#if __APPLE__
+    Mouse3DHandlerMac* m_handler_mac;
+#endif//__APPLE__
 };
+
+#if __APPLE__
+class Mouse3DHandlerMac{
+ public:
+  Mouse3DHandlerMac(Mouse3DController* controller);
+  ~Mouse3DHandlerMac();
+
+  bool available();
+};
+#endif//__APPLE__
 
 } // namespace GUI
 } // namespace Slic3r
+
 
 #endif // slic3r_Mouse3DController_hpp_
 

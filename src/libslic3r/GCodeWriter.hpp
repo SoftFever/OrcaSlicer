@@ -10,11 +10,6 @@
 
 namespace Slic3r {
 
-// Additional Codes which can be set by user using DoubleSlider
-static constexpr char ColorChangeCode[]     = "M600";
-static constexpr char PausePrintCode[]      = "M601";
-static constexpr char ToolChangeCode[]  = "tool_change";
-
 class GCodeWriter {
 public:
     GCodeConfig config;

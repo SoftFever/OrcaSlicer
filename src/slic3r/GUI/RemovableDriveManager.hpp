@@ -35,19 +35,23 @@ public:
 	void init();
 	//update() searches for removable devices, returns false if empty. /time = 0 is forced update, time expects wxGetLocalTime()
 	bool update(const long time = 0,const bool check = false);  
-	bool is_drive_mounted(const std::string &path);
+	bool is_drive_mounted(const std::string &path) const;
 	void eject_drive(const std::string &path);
 	//returns path to last drive which was used, if none was used, returns device that was enumerated last
-	std::string get_last_save_path();
-	std::string get_last_save_name();
+	std::string get_last_save_path() const;
+	std::string get_last_save_name() const;
 	//returns path to last drive which was used, if none was used, returns empty string
 	std::string get_drive_path();
-	std::vector<DriveData> get_all_drives();
+	std::vector<DriveData> get_all_drives() const;
 	bool is_path_on_removable_drive(const std::string &path);
 	// callback will notify only if device with last save path was removed
-	void add_callback(std::function<void()> callback);
-	// erases all callbacks added by add_callback()
+	void add_remove_callback(std::function<void()> callback);
+	// erases all remove callbacks added by add_remove_callback()
 	void erase_callbacks(); 
+	//drive_count_changed callback is called on every added or removed device
+	void set_drive_count_changed_callback(std::function<void(const bool)> callback);
+	//thi serves to set correct value for drive_count_changed callback
+	void set_plater_ready_to_slice(bool b);
 	// marks one of the eveices in vector as last used
 	void set_last_save_path(const std::string &path);
 	void verify_last_save_path();
@@ -55,10 +59,13 @@ public:
 	// param as update()
 	bool is_last_drive_removed_with_update(const long time = 0);
 	void set_is_writing(const bool b);
-	bool get_is_writing();
-	bool get_did_eject();
+	bool get_is_writing() const;
+	bool get_did_eject() const;
 	void set_did_eject(const bool b);
-	std::string get_drive_name(const std::string& path);
+	std::string get_drive_name(const std::string& path) const;
+	size_t get_drives_count() const;
+	std::string get_ejected_path() const;
+	std::string get_ejected_name() const;
 private:
     RemovableDriveManager();
 	void search_for_drives();
@@ -70,6 +77,7 @@ private:
 
 	std::vector<DriveData> m_current_drives;
 	std::vector<std::function<void()>> m_callbacks;
+	std::function<void(const bool)> m_drive_count_changed_callback;
 	size_t m_drives_count;
 	long m_last_update;
 	std::string m_last_save_path;
@@ -77,6 +85,9 @@ private:
 	std::string m_last_save_name;
 	bool m_is_writing;//on device
 	bool m_did_eject;
+	bool m_plater_ready_to_slice;
+	std::string m_ejected_path;
+	std::string m_ejected_name;
 #if _WIN32
 	//registers for notifications by creating invisible window
 	void register_window();

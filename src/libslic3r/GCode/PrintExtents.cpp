@@ -121,9 +121,9 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
         if (support_layer)
             for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                 bbox_this.merge(extrusionentity_extents(extrusion_entity));
-        for (const Point &offset : print_object.copies()) {
+        for (const PrintInstance &instance : print_object.instances()) {
             BoundingBoxf bbox_translated(bbox_this);
-            bbox_translated.translate(unscale(offset));
+            bbox_translated.translate(unscale(instance.shift));
             bbox.merge(bbox_translated);
         }
     }

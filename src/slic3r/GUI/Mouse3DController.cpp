@@ -15,6 +15,9 @@
 
 #include <bitset>
 
+//unofficial linux lib
+//#include <spnav.h>
+
 // WARN: If updating these lists, please also update resources/udev/90-3dconnexion.rules
 
 static const std::vector<int> _3DCONNEXION_VENDORS =
@@ -204,7 +207,11 @@ Mouse3DController::Mouse3DController()
     , m_device_str("")
     , m_running(false)
     , m_show_settings_dialog(false)
+    , m_mac_mouse_connected(false)
     , m_settings_dialog_closed_by_user(false)
+#if __APPLE__
+    ,m_handler_mac(new Mouse3DHandlerMac(this))
+#endif //__APPLE__
 {
     m_last_time = std::chrono::high_resolution_clock::now();
 }
@@ -244,7 +251,7 @@ bool Mouse3DController::apply(Camera& camera)
         return false;
 
     // check if the user unplugged the device
-    if (!m_running && is_device_connected())
+    if (!is_running() && is_device_connected())
     {
         disconnect_device();
         // hides the settings dialog if the user un-plug the device
@@ -261,7 +268,7 @@ bool Mouse3DController::apply(Camera& camera)
 
 void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
 {
-    if (!m_running || !m_show_settings_dialog)
+    if (!is_running() || !m_show_settings_dialog)
         return;
 
     // when the user clicks on [X] or [Close] button we need to trigger
@@ -397,6 +404,9 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
 
 bool Mouse3DController::connect_device()
 {
+#ifdef __APPLE__
+    return false;
+#endif//__APPLE__
     static const long long DETECTION_TIME_MS = 2000; // two seconds
 
     if (is_device_connected())
@@ -405,7 +415,7 @@ bool Mouse3DController::connect_device()
     // check time since last detection took place
     if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_last_time).count() < DETECTION_TIME_MS)
         return false;
-
+    
     m_last_time = std::chrono::high_resolution_clock::now();
 
     // Enumerates devices
@@ -528,7 +538,7 @@ bool Mouse3DController::connect_device()
     {
         if (device.second.size() == 1)
         {
-#ifdef __linux__
+#if defined(__linux__)
             hid_device* test_device = hid_open(device.first.first, device.first.second, nullptr);
             if (test_device != nullptr)
             {
@@ -536,7 +546,7 @@ bool Mouse3DController::connect_device()
 #else
             if (device.second.front().has_valid_usage())
             {
-#endif // __linux__
+#endif // __linux__ 
                 vendor_id = device.first.first;
                 product_id = device.first.second;
                 break;
@@ -553,6 +563,7 @@ bool Mouse3DController::connect_device()
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
                 std::cout << "Test device: " << std::hex << device.first.first << std::dec << "/" << std::hex << device.first.second << std::dec << " \"" << data.path << "\"";
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+
 #ifdef __linux__
                 hid_device* test_device = hid_open_path(data.path.c_str());
                 if (test_device != nullptr)
@@ -567,7 +578,7 @@ bool Mouse3DController::connect_device()
                     hid_close(test_device);
                     break;
                 }
-#else
+#else // !__linux__
                 if (data.has_valid_usage())
                 {
                     path = data.path;
@@ -632,7 +643,9 @@ bool Mouse3DController::connect_device()
         BOOST_LOG_TRIVIAL(info) << "Product id..........: " << product_id << " (" << std::hex << product_id << std::dec << ")";
         if (!path.empty())
             BOOST_LOG_TRIVIAL(info) << "Path................: '" << path << "'";
-
+#if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
+        std::cout << "Opened device." << std::endl;
+#endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
         // get device parameters from the config, if present
         double translation_speed = 4.0;
         float rotation_speed = 4.0;
@@ -717,7 +730,7 @@ void Mouse3DController::run()
 }
 void Mouse3DController::collect_input()
 {
-    DataPacket packet = { 0 };
+    DataPacketRaw packet = { 0 };
     int res = hid_read_timeout(m_device, packet.data(), packet.size(), 100);
     if (res < 0)
     {
@@ -725,10 +738,47 @@ void Mouse3DController::collect_input()
         stop();
         return;
     }
-
+	handle_input(packet, res);
+}
+    
+void Mouse3DController::handle_input_axis(const DataPacketAxis& packet)
+{
+    if (!wxGetApp().IsActive())
+        return;
+    bool appended = false;
+    //translation
+    double deadzone = m_state.get_translation_deadzone();
+    Vec3d translation(std::abs(packet[0]) > deadzone ? -packet[0] : 0.0,
+                      std::abs(packet[1]) > deadzone ?  packet[1] : 0.0,
+                      std::abs(packet[2]) > deadzone ?  packet[2] : 0.0);
+    if (!translation.isApprox(Vec3d::Zero()))
+    {
+        m_state.append_translation(translation);
+        appended = true;
+    }
+    //rotation
+    deadzone = m_state.get_rotation_deadzone();
+    Vec3f rotation(std::abs(packet[3]) > deadzone ? (float)packet[3] : 0.0,
+                   std::abs(packet[4]) > deadzone ? (float)packet[4] : 0.0,
+                   std::abs(packet[5]) > deadzone ? (float)packet[5] : 0.0);
+    if (!rotation.isApprox(Vec3f::Zero()))
+    {
+        m_state.append_rotation(rotation);
+        appended = true;
+    }
+    if (appended)
+    {
+        wxGetApp().plater()->set_current_canvas_as_dirty();
+        // ask for an idle event to update 3D scene
+        wxWakeUpIdle();
+    }
+}
+void Mouse3DController::handle_input(const DataPacketRaw& packet, const int packet_lenght)
+{
     if (!wxGetApp().IsActive())
         return;
 
+    int res = packet_lenght;
     bool updated = false;
 
     if (res == 7)
@@ -751,7 +801,7 @@ void Mouse3DController::collect_input()
     }
 }
 
-bool Mouse3DController::handle_packet(const DataPacket& packet)
+bool Mouse3DController::handle_packet(const DataPacketRaw& packet)
 {
     switch (packet[0])
     {
@@ -795,7 +845,7 @@ bool Mouse3DController::handle_packet(const DataPacket& packet)
     return false;
 }
 
-bool Mouse3DController::handle_wireless_packet(const DataPacket& packet)
+bool Mouse3DController::handle_wireless_packet(const DataPacketRaw& packet)
 {
     switch (packet[0])
     {
@@ -842,7 +892,7 @@ double convert_input(unsigned char first, unsigned char second, double deadzone)
     return (std::abs(ret) > deadzone) ? ret : 0.0;
 }
 
-bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
+bool Mouse3DController::handle_packet_translation(const DataPacketRaw& packet)
 {
     double deadzone = m_state.get_translation_deadzone();
     Vec3d translation(-convert_input(packet[1], packet[2], deadzone),
@@ -858,7 +908,7 @@ bool Mouse3DController::handle_packet_translation(const DataPacket& packet)
     return false;
 }
 
-bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigned int first_byte)
+bool Mouse3DController::handle_packet_rotation(const DataPacketRaw& packet, unsigned int first_byte)
 {
     double deadzone = (double)m_state.get_rotation_deadzone();
 #if ENABLE_6DOF_CAMERA
@@ -880,7 +930,7 @@ bool Mouse3DController::handle_packet_rotation(const DataPacket& packet, unsigne
     return false;
 }
 
-bool Mouse3DController::handle_packet_button(const DataPacket& packet, unsigned int packet_size)
+bool Mouse3DController::handle_packet_button(const DataPacketRaw& packet, unsigned int packet_size)
 {
     unsigned int data = 0;
     for (unsigned int i = 1; i < packet_size; ++i)

@@ -1702,6 +1702,9 @@ void ConfigWizard::priv::on_3rdparty_install(const VendorProfile *vendor, bool i
             if (page->install && !install)
                 page->select_all(false);
             page->install = install;
+            // if some 3rd vendor is selected, select first printer for them
+            if (install)
+                page->printer_pickers[0]->select_one(0, true);
             page->Layout();
         }
 
@@ -2020,7 +2023,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_temps    = new PageTemperatures(this));
 
     // Pages for 3rd party vendors
-    p->create_3rdparty_pages();   // Needs to ne done _before_ creating PageVendors
+    p->create_3rdparty_pages();   // Needs to be done _before_ creating PageVendors
     p->add_page(p->page_vendors = new PageVendors(this));
 
     p->load_pages();

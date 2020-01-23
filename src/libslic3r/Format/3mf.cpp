@@ -1191,6 +1191,14 @@ namespace Slic3r {
 
             for (const auto& code : code_tree)
             {
+                if (code.first == "mode")
+                {
+                    pt::ptree tree = code.second;
+                    std::string mode = tree.get<std::string>("<xmlattr>.value");
+                    m_model->custom_gcode_per_print_z.mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
+                                                             mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
+                                                             CustomGCode::Mode::MultiExtruder;
+                }
                 if (code.first != "code")
                     continue;
                 pt::ptree tree = code.second;
@@ -1199,7 +1207,7 @@ namespace Slic3r {
                 int extruder        = tree.get<int>         ("<xmlattr>.extruder"   );
                 std::string color   = tree.get<std::string> ("<xmlattr>.color"      );
 
-                m_model->custom_gcode_per_print_z.gcodes.push_back(Model::CustomGCode{print_z, gcode, extruder, color}) ;
+                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, gcode, extruder, color}) ;
             }
         }
     }
@@ -2767,7 +2775,7 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
         pt::ptree tree;
         pt::ptree& main_tree = tree.add("custom_gcodes_per_print_z", "");
 
-        for (const Model::CustomGCode& code : model.custom_gcode_per_print_z.gcodes)
+        for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
             // store minX and maxZ
@@ -2775,7 +2783,13 @@ bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archiv
             code_tree.put("<xmlattr>.gcode"     , code.gcode    );
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
-        }       
+        }
+
+        pt::ptree& mode_tree = main_tree.add("mode", "");
+        // store mode of a custom_gcode_per_print_z 
+        mode_tree.put("<xmlattr>.value", model.custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
+                                         model.custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle ?  CustomGCode::MultiAsSingleMode :
+                                         CustomGCode::MultiExtruderMode);
 
         if (!tree.empty())
         {

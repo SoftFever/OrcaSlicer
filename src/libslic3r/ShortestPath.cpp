@@ -1946,24 +1946,26 @@ ClipperLib::PolyNodes chain_clipper_polynodes(const Points &points, const Clippe
 	return chain_path_items(points, items);
 }
 
-std::vector<std::pair<size_t, size_t>> chain_print_object_instances(const Print &print)
+std::vector<const PrintInstance*> chain_print_object_instances(const Print &print)
 {
     // Order objects using a nearest neighbor search.
     Points object_reference_points;
     std::vector<std::pair<size_t, size_t>> instances;
     for (size_t i = 0; i < print.objects().size(); ++ i) {
     	const PrintObject &object = *print.objects()[i];
-    	for (size_t j = 0; j < object.copies().size(); ++ j) {
-        	object_reference_points.emplace_back(object.copy_center(j));
+    	for (size_t j = 0; j < object.instances().size(); ++ j) {
+        	object_reference_points.emplace_back(object.instance_center(j));
         	instances.emplace_back(i, j);
         }
     }
 	auto segment_end_point = [&object_reference_points](size_t idx, bool /* first_point */) -> const Point& { return object_reference_points[idx]; };
 	std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, instances.size(), nullptr);
-    std::vector<std::pair<size_t, size_t>> out;
+    std::vector<const PrintInstance*> out;
 	out.reserve(instances.size());
-	for (auto &segment_and_reversal : ordered)
-		out.emplace_back(instances[segment_and_reversal.first]);
+	for (auto &segment_and_reversal : ordered) {
+		const std::pair<size_t, size_t> &inst = instances[segment_and_reversal.first];
+		out.emplace_back(&print.objects()[inst.first]->instances()[inst.second]);
+	}
 	return out;
 }
 

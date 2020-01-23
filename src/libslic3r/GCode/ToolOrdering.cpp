@@ -133,7 +133,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 		num_extruders > 1 && print.object_extruders().size() == 1) {
 		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
 		// There may be custom per-layer tool changes available at the model.
-		per_layer_extruder_switches = custom_tool_changes(print.model(), num_extruders);
+		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_extruders);
 	}
 
     // Collect extruders reuqired to print the layers.
@@ -462,7 +462,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	// Only valid for non-sequential print.
 	assert(! print.config().complete_objects.value);
 
-	const Model::CustomGCodeInfo	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+	const CustomGCode::Info	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
 	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
@@ -483,7 +483,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			// Custom G-codes were processed.
 			break;
 		// Some custom G-code is configured for this layer or a layer below.
-		const Model::CustomGCode &custom_gcode = *custom_gcode_it;
+		const CustomGCode::Item &custom_gcode = *custom_gcode_it;
 		// print_z of the layer below the current layer.
 		coordf_t print_z_below = 0.;
 		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())
@@ -491,7 +491,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
 			// The custom G-code applies to the current layer.
 			if ( tool_changes_as_color_changes || custom_gcode.gcode != ColorChangeCode || 
-                (custom_gcode.extruder <= num_extruders && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]))
+                (custom_gcode.extruder <= int(num_extruders) && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]))
 				// If it is color change, it will actually be useful as the exturder above will print.
         		lt.custom_gcode = &custom_gcode;
 			// Consume that custom G-code event.
@@ -602,7 +602,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
         const Layer* this_layer = object->get_layer_at_printz(lt.print_z, EPSILON);
         if (this_layer == nullptr)
         	continue;
-        size_t num_of_copies = object->copies().size();
+        size_t num_of_copies = object->instances().size();
 
         // iterate through copies (aka PrintObject instances) first, so that we mark neighbouring infills to minimize travel moves
         for (unsigned int copy = 0; copy < num_of_copies; ++copy) {
@@ -677,7 +677,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
         const Layer* this_layer = object->get_layer_at_printz(lt.print_z, EPSILON);
         if (this_layer == nullptr)
         	continue;
-        size_t num_of_copies = object->copies().size();
+        size_t num_of_copies = object->instances().size();
 
         for (size_t copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
             for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {

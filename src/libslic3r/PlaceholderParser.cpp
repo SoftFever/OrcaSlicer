@@ -338,7 +338,7 @@ namespace client
             case TYPE_INT :
                 return expr<Iterator>(this->i(), start_pos, this->it_range.end());
             case TYPE_DOUBLE:
-                return expr<Iterator>((int)(this->d()), start_pos, this->it_range.end()); 
+                return expr<Iterator>(static_cast<int>(this->d()), start_pos, this->it_range.end()); 
             default:
                 this->throw_exception("Cannot convert to integer.");
             }
@@ -418,7 +418,7 @@ namespace client
         {
             this->throw_if_not_numeric("Cannot divide a non-numeric type.");
             rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
-            if ((this->type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+            if ((rhs.type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
                 rhs.throw_exception("Division by zero");
             if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
                 double d = this->as_d() / rhs.as_d();
@@ -434,7 +434,7 @@ namespace client
         {
             this->throw_if_not_numeric("Cannot divide a non-numeric type.");
             rhs.throw_if_not_numeric("Cannot divide with a non-numeric type.");
-            if ((this->type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
+            if ((rhs.type == TYPE_INT) ? (rhs.i() == 0) : (rhs.d() == 0.))
                 rhs.throw_exception("Division by zero");
             if (this->type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) {
                 double d = std::fmod(this->as_d(), rhs.as_d());
@@ -845,7 +845,7 @@ namespace client
                 } else {
                     // Use the human readable error message.
                     msg += ". ";
-                    msg + it->second;
+                    msg += it->second;
                 }
             }
             msg += '\n';
@@ -1134,7 +1134,7 @@ namespace client
                 static void string_(boost::iterator_range<Iterator> &it_range, expr<Iterator> &out)
                         { out = expr<Iterator>(std::string(it_range.begin() + 1, it_range.end() - 1), it_range.begin(), it_range.end()); }
                 static void expr_(expr<Iterator> &value, Iterator &end_pos, expr<Iterator> &out)
-                        { out = expr<Iterator>(std::move(value), out.it_range.begin(), end_pos); }
+                        { auto begin_pos = out.it_range.begin(); out = expr<Iterator>(std::move(value), begin_pos, end_pos); }
                 static void minus_(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.unary_minus(out.it_range.begin()); }
                 static void not_(expr<Iterator> &value, expr<Iterator> &out)
@@ -1152,8 +1152,7 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
                 |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
-                                                                    //FIXME this is likley not correct
-                |   (kw["int"] > '(' > unary_expression(_r1) /* > ')' */   )  [ px::bind(&FactorActions::to_int,  _1,     _val) ]
+                |   (kw["int"] > '(' > unary_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1,     _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
@@ -1181,6 +1180,7 @@ namespace client
             keywords.add
                 ("and")
                 ("if")
+                ("int")
                 //("inf")
                 ("else")
                 ("elsif")
