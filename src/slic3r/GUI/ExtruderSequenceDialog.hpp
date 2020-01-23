@@ -2,7 +2,7 @@
 #define slic3r_GUI_ExtruderSequenceDialog_hpp_
 
 #include "GUI_Utils.hpp"
-#include "wxExtensions.hpp"
+#include "DoubleSlider.hpp"
 
 class wxTextCtrl;
 class wxFlexGridSizer;

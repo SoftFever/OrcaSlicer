@@ -10,7 +10,7 @@
 #include "GLCanvas3DManager.hpp"
 #include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
-#include "wxExtensions.hpp"
+#include "DoubleSlider.hpp"
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
@@ -584,7 +584,7 @@ void Preview::update_view_type(bool slice_completed)
 
 void Preview::create_double_slider()
 {
-    m_slider = new DoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
+    m_slider = new DoubleSlider::Control(this, wxID_ANY, 0, 0, 0, 100);
     m_slider->EnableTickManipulation(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
 
     m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
@@ -595,7 +595,7 @@ void Preview::create_double_slider()
     m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
 
 
-    Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
+    Bind(DoubleSlider::wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
         Model& model = wxGetApp().plater()->model();
         model.custom_gcode_per_print_z = m_slider->GetTicksValues();
         m_schedule_background_process();

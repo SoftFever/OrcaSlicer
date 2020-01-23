@@ -60,6 +60,7 @@
 #include <float.h>
 #include <algorithm>
 #include <cmath>
+#include "DoubleSlider.hpp"
 #if ENABLE_RENDER_STATISTICS
 #include <chrono>
 #endif // ENABLE_RENDER_STATISTICS
@@ -910,7 +911,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_items(  const GLCanvas3D
         {
             if (custom_code.gcode != ColorChangeCode)
                 continue;
-            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - DoubleSlider::epsilon());
+            auto lower_b = std::lower_bound(print_zs.begin(), print_zs.end(), custom_code.print_z - Slic3r::DoubleSlider::epsilon());
 
             if (lower_b == print_zs.end())
                 continue;

@@ -15,7 +15,6 @@ class wxChoice;
 class wxComboCtrl;
 class wxBitmapComboBox;
 class wxCheckBox;
-class DoubleSlider;
 
 namespace Slic3r {
 
@@ -24,6 +23,10 @@ class Print;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
 class Model;
+
+namespace DoubleSlider {
+    class Control;
+};
 
 namespace GUI {
 
@@ -103,7 +106,7 @@ class Preview : public wxPanel
     bool m_loaded;
     bool m_enabled;
 
-    DoubleSlider*       m_slider {nullptr};
+    DoubleSlider::Control*       m_slider {nullptr};
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 

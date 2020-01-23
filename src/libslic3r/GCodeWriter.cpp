@@ -1,4 +1,5 @@
 #include "GCodeWriter.hpp"
+#include "CustomGCode.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
