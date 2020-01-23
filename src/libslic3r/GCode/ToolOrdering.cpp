@@ -133,7 +133,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 		num_extruders > 1 && print.object_extruders().size() == 1) {
 		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
 		// There may be custom per-layer tool changes available at the model.
-		per_layer_extruder_switches = custom_tool_changes(print.model(), num_extruders);
+		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_extruders);
 	}
 
     // Collect extruders reuqired to print the layers.
@@ -462,7 +462,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	// Only valid for non-sequential print.
 	assert(! print.config().complete_objects.value);
 
-	const Model::CustomGCodeInfo	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+	const CustomGCode::Info	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
 	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
@@ -483,7 +483,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			// Custom G-codes were processed.
 			break;
 		// Some custom G-code is configured for this layer or a layer below.
-		const Model::CustomGCode &custom_gcode = *custom_gcode_it;
+		const CustomGCode::Item &custom_gcode = *custom_gcode_it;
 		// print_z of the layer below the current layer.
 		coordf_t print_z_below = 0.;
 		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())

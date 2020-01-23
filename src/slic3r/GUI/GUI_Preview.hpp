@@ -155,7 +155,7 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void check_slider_values(std::vector<Model::CustomGCode> &ticks_from_model,
+    void check_slider_values(std::vector<CustomGCode::Item> &ticks_from_model,
                              const std::vector<double> &layers_z);
     void reset_double_slider();
     void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);

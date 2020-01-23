@@ -2531,10 +2531,10 @@ double DoubleSlider::get_double_value(const SelectedSlider& selection)
     return m_values[selection == ssLower ? m_lower_value : m_higher_value];
 }
 
-using t_custom_code = Slic3r::Model::CustomGCode;
-Slic3r::Model::CustomGCodeInfo DoubleSlider::GetTicksValues() const
+using t_custom_code = Slic3r::CustomGCode::Item;
+Slic3r::CustomGCode::Info DoubleSlider::GetTicksValues() const
 {
-    Slic3r::Model::CustomGCodeInfo custom_gcode_per_print_z;
+    Slic3r::CustomGCode::Info custom_gcode_per_print_z;
     std::vector<t_custom_code>& values = custom_gcode_per_print_z.gcodes;
 
     const int val_size = m_values.size();
@@ -2550,7 +2550,7 @@ Slic3r::Model::CustomGCodeInfo DoubleSlider::GetTicksValues() const
     return custom_gcode_per_print_z;
 }
 
-void DoubleSlider::SetTicksValues(const Slic3r::Model::CustomGCodeInfo& custom_gcode_per_print_z)
+void DoubleSlider::SetTicksValues(const Slic3r::CustomGCode::Info& custom_gcode_per_print_z)
 {
     if (m_values.empty())
     {

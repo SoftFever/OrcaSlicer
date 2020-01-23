@@ -5423,7 +5423,7 @@ std::vector<std::string> Plater::get_colors_for_color_print() const
     std::vector<std::string> colors = get_extruder_colors_from_plater_config();
     colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
-    for (const Model::CustomGCode& code : p->model.custom_gcode_per_print_z.gcodes)
+    for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes)
         if (code.gcode == ColorChangeCode)
             colors.emplace_back(code.color);
 

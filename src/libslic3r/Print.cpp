@@ -491,7 +491,7 @@ static bool layer_height_ranges_equal(const t_layer_config_ranges &lr1, const t_
 }
 
 // Returns true if va == vb when all CustomGCode items that are not ToolChangeCode are ignored.
-static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Model::CustomGCode> &va, const std::vector<Model::CustomGCode> &vb)
+static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<CustomGCode::Item> &va, const std::vector<CustomGCode::Item> &vb)
 {
 	auto it_a = va.begin();
 	auto it_b = vb.begin();

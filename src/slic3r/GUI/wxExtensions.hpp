@@ -782,7 +782,7 @@ public:
         const wxString& name = wxEmptyString);
     ~DoubleSlider() {}
 
-    using t_mode = Slic3r::Model::CustomGCodeInfo::MODE;
+    using t_mode = Slic3r::CustomGCode::Mode;
 
     /* For exporting GCode in GCodeWriter is used XYZF_NUM(val) = PRECISION(val, 3) for XYZ values. 
      * So, let use same value as a permissible error for layer height.
@@ -810,8 +810,8 @@ public:
     void SetKoefForLabels(const double koef)                { m_label_koef = koef; }
     void SetSliderValues(const std::vector<double>& values) { m_values = values; }
     void ChangeOneLayerLock();
-    Slic3r::Model::CustomGCodeInfo  GetTicksValues() const;
-    void                            SetTicksValues(const Slic3r::Model::CustomGCodeInfo &custom_gcode_per_print_z);
+    Slic3r::CustomGCode::Info   GetTicksValues() const;
+    void                        SetTicksValues(const Slic3r::CustomGCode::Info &custom_gcode_per_print_z);
     void EnableTickManipulation(bool enable = true) { m_is_enabled_tick_manipulation = enable; }
     void DisableTickManipulation()                  { EnableTickManipulation(false); }
 

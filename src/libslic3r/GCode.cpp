@@ -1767,7 +1767,7 @@ namespace ProcessLayer
 {
 
     static std::string emit_custom_gcode_per_print_z(
-    	const Model::CustomGCode 								*custom_gcode,
+    	const CustomGCode::Item 								*custom_gcode,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
 		bool  											         single_material_print)

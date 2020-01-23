@@ -13,6 +13,7 @@
 #include "../Utils.hpp"
 #include "../I18N.hpp"
 #include "../Geometry.hpp"
+#include "../CustomGCode.hpp"
 
 #include "AMF.hpp"
 
@@ -156,6 +157,7 @@ struct AMFParserContext
         NODE_TYPE_PRINTABLE,            // amf/constellation/instance/mirrorz
         NODE_TYPE_CUSTOM_GCODE,         // amf/custom_code_per_height
         NODE_TYPE_GCODE_PER_HEIGHT,     // amf/custom_code_per_height/code
+        NODE_TYPE_CUSTOM_GCODE_MODE,    // amf/custom_code_per_height/mode
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
@@ -308,12 +310,18 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             else
                 this->stop();
         } 
-        else if (strcmp(name, "code") == 0 && m_path[1] == NODE_TYPE_CUSTOM_GCODE) {
-            node_type_new = NODE_TYPE_GCODE_PER_HEIGHT;
-            m_value[0] = get_attribute(atts, "height");
-            m_value[1] = get_attribute(atts, "gcode");
-            m_value[2] = get_attribute(atts, "extruder");
-            m_value[3] = get_attribute(atts, "color");
+        else if (m_path[1] == NODE_TYPE_CUSTOM_GCODE) {
+            if (strcmp(name, "code") == 0) {
+                node_type_new = NODE_TYPE_GCODE_PER_HEIGHT;
+                m_value[0] = get_attribute(atts, "print_z");
+                m_value[1] = get_attribute(atts, "gcode");
+                m_value[2] = get_attribute(atts, "extruder");
+                m_value[3] = get_attribute(atts, "color");
+            }
+            else if (strcmp(name, "mode") == 0) {
+                node_type_new = NODE_TYPE_CUSTOM_GCODE_MODE;
+                m_value[0] = get_attribute(atts, "value");
+            }
         }
         break;
     case 3:
@@ -632,13 +640,24 @@ void AMFParserContext::endElement(const char * /* name */)
         break;
 
     case NODE_TYPE_GCODE_PER_HEIGHT: {
-        double height = double(atof(m_value[0].c_str()));
+        double print_z = double(atof(m_value[0].c_str()));
         const std::string& gcode = m_value[1];
         int extruder = atoi(m_value[2].c_str());
         const std::string& color = m_value[3];
 
-        m_model.custom_gcode_per_print_z.gcodes.push_back(Model::CustomGCode{height, gcode, extruder, color});
+        m_model.custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, gcode, extruder, color});
 
+        for (std::string& val: m_value)
+            val.clear();
+        break;
+        }
+
+    case NODE_TYPE_CUSTOM_GCODE_MODE: {
+        const std::string& mode = m_value[0];
+
+        m_model.custom_gcode_per_print_z.mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
+                                                mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
+                                                                                          CustomGCode::Mode::MultiExtruder;
         for (std::string& val: m_value)
             val.clear();
         break;
@@ -1237,15 +1256,22 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 
         pt::ptree& main_tree = tree.add("custom_gcodes_per_height", "");
 
-        for (const Model::CustomGCode& code : model->custom_gcode_per_print_z.gcodes)
+        for (const CustomGCode::Item& code : model->custom_gcode_per_print_z.gcodes)
         {
             pt::ptree& code_tree = main_tree.add("code", "");
-            // store minX and maxZ
+            // store custom_gcode_per_print_z gcodes information 
             code_tree.put("<xmlattr>.print_z"   , code.print_z  );
             code_tree.put("<xmlattr>.gcode"     , code.gcode    );
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
         }
+
+        pt::ptree& mode_tree = main_tree.add("mode", "");
+        // store mode of a custom_gcode_per_print_z 
+        mode_tree.put("<xmlattr>.value", 
+                      model->custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode : 
+                      model->custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle  ?
+                      CustomGCode::MultiAsSingleMode  : CustomGCode::MultiExtruderMode);
 
         if (!tree.empty())
         {
@@ -1259,6 +1285,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 
             // Post processing("beautification") of the output string
             boost::replace_all(out, "><code", ">\n  <code");
+            boost::replace_all(out, "><mode", ">\n  <mode");
             boost::replace_all(out, "><", ">\n<");
 
             stream << out << "\n";
