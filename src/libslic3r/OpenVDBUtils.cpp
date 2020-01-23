@@ -84,9 +84,9 @@ openvdb::FloatGrid::Ptr mesh_to_grid(const sla::Contour3D &mesh,
 
 template<class Grid>
 sla::Contour3D _volumeToMesh(const Grid &grid,
-                              double      isovalue,
-                              double      adaptivity,
-                              bool        relaxDisorientedTriangles)
+                             double      isovalue,
+                             double      adaptivity,
+                             bool        relaxDisorientedTriangles)
 {
     openvdb::initialize();
     
@@ -110,9 +110,9 @@ sla::Contour3D _volumeToMesh(const Grid &grid,
 }
 
 TriangleMesh grid_to_mesh(const openvdb::FloatGrid &grid,
-                                         double                    isovalue,
-                                         double                    adaptivity,
-                                         bool relaxDisorientedTriangles)
+                          double                    isovalue,
+                          double                    adaptivity,
+                          bool                      relaxDisorientedTriangles)
 {
     return to_triangle_mesh(
         _volumeToMesh(grid, isovalue, adaptivity, relaxDisorientedTriangles));

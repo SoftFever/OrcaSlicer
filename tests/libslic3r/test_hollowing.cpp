@@ -9,6 +9,8 @@
 
 #include <libnest2d/tools/benchmark.h>
 
+#include <libslic3r/SimplifyMesh.hpp>
+
 #if defined(WIN32) || defined(_WIN32)
 #define PATH_SEPARATOR R"(\)"
 #else
@@ -22,6 +24,7 @@ static Slic3r::TriangleMesh load_model(const std::string &obj_filename)
     Slic3r::load_obj(fpath.c_str(), &mesh);
     return mesh;
 }
+
 
 TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
 {
@@ -40,3 +43,4 @@ TEST_CASE("Negative 3D offset should produce smaller object.", "[Hollowing]")
     in_mesh.require_shared_vertices();
     in_mesh.WriteOBJFile("merged_out.obj");
 }
+
