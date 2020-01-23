@@ -11,6 +11,7 @@ add_executable(${_TEST_NAME}_tests
 	test_placeholder_parser.cpp
 	test_polygon.cpp
 	test_stl.cpp
+        test_meshsimplify.cpp
 	)
 
 if (TARGET OpenVDB::openvdb)
