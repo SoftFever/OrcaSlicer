@@ -1,3 +1,5 @@
+#include <string_view>
+
 #include <libslic3r/SLA/RasterWriter.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
@@ -89,19 +91,41 @@ std::string get_cfg_value(const DynamicPrintConfig &cfg, const std::string &key)
     return ret;    
 }
 
+void append_full_config(const DynamicPrintConfig &cfg, std::map<std::string, std::string> &keys)
+{
+    using namespace std::literals::string_view_literals;
+    
+    // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
+    static constexpr auto banned_keys = { 
+		"compatible_printers"sv,
+        "compatible_prints"sv,
+        "print_host"sv,
+        "printhost_apikey"sv,
+        "printhost_cafile"sv
+    };
+    
+    assert(std::is_sorted(banned_keys.begin(), banned_keys.end()));
+    auto is_banned = [](const std::string &key) {
+        return std::binary_search(banned_keys.begin(), banned_keys.end(), key);
+    };
+    for (const std::string &key : cfg.keys())
+        if (! is_banned(key) && ! cfg.option(key)->is_nil())
+            keys[key] = cfg.opt_serialize(key);
+}
+
 } // namespace
 
 void RasterWriter::set_config(const DynamicPrintConfig &cfg)
 {
-    m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
-    m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
-    m_config["expTimeFirst"]   = get_cfg_value(cfg, "initial_exposure_time");
-    m_config["materialName"]   = get_cfg_value(cfg, "sla_material_settings_id");
-    m_config["printerModel"]   = get_cfg_value(cfg, "printer_model");
-    m_config["printerVariant"] = get_cfg_value(cfg, "printer_variant");
-    m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
-    m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
-
+//    m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
+//    m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
+//    m_config["expTimeFirst"]   = get_cfg_value(cfg, "initial_exposure_time");
+//    m_config["materialName"]   = get_cfg_value(cfg, "sla_material_settings_id");
+//    m_config["printerModel"]   = get_cfg_value(cfg, "printer_model");
+//    m_config["printerVariant"] = get_cfg_value(cfg, "printer_variant");
+//    m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
+//    m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
+    append_full_config(cfg, m_config);
     m_config["fileCreationTimestamp"] = Utils::utc_timestamp();
     m_config["prusaSlicerVersion"]    = SLIC3R_BUILD_ID;
 }
