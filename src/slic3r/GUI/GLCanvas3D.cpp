@@ -5251,7 +5251,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 
     struct Ctxt
     {
-        const Points                *shifted_copies;
+        const PrintInstances        *shifted_copies;
         std::vector<const Layer*>    layers;
         bool                         has_perimeters;
         bool                         has_infill;
@@ -5384,7 +5384,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.is_single_material_print = this->fff_print()->extruders().size()==1;
     ctxt.extruders_cnt = wxGetApp().extruders_edited_cnt();
 
-    ctxt.shifted_copies = &print_object.copies();
+    ctxt.shifted_copies = &print_object.instances();
 
     // order layers by print_z
     {
@@ -5473,7 +5473,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     vol->offsets.push_back(vol->indexed_vertex_array.quad_indices.size());
                     vol->offsets.push_back(vol->indexed_vertex_array.triangle_indices.size());
                 }
-            for (const Point &copy : *ctxt.shifted_copies) {
+            for (const PrintInstance &instance : *ctxt.shifted_copies) {
+                const Point &copy = instance.shift;
                 for (const LayerRegion *layerm : layer->regions()) {
                     if (is_selected_separate_extruder)
                     {

@@ -165,12 +165,12 @@ Polygons AvoidCrossingPerimeters::collect_contours_all_layers(const PrintObjectP
              cnt = (cnt + 1) / 2;
          }
          // And collect copies of the objects.
-        for (const Point &copy : object->copies()) {
+        for (const PrintInstance &instance : object->instances()) {
             // All the layers were reduced to the 1st item of polygons_per_layer.
              size_t i = islands.size();
              polygons_append(islands, polygons_per_layer.front());
              for (; i < islands.size(); ++ i)
-                islands[i].translate(copy);
+                islands[i].translate(instance.shift);
         }
     }
     return islands;
@@ -1088,49 +1088,38 @@ namespace DoExport {
 }
 
 // Sort the PrintObjects by their increasing Z, likely useful for avoiding colisions on Deltas during sequential prints.
-static inline std::vector<const PrintObject*> sort_objects_by_z(const Print &print)
+static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(const Print &print)
 {
     std::vector<const PrintObject*> objects(print.objects().begin(), print.objects().end());
-	std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size(2) < po2->size(2); });
-	return objects;
+	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size(2) < po2->size(2); });
+	std::vector<const PrintInstance*> instances;
+	instances.reserve(objects.size());
+	for (const PrintObject *object : objects)
+		for (size_t i = 0; i < object->instances().size(); ++ i)
+			instances.emplace_back(&object->instances()[i]);
+	return instances;
 }
 
 // Produce a vector of PrintObjects in the order of their respective ModelObjects in print.model().
-static inline std::vector<const PrintObject*> sort_objects_by_model_order(const Print &print)
+static inline std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print &print)
 {
-	const Model &model = print.model();
-    // Pair ModelObjects with PrintObjects, remember the order of ModelObjects in the model above.
-	struct ModelObjectOrder {
-		const ModelObject  *model_object;
-		const PrintObject  *print_object;
-		size_t 				order;
-	};
-    // Initialize model_object_order with ModelObjects and their order.
-	std::vector<ModelObjectOrder> model_object_order;
-	model_object_order.reserve(model.objects.size());
-    {
-	    size_t order = 0;
-	    for (const ModelObject *model_object : model.objects)
-            model_object_order.emplace_back(ModelObjectOrder{ model_object, nullptr, order ++ });
-    }
-    // Sort by pointer to ModelObject.
-	std::sort(model_object_order.begin(), model_object_order.end(), [](const ModelObjectOrder &lhs, const ModelObjectOrder &rhs) { return lhs.model_object < rhs.model_object; });
-    // Assign PrintObject pointer to ModelObject.
-	for (const PrintObject *print_object : print.objects()) {
-		auto it = Slic3r::lower_bound_by_predicate(model_object_order.begin(), model_object_order.end(), [print_object](const ModelObjectOrder &model_object_order) { return model_object_order.model_object < print_object->model_object(); });
-        // The non-printable objects (objects outside of the print volume or suppressed objects) will have no partner in the print.objects() list.
-		if (it != model_object_order.end() && it->model_object == print_object->model_object())
-			it->print_object = print_object;
-	}
-    // Sort back to the initial order.
-	std::sort(model_object_order.begin(), model_object_order.end(), [](const ModelObjectOrder &lhs, const ModelObjectOrder &rhs) { return lhs.order < rhs.order; });
-    // Produce the output vector of PrintObjects, sorted by the order of ModelObjects in Model.
-    std::vector<const PrintObject*> objects;
-    objects.reserve(model_object_order.size());
-	for (ModelObjectOrder &order : model_object_order)
-        if (order.print_object != nullptr)
-		    objects.emplace_back(order.print_object);
-	return objects;
+    // Build up map from ModelInstance* to PrintInstance*
+    std::vector<std::pair<const ModelInstance*, const PrintInstance*>> model_instance_to_print_instance;
+    model_instance_to_print_instance.reserve(print.num_object_instances());
+    for (const PrintObject *print_object : print.objects())
+        for (const PrintInstance &print_instance : print_object->instances())
+            model_instance_to_print_instance.emplace_back(print_instance.model_instance, &print_instance);
+    std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first < r.first; });
+
+    std::vector<const PrintInstance*> instances;
+    instances.reserve(model_instance_to_print_instance.size());
+    for (const ModelObject *model_object : print.model().objects)
+        for (const ModelInstance *model_instance : model_object->instances) {
+            auto it = std::lower_bound(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), std::make_pair(model_instance, nullptr), [](auto &l, auto &r) { return l.first < r.first; });
+            if (it != model_instance_to_print_instance.end() && it->first == model_instance)
+                instances.emplace_back(it->second);
+        }
+    return instances;
 }
 
 #if ENABLE_THUMBNAIL_GENERATOR
@@ -1164,7 +1153,7 @@ void GCode::_do_export(Print& print, FILE* file)
             for (auto layer : object->support_layers())
                 zs.push_back(layer->print_z);
             std::sort(zs.begin(), zs.end());
-            m_layer_count += (unsigned int)(object->copies().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
+            m_layer_count += (unsigned int)(object->instances().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
         }
     } else {
         // Print all objects with the same print_z together.
@@ -1257,13 +1246,18 @@ void GCode::_do_export(Print& print, FILE* file)
     ToolOrdering tool_ordering;
     unsigned int initial_extruder_id = (unsigned int)-1;
     unsigned int final_extruder_id   = (unsigned int)-1;
-    size_t       initial_print_object_id = 0;
     bool         has_wipe_tower      = false;
+    std::vector<const PrintInstance*> 					print_object_instances_ordering;
+    std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
     if (print.config().complete_objects.value) {
+        // Order object instances for sequential print.
+        print_object_instances_ordering = sort_object_instances_by_model_order(print);
+//        print_object_instances_ordering = sort_object_instances_by_max_z(print);
         // Find the 1st printing object, find its tool ordering and the initial extruder ID.
-        for (; initial_print_object_id < print.objects().size(); ++initial_print_object_id) {
-            tool_ordering = ToolOrdering(*print.objects()[initial_print_object_id], initial_extruder_id);
-            if ((initial_extruder_id = tool_ordering.first_extruder()) != (unsigned int)-1)
+        print_object_instance_sequential_active = print_object_instances_ordering.begin();
+        for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
+            tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1))
                 break;
         }
         // We don't allow switching of extruders per layer by Model::custom_gcode_per_print_z in sequential mode.
@@ -1283,6 +1277,8 @@ void GCode::_do_export(Print& print, FILE* file)
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
     	this->set_extruders(tool_ordering.all_extruders());
+        // Order object instances using a nearest neighbor search.
+        print_object_instances_ordering = chain_print_object_instances(print);
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -1363,72 +1359,64 @@ void GCode::_do_export(Print& print, FILE* file)
 
     // Do all objects for each layer.
     if (print.config().complete_objects.value) {
-        // Print objects from the smallest to the tallest to avoid collisions
-        // when moving onto next object starting point.
-        std::vector<const PrintObject*> objects = sort_objects_by_model_order(print);
-//        std::vector<const PrintObject*> objects = sort_objects_by_z(print);
         size_t finished_objects = 0;
-        for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
-            const PrintObject &object = *objects[object_id];
-            for (const Point &copy : object.copies()) {
-                // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
-                if (object_id != initial_print_object_id || &copy != object.copies().data()) {
-                    // Don't initialize for the first object and first copy.
-                    tool_ordering = ToolOrdering(object, final_extruder_id);
-                    unsigned int new_extruder_id = tool_ordering.first_extruder();
-                    if (new_extruder_id == (unsigned int)-1)
-                        // Skip this object.
-                        continue;
-                    initial_extruder_id = new_extruder_id;
-                    final_extruder_id   = tool_ordering.last_extruder();
-                    assert(final_extruder_id != (unsigned int)-1);
-                }
-                print.throw_if_canceled();
-                this->set_origin(unscale(copy));
-                if (finished_objects > 0) {
-                    // Move to the origin position for the copy we're going to print.
-                    // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
-                    m_enable_cooling_markers = false; // we're not filtering these moves through CoolingBuffer
-                    m_avoid_crossing_perimeters.use_external_mp_once = true;
-                    _write(file, this->retract());
-                    _write(file, this->travel_to(Point(0, 0), erNone, "move to origin position for next object"));
-                    m_enable_cooling_markers = true;
-                    // Disable motion planner when traveling to first object point.
-                    m_avoid_crossing_perimeters.disable_once = true;
-                    // Ff we are printing the bottom layer of an object, and we have already finished
-                    // another one, set first layer temperatures. This happens before the Z move
-                    // is triggered, so machine has more time to reach such temperatures.
-                    m_placeholder_parser.set("current_object_idx", int(finished_objects));
-                    std::string between_objects_gcode = this->placeholder_parser_process("between_objects_gcode", print.config().between_objects_gcode.value, initial_extruder_id);
-                    // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
-                    this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
-                    this->_print_first_layer_extruder_temperatures(file, print, between_objects_gcode, initial_extruder_id, false);
-                    _writeln(file, between_objects_gcode);
-                }
-                // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
-                m_cooling_buffer->reset();
-                m_cooling_buffer->set_current_extruder(initial_extruder_id);
-                // Pair the object layers with the support layers by z, extrude them.
-                std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
-                for (const LayerToPrint &ltp : layers_to_print) {
-                    std::vector<LayerToPrint> lrs;
-                    lrs.emplace_back(std::move(ltp));
-                    this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), nullptr, &copy - object.copies().data());
-                    print.throw_if_canceled();
-                }
-#ifdef HAS_PRESSURE_EQUALIZER
-                if (m_pressure_equalizer)
-                    _write(file, m_pressure_equalizer->process("", true));
-#endif /* HAS_PRESSURE_EQUALIZER */
-                ++ finished_objects;
-                // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
-                // Reset it when starting another object from 1st layer.
-                m_second_layer_things_done = false;
+        const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
+        for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
+            const PrintObject &object = *(*print_object_instance_sequential_active)->print_object;
+            if (&object != prev_object || tool_ordering.first_extruder() != final_extruder_id) {
+                tool_ordering = ToolOrdering(object, final_extruder_id);
+                unsigned int new_extruder_id = tool_ordering.first_extruder();
+                if (new_extruder_id == (unsigned int)-1)
+                    // Skip this object.
+                    continue;
+                initial_extruder_id = new_extruder_id;
+                final_extruder_id   = tool_ordering.last_extruder();
+                assert(final_extruder_id != (unsigned int)-1);
             }
+            print.throw_if_canceled();
+            this->set_origin(unscale((*print_object_instance_sequential_active)->shift));
+            if (finished_objects > 0) {
+                // Move to the origin position for the copy we're going to print.
+                // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
+                m_enable_cooling_markers = false; // we're not filtering these moves through CoolingBuffer
+                m_avoid_crossing_perimeters.use_external_mp_once = true;
+                _write(file, this->retract());
+                _write(file, this->travel_to(Point(0, 0), erNone, "move to origin position for next object"));
+                m_enable_cooling_markers = true;
+                // Disable motion planner when traveling to first object point.
+                m_avoid_crossing_perimeters.disable_once = true;
+                // Ff we are printing the bottom layer of an object, and we have already finished
+                // another one, set first layer temperatures. This happens before the Z move
+                // is triggered, so machine has more time to reach such temperatures.
+                m_placeholder_parser.set("current_object_idx", int(finished_objects));
+                std::string between_objects_gcode = this->placeholder_parser_process("between_objects_gcode", print.config().between_objects_gcode.value, initial_extruder_id);
+                // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
+                this->_print_first_layer_bed_temperature(file, print, between_objects_gcode, initial_extruder_id, false);
+                this->_print_first_layer_extruder_temperatures(file, print, between_objects_gcode, initial_extruder_id, false);
+                _writeln(file, between_objects_gcode);
+            }
+            // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
+            m_cooling_buffer->reset();
+            m_cooling_buffer->set_current_extruder(initial_extruder_id);
+            // Pair the object layers with the support layers by z, extrude them.
+            std::vector<LayerToPrint> layers_to_print = collect_layers_to_print(object);
+            for (const LayerToPrint &ltp : layers_to_print) {
+                std::vector<LayerToPrint> lrs;
+                lrs.emplace_back(std::move(ltp));
+                this->process_layer(file, print, lrs, tool_ordering.tools_for_layer(ltp.print_z()), nullptr, *print_object_instance_sequential_active - object.instances().data());
+                print.throw_if_canceled();
+            }
+#ifdef HAS_PRESSURE_EQUALIZER
+            if (m_pressure_equalizer)
+                _write(file, m_pressure_equalizer->process("", true));
+#endif /* HAS_PRESSURE_EQUALIZER */
+            ++ finished_objects;
+            // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
+            // Reset it when starting another object from 1st layer.
+            m_second_layer_things_done = false;
+            prev_object = &object;
         }
     } else {
-        // Order object instances using a nearest neighbor search.
-        std::vector<std::pair<size_t, size_t>> print_object_instances_ordering = chain_print_object_instances(print);
         // Sort layers by Z.
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
@@ -1730,12 +1718,12 @@ inline std::vector<GCode::ObjectByExtruder::Island>& object_islands_by_extruder(
 }
 
 std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
-	std::vector<GCode::ObjectByExtruder> 			&objects_by_extruder,
-	const std::vector<LayerToPrint> 				&layers,
+	std::vector<GCode::ObjectByExtruder> 		&objects_by_extruder,
+	const std::vector<LayerToPrint> 			&layers,
 	// Ordering must be defined for normal (non-sequential print).
-	const std::vector<std::pair<size_t, size_t>> 	*ordering,
+	const std::vector<const PrintInstance*> 	*ordering,
 	// For sequential print, the instance of the object to be printing has to be defined.
-	const size_t                     				 single_object_instance_idx)
+	const size_t                     		 	 single_object_instance_idx)
 {
     std::vector<InstanceToPrint> out;
 
@@ -1762,13 +1750,13 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
 		if (! sorted.empty()) {
 			const Print &print = *sorted.front().first->print();
 		    out.reserve(sorted.size());
-		    for (const std::pair<size_t, size_t> &instance_id : *ordering) {
-		    	const PrintObject &print_object = *print.objects()[instance_id.first];
+		    for (const PrintInstance *instance : *ordering) {
+		    	const PrintObject &print_object = *instance->print_object;
 		    	std::pair<const PrintObject*, ObjectByExtruder*> key(&print_object, nullptr);
 		    	auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
 		    	if (it != sorted.end() && it->first == &print_object)
 		    		// ObjectByExtruder for this PrintObject was found.
-					out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance_id.second);
+					out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data());
 		    }
 		}
 	}
@@ -1912,16 +1900,16 @@ namespace Skirt {
 // and performing the extruder specific extrusions together.
 void GCode::process_layer(
     // Write into the output file.
-    FILE                            *file,
-    const Print                     &print,
+    FILE                            		*file,
+    const Print                    			&print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
-    const std::vector<LayerToPrint> &layers,
-    const LayerTools                &layer_tools,
+    const std::vector<LayerToPrint> 		&layers,
+    const LayerTools        		        &layer_tools,
 	// Pairs of PrintObject index and its instance index.
-	const std::vector<std::pair<size_t, size_t>> *ordering,
+	const std::vector<const PrintInstance*> *ordering,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
-    const size_t                     single_object_instance_idx)
+    const size_t                     		 single_object_instance_idx)
 {
     assert(! layers.empty());
 //    assert(! layer_tools.extruders.empty());
@@ -2130,7 +2118,7 @@ void GCode::process_layer(
 	                            // by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
 	                            correct_extruder_id = layer_tools.extruders.back();
 	                        }
-                        	entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->copies().size());
+                        	entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->instances().size());
 	                        if (entity_overrides == nullptr) {
 	                        	printing_extruders.emplace_back(correct_extruder_id);
 	                        } else {
@@ -2244,7 +2232,7 @@ void GCode::process_layer(
                 if (this->config().gcode_label_objects)
                     gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
                 // When starting a new object, use the external motion planner for the first travel move.
-                const Point &offset = instance_to_print.print_object.copies()[instance_to_print.instance_id];
+                const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                 if (m_last_obj_copy != this_object_copy)
                     m_avoid_crossing_perimeters.use_external_mp_once = true;

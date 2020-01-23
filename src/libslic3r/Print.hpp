@@ -92,6 +92,21 @@ typedef std::vector<Layer*> LayerPtrs;
 typedef std::vector<SupportLayer*> SupportLayerPtrs;
 class BoundingBoxf3;        // TODO: for temporary constructor parameter
 
+// Single instance of a PrintObject.
+// As multiple PrintObjects may be generated for a single ModelObject (their instances differ in rotation around Z),
+// ModelObject's instancess will be distributed among these multiple PrintObjects.
+struct PrintInstance
+{
+    // Parent PrintObject
+    PrintObject 		*print_object;
+    // Source ModelInstance of a ModelObject, for which this print_object was created.
+	const ModelInstance *model_instance;
+	// Shift of this instance towards its PrintObject
+	Point 				 shift;
+};
+
+typedef std::vector<PrintInstance> PrintInstances;
+
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
 {
 private: // Prevents erroneous use by other classes.
@@ -111,8 +126,8 @@ public:
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
-    const Points&           copies() const          { return m_copies; }
-    const Point 			copy_center(size_t idx) const { return m_copies[idx] + m_copies_shift + Point(this->size.x() / 2, this->size.y() / 2); }
+    const PrintInstances&   instances() const       { return m_instances; }
+    const Point 			instance_center(size_t idx) const { return m_instances[idx].shift + m_copies_shift + Point(this->size.x() / 2, this->size.y() / 2); }
 
     // since the object is aligned to origin, bounding box coincides with size
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
@@ -126,9 +141,9 @@ public:
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
     // since they have different semantics.
-    size_t total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
-    size_t layer_count() const { return m_layers.size(); }
-    void clear_layers();
+    size_t 			total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
+    size_t 			layer_count() const { return m_layers.size(); }
+    void 			clear_layers();
     const Layer* 	get_layer(int idx) const { return m_layers[idx]; }
     Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
     // Get a layer exactly at print_z.
@@ -177,7 +192,7 @@ public:
     std::vector<ExPolygons>     slice_support_blockers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_BLOCKER); }
     std::vector<ExPolygons>     slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
-protected:
+private:
     // to be called from Print only.
     friend class Print;
 
@@ -187,7 +202,8 @@ protected:
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
     void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
-    PrintBase::ApplyStatus  set_copies(const Points &points);
+    PrintBase::ApplyStatus  set_instances(PrintInstances &&instances);
+    void 					set_trafo_and_instances(const Transform3d& trafo, PrintInstances &&instances) { this->set_trafo(trafo); this->set_instances(std::move(instances)); }
     // Invalidates the step, and its depending steps in PrintObject and Print.
     bool                    invalidate_step(PrintObjectStep step);
     // Invalidates all PrintObject and Print steps.
@@ -223,7 +239,7 @@ private:
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
-    Points                                  m_copies;
+    std::vector<PrintInstance>              m_instances;
     // scaled coordinates to add to copies (to compensate for the alignment
     // operated when creating the object but still preserving a coherent API
     // for external callers)

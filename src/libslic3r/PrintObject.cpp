@@ -60,32 +60,32 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
     }
     
     if (add_instances) {
-        Points copies;
-        copies.reserve(m_model_object->instances.size());
+        PrintInstances instances;
+        instances.reserve(m_model_object->instances.size());
         for (const ModelInstance *mi : m_model_object->instances) {
             assert(mi->is_printable());
-            const Vec3d& offset = mi->get_offset();
-            copies.emplace_back(Point::new_scale(offset(0), offset(1)));
+            const Vec3d &offset = mi->get_offset();
+            instances.emplace_back(PrintInstance{ nullptr, mi, Point::new_scale(offset(0), offset(1)) });
         }
-        this->set_copies(copies);
+        this->set_instances(std::move(instances));
     }
 }
 
-PrintBase::ApplyStatus PrintObject::set_copies(const Points &points)
+PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 {
-    // Order copies with a nearest-neighbor search.
-    std::vector<Point> copies;
-    copies.reserve(points.size());
-    for (const Point &pt : points)
-        copies.emplace_back(pt + m_copies_shift);
     // Invalidate and set copies.
     PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
-    if (copies != m_copies) {
+    bool equal_length = instances.size() == m_instances.size();
+    bool equal = equal_length && std::equal(instances.begin(), instances.end(), m_instances.begin(), 
+    	[](const PrintInstance& lhs, const PrintInstance& rhs) { return lhs.model_instance == rhs.model_instance && lhs.shift == rhs.shift; });
+    if (! equal) {
         status = PrintBase::APPLY_STATUS_CHANGED;
         if (m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport }) ||
-            (copies.size() != m_copies.size() && m_print->invalidate_step(psWipeTower)))
+            (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
-        m_copies = copies;
+        m_instances = instances;
+	    for (PrintInstance &i : m_instances)
+	    	i.print_object = this;
     }
     return status;
 }
@@ -669,7 +669,7 @@ void PrintObject::detect_surfaces_type()
                     m_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << idx_region << " and layer " << layer->print_z;
                     Layer       *layer  = m_layers[idx_layer];
-                    LayerRegion *layerm = layer->get_region(idx_region);
+                    LayerRegion *layerm = layer->m_regions[idx_region];
                     // comparison happens against the *full* slices (considering all regions)
                     // unless internal shells are requested
                     Layer       *upper_layer = (idx_layer + 1 < this->layer_count()) ? m_layers[idx_layer + 1] : nullptr;
@@ -684,7 +684,7 @@ void PrintObject::detect_surfaces_type()
                     Surfaces top;
                     if (upper_layer) {
                         Polygons upper_slices = interface_shells ? 
-                            to_polygons(upper_layer->get_region(idx_region)->slices.surfaces) : 
+                            to_polygons(upper_layer->m_regions[idx_region]->slices.surfaces) : 
                             to_polygons(upper_layer->lslices);
                         surfaces_append(top,
                             //FIXME implement offset2_ex working over ExPolygons, that should be a bit more efficient than calling offset_ex twice.
@@ -727,7 +727,7 @@ void PrintObject::detect_surfaces_type()
                                 offset2_ex(
                                     diff(
                                         intersection(layerm_slices_surfaces, to_polygons(lower_layer->lslices)), // supported
-                                        to_polygons(lower_layer->get_region(idx_region)->slices.surfaces), 
+                                        to_polygons(lower_layer->m_regions[idx_region]->slices.surfaces), 
                                         true), 
                                     -offset, offset),
                                 stBottom);
@@ -796,7 +796,7 @@ void PrintObject::detect_surfaces_type()
         if (interface_shells) {
             // Move surfaces_new to layerm->slices.surfaces
             for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++ idx_layer)
-                m_layers[idx_layer]->get_region(idx_region)->slices.surfaces = std::move(surfaces_new[idx_layer]);
+                m_layers[idx_layer]->m_regions[idx_region]->slices.surfaces = std::move(surfaces_new[idx_layer]);
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " - clipping in parallel - start";
@@ -806,7 +806,7 @@ void PrintObject::detect_surfaces_type()
             [this, idx_region, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
-                    LayerRegion *layerm = m_layers[idx_layer]->get_region(idx_region);
+                    LayerRegion *layerm = m_layers[idx_layer]->m_regions[idx_region];
                     layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     layerm->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-final");
