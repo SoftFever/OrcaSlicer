@@ -1119,6 +1119,10 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
         return this->support_mesh();
     case slaposPad:
         return this->pad_mesh();
+    case slaposHollowing:
+        if (m_hollowing_data)
+            return m_hollowing_data->hollow_mesh_with_holes;
+        [[fallthrough]];
     default:
         return TriangleMesh();
     }
