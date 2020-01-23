@@ -166,7 +166,7 @@ public:
     DynamicPrintConfig  config;
 
     // Alias of the preset
-    std::string         alias = "";
+    std::string         alias;
     // List of profile names, from which this profile was renamed at some point of time.
     // This list is then used to match profiles by their names when loaded from .gcode, .3mf, .amf,
     // and to match the "inherits" field of user profiles with updated system profiles.
@@ -356,7 +356,7 @@ public:
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
-	int						get_idx_selected()	{ return m_idx_selected; }
+	int							get_idx_selected()	{ return m_idx_selected; }
 	static const std::string&	get_suffix_modified();
 
     // Return a preset possibly with modifications.
@@ -475,6 +475,9 @@ protected:
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string> merge_presets(PresetCollection &&other, const VendorMap &new_vendors);
 
+    // Update m_map_alias_to_profile_name from loaded system profiles.
+	void 			update_map_alias_to_profile_name();
+
     // Update m_map_system_profile_renamed from loaded system profiles.
     void 			update_map_system_profile_renamed();
 
@@ -522,6 +525,8 @@ private:
     // Use deque to force the container to allocate an object per each entry, 
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<Preset>      m_presets;
+    // System profiles may have aliases. Map to the full profile name.
+    std::vector<std::pair<std::string, std::string>> m_map_alias_to_profile_name;
     // Map from old system profile name to a current system profile name.
     std::map<std::string, std::string> m_map_system_profile_renamed;
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.

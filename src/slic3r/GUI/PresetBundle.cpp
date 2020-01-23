@@ -288,11 +288,18 @@ std::string PresetBundle::load_system_presets()
 		// No config bundle loaded, reset.
 		this->reset(false);
 	}
+
     this->prints 	   .update_map_system_profile_renamed();
     this->sla_prints   .update_map_system_profile_renamed();
     this->filaments    .update_map_system_profile_renamed();
     this->sla_materials.update_map_system_profile_renamed();
     this->printers     .update_map_system_profile_renamed();
+
+    this->prints       .update_map_alias_to_profile_name();
+    this->sla_prints   .update_map_alias_to_profile_name();
+    this->filaments    .update_map_alias_to_profile_name();
+    this->sla_materials.update_map_alias_to_profile_name();
+
     return errors_cummulative;
 }
 

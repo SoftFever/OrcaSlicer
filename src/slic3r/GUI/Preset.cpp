@@ -600,6 +600,7 @@ void PresetCollection::reset(bool delete_files)
         m_presets.erase(m_presets.begin() + m_num_default_presets, m_presets.end());
         this->select_preset(0);
     }
+    m_map_alias_to_profile_name.clear();
     m_map_system_profile_renamed.clear();
 }
 
@@ -944,15 +945,15 @@ PresetWithVendorProfile PresetCollection::get_preset_with_vendor_profile(const P
 
 const std::string& PresetCollection::get_preset_name_by_alias(const std::string& alias) const
 {
-    for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
-        const Preset& preset = this->m_presets[i];
-        if (!preset.is_visible || (!preset.is_compatible && i != m_idx_selected))
-            continue;
-
-        if (preset.alias == alias)
-            return preset.name;
-    }
-
+	for (
+		// Find the 1st profile name with the alias.
+		auto it = Slic3r::lower_bound_by_predicate(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [&alias](auto &l){ return l.first < alias; });
+		// Continue over all profile names with the same alias.
+		it != m_map_alias_to_profile_name.end() && it->first == alias; ++ it)
+		if (auto it_preset = this->find_preset_internal(it->second);
+			it_preset != m_presets.end() && it_preset->name == it->second && 
+			it_preset->is_visible && (it_preset->is_compatible || (it_preset - m_presets.begin()) == m_idx_selected))
+	        return it_preset->name;
     return alias;
 }
 
@@ -1424,6 +1425,14 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
             duplicates.emplace_back(std::move(preset.name));
     }
     return duplicates;
+}
+
+void PresetCollection::update_map_alias_to_profile_name()
+{
+	m_map_alias_to_profile_name.clear();
+	for (const Preset &preset : m_presets)
+		m_map_alias_to_profile_name.emplace_back(preset.alias, preset.name);
+	std::sort(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [](auto &l, auto &r) { return l.first < r.first; });
 }
 
 void PresetCollection::update_map_system_profile_renamed()
