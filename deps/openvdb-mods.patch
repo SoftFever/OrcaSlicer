@@ -1,6 +1,6 @@
-From c660786dbac9e4c284049af4da56c34a998a4b68 Mon Sep 17 00:00:00 2001
+From d359098d9989ac7dbd149611d6ac941529fb4157 Mon Sep 17 00:00:00 2001
 From: tamasmeszaros <meszaros.q@gmail.com>
-Date: Thu, 23 Jan 2020 16:27:21 +0100
+Date: Thu, 23 Jan 2020 17:17:36 +0100
 Subject: [PATCH] openvdb-mods
 
 ---
@@ -12,13 +12,13 @@ Subject: [PATCH] openvdb-mods
  cmake/FindOpenEXR.cmake         | 329 ------------------
  cmake/FindOpenVDB.cmake         |  19 +-
  cmake/FindTBB.cmake             | 599 ++++++++++++++++----------------
- openvdb/CMakeLists.txt          |  13 +-
+ openvdb/CMakeLists.txt          |  16 +-
  openvdb/Grid.cc                 |   3 +
  openvdb/PlatformConfig.h        |   9 +-
- openvdb/cmd/CMakeLists.txt      |  11 +-
+ openvdb/cmd/CMakeLists.txt      |   4 +-
  openvdb/unittest/CMakeLists.txt |   3 +-
  openvdb/unittest/TestFile.cc    |   2 +-
- 14 files changed, 446 insertions(+), 1210 deletions(-)
+ 14 files changed, 442 insertions(+), 1210 deletions(-)
  create mode 100644 cmake/CheckAtomic.cmake
  delete mode 100644 cmake/FindBlosc.cmake
  delete mode 100644 cmake/FindIlmBase.cmake
@@ -1763,7 +1763,7 @@ index bdf9c81..06093a4 100644
 +
  endif()
 diff --git a/openvdb/CMakeLists.txt b/openvdb/CMakeLists.txt
-index 89301bd..df27aae 100644
+index 89301bd..6a3c90c 100644
 --- a/openvdb/CMakeLists.txt
 +++ b/openvdb/CMakeLists.txt
 @@ -78,7 +78,7 @@ else()
@@ -1775,7 +1775,21 @@ index 89301bd..df27aae 100644
    message(DEPRECATION "Support for TBB versions < ${FUTURE_MINIMUM_TBB_VERSION} "
      "is deprecated and will be removed.")
  endif()
-@@ -185,11 +185,6 @@ if(WIN32)
+@@ -129,10 +129,13 @@ endif()
+ # include paths from shared installs (including houdini) may pull in the wrong
+ # headers
+ 
++include (CheckAtomic)
++
+ set(OPENVDB_CORE_DEPENDENT_LIBS
+   Boost::iostreams
+   Boost::system
+   IlmBase::Half
++  ${CMAKE_REQUIRED_LIBRARIES}
+ )
+ 
+ if(USE_EXR)
+@@ -185,11 +188,6 @@ if(WIN32)
    endif()
  endif()
  
@@ -1787,7 +1801,7 @@ index 89301bd..df27aae 100644
  ##### Core library configuration
  
  set(OPENVDB_LIBRARY_SOURCE_FILES
-@@ -374,10 +369,16 @@ set(OPENVDB_LIBRARY_UTIL_INCLUDE_FILES
+@@ -374,10 +372,16 @@ set(OPENVDB_LIBRARY_UTIL_INCLUDE_FILES
  
  if(OPENVDB_CORE_SHARED)
    add_library(openvdb_shared SHARED ${OPENVDB_LIBRARY_SOURCE_FILES})
@@ -1839,7 +1853,7 @@ index 20ad9a3..c2dd1ef 100644
  #endif // _WIN32
  
 diff --git a/openvdb/cmd/CMakeLists.txt b/openvdb/cmd/CMakeLists.txt
-index 57fbec0..0379756 100644
+index 57fbec0..55b3850 100644
 --- a/openvdb/cmd/CMakeLists.txt
 +++ b/openvdb/cmd/CMakeLists.txt
 @@ -74,8 +74,9 @@ if(WIN32)
@@ -1861,20 +1875,6 @@ index 57fbec0..0379756 100644
    )
    if(OPENVDB_BUILD_CORE)
      list(APPEND RPATHS ${CMAKE_INSTALL_PREFIX}/lib)
-@@ -116,6 +116,13 @@ if(OPENVDB_BUILD_VDB_PRINT)
-     )
-   endif()
- 
-+  include(CheckAtomic)
-+
-+  check_working_cxx_atomics(HAS_ATOMIC)
-+  if (NOT HAS_ATOMIC)
-+      target_link_libraries(vdb_print atomic)
-+  endif()
-+
-   install(TARGETS vdb_print DESTINATION bin)
- endif()
- 
 diff --git a/openvdb/unittest/CMakeLists.txt b/openvdb/unittest/CMakeLists.txt
 index c9e0c34..7e261c0 100644
 --- a/openvdb/unittest/CMakeLists.txt

@@ -265,13 +265,6 @@ target_link_libraries(libslic3r
     ${CMAKE_DL_LIBS}
     )
 
-include(CheckAtomic)
-
-check_working_cxx_atomics(HAS_ATOMIC)
-if (NOT HAS_ATOMIC)
-    target_link_libraries(libslic3r atomic) 
-endif()
-
 if (TARGET OpenVDB::openvdb)
     target_link_libraries(libslic3r OpenVDB::openvdb)
 endif()
