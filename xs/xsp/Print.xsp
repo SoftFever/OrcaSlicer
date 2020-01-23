@@ -48,12 +48,8 @@ _constant()
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
-    Points copies();
     Clone<BoundingBox> bounding_box();
     
-    Points _shifted_copies()
-        %code%{ RETVAL = THIS->copies(); %};
-
     size_t layer_count();
     Ref<Layer> get_layer(int idx);
 
