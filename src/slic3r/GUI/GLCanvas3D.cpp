@@ -6060,9 +6060,9 @@ void GLCanvas3D::_load_sla_shells()
         if (obj->is_step_done(slaposSliceSupports)) {
             unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
             for (const SLAPrintObject::Instance& instance : obj->instances()) {
-                add_volume(*obj, 0, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
-                if (! obj->hollowed_interior_mesh().empty())
-                    add_volume(*obj, -int(slaposHollowing), instance, obj->hollowed_interior_mesh(), GLVolume::MODEL_COLOR[0], false);
+                add_volume(*obj, 0, instance, obj->get_mesh_to_print(), GLVolume::MODEL_COLOR[0], true);
+//                if (! obj->hollowed_interior_mesh().empty())
+//                    add_volume(*obj, -int(slaposHollowing), instance, obj->hollowed_interior_mesh(), GLVolume::MODEL_COLOR[0], false);
                 // Set the extruder_id and volume_id to achieve the same color as in the 3D scene when
                 // through the update_volumes_colors_by_extruder() call.
                 m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();

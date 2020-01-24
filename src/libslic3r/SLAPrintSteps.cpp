@@ -1,5 +1,5 @@
 #include <libslic3r/SLAPrintSteps.hpp>
-
+#include <libslic3r/MeshBoolean.hpp>
 
 // Need the cylinder method for the the drainholes in hollowing step
 #include <libslic3r/SLA/SupportTreeBuilder.hpp>
@@ -38,7 +38,7 @@ const std::array<unsigned, slaposCount> OBJ_STEP_LEVELS = {
 std::string OBJ_STEP_LABELS(size_t idx)
 {
     switch (idx) {
-    case slaposHollowing:            return L("Hollowing out the model");
+    case slaposHollowing:            return L("Hollowing and drilling holes");
     case slaposObjectSlice:          return L("Slicing model");
     case slaposDrillHolesIfHollowed: return L("Drilling holes into hollowed model.");
     case slaposSupportPoints:        return L("Generating support points");
@@ -79,26 +79,56 @@ SLAPrint::Steps::Steps(SLAPrint *print)
 
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 {
-    if (!po.m_config.hollowing_enable.getBool()) {
-        BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";
-        po.m_hollowing_data.reset();
-        return;
-    } else {
+    po.m_hollowing_data.reset();
+    if (! po.m_config.hollowing_enable.getBool())
+        BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";    
+    else {
         BOOST_LOG_TRIVIAL(info) << "Performing hollowing step!";
+
+        double thickness = po.m_config.hollowing_min_thickness.getFloat();
+        double quality  = po.m_config.hollowing_quality.getFloat();
+        double closing_d = po.m_config.hollowing_closing_distance.getFloat();
+        sla::HollowingConfig hlwcfg{thickness, quality, closing_d};
+        auto meshptr = generate_interior(po.transformed_mesh(), hlwcfg);
+
+        if (meshptr->empty())
+            BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
+        else {
+            po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+            po.m_hollowing_data->interior = *meshptr;
+            auto &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
+            hollowed_mesh = po.transformed_mesh();
+            hollowed_mesh.merge(po.m_hollowing_data->interior);
+            hollowed_mesh.require_shared_vertices();
+        }
     }
-    
-    if (!po.m_hollowing_data)
-        po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
-    
-    double thickness = po.m_config.hollowing_min_thickness.getFloat();
-    double quality  = po.m_config.hollowing_quality.getFloat();
-    double closing_d = po.m_config.hollowing_closing_distance.getFloat();
-    sla::HollowingConfig hlwcfg{thickness, quality, closing_d};
-    auto meshptr = generate_interior(po.transformed_mesh(), hlwcfg);
-    if (meshptr) po.m_hollowing_data->interior = *meshptr;
-    
-    if (po.m_hollowing_data->interior.empty())
-        BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
+
+    // Drill holes into the hollowed/original mesh.
+    if (po.m_model_object->sla_drain_holes.empty())
+        BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
+    else {
+        BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
+        sla::DrainHoles drainholes = po.transformed_drainhole_points();
+
+        TriangleMesh holes_mesh;
+
+        for (const sla::DrainHole &holept : drainholes)
+            holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
+
+        holes_mesh.require_shared_vertices();
+        MeshBoolean::self_union(holes_mesh); //FIXME-fix and use the cgal version
+
+        // If there is no hollowed mesh yet, copy the original mesh.
+        if (! po.m_hollowing_data) {
+            po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+            po.m_hollowing_data->hollow_mesh_with_holes = po.transformed_mesh();
+        }
+
+        TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
+        hollowed_mesh = po.get_mesh_to_print();
+        MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+        hollowed_mesh.require_shared_vertices();
+    }
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from
@@ -111,18 +141,8 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 // same imaginary grid (the height vector argument to TriangleMeshSlicer).
 void SLAPrint::Steps::slice_model(SLAPrintObject &po)
 {   
-    TriangleMesh hollowed_mesh;
-    
-    bool is_hollowing = po.m_config.hollowing_enable.getBool() && po.m_hollowing_data;
-    
-    if (is_hollowing) {
-        hollowed_mesh = po.transformed_mesh();
-        hollowed_mesh.merge(po.m_hollowing_data->interior);
-        hollowed_mesh.require_shared_vertices();
-    }
-    
-    const TriangleMesh &mesh = is_hollowing ? hollowed_mesh : po.transformed_mesh();
-    
+    const TriangleMesh &mesh = po.get_mesh_to_print();
+
     // We need to prepare the slice index...
     
     double  lhd  = m_print->m_objects.front()->m_config.layer_height.getFloat();
@@ -168,8 +188,8 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
     auto &slice_grid = po.m_model_height_levels;
     slicer.slice(slice_grid, closing_r, &po.m_model_slices, thr);
     
-    sla::DrainHoles drainholes = po.transformed_drainhole_points();
-    cut_drainholes(po.m_model_slices, slice_grid, closing_r, drainholes, thr);
+//    sla::DrainHoles drainholes = po.transformed_drainhole_points();
+//    cut_drainholes(po.m_model_slices, slice_grid, closing_r, drainholes, thr);
     
     auto mit = slindex_it;
     double doffs = m_print->m_printer_config.absolute_correction.getFloat();
@@ -199,16 +219,7 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
     // If supports are disabled, we can skip the model scan.
     if(!po.m_config.supports_enable.getBool()) return;
     
-    bool is_hollowing = po.m_config.hollowing_enable.getBool() && po.m_hollowing_data;
-    
-    TriangleMesh hollowed_mesh;
-    if (is_hollowing) {
-        hollowed_mesh = po.transformed_mesh();
-        hollowed_mesh.merge(po.m_hollowing_data->interior);
-        hollowed_mesh.require_shared_vertices();
-    }
-    
-    const TriangleMesh &mesh = is_hollowing ? hollowed_mesh : po.transformed_mesh();
+    const TriangleMesh &mesh = po.get_mesh_to_print();
     
     if (!po.m_supportdata)
         po.m_supportdata.reset(new SLAPrintObject::SupportData(mesh));
@@ -229,7 +240,7 @@ void SLAPrint::Steps::support_points(SLAPrintObject &po)
         // Tell the mesh where drain holes are. Although the points are
         // calculated on slices, the algorithm then raycasts the points
         // so they actually lie on the mesh.
-        po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
+//        po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
         
         throw_if_canceled();
         sla::SupportPointGenerator::Config config;
@@ -298,7 +309,7 @@ void SLAPrint::Steps::support_tree(SLAPrintObject &po)
         po.m_supportdata->emesh.ground_level_offset(pcfg.wall_thickness_mm);
     
     po.m_supportdata->cfg = make_support_cfg(po.m_config);
-    po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
+//    po.m_supportdata->emesh.load_holes(po.transformed_drainhole_points());
     
     // scaling for the sub operations
     double d = objectstep_scale * OBJ_STEP_LEVELS[slaposSupportTree] / 100.0;

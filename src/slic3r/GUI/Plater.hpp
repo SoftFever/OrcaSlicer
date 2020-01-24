@@ -26,6 +26,7 @@ class Model;
 class ModelObject;
 class Print;
 class SLAPrint;
+enum SLAPrintObjectStep : unsigned int;
 
 namespace UndoRedo {
 	class Stack;
@@ -197,6 +198,8 @@ public:
     void hollow();
     void reslice();
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
+    void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
+    void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);

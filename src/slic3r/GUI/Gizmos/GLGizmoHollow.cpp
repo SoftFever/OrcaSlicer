@@ -608,10 +608,14 @@ void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
     m_c->m_volume_with_cavity.reset();
 }
 
-void GLGizmoHollow::hollow_mesh()
+void GLGizmoHollow::hollow_mesh(bool postpone_error_messages)
 {
     // Trigger a UI job to hollow the mesh.
-    wxGetApp().plater()->hollow();
+   // wxGetApp().plater()->hollow();
+
+    wxGetApp().CallAfter([this, postpone_error_messages]() {
+        wxGetApp().plater()->reslice_SLA_hollowing(*m_c->m_model_object, postpone_error_messages);
+    });
 }
 
 

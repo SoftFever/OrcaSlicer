@@ -80,6 +80,12 @@ public:
     
     // Ready after this->is_step_done(slaposHollowing) is true
     const TriangleMesh&     hollowed_interior_mesh() const;
+    
+    // Get the mesh that is going to be printed with all the modifications
+    // like hollowing and drilled holes.
+    const TriangleMesh & get_mesh_to_print() const {
+        return m_hollowing_data ? m_hollowing_data->hollow_mesh_with_holes : transformed_mesh();
+    }
 
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
@@ -318,7 +324,7 @@ private:
     public:
         
         TriangleMesh interior;
-        // std::vector<drillpoints>
+        mutable TriangleMesh hollow_mesh_with_holes; // caching the complete hollowed mesh
     };
     
     std::unique_ptr<HollowingData> m_hollowing_data;

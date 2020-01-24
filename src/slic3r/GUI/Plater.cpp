@@ -5100,6 +5100,16 @@ void Plater::reslice()
 
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
 {
+    reslice_SLA_until_step(slaposPad, object, postpone_error_messages);
+}
+
+void Plater::reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages)
+{
+    reslice_SLA_until_step(slaposHollowing, object, postpone_error_messages);
+}
+
+void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages)
+{
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process(true, postpone_error_messages);
@@ -5117,7 +5127,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error
     // Otherwise calculate everything, but start with the provided object.
     if (!this->p->background_processing_enabled()) {
         task.single_model_instance_only = true;
-        task.to_object_step = slaposPad;
+        task.to_object_step = step;
     }
     this->p->background_process.set_task(task);
     // and let the background processing start.

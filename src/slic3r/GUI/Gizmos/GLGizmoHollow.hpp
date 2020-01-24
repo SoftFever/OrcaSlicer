@@ -55,7 +55,7 @@ private:
     void render_hollowed_mesh() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
-    void hollow_mesh();
+    void hollow_mesh(bool postpone_error_messages = false);
     bool unsaved_changes() const;
 
     bool  m_show_supports = true;
