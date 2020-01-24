@@ -166,190 +166,182 @@ bool SupportTreeBuildsteps::execute(SupportTreeBuilder &   builder,
     return pc == ABORT;
 }
 
+// Give points on a 3D ring with given center, radius and orientation
+// method based on:
+// https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+template<size_t N>
+class PointRing {
+    std::array<double, N> m_phis;
+    
+    // Two vectors that will be perpendicular to each other and to the
+    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
+    // placeholder.
+    // a and b vectors are perpendicular to the ring direction and to each other.
+    // Together they define the plane where we have to iterate with the
+    // given angles in the 'm_phis' vector
+    Vec3d a = {0, 1, 0}, b;
+    double m_radius = 0.;
+    
+    static inline bool constexpr is_one(double val) 
+    { 
+        return std::abs(std::abs(val) - 1) < 1e-20;
+    }
+    
+public:
+    
+    PointRing(const Vec3d &n)
+    {
+        m_phis = linspace_array<N>(0., 2 * PI);
+    
+        // We have to address the case when the direction vector v (same as
+        // dir) is coincident with one of the world axes. In this case two of
+        // its components will be completely zero and one is 1.0. Our method
+        // becomes dangerous here due to division with zero. Instead, vector
+        // 'a' can be an element-wise rotated version of 'v'
+        if(is_one(n(X)) || is_one(n(Y)) || is_one(n(Z))) {
+            a = {n(Z), n(X), n(Y)};
+            b = {n(Y), n(Z), n(X)};
+        }
+        else {
+            a(Z) = -(n(Y)*a(Y)) / n(Z); a.normalize();
+            b = a.cross(n);
+        }
+    }
+    
+    Vec3d get(size_t idx, const Vec3d src, double r) const
+    {
+        double phi = m_phis[idx];
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
+     
+        double rpscos = r * cosphi;
+        double rpssin = r * sinphi;
+     
+        // Point on the sphere
+        return {src(X) + rpscos * a(X) + rpssin * b(X),
+                src(Y) + rpscos * a(Y) + rpssin * b(Y),
+                src(Z) + rpscos * a(Z) + rpssin * b(Z)};
+    }
+};
+
+template<class C, class Hit = EigenMesh3D::hit_result> 
+static Hit min_hit(const C &hits)
+{
+    auto mit = std::min_element(hits.begin(), hits.end(), 
+                                [](const Hit &h1, const Hit &h2) { 
+        return h1.distance() < h2.distance(); 
+    });
+    
+    return *mit;
+}
+
 EigenMesh3D::hit_result SupportTreeBuildsteps::pinhead_mesh_intersect(
     const Vec3d &s, const Vec3d &dir, double r_pin, double r_back, double width)
 {
     static const size_t SAMPLES = 8;
     
-    // method based on:
-    // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+    // Move away slightly from the touching point to avoid raycasting on the
+    // inner surface of the mesh.
+    
+    const double& sd = m_cfg.safety_distance_mm;
+    
+    auto& m = m_mesh;
+    using HitResult = EigenMesh3D::hit_result;
+    
+    // Hit results
+    std::array<HitResult, SAMPLES> hits;
+    
+    struct Rings {
+        double rpin;
+        double rback;
+        Vec3d  spin;
+        Vec3d  sback;
+        PointRing<SAMPLES> ring;
+        
+        Vec3d backring(size_t idx) { return ring.get(idx, sback, rback); }
+        Vec3d pinring(size_t idx) { return ring.get(idx, spin, rpin); }
+    } rings {r_pin + sd, r_back + sd, s, s + width * dir, dir};
     
     // We will shoot multiple rays from the head pinpoint in the direction
     // of the pinhead robe (side) surface. The result will be the smallest
     // hit distance.
     
-    // Move away slightly from the touching point to avoid raycasting on the
-    // inner surface of the mesh.
-    Vec3d v = dir;     // Our direction (axis)
-    Vec3d c = s + width * dir;
-    const double& sd = m_cfg.safety_distance_mm;
+    ccr::enumerate(hits.begin(), hits.end(), 
+                   [&m, &rings, sd](HitResult &hit, size_t i) {
     
-    // Two vectors that will be perpendicular to each other and to the
-    // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
-    // placeholder.
-    Vec3d a(0, 1, 0), b;
+       // Point on the circle on the pin sphere
+       Vec3d ps = rings.pinring(i);
+       // This is the point on the circle on the back sphere
+       Vec3d p = rings.backring(i);
+       
+       // Point ps is not on mesh but can be inside or
+       // outside as well. This would cause many problems
+       // with ray-casting. To detect the position we will
+       // use the ray-casting result (which has an is_inside
+       // predicate).       
     
-    // The portions of the circle (the head-back circle) for which we will
-    // shoot rays.
-    std::array<double, SAMPLES> phis;
-    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
+       Vec3d n = (p - ps).normalized();
+       auto  q = m.query_ray_hit(ps + sd * n, n);
     
-    auto& m = m_mesh;
-    using HitResult = EigenMesh3D::hit_result;
+       if (q.is_inside()) { // the hit is inside the model
+           if (q.distance() > rings.rpin) {
+               // If we are inside the model and the hit
+               // distance is bigger than our pin circle
+               // diameter, it probably indicates that the
+               // support point was already inside the
+               // model, or there is really no space
+               // around the point. We will assign a zero
+               // hit distance to these cases which will
+               // enforce the function return value to be
+               // an invalid ray with zero hit distance.
+               // (see min_element at the end)
+               hit = HitResult(0.0);
+           } else {
+               // re-cast the ray from the outside of the
+               // object. The starting point has an offset
+               // of 2*safety_distance because the
+               // original ray has also had an offset
+               auto q2 = m.query_ray_hit(ps + (q.distance() + 2 * sd) * n, n);
+               hit = q2;
+           }
+       } else
+           hit = q;
+    });
     
-    // Hit results
-    std::array<HitResult, SAMPLES> hits;
-    
-    // We have to address the case when the direction vector v (same as
-    // dir) is coincident with one of the world axes. In this case two of
-    // its components will be completely zero and one is 1.0. Our method
-    // becomes dangerous here due to division with zero. Instead, vector
-    // 'a' can be an element-wise rotated version of 'v'
-    auto chk1 = [] (double val) {
-        return std::abs(std::abs(val) - 1) < 1e-20;
-    };
-    
-    if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) {
-        a = {v(Z), v(X), v(Y)};
-        b = {v(Y), v(Z), v(X)};
-    }
-    else {
-        a(Z) = -(v(Y)*a(Y)) / v(Z); a.normalize();
-        b = a.cross(v);
-    }
-
-    // Now a and b vectors are perpendicular to v and to each other.
-    // Together they define the plane where we have to iterate with the
-    // given angles in the 'phis' vector
-    ccr::enumerate(
-        phis.begin(), phis.end(),
-        [&hits, &m, sd, r_pin, r_back, s, a, b, c](double phi, size_t i) {
-           double sinphi = std::sin(phi);
-           double cosphi = std::cos(phi);
-        
-           // Let's have a safety coefficient for the radiuses.
-           double rpscos = (sd + r_pin) * cosphi;
-           double rpssin = (sd + r_pin) * sinphi;
-           double rpbcos = (sd + r_back) * cosphi;
-           double rpbsin = (sd + r_back) * sinphi;
-        
-           // Point on the circle on the pin sphere
-           Vec3d ps(s(X) + rpscos * a(X) + rpssin * b(X),
-                    s(Y) + rpscos * a(Y) + rpssin * b(Y),
-                    s(Z) + rpscos * a(Z) + rpssin * b(Z));
-        
-           // Point ps is not on mesh but can be inside or
-           // outside as well. This would cause many problems
-           // with ray-casting. To detect the position we will
-           // use the ray-casting result (which has an is_inside
-           // predicate).
-        
-           // This is the point on the circle on the back sphere
-           Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
-                   c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
-                   c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
-        
-           Vec3d n = (p - ps).normalized();
-           auto  q = m.query_ray_hit(ps + sd * n, n);
-        
-           if (q.is_inside()) { // the hit is inside the model
-               if (q.distance() > r_pin + sd) {
-                   // If we are inside the model and the hit
-                   // distance is bigger than our pin circle
-                   // diameter, it probably indicates that the
-                   // support point was already inside the
-                   // model, or there is really no space
-                   // around the point. We will assign a zero
-                   // hit distance to these cases which will
-                   // enforce the function return value to be
-                   // an invalid ray with zero hit distance.
-                   // (see min_element at the end)
-                   hits[i] = HitResult(0.0);
-               } else {
-                   // re-cast the ray from the outside of the
-                   // object. The starting point has an offset
-                   // of 2*safety_distance because the
-                   // original ray has also had an offset
-                   auto q2 = m.query_ray_hit(
-                       ps + (q.distance() + 2 * sd) * n, n);
-                   hits[i] = q2;
-               }
-           } else
-               hits[i] = q;
-        });
-
-    auto mit = std::min_element(hits.begin(), hits.end());
-    
-    return *mit;
+    return min_hit(hits);
 }
 
 EigenMesh3D::hit_result SupportTreeBuildsteps::bridge_mesh_intersect(
-    const Vec3d &s, const Vec3d &dir, double r, bool ins_check)
+    const Vec3d &src, const Vec3d &dir, double r, bool ins_check)
 {
     static const size_t SAMPLES = 8;
+    PointRing<SAMPLES> ring{dir};
     
-    // helper vector calculations
-    Vec3d a(0, 1, 0), b;
-    const double& sd = m_cfg.safety_distance_mm;
-    
-    // INFO: for explanation of the method used here, see the previous
-    // method's comments.
-    
-    auto chk1 = [] (double val) {
-        return std::abs(std::abs(val) - 1) < 1e-20;
-    };
-    
-    if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z))) {
-        a = {dir(Z), dir(X), dir(Y)};
-        b = {dir(Y), dir(Z), dir(X)};
-    }
-    else {
-        a(Z) = -(dir(Y)*a(Y)) / dir(Z); a.normalize();
-        b = a.cross(dir);
-    }
-    
-    // circle portions
-    std::array<double, SAMPLES> phis;
-    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
-    
-    auto& m = m_mesh;
-    using HitResult = EigenMesh3D::hit_result;
+    using Hit = EigenMesh3D::hit_result;
     
     // Hit results
-    std::array<HitResult, SAMPLES> hits;
+    std::array<Hit, SAMPLES> hits;
     
-    ccr::enumerate(
-        phis.begin(), phis.end(),
-        [&m, a, b, sd, dir, r, s, ins_check, &hits] (double phi, size_t i) {
-            double sinphi = std::sin(phi);
-            double cosphi = std::cos(phi);
-            
-            // Let's have a safety coefficient for the radiuses.
-            double rcos = (sd + r) * cosphi;
-            double rsin = (sd + r) * sinphi;
-            
-            // Point on the circle on the pin sphere
-            Vec3d p (s(X) + rcos * a(X) + rsin * b(X),
-                    s(Y) + rcos * a(Y) + rsin * b(Y),
-                    s(Z) + rcos * a(Z) + rsin * b(Z));
-            
-            auto hr = m.query_ray_hit(p + sd*dir, dir);
-            
-            if(ins_check && hr.is_inside()) {
-                if(hr.distance() > 2 * r + sd) hits[i] = HitResult(0.0);
-                else {
-                    // re-cast the ray from the outside of the object
-                    auto hr2 =
-                        m.query_ray_hit(p + (hr.distance() + 2*sd)*dir, dir);
-                    
-                    hits[i] = hr2;
-                }
-            } else hits[i] = hr;
-        });
+    ccr::enumerate(hits.begin(), hits.end(), 
+                   [this, r, src, ins_check, &ring, dir] (Hit &hit, size_t i) {
+        
+        const double sd = m_cfg.safety_distance_mm;
+        
+        // Point on the circle on the pin sphere
+        Vec3d p = ring.get(i, src, r + sd);
+        
+        auto hr = m_mesh.query_ray_hit(p + sd * dir, dir);
+        
+        if(ins_check && hr.is_inside()) {
+            if(hr.distance() > 2 * r + sd) hit = Hit(0.0);
+            else {
+                // re-cast the ray from the outside of the object
+                hit = m_mesh.query_ray_hit(p + (hr.distance() + 2 * sd) * dir, dir);
+            }
+        } else hit = hr;
+    });
     
-    auto mit = std::min_element(hits.begin(), hits.end());
-    
-    return *mit;
+    return min_hit(hits);
 }
 
 bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
@@ -419,7 +411,7 @@ bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
     
     // TODO: This is a workaround to not have a faulty last bridge
     while(ej(Z) >= eupper(Z) /*endz*/) {
-        if(bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r) >= bridge_distance)
+        if(bridge_mesh_distance(sj, dirv(sj, ej), pillar.r) >= bridge_distance)
         {
             m_builder.add_crossbridge(sj, ej, pillar.r);
             was_connected = true;
@@ -430,7 +422,7 @@ bool SupportTreeBuildsteps::interconnect(const Pillar &pillar,
             Vec3d sjback(ej(X), ej(Y), sj(Z));
             Vec3d ejback(sj(X), sj(Y), ej(Z));
             if (sjback(Z) <= slower(Z) && ejback(Z) >= eupper(Z) &&
-                bridge_mesh_intersect(sjback, dirv(sjback, ejback),
+                bridge_mesh_distance(sjback, dirv(sjback, ejback),
                                       pillar.r) >= bridge_distance) {
                 // need to check collision for the cross stick
                 m_builder.add_crossbridge(sjback, ejback, pillar.r);
@@ -487,7 +479,7 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
             bridgestart(Z) -= zdiff;
             touchjp(Z) = Zdown;
             
-            double t = bridge_mesh_intersect(headjp, {0,0,-1}, r);
+            double t = bridge_mesh_distance(headjp, DOWN, r);
             
             // We can't insert a pillar under the source head to connect
             // with the nearby pillar's starting junction
@@ -505,8 +497,7 @@ bool SupportTreeBuildsteps::connect_to_nearpillar(const Head &head,
     double minz = m_builder.ground_level + 2 * m_cfg.head_width_mm;
     if(bridgeend(Z) < minz) return false;
     
-    double t = bridge_mesh_intersect(bridgestart,
-                                     dirv(bridgestart, bridgeend), r);
+    double t = bridge_mesh_distance(bridgestart, dirv(bridgestart, bridgeend), r);
     
     // Cannot insert the bridge. (further search might not worth the hassle)
     if(t < distance(bridgestart, bridgeend)) return false;
@@ -633,7 +624,7 @@ void SupportTreeBuildsteps::create_ground_pillar(const Vec3d &jp,
         };
         
         // We have to check if the bridge is feasible.
-        if (bridge_mesh_intersect(jp, dir, radius) < (endp - jp).norm())
+        if (bridge_mesh_distance(jp, dir, radius) < (endp - jp).norm())
             abort_in_shame();
         else {
             // If the new endpoint is below ground, do not make a pillar
@@ -764,7 +755,7 @@ void SupportTreeBuildsteps::filter()
                     {
                         auto dir = spheric_to_dir(plr, azm).normalized();
                         
-                        double score = pinhead_mesh_intersect(
+                        double score = pinhead_mesh_distance(
                             hp, dir, pin_r, m_cfg.head_back_radius_mm, w);
                         
                         return score;
@@ -950,11 +941,11 @@ bool SupportTreeBuildsteps::connect_to_ground(Head &head, const Vec3d &dir)
 {
     auto hjp = head.junction_point();
     double r = head.r_back_mm;
-    double t = bridge_mesh_intersect(hjp, dir, head.r_back_mm);
+    double t = bridge_mesh_distance(hjp, dir, head.r_back_mm);
     double d = 0, tdown = 0;
     t = std::min(t, m_cfg.max_bridge_length_mm);
 
-    while (d < t && !std::isinf(tdown = bridge_mesh_intersect(hjp + d * dir, DOWN, r)))
+    while (d < t && !std::isinf(tdown = bridge_mesh_distance(hjp + d * dir, DOWN, r)))
         d += r;
     
     if(!std::isinf(tdown)) return false;
@@ -989,7 +980,7 @@ bool SupportTreeBuildsteps::connect_to_ground(Head &head)
     auto oresult = solver.optimize_max(
         [this, hjp, r_back](double plr, double azm) {
             Vec3d n = spheric_to_dir(plr, azm).normalized();
-            return bridge_mesh_intersect(hjp, n, r_back);
+            return bridge_mesh_distance(hjp, n, r_back);
         },
         initvals(polar, azimuth),  // let's start with what we have
         bound(3*PI/4, PI),  // Must not exceed the slope limit
@@ -1259,9 +1250,8 @@ void SupportTreeBuildsteps::interconnect_pillars()
                     m_pillar_index.insert(pp.endpoint(), unsigned(pp.id));
 
                     m_builder.add_junction(s, pillar().r);
-                    double t = bridge_mesh_intersect(pillarsp,
-                                                     dirv(pillarsp, s),
-                                                     pillar().r);
+                    double t = bridge_mesh_distance(pillarsp, dirv(pillarsp, s),
+                                                    pillar().r);
                     if (distance(pillarsp, s) < t)
                         m_builder.add_bridge(pillarsp, s, pillar().r);
 
@@ -1312,8 +1302,8 @@ void SupportTreeBuildsteps::routing_headless()
         Vec3d sj = sp + R * n;              // stick start point
         
         // This is only for checking
-        double idist = bridge_mesh_intersect(sph, DOWN, R, true);
-        double realdist = ray_mesh_intersect(sj, DOWN);
+        double idist = bridge_mesh_distance(sph, DOWN, R, true);
+        double realdist = ray_mesh_intersect(sj, DOWN).distance();
         double dist = realdist;
         
         if (std::isinf(dist)) dist = sph(Z) - m_builder.ground_level;
