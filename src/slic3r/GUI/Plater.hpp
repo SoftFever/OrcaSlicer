@@ -227,9 +227,9 @@ public:
     void on_extruders_change(size_t extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
+    void force_print_bed_update();
     // On activating the parent window.
     void on_activate();
-    const DynamicPrintConfig* get_plater_config() const;
     std::vector<std::string> get_extruder_colors_from_plater_config() const;
     std::vector<std::string> get_colors_for_color_print() const;
 

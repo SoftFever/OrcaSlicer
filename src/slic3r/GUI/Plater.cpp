@@ -5376,6 +5376,13 @@ void Plater::force_filament_colors_update()
         this->p->schedule_background_process();
 }
 
+void Plater::force_print_bed_update()
+{
+	// Fill in the printer model key with something which cannot possibly be valid, so that Plater::on_config_change() will update the print bed
+	// once a new Printer profile config is loaded.
+	p->config->opt_string("printer_model", true) = "\x01\x00\x01";
+}
+
 void Plater::on_activate()
 {
 #ifdef __linux__
@@ -5390,11 +5397,6 @@ void Plater::on_activate()
 #endif
 
 	this->p->show_delayed_error_message();
-}
-
-const DynamicPrintConfig* Plater::get_plater_config() const
-{
-    return p->config;
 }
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.

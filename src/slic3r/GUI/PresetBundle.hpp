@@ -54,8 +54,7 @@ public:
 
     // There will be an entry for each system profile loaded, 
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
-    // std::set<VendorProfile>     vendors;
-    VendorMap                      vendors;
+    VendorMap                   vendors;
 
     struct ObsoletePresets {
         std::vector<std::string> prints;
