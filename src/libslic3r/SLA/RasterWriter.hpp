@@ -66,8 +66,10 @@ private:
     double             m_gamma;
 
     std::map<std::string, std::string> m_config;
+    std::map<std::string, std::string> m_slicer_config;
     
-    std::string createIniContent(const std::string& projectname) const;
+    static void write_ini(const std::map<std::string, std::string> &m, std::string &ini);
+    std::string create_ini_content(const std::string& projectname) const;
 
 public:
     

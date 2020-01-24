@@ -14,14 +14,16 @@
 
 namespace Slic3r { namespace sla {
 
-std::string RasterWriter::createIniContent(const std::string& projectname) const 
+void RasterWriter::write_ini(const std::map<std::string, std::string> &m, std::string &ini)
+{
+    for (auto &param : m) ini += param.first + " = " + param.second + "\n";    
+}
+
+std::string RasterWriter::create_ini_content(const std::string& projectname) const 
 {
     std::string out("action = print\njobDir = ");
     out += projectname + "\n";
-    
-    for (auto &param : m_config)
-        out += param.first + " = " + param.second + "\n";    
-    
+    write_ini(m_config, out);
     return out;
 }
 
@@ -55,7 +57,12 @@ void RasterWriter::save(Zipper &zipper, const std::string &prjname)
 
         zipper.add_entry("config.ini");
 
-        zipper << createIniContent(project);
+        zipper << create_ini_content(project);
+        
+        zipper.add_entry("prusaslicer.ini");
+        std::string prusaslicer_ini;
+        write_ini(m_slicer_config, prusaslicer_ini);
+        zipper << prusaslicer_ini;
 
         for(unsigned i = 0; i < m_layers_rst.size(); i++)
         {
@@ -95,7 +102,7 @@ void append_full_config(const DynamicPrintConfig &cfg, std::map<std::string, std
 {
     using namespace std::literals::string_view_literals;
     
-    // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
+    // Sorted list of config keys, which shall not be stored into the ini.
     static constexpr auto banned_keys = { 
 		"compatible_printers"sv,
         "compatible_prints"sv,
@@ -108,6 +115,7 @@ void append_full_config(const DynamicPrintConfig &cfg, std::map<std::string, std
     auto is_banned = [](const std::string &key) {
         return std::binary_search(banned_keys.begin(), banned_keys.end(), key);
     };
+    
     for (const std::string &key : cfg.keys())
         if (! is_banned(key) && ! cfg.option(key)->is_nil())
             keys[key] = cfg.opt_serialize(key);
@@ -117,17 +125,17 @@ void append_full_config(const DynamicPrintConfig &cfg, std::map<std::string, std
 
 void RasterWriter::set_config(const DynamicPrintConfig &cfg)
 {
-//    m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
-//    m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
-//    m_config["expTimeFirst"]   = get_cfg_value(cfg, "initial_exposure_time");
-//    m_config["materialName"]   = get_cfg_value(cfg, "sla_material_settings_id");
-//    m_config["printerModel"]   = get_cfg_value(cfg, "printer_model");
-//    m_config["printerVariant"] = get_cfg_value(cfg, "printer_variant");
-//    m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
-//    m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
-    append_full_config(cfg, m_config);
+    m_config["layerHeight"]    = get_cfg_value(cfg, "layer_height");
+    m_config["expTime"]        = get_cfg_value(cfg, "exposure_time");
+    m_config["expTimeFirst"]   = get_cfg_value(cfg, "initial_exposure_time");
+    m_config["materialName"]   = get_cfg_value(cfg, "sla_material_settings_id");
+    m_config["printerModel"]   = get_cfg_value(cfg, "printer_model");
+    m_config["printerVariant"] = get_cfg_value(cfg, "printer_variant");
+    m_config["printerProfile"] = get_cfg_value(cfg, "printer_settings_id");
+    m_config["printProfile"]   = get_cfg_value(cfg, "sla_print_settings_id");
     m_config["fileCreationTimestamp"] = Utils::utc_timestamp();
     m_config["prusaSlicerVersion"]    = SLIC3R_BUILD_ID;
+    append_full_config(cfg, m_slicer_config);
 }
 
 void RasterWriter::set_statistics(const PrintStatistics &stats)
