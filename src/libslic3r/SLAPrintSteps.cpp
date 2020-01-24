@@ -465,14 +465,16 @@ static ClipperPolygons polydiff(const ClipperPolygons &subjects, const ClipperPo
 }
 
 // get polygons for all instances in the object
-static ClipperPolygons get_all_polygons(
-    const ExPolygons &                           input_polygons,
-    const std::vector<SLAPrintObject::Instance> &instances,
-    bool                                         is_lefthanded)
+static ClipperPolygons get_all_polygons(const SliceRecord& record, SliceOrigin o)
 {
     namespace sl = libnest2d::sl;
     
+    if (!record.print_obj()) return {};
+    
     ClipperPolygons polygons;
+    auto &input_polygons = record.get_slice(o);
+    auto &instances = record.print_obj()->instances();
+    bool is_lefthanded = record.print_obj()->is_left_handed();
     polygons.reserve(input_polygons.size() * instances.size());
     
     for (const ExPolygon& polygon : input_polygons) {
@@ -545,6 +547,12 @@ void SLAPrint::Steps::initialize_printer_input()
         coord_t gndlvl = o->get_slice_index().front().print_level() - ilhs;
         
         for(const SliceRecord& slicerecord : o->get_slice_index()) {
+            if (!slicerecord.is_valid())
+                throw std::runtime_error(
+                    L("There are unprintable objects. Try to "
+                      "adjust support settings to make the "
+                      "objects printable."));
+
             coord_t lvlid = slicerecord.print_level() - gndlvl;
             
             // Neat trick to round the layer levels to the grid.
@@ -647,22 +655,13 @@ void SLAPrint::Steps::merge_slices_and_eval_stats() {
         supports_polygons.reserve(c);
         
         for(const SliceRecord& record : layer.slices()) {
-            const SLAPrintObject *po = record.print_obj();
             
-            const ExPolygons &modelslices = record.get_slice(soModel);
-            
-            bool is_lefth = record.print_obj()->is_left_handed();
-            if (!modelslices.empty()) {
-                ClipperPolygons v = get_all_polygons(modelslices, po->instances(), is_lefth);
-                for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
-            }
-            
-            const ExPolygons &supportslices = record.get_slice(soSupport);
-            
-            if (!supportslices.empty()) {
-                ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
-                for(ClipperPolygon& p_tmp : v) supports_polygons.emplace_back(std::move(p_tmp));
-            }
+            ClipperPolygons modelslices = get_all_polygons(record, soModel);
+            for(ClipperPolygon& p_tmp : modelslices) model_polygons.emplace_back(std::move(p_tmp));
+        
+            ClipperPolygons supportslices = get_all_polygons(record, soSupport);
+            for(ClipperPolygon& p_tmp : supportslices) supports_polygons.emplace_back(std::move(p_tmp));
+        
         }
         
         model_polygons = polyunion(model_polygons);

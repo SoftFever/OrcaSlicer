@@ -1095,8 +1095,6 @@ const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
     const std::vector<ExPolygons>& v = o == soModel? m_po->get_model_slices() :
                                                      m_po->get_support_slices();
 
-    if(idx >= v.size()) return EMPTY_SLICE;
-
     return idx >= v.size() ? EMPTY_SLICE : v[idx];
 }
 

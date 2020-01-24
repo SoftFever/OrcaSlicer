@@ -12,6 +12,9 @@ namespace sla {
 
 struct Contour3D;
 
+void to_eigen_mesh(const TriangleMesh &mesh, Eigen::MatrixXd &V, Eigen::MatrixXi &F);
+void to_triangle_mesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, TriangleMesh &);
+
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree.
 //  Implemented in libslic3r/SLA/Common.cpp
@@ -30,10 +33,14 @@ class EigenMesh3D {
 
 public:
     
-    EigenMesh3D(const TriangleMesh&);
+    explicit EigenMesh3D(const TriangleMesh&);
+    explicit EigenMesh3D(const Contour3D &other);
+    
     EigenMesh3D(const EigenMesh3D& other);
-    EigenMesh3D(const Contour3D &other);
     EigenMesh3D& operator=(const EigenMesh3D&);
+    
+    EigenMesh3D(EigenMesh3D &&other);
+    EigenMesh3D& operator=(EigenMesh3D &&other);
     
     ~EigenMesh3D();
     
@@ -69,9 +76,6 @@ public:
         inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline bool is_valid() const { return m_mesh != nullptr; }
         inline bool is_hit() const { return !std::isinf(m_t); }
-
-        // Hit_result can decay into a double as the hit distance.
-        inline operator double() const { return distance(); }
 
         inline const Vec3d& normal() const {
             assert(is_valid());

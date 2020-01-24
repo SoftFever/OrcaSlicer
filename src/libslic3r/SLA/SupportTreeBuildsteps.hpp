@@ -206,10 +206,10 @@ class SupportTreeBuildsteps {
     // When bridging heads to pillars... TODO: find a cleaner solution
     ccr::BlockingMutex m_bridge_mutex;
 
-    inline double ray_mesh_intersect(const Vec3d& s,
-                                     const Vec3d& dir)
+    inline EigenMesh3D::hit_result ray_mesh_intersect(const Vec3d& s, 
+                                                      const Vec3d& dir)
     {
-        return m_mesh.query_ray_hit(s, dir).distance();
+        return m_mesh.query_ray_hit(s, dir);
     }
 
     // This function will test if a future pinhead would not collide with the
@@ -229,6 +229,11 @@ class SupportTreeBuildsteps {
         double r_pin,
         double r_back,
         double width);
+    
+    template<class...Args>
+    inline double pinhead_mesh_distance(Args&&...args) {
+        return pinhead_mesh_intersect(std::forward<Args>(args)...).distance();
+    }
 
     // Checking bridge (pillar and stick as well) intersection with the model.
     // If the function is used for headless sticks, the ins_check parameter
@@ -243,6 +248,11 @@ class SupportTreeBuildsteps {
         const Vec3d& dir,
         double r,
         bool ins_check = false);
+    
+    template<class...Args>
+    inline double bridge_mesh_distance(Args&&...args) {
+        return bridge_mesh_intersect(std::forward<Args>(args)...).distance();
+    }
 
     // Helper function for interconnecting two pillars with zig-zag bridges.
     bool interconnect(const Pillar& pillar, const Pillar& nextpillar);

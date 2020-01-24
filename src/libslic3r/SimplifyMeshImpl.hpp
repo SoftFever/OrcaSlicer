@@ -21,6 +21,7 @@
 #include <array>
 #include <type_traits>
 #include <algorithm>
+#include <cmath>
 
 #ifndef NDEBUG
 #include <iostream>
@@ -63,7 +64,7 @@ namespace implementation {
 template<bool B, class T>
 using enable_if_t = typename std::enable_if<B, T>::type;
 
-// Meta predicates for floating, 'scaled coord' and generic arithmetic types
+// Meta predicates for floating, integer and generic arithmetic types
 template<class T, class O = T>
 using FloatingOnly = enable_if_t<std::is_floating_point<T>::value, O>;
 
