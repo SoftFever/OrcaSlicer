@@ -73,7 +73,9 @@ public:
     void switch_code(const std::string& code_from, const std::string& code_to);
     bool switch_code_for_tick(std::set<TickCode>::iterator it, const std::string& code_to, const int extruder);
     void erase_all_ticks_with_code(const std::string& gcode);
+
     bool has_tick_with_code(const std::string& gcode);
+    bool is_conflict_tick(const TickCode& tick, t_mode out_mode);
 
     void suppress_plus (bool suppress) { m_suppress_plus = suppress; }
     void suppress_minus(bool suppress) { m_suppress_minus = suppress; }
@@ -230,7 +232,7 @@ protected:
 private:
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
-    int     is_point_near_tick(const wxPoint& pt);
+    int     get_tick_near_point(const wxPoint& pt);
 
     double      get_scroll_step();
     wxString    get_label(const SelectedSlider& selection) const;
