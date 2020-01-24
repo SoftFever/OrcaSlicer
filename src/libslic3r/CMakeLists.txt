@@ -233,12 +233,17 @@ cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
 cmake_policy(POP)
 
+set(_cgal_defines "")
+if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
+    set(_cgal_defines CGAL_DO_NOT_USE_MPZF)
+endif ()
+
 add_library(libslic3r_cgal OBJECT MeshBoolean.cpp MeshBoolean.hpp)
 target_include_directories(libslic3r_cgal PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
     $<TARGET_PROPERTY:libigl,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_compile_definitions(libslic3r_cgal PRIVATE 
+target_compile_definitions(libslic3r_cgal PRIVATE ${_cgal_defines}
     $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_DEFINITIONS>)
 target_compile_options(libslic3r_cgal PRIVATE 
     $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_OPTIONS>)
