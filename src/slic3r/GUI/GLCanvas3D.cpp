@@ -1438,14 +1438,14 @@ int GLCanvas3D::check_volumes_outside_state() const
 
 void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
+    m_render_sla_auxiliaries = visible;
+
     for (GLVolume* vol : m_volumes.volumes) {
         if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
         && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
         && vol->composite_id.volume_id < 0)
             vol->is_active = visible;
     }
-
-    m_render_sla_auxiliaries = visible;
 }
 
 void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
@@ -6061,6 +6061,8 @@ void GLCanvas3D::_load_sla_shells()
             unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
             for (const SLAPrintObject::Instance& instance : obj->instances()) {
                 add_volume(*obj, 0, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
+                if (! obj->hollowed_interior_mesh().empty())
+                    add_volume(*obj, -int(slaposHollowing), instance, obj->hollowed_interior_mesh(), GLVolume::MODEL_COLOR[0], false);
                 // Set the extruder_id and volume_id to achieve the same color as in the 3D scene when
                 // through the update_volumes_colors_by_extruder() call.
                 m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();

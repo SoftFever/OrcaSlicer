@@ -39,11 +39,13 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #endif // ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/Model.hpp"
+#include "libslic3r/SLA/Hollowing.hpp"
+#include "libslic3r/SLA/Rotfinder.hpp"
+#include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/SLA/SLARotfinder.hpp"
 #include "libslic3r/Utils.hpp"
 
 //#include "libslic3r/ClipperUtils.hpp"
@@ -70,6 +72,7 @@
 #include "Camera.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
+#include "Job.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
@@ -1503,144 +1506,39 @@ struct Plater::priv
     // objects would be frozen for the user. In case of arrange, an animation
     // could be shown, or with the optimize orientations, partial results
     // could be displayed.
-    class Job : public wxEvtHandler
+    class PlaterJob: public Job
     {
-        int               m_range = 100;
-        boost::thread     m_thread;
-        priv *            m_plater = nullptr;
-        std::atomic<bool> m_running{false}, m_canceled{false};
-        bool              m_finalized = false;
-
-        void run()
-        {
-            m_running.store(true);
-            process();
-            m_running.store(false);
-
-            // ensure to call the last status to finalize the job
-            update_status(status_range(), "");
-        }
-
+        priv *m_plater;
     protected:
-        // status range for a particular job
-        virtual int status_range() const { return 100; }
-
-        // status update, to be used from the work thread (process() method)
-        void update_status(int st, const wxString &msg = "")
-        {
-            auto evt = new wxThreadEvent();
-            evt->SetInt(st);
-            evt->SetString(msg);
-            wxQueueEvent(this, evt);
-        }
 
         priv &      plater() { return *m_plater; }
         const priv &plater() const { return *m_plater; }
-        bool        was_canceled() const { return m_canceled.load(); }
-
-        // Launched just before start(), a job can use it to prepare internals
-        virtual void prepare() {}
 
         // Launched when the job is finished. It refreshes the 3Dscene by def.
-        virtual void finalize()
+        void finalize() override
         {
             // Do a full refresh of scene tree, including regenerating
             // all the GLVolumes. FIXME The update function shall just
             // reload the modified matrices.
-            if (!was_canceled())
+            if (!Job::was_canceled())
                 plater().update(unsigned(UpdateParams::FORCE_FULL_SCREEN_REFRESH));
+            
+            Job::finalize();
         }
 
     public:
-        Job(priv *_plater) : m_plater(_plater)
-        {
-            Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
-                auto msg = evt.GetString();
-                if (!msg.empty())
-                    plater().statusbar()->set_status_text(msg);
-
-                if (m_finalized) return;
-
-                plater().statusbar()->set_progress(evt.GetInt());
-                if (evt.GetInt() == status_range()) {
-                    // set back the original range and cancel callback
-                    plater().statusbar()->set_range(m_range);
-                    plater().statusbar()->set_cancel_callback();
-                    wxEndBusyCursor();
-
-                    finalize();
-
-                    // dont do finalization again for the same process
-                    m_finalized = true;
-                }
-            });
-        }
-
-        Job(const Job &) = delete;
-        Job(Job &&)      = delete;
-        Job &operator=(const Job &) = delete;
-        Job &operator=(Job &&) = delete;
-
-        virtual void process() = 0;
-
-        void start()
-        { // Start the job. No effect if the job is already running
-            if (!m_running.load()) {
-                prepare();
-
-                // Save the current status indicatior range and push the new one
-                m_range = plater().statusbar()->get_range();
-                plater().statusbar()->set_range(status_range());
-
-                // init cancellation flag and set the cancel callback
-                m_canceled.store(false);
-                plater().statusbar()->set_cancel_callback(
-                    [this]() { m_canceled.store(true); });
-
-                m_finalized = false;
-
-                // Changing cursor to busy
-                wxBeginBusyCursor();
-
-                try { // Execute the job
-                    m_thread = create_thread([this] { this->run(); });
-                } catch (std::exception &) {
-                    update_status(status_range(),
-                                  _(L("ERROR: not enough resources to "
-                                      "execute a new job.")));
-                }
-
-                // The state changes will be undone when the process hits the
-                // last status value, in the status update handler (see ctor)
-            }
-        }
-
-        // To wait for the running job and join the threads. False is
-        // returned if the timeout has been reached and the job is still
-        // running. Call cancel() before this fn if you want to explicitly
-        // end the job.
-        bool join(int timeout_ms = 0)
-        {
-            if (!m_thread.joinable()) return true;
-            
-            if (timeout_ms <= 0)
-                m_thread.join();
-            else if (!m_thread.try_join_for(boost::chrono::milliseconds(timeout_ms)))
-                return false;
-            
-            return true;
-        }
-
-        bool is_running() const { return m_running.load(); }
-        void cancel() { m_canceled.store(true); }
+        PlaterJob(priv *_plater)
+            : Job(_plater->statusbar()), m_plater(_plater)
+        {}
     };
 
     enum class Jobs : size_t {
         Arrange,
-        Rotoptimize
+        Rotoptimize,
+        Hollow
     };
 
-    class ArrangeJob : public Job
+    class ArrangeJob : public PlaterJob
     {
         using ArrangePolygon = arrangement::ArrangePolygon;
         using ArrangePolygons = arrangement::ArrangePolygons;
@@ -1757,7 +1655,7 @@ struct Plater::priv
         }
 
     public:
-        using Job::Job;
+        using PlaterJob::PlaterJob;
 
         int status_range() const override { return int(m_selected.size()); }
 
@@ -1774,11 +1672,28 @@ struct Plater::priv
         }
     };
 
-    class RotoptimizeJob : public Job
+    class RotoptimizeJob : public PlaterJob
     {
     public:
-        using Job::Job;
+        using PlaterJob::PlaterJob;
         void process() override;
+    };
+
+    class HollowJob : public PlaterJob
+    {
+    public:
+        using PlaterJob::PlaterJob;
+        void prepare() override;
+        void process() override;
+        void finalize() override;
+    private:
+        GLGizmoHollow * get_gizmo();
+        const GLGizmoHollow * get_gizmo() const;
+        
+        std::unique_ptr<TriangleMesh> m_output_mesh;
+        std::unique_ptr<MeshRaycaster> m_output_raycaster;
+        const TriangleMesh* m_object_mesh = nullptr;
+        sla::HollowingConfig m_cfg;
     };
 
     // Jobs defined inside the group class will be managed so that only one can
@@ -1792,6 +1707,7 @@ struct Plater::priv
 
         ArrangeJob arrange_job{m_plater};
         RotoptimizeJob rotoptimize_job{m_plater};
+        HollowJob hollow_job{m_plater};
 
         // To create a new job, just define a new subclass of Job, implement
         // the process and the optional prepare() and finalize() methods
@@ -1799,7 +1715,8 @@ struct Plater::priv
         // if it cannot run concurrently with other jobs in this group
 
         std::vector<std::reference_wrapper<Job>> m_jobs{arrange_job,
-                                                        rotoptimize_job};
+                                                        rotoptimize_job,
+                                                        hollow_job};
 
     public:
         ExclusiveJobGroup(priv *_plater) : m_plater(_plater) {}
@@ -1876,7 +1793,7 @@ struct Plater::priv
 
     void reset_all_gizmos();
     void update_ui_from_settings();
-    ProgressStatusBar* statusbar();
+    std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
@@ -1901,6 +1818,7 @@ struct Plater::priv
     void reset();
     void mirror(Axis axis);
     void arrange();
+    void hollow();
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
@@ -2291,9 +2209,9 @@ void Plater::priv::update_ui_from_settings()
     preview->get_canvas3d()->update_ui_from_settings();
 }
 
-ProgressStatusBar* Plater::priv::statusbar()
+std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
 {
-    return main_frame->m_statusbar.get();
+    return main_frame->m_statusbar;
 }
 
 std::string Plater::priv::get_config(const std::string &key) const
@@ -2815,6 +2733,12 @@ void Plater::priv::arrange()
     m_ui_jobs.start(Jobs::Arrange);
 }
 
+void Plater::priv::hollow()
+{
+    this->take_snapshot(_(L("Hollow")));
+    m_ui_jobs.start(Jobs::Hollow);
+}
+
 // This method will find an optimal orientation for the currently selected item
 // Very similar in nature to the arrange method above...
 void Plater::priv::sla_optimize_rotation() {
@@ -2946,12 +2870,74 @@ void Plater::priv::RotoptimizeJob::process()
                                  : _(L("Orientation found.")));
 }
 
+void Plater::priv::HollowJob::prepare()
+{
+    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
+    const GLGizmoHollow* gizmo_hollow = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
+    assert(gizmo_hollow);
+    auto hlw_data = gizmo_hollow->get_hollowing_parameters();
+    m_object_mesh = hlw_data.first;
+    m_cfg = hlw_data.second;
+    m_output_mesh.reset();
+}
+
+void Plater::priv::HollowJob::process()
+{
+    sla::JobController ctl;
+    ctl.stopcondition = [this]{ return was_canceled(); };
+    ctl.statuscb = [this](unsigned st, const std::string &s) {
+        if (st < 100) update_status(int(st), s);
+    };
+    
+    std::unique_ptr<TriangleMesh> omesh =
+        sla::generate_interior(*m_object_mesh, m_cfg, ctl);
+    
+    if (omesh && !omesh->empty()) {
+        m_output_mesh.reset(new TriangleMesh{*m_object_mesh});
+        m_output_mesh->merge(*omesh);
+        m_output_mesh->require_shared_vertices();
+        
+        update_status(90, _(L("Indexing hollowed object")));
+        
+        m_output_raycaster.reset(new MeshRaycaster(*m_output_mesh));
+        
+        update_status(100, was_canceled() ? _(L("Hollowing cancelled.")) :
+                                            _(L("Hollowing done.")));
+    } else {
+        update_status(100, _(L("Hollowing failed.")));
+    }
+}
+
+void Plater::priv::HollowJob::finalize()
+{
+    if (auto gizmo = get_gizmo()) {
+        gizmo->update_mesh_raycaster(std::move(m_output_raycaster));
+        gizmo->update_hollowed_mesh(std::move(m_output_mesh));
+    }       
+}
+
+GLGizmoHollow *Plater::priv::HollowJob::get_gizmo()
+{
+    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
+    auto ret = dynamic_cast<GLGizmoHollow*>(gizmo_manager.get_current());
+    assert(ret);
+    return ret;
+}
+
+const GLGizmoHollow *Plater::priv::HollowJob::get_gizmo() const
+{
+    const GLGizmosManager& gizmo_manager = plater().q->canvas3D()->get_gizmos_manager();
+    auto ret = dynamic_cast<const GLGizmoHollow*>(gizmo_manager.get_current());
+    assert(ret);
+    return ret;
+}
+
 void Plater::priv::split_object()
 {
     int obj_idx = get_selected_object_idx();
     if (obj_idx == -1)
         return;
-
+    
     // we clone model object because split_object() adds the split volumes
     // into the same model object, thus causing duplicates when we call load_model_objects()
     Model new_model = model;
@@ -5064,6 +5050,11 @@ void Plater::export_toolpaths_to_obj() const
     
     wxBusyCursor wait;
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
+}
+
+void Plater::hollow()
+{
+    p->hollow();
 }
 
 void Plater::reslice()

@@ -3,8 +3,8 @@
 
 #include <mutex>
 #include "PrintBase.hpp"
-//#include "PrintExport.hpp"
-#include "SLA/SLARasterWriter.hpp"
+#include "SLA/RasterWriter.hpp"
+#include "SLA/SupportTree.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include "Zipper.hpp"
@@ -19,7 +19,9 @@ enum SLAPrintStep : unsigned int {
 };
 
 enum SLAPrintObjectStep : unsigned int {
+    slaposHollowing,
 	slaposObjectSlice,
+    slaposDrillHolesIfHollowed,
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposPad,
@@ -73,13 +75,17 @@ public:
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     const TriangleMesh&     support_mesh() const;
     // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
-    // Support mesh is only valid if this->is_step_done(slaposBasePool) is true.
+    // Support mesh is only valid if this->is_step_done(slaposPad) is true.
     const TriangleMesh&     pad_mesh() const;
+    
+    // Ready after this->is_step_done(slaposHollowing) is true
+    const TriangleMesh&     hollowed_interior_mesh() const;
 
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
 
-    std::vector<sla::SupportPoint>      transformed_support_points() const;
+    sla::SupportPoints      transformed_support_points() const;
+    sla::DrainHoles         transformed_drainhole_points() const;
 
     // Get the needed Z elevation for the model geometry if supports should be
     // displayed. This Z offset should also be applied to the support
@@ -287,9 +293,35 @@ private:
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
-
-    class SupportData;
+    
+    class SupportData : public sla::SupportableMesh
+    {
+    public:
+        sla::SupportTree::UPtr  support_tree_ptr; // the supports
+        std::vector<ExPolygons> support_slices;   // sliced supports
+        
+        inline SupportData(const TriangleMesh &t)
+            : sla::SupportableMesh{t, {}, {}}
+        {}
+        
+        sla::SupportTree::UPtr &create_support_tree(const sla::JobController &ctl)
+        {
+            support_tree_ptr = sla::SupportTree::create(*this, ctl);
+            return support_tree_ptr;
+        }
+    };
+    
     std::unique_ptr<SupportData> m_supportdata;
+    
+    class HollowingData
+    {
+    public:
+        
+        TriangleMesh interior;
+        // std::vector<drillpoints>
+    };
+    
+    std::unique_ptr<HollowingData> m_hollowing_data;
 };
 
 using PrintObjects = std::vector<SLAPrintObject*>;
@@ -339,7 +371,9 @@ class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 {
 private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
-
+    
+    class Steps; // See SLAPrintSteps.cpp
+    
 public:
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
@@ -401,8 +435,8 @@ public:
         template<class Container> void transformed_slices(Container&& c) {
             m_transformed_slices = std::forward<Container>(c);
         }
-
-        friend void SLAPrint::process();
+        
+        friend class SLAPrint::Steps;
 
     public:
 
@@ -477,6 +511,19 @@ private:
 
 	friend SLAPrintObject;
 };
+
+// Helper functions:
+
+bool is_zero_elevation(const SLAPrintObjectConfig &c);
+
+sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c);
+
+sla::PadConfig::EmbedObject builtin_pad_cfg(const SLAPrintObjectConfig& c);
+
+sla::PadConfig make_pad_cfg(const SLAPrintObjectConfig& c);
+
+bool validate_pad(const TriangleMesh &pad, const sla::PadConfig &pcfg);
+
 
 } // namespace Slic3r
 

@@ -55,6 +55,7 @@ const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
+const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 
 const char* MODEL_TAG = "model";
@@ -385,6 +386,7 @@ namespace Slic3r {
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
+        typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;
 
         // Version of the 3mf file
         unsigned int m_version;
@@ -403,6 +405,7 @@ namespace Slic3r {
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
+        IdToSlaDrainHolesMap    m_sla_drain_holes;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -422,6 +425,7 @@ namespace Slic3r {
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_custom_gcode_per_print_z_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
@@ -629,6 +633,11 @@ namespace Slic3r {
                     // extract sla support points file
                     _extract_sla_support_points_from_archive(archive, stat);
                 }
+                else if (boost::algorithm::iequals(name, SLA_DRAIN_HOLES_FILE))
+                {
+                    // extract sla support points file
+                    _extract_sla_drain_holes_from_archive(archive, stat);
+                }
                 else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE))
                 {
                     // extract slic3r print config file
@@ -682,6 +691,11 @@ namespace Slic3r {
             if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty()) {
                 model_object->sla_support_points = obj_sla_support_points->second;
                 model_object->sla_points_status = sla::PointsStatus::UserModified;
+            }
+            
+            IdToSlaDrainHolesMap::iterator obj_drain_holes = m_sla_drain_holes.find(object.second + 1);
+            if (obj_drain_holes != m_sla_drain_holes.end() && !obj_drain_holes->second.empty()) {
+                model_object->sla_drain_holes = obj_drain_holes->second;
             }
 
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
@@ -955,8 +969,9 @@ namespace Slic3r {
 
             // Info on format versioning - see 3mf.hpp
             int version = 0;
-            if (!objects.empty() && objects[0].find("support_points_format_version=") != std::string::npos) {
-                objects[0].erase(objects[0].begin(), objects[0].begin() + 30); // removes the string
+            std::string key("support_points_format_version=");
+            if (!objects.empty() && objects[0].find(key) != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + long(key.size())); // removes the string
                 version = std::stoi(objects[0]);
                 objects.erase(objects.begin()); // pop the header
             }
@@ -1022,6 +1037,90 @@ namespace Slic3r {
             }
         }
     }
+    
+    void _3MF_Importer::_extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer(size_t(stat.m_uncomp_size), 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0)
+            {
+                add_error("Error while reading sla support points data to buffer");
+                return;
+            }
+            
+            if (buffer.back() == '\n')
+                buffer.pop_back();
+            
+            std::vector<std::string> objects;
+            boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
+            
+            // Info on format versioning - see 3mf.hpp
+            int version = 0;
+            std::string key("drain_holes_format_version=");
+            if (!objects.empty() && objects[0].find(key) != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + long(key.size())); // removes the string
+                version = std::stoi(objects[0]);
+                objects.erase(objects.begin()); // pop the header
+            }
+            
+            for (const std::string& object : objects)
+            {
+                std::vector<std::string> object_data;
+                boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+                
+                if (object_data.size() != 2)
+                {
+                    add_error("Error while reading object data");
+                    continue;
+                }
+                
+                std::vector<std::string> object_data_id;
+                boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
+                if (object_data_id.size() != 2)
+                {
+                    add_error("Error while reading object id");
+                    continue;
+                }
+                
+                int object_id = std::atoi(object_data_id[1].c_str());
+                if (object_id == 0)
+                {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+                
+                IdToSlaDrainHolesMap::iterator object_item = m_sla_drain_holes.find(object_id);
+                if (object_item != m_sla_drain_holes.end())
+                {
+                    add_error("Found duplicated SLA drain holes");
+                    continue;
+                }
+                
+                std::vector<std::string> object_data_points;
+                boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
+                
+                sla::DrainHoles sla_drain_holes;
+
+                if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=8)
+                        sla_drain_holes.emplace_back(Vec3f{float(std::atof(object_data_points[i+0].c_str())),
+                                                      float(std::atof(object_data_points[i+1].c_str())),
+                                                      float(std::atof(object_data_points[i+2].c_str()))},
+                                                     Vec3f{float(std::atof(object_data_points[i+3].c_str())),
+                                                      float(std::atof(object_data_points[i+4].c_str())),
+                                                      float(std::atof(object_data_points[i+5].c_str()))},
+                                                      float(std::atof(object_data_points[i+6].c_str())),
+                                                      float(std::atof(object_data_points[i+7].c_str())));
+                }
+                
+                if (!sla_drain_holes.empty())
+                    m_sla_drain_holes.insert(IdToSlaDrainHolesMap::value_type(object_id, sla_drain_holes));
+            }
+        }
+    }
+    
 
 
     bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
@@ -1904,6 +2003,7 @@ namespace Slic3r {
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, const IdToObjectDataMap &objects_data);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -2025,6 +2125,14 @@ namespace Slic3r {
             boost::filesystem::remove(filename);
             return false;
         }
+        
+        if (!_add_sla_drain_holes_file_to_archive(archive, model))
+        {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+        
 
         // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
         // All custom gcode per height of whole Model are stored here
@@ -2475,6 +2583,50 @@ namespace Slic3r {
             out = std::string("support_points_format_version=") + std::to_string(support_points_format_version) + std::string("\n") + out;
 
             if (!mz_zip_writer_add_mem(&archive, SLA_SUPPORT_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+            {
+                add_error("Unable to add sla support points file to archive");
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    bool _3MF_Exporter::_add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        const char *const fmt = "object_id=%d|";
+        std::string out;
+        
+        unsigned int count = 0;
+        for (const ModelObject* object : model.objects)
+        {
+            ++count;
+            auto& drain_holes = object->sla_drain_holes;
+            if (!drain_holes.empty())
+            {
+                out += string_printf(fmt, count);
+                
+                // Store the layer height profile as a single space separated list.
+                for (size_t i = 0; i < drain_holes.size(); ++i)
+                    out += string_printf((i == 0 ? "%f %f %f %f %f %f %f %f" : " %f %f %f %f %f %f %f %f"),
+                                         drain_holes[i].pos(0),
+                                         drain_holes[i].pos(1),
+                                         drain_holes[i].pos(2),
+                                         drain_holes[i].normal(0),
+                                         drain_holes[i].normal(1),
+                                         drain_holes[i].normal(2),
+                                         drain_holes[i].radius,
+                                         drain_holes[i].height);
+                
+                out += "\n";
+            }
+        }
+        
+        if (!out.empty())
+        {
+            // Adds version header at the beginning:
+            out = std::string("drain_holes_format_version=") + std::to_string(drain_holes_format_version) + std::string("\n") + out;
+            
+            if (!mz_zip_writer_add_mem(&archive, SLA_DRAIN_HOLES_FILE.c_str(), static_cast<const void*>(out.data()), out.length(), mz_uint(MZ_DEFAULT_COMPRESSION)))
             {
                 add_error("Unable to add sla support points file to archive");
                 return false;

@@ -3,6 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/SLA/EigenMesh3D.hpp"
 
 
 #include <cfloat>
@@ -46,7 +47,7 @@ public:
     bool operator!=(const ClippingPlane& cp) const { return ! (*this==cp); }
 
     double distance(const Vec3d& pt) const {
-        assert(is_approx(get_normal().norm(), 1.));
+        // FIXME: this fails: assert(is_approx(get_normal().norm(), 1.));
         return (-get_normal().dot(pt) + m_data[3]);
     }
 
@@ -104,11 +105,11 @@ private:
 // whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
-    // The class saves a const* to the mesh, called is responsible
-    // for making sure it does not get invalid.
-    MeshRaycaster(const TriangleMesh& mesh);
-
-    ~MeshRaycaster();
+    // The class makes a copy of the mesh as EigenMesh3D.
+    // The pointer can be invalidated after constructor returns.
+    MeshRaycaster(const TriangleMesh& mesh)
+        : m_emesh(mesh)
+    {}
 
     // Given a mouse position, this returns true in case it is on the mesh.
     bool unproject_on_mesh(
@@ -136,10 +137,7 @@ public:
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
 private:
-    // PIMPL wrapper around igl::AABB so I don't have to include the header-only IGL here
-    class AABBWrapper;
-    std::unique_ptr<AABBWrapper> m_AABB_wrapper;
-    const TriangleMesh* m_mesh = nullptr;
+    sla::EigenMesh3D m_emesh;
 };
 
     

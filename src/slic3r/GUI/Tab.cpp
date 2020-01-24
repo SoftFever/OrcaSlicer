@@ -3608,6 +3608,13 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_object_connector_stride");
     optgroup->append_single_option_line("pad_object_connector_width");
     optgroup->append_single_option_line("pad_object_connector_penetration");
+    
+    page = add_options_page(_(L("Hollowing")), "hollowing");
+    optgroup = page->new_optgroup(_(L("Hollowing")));
+    optgroup->append_single_option_line("hollowing_enable");
+    optgroup->append_single_option_line("hollowing_min_thickness");
+    optgroup->append_single_option_line("hollowing_quality");
+    optgroup->append_single_option_line("hollowing_closing_distance");
 
     page = add_options_page(_(L("Advanced")), "wrench");
     optgroup = page->new_optgroup(_(L("Slicing")));

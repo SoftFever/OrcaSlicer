@@ -104,7 +104,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
 enable_testing ()
 
-# Enable C++11 language standard.
+# Enable C++17 language standard.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -426,6 +426,12 @@ if(SLIC3R_STATIC)
     set(USE_BLOSC TRUE)
 endif()
 
+find_package(OpenVDB 5.0 REQUIRED COMPONENTS openvdb)
+if(OpenVDB_FOUND)
+    slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+    slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
+endif()
+
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -449,8 +455,6 @@ function(prusaslicer_copy_dlls target)
 
 endfunction()
 
-#find_package(OpenVDB 5.0 COMPONENTS openvdb)
-#slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
 
 # libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)

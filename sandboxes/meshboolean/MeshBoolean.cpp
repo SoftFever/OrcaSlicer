@@ -1,85 +1,76 @@
-#include <libslic3r/TriangleMesh.hpp>
-#undef PI
-#include <igl/readOFF.h>
-//#undef IGL_STATIC_LIBRARY
-#include <igl/copyleft/cgal/mesh_boolean.h>
-
-#include <Eigen/Core>
 #include <iostream>
+#include <vector>
 
-#include <admesh/stl.h>
+#include <libslic3r/TriangleMesh.hpp>
+#include <libslic3r/Model.hpp>
+#include <libslic3r/SLAPrint.hpp>
+#include <libslic3r/SLAPrintSteps.hpp>
+#include <libslic3r/MeshBoolean.hpp>
 
-#include <boost/nowide/cstdio.hpp>
+#include <libnest2d/tools/benchmark.h>
+
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {
-
-bool its_write_obj(const Eigen::MatrixXd &V, Eigen::MatrixXi &F, const char *file)
-{
-
-  	FILE *fp = boost::nowide::fopen(file, "w");
-  	if (fp == nullptr) {
-		BOOST_LOG_TRIVIAL(error) << "stl_write_obj: Couldn't open " << file << " for writing";
-    	return false;
-  	}
-
-	for (size_t i = 0; i < V.rows(); ++ i)
-    	fprintf(fp, "v %lf %lf %lf\n", V(i, 0), V(i, 1), V(i, 2));
-  	for (size_t i = 0; i < F.rows(); ++ i)
-    	fprintf(fp, "f %d %d %d\n", F(i, 0) + 1, F(i, 1) + 1, F(i, 2) + 1);
-  	fclose(fp);
-  	return true;
-}
-
-void mesh_boolean_test(const std::string &fname)
-{
-  using namespace Eigen;
-  using namespace std;
-//  igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off",VA,FA);
-//  igl::readOFF(TUTORIAL_SHARED_PATH "/decimated-knight.off",VB,FB);
-  // Plot the mesh with pseudocolors
-//  igl::opengl::glfw::Viewer viewer;
-
-  // Initialize
-//  update(viewer);
-
-  //igl::copyleft::cgal::mesh_boolean(VA,FA,VB,FB,boolean_type,VC,FC,J);
-  
-  
-    std::cout << fname.c_str() << std::endl;
-	TriangleMesh mesh;
-    
-	mesh.ReadSTLFile(fname.c_str());
-	mesh.repair(true);
-    its_write_obj(mesh.its, (fname + "-imported0.obj").c_str());
-    
-
-	Eigen::MatrixXd VA,VB,VC;
-	Eigen::VectorXi J,I;
-	Eigen::MatrixXi FA,FB,FC;
-	igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_UNION);
-
-
-  	typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
-    typedef Eigen::Map<const Eigen::Matrix<int,   Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
-
-	Eigen::MatrixXd V = MapMatrixXfUnaligned(mesh.its.vertices.front().data(), mesh.its.vertices.size(), 3).cast<double>();
-    Eigen::MatrixXi F = MapMatrixXiUnaligned(mesh.its.indices.front().data(), mesh.its.indices.size(), 3);
-
-    its_write_obj(V, F, (fname + "-imported.obj").c_str());
-    // Self-union to clean up
-    igl::copyleft::cgal::mesh_boolean(V, F, Eigen::MatrixXd(), Eigen::MatrixXi(), boolean_type, VC, FC);
-
-    its_write_obj(VC, FC, (fname + "-fixed.obj").c_str());
-}
 
 } // namespace Slic3r
 
 int main(const int argc, const char * argv[])
 {
-    if (argc < 1) return -1;
+    using namespace Slic3r;
     
-    Slic3r::mesh_boolean_test(argv[1]);
+    if (argc <= 1) return EXIT_FAILURE;
+    
+    DynamicPrintConfig cfg;
+    auto model = Model::read_from_file(argv[1], &cfg);
+    
+    if (model.objects.empty()) return EXIT_SUCCESS;
+    
+    SLAPrint print;
+    print.apply(model, cfg);
+    PrintBase::TaskParams task;
+    task.to_object_step = slaposHollowing;
+    
+    print.set_task(task);
+    print.process();
+    
+    Benchmark bench;
+    
+    for (SLAPrintObject *po : print.objects()) {
+        TriangleMesh holes;
+        sla::DrainHoles holepts = po->transformed_drainhole_points();
+        
+        for (auto &hole: holepts)
+            holes.merge(sla::to_triangle_mesh(hole.to_mesh()));
+        
+        TriangleMesh hollowed_mesh = po->transformed_mesh();
+        hollowed_mesh.merge(po->hollowed_interior_mesh());
+        
+        hollowed_mesh.require_shared_vertices();
+        holes.require_shared_vertices();
+        
+        TriangleMesh drilled_mesh_igl = hollowed_mesh;
+        bench.start();
+        MeshBoolean::minus(drilled_mesh_igl, holes);
+        bench.stop();
+        
+        std::cout << "Mesh boolean duration with IGL: " << bench.getElapsedSec() << std::endl;
+        
+        TriangleMesh drilled_mesh_cgal = hollowed_mesh;
+        bench.start();
+        MeshBoolean::cgal::self_union(drilled_mesh_cgal);
+        MeshBoolean::cgal::minus(drilled_mesh_cgal, holes);
+        bench.stop();
+        
+        std::cout << "Mesh boolean duration with CGAL: " << bench.getElapsedSec() << std::endl;
+        
+        std::string name("obj"), outf;
+        outf = name + "igl" + std::to_string(po->model_object()->id().id) + ".obj";
+        drilled_mesh_igl.WriteOBJFile(outf.c_str());
+        
+        outf = name + "cgal" + std::to_string(po->model_object()->id().id) + ".obj";
+        drilled_mesh_cgal.WriteOBJFile(outf.c_str());
+    }
     
     return 0;
 }

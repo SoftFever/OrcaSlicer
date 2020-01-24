@@ -70,6 +70,34 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl_get_size(&stl);
 }
 
+TriangleMesh::TriangleMesh(const indexed_triangle_set &M)
+{
+    stl.stats.type = inmemory;
+    
+    // count facets and allocate memory
+    stl.stats.number_of_facets = uint32_t(M.indices.size());
+    stl.stats.original_num_facets = int(stl.stats.number_of_facets);
+    stl_allocate(&stl);
+    
+    for (uint32_t i = 0; i < stl.stats.number_of_facets; ++ i) {
+        stl_facet facet;
+        facet.vertex[0] = M.vertices[size_t(M.indices[i](0))];
+        facet.vertex[1] = M.vertices[size_t(M.indices[i](1))];
+        facet.vertex[2] = M.vertices[size_t(M.indices[i](2))];
+        facet.extra[0] = 0;
+        facet.extra[1] = 0;
+        
+        stl_normal normal;
+        stl_calculate_normal(normal, &facet);
+        stl_normalize_vector(normal);
+        facet.normal = normal;
+        
+        stl.facet_start[i] = facet;
+    }
+    
+    stl_get_size(&stl);
+}
+
 // #define SLIC3R_TRACE_REPAIR
 
 void TriangleMesh::repair(bool update_shared_vertices)

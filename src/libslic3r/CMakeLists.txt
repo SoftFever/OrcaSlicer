@@ -9,6 +9,11 @@ if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()
 
+set(OpenVDBUtils_SOURCES "")
+if (TARGET OpenVDB::openvdb)
+    set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
+endif()
+
 add_library(libslic3r STATIC
     pchheader.cpp
     pchheader.hpp
@@ -149,9 +154,9 @@ add_library(libslic3r STATIC
     ShortestPath.cpp
     ShortestPath.hpp
     SLAPrint.cpp
+    SLAPrintSteps.cpp
+    SLAPrintSteps.hpp
     SLAPrint.hpp
-    SLA/SLAAutoSupports.hpp
-    SLA/SLAAutoSupports.cpp
     Slicing.cpp
     Slicing.hpp
     SlicingAdaptive.cpp
@@ -180,35 +185,65 @@ add_library(libslic3r STATIC
     MinAreaBoundingBox.cpp
     miniz_extension.hpp
     miniz_extension.cpp
-    SLA/SLACommon.hpp
-    SLA/SLABoilerPlate.hpp
-    SLA/SLAPad.hpp
-    SLA/SLAPad.cpp
-    SLA/SLASupportTreeBuilder.hpp
-    SLA/SLASupportTreeBuildsteps.hpp
-    SLA/SLASupportTreeBuildsteps.cpp
-    SLA/SLASupportTreeBuilder.cpp
-    SLA/SLAConcurrency.hpp
-    SLA/SLASupportTree.hpp
-    SLA/SLASupportTree.cpp
-    SLA/SLASupportTreeIGL.cpp
-    SLA/SLARotfinder.hpp
-    SLA/SLARotfinder.cpp
-    SLA/SLABoostAdapter.hpp
-    SLA/SLASpatIndex.hpp
-    SLA/SLARaster.hpp
-    SLA/SLARaster.cpp
-    SLA/SLARasterWriter.hpp
-    SLA/SLARasterWriter.cpp
+    SimplifyMesh.hpp
+    SimplifyMeshImpl.hpp
+    SimplifyMesh.cpp
+    ${OpenVDBUtils_SOURCES}
+    SLA/Common.hpp
+    SLA/Common.cpp
+    SLA/Pad.hpp
+    SLA/Pad.cpp
+    SLA/SupportTreeBuilder.hpp
+    SLA/SupportTreeBuildsteps.hpp
+    SLA/SupportTreeBuildsteps.cpp
+    SLA/SupportTreeBuilder.cpp
+    SLA/Concurrency.hpp
+    SLA/SupportTree.hpp
+    SLA/SupportTree.cpp
+#    SLA/SupportTreeIGL.cpp
+    SLA/Rotfinder.hpp
+    SLA/Rotfinder.cpp
+    SLA/BoostAdapter.hpp
+    SLA/SpatIndex.hpp
+    SLA/Raster.hpp
+    SLA/Raster.cpp
+    SLA/RasterWriter.hpp
+    SLA/RasterWriter.cpp
     SLA/ConcaveHull.hpp
     SLA/ConcaveHull.cpp
+    SLA/Hollowing.hpp
+    SLA/Hollowing.cpp
+    SLA/JobController.hpp
+    SLA/SupportPoint.hpp
+    SLA/SupportPointGenerator.hpp
+    SLA/SupportPointGenerator.cpp
+    SLA/Contour3D.hpp
+    SLA/Contour3D.cpp
+    SLA/EigenMesh3D.hpp
+    SLA/Clustering.hpp
 )
 
-encoding_check(libslic3r)
-
-if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+if (SLIC3R_STATIC)
+    set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
+set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
+
+cmake_policy(PUSH)
+cmake_policy(SET CMP0011 NEW)
+find_package(CGAL REQUIRED)
+cmake_policy(POP)
+
+add_library(libslic3r_cgal OBJECT MeshBoolean.cpp MeshBoolean.hpp)
+target_include_directories(libslic3r_cgal PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    $<TARGET_PROPERTY:libigl,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_INCLUDE_DIRECTORIES>)
+target_compile_definitions(libslic3r_cgal PRIVATE 
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_DEFINITIONS>)
+target_compile_options(libslic3r_cgal PRIVATE 
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_OPTIONS>)
+
+encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -228,9 +263,13 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
-    # OpenVDB::openvdb
+    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_LINK_LIBRARIES>
     ${CMAKE_DL_LIBS}
     )
+
+if (TARGET OpenVDB::openvdb)
+    target_link_libraries(libslic3r OpenVDB::openvdb)
+endif()
 
 if(WIN32)
     target_link_libraries(libslic3r Psapi.lib)
@@ -239,3 +278,9 @@ endif()
 if(SLIC3R_PROFILE)
     target_link_libraries(slic3r Shiny)
 endif()
+
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+endif ()
+
+target_sources(libslic3r PRIVATE $<TARGET_OBJECTS:libslic3r_cgal>)

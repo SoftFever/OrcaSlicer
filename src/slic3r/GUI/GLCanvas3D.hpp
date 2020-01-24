@@ -499,6 +499,7 @@ public:
     void set_color_by(const std::string& value);
 
     const Camera& get_camera() const { return m_camera; }
+    const Shader& get_shader() const { return m_shader; }
     Camera& get_camera() { return m_camera; }
 
     BoundingBoxf3 volumes_bounding_box() const;

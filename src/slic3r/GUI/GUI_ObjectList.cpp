@@ -103,6 +103,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         // ptSLA
         CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
         CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
+        CATEGORY_ICON[L("Hollowing")]                = create_scaled_bitmap(nullptr, "hollowing");
     }
 
     // create control

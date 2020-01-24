@@ -1017,7 +1017,7 @@ public:
     ConfigOptionFloat support_base_height /*= 1.0*/;
 
     // The minimum distance of the pillar base from the model in mm.
-    ConfigOptionFloat support_base_safety_distance; /*= 1.0*/;
+    ConfigOptionFloat support_base_safety_distance; /*= 1.0*/
 
     // The default angle for connecting support sticks and junctions.
     ConfigOptionFloat support_critical_angle /*= 45*/;
@@ -1062,7 +1062,7 @@ public:
 
     // /////////////////////////////////////////////////////////////////////////
     // Zero elevation mode parameters:
-    //    - The object pad will be derived from the the model geometry.
+    //    - The object pad will be derived from the model geometry.
     //    - There will be a gap between the object pad and the generated pad
     //      according to the support_base_safety_distance parameter.
     //    - The two pads will be connected with tiny connector sticks
@@ -1084,6 +1084,28 @@ public:
 
     // How much should the tiny connectors penetrate into the model body
     ConfigOptionFloat pad_object_connector_penetration;
+    
+    // /////////////////////////////////////////////////////////////////////////
+    // Model hollowing parameters:
+    //   - Models can be hollowed out as part of the SLA print process
+    //   - Thickness of the hollowed model walls can be adjusted
+    //   -
+    //   - Additional holes will be drilled into the hollow model to allow for
+    //   - resin removal.
+    // /////////////////////////////////////////////////////////////////////////
+    
+    ConfigOptionBool hollowing_enable;
+    
+    // The minimum thickness of the model walls to maintain. Note that the 
+    // resulting walls may be thicker due to smoothing out fine cavities where
+    // resin could stuck.
+    ConfigOptionFloat hollowing_min_thickness;
+    
+    // Indirectly controls the voxel size (resolution) used by openvdb
+    ConfigOptionFloat hollowing_quality;
+   
+    // Indirectly controls the minimum size of created cavities.
+    ConfigOptionFloat hollowing_closing_distance;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1121,6 +1143,10 @@ protected:
         OPT_PTR(pad_object_connector_stride);
         OPT_PTR(pad_object_connector_width);
         OPT_PTR(pad_object_connector_penetration);
+        OPT_PTR(hollowing_enable);
+        OPT_PTR(hollowing_min_thickness);
+        OPT_PTR(hollowing_quality);
+        OPT_PTR(hollowing_closing_distance);
     }
 };
 

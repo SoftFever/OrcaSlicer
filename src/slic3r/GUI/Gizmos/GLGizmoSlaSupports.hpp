@@ -4,7 +4,7 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
 
-#include "libslic3r/SLA/SLACommon.hpp"
+#include "libslic3r/SLA/Common.hpp"
 #include <wx/dialog.h>
 
 #include <cereal/types/vector.hpp>
@@ -21,10 +21,10 @@ enum class SLAGizmoEventType : unsigned char;
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
-    ModelObject* m_model_object = nullptr;
-    ObjectID m_model_object_id = 0;
-    int m_active_instance = -1;
-    float m_active_instance_bb_radius; // to cache the bb
+    //ModelObject* m_model_object = nullptr;
+    //ObjectID m_model_object_id = 0;
+    //int m_active_instance = -1;
+    //float m_active_instance_bb_radius; // to cache the bb
     mutable double m_z_shift = 0.f;
     bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
 
@@ -34,15 +34,12 @@ private:
     typedef Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXfUnaligned;
     typedef Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>> MapMatrixXiUnaligned;
 
-    std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
-    const TriangleMesh* m_mesh;
+    //std::unique_ptr<MeshRaycaster> m_mesh_raycaster;
+    //const TriangleMesh* m_mesh;
     const indexed_triangle_set* m_its;
-    mutable const TriangleMesh* m_supports_mesh;
-    mutable std::vector<Vec2f> m_triangles;
-    mutable std::vector<Vec2f> m_supports_triangles;
-    mutable int m_old_timestamp = -1;
-    mutable int m_print_object_idx = -1;
-    mutable int m_print_objects_count = -1;
+    //mutable int m_old_timestamp = -1;
+    //mutable int m_print_object_idx = -1;
+    //mutable int m_print_objects_count = -1;
 
     class CacheEntry {
     public:
@@ -72,7 +69,7 @@ private:
     };
 
 public:
-    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, CommonGizmosData* cd);
     ~GLGizmoSlaSupports() override;
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
@@ -93,13 +90,13 @@ private:
     //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
+    void render_hollowed_mesh() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
-    bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same
@@ -121,11 +118,12 @@ private:
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 
-    mutable std::unique_ptr<MeshClipper> m_object_clipper;
-    mutable std::unique_ptr<MeshClipper> m_supports_clipper;
+    //mutable std::unique_ptr<MeshClipper> m_object_clipper;
+    //mutable std::unique_ptr<MeshClipper> m_supports_clipper;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_mesh_point_clipped(const Vec3d& point) const;
+    bool is_point_in_hole(const Vec3f& pt) const;
     //void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
