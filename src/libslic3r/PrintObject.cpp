@@ -73,6 +73,8 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
 
 PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 {
+    for (PrintInstance &i : instances)
+    	i.shift += m_copies_shift;
     // Invalidate and set copies.
     PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
     bool equal_length = instances.size() == m_instances.size();
@@ -83,7 +85,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
         if (m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport }) ||
             (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
-        m_instances = instances;
+        m_instances = std::move(instances);
 	    for (PrintInstance &i : m_instances)
 	    	i.print_object = this;
     }
