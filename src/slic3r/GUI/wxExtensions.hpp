@@ -228,13 +228,18 @@ class ObjectDataViewModelNode
     std::string                     m_action_icon_name = "";
     Slic3r::ModelVolumeType         m_volume_type;
 
+    // pointer to control (is needed to create scaled bitmaps)
+    wxDataViewCtrl*                 m_ctrl{ nullptr };
+
 public:
-    ObjectDataViewModelNode(const wxString &name,
-                            const wxString& extruder):
+    ObjectDataViewModelNode(const wxString& name,
+                            const wxString& extruder,
+                            wxDataViewCtrl* ctrl):
         m_parent(NULL),
         m_name(name),
         m_type(itObject),
-        m_extruder(extruder)
+        m_extruder(extruder),
+        m_ctrl(ctrl)
     {
         set_action_and_extruder_icons();
         init_container();
@@ -249,7 +254,8 @@ public:
         m_name		(sub_obj_name),
         m_type		(itVolume),
         m_idx       (idx),
-        m_extruder  (extruder)
+        m_extruder  (extruder),
+        m_ctrl      (parent->m_ctrl)
     {
         m_bmp = bmp;
         set_action_and_extruder_icons();
@@ -538,7 +544,8 @@ class BitmapTextRenderer : public wxDataViewCustomRenderer
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
-    BitmapTextRenderer(wxDataViewCellMode mode =
+    BitmapTextRenderer( wxWindow* parent,
+                        wxDataViewCellMode mode =
 #ifdef __WXOSX__
                                                         wxDATAVIEW_CELL_INERT
 #else
@@ -549,7 +556,10 @@ public:
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
                             );
 #else
-                            ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
+                            ) : 
+    wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align),
+    m_parent(parent)
+    {}
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     bool SetValue(const wxVariant &value);
@@ -577,8 +587,9 @@ public:
     bool        WasCanceled() const { return m_was_unusable_symbol; }
 
 private:
-    DataViewBitmapText m_value;
-    bool                    m_was_unusable_symbol {false};
+    DataViewBitmapText  m_value;
+    bool                m_was_unusable_symbol {false};
+    wxWindow*           m_parent {nullptr};
 };
 
 

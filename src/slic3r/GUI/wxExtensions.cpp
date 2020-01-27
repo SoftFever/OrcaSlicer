@@ -584,7 +584,8 @@ void ObjectDataViewModelNode::init_container()
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
     m_type(type),
-    m_extruder(wxEmptyString)
+    m_extruder(wxEmptyString),
+    m_ctrl(parent->m_ctrl)
 {
     if (type == itSettings)
         m_name = "Settings to modified";
@@ -599,7 +600,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
-        m_bmp = create_scaled_bitmap(nullptr, LAYER_ROOT_ICON);    // FIXME: pass window ptr
+        m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ROOT_ICON);    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
 
@@ -615,7 +616,8 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_type(itLayer),
     m_idx(idx),
     m_layer_range(layer_range),
-    m_extruder(extruder)
+    m_extruder(extruder),
+    m_ctrl(parent->m_ctrl)
 {
     const int children_cnt = parent->GetChildCount();
     if (idx < 0)
@@ -628,7 +630,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
-    m_bmp = create_scaled_bitmap(nullptr, LAYER_ICON);    // FIXME: pass window ptr
+    m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ICON);    // FIXME: pass window ptr
 
     set_action_and_extruder_icons();
     init_container();
@@ -647,7 +649,7 @@ void ObjectDataViewModelNode::set_action_and_extruder_icons()
 {
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
-    m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);    // FIXME: pass window ptr
+    m_action_icon = create_scaled_bitmap(m_ctrl, m_action_icon_name);    // FIXME: pass window ptr
 
     if (m_type & itInstance)
         return; // don't set colored bitmap for Instance
@@ -662,7 +664,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+                       create_scaled_bitmap(m_ctrl, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
 void ObjectDataViewModelNode::update_settings_digest_bitmaps()
@@ -707,10 +709,10 @@ bool ObjectDataViewModelNode::update_settings_digest(const std::vector<std::stri
 void ObjectDataViewModelNode::msw_rescale()
 {
     if (!m_action_icon_name.empty())
-        m_action_icon = create_scaled_bitmap(nullptr, m_action_icon_name);
+        m_action_icon = create_scaled_bitmap(m_ctrl, m_action_icon_name);
 
     if (m_printable != piUndef)
-        m_printable_icon = create_scaled_bitmap(nullptr, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+        m_printable_icon = create_scaled_bitmap(m_ctrl, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
@@ -791,7 +793,7 @@ wxDataViewItem ObjectDataViewModel::Add(const wxString &name,
                                         const bool has_errors/* = false*/)
 {
     const wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
-	auto root = new ObjectDataViewModelNode(name, extruder_str);
+	auto root = new ObjectDataViewModelNode(name, extruder_str, m_ctrl);
     // Add error icon if detected auto-repaire
     if (has_errors)
         root->m_bmp = *m_warning_bmp;
@@ -1987,10 +1989,9 @@ void ObjectDataViewModel::Rescale()
             node->m_bmp = GetVolumeIcon(node->m_volume_type, node->m_bmp.GetWidth() != node->m_bmp.GetHeight());
             break;
         case itLayerRoot:
-            node->m_bmp = create_scaled_bitmap(nullptr, LAYER_ROOT_ICON);    // FIXME: pass window ptr
-            break;
+            node->m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ROOT_ICON);
         case itLayer:
-            node->m_bmp = create_scaled_bitmap(nullptr, LAYER_ICON);    // FIXME: pass window ptr
+            node->m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ICON);
             break;
         default: break;
         }
@@ -2092,8 +2093,11 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
     const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
-        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
-        xoffset = icon.GetWidth() + 4;
+        float sf = (float)1.0 / get_svg_scale_factor(m_parent);
+        wxSize icon_sz = icon.GetSize() * sf;
+
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon_sz.y) / 2);
+        xoffset = icon_sz.x + 4;
     }
 
     RenderText(m_value.GetText(), xoffset, rect, dc, state);
