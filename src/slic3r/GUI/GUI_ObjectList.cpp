@@ -230,9 +230,9 @@ ObjectList::ObjectList(wxWindow* parent) :
 	// So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
 	// event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
 	// which seems to be working as of now.
-	this->CallAfter([this](){ this->EnsureVisible(this->GetCurrentItem()); });
+    this->CallAfter([this](){ ensure_current_item_visible(); });
 #else
-	this->EnsureVisible(this->GetCurrentItem());
+    ensure_current_item_visible();
 #endif
 	e.Skip();
 	}));
@@ -3162,7 +3162,7 @@ void ObjectList::update_selections()
     select_items(sels);
 
     // Scroll selected Item in the middle of an object list
-    this->EnsureVisible(this->GetCurrentItem());
+    ensure_current_item_visible();
 }
 
 void ObjectList::update_selections_on_canvas()

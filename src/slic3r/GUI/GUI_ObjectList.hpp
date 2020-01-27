@@ -171,6 +171,12 @@ private:
     SettingsBundle m_freq_settings_sla;
 #endif
 
+    inline void ensure_current_item_visible()
+    {
+        if (const auto &item = this->GetCurrentItem())
+            this->EnsureVisible(item);
+    }
+
 public:
     ObjectList(wxWindow* parent);
     ~ObjectList();
