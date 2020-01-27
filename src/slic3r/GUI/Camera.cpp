@@ -14,7 +14,9 @@
 
 #include <GL/glew.h>
 
+#if !ENABLE_6DOF_CAMERA
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
+#endif // !ENABLE_6DOF_CAMERA
 
 // phi / theta angles to orient the camera.
 static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
@@ -66,13 +68,10 @@ std::string Camera::get_type_as_string() const
 {
     switch (m_type)
     {
-    case Unknown:
-        return "unknown";
-    case Perspective:
-        return "perspective";
+    case Unknown:     return "unknown";
+    case Perspective: return "perspective";
     default:
-    case Ortho:
-        return "orthographic";
+    case Ortho:       return "orthographic";
     };
 }
 
@@ -88,10 +87,7 @@ void Camera::set_type(EType type)
 
 void Camera::set_type(const std::string& type)
 {
-    if (type == "1")
-        set_type(Perspective);
-    else
-        set_type(Ortho);
+    set_type((type == "1") ? Perspective : Ortho);
 }
 
 void Camera::select_next_type()
@@ -262,12 +258,9 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
         w = 0.5 * (double)m_viewport[2];
         h = 0.5 * (double)m_viewport[3];
 
-        if (m_zoom != 0.0)
-        {
-            double inv_zoom = 1.0 / m_zoom;
-            w *= inv_zoom;
-            h *= inv_zoom;
-        }
+        double inv_zoom = get_inv_zoom();
+        w *= inv_zoom;
+        h *= inv_zoom;
 
         switch (m_type)
         {
