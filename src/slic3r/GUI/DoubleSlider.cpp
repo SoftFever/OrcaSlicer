@@ -1381,7 +1381,7 @@ void Control::OnRightUp(wxMouseEvent& event)
             append_menu_item(&menu, wxID_ANY, it->gcode == ColorChangeCode ? _(L("Edit color")) :
                                               it->gcode == PausePrintCode  ? _(L("Edit pause print message")) :
                                               _(L("Edit custom G-code")), "",
-                [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu);
+                [this](wxCommandEvent&) { edit_tick(); }, "edit_uni", &menu, []() {return true; }, this);
 
         if (it->gcode == ColorChangeCode && m_mode == t_mode::MultiAsSingle)
             append_change_extruder_menu_item(&menu, true);
@@ -1390,7 +1390,7 @@ void Control::OnRightUp(wxMouseEvent& event)
                                           it->gcode == ToolChangeCode  ? _(L("Delete tool change")) :
                                           it->gcode == PausePrintCode  ? _(L("Delete pause print")) :
                                           _(L("Delete custom G-code")), "",
-            [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu);
+            [this](wxCommandEvent&) { delete_current_tick();}, "colorchange_del_f", &menu, []() {return true; }, this);
 
         GUI::wxGetApp().plater()->PopupMenu(&menu);
 
