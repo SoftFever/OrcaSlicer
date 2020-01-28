@@ -377,12 +377,14 @@ private:
     class Labels
     {
         bool m_enabled{ false };
+        GLCanvas3D& m_canvas;
 
     public:
+        explicit Labels(GLCanvas3D& canvas) : m_canvas(canvas) {}
         void enable(bool enable) { m_enabled = enable; }
         void show(bool show);
         bool is_shown() const;
-        void render(const GLCanvas3D& canvas) const;
+        void render() const;
     };
 #endif // ENABLE_SHOW_SCENE_LABELS
 

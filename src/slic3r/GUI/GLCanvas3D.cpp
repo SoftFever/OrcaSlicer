@@ -1250,13 +1250,13 @@ bool GLCanvas3D::Labels::is_shown() const
     return wxGetApp().app_config->get("show_labels") == "1";
 }
 
-void GLCanvas3D::Labels::render(const GLCanvas3D& canvas) const
+void GLCanvas3D::Labels::render() const
 {
     if (!m_enabled || !is_shown())
         return;
 
-    const Camera& camera = canvas.get_camera();
-    const Model* model = canvas.get_model();
+    const Camera& camera = m_canvas.get_camera();
+    const Model* model = m_canvas.get_model();
     if (model == nullptr)
         return;
 
@@ -1271,12 +1271,13 @@ void GLCanvas3D::Labels::render(const GLCanvas3D& canvas) const
         BoundingBoxf3 world_box;
         double eye_center_z;
         std::string id_str;
+        std::string instance_str;
         bool selected;
     };
 
     // collect world bounding boxes from volumes
     std::vector<Owner> owners;
-    const GLVolumeCollection& volumes = canvas.get_volumes();
+    const GLVolumeCollection& volumes = m_canvas.get_volumes();
     for (const GLVolume* volume : volumes.volumes)
     {
         int obj_idx = volume->object_idx();
@@ -1299,6 +1300,7 @@ void GLCanvas3D::Labels::render(const GLCanvas3D& canvas) const
                 owner.world_box = volume->transformed_bounding_box();
                 owner.selected = volume->selected;
                 owner.id_str = "object" + std::to_string(obj_idx) + "_inst##" + std::to_string(inst_idx);
+                owner.instance_str = _(L("Instance ")) + std::to_string(inst_idx + 1);
                 owners.push_back(owner);
             }
         }
@@ -1350,13 +1352,20 @@ void GLCanvas3D::Labels::render(const GLCanvas3D& canvas) const
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         float win_w = ImGui::GetWindowWidth();
         std::string object_str = model->objects[owner.obj_idx]->name;
-        ImGui::SetCursorPosX(0.5f * (win_w - imgui.calc_text_size(object_str).x));
+        float object_str_len = imgui.calc_text_size(object_str).x;
+        ImGui::SetCursorPosX(0.5f * (win_w - object_str_len));
         ImGui::AlignTextToFramePadding();
         imgui.text(object_str);
-        std::string instance_str = _(L("Instance ")) + std::to_string(owner.inst_idx + 1);
-        ImGui::SetCursorPosX(0.5f * (win_w - imgui.calc_text_size(instance_str).x));
+        float instance_str_len = imgui.calc_text_size(owner.instance_str).x;
+        ImGui::SetCursorPosX(0.5f * (win_w - instance_str_len));
         ImGui::AlignTextToFramePadding();
-        imgui.text(instance_str);
+        imgui.text(owner.instance_str);
+
+        // force re-render while the windows gets to its final size (it takes several frames)
+        float content_w = 1 + ImGui::GetWindowContentRegionWidth();
+        if ((content_w <= object_str_len) || (content_w <= instance_str_len))
+            m_canvas.request_extra_frame();
+
         imgui.end();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
@@ -1431,6 +1440,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_show_picking_texture(false)
 #endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
+    , m_labels(*this)
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -4870,12 +4880,12 @@ void GLCanvas3D::_render_overlays() const
     _render_undoredo_toolbar();
     _render_view_toolbar();
 
-#if ENABLE_SHOW_SCENE_LABELS
-    m_labels.render(*this);
-#endif // ENABLE_SHOW_SCENE_LABELS
-
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
+
+#if ENABLE_SHOW_SCENE_LABELS
+    m_labels.render();
+#endif // ENABLE_SHOW_SCENE_LABELS
 
     glsafe(::glPopMatrix());
 }
