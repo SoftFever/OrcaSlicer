@@ -61,7 +61,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
         // So, We need to let the Mac OS wxBitmap implementation
         // know that the image may already be scaled appropriately for Retina,
         // and thereby that it's not supposed to upscale it.
-        return bitmap->CreateScaled(width, height, scale);
+        bitmap->CreateScaled(width, height, -1, scale);
 #endif
         m_map[bitmap_key] = bitmap;
     } else {
