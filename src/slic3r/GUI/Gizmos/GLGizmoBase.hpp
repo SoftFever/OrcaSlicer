@@ -215,6 +215,7 @@ public:
 
 private:
     const TriangleMesh* m_old_mesh;
+    TriangleMesh m_backend_mesh_transformed;
 };
 
 } // namespace GUI

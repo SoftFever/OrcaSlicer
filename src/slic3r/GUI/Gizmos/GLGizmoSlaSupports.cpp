@@ -1246,6 +1246,9 @@ void GLGizmoSlaSupports::reload_cache()
 
 bool GLGizmoSlaSupports::has_backend_supports() const
 {
+    if (! m_c->m_model_object)
+        return false;
+
     // find SlaPrintObject with this ID
     for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
         if (po->model_object()->id() == m_c->m_model_object->id())

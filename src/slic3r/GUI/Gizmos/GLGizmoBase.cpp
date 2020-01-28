@@ -326,18 +326,24 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas)
         }
     }
 
-    if (m_print_object_idx < 0)
-        return old_po_idx != m_print_object_idx;
-
     m_mesh = nullptr;
     // Load either the model_object mesh, or one provided by the backend
     // This mesh does not account for the possible Z up SLA offset.
-    const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
+    // The backend mesh needs to be transformed and because a pointer to it is
+    // saved, a copy is stored as a member (FIXME)
+    if (m_print_object_idx >=0) {
+        const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
+        if (po->is_step_done(slaposHollowing)) {
+            m_backend_mesh_transformed = po->get_mesh_to_print();
+            m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
+            m_mesh = &m_backend_mesh_transformed;
+        }
+    }
 
-    if (po->is_step_done(slaposHollowing))
-        m_mesh = &po->get_mesh_to_print();
-    else
+    if (! m_mesh) {
         m_mesh = &m_model_object->volumes.front()->mesh();
+        m_backend_mesh_transformed.clear();
+    }
 
     m_model_object_id = m_model_object->id();
 
@@ -348,7 +354,8 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas)
         m_old_mesh = m_mesh;
         return true;
     }
-    return false;
+
+    return m_print_object_idx < 0 ? old_po_idx >=0 : false;
 }
 
 

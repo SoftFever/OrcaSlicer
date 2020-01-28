@@ -76,8 +76,10 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
 
     if (model_object
      && selection.is_from_single_instance()
-     && (m_c->update_from_backend(m_parent) || something_changed))
+     && (something_changed))
     {
+        m_c->update_from_backend(m_parent);
+
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
         m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
@@ -580,7 +582,7 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 {
     // Called from Plater when the UI job finishes
     /*m_c->m_cavity_mesh = std::move(mesh);
-    
+
     if(m_c->m_cavity_mesh) {
         // First subtract the holes:
         if (! m_c->m_model_object->sla_drain_holes.empty()) {
