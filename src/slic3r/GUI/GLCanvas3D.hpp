@@ -373,6 +373,19 @@ private:
     };
 #endif // ENABLE_RENDER_STATISTICS
 
+#if ENABLE_SHOW_SCENE_LABELS
+    class Labels
+    {
+        bool m_enabled{ false };
+
+    public:
+        void enable(bool enable) { m_enabled = enable; }
+        void show(bool show);
+        bool is_shown() const;
+        void render(const GLCanvas3D& canvas) const;
+    };
+#endif // ENABLE_SHOW_SCENE_LABELS
+
 public:
     enum ECursorType : unsigned char
     {
@@ -450,6 +463,10 @@ private:
     mutable int m_imgui_undo_redo_hovered_pos{ -1 };
     int m_selected_extruder;
 
+#if ENABLE_SHOW_SCENE_LABELS
+    Labels m_labels;
+#endif // ENABLE_SHOW_SCENE_LABELS
+
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
@@ -465,6 +482,9 @@ public:
     void set_as_dirty();
 
     unsigned int get_volumes_count() const;
+#if ENABLE_SHOW_SCENE_LABELS
+    const GLVolumeCollection& get_volumes() const { return m_volumes; }
+#endif // ENABLE_SHOW_SCENE_LABELS
     void reset_volumes();
     int check_volumes_outside_state() const;
 
@@ -476,6 +496,9 @@ public:
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
+#if ENABLE_SHOW_SCENE_LABELS
+    const Model* get_model() const { return m_model; }
+#endif // ENABLE_SHOW_SCENE_LABELS
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
@@ -523,6 +546,9 @@ public:
     void enable_main_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
+#if ENABLE_SHOW_SCENE_LABELS
+    void enable_labels(bool enable) { m_labels.enable(enable); }
+#endif // ENABLE_SHOW_SCENE_LABELS
     void allow_multisample(bool allow);
 
     void zoom_to_bed();

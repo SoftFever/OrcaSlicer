@@ -65,6 +65,10 @@
 #include <chrono>
 #endif // ENABLE_RENDER_STATISTICS
 
+#if ENABLE_SHOW_SCENE_LABELS
+#include <imgui/imgui_internal.h>
+#endif // ENABLE_SHOW_SCENE_LABELS
+
 static const float TRACKBALLSIZE = 0.8f;
 
 static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
@@ -1229,6 +1233,136 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
     }
 }
+
+#if ENABLE_SHOW_SCENE_LABELS
+void GLCanvas3D::Labels::show(bool show)
+{
+    bool shown = is_shown();
+    if (shown != show)
+    {
+        wxGetApp().app_config->set("show_labels", show ? "1" : "0");
+        wxGetApp().app_config->save();
+    }
+}
+
+bool GLCanvas3D::Labels::is_shown() const
+{
+    return wxGetApp().app_config->get("show_labels") == "1";
+}
+
+void GLCanvas3D::Labels::render(const GLCanvas3D& canvas) const
+{
+    if (!m_enabled || !is_shown())
+        return;
+
+    const Camera& camera = canvas.get_camera();
+    const Model* model = canvas.get_model();
+    if (model == nullptr)
+        return;
+
+    Transform3d world_to_eye = camera.get_view_matrix();
+    Transform3d world_to_screen = camera.get_projection_matrix() * world_to_eye;
+    const std::array<int, 4>& viewport = camera.get_viewport();
+
+    struct Owner
+    {
+        int obj_idx;
+        int inst_idx;
+        BoundingBoxf3 world_box;
+        double eye_center_z;
+        std::string id_str;
+        bool selected;
+    };
+
+    // collect world bounding boxes from volumes
+    std::vector<Owner> owners;
+    const GLVolumeCollection& volumes = canvas.get_volumes();
+    for (const GLVolume* volume : volumes.volumes)
+    {
+        int obj_idx = volume->object_idx();
+        if ((0 <= obj_idx) && (obj_idx < (int)model->objects.size()))
+        {
+            int inst_idx = volume->instance_idx();
+            std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [obj_idx, inst_idx](const Owner& owner) {
+                return (owner.obj_idx == obj_idx) && (owner.inst_idx == inst_idx);
+                });
+            if (it != owners.end())
+            {
+                it->world_box.merge(volume->transformed_bounding_box());
+                it->selected &= volume->selected;
+            }
+            else
+            {
+                Owner owner;
+                owner.obj_idx = obj_idx;
+                owner.inst_idx = inst_idx;
+                owner.world_box = volume->transformed_bounding_box();
+                owner.selected = volume->selected;
+                owner.id_str = "object" + std::to_string(obj_idx) + "_inst##" + std::to_string(inst_idx);
+                owners.push_back(owner);
+            }
+        }
+    }
+
+    // calculate eye bounding boxes center zs
+    for (Owner& owner : owners)
+    {
+        owner.eye_center_z = (world_to_eye * owner.world_box.center())(2);
+    }
+
+    // sort owners by center eye zs and selection
+    std::sort(owners.begin(), owners.end(), [](const Owner& owner1, const Owner& owner2) {
+        if (!owner1.selected && owner2.selected)
+            return true;
+        else if (owner1.selected && !owner2.selected)
+            return false;
+        else
+            return (owner1.eye_center_z < owner2.eye_center_z);
+        });
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    // render info windows
+    for (const Owner& owner : owners)
+    {
+        Vec3d screen_box_center = world_to_screen * owner.world_box.center();
+        float x = 0.0f;
+        float y = 0.0f;
+        if (camera.get_type() == Camera::Perspective)
+        {
+            x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
+            y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
+        }
+        else
+        {
+            x = (0.5f + 0.5f * (float)screen_box_center(0)) * viewport[2];
+            y = (0.5f - 0.5f * (float)screen_box_center(1)) * viewport[3];
+        }
+
+        if ((x < 0.0f) || (viewport[2] < x) || (y < 0.0f) || (viewport[3] < y))
+            continue;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, owner.selected ? 3.0f : 1.5f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_Border, owner.selected ? ImVec4(0.757f, 0.404f, 0.216f, 1.0f) : ImVec4(0.75f, 0.75f, 0.75f, 1.0f));
+        imgui.set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.5f);
+        imgui.begin(owner.id_str, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+        float win_w = ImGui::GetWindowWidth();
+        std::string object_str = model->objects[owner.obj_idx]->name;
+        ImGui::SetCursorPosX(0.5f * (win_w - imgui.calc_text_size(object_str).x));
+        ImGui::AlignTextToFramePadding();
+        imgui.text(object_str);
+        std::string instance_str = _(L("Instance ")) + std::to_string(owner.inst_idx + 1);
+        ImGui::SetCursorPosX(0.5f * (win_w - imgui.calc_text_size(instance_str).x));
+        ImGui::AlignTextToFramePadding();
+        imgui.text(instance_str);
+        imgui.end();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar(2);
+    }
+}
+#endif // ENABLE_SHOW_SCENE_LABELS
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -2646,6 +2780,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
+#if ENABLE_SHOW_SCENE_LABELS
+        case 'E':
+        case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+#endif // ENABLE_SHOW_SCENE_LABELS
         case 'I':
         case 'i': { _update_camera_zoom(1.0); break; }
         case 'K':
@@ -4731,6 +4869,10 @@ void GLCanvas3D::_render_overlays() const
     _render_main_toolbar();
     _render_undoredo_toolbar();
     _render_view_toolbar();
+
+#if ENABLE_SHOW_SCENE_LABELS
+    m_labels.render(*this);
+#endif // ENABLE_SHOW_SCENE_LABELS
 
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
