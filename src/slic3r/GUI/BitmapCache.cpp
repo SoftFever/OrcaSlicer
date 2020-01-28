@@ -172,7 +172,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
     height *= 1.0 / scale;
 #endif
 
-    wxBitmap *bitmap = this->insert(bitmap_key, width, height);
+    wxBitmap *bitmap = this->insert(bitmap_key, width, height, scale);
     wxMemoryDC memDC;
     memDC.SelectObject(*bitmap);
     memDC.SetBackground(*wxTRANSPARENT_BRUSH);
