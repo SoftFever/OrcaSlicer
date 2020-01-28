@@ -159,7 +159,7 @@ private:
     void set_distance(double distance) const;
 
 #if ENABLE_6DOF_CAMERA
-    Transform3d look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up) const;
+    void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
     void set_default_orientation();
     Vec3d validate_target(const Vec3d& target) const;
 #endif // ENABLE_6DOF_CAMERA

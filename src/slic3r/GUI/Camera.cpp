@@ -153,17 +153,17 @@ void Camera::select_view(const std::string& direction)
     if (direction == "iso")
         set_default_orientation();
     else if (direction == "left")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
+        look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "right")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
+        look_at(m_target + m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "top")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY());
+        look_at(m_target + m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY());
     else if (direction == "bottom")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitZ(), m_target, -Vec3d::UnitY());
+        look_at(m_target - m_distance * Vec3d::UnitZ(), m_target, -Vec3d::UnitY());
     else if (direction == "front")
-        m_view_matrix = look_at(m_target - m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
+        look_at(m_target - m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
     else if (direction == "rear")
-        m_view_matrix = look_at(m_target + m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
+        look_at(m_target + m_distance * Vec3d::UnitY(), m_target, Vec3d::UnitZ());
 }
 #else
 bool Camera::select_view(const std::string& direction)
@@ -460,32 +460,33 @@ double Camera::min_zoom() const
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
 {
     std::pair<double, double> ret;
+    auto& [near_z, far_z] = ret;
 
     while (true)
     {
         // box in eye space
         BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
-        ret.first = -eye_box.max(2);
-        ret.second = -eye_box.min(2);
+        near_z = -eye_box.max(2);
+        far_z = -eye_box.min(2);
 
         // apply margin
-        ret.first -= FrustrumZMargin;
-        ret.second += FrustrumZMargin;
+        near_z -= FrustrumZMargin;
+        far_z += FrustrumZMargin;
 
         // ensure min size
-        if (ret.second - ret.first < FrustrumMinZRange)
+        if (far_z - near_z < FrustrumMinZRange)
         {
-            double mid_z = 0.5 * (ret.first + ret.second);
+            double mid_z = 0.5 * (near_z + far_z);
             double half_size = 0.5 * FrustrumMinZRange;
-            ret.first = mid_z - half_size;
-            ret.second = mid_z + half_size;
+            near_z = mid_z - half_size;
+            far_z = mid_z + half_size;
         }
 
-        if (ret.first >= FrustrumMinNearZ)
+        if (near_z >= FrustrumMinNearZ)
             break;
 
         // ensure min Near Z
-        set_distance(m_distance + FrustrumMinNearZ - ret.first);
+        set_distance(m_distance + FrustrumMinNearZ - near_z);
     }
 
     return ret;
@@ -638,35 +639,34 @@ void Camera::set_distance(double distance) const
 }
 
 #if ENABLE_6DOF_CAMERA
-Transform3d Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up) const
+void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up)
 {
     Vec3d unit_z = (position - target).normalized();
     Vec3d unit_x = up.cross(unit_z).normalized();
     Vec3d unit_y = unit_z.cross(unit_x).normalized();
 
-    Transform3d matrix;
+    m_target = target;
+    Vec3d new_position = m_target + m_distance * unit_z;
 
-    matrix(0, 0) = unit_x(0);
-    matrix(0, 1) = unit_x(1);
-    matrix(0, 2) = unit_x(2);
-    matrix(0, 3) = -unit_x.dot(position);
+    m_view_matrix(0, 0) = unit_x(0);
+    m_view_matrix(0, 1) = unit_x(1);
+    m_view_matrix(0, 2) = unit_x(2);
+    m_view_matrix(0, 3) = -unit_x.dot(new_position);
 
-    matrix(1, 0) = unit_y(0);
-    matrix(1, 1) = unit_y(1);
-    matrix(1, 2) = unit_y(2);
-    matrix(1, 3) = -unit_y.dot(position);
+    m_view_matrix(1, 0) = unit_y(0);
+    m_view_matrix(1, 1) = unit_y(1);
+    m_view_matrix(1, 2) = unit_y(2);
+    m_view_matrix(1, 3) = -unit_y.dot(new_position);
 
-    matrix(2, 0) = unit_z(0);
-    matrix(2, 1) = unit_z(1);
-    matrix(2, 2) = unit_z(2);
-    matrix(2, 3) = -unit_z.dot(position);
+    m_view_matrix(2, 0) = unit_z(0);
+    m_view_matrix(2, 1) = unit_z(1);
+    m_view_matrix(2, 2) = unit_z(2);
+    m_view_matrix(2, 3) = -unit_z.dot(new_position);
 
-    matrix(3, 0) = 0.0;
-    matrix(3, 1) = 0.0;
-    matrix(3, 2) = 0.0;
-    matrix(3, 3) = 1.0;
-
-    return matrix;
+    m_view_matrix(3, 0) = 0.0;
+    m_view_matrix(3, 1) = 0.0;
+    m_view_matrix(3, 2) = 0.0;
+    m_view_matrix(3, 3) = 1.0;
 }
 
 void Camera::set_default_orientation()
