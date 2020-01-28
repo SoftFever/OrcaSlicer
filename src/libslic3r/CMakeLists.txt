@@ -238,15 +238,24 @@ if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     set(_cgal_defines CGAL_DO_NOT_USE_MPZF)
 endif ()
 
-add_library(libslic3r_cgal OBJECT MeshBoolean.cpp MeshBoolean.hpp)
-target_include_directories(libslic3r_cgal PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}
-    $<TARGET_PROPERTY:libigl,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_compile_definitions(libslic3r_cgal PRIVATE ${_cgal_defines}
-    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_DEFINITIONS>)
-target_compile_options(libslic3r_cgal PRIVATE 
-    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_COMPILE_OPTIONS>)
+add_library(libslic3r_cgal STATIC MeshBoolean.cpp MeshBoolean.hpp)
+target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+# Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
+# (-frounding-math) still propagate to dependent libs which is not desired.
+get_target_property(_cgal_tgt CGAL::CGAL ALIASED_TARGET)
+if (NOT TARGET ${_cgal_tgt})
+    set (_cgal_tgt CGAL::CGAL)
+endif ()
+get_target_property(_opts ${_cgal_tgt} INTERFACE_COMPILE_OPTIONS)
+set(_opts_bad "${_opts}")
+set(_opts_good "${_opts}")
+list(FILTER _opts_bad INCLUDE REGEX frounding-math)
+list(FILTER _opts_good EXCLUDE REGEX frounding-math)
+set_target_properties(${_cgal_tgt} PROPERTIES INTERFACE_COMPILE_OPTIONS "${_opts_good}")
+
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl)
+target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 
 encoding_check(libslic3r)
 
@@ -268,7 +277,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
-    $<TARGET_PROPERTY:CGAL::CGAL,INTERFACE_LINK_LIBRARIES>
+    libslic3r_cgal
     ${CMAKE_DL_LIBS}
     )
 
@@ -287,5 +296,3 @@ endif()
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
 endif ()
-
-target_sources(libslic3r PRIVATE $<TARGET_OBJECTS:libslic3r_cgal>)
