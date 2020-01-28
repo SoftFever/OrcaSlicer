@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 
 
@@ -301,6 +304,54 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	b ^= 0x55;
 	return b;
 }
+
+
+
+bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas)
+{
+    if (! m_model_object)
+        return false;
+
+    int old_po_idx = m_print_object_idx;
+
+    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
+    // cached so we don't have todo it on each render. We only search for the po if needed:
+    if (m_print_object_idx < 0 || (int)canvas.sla_print()->objects().size() != m_print_objects_count) {
+        m_print_objects_count = canvas.sla_print()->objects().size();
+        m_print_object_idx = -1;
+        for (const SLAPrintObject* po : canvas.sla_print()->objects()) {
+            ++m_print_object_idx;
+            if (po->model_object()->id() == m_model_object->id())
+                break;
+        }
+    }
+
+    if (m_print_object_idx < 0)
+        return old_po_idx != m_print_object_idx;
+
+    m_mesh = nullptr;
+    // Load either the model_object mesh, or one provided by the backend
+    // This mesh does not account for the possible Z up SLA offset.
+    const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
+
+    if (po->is_step_done(slaposHollowing))
+        m_mesh = &po->get_mesh_to_print();
+    else
+        m_mesh = &m_model_object->volumes.front()->mesh();
+
+    m_model_object_id = m_model_object->id();
+
+    if (m_mesh != m_old_mesh) {
+        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
+        m_object_clipper.reset();
+        m_supports_clipper.reset();
+        m_old_mesh = m_mesh;
+        return true;
+    }
+    return false;
+}
+
+
 
 } // namespace GUI
 } // namespace Slic3r

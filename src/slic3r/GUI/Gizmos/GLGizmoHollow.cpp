@@ -69,24 +69,24 @@ void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Select
      || m_c->m_active_instance != selection.get_instance_idx()) {
         m_c->m_model_object = model_object;
         m_c->m_print_object_idx = -1;
+        m_c->m_mesh_raycaster.reset();
         m_c->m_active_instance = selection.get_instance_idx();
         something_changed = true;
     }
 
-    if (model_object && something_changed && selection.is_from_single_instance())
+    if (model_object
+     && selection.is_from_single_instance()
+     && (m_c->update_from_backend(m_parent) || something_changed))
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
         m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
 
-        if (is_mesh_update_necessary()) {
-            update_mesh();
-            reload_cache();
-        }
+        reload_cache();
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
             m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
         }
         else
@@ -109,8 +109,8 @@ void GLGizmoHollow::on_render() const
         return;
     }
 
-    if (! m_c->m_mesh)
-        const_cast<GLGizmoHollow*>(this)->update_mesh();
+    // !!! is it necessary?
+    const_cast<GLGizmoHollow*>(this)->m_c->update_from_backend(m_parent);
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -132,7 +132,7 @@ void GLGizmoHollow::on_render() const
 
 void GLGizmoHollow::render_hollowed_mesh() const
 {
-    if (m_c->m_volume_with_cavity) {
+    /*if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
 
@@ -148,14 +148,13 @@ void GLGizmoHollow::render_hollowed_mesh() const
         m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
-    }
+    }*/
 }
-
 
 
 void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f || m_c->mesh()->empty())
+    if (m_clipping_plane_distance == 0.f)
         return;
 
     // Get transformation of the instance
@@ -182,17 +181,9 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 
 
     // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
-    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
-    // cached so we don't have todo it on each render. We only search for the po if needed:
-    if (m_c->m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_c->m_print_objects_count) {
-        m_c->m_print_objects_count = m_parent.sla_print()->objects().size();
-        m_c->m_print_object_idx = -1;
-        for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
-            ++m_c->m_print_object_idx;
-            if (po->model_object()->id() == m_c->m_model_object->id())
-                break;
-        }
-    }
+    if (m_c->m_print_object_idx < 0)
+        m_c->update_from_backend(m_parent);
+
     if (m_c->m_print_object_idx >= 0) {
         const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_c->m_print_object_idx];
 
@@ -355,47 +346,13 @@ bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const
 
 
 
-bool GLGizmoHollow::is_mesh_update_necessary() const
-{
-    return ((m_state == On) && (m_c->m_model_object != nullptr) && !m_c->m_model_object->instances.empty())
-        && ((m_c->m_model_object->id() != m_c->m_model_object_id) || ! m_c->m_mesh);
-}
-
-
-
-void GLGizmoHollow::update_mesh()
-{
-    if (! m_c->m_model_object)
-        return;
-
-    wxBusyCursor wait;
-    // this way we can use that mesh directly.
-    // This mesh does not account for the possible Z up SLA offset.
-    m_c->m_mesh = &m_c->m_model_object->volumes.front()->mesh();
-
-    // If this is different mesh than last time
-    if (m_c->m_model_object_id != m_c->m_model_object->id()) {
-        m_c->m_cavity_mesh.reset(); // dump the cavity
-        m_c->m_volume_with_cavity.reset();
-        m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
-        m_c->m_mesh_raycaster.reset();
-    }
-
-    if (! m_c->m_mesh_raycaster)
-        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
-
-    m_c->m_model_object_id = m_c->m_model_object->id();
-}
-
-
-
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
 bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (! m_c->m_mesh_raycaster)
-        update_mesh();
+    // !!! is it really necessary?
+    m_c->update_from_backend(m_parent);
 
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
@@ -605,7 +562,7 @@ void GLGizmoHollow::update_mesh_raycaster(std::unique_ptr<MeshRaycaster> &&rc)
 {
     m_c->m_mesh_raycaster = std::move(rc);
     m_c->m_object_clipper.reset();
-    m_c->m_volume_with_cavity.reset();
+    //m_c->m_volume_with_cavity.reset();
 }
 
 void GLGizmoHollow::hollow_mesh(bool postpone_error_messages)
@@ -622,7 +579,7 @@ void GLGizmoHollow::hollow_mesh(bool postpone_error_messages)
 void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
 {
     // Called from Plater when the UI job finishes
-    m_c->m_cavity_mesh = std::move(mesh);
+    /*m_c->m_cavity_mesh = std::move(mesh);
     
     if(m_c->m_cavity_mesh) {
         // First subtract the holes:
@@ -668,7 +625,7 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
     if (m_clipping_plane_distance == 0.f) {
         m_clipping_plane_distance = 0.5f;
         update_clipping_plane();
-    }
+    }*/
 }
 
 std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> GLGizmoHollow::get_config_options(const std::vector<std::string>& keys) const
@@ -745,11 +702,12 @@ RENDER_AGAIN:
             wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
     }
-    m_imgui->disabled_begin(! m_enable_hollowing);
 
     ImGui::SameLine();
     if (m_imgui->button(m_desc["preview"]))
         hollow_mesh();
+
+    m_imgui->disabled_begin(! m_enable_hollowing);
 
     std::vector<std::string> opts_keys = {"hollowing_min_thickness", "hollowing_quality", "hollowing_closing_distance"};
     auto opts = get_config_options(opts_keys);
@@ -995,17 +953,17 @@ void GLGizmoHollow::on_set_state()
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
-        if (is_mesh_update_necessary())
-            update_mesh();
+        m_c->update_from_backend(m_parent);
 
         // we'll now reload support points:
         if (m_c->m_model_object)
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object)
-            m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
-        m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+        if (m_c->m_model_object) {
+            m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(m_show_supports, m_c->m_model_object, m_c->m_active_instance);
+        }
 
         // Set default head diameter from config.
         //const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
@@ -1128,6 +1086,8 @@ void GLGizmoHollow::reload_cache()
 
 void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
 {
+    if (! m_c->m_model_object)
+        return;
     Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
                         m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 

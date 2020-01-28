@@ -31,6 +31,7 @@ static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 class ImGuiWrapper;
 class CommonGizmosData;
+class GLCanvas3D;
 
 class GLGizmoBase
 {
@@ -189,8 +190,10 @@ class MeshClipper;
 class CommonGizmosData {
 public:
     const TriangleMesh* mesh() const {
-        return (! m_mesh ? nullptr : (m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
+        return (! m_mesh ? nullptr : m_mesh); //(m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
     }
+
+    bool update_from_backend(GLCanvas3D& canvas);
 
 
 
@@ -200,8 +203,8 @@ public:
     std::unique_ptr<MeshClipper> m_object_clipper;
     std::unique_ptr<MeshClipper> m_supports_clipper;
 
-    std::unique_ptr<TriangleMesh> m_cavity_mesh;
-    std::unique_ptr<GLVolume> m_volume_with_cavity;
+    //std::unique_ptr<TriangleMesh> m_cavity_mesh;
+    //std::unique_ptr<GLVolume> m_volume_with_cavity;
 
     int m_active_instance = -1;
     float m_active_instance_bb_radius = 0;
@@ -209,6 +212,9 @@ public:
     int m_print_object_idx = -1;
     int m_print_objects_count = -1;
     int m_old_timestamp = -1;
+
+private:
+    const TriangleMesh* m_old_mesh;
 };
 
 } // namespace GUI

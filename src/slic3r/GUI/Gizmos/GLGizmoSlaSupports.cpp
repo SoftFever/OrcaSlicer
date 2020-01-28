@@ -63,6 +63,8 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
+    return;
+
     if (! model_object || selection.is_empty()) {
         m_c->m_model_object = nullptr;
         return;
@@ -87,7 +89,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
             m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
             if (m_state == On) {
                 m_parent.toggle_model_objects_visibility(false);
-                m_parent.toggle_model_objects_visibility(! m_c->m_cavity_mesh, m_c->m_model_object, m_c->m_active_instance);
+                m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
                 m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
             }
             else
@@ -143,7 +145,7 @@ void GLGizmoSlaSupports::on_render() const
 
 void GLGizmoSlaSupports::render_hollowed_mesh() const
 {
-    if (m_c->m_volume_with_cavity) {
+    /*if (m_c->m_volume_with_cavity) {
         m_c->m_volume_with_cavity->set_sla_shift_z(m_z_shift);
         m_parent.get_shader().start_using();
 
@@ -159,7 +161,7 @@ void GLGizmoSlaSupports::render_hollowed_mesh() const
         m_c->m_volume_with_cavity->set_instance_transformation(m_c->m_model_object->instances[size_t(m_c->m_active_instance)]->get_transformation());
         m_c->m_volume_with_cavity->render(color_id, print_box_detection_id, print_box_worldmatrix_id);
         m_parent.get_shader().stop_using();
-    }
+    }*/
 }
 
 
@@ -359,7 +361,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     }
 
     // Now render the drain holes:
-    if (! m_c->m_cavity_mesh) {
+    /*if (! m_c->m_cavity_mesh) {
         render_color[0] = 0.7f;
         render_color[1] = 0.7f;
         render_color[2] = 0.7f;
@@ -394,7 +396,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                 glFrontFace(GL_CCW);
             glsafe(::glPopMatrix());
         }
-    }
+    }*/
 
     if (!picking)
         glsafe(::glDisable(GL_LIGHTING));
@@ -467,14 +469,14 @@ bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec
         // In case the hollowed and drilled mesh is available, we can allow
         // placing points in holes, because they should never end up
         // on surface that's been drilled away.
-        if (! m_c->m_cavity_mesh) {
+        /*if (! m_c->m_cavity_mesh) {
             for (const sla::DrainHole& hole : m_c->m_model_object->sla_drain_holes) {
                 if (hole.is_inside(hit)) {
                     in_hole = true;
                     break;
                 }
             }
-        }
+        }*/
         if (! in_hole) {
             // Return both the point and the facet normal.
             pos_and_normal = std::make_pair(hit, normal);
@@ -1051,7 +1053,7 @@ void GLGizmoSlaSupports::on_set_state()
             reload_cache();
 
         m_parent.toggle_model_objects_visibility(false);
-        if (m_c->m_model_object && ! m_c->m_cavity_mesh)
+        if (m_c->m_model_object /*&& ! m_c->m_cavity_mesh*/)
             m_parent.toggle_model_objects_visibility(true, m_c->m_model_object, m_c->m_active_instance);
         m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
 
@@ -1087,7 +1089,7 @@ void GLGizmoSlaSupports::on_set_state()
             m_its = nullptr;
             m_c->m_object_clipper.reset();
             m_c->m_supports_clipper.reset();
-            m_c->m_mesh_raycaster.reset();
+            //m_c->m_mesh_raycaster.reset();
         }
     }
     m_old_state = m_state;
