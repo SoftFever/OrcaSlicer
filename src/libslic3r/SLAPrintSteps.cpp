@@ -83,9 +83,9 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     bool drilling_needed = ! po.m_model_object->sla_drain_holes.empty();
 
     // If the mesh is broken, stop immediately, even before hollowing.
-    if (drilling_needed && po.transformed_mesh().needed_repair())
-        throw std::runtime_error(L("The mesh appears to be too broken "
-                                   "to drill holes into it reliably."));
+    //if (drilling_needed && po.transformed_mesh().needed_repair())
+    //    throw std::runtime_error(L("The mesh appears to be too broken "
+    //                               "to drill holes into it reliably."));
 
     if (! po.m_config.hollowing_enable.getBool())
         BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";    
@@ -133,7 +133,13 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 
         TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
         hollowed_mesh = po.get_mesh_to_print();
-        MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+        try {
+            MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+        }
+        catch (const std::runtime_error& ex) {
+            throw std::runtime_error(L("Drilling holes into the mesh failed. "
+                "This is usually caused by broken model. Try to fix it first."));
+        }
         hollowed_mesh.require_shared_vertices();
     }
 }
