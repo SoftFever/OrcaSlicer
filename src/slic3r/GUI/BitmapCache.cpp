@@ -49,12 +49,20 @@ static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.
 #endif
 }
 
-wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_t height)
+wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_t height, float scale/* = 1.0f*/)
 {
     wxBitmap *bitmap = nullptr;
     auto      it     = m_map.find(bitmap_key);
     if (it == m_map.end()) {
         bitmap = new wxBitmap(width, height);
+#ifdef __APPLE__
+        // Contrary to intuition, the `scale` argument isn't "please scale this to such and such"
+        // but rather "the wxImage is sized for backing scale such and such".
+        // So, We need to let the Mac OS wxBitmap implementation
+        // know that the image may already be scaled appropriately for Retina,
+        // and thereby that it's not supposed to upscale it.
+        bitmap->CreateScaled(width, height, -1, scale);
+#endif
         m_map[bitmap_key] = bitmap;
     } else {
         bitmap = it->second;
@@ -95,7 +103,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap &bmp
     return this->insert(bitmap_key, bmps, bmps + 3);
 }
 
-wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *begin, const wxBitmap *end)
+wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *begin, const wxBitmap *end, float scale/* = 1.0f*/)
 {
     size_t width  = 0;
     size_t height = 0;
@@ -158,7 +166,13 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
 
 #else
 
-    wxBitmap *bitmap = this->insert(bitmap_key, width, height);
+#ifdef __APPLE__
+    // Note, for this moment width and height are scaled, so divide them by scale to avoid one more multiplication inside CreateScaled()
+    width  *= 1.0 / scale;
+    height *= 1.0 / scale;
+#endif
+
+    wxBitmap *bitmap = this->insert(bitmap_key, width, height, scale);
     wxMemoryDC memDC;
     memDC.SelectObject(*bitmap);
     memDC.SetBackground(*wxTRANSPARENT_BRUSH);
@@ -167,7 +181,8 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
     for (const wxBitmap *bmp = begin; bmp != end; ++ bmp) {
         if (bmp->GetWidth() > 0)
             memDC.DrawBitmap(*bmp, x, 0, true);
-        x += bmp->GetWidth();
+        // we should "move" with step equal to non-scaled width
+        x += bmp->GetWidth()/scale;
     }
     memDC.SelectObject(wxNullBitmap);
     return bitmap;

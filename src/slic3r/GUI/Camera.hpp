@@ -48,11 +48,7 @@ private:
     mutable double m_gui_scale;
 
     mutable std::array<int, 4> m_viewport;
-#if ENABLE_6DOF_CAMERA
-    Transform3d m_view_matrix;
-#else
     mutable Transform3d m_view_matrix;
-#endif // ENABLE_6DOF_CAMERA
     mutable Transform3d m_projection_matrix;
     mutable std::pair<double, double> m_frustrum_zs;
 
@@ -71,7 +67,11 @@ public:
     const Vec3d& get_target() const { return m_target; }
     void set_target(const Vec3d& target);
 
+#if ENABLE_6DOF_CAMERA
+    double get_distance() const { return (get_position() - m_target).norm(); }
+#else
     double get_distance() const { return m_distance; }
+#endif // ENABLE_6DOF_CAMERA
     double get_gui_scale() const { return m_gui_scale; }
 
 #if !ENABLE_6DOF_CAMERA
@@ -115,8 +115,13 @@ public:
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0) const;
 
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+    void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
+    void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
+#else
     void zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, double margin_factor = DefaultZoomToVolumesMarginFactor);
+#endif // ENABLE_6DOF_CAMERA
 #else
     void zoom_to_box(const BoundingBoxf3& box, int canvas_w, int canvas_h);
 #endif // ENABLE_THUMBNAIL_GENERATOR
@@ -151,8 +156,13 @@ private:
     // the camera MUST be outside of the bounding box in eye coordinate of the given box
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const;
 #if ENABLE_THUMBNAIL_GENERATOR
+#if ENABLE_6DOF_CAMERA
+    double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
+    double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
+#else
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, int canvas_w, int canvas_h, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
+#endif // ENABLE_6DOF_CAMERA
 #else
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, int canvas_w, int canvas_h) const;
 #endif // ENABLE_THUMBNAIL_GENERATOR

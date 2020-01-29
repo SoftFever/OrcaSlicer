@@ -56,7 +56,7 @@ int     em_unit(wxWindow* win);
 float   get_svg_scale_factor(wxWindow* win);
 
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name,
-    const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
+    const int px_cnt = 16, const bool grayscale = false);
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon = false);
 void apply_extruder_selector(wxBitmapComboBox** ctrl,
@@ -729,8 +729,7 @@ public:
     ScalableBitmap() {};
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name = "",
-                    const int px_cnt = 16,
-                    const bool is_horizontal = false);
+                    const int px_cnt = 16);
 
     ~ScalableBitmap() {}
 
@@ -741,14 +740,12 @@ public:
     const std::string&  name() const{ return m_icon_name; }
 
     int                 px_cnt()const           {return m_px_cnt;}
-    bool                is_horizontal()const    {return m_is_horizontal;}
 
 private:
     wxWindow*       m_parent{ nullptr };
     wxBitmap        m_bmp = wxBitmap();
     std::string     m_icon_name = "";
     int             m_px_cnt {16};
-    bool            m_is_horizontal {false};
 };
 
 
@@ -832,7 +829,6 @@ private:
 
     // bitmap dimensions 
     int             m_px_cnt{ 16 };
-    bool            m_is_horizontal{ false };
 };
 
 

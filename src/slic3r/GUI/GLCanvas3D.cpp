@@ -1854,11 +1854,16 @@ void GLCanvas3D::render()
     }
 
     const Size& cnv_size = get_canvas_size();
+#if ENABLE_6DOF_CAMERA
+    m_camera.apply_viewport(0, 0, (unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+#endif // ENABLE_6DOF_CAMERA
 
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
+#if !ENABLE_6DOF_CAMERA
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+#endif // !ENABLE_6DOF_CAMERA
         m_camera.requires_zoom_to_bed = false;
     }
 
@@ -3962,8 +3967,13 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, bool 
 #if ENABLE_6DOF_CAMERA
     camera.set_scene_box(scene_bounding_box());
 #endif // ENABLE_6DOF_CAMERA
+#if ENABLE_6DOF_CAMERA
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.zoom_to_volumes(visible_volumes);
+#else
     camera.zoom_to_volumes(visible_volumes, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+#endif // ENABLE_6DOF_CAMERA
     camera.apply_view_matrix();
 
     double near_z = -1.0;
@@ -4554,8 +4564,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     // ensures that this canvas is current
     _set_current();
 
+#if !ENABLE_6DOF_CAMERA
     // updates camera
     m_camera.apply_viewport(0, 0, w, h);
+#endif // !ENABLE_6DOF_CAMERA
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
@@ -4579,8 +4591,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
 #if ENABLE_THUMBNAIL_GENERATOR
 void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 {
+#if ENABLE_6DOF_CAMERA
+    m_camera.zoom_to_box(box, margin_factor);
+#else
     const Size& cnv_size = get_canvas_size();
     m_camera.zoom_to_box(box, cnv_size.get_width(), cnv_size.get_height(), margin_factor);
+#endif // ENABLE_6DOF_CAMERA
     m_dirty = true;
 }
 #else
