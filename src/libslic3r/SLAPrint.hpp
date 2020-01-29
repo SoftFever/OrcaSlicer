@@ -421,6 +421,9 @@ public:
     // Extracted value from the configuration objects
     Vec3d                       relative_correction() const;
 
+    // Return sla tansformation for a given model_object
+    Transform3d sla_trafo(const ModelObject &model_object) const;
+
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
     const SLAPrintStatistics&   print_statistics() const { return m_print_statistics; }
