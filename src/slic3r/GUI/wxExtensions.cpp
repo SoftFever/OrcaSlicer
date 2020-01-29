@@ -66,7 +66,7 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
     const auto it = msw_menuitem_bitmaps.find(item->GetId());
     if (it != msw_menuitem_bitmaps.end())
     {
-        const wxBitmap& item_icon = create_scaled_bitmap(win, it->second, 16, false, !enable);
+        const wxBitmap& item_icon = create_scaled_bitmap(win, it->second, 16, !enable);
         if (item_icon.IsOk())
             item->SetBitmap(item_icon);
     }
@@ -420,40 +420,24 @@ float get_svg_scale_factor(wxWindow *win)
     }
     return win != nullptr ? max_scaling_factor : 1.0f;
 #else
+    (void)(win);
     return 1.0f;
 #endif
 }
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
-    const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
+    const int px_cnt/* = 16*/, const bool grayscale/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
-#ifdef __APPLE__
-    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
-    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
-    // We're using the max scaling factor across all screens because it's very likely to be good enough.
+    const float scale_factor = get_svg_scale_factor(win);
 
-    static float max_scaling_factor = NAN;
-    if (std::isnan(max_scaling_factor)) {
-        max_scaling_factor = Slic3r::GUI::mac_max_scaling_factor();
-    }
-    const float scale_factor = win != nullptr ? max_scaling_factor : 1.0f;
-#else
-    (void)(win);
-    const float scale_factor = 1.0f;
-#endif
-
-    unsigned int height, width = height = 0;
-    unsigned int& scale_base = is_horizontal ? width : height;
-
-    scale_base = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
+    unsigned int width = 0;
+    unsigned int height = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
 
     std::string bmp_name = bmp_name_in;
     boost::replace_last(bmp_name, ".png", "");
-
-//    std::string bmp_name = icon_name_respected_to_mode(bmp_name_in);
 
     // Try loading an SVG first, then PNG if SVG is not found:
     wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale, Slic3r::GUI::wxGetApp().dark_mode());
@@ -682,7 +666,7 @@ void ObjectDataViewModelNode::update_settings_digest_bitmaps()
         for (auto& cat : m_opt_categories)
             bmps.emplace_back(  categories_icon.find(cat) == categories_icon.end() ?
                                 wxNullBitmap : categories_icon.at(cat));
-        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
+        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps, get_svg_scale_factor(m_ctrl));
     }
 
     m_bmp = *bmp;
@@ -2470,18 +2454,17 @@ void MenuWithSeparators::SetSecondSeparator()
 // ----------------------------------------------------------------------------
 ScalableBitmap::ScalableBitmap( wxWindow *parent, 
                                 const std::string& icon_name/* = ""*/,
-                                const int px_cnt/* = 16*/, 
-                                const bool is_horizontal/*  = false*/):
+                                const int px_cnt/* = 16*/):
     m_parent(parent), m_icon_name(icon_name),
-    m_px_cnt(px_cnt), m_is_horizontal(is_horizontal)
+    m_px_cnt(px_cnt)
 {
-    m_bmp = create_scaled_bitmap(parent, icon_name, px_cnt, is_horizontal);
+    m_bmp = create_scaled_bitmap(parent, icon_name, px_cnt);
 }
 
 
 void ScalableBitmap::msw_rescale()
 {
-    m_bmp = create_scaled_bitmap(m_parent, m_icon_name, m_px_cnt, m_is_horizontal);
+    m_bmp = create_scaled_bitmap(m_parent, m_icon_name, m_px_cnt);
 }
 
 // ----------------------------------------------------------------------------
@@ -2522,8 +2505,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
                                 long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
     m_parent(parent),
     m_current_icon_name(bitmap.name()),
-    m_px_cnt(bitmap.px_cnt()),
-    m_is_horizontal(bitmap.is_horizontal())
+    m_px_cnt(bitmap.px_cnt())
 {
     Create(parent, id, label, wxDefaultPosition, wxDefaultSize, style);
 #ifdef __WXMSW__
@@ -2554,9 +2536,9 @@ int ScalableButton::GetBitmapHeight()
 
 void ScalableButton::msw_rescale()
 {
-    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name, m_px_cnt, m_is_horizontal));
+    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name, m_px_cnt));
     if (!m_disabled_icon_name.empty())
-        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name, m_px_cnt, m_is_horizontal));
+        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name, m_px_cnt));
 
     if (m_width > 0 || m_height>0)
     {
