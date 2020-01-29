@@ -80,6 +80,13 @@ SLAPrint::Steps::Steps(SLAPrint *print)
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 {
     po.m_hollowing_data.reset();
+    bool drilling_needed = ! po.m_model_object->sla_drain_holes.empty();
+
+    // If the mesh is broken, stop immediately, even before hollowing.
+    if (drilling_needed && po.transformed_mesh().needed_repair())
+        throw std::runtime_error(L("The mesh appears to be too broken "
+                                   "to drill holes into it reliably."));
+
     if (! po.m_config.hollowing_enable.getBool())
         BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";    
     else {
@@ -104,7 +111,7 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
     }
 
     // Drill holes into the hollowed/original mesh.
-    if (po.m_model_object->sla_drain_holes.empty())
+    if (! drilling_needed)
         BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
     else {
         BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
@@ -116,7 +123,7 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
             holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
 
         holes_mesh.require_shared_vertices();
-        MeshBoolean::self_union(holes_mesh); //FIXME-fix and use the cgal version
+        MeshBoolean::self_union(holes_mesh);
 
         // If there is no hollowed mesh yet, copy the original mesh.
         if (! po.m_hollowing_data) {
