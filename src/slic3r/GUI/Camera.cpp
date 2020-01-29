@@ -502,16 +502,16 @@ void Camera::rotate_local_around_pivot(const Vec3d& rotation_rad, const Vec3d& p
     m_view_matrix.rotate(Eigen::AngleAxisd(rotation_rad(2), get_dir_forward()));
     translate_world(center);
 }
+#endif // ENABLE_6DOF_CAMERA
 
 double Camera::min_zoom() const
 {
 #if ENABLE_6DOF_CAMERA
     return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box);
 #else
-    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box, (int)m_viewport[2], (int)m_viewport[3]);
+    return 0.7 * calc_zoom_to_bounding_box_factor(m_scene_box, m_viewport[2], m_viewport[3]);
 #endif // ENABLE_6DOF_CAMERA
 }
-#endif // ENABLE_6DOF_CAMERA
 
 std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBoxf3& box) const
 {

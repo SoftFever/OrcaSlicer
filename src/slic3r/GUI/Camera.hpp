@@ -146,10 +146,9 @@ public:
 
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
-
+#endif // ENABLE_6DOF_CAMERA
     double max_zoom() const { return 100.0; }
     double min_zoom() const;
-#endif // ENABLE_6DOF_CAMERA
 
 private:
     // returns tight values for nearZ and farZ plane around the given bounding box
