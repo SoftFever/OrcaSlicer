@@ -1930,6 +1930,8 @@ void GLCanvas3D::mirror_selection(Axis axis)
 // 5) Out of bed collision status & message overlay (texture)
 void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_refresh)
 {
+    force_full_scene_refresh = true;
+
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
@@ -2189,9 +2191,28 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
 
 		// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-		for (GLVolume* volume : m_volumes.volumes)
+        for (GLVolume* volume : m_volumes.volumes) {
 			if (volume->object_idx() < (int)m_model->objects.size() && m_model->objects[volume->object_idx()]->instances[volume->instance_idx()]->is_printable())
 				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
+
+            // Just an experiment for now - replace the mesh with a hollowed one.
+            for (size_t po_idx=0; po_idx<sla_print->objects().size(); ++po_idx) {
+                const SLAPrintObject* po = sla_print->objects()[po_idx];
+                if (po_idx != volume->composite_id.object_id || volume->composite_id.volume_id < 0)
+                    continue;
+                if (po->is_step_done(slaposHollowing)) {
+                    TriangleMesh mesh = po->get_mesh(slaposHollowing);
+                    if (mesh.empty())
+                        continue;
+                    Transform3d t = sla_print->sla_trafo(*m_model->objects[volume->object_idx()]);
+                    mesh.transform(t.inverse());
+                    GLIndexedVertexArray iva;
+                    iva.load_mesh(mesh);
+                    volume->indexed_vertex_array = iva;
+                    volume->finalize_geometry(true);
+                }
+            }
+        }
     }
 
     if (printer_technology == ptFFF && m_config->has("nozzle_diameter"))
