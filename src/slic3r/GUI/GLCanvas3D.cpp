@@ -1717,9 +1717,7 @@ void GLCanvas3D::render()
     if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
-#if !ENABLE_6DOF_CAMERA
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-#endif // !ENABLE_6DOF_CAMERA
         m_camera.requires_zoom_to_bed = false;
     }
 
