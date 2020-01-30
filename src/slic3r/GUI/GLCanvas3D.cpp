@@ -1930,8 +1930,6 @@ void GLCanvas3D::mirror_selection(Axis axis)
 // 5) Out of bed collision status & message overlay (texture)
 void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_refresh)
 {
-    force_full_scene_refresh = true;
-
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
@@ -1971,8 +1969,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     };
 
     // SLA steps to pull the preview meshes for.
-	typedef std::array<SLAPrintObjectStep, 2> SLASteps;
-	SLASteps sla_steps = { slaposSupportTree, slaposPad };
+	typedef std::array<SLAPrintObjectStep, 3> SLASteps;
+	SLASteps sla_steps = { slaposHollowing, slaposSupportTree, slaposPad };
     struct SLASupportState {
         std::array<PrintStateBase::StateWithTimeStamp, std::tuple_size<SLASteps>::value> step;
     };
@@ -2019,7 +2017,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         // Consider the DONE step without a valid mesh as invalid for the purpose
                         // of mesh visualization.
                         state.step[istep].state = PrintStateBase::INVALID;
-                    else
+                    else if (sla_steps[istep] != slaposHollowing)
                         for (const ModelInstance* model_instance : print_object->model_object()->instances)
                             // Only the instances, which are currently printable, will have the SLA support structures kept.
                             // The instances outside the print bed will have the GLVolumes of their support structures released.
@@ -2032,7 +2030,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     }
     std::sort(model_volume_state.begin(), model_volume_state.end(), model_volume_state_lower);
     std::sort(aux_volume_state.begin(), aux_volume_state.end(), model_volume_state_lower);
-    // Release all ModelVolume based GLVolumes not found in the current Model.
+    // Release all ModelVolume based GLVolumes not found in the current Model. Find the GLVolume of a hollowed mesh.
     for (size_t volume_id = 0; volume_id < m_volumes.volumes.size(); ++volume_id) {
         GLVolume* volume = m_volumes.volumes[volume_id];
         ModelVolumeState  key(volume);
@@ -2114,6 +2112,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     if (it_old_volume != deleted_volumes.end() && it_old_volume->composite_id == it->composite_id)
                         // If a volume changed its ObjectID, but it reuses a GLVolume's CompositeID, maintain its selection.
                         map_glvolume_old_to_new[it_old_volume->volume_idx] = m_volumes.volumes.size();
+                    // Note the index of the loaded volume, so that we can reload the main model GLVolume with the hollowed mesh
+                    // later in this function.
+                    it->volume_idx = m_volumes.volumes.size();
                     m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
                     update_object_list = true;
@@ -2163,27 +2164,41 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 int instance_idx = it - model_object->instances.begin();
                 for (size_t istep = 0; istep < sla_steps.size(); ++ istep)
                     if (state.step[istep].state == PrintStateBase::DONE) {
-                        ModelVolumeState key(state.step[istep].timestamp, instance.instance_id.id);
-                        auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
-                        assert(it != aux_volume_state.end() && it->geometry_id == key.geometry_id);
-                        if (it->new_geometry()) {
-                            // This can be an SLA support structure that should not be rendered (in case someone used undo
-                            // to revert to before it was generated). If that's the case, we should not generate anything.
-                            if (model_object->sla_points_status != sla::PointsStatus::NoPoints)
-                                instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
-                            else
-                                shift_zs[object_idx] = 0.;
+                        if (sla_steps[istep] == slaposHollowing) {
+                            // Check whether there is a main object mesh, which we may update with the hollowed mesh.
+	                        ModelVolumeState key(model_object->volumes.front()->id(), instance.instance_id);
+	                        auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
+	                        assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
+                            assert(!it->new_geometry());
+                            GLVolume& volume = *m_volumes.volumes[it->volume_idx];
+                            TriangleMesh mesh = print_object->get_mesh(slaposHollowing);
+                            if (!mesh.empty()) {
+                                Transform3d t = sla_print->sla_trafo(*m_model->objects[volume.object_idx()]);
+                                mesh.transform(t.inverse());
+                                volume.indexed_vertex_array.release_geometry();
+                                volume.indexed_vertex_array.load_mesh(mesh);
+                                volume.finalize_geometry(true);
+                            }
+                        } else {
+                            // Check whether there is an existing auxiliary volume to be updated, or a new auxiliary volume to be created.
+							ModelVolumeState key(state.step[istep].timestamp, instance.instance_id.id);
+							auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
+							assert(it != aux_volume_state.end() && it->geometry_id == key.geometry_id);
+                        	if (it->new_geometry()) {
+                                // This can be an SLA support structure that should not be rendered (in case someone used undo
+                                // to revert to before it was generated). If that's the case, we should not generate anything.
+                                if (model_object->sla_points_status != sla::PointsStatus::NoPoints)
+                                    instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
+                                else
+                                    shift_zs[object_idx] = 0.;
+                            } else {
+                                // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
+                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
+                                m_volumes.volumes[it->volume_idx]->set_instance_transformation(model_object->instances[instance_idx]->get_transformation());
+                            }
                         }
-						else {
-							// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
-							m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
-							m_volumes.volumes[it->volume_idx]->set_instance_transformation(model_object->instances[instance_idx]->get_transformation());
-						}
                     }
             }
-
-//            // stores the current volumes count
-//            size_t volumes_count = m_volumes.volumes.size();
 
             for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                 if (!instances[istep].empty())
@@ -2191,29 +2206,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
 
 		// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-        for (GLVolume* volume : m_volumes.volumes) {
+		for (GLVolume* volume : m_volumes.volumes)
 			if (volume->object_idx() < (int)m_model->objects.size() && m_model->objects[volume->object_idx()]->instances[volume->instance_idx()]->is_printable())
 				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
-
-            // Just an experiment for now - replace the mesh with a hollowed one.
-            for (size_t po_idx=0; po_idx<sla_print->objects().size(); ++po_idx) {
-                const SLAPrintObject* po = sla_print->objects()[po_idx];
-                if (po_idx != volume->composite_id.object_id || volume->composite_id.volume_id < 0)
-                    continue;
-                if (po->is_step_done(slaposHollowing)) {
-                    TriangleMesh mesh = po->get_mesh(slaposHollowing);
-                    if (mesh.empty())
-                        continue;
-                    Transform3d t = sla_print->sla_trafo(*m_model->objects[volume->object_idx()]);
-                    mesh.transform(t.inverse());
-                    GLIndexedVertexArray iva;
-                    iva.load_mesh(mesh);
-                    volume->indexed_vertex_array.release_geometry();
-                    volume->indexed_vertex_array = iva;
-                    volume->finalize_geometry(true);
-                }
-            }
-        }
     }
 
     if (printer_technology == ptFFF && m_config->has("nozzle_diameter"))

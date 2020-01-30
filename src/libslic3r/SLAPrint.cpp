@@ -1103,6 +1103,8 @@ const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
     switch (step) {
+    case slaposHollowing:
+        return m_hollowing_data && !m_hollowing_data->hollow_mesh_with_holes.empty();
     case slaposSupportTree:
         return ! this->support_mesh().empty();
     case slaposPad:
