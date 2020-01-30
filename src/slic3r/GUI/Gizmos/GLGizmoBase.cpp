@@ -318,6 +318,9 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
         m_mesh_raycaster.reset();
         m_object_clipper.reset();
         m_supports_clipper.reset();
+        m_old_mesh = nullptr;
+        m_mesh = nullptr;
+        m_backend_mesh_transformed.clear();
         if (m_model_object) {
             m_active_instance = canvas.get_selection().get_instance_idx();
             m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
