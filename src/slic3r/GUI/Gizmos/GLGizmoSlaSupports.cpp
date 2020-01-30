@@ -63,45 +63,22 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    return;
-
-    if (! model_object || selection.is_empty()) {
-        m_c->m_model_object = nullptr;
-        return;
-    }
-
-    bool something_changed = false;
-
-    if (m_c->m_model_object != model_object
-     || m_c->m_model_object_id != model_object->id()
-     || m_c->m_active_instance != selection.get_instance_idx()) {
-        m_c->m_model_object = model_object;
-        m_c->m_print_object_idx = -1;
-        m_c->m_active_instance = selection.get_instance_idx();
-        something_changed = true;
-    }
-
-    if (model_object && selection.is_from_single_instance())
-    {
-        // Cache the bb - it's needed for dealing with the clipping plane quite often
-        // It could be done inside update_mesh but one has to account for scaling of the instance.
-        if (something_changed) {
-            m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
-            if (m_state == On) {
-                m_parent.toggle_model_objects_visibility(false);
-                m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
-                m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
-            }
-            else
-                m_parent.toggle_model_objects_visibility(true, nullptr, -1);
+    if (m_c->recent_update) {
+        if (m_state == On) {
+            m_parent.toggle_model_objects_visibility(false);
+            m_parent.toggle_model_objects_visibility(/*! m_c->m_cavity_mesh*/ true, m_c->m_model_object, m_c->m_active_instance);
+            m_parent.toggle_sla_auxiliaries_visibility(! m_editing_mode, m_c->m_model_object, m_c->m_active_instance);
         }
+        else
+            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
 
-        if (is_mesh_update_necessary()) {
-            update_mesh();
+        disable_editing_mode();
+        if (m_c->m_model_object)
             reload_cache();
-        }
+    }
 
-        // If we triggered autogeneration before, check backend and fetch results if they are there
+    // If we triggered autogeneration before, check backend and fetch results if they are there
+    if (m_c->m_model_object) {
         if (m_c->m_model_object->sla_points_status == sla::PointsStatus::Generating)
             get_data_from_backend();
     }
@@ -121,9 +98,6 @@ void GLGizmoSlaSupports::on_render() const
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
-
-    if (! m_its || ! m_c->m_mesh)
-        const_cast<GLGizmoSlaSupports*>(this)->update_mesh();
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -418,41 +392,12 @@ bool GLGizmoSlaSupports::is_mesh_point_clipped(const Vec3d& point) const
 
 
 
-bool GLGizmoSlaSupports::is_mesh_update_necessary() const
-{
-    return ((m_state == On) && (m_c->m_model_object != nullptr) && !m_c->m_model_object->instances.empty())
-        && ((m_c->m_model_object->id() != m_c->m_model_object_id) || m_its == nullptr);
-}
-
-
-
-void GLGizmoSlaSupports::update_mesh()
-{
-    if (! m_c->m_model_object)
-        return;
-
-    wxBusyCursor wait;
-    // this way we can use that mesh directly.
-    // This mesh does not account for the possible Z up SLA offset.
-    m_c->m_mesh = &m_c->m_model_object->volumes.front()->mesh();
-    m_its = &m_c->m_mesh->its;
-
-    // If this is different mesh than last time or if the AABB tree is uninitialized, recalculate it.
-    if (m_c->m_model_object_id != m_c->m_model_object->id() || ! m_c->m_mesh_raycaster)
-        m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
-
-    m_c->m_model_object_id = m_c->m_model_object->id();
-    disable_editing_mode();
-}
-
-
 // Unprojects the mouse position on the mesh and saves hit point and normal of the facet into pos_and_normal
 // Return false if no intersection was found, true otherwise.
 bool GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
-    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     if (! m_c->m_mesh_raycaster)
-        update_mesh();
+        return false;
 
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
@@ -1045,8 +990,6 @@ void GLGizmoSlaSupports::on_set_state()
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
-        if (is_mesh_update_necessary())
-            update_mesh();
 
         // we'll now reload support points:
         if (m_c->m_model_object)

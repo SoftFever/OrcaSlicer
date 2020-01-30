@@ -366,6 +366,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     m_model_object_id = m_model_object->id();
 
     if (m_mesh != m_old_mesh) {
+        wxBusyCursor wait;
         m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
         m_object_clipper.reset();
         m_supports_clipper.reset();
