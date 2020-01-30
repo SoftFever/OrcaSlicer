@@ -481,6 +481,7 @@ public:
     wxDataViewItem  ReorganizeChildren( const int cur_volume_id,
                                         const int new_volume_id,
                                         const wxDataViewItem &parent);
+    wxDataViewItem  ReorganizeObjects( int current_id, int new_id);
 
     virtual bool    IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
 

@@ -1726,9 +1726,6 @@ wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume
     ItemDeleted(parent, wxDataViewItem(deleted_node));
     node_parent->Insert(deleted_node, new_volume_id+shift);
     ItemAdded(parent, wxDataViewItem(deleted_node));
-    const auto settings_item = GetSettingsItem(wxDataViewItem(deleted_node));
-    if (settings_item)
-        ItemAdded(wxDataViewItem(deleted_node), settings_item);
 
     //update volume_id value for child-nodes
     auto children = node_parent->GetChildren();
@@ -1738,6 +1735,21 @@ wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume
         children[id+shift]->SetIdx(id);
 
     return wxDataViewItem(node_parent->GetNthChild(new_volume_id+shift));
+}
+
+wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, const int new_id)
+{
+    if (current_id == new_id)
+        return wxDataViewItem(nullptr);
+
+    ObjectDataViewModelNode* deleted_node = m_objects[current_id];
+    m_objects.erase(m_objects.begin() + current_id);
+    ItemDeleted(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+
+    m_objects.emplace(m_objects.begin() + new_id, deleted_node);
+    ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+
+    return wxDataViewItem(deleted_node);
 }
 
 bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
