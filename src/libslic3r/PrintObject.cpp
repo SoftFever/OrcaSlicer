@@ -43,7 +43,7 @@ namespace Slic3r {
 PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_instances) :
     PrintObjectBaseWithState(print, model_object),
     typed_slices(false),
-    size(Vec3crd::Zero())
+    m_size(Vec3crd::Zero())
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
@@ -56,7 +56,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
         const BoundingBoxf3 modobj_bbox = model_object->raw_bounding_box();
         m_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
-        this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
+        this->m_size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
     if (add_instances) {
@@ -1450,7 +1450,7 @@ void PrintObject::update_slicing_parameters()
 {
     if (! m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, unscale<double>(this->size(2)), this->object_extruders());
+            this->print()->config(), m_config, unscale<double>(this->size()(2)), this->object_extruders());
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)

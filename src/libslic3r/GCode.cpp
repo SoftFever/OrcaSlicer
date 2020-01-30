@@ -1091,7 +1091,7 @@ namespace DoExport {
 static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(const Print &print)
 {
     std::vector<const PrintObject*> objects(print.objects().begin(), print.objects().end());
-	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size(2) < po2->size(2); });
+	std::sort(objects.begin(), objects.end(), [](const PrintObject *po1, const PrintObject *po2) { return po1->size()(2) < po2->size()(2); });
 	std::vector<const PrintInstance*> instances;
 	instances.reserve(objects.size());
 	for (const PrintObject *object : objects)
