@@ -2208,6 +2208,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     mesh.transform(t.inverse());
                     GLIndexedVertexArray iva;
                     iva.load_mesh(mesh);
+                    volume->indexed_vertex_array.release_geometry();
                     volume->indexed_vertex_array = iva;
                     volume->finalize_geometry(true);
                 }

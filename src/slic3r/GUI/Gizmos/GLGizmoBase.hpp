@@ -193,7 +193,9 @@ public:
         return (! m_mesh ? nullptr : m_mesh); //(m_cavity_mesh ? m_cavity_mesh.get() : m_mesh));
     }
 
-    bool update_from_backend(GLCanvas3D& canvas);
+    bool update_from_backend(GLCanvas3D& canvas, ModelObject* model_object);
+
+    bool recent_update = false;
 
 
 

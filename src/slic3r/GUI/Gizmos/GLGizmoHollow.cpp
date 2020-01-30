@@ -55,36 +55,12 @@ bool GLGizmoHollow::on_init()
     return true;
 }
 
-void GLGizmoHollow::set_sla_support_data(ModelObject* model_object, const Selection& selection)
+void GLGizmoHollow::set_sla_support_data(ModelObject*, const Selection&)
 {
-    if (! model_object || selection.is_empty()) {
-        m_c->m_model_object = nullptr;
-        return;
-    }
+    if (m_c->recent_update) {
 
-    bool something_changed = false;
-
-    if (m_c->m_model_object != model_object
-     || m_c->m_model_object_id != model_object->id()
-     || m_c->m_active_instance != selection.get_instance_idx()) {
-        m_c->m_model_object = model_object;
-        m_c->m_print_object_idx = -1;
-        m_c->m_mesh_raycaster.reset();
-        m_c->m_active_instance = selection.get_instance_idx();
-        something_changed = true;
-    }
-
-    if (model_object
-     && selection.is_from_single_instance()
-     && (something_changed))
-    {
-        m_c->update_from_backend(m_parent);
-
-        // Cache the bb - it's needed for dealing with the clipping plane quite often
-        // It could be done inside update_mesh but one has to account for scaling of the instance.
-        m_c->m_active_instance_bb_radius = m_c->m_model_object->instance_bounding_box(m_c->m_active_instance).radius();
-
-        reload_cache();
+        if (m_c->m_model_object)
+            reload_cache();
 
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
@@ -112,7 +88,7 @@ void GLGizmoHollow::on_render() const
     }
 
     // !!! is it necessary?
-    const_cast<GLGizmoHollow*>(this)->m_c->update_from_backend(m_parent);
+    //const_cast<GLGizmoHollow*>(this)->m_c->update_from_backend(m_parent, m_c->m_model_object);
 
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -183,8 +159,8 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 
 
     // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
-    if (m_c->m_print_object_idx < 0)
-        m_c->update_from_backend(m_parent);
+    //if (m_c->m_print_object_idx < 0)
+    //    m_c->update_from_backend(m_parent, m_c->m_model_object);
 
     if (m_c->m_print_object_idx >= 0) {
         const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_c->m_print_object_idx];
@@ -352,9 +328,11 @@ bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const
 // Return false if no intersection was found, true otherwise.
 bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal)
 {
+    if (! m_c->m_mesh_raycaster)
+        return false;
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
     // !!! is it really necessary?
-    m_c->update_from_backend(m_parent);
+    //m_c->update_from_backend(m_parent, m_c->m_model_object);
 
     const Camera& camera = m_parent.get_camera();
     const Selection& selection = m_parent.get_selection();
@@ -955,7 +933,7 @@ void GLGizmoHollow::on_set_state()
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
-        m_c->update_from_backend(m_parent);
+        //m_c->update_from_backend(m_parent, m_c->m_model_object);
 
         // we'll now reload support points:
         if (m_c->m_model_object)

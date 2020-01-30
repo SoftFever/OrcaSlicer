@@ -307,9 +307,27 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 
 
 
-bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas)
+bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* model_object)
 {
-    if (! m_model_object)
+    recent_update = false;
+
+    if (m_model_object != model_object
+    || (model_object && m_model_object_id != model_object->id())) {
+        m_model_object = model_object;
+        m_print_object_idx = -1;
+        m_mesh_raycaster.reset();
+        m_object_clipper.reset();
+        m_supports_clipper.reset();
+        if (m_model_object) {
+            m_active_instance = canvas.get_selection().get_instance_idx();
+            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
+        }
+
+        recent_update = true;
+    }
+
+
+    if (! m_model_object || ! canvas.get_selection().is_from_single_instance())
         return false;
 
     int old_po_idx = m_print_object_idx;
@@ -352,8 +370,11 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas)
         m_object_clipper.reset();
         m_supports_clipper.reset();
         m_old_mesh = m_mesh;
+        recent_update = true;
         return true;
     }
+    if (! recent_update)
+        recent_update = m_print_object_idx < 0 && old_po_idx >= 0;
 
     return m_print_object_idx < 0 ? old_po_idx >=0 : false;
 }
