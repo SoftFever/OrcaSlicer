@@ -32,6 +32,7 @@ static const float CONSTRAINED_COLOR[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 class ImGuiWrapper;
 class CommonGizmosData;
 class GLCanvas3D;
+class ClippingPlane;
 
 class GLGizmoBase
 {
@@ -215,9 +216,21 @@ public:
     int m_print_objects_count = -1;
     int m_old_timestamp = -1;
 
+    float m_clipping_plane_distance = 0.f;
+    std::unique_ptr<ClippingPlane> m_clipping_plane;
+
+    void stash_clipping_plane() {
+        m_clipping_plane_distance_stash = m_clipping_plane_distance;
+    }
+
+    void unstash_clipping_plane() {
+        m_clipping_plane_distance = m_clipping_plane_distance_stash;
+    }
+
 private:
     const TriangleMesh* m_old_mesh;
     TriangleMesh m_backend_mesh_transformed;
+    float m_clipping_plane_distance_stash = 0.f;
 };
 
 } // namespace GUI

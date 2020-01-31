@@ -22,7 +22,7 @@ GLGizmoHollow::GLGizmoHollow(GLCanvas3D& parent, const std::string& icon_filenam
     : GLGizmoBase(parent, icon_filename, sprite_id, cd)
     , m_quadric(nullptr)
 {
-    m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
+    m_c->m_clipping_plane.reset(new ClippingPlane(Vec3d::Zero(), 0.));
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
@@ -132,7 +132,7 @@ void GLGizmoHollow::render_hollowed_mesh() const
 
 void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
 {
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->m_clipping_plane_distance == 0.f)
         return;
 
     // Get transformation of the instance
@@ -154,7 +154,7 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
         m_c->m_object_clipper.reset(new MeshClipper);
         m_c->m_object_clipper->set_mesh(*m_c->mesh());
     }
-    m_c->m_object_clipper->set_plane(*m_clipping_plane);
+    m_c->m_object_clipper->set_plane(*m_c->m_clipping_plane);
     m_c->m_object_clipper->set_transformation(trafo);
 
 
@@ -177,7 +177,7 @@ void GLGizmoHollow::render_clipping_plane(const Selection& selection) const
                 m_c->m_supports_clipper->set_mesh(print_object->support_mesh());
                 m_c->m_old_timestamp = timestamp;
             }
-            m_c->m_supports_clipper->set_plane(*m_clipping_plane);
+            m_c->m_supports_clipper->set_plane(*m_c->m_clipping_plane);
             m_c->m_supports_clipper->set_transformation(supports_trafo);
         }
         else
@@ -314,12 +314,12 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
 
 bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const
 {
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->m_clipping_plane_distance == 0.f)
         return false;
 
     Vec3d transformed_point = m_c->m_model_object->instances[m_c->m_active_instance]->get_transformation().get_matrix() * point;
     transformed_point(2) += m_z_shift;
-    return m_clipping_plane->is_point_clipped(transformed_point);
+    return m_c->m_clipping_plane->is_point_clipped(transformed_point);
 }
 
 
@@ -343,7 +343,7 @@ bool GLGizmoHollow::unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, V
     // The raycaster query
     Vec3f hit;
     Vec3f normal;
-    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_clipping_plane.get())) {
+    if (m_c->m_mesh_raycaster->unproject_on_mesh(mouse_pos, trafo.get_matrix(), camera, hit, normal, m_c->m_clipping_plane.get())) {
         // Return both the point and the facet normal.
         pos_and_normal = std::make_pair(hit, normal);
         return true;
@@ -429,7 +429,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
             points_inside.push_back(points[idx].cast<float>());
 
         // Only select/deselect points that are actually visible
-        for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_clipping_plane.get()))
+        for (size_t idx :  m_c->m_mesh_raycaster->get_unobscured_idxs(trafo, m_parent.get_camera(), points_inside, m_c->m_clipping_plane.get()))
         {
             if (rectangle_status == GLSelectionRectangle::Deselect)
                 unselect_point(points_idxs[idx]);
@@ -483,13 +483,13 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
     }
 
     if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
-        m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
+        m_c->m_clipping_plane_distance = std::min(1.f, m_c->m_clipping_plane_distance + 0.01f);
         update_clipping_plane(true);
         return true;
     }
 
     if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
-        m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
+        m_c->m_clipping_plane_distance = std::max(0.f, m_c->m_clipping_plane_distance - 0.01f);
         update_clipping_plane(true);
         return true;
     }
@@ -602,8 +602,8 @@ void GLGizmoHollow::update_hollowed_mesh(std::unique_ptr<TriangleMesh> &&mesh)
         m_c->m_mesh_raycaster.reset(new MeshRaycaster(*m_c->mesh()));
     }
 
-    if (m_clipping_plane_distance == 0.f) {
-        m_clipping_plane_distance = 0.5f;
+    if (m_c->m_clipping_plane_distance == 0.f) {
+        m_c->m_clipping_plane_distance = 0.5f;
         update_clipping_plane();
     }*/
 }
@@ -638,10 +638,10 @@ std::vector<std::pair<const ConfigOption*, const ConfigOptionDef*>> GLGizmoHollo
 
 ClippingPlane GLGizmoHollow::get_sla_clipping_plane() const
 {
-    if (!m_c->m_model_object || m_state == Off || m_clipping_plane_distance == 0.f)
+    if (!m_c->m_model_object || m_state == Off || m_c->m_clipping_plane_distance == 0.f)
         return ClippingPlane::ClipsNothing();
     else
-        return ClippingPlane(-m_clipping_plane->get_normal(), m_clipping_plane->get_data()[3]);
+        return ClippingPlane(-m_c->m_clipping_plane->get_normal(), m_c->m_clipping_plane->get_data()[3]);
 }
 
 
@@ -842,7 +842,7 @@ RENDER_AGAIN:
     // Following is rendered in both editing and non-editing mode:
    // m_imgui->text("");
     ImGui::Separator();
-    if (m_clipping_plane_distance == 0.f)
+    if (m_c->m_clipping_plane_distance == 0.f)
         m_imgui->text(m_desc.at("clipping_of_view"));
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
@@ -854,7 +854,7 @@ RENDER_AGAIN:
 
     ImGui::SameLine(clipping_slider_left);
     ImGui::PushItemWidth(window_width - clipping_slider_left);
-    if (ImGui::SliderFloat("     ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
+    if (ImGui::SliderFloat("     ", &m_c->m_clipping_plane_distance, 0.f, 1.f, "%.2f"))
         update_clipping_plane(true);
 
     // make sure supports are shown/hidden as appropriate
@@ -934,6 +934,8 @@ void GLGizmoHollow::on_set_state()
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned on")));
         //m_c->update_from_backend(m_parent, m_c->m_model_object);
+        m_c->unstash_clipping_plane();
+        update_clipping_plane(m_c->m_clipping_plane_distance != 0.f);
 
         // we'll now reload support points:
         if (m_c->m_model_object)
@@ -952,8 +954,9 @@ void GLGizmoHollow::on_set_state()
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         //Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("SLA gizmo turned off")));
         m_parent.toggle_model_objects_visibility(true);
-        m_clipping_plane_distance = 0.f;
-        update_clipping_plane();
+        m_c->stash_clipping_plane();
+        m_c->m_clipping_plane_distance = 0.f;
+        update_clipping_plane(true);
         // Release clippers and the AABB raycaster.
         m_c->m_object_clipper.reset();
         m_c->m_supports_clipper.reset();
@@ -998,8 +1001,8 @@ void GLGizmoHollow::on_stop_dragging()
 
 void GLGizmoHollow::on_load(cereal::BinaryInputArchive& ar)
 {
-    ar(m_clipping_plane_distance,
-       *m_clipping_plane,
+    ar(m_c->m_clipping_plane_distance,
+       *m_c->m_clipping_plane,
        m_c->m_model_object_id,
        m_new_hole_radius,
        m_new_hole_height,
@@ -1012,8 +1015,8 @@ void GLGizmoHollow::on_load(cereal::BinaryInputArchive& ar)
 
 void GLGizmoHollow::on_save(cereal::BinaryOutputArchive& ar) const
 {
-    ar(m_clipping_plane_distance,
-       *m_clipping_plane,
+    ar(m_c->m_clipping_plane_distance,
+       *m_c->m_clipping_plane,
        m_c->m_model_object_id,
        m_new_hole_radius,
        m_new_hole_height,
@@ -1068,12 +1071,12 @@ void GLGizmoHollow::update_clipping_plane(bool keep_normal) const
 {
     if (! m_c->m_model_object)
         return;
-    Vec3d normal = (keep_normal && m_clipping_plane->get_normal() != Vec3d::Zero() ?
-                        m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
+    Vec3d normal = (keep_normal && m_c->m_clipping_plane->get_normal() != Vec3d::Zero() ?
+                        m_c->m_clipping_plane->get_normal() : -m_parent.get_camera().get_dir_forward());
 
     const Vec3d& center = m_c->m_model_object->instances[m_c->m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift);
     float dist = normal.dot(center);
-    *m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
+    *m_c->m_clipping_plane = ClippingPlane(normal, (dist - (-m_c->m_active_instance_bb_radius) - m_c->m_clipping_plane_distance * 2*m_c->m_active_instance_bb_radius));
     m_parent.set_as_dirty();
 }
 

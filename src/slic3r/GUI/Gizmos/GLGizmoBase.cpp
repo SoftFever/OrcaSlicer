@@ -374,6 +374,8 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
         m_object_clipper.reset();
         m_supports_clipper.reset();
         m_old_mesh = m_mesh;
+        m_clipping_plane_distance = 0.f;
+        m_clipping_plane_distance_stash = 0.f;
         recent_update = true;
         return true;
     }
