@@ -20,8 +20,8 @@ enum SLAPrintStep : unsigned int {
 
 enum SLAPrintObjectStep : unsigned int {
     slaposHollowing,
+    slaposDrillHoles,
 	slaposObjectSlice,
-    slaposDrillHolesIfHollowed,
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposPad,
