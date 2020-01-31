@@ -678,7 +678,7 @@ void SLAPrint::process()
 
     // We want to first process all objects...
     std::vector<SLAPrintObjectStep> level1_obj_steps = {
-        slaposHollowing, slaposObjectSlice, slaposSupportPoints, slaposSupportTree, slaposPad
+        slaposHollowing, slaposDrillHoles, slaposObjectSlice, slaposSupportPoints, slaposSupportTree, slaposPad
     };
 
     // and then slice all supports to allow preview to be displayed ASAP
@@ -984,10 +984,10 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     // propagate to dependent steps
     if (step == slaposHollowing) {
         invalidated |= this->invalidate_all_steps();
-    } else if (step == slaposObjectSlice) {
-        invalidated |= this->invalidate_steps({ slaposDrillHolesIfHollowed, slaposSupportPoints, slaposSupportTree, slaposPad, slaposSliceSupports });
+    } else if (step == slaposDrillHoles) {
+        invalidated |= this->invalidate_steps({ slaposObjectSlice, slaposSupportPoints, slaposSupportTree, slaposPad, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
-    } else if (step == slaposDrillHolesIfHollowed) {
+    } else if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposPad, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSupportPoints) {
