@@ -9,6 +9,7 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/menu.h>
+#include <wx/bmpcbox.h>
 #include <wx/wx.h>
 
 #include <vector>
