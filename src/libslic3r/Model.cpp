@@ -1113,7 +1113,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_upper) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
-        lower->sla_drain_holes.clear();
+        upper->sla_drain_holes.clear();
         upper->sla_points_status = sla::PointsStatus::NoPoints;
         upper->clear_volumes();
         upper->input_file = "";
