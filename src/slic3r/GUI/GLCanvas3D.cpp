@@ -1712,7 +1712,11 @@ void GLCanvas3D::render()
 
     const Size& cnv_size = get_canvas_size();
 #if ENABLE_6DOF_CAMERA
-    m_camera.apply_viewport(0, 0, (unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+    // Probably due to different order of events on Linux/GTK2, when one switched from 3D scene
+    // to preview, this was called before canvas had its final size. It reported zero width
+    // and the viewport was set incorrectly, leading to tripping glAsserts further down
+    // the road (in apply_projection). That's why the minimum size is forced to 10.
+    m_camera.apply_viewport(0, 0, std::max(10u, (unsigned int)cnv_size.get_width()), std::max(10u, (unsigned int)cnv_size.get_height()));
 #endif // ENABLE_6DOF_CAMERA
 
     if (m_camera.requires_zoom_to_bed)
