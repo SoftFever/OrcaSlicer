@@ -12,6 +12,7 @@
 
 #include "3DScene.hpp"
 #include "GLTexture.hpp"
+#include "wxExtensions.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -49,7 +50,7 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 class Plater;
 enum class ActionButtonType : int;
 
-class PresetComboBox : public wxBitmapComboBox
+class PresetComboBox : public PresetBitmapComboBox
 {
 public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);

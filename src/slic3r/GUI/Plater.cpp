@@ -169,7 +169,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
-    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap(parent, "exclamation"));
+    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("exclamation"));
     auto *sizer_manifold = new wxBoxSizer(wxHORIZONTAL);
     sizer_manifold->Add(info_manifold_text, 0);
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
@@ -188,7 +188,7 @@ void ObjectInfo::show_sizer(bool show)
 
 void ObjectInfo::msw_rescale()
 {
-    manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
+    manifold_warning_icon->SetBitmap(create_scaled_bitmap("exclamation"));
 }
 
 enum SlicedInfoIdx
@@ -258,7 +258,7 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
+PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     preset_type(preset_type),
     last_selected(wxNOT_FOUND),
     m_em_unit(wxGetApp().em_unit())

@@ -41,7 +41,7 @@ void msw_rescale_menu(wxMenu* menu)
 		static void run(wxMenuItem* item) {
 			const auto it = msw_menuitem_bitmaps.find(item->GetId());
 			if (it != msw_menuitem_bitmaps.end()) {
-				const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second);
+				const wxBitmap& item_icon = create_scaled_bitmap(it->second);
 				if (item_icon.IsOk())
 					item->SetBitmap(item_icon);
 			}
@@ -108,7 +108,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     if (id == wxID_ANY)
         id = wxNewId();
 
-    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(parent, icon) : wxNullBitmap;   // FIXME: pass window ptr
+    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(icon) : wxNullBitmap;   // FIXME: pass window ptr
 //#ifdef __WXMSW__
 #ifndef __WXGTK__
     if (bmp.IsOk())
@@ -126,7 +126,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty()) {
-        item->SetBitmap(create_scaled_bitmap(parent, icon));    // FIXME: pass window ptr
+        item->SetBitmap(create_scaled_bitmap(icon));    // FIXME: pass window ptr
 //#ifdef __WXMSW__
 #ifndef __WXGTK__
         msw_menuitem_bitmaps[id] = icon;
@@ -308,6 +308,94 @@ void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
 }
 
 
+namespace Slic3r {
+namespace GUI {
+
+// ***  PresetBitmapComboBox  ***
+
+/* For PresetBitmapComboBox we use bitmaps that are created from images that are already scaled appropriately for Retina
+ * (Contrary to the intuition, the `scale` argument for Bitmap's constructor doesn't mean
+ * "please scale this to such and such" but rather
+ * "the wxImage is already sized for backing scale such and such". )
+ * Unfortunately, the constructor changes the size of wxBitmap too.
+ * Thus We need to use unscaled size value for bitmaps that we use
+ * to avoid scaled size of control items.
+ * For this purpose control drawing methods and
+ * control size calculation methods (virtual) are overridden.
+ **/
+
+PresetBitmapComboBox::PresetBitmapComboBox(wxWindow* parent, const wxSize& size) :
+    wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, wxCB_READONLY)
+{}
+
+#ifdef __APPLE__
+bool PresetBitmapComboBox::OnAddBitmap(const wxBitmap& bitmap)
+{
+    if (bitmap.IsOk())
+    {
+        // we should use scaled! size values of bitmap
+        int width = (int)bitmap.GetScaledWidth();
+        int height = (int)bitmap.GetScaledHeight();
+
+        if (m_usedImgSize.x < 0)
+        {
+            // If size not yet determined, get it from this image.
+            m_usedImgSize.x = width;
+            m_usedImgSize.y = height;
+
+            // Adjust control size to vertically fit the bitmap
+            wxWindow* ctrl = GetControl();
+            ctrl->InvalidateBestSize();
+            wxSize newSz = ctrl->GetBestSize();
+            wxSize sz = ctrl->GetSize();
+            if (newSz.y > sz.y)
+                ctrl->SetSize(sz.x, newSz.y);
+            else
+                DetermineIndent();
+        }
+
+        wxCHECK_MSG(width == m_usedImgSize.x && height == m_usedImgSize.y,
+            false,
+            "you can only add images of same size");
+
+        return true;
+    }
+
+    return false;
+}
+
+void PresetBitmapComboBox::OnDrawItem(wxDC& dc,
+    const wxRect& rect,
+    int item,
+    int flags) const
+{
+    const wxBitmap& bmp = *(wxBitmap*)m_bitmaps[item];
+    if (bmp.IsOk())
+    {
+        // we should use scaled! size values of bitmap
+        wxCoord w = bmp.GetScaledWidth();
+        wxCoord h = bmp.GetScaledHeight();
+
+        const int imgSpacingLeft = 4;
+
+        // Draw the image centered
+        dc.DrawBitmap(bmp,
+            rect.x + (m_usedImgSize.x - w) / 2 + imgSpacingLeft,
+            rect.y + (rect.height - h) / 2,
+            true);
+    }
+
+    wxString text = GetString(item);
+    if (!text.empty())
+        dc.DrawText(text,
+            rect.x + m_imgAreaWidth + 1,
+            rect.y + (rect.height - dc.GetCharHeight()) / 2);
+}
+#endif
+}
+}
+
+
 // ***  wxDataViewTreeCtrlComboPopup  ***
 
 const unsigned int wxDataViewTreeCtrlComboPopup::DefaultWidth = 270;
@@ -407,31 +495,15 @@ int em_unit(wxWindow* win)
     return Slic3r::GUI::wxGetApp().em_unit();
 }
 
-float get_svg_scale_factor(wxWindow *win)
-{
-#ifdef __APPLE__
-    // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
-    // return bogus results quite often (such as 1.0 on Retina or even 0.0).
-    // We're using the max scaling factor across all screens because it's very likely to be good enough.
-
-    static float max_scaling_factor = NAN;
-    if (std::isnan(max_scaling_factor)) {
-        max_scaling_factor = Slic3r::GUI::mac_max_scaling_factor();
-    }
-    return win != nullptr ? max_scaling_factor : 1.0f;
-#else
-    (void)(win);
-    return 1.0f;
-#endif
-}
-
-// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
-    const int px_cnt/* = 16*/, const bool grayscale/* = false*/)
+// win is used to get a correct em_unit value
+// It's important for bitmaps of dialogs.
+// if win == nullptr, em_unit value of MainFrame will be used
+wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in, 
+                                wxWindow *win/* = nullptr*/,
+                                const int px_cnt/* = 16*/, 
+                                const bool grayscale/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
-
-    const float scale_factor = get_svg_scale_factor(win);
 
     unsigned int width = 0;
     unsigned int height = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
@@ -440,7 +512,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in,
     boost::replace_last(bmp_name, ".png", "");
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale, Slic3r::GUI::wxGetApp().dark_mode());
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, Slic3r::GUI::wxGetApp().dark_mode());
     if (bmp == nullptr) {
         bmp = cache.load_png(bmp_name, width, height, grayscale);
     }
@@ -482,7 +554,8 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
         if (bitmap == nullptr) {
             // Paint the color icon.
             Slic3r::PresetBundle::parse_color(color, rgb);
-            bitmap = m_bitmap_cache->insert(bitmap_key, m_bitmap_cache->mksolid(icon_width, icon_height, rgb));
+            // there is no neede to scale created solid bitmap
+            bitmap = m_bitmap_cache->insert(bitmap_key, m_bitmap_cache->mksolid(icon_width, icon_height, rgb, true));
         }
         bmps.emplace_back(bitmap);
     }
@@ -568,8 +641,7 @@ void ObjectDataViewModelNode::init_container()
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
     m_parent(parent),
     m_type(type),
-    m_extruder(wxEmptyString),
-    m_ctrl(parent->m_ctrl)
+    m_extruder(wxEmptyString)
 {
     if (type == itSettings)
         m_name = "Settings to modified";
@@ -584,7 +656,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itLayerRoot)
     {
-        m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ROOT_ICON);    // FIXME: pass window ptr
+        m_bmp = create_scaled_bitmap(LAYER_ROOT_ICON);    // FIXME: pass window ptr
         m_name = _(L("Layers"));
     }
 
@@ -600,8 +672,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_type(itLayer),
     m_idx(idx),
     m_layer_range(layer_range),
-    m_extruder(extruder),
-    m_ctrl(parent->m_ctrl)
+    m_extruder(extruder)
 {
     const int children_cnt = parent->GetChildCount();
     if (idx < 0)
@@ -614,7 +685,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
     m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
-    m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ICON);    // FIXME: pass window ptr
+    m_bmp = create_scaled_bitmap(LAYER_ICON);    // FIXME: pass window ptr
 
     set_action_and_extruder_icons();
     init_container();
@@ -633,7 +704,7 @@ void ObjectDataViewModelNode::set_action_and_extruder_icons()
 {
     m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
                          m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
-    m_action_icon = create_scaled_bitmap(m_ctrl, m_action_icon_name);    // FIXME: pass window ptr
+    m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
 
     if (m_type & itInstance)
         return; // don't set colored bitmap for Instance
@@ -648,7 +719,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(m_ctrl, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+                       create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
 void ObjectDataViewModelNode::update_settings_digest_bitmaps()
@@ -666,7 +737,7 @@ void ObjectDataViewModelNode::update_settings_digest_bitmaps()
         for (auto& cat : m_opt_categories)
             bmps.emplace_back(  categories_icon.find(cat) == categories_icon.end() ?
                                 wxNullBitmap : categories_icon.at(cat));
-        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps, get_svg_scale_factor(m_ctrl));
+        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
     }
 
     m_bmp = *bmp;
@@ -693,10 +764,10 @@ bool ObjectDataViewModelNode::update_settings_digest(const std::vector<std::stri
 void ObjectDataViewModelNode::msw_rescale()
 {
     if (!m_action_icon_name.empty())
-        m_action_icon = create_scaled_bitmap(m_ctrl, m_action_icon_name);
+        m_action_icon = create_scaled_bitmap(m_action_icon_name);
 
     if (m_printable != piUndef)
-        m_printable_icon = create_scaled_bitmap(m_ctrl, m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+        m_printable_icon = create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
@@ -777,7 +848,7 @@ wxDataViewItem ObjectDataViewModel::Add(const wxString &name,
                                         const bool has_errors/* = false*/)
 {
     const wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
-	auto root = new ObjectDataViewModelNode(name, extruder_str, m_ctrl);
+	auto root = new ObjectDataViewModelNode(name, extruder_str);
     // Add error icon if detected auto-repaire
     if (has_errors)
         root->m_bmp = *m_warning_bmp;
@@ -1985,9 +2056,9 @@ void ObjectDataViewModel::Rescale()
             node->m_bmp = GetVolumeIcon(node->m_volume_type, node->m_bmp.GetWidth() != node->m_bmp.GetHeight());
             break;
         case itLayerRoot:
-            node->m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ROOT_ICON);
+            node->m_bmp = create_scaled_bitmap(LAYER_ROOT_ICON);
         case itLayer:
-            node->m_bmp = create_scaled_bitmap(m_ctrl, LAYER_ICON);
+            node->m_bmp = create_scaled_bitmap(LAYER_ICON);
             break;
         default: break;
         }
@@ -2089,9 +2160,11 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
     const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
-        float sf = (float)1.0 / get_svg_scale_factor(m_parent);
-        wxSize icon_sz = icon.GetSize() * sf;
-
+#ifdef __APPLE__
+        wxSize icon_sz = icon.GetScaledSize();
+#else
+        wxSize icon_sz = icon.GetSize();
+#endif
         dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon_sz.y) / 2);
         xoffset = icon_sz.x + 4;
     }
@@ -2470,13 +2543,40 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt)
 {
-    m_bmp = create_scaled_bitmap(parent, icon_name, px_cnt);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt);
+}
+
+wxSize ScalableBitmap::GetBmpSize() const
+{
+#ifdef __APPLE__
+    return m_bmp.GetScaledSize();
+#else
+    return m_bmp.GetSize();
+#endif
+}
+
+int ScalableBitmap::GetBmpWidth() const
+{
+#ifdef __APPLE__
+    return m_bmp.GetScaledWidth();
+#else
+    return m_bmp.GetWidth();
+#endif
+}
+
+int ScalableBitmap::GetBmpHeight() const
+{
+#ifdef __APPLE__
+    return m_bmp.GetScaledHeight();
+#else
+    return m_bmp.GetHeight();
+#endif
 }
 
 
 void ScalableBitmap::msw_rescale()
 {
-    m_bmp = create_scaled_bitmap(m_parent, m_icon_name, m_px_cnt);
+    m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt);
 }
 
 // ----------------------------------------------------------------------------
@@ -2499,7 +2599,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
         SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
 
-    SetBitmap(create_scaled_bitmap(parent, icon_name));
+    SetBitmap(create_scaled_bitmap(icon_name, parent));
 
     if (size != wxDefaultSize)
     {
@@ -2542,15 +2642,18 @@ void ScalableButton::SetBitmapDisabled_(const ScalableBitmap& bmp)
 
 int ScalableButton::GetBitmapHeight()
 {
-    const float scale_factor = get_svg_scale_factor(m_parent);
-    return int((float)GetBitmap().GetHeight() / scale_factor);
+#ifdef __APPLE__
+    return GetBitmap().GetScaledHeight();
+#else
+    return GetBitmap().GetHeight();
+#endif
 }
 
 void ScalableButton::msw_rescale()
 {
-    SetBitmap(create_scaled_bitmap(m_parent, m_current_icon_name, m_px_cnt));
+    SetBitmap(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt));
     if (!m_disabled_icon_name.empty())
-        SetBitmapDisabled(create_scaled_bitmap(m_parent, m_disabled_icon_name, m_px_cnt));
+        SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
 
     if (m_width > 0 || m_height>0)
     {

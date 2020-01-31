@@ -90,20 +90,20 @@ ObjectList::ObjectList(wxWindow* parent) :
         // see note in PresetBundle::load_compatible_bitmaps()
 
         // ptFFF
-        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(this, "layers");
-        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(this, "infill");
-        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(this, "support");
-        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(this, "time");
-        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(this, "funnel");
-        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(this, "funnel");
-        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(this, "funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(this, "skirt+brim"); 
-//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(this, "time");
-        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(this, "wrench");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA
-        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(this, "support"/*"sla_supports"*/);
-        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(this, "pad");
-        CATEGORY_ICON[L("Hollowing")]                = create_scaled_bitmap(this, "hollowing");
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap("support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap("pad");
+        CATEGORY_ICON[L("Hollowing")]                = create_scaled_bitmap("hollowing");
     }
 
     // create control
@@ -607,23 +607,20 @@ void ObjectList::msw_rescale_icons()
 
     // Update CATEGORY_ICON according to new scale
     {
-        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
-        // see note in PresetBundle::load_compatible_bitmaps()
-
         // ptFFF
-        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
-        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
-        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
-        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
-        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap(nullptr, "funnel");
-//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
-//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
-        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap("layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap("infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap("support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap("funnel");
+        CATEGORY_ICON[L("Wipe options")]             = create_scaled_bitmap("funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap("skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap("time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap("wrench");
         // ptSLA
-        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
-        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap("support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap("pad");
     }
 }
 

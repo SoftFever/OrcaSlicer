@@ -480,19 +480,12 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
-void PresetBundle::load_compatible_bitmaps(wxWindow *window)
+void PresetBundle::load_compatible_bitmaps()
 {
-    // We don't actually pass the window pointer here and instead generate
-    // a low DPI bitmap, because the wxBitmapComboBox and wxDataViewCtrl don't support
-    // high DPI bitmaps very well, they compute their dimensions wrong.
-    // TODO: Update this when fixed in wxWidgets
-    // See also PresetCollection::load_bitmap_default() and PresetCollection::load_bitmap_add()
-
-    (void)window;
-    *m_bitmapCompatible     = create_scaled_bitmap(nullptr, "flag_green");
-    *m_bitmapIncompatible   = create_scaled_bitmap(nullptr, "flag_red");
-    *m_bitmapLock           = create_scaled_bitmap(nullptr, "lock_closed");
-    *m_bitmapLockOpen       = create_scaled_bitmap(nullptr, "lock_open");
+    *m_bitmapCompatible     = create_scaled_bitmap("flag_green");
+    *m_bitmapIncompatible   = create_scaled_bitmap("flag_red");
+    *m_bitmapLock           = create_scaled_bitmap("lock_closed");
+    *m_bitmapLockOpen       = create_scaled_bitmap("lock_open");
 
     prints       .set_bitmap_compatible(m_bitmapCompatible);
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
@@ -1560,7 +1553,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
     return true;
 }
 
-void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
+void PresetBundle::load_default_preset_bitmaps()
 {
     // Clear bitmap cache, before load new scaled default preset bitmaps 
     m_bitmapCache->clear();
@@ -1570,13 +1563,13 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->sla_materials.clear_bitmap_cache();
     this->printers.clear_bitmap_cache();
 
-    this->prints.load_bitmap_default(window, "cog");
-    this->sla_prints.load_bitmap_default(window, "cog");
-    this->filaments.load_bitmap_default(window, "spool.png");
-    this->sla_materials.load_bitmap_default(window, "resin");
-    this->printers.load_bitmap_default(window, "printer");
-    this->printers.load_bitmap_add(window, "add.png");
-    this->load_compatible_bitmaps(window);
+    this->prints.load_bitmap_default("cog");
+    this->sla_prints.load_bitmap_default("cog");
+    this->filaments.load_bitmap_default("spool.png");
+    this->sla_materials.load_bitmap_default("resin");
+    this->printers.load_bitmap_default("printer");
+    this->printers.load_bitmap_add("add.png");
+    this->load_compatible_bitmaps();
 }
 
 void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
@@ -1623,7 +1616,12 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap height to m_bitmapLock->GetHeight()
-    const int icon_height       = m_bitmapLock->GetHeight();//2 * icon_unit;    //16 * scale_f + 0.5f;
+    // Note, under OSX we should use a ScaledHeight because of Retina scale
+#ifdef __APPLE__
+    const int icon_height       = m_bitmapLock->GetScaledHeight();
+#else
+    const int icon_height       = m_bitmapLock->GetHeight();
+#endif
 
     wxString tooltip = "";
 
