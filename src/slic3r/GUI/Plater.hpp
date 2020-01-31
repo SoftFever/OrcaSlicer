@@ -193,6 +193,7 @@ public:
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reload_from_disk();
+    void reload_all_from_disk();
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void hollow();

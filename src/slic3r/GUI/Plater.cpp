@@ -1875,6 +1875,7 @@ struct Plater::priv
 	}
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void reload_from_disk();
+    void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
 
     void set_current_panel(wxPanel* panel);
@@ -2075,6 +2076,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
+    view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { if (!this->model.objects.empty()) this->reload_all_from_disk(); });
 
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
@@ -3444,6 +3446,24 @@ void Plater::priv::reload_from_disk()
     for (size_t i = 0; i < model.objects.size(); ++i)
     {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
+}
+
+void Plater::priv::reload_all_from_disk()
+{
+    Plater::TakeSnapshot snapshot(q, _(L("Reload all from disk")));
+    Plater::SuppressSnapshots suppress(q);
+
+    Selection& selection = get_selection();
+    Selection::IndicesList curr_idxs = selection.get_volume_idxs();
+    // reload from disk uses selection
+    select_all();
+    reload_from_disk();
+    // restore previous selection
+    selection.clear();
+    for (unsigned int idx : curr_idxs)
+    {
+        selection.add(idx, false);
     }
 }
 
@@ -5032,6 +5052,11 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
 void Plater::reload_from_disk()
 {
     p->reload_from_disk();
+}
+
+void Plater::reload_all_from_disk()
+{
+    p->reload_all_from_disk();
 }
 
 bool Plater::has_toolpaths_to_export() const

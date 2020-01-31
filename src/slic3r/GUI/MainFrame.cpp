@@ -578,6 +578,11 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V",
             _(L("Paste clipboard")), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "paste_menu", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
+        
+        editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _(L("Re&load from disk")) + sep + "F5",
+            _(L("Reload the plater from disk")), [this](wxCommandEvent&) { m_plater->reload_all_from_disk(); },
+            "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
     }
 
     // Window menu
