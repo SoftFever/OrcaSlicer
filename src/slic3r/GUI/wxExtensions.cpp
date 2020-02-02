@@ -66,7 +66,7 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
     const auto it = msw_menuitem_bitmaps.find(item->GetId());
     if (it != msw_menuitem_bitmaps.end())
     {
-        const wxBitmap& item_icon = create_scaled_bitmap(win, it->second, 16, !enable);
+        const wxBitmap& item_icon = create_scaled_bitmap(it->second, win, 16, !enable);
         if (item_icon.IsOk())
             item->SetBitmap(item_icon);
     }
