@@ -935,8 +935,11 @@ wxString Control::get_tooltip(IconFocus icon_focus)
             if (conflict == ctModeConflict)
                 tooltip +=  _(L("G-code of this tick has a conflict with slider(print) mode.\n"
                                 "Any its editing will cause a changes of DoubleSlider data."));
-            else if (conflict == ctMeaningless)
+            else if (conflict == ctMeaninglessColorChange)
                 tooltip +=  _(L("There is a color change for extruder that wouldn't be used till the end of printing.\n"
+                                "This code wouldn't be processed during GCode generation."));
+            else if (conflict == ctMeaninglessToolChange)
+                tooltip +=  _(L("There is a extruder change to the same extruder.\n"
                                 "This code wouldn't be processed during GCode generation."));
             else if (conflict == ctRedundant)
                 tooltip +=  _(L("There is a color change for extruder that has not been used before.\n"
@@ -1835,12 +1838,12 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
     // check ColorChange tick
     if (tick.gcode == ColorChangeCode)
     {
-        // We should mark a tick as a "Meaningless", 
+        // We should mark a tick as a "MeaninglessColorChange", 
         // if it has a ColorChange for unused extruder from current print to end of the print
         std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(tick.tick, only_extruder, print_z);
 
         if (used_extruders_for_tick.find(tick.extruder) == used_extruders_for_tick.end())
-            return ctMeaningless;
+            return ctMeaninglessColorChange;
 
         // We should mark a tick as a "Redundant", 
         // if it has a ColorChange for extruder that has not been used before
@@ -1858,6 +1861,21 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
 
             return ctRedundant;
         }
+    }
+
+    // check ToolChange tick
+    if (mode == t_mode::MultiAsSingle && tick.gcode == ToolChangeCode)
+    {
+        // We should mark a tick as a "MeaninglessToolChange", 
+        // if it has a ToolChange to the same extruder
+
+        auto it = ticks.find(tick);
+        if (it == ticks.begin())
+            return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
+
+        --it;
+        if (it->gcode == ToolChangeCode && tick.extruder == it->extruder)
+            return ctMeaninglessToolChange;
     }
 
     return ctNone;
