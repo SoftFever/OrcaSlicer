@@ -6,11 +6,6 @@
     #include <wx/wx.h>
 #endif
 
-#include "libslic3r/libslic3r.h"
-#include "libslic3r/Config.hpp"
-
-#include "GUI.hpp"
-
 namespace Slic3r { namespace GUI {
 
 class BitmapCache
@@ -40,6 +35,8 @@ public:
 	/*static */wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling = false);
 	/*static */wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }
 	/*static */wxBitmap mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
+
+	static bool                 parse_color(const std::string& scolor, unsigned char* rgb_out);
 
 private:
     std::map<std::string, wxBitmap*>	m_map;

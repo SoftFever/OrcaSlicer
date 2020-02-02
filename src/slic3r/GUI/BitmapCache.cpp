@@ -2,6 +2,8 @@
 
 #include "libslic3r/Utils.hpp"
 #include "../Utils/MacDarkMode.hpp"
+#include "GUI.hpp"
+
 #include <boost/filesystem.hpp>
 
 #if ! defined(WIN32) && ! defined(__APPLE__)
@@ -347,6 +349,31 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
         *imgalpha ++ = transparency;
     }
     return wxImage_to_wxBitmap_with_alpha(std::move(image), scale);
+}
+
+
+static inline int hex_digit_to_int(const char c)
+{
+    return
+        (c >= '0' && c <= '9') ? int(c - '0') :
+        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
+        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
+}
+
+bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
+{
+    rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
+    if (scolor.size() != 7 || scolor.front() != '#')
+        return false;
+    const char* c = scolor.data() + 1;
+    for (size_t i = 0; i < 3; ++i) {
+        int digit1 = hex_digit_to_int(*c++);
+        int digit2 = hex_digit_to_int(*c++);
+        if (digit1 == -1 || digit2 == -1)
+            return false;
+        rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
+    }
+    return true;
 }
 
 } // namespace GUI

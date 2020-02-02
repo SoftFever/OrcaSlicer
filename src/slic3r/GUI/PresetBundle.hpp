@@ -129,8 +129,6 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible(bool select_other_if_incompatible);
 
-    static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
-
     void                        load_default_preset_bitmaps();
 
     // Set the is_visible flag for printer vendors, printer models and printer variants

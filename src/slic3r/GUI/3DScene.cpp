@@ -10,7 +10,7 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/GCode/Analyzer.hpp"
-#include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/BitmapCache.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 
@@ -792,14 +792,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     for (unsigned int i = 0; i < colors_count; ++i)
     {
         const std::string& txt_color = config->opt_string("extruder_colour", i);
-        if (PresetBundle::parse_color(txt_color, rgb))
+        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
         {
             colors[i].set(txt_color, rgb);
         }
         else
         {
             const std::string& txt_color = config->opt_string("filament_colour", i);
-            if (PresetBundle::parse_color(txt_color, rgb))
+            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
                 colors[i].set(txt_color, rgb);
         }
     }
