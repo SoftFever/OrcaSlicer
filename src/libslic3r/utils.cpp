@@ -585,8 +585,8 @@ std::string string_printf(const char *format, ...)
     va_list args2;
     va_copy(args2, args1);
     
-    static const size_t INITIAL_LEN = 1024;
-    std::vector<char> buffer(INITIAL_LEN, '\0');
+    static const size_t INITIAL_LEN = 200;
+    std::string buffer(INITIAL_LEN, '\0');
     
     int bufflen = ::vsnprintf(buffer.data(), INITIAL_LEN - 1, format, args1);
     
@@ -595,7 +595,9 @@ std::string string_printf(const char *format, ...)
         ::vsnprintf(buffer.data(), buffer.size(), format, args2);
     }
     
-    return std::string(buffer.begin(), buffer.begin() + bufflen);
+    buffer.resize(bufflen);
+    
+    return buffer;
 }
 
 std::string header_slic3r_generated()
