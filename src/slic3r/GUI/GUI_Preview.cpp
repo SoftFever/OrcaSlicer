@@ -591,6 +591,11 @@ void Preview::create_double_slider()
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
+    m_canvas_widget->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& event) {
+        if (event.GetKeyCode() == WXK_SHIFT)
+            m_slider->UseDefaultColors(true);
+        event.Skip();
+    });
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
 
@@ -776,6 +781,8 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
     }
     else if (key == 'S')
         m_slider->ChangeOneLayerLock();
+    else if (key == WXK_SHIFT)
+        m_slider->UseDefaultColors(false);
     else
         event.Skip();
 }

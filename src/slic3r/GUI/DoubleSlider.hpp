@@ -67,12 +67,14 @@ class TickCodeInfo
     std::string pause_print_msg;
     bool        m_suppress_plus     = false;
     bool        m_suppress_minus    = false;
+    bool        m_use_default_colors= false;
+    int         m_default_color_idx = 0;
 
     std::string get_color_for_tick(TickCode tick, const std::string& code, const int extruder);
 
 public:
-    std::set<TickCode> ticks {};
-    t_mode              mode = t_mode::SingleExtruder;
+    std::set<TickCode>  ticks {};
+    t_mode              mode = t_mode::Undef;
 
     bool empty() const { return ticks.empty(); }
     void set_pause_print_msg(const std::string& message) { pause_print_msg = message; }
@@ -88,12 +90,13 @@ public:
 
     // Get used extruders for tick.
     // Means all extruders(tools) which will be used during printing from current tick to the end
-    std::set<int>   get_used_extruders_for_tick(int tick, int only_extruder, double print_z) const;
+    std::set<int>   get_used_extruders_for_tick(int tick, int only_extruder, double print_z, t_mode force_mode = t_mode::Undef) const;
 
     void suppress_plus (bool suppress) { m_suppress_plus = suppress; }
     void suppress_minus(bool suppress) { m_suppress_minus = suppress; }
     bool suppressed_plus () { return m_suppress_plus; }
     bool suppressed_minus() { return m_suppress_minus; }
+    void set_default_colors(bool default_colors_on)  { m_use_default_colors = default_colors_on; }
 };
 
 
@@ -186,7 +189,11 @@ public:
         m_mode = !is_one_extruder_printed_model ? t_mode::MultiExtruder :
                  only_extruder < 0              ? t_mode::SingleExtruder :
                                                   t_mode::MultiAsSingle;
+        if (!m_ticks.mode)
+            m_ticks.mode = m_mode;
         m_only_extruder = only_extruder;
+
+        UseDefaultColors(m_mode == t_mode::SingleExtruder);
     }
 
     bool is_horizontal() const      { return m_style == wxSL_HORIZONTAL; }
@@ -201,6 +208,7 @@ public:
     void OnLeftUp(wxMouseEvent& event);
     void OnEnterWin(wxMouseEvent& event) { enter_window(event, true); }
     void OnLeaveWin(wxMouseEvent& event) { enter_window(event, false); }
+    void UseDefaultColors(bool def_colors_on)   { m_ticks.set_default_colors(def_colors_on); }
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
     void OnKeyUp(wxKeyEvent &event);
