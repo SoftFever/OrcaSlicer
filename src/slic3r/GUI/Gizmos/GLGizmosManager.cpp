@@ -794,6 +794,27 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             default: { break; }
             }
         }
+        else if (m_current == Rotate)
+        {
+            auto do_rotate = [this, &processed](const Vec3d& rotation) {
+                Selection& selection = m_parent.get_selection();
+                selection.start_dragging();
+                selection.rotate(rotation, TransformationType(TransformationType::World_Relative_Joint));
+                wxGetApp().obj_manipul()->set_dirty();
+                m_parent.do_rotate(L("Gizmo-Rotate"));
+                m_parent.set_as_dirty();
+                processed = true;
+            };
+
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
+            case WXK_NUMPAD_UP:    case WXK_UP:    { do_rotate(Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            case WXK_NUMPAD_DOWN:  case WXK_DOWN:  { do_rotate(-Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            default: { break; }
+            }
+        }
 
 //        if (processed)
 //            m_parent.set_cursor(GLCanvas3D::Standard);
