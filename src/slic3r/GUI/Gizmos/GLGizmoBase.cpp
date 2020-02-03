@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 
 
@@ -301,6 +304,88 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	b ^= 0x55;
 	return b;
 }
+
+
+
+bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* model_object)
+{
+    recent_update = false;
+
+    if (m_model_object != model_object
+    || (model_object && m_model_object_id != model_object->id())) {
+        m_model_object = model_object;
+        m_print_object_idx = -1;
+        m_mesh_raycaster.reset();
+        m_object_clipper.reset();
+        m_supports_clipper.reset();
+        m_old_mesh = nullptr;
+        m_mesh = nullptr;
+        m_backend_mesh_transformed.clear();
+        if (m_model_object) {
+            m_active_instance = canvas.get_selection().get_instance_idx();
+            m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
+        }
+
+        recent_update = true;
+    }
+
+
+    if (! m_model_object || ! canvas.get_selection().is_from_single_instance())
+        return false;
+
+    int old_po_idx = m_print_object_idx;
+
+    // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
+    // cached so we don't have todo it on each render. We only search for the po if needed:
+    if (m_print_object_idx < 0 || (int)canvas.sla_print()->objects().size() != m_print_objects_count) {
+        m_print_objects_count = canvas.sla_print()->objects().size();
+        m_print_object_idx = -1;
+        for (const SLAPrintObject* po : canvas.sla_print()->objects()) {
+            ++m_print_object_idx;
+            if (po->model_object()->id() == m_model_object->id())
+                break;
+        }
+    }
+
+    m_mesh = nullptr;
+    // Load either the model_object mesh, or one provided by the backend
+    // This mesh does not account for the possible Z up SLA offset.
+    // The backend mesh needs to be transformed and because a pointer to it is
+    // saved, a copy is stored as a member (FIXME)
+    if (m_print_object_idx >=0) {
+        const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
+        if (po->is_step_done(slaposDrillHoles)) {
+            m_backend_mesh_transformed = po->get_mesh_to_print();
+            m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
+            m_mesh = &m_backend_mesh_transformed;
+        }
+    }
+
+    if (! m_mesh) {
+        m_mesh = &m_model_object->volumes.front()->mesh();
+        m_backend_mesh_transformed.clear();
+    }
+
+    m_model_object_id = m_model_object->id();
+
+    if (m_mesh != m_old_mesh) {
+        wxBusyCursor wait;
+        m_mesh_raycaster.reset(new MeshRaycaster(*m_mesh));
+        m_object_clipper.reset();
+        m_supports_clipper.reset();
+        m_old_mesh = m_mesh;
+        m_clipping_plane_distance = 0.f;
+        m_clipping_plane_distance_stash = 0.f;
+        recent_update = true;
+        return true;
+    }
+    if (! recent_update)
+        recent_update = m_print_object_idx < 0 && old_po_idx >= 0;
+
+    return m_print_object_idx < 0 ? old_po_idx >=0 : false;
+}
+
+
 
 } // namespace GUI
 } // namespace Slic3r

@@ -5133,7 +5133,7 @@ void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error
 
 void Plater::reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages)
 {
-    reslice_SLA_until_step(slaposHollowing, object, postpone_error_messages);
+    reslice_SLA_until_step(slaposDrillHoles, object, postpone_error_messages);
 }
 
 void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages)

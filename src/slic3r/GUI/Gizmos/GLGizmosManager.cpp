@@ -348,6 +348,9 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
     if (!m_enabled || m_gizmos.empty())
         return;
 
+    // Update common data for hollowing and sla support gizmos.
+    m_common_gizmos_data->update_from_backend(m_parent, model_object);
+
     dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->set_sla_support_data(model_object, m_parent.get_selection());
     dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->set_sla_support_data(model_object, m_parent.get_selection());
 }
