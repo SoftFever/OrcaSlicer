@@ -25,6 +25,9 @@ class GLGizmoCut : public GLGizmoBase
 public:
     GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
+    double get_cut_z() const { return m_cut_z; }
+    void set_cut_z(double cut_z) const;
+
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive& ar) { ar(m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower); }
@@ -40,7 +43,6 @@ protected:
 
 private:
     void update_max_z(const Selection& selection) const;
-    void set_cut_z(double cut_z) const;
     void perform_cut(const Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
 };

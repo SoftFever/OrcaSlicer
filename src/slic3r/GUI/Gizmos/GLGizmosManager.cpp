@@ -815,6 +815,22 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             default: { break; }
             }
         }
+        else if (m_current == Cut)
+        {
+            auto do_move = [this, &processed](double delta_z) {
+                GLGizmoCut* cut = dynamic_cast<GLGizmoCut*>(get_current());
+                cut->set_cut_z(delta_z + cut->get_cut_z());
+                m_parent.set_as_dirty();
+                processed = true;
+            };
+
+            switch (keyCode)
+            {
+            case WXK_NUMPAD_UP:   case WXK_UP:   { do_move(1.0); break; }
+            case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
+            default: { break; }
+            }
+        }
 
 //        if (processed)
 //            m_parent.set_cursor(GLCanvas3D::Standard);
