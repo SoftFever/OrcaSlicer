@@ -354,7 +354,7 @@ bool CommonGizmosData::update_from_backend(GLCanvas3D& canvas, ModelObject* mode
     // saved, a copy is stored as a member (FIXME)
     if (m_print_object_idx >=0) {
         const SLAPrintObject* po = canvas.sla_print()->objects()[m_print_object_idx];
-        if (po->is_step_done(slaposHollowing)) {
+        if (po->is_step_done(slaposDrillHoles)) {
             m_backend_mesh_transformed = po->get_mesh_to_print();
             m_backend_mesh_transformed.transform(canvas.sla_print()->sla_trafo(*m_model_object).inverse());
             m_mesh = &m_backend_mesh_transformed;

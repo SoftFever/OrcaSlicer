@@ -27,7 +27,7 @@ namespace {
 
 const std::array<unsigned, slaposCount> OBJ_STEP_LEVELS = {
     10, // slaposHollowing,
-    10, // slaposDrillHolesIfHollowed
+    10, // slaposDrillHoles
     10, // slaposObjectSlice,
     20, // slaposSupportPoints,
     10, // slaposSupportTree,
@@ -39,7 +39,7 @@ std::string OBJ_STEP_LABELS(size_t idx)
 {
     switch (idx) {
     case slaposHollowing:            return L("Hollowing model");
-    case slaposDrillHoles:           return L("Drilling holes into hollowed model.");
+    case slaposDrillHoles:           return L("Drilling holes into model.");
     case slaposObjectSlice:          return L("Slicing model");
     case slaposSupportPoints:        return L("Generating support points");
     case slaposSupportTree:          return L("Generating support tree");

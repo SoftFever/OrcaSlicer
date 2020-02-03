@@ -419,7 +419,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, DynamicPrintConfig con
                 if (model_object.sla_drain_holes != model_object_new.sla_drain_holes)
                 {
                     model_object.sla_drain_holes = model_object_new.sla_drain_holes;
-                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposHollowing));
+                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposDrillHoles));
                 }
 
                 // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
@@ -1101,7 +1101,7 @@ const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
     switch (step) {
-    case slaposHollowing:
+    case slaposDrillHoles:
         return m_hollowing_data && !m_hollowing_data->hollow_mesh_with_holes.empty();
     case slaposSupportTree:
         return ! this->support_mesh().empty();
@@ -1119,7 +1119,7 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
         return this->support_mesh();
     case slaposPad:
         return this->pad_mesh();
-    case slaposHollowing:
+    case slaposDrillHoles:
         if (m_hollowing_data)
             return m_hollowing_data->hollow_mesh_with_holes;
         [[fallthrough]];
