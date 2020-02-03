@@ -40,7 +40,7 @@ bool GLGizmoHollow::on_init()
 {
     m_shortcut_key = WXK_CONTROL_H;
     m_desc["enable"]           = _(L("Hollow this object"));
-    m_desc["preview"]          = _(L("Preview"));
+    m_desc["preview"]          = _(L("Preview hollowed and drilled model"));
     m_desc["offset"]           = _(L("Offset")) + ": ";
     m_desc["quality"]          = _(L("Quality")) + ": ";
     m_desc["closing_distance"] = _(L("Closing distance")) + ": ";
@@ -661,18 +661,24 @@ RENDER_AGAIN:
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float settings_sliders_left =
-      std::max(std::max(m_imgui->calc_text_size(m_desc.at("offset")).x,
-                        m_imgui->calc_text_size(m_desc.at("quality")).x),
-                        m_imgui->calc_text_size(m_desc.at("closing_distance")).x)
-                        + m_imgui->scaled(1.f);
+      std::max({m_imgui->calc_text_size(m_desc.at("offset")).x,
+               m_imgui->calc_text_size(m_desc.at("quality")).x,
+               m_imgui->calc_text_size(m_desc.at("closing_distance")).x,
+               m_imgui->calc_text_size(m_desc.at("hole_diameter")).x,
+               m_imgui->calc_text_size(m_desc.at("hole_depth")).x})
+           + m_imgui->scaled(1.f);
 
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x, m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
-    const float diameter_slider_left = m_imgui->calc_text_size(m_desc.at("hole_diameter")).x + m_imgui->scaled(1.f);
+    const float diameter_slider_left = settings_sliders_left; //m_imgui->calc_text_size(m_desc.at("hole_diameter")).x + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
-    //const float buttons_width_approx = m_imgui->calc_text_size(m_desc.at("apply_changes")).x + m_imgui->calc_text_size(m_desc.at("discard_changes")).x + m_imgui->scaled(1.5f);
 
-    float window_width = minimal_slider_width + std::max(std::max(settings_sliders_left, clipping_slider_left), diameter_slider_left);
-    window_width = std::max(std::max(window_width, /*buttons_width_approx*/0.f), 0.f);
+    float window_width = minimal_slider_width + std::max({settings_sliders_left, clipping_slider_left, diameter_slider_left});
+    window_width = std::max(window_width, m_imgui->calc_text_size(m_desc.at("preview")).x);
+
+    if (m_imgui->button(m_desc["preview"]))
+        hollow_mesh();
+
+    ImGui::Separator();
 
     {
         auto opts = get_config_options({"hollowing_enable"});
@@ -682,10 +688,6 @@ RENDER_AGAIN:
             wxGetApp().obj_list()->update_and_show_object_settings_item();
         }
     }
-
-    ImGui::SameLine();
-    if (m_imgui->button(m_desc["preview"]))
-        hollow_mesh();
 
     m_imgui->disabled_begin(! m_enable_hollowing);
 
@@ -911,7 +913,7 @@ bool GLGizmoHollow::on_is_selectable() const
 
 std::string GLGizmoHollow::on_get_name() const
 {
-    return (_(L("Hollowing")) + " [H]").ToUTF8().data();
+    return (_(L("Hollowing and drilling")) + " [H]").ToUTF8().data();
 }
 
 
