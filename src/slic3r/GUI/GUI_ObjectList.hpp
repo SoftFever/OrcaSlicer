@@ -10,6 +10,7 @@
 
 #include "Event.hpp"
 #include "wxExtensions.hpp"
+#include "ObjectDataViewModel.hpp"
 
 class wxBoxSizer;
 class wxBitmapComboBox;

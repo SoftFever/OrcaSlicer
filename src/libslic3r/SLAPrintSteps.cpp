@@ -26,9 +26,9 @@ namespace Slic3r {
 namespace {
 
 const std::array<unsigned, slaposCount> OBJ_STEP_LEVELS = {
-    5,  // slaposHollowing,
-    20, // slaposObjectSlice,
-    5,  // slaposDrillHolesIfHollowed
+    10, // slaposHollowing,
+    10, // slaposDrillHolesIfHollowed
+    10, // slaposObjectSlice,
     20, // slaposSupportPoints,
     10, // slaposSupportTree,
     10, // slaposPad,
@@ -38,9 +38,9 @@ const std::array<unsigned, slaposCount> OBJ_STEP_LEVELS = {
 std::string OBJ_STEP_LABELS(size_t idx)
 {
     switch (idx) {
-    case slaposHollowing:            return L("Hollowing and drilling holes");
+    case slaposHollowing:            return L("Hollowing model");
+    case slaposDrillHoles:           return L("Drilling holes into hollowed model.");
     case slaposObjectSlice:          return L("Slicing model");
-    case slaposDrillHolesIfHollowed: return L("Drilling holes into hollowed model.");
     case slaposSupportPoints:        return L("Generating support points");
     case slaposSupportTree:          return L("Generating support tree");
     case slaposPad:                  return L("Generating pad");
@@ -80,55 +80,67 @@ SLAPrint::Steps::Steps(SLAPrint *print)
 void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 {
     po.m_hollowing_data.reset();
-    if (! po.m_config.hollowing_enable.getBool())
-        BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";    
-    else {
-        BOOST_LOG_TRIVIAL(info) << "Performing hollowing step!";
-
-        double thickness = po.m_config.hollowing_min_thickness.getFloat();
-        double quality  = po.m_config.hollowing_quality.getFloat();
-        double closing_d = po.m_config.hollowing_closing_distance.getFloat();
-        sla::HollowingConfig hlwcfg{thickness, quality, closing_d};
-        auto meshptr = generate_interior(po.transformed_mesh(), hlwcfg);
-
-        if (meshptr->empty())
-            BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
-        else {
-            po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
-            po.m_hollowing_data->interior = *meshptr;
-            auto &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
-            hollowed_mesh = po.transformed_mesh();
-            hollowed_mesh.merge(po.m_hollowing_data->interior);
-            hollowed_mesh.require_shared_vertices();
-        }
+    if (! po.m_config.hollowing_enable.getBool()) {
+        BOOST_LOG_TRIVIAL(info) << "Skipping hollowing step!";
+        return;
     }
+    
+    BOOST_LOG_TRIVIAL(info) << "Performing hollowing step!";
 
-    // Drill holes into the hollowed/original mesh.
-    if (po.m_model_object->sla_drain_holes.empty())
-        BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
+    double thickness = po.m_config.hollowing_min_thickness.getFloat();
+    double quality  = po.m_config.hollowing_quality.getFloat();
+    double closing_d = po.m_config.hollowing_closing_distance.getFloat();
+    sla::HollowingConfig hlwcfg{thickness, quality, closing_d};
+    auto meshptr = generate_interior(po.transformed_mesh(), hlwcfg);
+
+    if (meshptr->empty())
+        BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
     else {
-        BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
-        sla::DrainHoles drainholes = po.transformed_drainhole_points();
-
-        TriangleMesh holes_mesh;
-
-        for (const sla::DrainHole &holept : drainholes)
-            holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
-
-        holes_mesh.require_shared_vertices();
-        MeshBoolean::self_union(holes_mesh); //FIXME-fix and use the cgal version
-
-        // If there is no hollowed mesh yet, copy the original mesh.
-        if (! po.m_hollowing_data) {
-            po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
-            po.m_hollowing_data->hollow_mesh_with_holes = po.transformed_mesh();
-        }
-
-        TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
-        hollowed_mesh = po.get_mesh_to_print();
-        MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+        po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+        po.m_hollowing_data->interior = *meshptr;
+        auto &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
+        hollowed_mesh = po.transformed_mesh();
+        hollowed_mesh.merge(po.m_hollowing_data->interior);
         hollowed_mesh.require_shared_vertices();
     }
+}
+
+void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
+{
+    // Drill holes into the hollowed/original mesh.
+    if (po.m_model_object->sla_drain_holes.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Drilling skipped (no holes).";
+        return;
+    }
+    
+    BOOST_LOG_TRIVIAL(info) << "Drilling drainage holes.";
+    sla::DrainHoles drainholes = po.transformed_drainhole_points();
+    
+    TriangleMesh holes_mesh;
+    
+    for (const sla::DrainHole &holept : drainholes)
+        holes_mesh.merge(sla::to_triangle_mesh(holept.to_mesh()));
+    
+    holes_mesh.require_shared_vertices();
+    MeshBoolean::cgal::self_union(holes_mesh); //FIXME-fix and use the cgal version
+    
+    // If there is no hollowed mesh yet, copy the original mesh.
+    if (! po.m_hollowing_data) {
+        po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
+        po.m_hollowing_data->hollow_mesh_with_holes = po.transformed_mesh();
+    }
+    
+    TriangleMesh &hollowed_mesh = po.m_hollowing_data->hollow_mesh_with_holes;
+    
+    try {
+        MeshBoolean::cgal::minus(hollowed_mesh, holes_mesh);
+    } catch (const std::runtime_error &ex) {
+        throw std::runtime_error(L(
+            "Drilling holes into the mesh failed. "
+            "This is usually caused by broken model. Try to fix it first."));
+    }
+
+    hollowed_mesh.require_shared_vertices();
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from
@@ -850,8 +862,8 @@ void SLAPrint::Steps::execute(SLAPrintObjectStep step, SLAPrintObject &obj)
 {
     switch(step) {
     case slaposHollowing: hollow_model(obj); break;
+    case slaposDrillHoles: drill_holes(obj); break;
     case slaposObjectSlice: slice_model(obj); break;
-    case slaposDrillHolesIfHollowed: break;
     case slaposSupportPoints:  support_points(obj); break;
     case slaposSupportTree: support_tree(obj); break;
     case slaposPad: generate_pad(obj); break;

@@ -313,10 +313,10 @@ public:
     bool            delete_preset(const std::string& name);
 
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
-    void            load_bitmap_default(wxWindow *window, const std::string &file_name);
+    void            load_bitmap_default(const std::string &file_name);
 
     // Load "add new printer" bitmap to be placed at the wxBitmapComboBox of a MainFrame.
-    void            load_bitmap_add(wxWindow *window, const std::string &file_name);
+    void            load_bitmap_add(const std::string &file_name);
 
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
     void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }

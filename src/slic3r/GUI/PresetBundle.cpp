@@ -480,19 +480,12 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
-void PresetBundle::load_compatible_bitmaps(wxWindow *window)
+void PresetBundle::load_compatible_bitmaps()
 {
-    // We don't actually pass the window pointer here and instead generate
-    // a low DPI bitmap, because the wxBitmapComboBox and wxDataViewCtrl don't support
-    // high DPI bitmaps very well, they compute their dimensions wrong.
-    // TODO: Update this when fixed in wxWidgets
-    // See also PresetCollection::load_bitmap_default() and PresetCollection::load_bitmap_add()
-
-    (void)window;
-    *m_bitmapCompatible     = create_scaled_bitmap(nullptr, "flag_green");
-    *m_bitmapIncompatible   = create_scaled_bitmap(nullptr, "flag_red");
-    *m_bitmapLock           = create_scaled_bitmap(nullptr, "lock_closed");
-    *m_bitmapLockOpen       = create_scaled_bitmap(nullptr, "lock_open");
+    *m_bitmapCompatible     = create_scaled_bitmap("flag_green");
+    *m_bitmapIncompatible   = create_scaled_bitmap("flag_red");
+    *m_bitmapLock           = create_scaled_bitmap("lock_closed");
+    *m_bitmapLockOpen       = create_scaled_bitmap("lock_open");
 
     prints       .set_bitmap_compatible(m_bitmapCompatible);
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
@@ -1536,31 +1529,7 @@ void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
     filament_presets[idx] = Preset::remove_suffix_modified(name);
 }
 
-static inline int hex_digit_to_int(const char c)
-{
-    return 
-        (c >= '0' && c <= '9') ? int(c - '0') : 
-        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
-        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
-}
-
-bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out)
-{
-    rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
-    if (scolor.size() != 7 || scolor.front() != '#')
-        return false;
-    const char *c = scolor.data() + 1;
-    for (size_t i = 0; i < 3; ++ i) {
-        int digit1 = hex_digit_to_int(*c ++);
-        int digit2 = hex_digit_to_int(*c ++);
-        if (digit1 == -1 || digit2 == -1)
-            return false;
-        rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
-    }
-    return true;
-}
-
-void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
+void PresetBundle::load_default_preset_bitmaps()
 {
     // Clear bitmap cache, before load new scaled default preset bitmaps 
     m_bitmapCache->clear();
@@ -1570,13 +1539,13 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->sla_materials.clear_bitmap_cache();
     this->printers.clear_bitmap_cache();
 
-    this->prints.load_bitmap_default(window, "cog");
-    this->sla_prints.load_bitmap_default(window, "cog");
-    this->filaments.load_bitmap_default(window, "spool.png");
-    this->sla_materials.load_bitmap_default(window, "resin");
-    this->printers.load_bitmap_default(window, "printer");
-    this->printers.load_bitmap_add(window, "add.png");
-    this->load_compatible_bitmaps(window);
+    this->prints.load_bitmap_default("cog");
+    this->sla_prints.load_bitmap_default("cog");
+    this->filaments.load_bitmap_default("spool.png");
+    this->sla_materials.load_bitmap_default("resin");
+    this->printers.load_bitmap_default("printer");
+    this->printers.load_bitmap_add("add.png");
+    this->load_compatible_bitmaps();
 }
 
 void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
@@ -1587,7 +1556,7 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     unsigned char rgb[3];
     std::string extruder_color = this->printers.get_edited_preset().config.opt_string("extruder_colour", idx_extruder);
-    if (! parse_color(extruder_color, rgb))
+    if (!m_bitmapCache->parse_color(extruder_color, rgb))
         // Extruder color is not defined.
         extruder_color.clear();
 
@@ -1623,7 +1592,12 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
 
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap height to m_bitmapLock->GetHeight()
-    const int icon_height       = m_bitmapLock->GetHeight();//2 * icon_unit;    //16 * scale_f + 0.5f;
+    // Note, under OSX we should use a ScaledHeight because of Retina scale
+#ifdef __APPLE__
+    const int icon_height       = m_bitmapLock->GetScaledHeight();
+#else
+    const int icon_height       = m_bitmapLock->GetHeight();
+#endif
 
     wxString tooltip = "";
 
@@ -1652,10 +1626,10 @@ void PresetBundle::update_plater_filament_ui(unsigned int idx_extruder, GUI::Pre
                 // Paint a red flag for incompatible presets.
                 bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(normal_icon_width, icon_height) : *m_bitmapIncompatible);
             // Paint the color bars.
-            parse_color(filament_rgb, rgb);
+            m_bitmapCache->parse_color(filament_rgb, rgb);
             bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? wide_icon_width : normal_icon_width, icon_height, rgb));
             if (! single_bar) {
-                parse_color(extruder_rgb, rgb);
+                m_bitmapCache->parse_color(extruder_rgb, rgb);
                 bmps.emplace_back(m_bitmapCache->mksolid(thin_icon_width, icon_height, rgb));
             }
             // Paint a lock at the system presets.

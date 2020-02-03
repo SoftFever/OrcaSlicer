@@ -52,28 +52,26 @@ Control::Control( wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    const float scale_factor = get_svg_scale_factor(this);
-
     m_bmp_thumb_higher = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "right_half_circle.png") : ScalableBitmap(this, "thumb_up"));
     m_bmp_thumb_lower  = (style == wxSL_HORIZONTAL ? ScalableBitmap(this, "left_half_circle.png" ) : ScalableBitmap(this, "thumb_down"));
-    m_thumb_size = m_bmp_thumb_lower.bmp().GetSize()*(1.0/scale_factor);
+    m_thumb_size = m_bmp_thumb_lower.GetBmpSize();
 
     m_bmp_add_tick_on  = ScalableBitmap(this, "colorchange_add");
     m_bmp_add_tick_off = ScalableBitmap(this, "colorchange_add_f");
     m_bmp_del_tick_on  = ScalableBitmap(this, "colorchange_del");
     m_bmp_del_tick_off = ScalableBitmap(this, "colorchange_del_f");
-    m_tick_icon_dim = int((float)m_bmp_add_tick_on.bmp().GetSize().x / scale_factor);
+    m_tick_icon_dim = m_bmp_add_tick_on.GetBmpWidth();
 
     m_bmp_one_layer_lock_on    = ScalableBitmap(this, "lock_closed");
     m_bmp_one_layer_lock_off   = ScalableBitmap(this, "lock_closed_f");
     m_bmp_one_layer_unlock_on  = ScalableBitmap(this, "lock_open");
     m_bmp_one_layer_unlock_off = ScalableBitmap(this, "lock_open_f");
-    m_lock_icon_dim   = int((float)m_bmp_one_layer_lock_on.bmp().GetSize().x / scale_factor);
+    m_lock_icon_dim   = m_bmp_one_layer_lock_on.GetBmpWidth();
 
     m_bmp_revert               = ScalableBitmap(this, "undo");
-    m_revert_icon_dim = int((float)m_bmp_revert.bmp().GetSize().x / scale_factor);
+    m_revert_icon_dim = m_bmp_revert.GetBmpWidth();
     m_bmp_cog                  = ScalableBitmap(this, "cog");
-    m_cog_icon_dim    = int((float)m_bmp_cog.bmp().GetSize().x / scale_factor);
+    m_cog_icon_dim    = m_bmp_cog.GetBmpWidth();
 
     m_selection = ssUndef;
     m_ticks.set_pause_print_msg(_utf8(L("Place bearings in slots and resume")));
@@ -554,9 +552,9 @@ void Control::draw_ticks(wxDC& dc)
 
         // Draw icon for "Pause print" or "Custom Gcode"
         if (tick.gcode != ColorChangeCode && tick.gcode != ToolChangeCode)
-            icon = create_scaled_bitmap(this, tick.gcode == PausePrintCode ? "pause_print" : "edit_gcode");
+            icon = create_scaled_bitmap(tick.gcode == PausePrintCode ? "pause_print" : "edit_gcode");
         else if (m_ticks.is_conflict_tick(tick, m_mode, m_only_extruder, m_values[tick.tick]))
-            icon = create_scaled_bitmap(this, "error_tick");
+            icon = create_scaled_bitmap("error_tick");
 
         if (!icon.IsNull())
         {
@@ -937,8 +935,11 @@ wxString Control::get_tooltip(IconFocus icon_focus)
             if (conflict == ctModeConflict)
                 tooltip +=  _(L("G-code of this tick has a conflict with slider(print) mode.\n"
                                 "Any its editing will cause a changes of DoubleSlider data."));
-            else if (conflict == ctMeaningless)
+            else if (conflict == ctMeaninglessColorChange)
                 tooltip +=  _(L("There is a color change for extruder that wouldn't be used till the end of printing.\n"
+                                "This code wouldn't be processed during GCode generation."));
+            else if (conflict == ctMeaninglessToolChange)
+                tooltip +=  _(L("There is a extruder change to the same extruder.\n"
                                 "This code wouldn't be processed during GCode generation."));
             else if (conflict == ctRedundant)
                 tooltip +=  _(L("There is a color change for extruder that has not been used before.\n"
@@ -1028,7 +1029,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
                                                    _(L("Change extruder (N/A)"));
 
         wxMenuItem* change_extruder_menu_item = menu->AppendSubMenu(change_extruder_menu, change_extruder_menu_name, _(L("Use another extruder")));
-        change_extruder_menu_item->SetBitmap(create_scaled_bitmap(this, active_extruders[1] > 0 ? "edit_uni" : "change_extruder"));
+        change_extruder_menu_item->SetBitmap(create_scaled_bitmap(active_extruders[1] > 0 ? "edit_uni" : "change_extruder"));
 
         GUI::wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this, change_extruder_menu_item](wxUpdateUIEvent& evt) {
             enable_menu_item(evt, [this]() {return m_mode == t_mode::MultiAsSingle; }, change_extruder_menu_item, this); },
@@ -1062,7 +1063,7 @@ void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_curren
                                    from_u8((boost::format(_utf8(L("Switch code to Color change (%1%) for:"))) % ColorChangeCode).str()) : 
                                    from_u8((boost::format(_utf8(L("Add color change (%1%) for:"))) % ColorChangeCode).str());
         wxMenuItem* add_color_change_menu_item = menu->AppendSubMenu(add_color_change_menu, menu_name, "");
-        add_color_change_menu_item->SetBitmap(create_scaled_bitmap(this, "colorchange_add_m"));
+        add_color_change_menu_item->SetBitmap(create_scaled_bitmap("colorchange_add_m"));
     }
 }
 
@@ -1837,12 +1838,12 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
     // check ColorChange tick
     if (tick.gcode == ColorChangeCode)
     {
-        // We should mark a tick as a "Meaningless", 
+        // We should mark a tick as a "MeaninglessColorChange", 
         // if it has a ColorChange for unused extruder from current print to end of the print
         std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(tick.tick, only_extruder, print_z);
 
         if (used_extruders_for_tick.find(tick.extruder) == used_extruders_for_tick.end())
-            return ctMeaningless;
+            return ctMeaninglessColorChange;
 
         // We should mark a tick as a "Redundant", 
         // if it has a ColorChange for extruder that has not been used before
@@ -1860,6 +1861,21 @@ ConflictType TickCodeInfo::is_conflict_tick(const TickCode& tick, t_mode out_mod
 
             return ctRedundant;
         }
+    }
+
+    // check ToolChange tick
+    if (mode == t_mode::MultiAsSingle && tick.gcode == ToolChangeCode)
+    {
+        // We should mark a tick as a "MeaninglessToolChange", 
+        // if it has a ToolChange to the same extruder
+
+        auto it = ticks.find(tick);
+        if (it == ticks.begin())
+            return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
+
+        --it;
+        if (it->gcode == ToolChangeCode && tick.extruder == it->extruder)
+            return ctMeaninglessToolChange;
     }
 
     return ctNone;

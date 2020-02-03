@@ -44,6 +44,7 @@ public:
     Steps(SLAPrint *print);
     
     void hollow_model(SLAPrintObject &po);
+    void drill_holes (SLAPrintObject &po);
     void slice_model(SLAPrintObject& po);
     void support_points(SLAPrintObject& po);
     void support_tree(SLAPrintObject& po);

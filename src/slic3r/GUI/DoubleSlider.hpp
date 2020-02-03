@@ -43,7 +43,8 @@ enum ConflictType
 {
     ctNone,
     ctModeConflict,
-    ctMeaningless,
+    ctMeaninglessColorChange,
+    ctMeaninglessToolChange,
     ctRedundant
 };
 

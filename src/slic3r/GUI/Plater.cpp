@@ -169,7 +169,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
-    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap(parent, "exclamation"));
+    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("exclamation"));
     auto *sizer_manifold = new wxBoxSizer(wxHORIZONTAL);
     sizer_manifold->Add(info_manifold_text, 0);
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
@@ -188,7 +188,7 @@ void ObjectInfo::show_sizer(bool show)
 
 void ObjectInfo::msw_rescale()
 {
-    manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
+    manifold_warning_icon->SetBitmap(create_scaled_bitmap("exclamation"));
 }
 
 enum SlicedInfoIdx
@@ -258,7 +258,7 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
+PresetBitmapComboBox(parent, wxSize(15 * wxGetApp().em_unit(), -1)),
     preset_type(preset_type),
     last_selected(wxNOT_FOUND),
     m_em_unit(wxGetApp().em_unit())
@@ -1875,6 +1875,7 @@ struct Plater::priv
 	}
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void reload_from_disk();
+    void reload_all_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
 
     void set_current_panel(wxPanel* panel);
@@ -2075,6 +2076,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
+    view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { if (!this->model.objects.empty()) this->reload_all_from_disk(); });
 
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
@@ -3444,6 +3446,24 @@ void Plater::priv::reload_from_disk()
     for (size_t i = 0; i < model.objects.size(); ++i)
     {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
+}
+
+void Plater::priv::reload_all_from_disk()
+{
+    Plater::TakeSnapshot snapshot(q, _(L("Reload all from disk")));
+    Plater::SuppressSnapshots suppress(q);
+
+    Selection& selection = get_selection();
+    Selection::IndicesList curr_idxs = selection.get_volume_idxs();
+    // reload from disk uses selection
+    select_all();
+    reload_from_disk();
+    // restore previous selection
+    selection.clear();
+    for (unsigned int idx : curr_idxs)
+    {
+        selection.add(idx, false);
     }
 }
 
@@ -5032,6 +5052,11 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
 void Plater::reload_from_disk()
 {
     p->reload_from_disk();
+}
+
+void Plater::reload_all_from_disk()
+{
+    p->reload_all_from_disk();
 }
 
 bool Plater::has_toolpaths_to_export() const

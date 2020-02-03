@@ -147,6 +147,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Mouse3DController.hpp
     GUI/DoubleSlider.cpp
     GUI/DoubleSlider.hpp
+    GUI/ObjectDataViewModel.cpp
+    GUI/ObjectDataViewModel.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
