@@ -40,6 +40,9 @@ class GCodePreviewData;
 struct ThumbnailData;
 #endif // ENABLE_THUMBNAIL_GENERATOR
 struct SlicingParameters;
+#if ENABLE_SHOW_SCENE_LABELS
+struct PrintInstance;
+#endif // ENABLE_SHOW_SCENE_LABELS
 enum LayerHeightEditActionType : unsigned int;
 
 namespace GUI {
@@ -385,7 +388,7 @@ private:
         void enable(bool enable) { m_enabled = enable; }
         void show(bool show);
         bool is_shown() const;
-        void render() const;
+        void render(const std::vector<const PrintInstance*>& sorted_instances) const;
     };
 #endif // ENABLE_SHOW_SCENE_LABELS
 

@@ -6,6 +6,9 @@
 #include "polypartition.h"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#if ENABLE_SHOW_SCENE_LABELS
+#include "libslic3r/GCode.hpp"
+#endif // ENABLE_SHOW_SCENE_LABELS
 #include "libslic3r/GCode/PreviewData.hpp"
 #if ENABLE_THUMBNAIL_GENERATOR
 #include "libslic3r/GCode/ThumbnailData.hpp"
@@ -1250,7 +1253,7 @@ bool GLCanvas3D::Labels::is_shown() const
     return wxGetApp().app_config->get("show_labels") == "1";
 }
 
-void GLCanvas3D::Labels::render() const
+void GLCanvas3D::Labels::render(const std::vector<const PrintInstance*>& sorted_instances) const
 {
     if (!m_enabled || !is_shown())
         return;
@@ -1268,47 +1271,59 @@ void GLCanvas3D::Labels::render() const
     {
         int obj_idx;
         int inst_idx;
+        size_t model_instance_id;
         BoundingBoxf3 world_box;
         double eye_center_z;
-        std::string id_str;
-        std::string instance_str;
+        std::string title;
+        std::string label;
+        std::string print_order;
         bool selected;
     };
 
-    // collect world bounding boxes from volumes
+    // collect owners world bounding boxes and data from volumes
     std::vector<Owner> owners;
     const GLVolumeCollection& volumes = m_canvas.get_volumes();
-    for (const GLVolume* volume : volumes.volumes)
-    {
+    for (const GLVolume* volume : volumes.volumes) {
         int obj_idx = volume->object_idx();
-        if ((0 <= obj_idx) && (obj_idx < (int)model->objects.size()))
-        {
+        if (0 <= obj_idx && obj_idx < (int)model->objects.size()) {
             int inst_idx = volume->instance_idx();
             std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [obj_idx, inst_idx](const Owner& owner) {
                 return (owner.obj_idx == obj_idx) && (owner.inst_idx == inst_idx);
                 });
-            if (it != owners.end())
-            {
+            if (it != owners.end()) {
                 it->world_box.merge(volume->transformed_bounding_box());
                 it->selected &= volume->selected;
-            }
-            else
-            {
+            } else {
+                const ModelObject* model_object = model->objects[obj_idx];
                 Owner owner;
                 owner.obj_idx = obj_idx;
                 owner.inst_idx = inst_idx;
+                owner.model_instance_id = model_object->instances[inst_idx]->id().id;
                 owner.world_box = volume->transformed_bounding_box();
+                owner.title = "object" + std::to_string(obj_idx) + "_inst##" + std::to_string(inst_idx);
+                owner.label = model_object->name;
+                if (model_object->instances.size() > 1)
+                    owner.label += " (" + std::to_string(inst_idx + 1) + ")";
                 owner.selected = volume->selected;
-                owner.id_str = "object" + std::to_string(obj_idx) + "_inst##" + std::to_string(inst_idx);
-                owner.instance_str = _(L("Instance ")) + std::to_string(inst_idx + 1);
                 owners.push_back(owner);
             }
         }
     }
 
+    // updates print order strings
+    if (sorted_instances.size() > 1) {
+        for (int i = 0; i < sorted_instances.size(); ++i) {
+            size_t id = sorted_instances[i]->model_instance->id().id;
+            std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [id](const Owner& owner) {
+                return owner.model_instance_id == id;
+                });
+            if (it != owners.end())
+                it->print_order = _(L("Seq.")) + "#: " + std::to_string(i + 1);
+        }
+    }
+
     // calculate eye bounding boxes center zs
-    for (Owner& owner : owners)
-    {
+    for (Owner& owner : owners) {
         owner.eye_center_z = (world_to_eye * owner.world_box.center())(2);
     }
 
@@ -1325,45 +1340,45 @@ void GLCanvas3D::Labels::render() const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     // render info windows
-    for (const Owner& owner : owners)
-    {
+    for (const Owner& owner : owners) {
         Vec3d screen_box_center = world_to_screen * owner.world_box.center();
         float x = 0.0f;
         float y = 0.0f;
-        if (camera.get_type() == Camera::Perspective)
-        {
+        if (camera.get_type() == Camera::Perspective) {
             x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
             y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
-        }
-        else
-        {
+        } else {
             x = (0.5f + 0.5f * (float)screen_box_center(0)) * viewport[2];
             y = (0.5f - 0.5f * (float)screen_box_center(1)) * viewport[3];
         }
 
-        if ((x < 0.0f) || (viewport[2] < x) || (y < 0.0f) || (viewport[3] < y))
+        if (x < 0.0f || viewport[2] < x || y < 0.0f || viewport[3] < y)
             continue;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, owner.selected ? 3.0f : 1.5f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_Border, owner.selected ? ImVec4(0.757f, 0.404f, 0.216f, 1.0f) : ImVec4(0.75f, 0.75f, 0.75f, 1.0f));
         imgui.set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.5f);
-        imgui.begin(owner.id_str, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        imgui.begin(owner.title, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         float win_w = ImGui::GetWindowWidth();
-        std::string object_str = model->objects[owner.obj_idx]->name;
-        float object_str_len = imgui.calc_text_size(object_str).x;
-        ImGui::SetCursorPosX(0.5f * (win_w - object_str_len));
+        float label_len = imgui.calc_text_size(owner.label).x;
+        ImGui::SetCursorPosX(0.5f * (win_w - label_len));
         ImGui::AlignTextToFramePadding();
-        imgui.text(object_str);
-        float instance_str_len = imgui.calc_text_size(owner.instance_str).x;
-        ImGui::SetCursorPosX(0.5f * (win_w - instance_str_len));
-        ImGui::AlignTextToFramePadding();
-        imgui.text(owner.instance_str);
+        imgui.text(owner.label);
+
+        if (!owner.print_order.empty())
+        {
+            ImGui::Separator();
+            float po_len = imgui.calc_text_size(owner.print_order).x;
+            ImGui::SetCursorPosX(0.5f * (win_w - po_len));
+            ImGui::AlignTextToFramePadding();
+            imgui.text(owner.print_order);
+        }
 
         // force re-render while the windows gets to its final size (it takes several frames)
         float content_w = 1 + ImGui::GetWindowContentRegionWidth();
-        if ((content_w <= object_str_len) || (content_w <= instance_str_len))
+        if (content_w <= label_len)
             m_canvas.request_extra_frame();
 
         imgui.end();
@@ -4904,7 +4919,15 @@ void GLCanvas3D::_render_overlays() const
         m_layers_editing.render_overlay(*this);
 
 #if ENABLE_SHOW_SCENE_LABELS
-    m_labels.render();
+    const ConfigOptionBool* opt = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"));
+    bool sequential_print = (opt != nullptr) ? m_config->opt_bool("complete_objects") : false;
+    std::vector<const PrintInstance*> sorted_instances;
+    if (sequential_print) {
+        const Print* print = fff_print();
+        if (print != nullptr)
+            sorted_instances = sort_object_instances_by_model_order(*print);
+    }
+    m_labels.render(sorted_instances);
 #endif // ENABLE_SHOW_SCENE_LABELS
 
     glsafe(::glPopMatrix());

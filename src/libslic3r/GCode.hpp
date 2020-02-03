@@ -418,6 +418,10 @@ private:
     friend class WipeTowerIntegration;
 };
 
+#if ENABLE_SHOW_SCENE_LABELS
+std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print);
+#endif // ENABLE_SHOW_SCENE_LABELS
+
 }
 
 #endif
