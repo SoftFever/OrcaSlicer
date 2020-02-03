@@ -776,6 +776,18 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                     processed = true;
             }
         }
+
+//        if (processed)
+//            m_parent.set_cursor(GLCanvas3D::Standard);
+    }
+    else if (evt.GetEventType() == wxEVT_KEY_DOWN)
+    {
+        if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT))
+          && dynamic_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
+        {
+//            m_parent.set_cursor(GLCanvas3D::Cross);
+            processed = true;
+        }
         else if (m_current == Move)
         {
             auto do_move = [this, &processed](const Vec3d& displacement) {
@@ -784,7 +796,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 selection.translate(displacement);
                 wxGetApp().obj_manipul()->set_dirty();
                 m_parent.do_move(L("Gizmo-Move"));
-                m_parent.set_as_dirty();
                 processed = true;
             };
 
@@ -805,16 +816,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 selection.rotate(rotation, TransformationType(TransformationType::World_Relative_Joint));
                 wxGetApp().obj_manipul()->set_dirty();
                 m_parent.do_rotate(L("Gizmo-Rotate"));
-                m_parent.set_as_dirty();
                 processed = true;
             };
 
             switch (keyCode)
             {
-            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
-            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-Vec3d(0.0, 0.0, 0.5 * M_PI)); break; }
-            case WXK_NUMPAD_UP:    case WXK_UP:    { do_rotate(Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
-            case WXK_NUMPAD_DOWN:  case WXK_DOWN:  { do_rotate(-Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            case WXK_NUMPAD_LEFT:  case WXK_LEFT:  { do_rotate(Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
+            case WXK_NUMPAD_RIGHT: case WXK_RIGHT: { do_rotate(-Vec3d(0.0, 0.0, 0.25 * M_PI)); break; }
             default: { break; }
             }
         }
@@ -823,7 +831,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             auto do_move = [this, &processed](double delta_z) {
                 GLGizmoCut* cut = dynamic_cast<GLGizmoCut*>(get_current());
                 cut->set_cut_z(delta_z + cut->get_cut_z());
-                m_parent.set_as_dirty();
                 processed = true;
             };
 
@@ -833,18 +840,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
             default: { break; }
             }
-        }
-
-//        if (processed)
-//            m_parent.set_cursor(GLCanvas3D::Standard);
-    }
-    else if (evt.GetEventType() == wxEVT_KEY_DOWN)
-    {
-        if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT))
-          && dynamic_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
-        {
-//            m_parent.set_cursor(GLCanvas3D::Cross);
-            processed = true;
         }
     }
 
